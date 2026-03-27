@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolamu — La Santé Simple et Accessible</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bleu:       #0A2463;
+            --bleu-vif:   #2E86FF;
+            --vert:       #00C9A7;
+            --vert-clair: #E6FBF7;
+            --bleu-pale:  #F4F8FF;
+            --texte:      #0A2463;
+            --texte-doux: #5A6E8C;
+            --blanc:      #ffffff;
+            --grad-hero:  linear-gradient(135deg, #0A2463 0%, #1a3a7a 45%, #00C9A7 100%);
+            --grad-btn:   linear-gradient(135deg, #2E86FF, #00C9A7);
+            --grad-card:  linear-gradient(135deg, #0A2463, #2E86FF);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior:smooth; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--texte);
+            background: var(--blanc);
+            overflow-x: hidden;
+        }
+
+        .logo-svg { display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .logo-icon {
+            width:40px; height:40px;
+            background: var(--grad-btn);
+            border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            position:relative; flex-shrink:0;
+        }
+        .logo-icon::after { content:'+'; color:white; font-size:22px; font-weight:300; line-height:1; }
+        .logo-leaf {
+            position:absolute; top:-4px; right:-2px;
+            width:12px; height:12px; background:#00C9A7;
+            border-radius:50% 0 50% 0; transform:rotate(45deg);
+        }
+        .logo-text-wrap { display:flex; flex-direction:column; }
+        .logo-name { font-family:'Plus Jakarta Sans',sans-serif; font-size:22px; font-weight:800; letter-spacing:-0.5px; line-height:1; }
+        .logo-name-blue { color:var(--bleu); }
+        .logo-name-teal { color:var(--vert); }
+        .logo-tagline { font-size:10px; font-weight:500; color:var(--texte-doux); letter-spacing:0.5px; text-transform:uppercase; }
+
+        nav {
+            position:fixed; top:0; width:100%; z-index:100;
+            padding:16px 60px;
+            display:flex; align-items:center; justify-content:space-between;
+            background:rgba(255,255,255,0.96);
+            backdrop-filter:blur(12px);
+            border-bottom:1px solid rgba(10,36,99,0.08);
+            box-shadow:0 2px 20px rgba(10,36,99,0.06);
+        }
+        .nav-links { display:flex; gap:32px; list-style:none; }
+        .nav-links a { text-decoration:none; color:var(--texte-doux); font-size:14px; font-weight:500; transition:color 0.2s; }
+        .nav-links a:hover { color:var(--bleu); }
+        .nav-cta { display:flex; gap:10px; }
+
+        .btn-outline {
+            padding:10px 22px; border:2px solid var(--bleu); color:var(--bleu);
+            border-radius:50px; font-size:13px; font-weight:600;
+            cursor:pointer; background:transparent; text-decoration:none; transition:all 0.2s;
+            font-family:'Plus Jakarta Sans',sans-serif;
+        }
+        .btn-outline:hover { background:var(--bleu); color:white; }
+
+        .btn-solid {
+            padding:10px 22px; background:var(--grad-btn); color:white; border:none;
+            border-radius:50px; font-size:13px; font-weight:700;
+            cursor:pointer; text-decoration:none; transition:all 0.2s;
+            box-shadow:0 4px 16px rgba(46,134,255,0.3);
+            font-family:'Plus Jakarta Sans',sans-serif;
+        }
+        .btn-solid:hover { opacity:0.9; transform:translateY(-1px); }
+
+        .hero {
+            min-height:100vh; background:var(--grad-hero);
+            display:flex; align-items:center;
+            padding:120px 60px 80px; position:relative; overflow:hidden;
+        }
+        .hero::before {
+            content:''; position:absolute; top:-300px; right:-200px;
+            width:700px; height:700px;
+            background:radial-gradient(circle, rgba(0,201,167,0.25) 0%, transparent 65%);
+            border-radius:50%;
+        }
+        .hero::after {
+            content:''; position:absolute; bottom:-150px; left:30%;
+            width:500px; height:500px;
+            background:radial-gradient(circle, rgba(46,134,255,0.2) 0%, transparent 65%);
+            border-radius:50%;
+        }
+        .hero-content { max-width:580px; z-index:2; }
+
+        .hero-badge {
+            display:inline-flex; align-items:center; gap:8px;
+            background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
+            padding:8px 18px; border-radius:50px; color:white; font-size:13px; font-weight:500;
+            margin-bottom:28px; backdrop-filter:blur(4px);
+        }
+        .hero-badge .dot { width:8px; height:8px; background:#00C9A7; border-radius:50%; animation:pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.4);} }
+
+        .hero h1 {
+            font-family:'Fraunces',serif; font-size:66px; font-weight:900;
+            color:white; line-height:1.05; margin-bottom:24px; letter-spacing:-2px;
+        }
+        .hero h1 em { font-style:normal; color:#00C9A7; }
+
+        .hero p { font-size:18px; color:rgba(255,255,255,0.8); line-height:1.75; margin-bottom:40px; font-weight:300; }
+        .hero-actions { display:flex; gap:16px; flex-wrap:wrap; }
+
+        .btn-hero-primary {
+            padding:16px 36px; background:white; color:var(--bleu); border:none;
+            border-radius:50px; font-size:15px; font-weight:700;
+            cursor:pointer; text-decoration:none; transition:all 0.3s;
+            box-shadow:0 8px 32px rgba(0,0,0,0.2);
+            font-family:'Plus Jakarta Sans',sans-serif;
+        }
+        .btn-hero-primary:hover { transform:translateY(-3px); box-shadow:0 16px 40px rgba(0,0,0,0.3); }
+
+        .btn-hero-secondary {
+            padding:16px 36px; background:transparent; color:white;
+            border:2px solid rgba(255,255,255,0.4); border-radius:50px;
+            font-size:15px; font-weight:600; cursor:pointer; text-decoration:none; transition:all 0.3s;
+            font-family:'Plus Jakarta Sans',sans-serif;
+        }
+        .btn-hero-secondary:hover { background:rgba(255,255,255,0.1); border-color:white; }
+
+        .hero-image {
+            position:absolute; right:60px; top:50%; transform:translateY(-50%);
+            width:460px; height:540px; border-radius:28px; overflow:hidden;
+            box-shadow:0 40px 80px rgba(0,0,0,0.4); z-index:2;
+        }
+        .hero-image img { width:100%; height:100%; object-fit:cover; }
+        .hero-image-overlay {
+            position:absolute; bottom:0; left:0; right:0;
+            background:linear-gradient(transparent, rgba(10,36,99,0.92));
+            padding:28px; color:white;
+        }
+        .hero-image-overlay p { font-size:13px; color:rgba(255,255,255,0.8); margin-bottom:4px; }
+        .hero-image-overlay strong { font-size:17px; }
+        .verified-badge {
+            display:inline-flex; align-items:center; gap:6px;
+            background:rgba(0,201,167,0.2); border:1px solid rgba(0,201,167,0.5);
+            padding:4px 12px; border-radius:20px; font-size:12px; color:#00C9A7; font-weight:600; margin-top:8px;
+        }
+
+        .stats {
+            background:var(--bleu); padding:50px 60px;
+            display:grid; grid-template-columns:repeat(4,1fr); gap:40px;
+        }
+        .stat-item { text-align:center; color:white; }
+        .stat-number {
+            font-family:'Fraunces',serif; font-size:44px; font-weight:900;
+            color:#00C9A7; display:block; line-height:1; margin-bottom:8px;
+        }
+        .stat-label { font-size:13px; color:rgba(255,255,255,0.7); font-weight:400; line-height:1.5; }
+
+        .section { padding:100px 60px; }
+
+        .section-tag {
+            display:inline-block; background:var(--vert-clair); color:var(--vert);
+            padding:6px 16px; border-radius:50px; font-size:12px; font-weight:700;
+            margin-bottom:16px; text-transform:uppercase; letter-spacing:1.5px;
+        }
+        .section-title {
+            font-family:'Fraunces',serif; font-size:48px; font-weight:900;
+            line-height:1.1; letter-spacing:-1.5px; margin-bottom:16px;
+        }
+        .section-subtitle { font-size:17px; color:var(--texte-doux); line-height:1.75; max-width:580px; font-weight:300; }
+
+        .how-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:60px; }
+        .how-card {
+            background:var(--bleu-pale); border-radius:20px; padding:40px 32px; position:relative;
+            transition:transform 0.3s, box-shadow 0.3s; border:1px solid rgba(10,36,99,0.06);
+        }
+        .how-card:hover { transform:translateY(-8px); box-shadow:0 20px 40px rgba(10,36,99,0.12); }
+        .how-number {
+            font-family:'Fraunces',serif; font-size:80px; font-weight:900;
+            color:rgba(10,36,99,0.06); line-height:1; position:absolute; top:20px; right:24px;
+        }
+        .how-icon { font-size:44px; margin-bottom:20px; display:block; }
+        .how-card h3 { font-size:21px; font-weight:700; margin-bottom:12px; }
+        .how-card p { font-size:15px; color:var(--texte-doux); line-height:1.7; }
+
+        .plans { background:var(--bleu-pale); }
+        .plans-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:60px; align-items:start; }
+        .plan-card {
+            background:white; border-radius:24px; padding:40px 32px;
+            border:2px solid transparent; transition:all 0.3s; position:relative;
+        }
+        .plan-card:hover { border-color:var(--bleu-vif); transform:translateY(-6px); box-shadow:0 20px 50px rgba(46,134,255,0.15); }
+        .plan-card.featured { background:var(--grad-card); color:white; transform:scale(1.04); box-shadow:0 24px 60px rgba(10,36,99,0.35); }
+        .plan-badge {
+            position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+            background:linear-gradient(135deg,#f0a500,#ff6b35); color:white;
+            padding:6px 20px; border-radius:50px; font-size:12px; font-weight:700; white-space:nowrap;
+        }
+        .plan-name { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--bleu-vif); margin-bottom:12px; }
+        .plan-card.featured .plan-name { color:rgba(255,255,255,0.7); }
+        .plan-price { font-family:'Fraunces',serif; font-size:50px; font-weight:900; line-height:1; margin-bottom:4px; }
+        .plan-period { font-size:14px; color:var(--texte-doux); margin-bottom:10px; }
+        .plan-card.featured .plan-period { color:rgba(255,255,255,0.6); }
+        .plan-annual {
+            font-size:13px; color:var(--vert); font-weight:600; margin-bottom:28px;
+            padding:6px 14px; background:var(--vert-clair); border-radius:8px; display:inline-block;
+        }
+        .plan-card.featured .plan-annual { background:rgba(255,255,255,0.15); color:white; }
+        .plan-divider { height:1px; background:rgba(10,36,99,0.08); margin-bottom:24px; }
+        .plan-card.featured .plan-divider { background:rgba(255,255,255,0.15); }
+        .plan-features { list-style:none; margin-bottom:32px; }
+        .plan-features li {
+            font-size:14px; color:var(--texte-doux); padding:8px 0;
+            display:flex; align-items:flex-start; gap:10px; line-height:1.5;
+        }
+        .plan-card.featured .plan-features li { color:rgba(255,255,255,0.85); }
+        .plan-features li::before { content:'✓'; color:var(--vert); font-weight:700; font-size:15px; flex-shrink:0; margin-top:1px; }
+        .plan-card.featured .plan-features li::before { color:#00C9A7; }
+        .btn-plan {
+            width:100%; padding:14px; background:var(--grad-btn); color:white; border:none;
+            border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s;
+            text-decoration:none; display:block; text-align:center; font-family:'Plus Jakarta Sans',sans-serif;
+        }
+        .plan-card.featured .btn-plan { background:white; color:var(--bleu); }
+        .btn-plan:hover { opacity:0.9; transform:translateY(-2px); }
+
+        .actors-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:24px; margin-top:60px; }
+        .actor-card { border-radius:20px; overflow:hidden; position:relative; height:280px; cursor:pointer; transition:transform 0.3s; }
+        .actor-card:hover { transform:scale(1.02); }
+        .actor-card img { width:100%; height:100%; object-fit:cover; }
+        .actor-overlay {
+            position:absolute; bottom:0; left:0; right:0;
+            background:linear-gradient(transparent, rgba(10,36,99,0.92));
+            padding:28px; color:white;
+        }
+        .actor-tag {
+            display:inline-block; background:rgba(0,201,167,0.3); border:1px solid rgba(0,201,167,0.5);
+            padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;
+            text-transform:uppercase; letter-spacing:1px; color:#00C9A7;
+        }
+        .actor-overlay h3 { font-size:22px; font-weight:700; margin-bottom:6px; }
+        .actor-overlay p { font-size:13px; color:rgba(255,255,255,0.75); }
+
+        .prevention { background:var(--bleu-pale); }
+        .articles-grid { display:grid; grid-template-columns:2fr 1fr 1fr; gap:24px; margin-top:60px; }
+        .article-card {
+            border-radius:20px; overflow:hidden; background:white;
+            transition:transform 0.3s, box-shadow 0.3s; cursor:pointer; border:1px solid rgba(10,36,99,0.06);
+        }
+        .article-card:hover { transform:translateY(-6px); box-shadow:0 20px 40px rgba(10,36,99,0.1); }
+        .article-image { width:100%; height:200px; object-fit:cover; }
+        .article-card.featured .article-image { height:280px; }
+        .article-content { padding:24px; }
+        .article-category {
+            display:inline-block; background:var(--vert-clair); color:var(--vert);
+            padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; margin-bottom:12px;
+        }
+        .article-content h3 { font-size:18px; font-weight:700; line-height:1.4; margin-bottom:10px; }
+        .article-card.featured .article-content h3 { font-size:23px; }
+        .article-content p { font-size:14px; color:var(--texte-doux); line-height:1.65; margin-bottom:16px; }
+        .article-meta { font-size:12px; color:#aaa; display:flex; align-items:center; gap:8px; }
+
+        .groupes {
+            background:linear-gradient(135deg, var(--bleu) 0%, #1a3a7a 50%, #0d2d5a 100%);
+            padding:100px 60px; display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center;
+        }
+        .groupes-content { color:white; }
+        .groupes-content .section-tag { background:rgba(0,201,167,0.2); color:#00C9A7; }
+        .groupes-content .section-title { color:white; }
+        .groupes-content .section-subtitle { color:rgba(255,255,255,0.75); max-width:100%; }
+        .groupes-features { margin-top:40px; display:flex; flex-direction:column; gap:16px; }
+        .groupes-feature {
+            display:flex; align-items:flex-start; gap:16px;
+            background:rgba(255,255,255,0.08); padding:20px; border-radius:14px;
+            border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(4px);
+        }
+        .groupes-feature-icon { font-size:28px; flex-shrink:0; }
+        .groupes-feature-text h4 { font-size:15px; font-weight:600; color:white; margin-bottom:4px; }
+        .groupes-feature-text p { font-size:13px; color:rgba(255,255,255,0.65); }
+        .groupes-visual {
+            background:rgba(255,255,255,0.08); border-radius:24px; padding:36px;
+            backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.15);
+        }
+        .groupes-card-preview { background:white; border-radius:16px; padding:24px; margin-bottom:24px; }
+        .groupes-card-preview h4 { font-size:12px; color:var(--texte-doux); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+        .groupes-card-logo { font-family:'Plus Jakarta Sans',sans-serif; font-size:26px; font-weight:800; }
+        .groupes-card-logo .blue { color:var(--bleu); }
+        .groupes-card-logo .teal { color:var(--vert); }
+        .groupes-members-label { color:rgba(255,255,255,0.7); font-size:13px; margin-bottom:14px; }
+        .groupes-members { display:flex; gap:8px; flex-wrap:wrap; }
+        .member-avatar {
+            width:50px; height:50px; border-radius:50%; background:var(--vert-clair);
+            display:flex; align-items:center; justify-content:center; font-size:22px;
+            border:3px solid rgba(255,255,255,0.2);
+        }
+        .member-add { background:var(--grad-btn); color:white; font-size:26px; font-weight:300; border:none; }
+
+        .login-section { padding:100px 60px; display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; }
+        .login-info h2 {
+            font-family:'Fraunces',serif; font-size:48px; font-weight:900;
+            line-height:1.1; letter-spacing:-1.5px; margin-bottom:20px;
+        }
+        .login-info p { font-size:16px; color:var(--texte-doux); line-height:1.75; margin-bottom:32px; }
+        .login-steps { display:flex; flex-direction:column; gap:16px; }
+        .login-step { display:flex; align-items:center; gap:16px; }
+        .step-num {
+            width:36px; height:36px; background:var(--grad-btn); color:white;
+            border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-weight:700; font-size:14px; flex-shrink:0;
+        }
+        .step-text { font-size:15px; color:var(--texte-doux); }
+        .login-form {
+            background:white; border-radius:24px; padding:48px;
+            box-shadow:0 20px 60px rgba(10,36,99,0.1); border:1px solid rgba(10,36,99,0.07);
+        }
+        .login-form h3 { font-family:'Fraunces',serif; font-size:28px; font-weight:900; margin-bottom:6px; }
+        .login-form > p { font-size:14px; color:var(--texte-doux); margin-bottom:28px; }
+        .user-types { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:24px; }
+        .user-type-btn {
+            padding:12px 8px; border:2px solid rgba(10,36,99,0.1); border-radius:12px; background:white;
+            cursor:pointer; text-align:center; transition:all 0.2s; font-size:13px; color:var(--texte-doux);
+            font-weight:500; font-family:'Plus Jakarta Sans',sans-serif;
+        }
+        .user-type-btn:hover { border-color:var(--bleu-vif); color:var(--bleu); }
+        .user-type-btn.active { border-color:var(--bleu-vif); background:var(--bleu-pale); color:var(--bleu); font-weight:700; }
+        .user-type-btn .icon { font-size:22px; display:block; margin-bottom:4px; }
+        label { display:block; font-size:13px; font-weight:600; color:var(--texte); margin-bottom:8px; }
+        input[type="tel"] {
+            width:100%; padding:14px 16px; border:2px solid rgba(10,36,99,0.1); border-radius:12px;
+            font-size:16px; font-family:'Plus Jakarta Sans',sans-serif; transition:border-color 0.2s;
+            margin-bottom:16px; color:var(--texte);
+        }
+        input[type="tel"]:focus { outline:none; border-color:var(--bleu-vif); }
+        .btn-login {
+            width:100%; padding:16px; background:var(--grad-btn); color:white; border:none;
+            border-radius:12px; font-size:15px; font-weight:700; cursor:pointer;
+            font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.2s;
+        }
+        .btn-login:hover { opacity:0.9; transform:translateY(-2px); box-shadow:0 8px 24px rgba(46,134,255,0.3); }
+        .otp-section { display:none; margin-top:16px; }
+        .otp-inputs { display:flex; gap:8px; justify-content:center; margin-bottom:16px; }
+        .otp-inputs input { width:52px; height:58px; text-align:center; font-size:24px; font-weight:700; margin-bottom:0; padding:0; border-radius:12px; }
+        .message { padding:12px 16px; border-radius:10px; font-size:14px; margin-top:12px; display:none; text-align:center; }
+        .message.success { background:var(--vert-clair); color:var(--vert); border:1px solid var(--vert); }
+        .message.error { background:#fde8e8; color:#c0392b; border:1px solid #c0392b; }
+
+        footer { background:var(--bleu); color:white; padding:60px; }
+        .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:60px; margin-bottom:48px; }
+        .footer-logo-wrap { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+        .footer-logo-icon {
+            width:36px; height:36px; background:var(--grad-btn); border-radius:50%;
+            display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;
+        }
+        .footer-logo-icon::after { content:'+'; color:white; font-size:20px; font-weight:300; }
+        .footer-logo-leaf { position:absolute; top:-3px; right:-2px; width:10px; height:10px; background:#00C9A7; border-radius:50% 0 50% 0; transform:rotate(45deg); }
+        .footer-logo-name { font-size:22px; font-weight:800; }
+        .footer-logo-name .w { color:white; }
+        .footer-logo-name .t { color:#00C9A7; }
+        .footer-desc { font-size:14px; color:rgba(255,255,255,0.45); line-height:1.75; margin-bottom:24px; }
+        .footer-col h4 { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.35); margin-bottom:20px; }
+        .footer-col ul { list-style:none; }
+        .footer-col ul li { margin-bottom:10px; }
+        .footer-col ul li a { color:rgba(255,255,255,0.55); text-decoration:none; font-size:14px; transition:color 0.2s; }
+        .footer-col ul li a:hover { color:#00C9A7; }
+        .footer-bottom { border-top:1px solid rgba(255,255,255,0.1); padding-top:32px; display:flex; justify-content:space-between; align-items:center; }
+        .footer-bottom p { font-size:13px; color:rgba(255,255,255,0.35); }
+        .footer-bottom strong { color:rgba(255,255,255,0.65); }
+        .flag-pill { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.08); padding:6px 14px; border-radius:20px; font-size:13px; color:rgba(255,255,255,0.6); }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CONFIGURATION DU CONTENU — MODIFIABLE PAR L'ÉQUIPE
+     Pour modifier un texte, une image ou un article :
+     1. Repérez la section concernée ci-dessous
+     2. Modifiez uniquement la valeur entre guillemets
+     3. Sauvegardez le fichier
+════════════════════════════════════════════════════════════════ -->
+<script>
+const BOLAMU_CONFIG = {
+
+    /* ── HERO ─────────────────────────────────────────── */
+    hero: {
+        badge:      "Plateforme active à Brazzaville",
+        titre:      "La santé <em>simple</em><br>et accessible<br>pour tous",
+        sousTitre:  "Bolamu valorise la médecine et la rend accessible à tous. Un abonnement pour bénéficier de l'ensemble de nos services.",
+        btn1:       "Démarrer mon abonnement →",
+        btn2:       "Comment ça marche",
+        photo:      "docteur_optimized.jpg",
+        photoNom:   "Médecin partenaire Bolamu",
+        photoStatut:"Disponible maintenant",
+        
+    },
+
+    /* ── STATS ────────────────────────────────────────── */
+    stats: [
+        { nombre: "25 000",  label: "FCFA/an selon l'OMS\npour soigner un Africain" },
+        { nombre: "250 000", label: "Soignants visés\nsur la plateforme" },
+        { nombre: "6",       label: "Canaux d'accès\nApp · Web · USSD · SMS · WhatsApp · Vocal" },
+        { nombre: "4M",      label: "Adhérents\nobjectif" },
+    ],
+
+    /* ── COMMENT ÇA MARCHE ────────────────────────────── */
+    comment: {
+        sousTitre: "Bolamu a pensé à tout pour que votre santé ne soit plus jamais une contrainte. Un abonnement mensuel, un accès immédiat à l'ensemble de nos services.",
+        etapes: [
+            {
+                icon:  "📱",
+                titre: "Je m'abonne",
+                texte: "Choisissez votre formule à partir de 1 000 FCFA/mois. Paiement via MTN MoMo ou Airtel Money. Accès immédiat."
+            },
+            {
+                icon:  "🔍",
+                titre: "Je trouve mon soignant",
+                texte: "Parcourez l'annuaire des médecins, pharmacies et laboratoires disponibles. Filtrez par spécialité, disponibilité, langue."
+            },
+            {
+                icon:  "✅",
+                titre: "Je bénéficie des services",
+                texte: "Prenez votre rendez-vous, présentez votre code de session au médecin. Votre abonnement vous donne accès à l'ensemble de nos services."
+            },
+        ]
+    },
+
+    /* ── FORMULES ─────────────────────────────────────── */
+    formules: {
+        sousTitre: "Trois formules calibrées sur le seuil OMS de 25 000 FCFA/an recommandé pour chaque Africain. Un abonnement. Un accès illimité à l'ensemble de nos services.",
+        plans: [
+            {
+                nom:      "Essentiel",
+                prix:     "1 000",
+                annuel:   "12 000 FCFA / an",
+                featured: false,
+                badge:    "",
+                avantages: [
+                    "Accès illimité à nos services",
+                    "Annuaire médecins & soignants complet",
+                    "Dossier médical numérique 100 Mo",
+                    "Agent Amina (texte FR & Lingala)",
+                    "Canal USSD & SMS",
+                    "2 crédits fidélité / mois",
+                    "Accès partenaires bien-être",
+                ]
+            },
+            {
+                nom:      "Standard",
+                prix:     "2 500",
+                annuel:   "30 000 FCFA / an",
+                featured: true,
+                badge:    "⭐ Recommandé",
+                avantages: [
+                    "Tout l'Essentiel inclus",
+                    "Formule Famille — jusqu'à 4 membres",
+                    "Dossier médical numérique 500 Mo",
+                    "Amina vocal français & lingala",
+                    "5 crédits fidélité / mois",
+                    "Réductions partenaires pour toute la famille",
+                    "Support prioritaire 24h",
+                ]
+            },
+            {
+                nom:      "Premium",
+                prix:     "5 000",
+                annuel:   "60 000 FCFA / an",
+                featured: false,
+                badge:    "",
+                avantages: [
+                    "Tout le Standard inclus",
+                    "Accès prioritaire aux soignants",
+                    "Dossier médical numérique illimité",
+                    "Offres partenaires exclusives Premium",
+                    "10 crédits fidélité / mois",
+                    "Accès anticipé aux nouvelles fonctionnalités",
+                    "Support dédié — réponse en 4h",
+                ]
+            },
+        ]
+    },
+
+    /* ── ACTEURS ──────────────────────────────────────── */
+    acteurs: [
+        {
+            tag:   "Patients",
+            titre: "Votre santé protégée",
+            texte: "Accès illimité à nos services · Dossier médical sécurisé · Partenaires bien-être",
+            photo: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80"
+        },
+        {
+            tag:   "Médecins",
+            titre: "Votre dignité retrouvée",
+            texte: "Payés à la prestation · Revenus réguliers sur MoMo · Indépendance totale",
+            photo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80"
+        },
+        {
+            tag:   "Pharmacies",
+            titre: "Des clients qualifiés",
+            texte: "Ordonnances numériques sécurisées · Visibilité plateforme · Zéro coût d'acquisition",
+            photo: "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&q=80"
+        },
+        {
+            tag:   "Laboratoires",
+            titre: "Intégrez l'écosystème",
+            texte: "Résultats numériques sécurisés · Traçabilité totale · Partenariat certifié",
+            photo: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80"
+        },
+    ],
+
+    /* ── ARTICLES PRÉVENTION ──────────────────────────── 
+       Pour ajouter un article : copiez un bloc {} et modifiez les valeurs.
+       Pour modifier une photo : remplacez l'URL par une autre URL d'image.
+       Le premier article est toujours affiché en grand (featured).
+    ─────────────────────────────────────────────────── */
+    articles: [
+        {
+            categorie: "🦟 Paludisme",
+            titre:     "Comment protéger votre famille du paludisme pendant la saison des pluies",
+            texte:     "Le paludisme tue encore plus d'une personne par minute en Afrique. Découvrez les gestes simples qui peuvent sauver des vies.",
+            auteur:    "Dr. Bolamu",
+            temps:     "5 min de lecture",
+            photo:     "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&q=80"
+        },
+        {
+            categorie: "🥗 Nutrition",
+            titre:     "5 aliments locaux bons pour votre santé",
+            texte:     "Les trésors nutritionnels de nos marchés.",
+            auteur:    "",
+            temps:     "3 min",
+            photo:     "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400&q=80"
+        },
+        {
+            categorie: "💪 Bien-être",
+            titre:     "30 minutes d'activité par jour changent tout",
+            texte:     "L'exercice simple accessible à tous.",
+            auteur:    "",
+            temps:     "4 min",
+            photo:     "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80"
+        },
+    ],
+
+    /* ── SECTION GROUPES ──────────────────────────────── */
+    groupes: {
+        titre:     "Des solutions pour chaque groupe",
+        sousTitre: "Bolamu propose des formules adaptées aux familles, aux entreprises, aux associations et à tout groupe souhaitant protéger ses membres. Un seul abonnement, une couverture pour tous.",
+        avantages: [
+            {
+                icon:  "🏢",
+                titre: "Entreprises",
+                texte: "Offrez à vos employés une couverture santé complète. Facturation mensuelle simplifiée."
+            },
+            {
+                icon:  "👨‍👩‍👧‍👦",
+                titre: "Familles",
+                texte: "Protégez jusqu'à 4 membres de votre famille avec une seule formule Standard."
+            },
+            {
+                icon:  "🤝",
+                titre: "Associations & Groupes",
+                texte: "Mutualisez l'accès aux soins pour votre communauté. Tarifs groupes disponibles."
+            },
+        ]
+    },
+
+    /* ── FOOTER ───────────────────────────────────────── */
+    footer: {
+        description: "Plateforme numérique de mise en relation entre patients et professionnels de santé indépendants. La santé simple et accessible, partout en Afrique.",
+        mention:     "Né au Congo, pour l'Afrique",
+        email:       "support@bolamu.cg",
+        copyright:   "© 2026 Bolamu — NBA Gestion SARLU — Brazzaville, République du Congo"
+    }
+};
+</script>
+
+<!-- ══ NAVBAR ══════════════════════════════════════════════════ -->
+<nav>
+    <a href="#" class="logo-svg">
+        <div class="logo-icon"><div class="logo-leaf"></div></div>
+        <div class="logo-text-wrap">
+            <div class="logo-name">
+                <span class="logo-name-blue">Bola</span><span class="logo-name-teal">mu</span>
+            </div>
+            <div class="logo-tagline">La santé simple et accessible</div>
+        </div>
+    </a>
+    <ul class="nav-links">
+        <li><a href="#comment">Comment ça marche</a></li>
+        <li><a href="#formules">Formules</a></li>
+        <li><a href="#prevention">Prévention</a></li>
+        <li><a href="#acteurs">Partenaires</a></li>
+    </ul>
+    <div class="nav-cta">
+        <a href="#connexion" class="btn-outline">Se connecter</a>
+        <a href="#formules" class="btn-solid">S'abonner →</a>
+    </div>
+</nav>
+
+<!-- ══ HERO ════════════════════════════════════════════════════ -->
+<section class="hero" id="hero-section">
+    <div class="hero-content">
+        <div class="hero-badge"><div class="dot"></div><span id="hero-badge"></span></div>
+        <h1 id="hero-titre"></h1>
+        <p id="hero-sous-titre"></p>
+        <div class="hero-actions">
+            <a href="#formules" class="btn-hero-primary" id="hero-btn1"></a>
+            <a href="#comment" class="btn-hero-secondary" id="hero-btn2"></a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <img id="hero-photo" src="https://images.unsplash.com" alt="Soignant Bolamu">
+        <div class="hero-image-overlay">
+            <p id="hero-photo-nom"></p>
+            <strong id="hero-photo-statut"></strong>
+            <div><span class="verified-badge">✓ Certifié Bolamu</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ STATS ════════════════════════════════════════════════════ -->
+<div class="stats" id="stats-section"></div>
+
+<!-- ══ COMMENT ÇA MARCHE ════════════════════════════════════════ -->
+<section class="section" id="comment">
+    <div class="section-tag">Simple & Rapide</div>
+    <h2 class="section-title">Accédez à nos services<br>en 3 étapes simples</h2>
+    <p class="section-subtitle" id="comment-sous-titre"></p>
+    <div class="how-grid" id="comment-etapes"></div>
+</section>
+
+<!-- ══ FORMULES ══════════════════════════════════════════════════ -->
+<section class="section plans" id="formules">
+    <div class="section-tag">Nos Offres</div>
+    <h2 class="section-title">Choisissez votre<br>formule d'accès</h2>
+    <p class="section-subtitle" id="formules-sous-titre"></p>
+    <div class="plans-grid" id="formules-grid"></div>
+</section>
+
+<!-- ══ ACTEURS ═══════════════════════════════════════════════════ -->
+<section class="section" id="acteurs">
+    <div class="section-tag">Notre Écosystème</div>
+    <h2 class="section-title">Un système où<br>chacun gagne</h2>
+    <p class="section-subtitle">Bolamu n'est pas qu'une application. C'est un écosystème complet où patients, médecins, pharmacies et laboratoires trouvent leur place et leurs avantages.</p>
+    <div class="actors-grid" id="acteurs-grid"></div>
+</section>
+
+<!-- ══ PRÉVENTION ════════════════════════════════════════════════ -->
+<section class="section prevention" id="prevention">
+    <div class="section-tag">Santé & Prévention</div>
+    <h2 class="section-title">Informez-vous,<br>protégez-vous</h2>
+    <p class="section-subtitle">Le meilleur système de santé est celui où les gens ne tombent pas malades. Bolamu investit dans la prévention pour vous.</p>
+    <div class="articles-grid" id="articles-grid"></div>
+</section>
+
+<!-- ══ GROUPES ═══════════════════════════════════════════════════ -->
+<div class="groupes">
+    <div class="groupes-content">
+        <div class="section-tag">Solutions Groupe</div>
+        <h2 class="section-title" id="groupes-titre"></h2>
+        <p class="section-subtitle" id="groupes-sous-titre"></p>
+        <div class="groupes-features" id="groupes-features"></div>
+    </div>
+    <div class="groupes-visual">
+        <div class="groupes-card-preview">
+            <h4>Votre abonnement Bolamu</h4>
+            <div class="groupes-card-logo">
+                <span class="blue">Bola</span><span class="teal">mu</span>
+            </div>
+        </div>
+        <div class="groupes-members-label">Membres de votre groupe</div>
+        <div class="groupes-members">
+            <div class="member-avatar">👤</div>
+            <div class="member-avatar">👩</div>
+            <div class="member-avatar">👴</div>
+            <div class="member-avatar">👶</div>
+            <div class="member-avatar member-add">+</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ CONNEXION ════════════════════════════════════════════════ -->
+<section class="login-section" id="connexion">
+    <div class="login-info">
+        <h2>Rejoignez<br>Bolamu<br>aujourd'hui</h2>
+        <p>Inscription en moins de 2 minutes. Votre numéro Mobile Money suffit. Pas de paperasse. Pas de banque nécessaire.</p>
+        <div class="login-steps">
+            <div class="login-step"><div class="step-num">1</div><div class="step-text">Entrez votre numéro MTN MoMo ou Airtel Money</div></div>
+            <div class="login-step"><div class="step-num">2</div><div class="step-text">Recevez votre code de vérification par SMS</div></div>
+            <div class="login-step"><div class="step-num">3</div><div class="step-text">Choisissez votre formule et accédez à l'ensemble de nos services</div></div>
+        </div>
+    </div>
+    <div class="login-form">
+        <h3>Connexion / Inscription</h3>
+        <p>Patients, Médecins, Pharmacies, Laboratoires</p>
+        <div class="user-types">
+            <button class="user-type-btn active" onclick="selectType('patient',this)"><span class="icon">👤</span>Patient</button>
+            <button class="user-type-btn" onclick="selectType('medecin',this)"><span class="icon">👨‍⚕️</span>Médecin</button>
+            <button class="user-type-btn" onclick="selectType('pharmacie',this)"><span class="icon">💊</span>Pharmacie</button>
+            <button class="user-type-btn" onclick="selectType('laboratoire',this)"><span class="icon">🔬</span>Laboratoire</button>
+        </div>
+        <div id="step1">
+            <label>📱 Numéro Mobile Money</label>
+            <input type="tel" id="phoneInput" placeholder="+242 06 XXX XX XX">
+            <button class="btn-login" onclick="requestOtp()">Recevoir mon code →</button>
+        </div>
+        <div class="otp-section" id="step2">
+            <label>🔑 Code reçu par SMS</label>
+            <div class="otp-inputs">
+                <input type="number" maxlength="1" id="d1" oninput="moveNext(this,'d2')">
+                <input type="number" maxlength="1" id="d2" oninput="moveNext(this,'d3')">
+                <input type="number" maxlength="1" id="d3" oninput="moveNext(this,'d4')">
+                <input type="number" maxlength="1" id="d4" oninput="moveNext(this,'d5')">
+                <input type="number" maxlength="1" id="d5" oninput="moveNext(this,'d6')">
+                <input type="number" maxlength="1" id="d6" oninput="verifyIfComplete()">
+            </div>
+            <button class="btn-login" onclick="verifyOtp()">Confirmer ✓</button>
+        </div>
+        <div class="message" id="message"></div>
+    </div>
+</section>
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════ -->
+<footer>
+    <div class="footer-grid">
+        <div>
+            <div class="footer-logo-wrap">
+                <div class="footer-logo-icon"><div class="footer-logo-leaf"></div></div>
+                <div class="footer-logo-name"><span class="w">Bola</span><span class="t">mu</span></div>
+            </div>
+            <p class="footer-desc" id="footer-desc"></p>
+        </div>
+        <div class="footer-col">
+            <h4>Plateforme</h4>
+            <ul>
+                <li><a href="#">Comment ça marche</a></li>
+                <li><a href="#">Nos formules</a></li>
+                <li><a href="#">Solutions groupe</a></li>
+                <li><a href="#">Parrainage</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Acteurs</h4>
+            <ul>
+                <li><a href="#">Espace Patient</a></li>
+                <li><a href="#">Espace Médecin</a></li>
+                <li><a href="#">Espace Pharmacie</a></li>
+                <li><a href="#">Espace Laboratoire</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Légal</h4>
+            <ul>
+                <li><a href="#">CGU</a></li>
+                <li><a href="#">Confidentialité</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#" id="footer-email"></a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p id="footer-copyright"></p>
+        <span class="flag-pill">🇨🇬 <span id="footer-mention"></span></span>
+    </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   MOTEUR DE RENDU — NE PAS MODIFIER
+════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+    const C = BOLAMU_CONFIG;
+
+    // Hero
+    document.getElementById('hero-badge').textContent = C.hero.badge;
+    document.getElementById('hero-titre').innerHTML = C.hero.titre;
+    document.getElementById('hero-sous-titre').textContent = C.hero.sousTitre;
+    document.getElementById('hero-btn1').textContent = C.hero.btn1;
+    document.getElementById('hero-btn2').textContent = C.hero.btn2;
+    document.getElementById('hero-photo').src = C.hero.photo;
+    document.getElementById('hero-photo-nom').textContent = C.hero.photoNom;
+    document.getElementById('hero-photo-statut').textContent = C.hero.photoStatut;
+
+    // Stats
+    document.getElementById('stats-section').innerHTML = C.stats.map(s => `
+        <div class="stat-item">
+            <span class="stat-number">${s.nombre}</span>
+            <span class="stat-label">${s.label.replace('\n','<br>')}</span>
+        </div>`).join('');
+
+    // Comment ça marche
+    document.getElementById('comment-sous-titre').textContent = C.comment.sousTitre;
+    document.getElementById('comment-etapes').innerHTML = C.comment.etapes.map((e,i) => `
+        <div class="how-card">
+            <span class="how-number">0${i+1}</span>
+            <span class="how-icon">${e.icon}</span>
+            <h3>${e.titre}</h3>
+            <p>${e.texte}</p>
+        </div>`).join('');
+
+    // Formules
+    document.getElementById('formules-sous-titre').textContent = C.formules.sousTitre;
+    document.getElementById('formules-grid').innerHTML = C.formules.plans.map(p => `
+        <div class="plan-card ${p.featured ? 'featured' : ''}">
+            ${p.badge ? `<div class="plan-badge">${p.badge}</div>` : ''}
+            <div class="plan-name">${p.nom}</div>
+            <div class="plan-price">${p.prix}</div>
+            <div class="plan-period">FCFA / mois</div>
+            <div class="plan-annual">${p.annuel}</div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+                ${p.avantages.map(a => `<li>${a}</li>`).join('')}
+            </ul>
+            <a href="#connexion" class="btn-plan">Choisir ${p.nom}</a>
+        </div>`).join('');
+
+    // Acteurs
+    document.getElementById('acteurs-grid').innerHTML = C.acteurs.map(a => `
+        <div class="actor-card">
+            <img src="${a.photo}" alt="${a.tag}">
+            <div class="actor-overlay">
+                <div class="actor-tag">${a.tag}</div>
+                <h3>${a.titre}</h3>
+                <p>${a.texte}</p>
+            </div>
+        </div>`).join('');
+
+    // Articles
+    document.getElementById('articles-grid').innerHTML = C.articles.map((a, i) => `
+        <div class="article-card ${i === 0 ? 'featured' : ''}">
+            <img class="article-image" src="${a.photo}" alt="${a.categorie}">
+            <div class="article-content">
+                <span class="article-category">${a.categorie}</span>
+                <h3>${a.titre}</h3>
+                ${i === 0 ? `<p>${a.texte}</p>` : ''}
+                <div class="article-meta">
+                    ${a.auteur ? `<span>👨‍⚕️ ${a.auteur}</span><span>·</span>` : ''}
+                    <span>${a.temps}</span>
+                </div>
+            </div>
+        </div>`).join('');
+
+    // Groupes
+    document.getElementById('groupes-titre').textContent = C.groupes.titre;
+    document.getElementById('groupes-sous-titre').textContent = C.groupes.sousTitre;
+    document.getElementById('groupes-features').innerHTML = C.groupes.avantages.map(a => `
+        <div class="groupes-feature">
+            <div class="groupes-feature-icon">${a.icon}</div>
+            <div class="groupes-feature-text">
+                <h4>${a.titre}</h4>
+                <p>${a.texte}</p>
+            </div>
+        </div>`).join('');
+
+    // Footer
+    document.getElementById('footer-desc').textContent = C.footer.description;
+    document.getElementById('footer-email').textContent = C.footer.email;
+    document.getElementById('footer-email').href = 'mailto:' + C.footer.email;
+    document.getElementById('footer-copyright').innerHTML = C.footer.copyright;
+    document.getElementById('footer-mention').textContent = C.footer.mention;
+});
+
+/* ══ AUTHENTIFICATION OTP ══════════════════════════════════════ */
+let selectedType = 'patient';
+let currentPhone = '';
+
+function selectType(type, btn) {
+    selectedType = type;
+    document.querySelectorAll('.user-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function showMessage(text, type) {
+    const msg = document.getElementById('message');
+    msg.textContent = text;
+    msg.className = `message ${type}`;
+    msg.style.display = 'block';
+}
+
+async function requestOtp() {
+    const phone = document.getElementById('phoneInput').value.trim();
+    if (!phone) return showMessage('Veuillez entrer votre numéro', 'error');
+    currentPhone = phone;
+    try {
+        const res = await fetch('/api/v1/auth/request-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, user_type: selectedType })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            showMessage('✅ Code envoyé sur ' + phone, 'success');
+            document.getElementById('d1').focus();
+        } else {
+            showMessage(data.error || 'Erreur', 'error');
+        }
+    } catch(e) {
+        showMessage('Erreur de connexion au serveur', 'error');
+    }
+}
+
+function moveNext(current, nextId) {
+    if (current.value.length >= 1) document.getElementById(nextId)?.focus();
+}
+
+function verifyIfComplete() {
+    const digits = ['d1','d2','d3','d4','d5','d6'];
+    if (digits.every(id => document.getElementById(id).value !== '')) verifyOtp();
+}
+
+async function verifyOtp() {
+    const digits = ['d1','d2','d3','d4','d5','d6'];
+    const otp = digits.map(id => document.getElementById(id).value).join('');
+    if (otp.length !== 6) return showMessage('Entrez les 6 chiffres', 'error');
+    try {
+        const res = await fetch('/api/v1/auth/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: currentPhone, otp })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showMessage('🎉 Connexion réussie ! Bienvenue sur Bolamu', 'success');
+            setTimeout(() => { window.location.href = `/${selectedType}/dashboard.html`; }, 1500);
+        } else {
+            showMessage(data.error || 'Code incorrect', 'error');
+        }
+    } catch(e) {
+        showMessage('Erreur de connexion', 'error');
+    }
+}
+</script>
+
+</body>
+</html>

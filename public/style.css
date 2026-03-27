@@ -1,0 +1,78 @@
+/* Palette Bolamu : Mix Vert Santé et Bleu Confiance */
+:root {
+    --bolamu-green: #27ae60;
+    --bolamu-blue: #2980b9;
+    --deep-blue: #0f172a; /* Le bleu sombre de Netflix */
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    /* Dégradé diagonal profond Vert -> Bleu (Effet Premium) */
+    background: linear-gradient(135deg, #1a934d 0%, #1e5a91 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* La carte de connexion style "Verre" (Glassmorphism) */
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 45px;
+    border-radius: 30px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+/* Les sélecteurs style Ameli (Clair et Interactif) */
+.user-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.type-box {
+    border: 2px solid #f1f5f9;
+    border-radius: 18px;
+    padding: 20px;
+    cursor: pointer;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+}
+
+.type-box:hover {
+    border-color: var(--bolamu-green);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.type-box.active {
+    border-color: var(--bolamu-green);
+    background: rgba(39, 174, 96, 0.05);
+}
+
+/* Le bouton d'action style Netflix (Imposant et Premium) */
+.btn-primary {
+    background: linear-gradient(to right, var(--bolamu-green), #2ecc71);
+    color: white;
+    padding: 18px;
+    border-radius: 15px;
+    border: none;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 15px -3px rgba(39, 174, 96, 0.3);
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+}
+
+
