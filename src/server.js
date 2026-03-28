@@ -28,7 +28,6 @@ const paymentRoutes = require('./routes/payment.routes');
 // ============================================================
 // 3. ROUTES API
 // ============================================================
-app.use('/api/v1/patients', authMiddleware, patientRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/patients', authMiddleware, patientRoutes);
 app.use('/api/v1/doctors', authMiddleware, doctorRoutes);
