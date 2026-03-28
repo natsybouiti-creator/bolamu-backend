@@ -378,8 +378,17 @@
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════════════════════
+     CONFIGURATION DU CONTENU — MODIFIABLE PAR L'ÉQUIPE
+     Pour modifier un texte, une image ou un article :
+     1. Repérez la section concernée ci-dessous
+     2. Modifiez uniquement la valeur entre guillemets
+     3. Sauvegardez le fichier
+════════════════════════════════════════════════════════════════ -->
 <script>
 const BOLAMU_CONFIG = {
+
+    /* ── HERO ─────────────────────────────────────────── */
     hero: {
         badge:      "Plateforme active à Brazzaville",
         titre:      "La santé <em>simple</em><br>et accessible<br>pour tous",
@@ -389,63 +398,183 @@ const BOLAMU_CONFIG = {
         photo:      "docteur_optimized.jpg",
         photoNom:   "Médecin partenaire Bolamu",
         photoStatut:"Disponible maintenant",
+        
     },
+
+    /* ── STATS ────────────────────────────────────────── */
     stats: [
         { nombre: "25 000",  label: "FCFA/an selon l'OMS\npour soigner un Africain" },
         { nombre: "250 000", label: "Soignants visés\nsur la plateforme" },
         { nombre: "6",       label: "Canaux d'accès\nApp · Web · USSD · SMS · WhatsApp · Vocal" },
         { nombre: "4M",      label: "Adhérents\nobjectif" },
     ],
+
+    /* ── COMMENT ÇA MARCHE ────────────────────────────── */
     comment: {
         sousTitre: "Bolamu a pensé à tout pour que votre santé ne soit plus jamais une contrainte. Un abonnement mensuel, un accès immédiat à l'ensemble de nos services.",
         etapes: [
-            { icon:"📱", titre:"Je m'abonne", texte:"Choisissez votre formule à partir de 1 000 FCFA/mois. Paiement via MTN MoMo ou Airtel Money. Accès immédiat." },
-            { icon:"🔍", titre:"Je trouve mon soignant", texte:"Parcourez l'annuaire des médecins, pharmacies et laboratoires disponibles. Filtrez par spécialité, disponibilité, langue." },
-            { icon:"✅", titre:"Je bénéficie des services", texte:"Prenez votre rendez-vous, présentez votre code de session au médecin. Votre abonnement vous donne accès à l'ensemble de nos services." },
+            {
+                icon:  "📱",
+                titre: "Je m'abonne",
+                texte: "Choisissez votre formule à partir de 1 000 FCFA/mois. Paiement via MTN MoMo ou Airtel Money. Accès immédiat."
+            },
+            {
+                icon:  "🔍",
+                titre: "Je trouve mon soignant",
+                texte: "Parcourez l'annuaire des médecins, pharmacies et laboratoires disponibles. Filtrez par spécialité, disponibilité, langue."
+            },
+            {
+                icon:  "✅",
+                titre: "Je bénéficie des services",
+                texte: "Prenez votre rendez-vous, présentez votre code de session au médecin. Votre abonnement vous donne accès à l'ensemble de nos services."
+            },
         ]
     },
+
+    /* ── FORMULES ─────────────────────────────────────── */
     formules: {
         sousTitre: "Trois formules calibrées sur le seuil OMS de 25 000 FCFA/an recommandé pour chaque Africain. Un abonnement. Un accès illimité à l'ensemble de nos services.",
         plans: [
             {
-                nom:"Essentiel", prix:"1 000", annuel:"12 000 FCFA / an", featured:false, badge:"",
-                avantages:["Accès illimité à nos services","Annuaire médecins & soignants complet","Dossier médical numérique 100 Mo","Agent Amina (texte FR & Lingala)","Canal USSD & SMS","2 crédits fidélité / mois","Accès partenaires bien-être"]
+                nom:      "Essentiel",
+                prix:     "1 000",
+                annuel:   "12 000 FCFA / an",
+                featured: false,
+                badge:    "",
+                avantages: [
+                    "Accès illimité à nos services",
+                    "Annuaire médecins & soignants complet",
+                    "Dossier médical numérique 100 Mo",
+                    "Agent Amina (texte FR & Lingala)",
+                    "Canal USSD & SMS",
+                    "2 crédits fidélité / mois",
+                    "Accès partenaires bien-être",
+                ]
             },
             {
-                nom:"Standard", prix:"2 500", annuel:"30 000 FCFA / an", featured:true, badge:"⭐ Recommandé",
-                avantages:["Tout l'Essentiel inclus","Formule Famille — jusqu'à 4 membres","Dossier médical numérique 500 Mo","Amina vocal français & lingala","5 crédits fidélité / mois","Réductions partenaires pour toute la famille","Support prioritaire 24h"]
+                nom:      "Standard",
+                prix:     "2 500",
+                annuel:   "30 000 FCFA / an",
+                featured: true,
+                badge:    "⭐ Recommandé",
+                avantages: [
+                    "Tout l'Essentiel inclus",
+                    "Formule Famille — jusqu'à 4 membres",
+                    "Dossier médical numérique 500 Mo",
+                    "Amina vocal français & lingala",
+                    "5 crédits fidélité / mois",
+                    "Réductions partenaires pour toute la famille",
+                    "Support prioritaire 24h",
+                ]
             },
             {
-                nom:"Premium", prix:"5 000", annuel:"60 000 FCFA / an", featured:false, badge:"",
-                avantages:["Tout le Standard inclus","Accès prioritaire aux soignants","Dossier médical numérique illimité","Offres partenaires exclusives Premium","10 crédits fidélité / mois","Accès anticipé aux nouvelles fonctionnalités","Support dédié — réponse en 4h"]
+                nom:      "Premium",
+                prix:     "5 000",
+                annuel:   "60 000 FCFA / an",
+                featured: false,
+                badge:    "",
+                avantages: [
+                    "Tout le Standard inclus",
+                    "Accès prioritaire aux soignants",
+                    "Dossier médical numérique illimité",
+                    "Offres partenaires exclusives Premium",
+                    "10 crédits fidélité / mois",
+                    "Accès anticipé aux nouvelles fonctionnalités",
+                    "Support dédié — réponse en 4h",
+                ]
             },
         ]
     },
+
+    /* ── ACTEURS ──────────────────────────────────────── */
     acteurs: [
-        { tag:"Patients", titre:"Votre santé protégée", texte:"Accès illimité à nos services · Dossier médical sécurisé · Partenaires bien-être", photo:"https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80" },
-        { tag:"Médecins", titre:"Votre dignité retrouvée", texte:"Payés à la prestation · Revenus réguliers sur MoMo · Indépendance totale", photo:"https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80" },
-        { tag:"Pharmacies", titre:"Des clients qualifiés", texte:"Ordonnances numériques sécurisées · Visibilité plateforme · Zéro coût d'acquisition", photo:"https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&q=80" },
-        { tag:"Laboratoires", titre:"Intégrez l'écosystème", texte:"Résultats numériques sécurisés · Traçabilité totale · Partenariat certifié", photo:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80" },
+        {
+            tag:   "Patients",
+            titre: "Votre santé protégée",
+            texte: "Accès illimité à nos services · Dossier médical sécurisé · Partenaires bien-être",
+            photo: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80"
+        },
+        {
+            tag:   "Médecins",
+            titre: "Votre dignité retrouvée",
+            texte: "Payés à la prestation · Revenus réguliers sur MoMo · Indépendance totale",
+            photo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80"
+        },
+        {
+            tag:   "Pharmacies",
+            titre: "Des clients qualifiés",
+            texte: "Ordonnances numériques sécurisées · Visibilité plateforme · Zéro coût d'acquisition",
+            photo: "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&q=80"
+        },
+        {
+            tag:   "Laboratoires",
+            titre: "Intégrez l'écosystème",
+            texte: "Résultats numériques sécurisés · Traçabilité totale · Partenariat certifié",
+            photo: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80"
+        },
     ],
+
+    /* ── ARTICLES PRÉVENTION ──────────────────────────── 
+       Pour ajouter un article : copiez un bloc {} et modifiez les valeurs.
+       Pour modifier une photo : remplacez l'URL par une autre URL d'image.
+       Le premier article est toujours affiché en grand (featured).
+    ─────────────────────────────────────────────────── */
     articles: [
-        { categorie:"🦟 Paludisme", titre:"Comment protéger votre famille du paludisme pendant la saison des pluies", texte:"Le paludisme tue encore plus d'une personne par minute en Afrique. Découvrez les gestes simples qui peuvent sauver des vies.", auteur:"Dr. Bolamu", temps:"5 min de lecture", photo:"https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&q=80" },
-        { categorie:"🥗 Nutrition", titre:"5 aliments locaux bons pour votre santé", texte:"Les trésors nutritionnels de nos marchés.", auteur:"", temps:"3 min", photo:"https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400&q=80" },
-        { categorie:"💪 Bien-être", titre:"30 minutes d'activité par jour changent tout", texte:"L'exercice simple accessible à tous.", auteur:"", temps:"4 min", photo:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80" },
+        {
+            categorie: "🦟 Paludisme",
+            titre:     "Comment protéger votre famille du paludisme pendant la saison des pluies",
+            texte:     "Le paludisme tue encore plus d'une personne par minute en Afrique. Découvrez les gestes simples qui peuvent sauver des vies.",
+            auteur:    "Dr. Bolamu",
+            temps:     "5 min de lecture",
+            photo:     "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&q=80"
+        },
+        {
+            categorie: "🥗 Nutrition",
+            titre:     "5 aliments locaux bons pour votre santé",
+            texte:     "Les trésors nutritionnels de nos marchés.",
+            auteur:    "",
+            temps:     "3 min",
+            photo:     "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400&q=80"
+        },
+        {
+            categorie: "💪 Bien-être",
+            titre:     "30 minutes d'activité par jour changent tout",
+            texte:     "L'exercice simple accessible à tous.",
+            auteur:    "",
+            temps:     "4 min",
+            photo:     "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80"
+        },
     ],
+
+    /* ── SECTION GROUPES ──────────────────────────────── */
     groupes: {
-        titre:"Des solutions pour chaque groupe",
-        sousTitre:"Bolamu propose des formules adaptées aux familles, aux entreprises, aux associations et à tout groupe souhaitant protéger ses membres. Un seul abonnement, une couverture pour tous.",
-        avantages:[
-            { icon:"🏢", titre:"Entreprises", texte:"Offrez à vos employés une couverture santé complète. Facturation mensuelle simplifiée." },
-            { icon:"👨‍👩‍👧‍👦", titre:"Familles", texte:"Protégez jusqu'à 4 membres de votre famille avec une seule formule Standard." },
-            { icon:"🤝", titre:"Associations & Groupes", texte:"Mutualisez l'accès aux soins pour votre communauté. Tarifs groupes disponibles." },
+        titre:     "Des solutions pour chaque groupe",
+        sousTitre: "Bolamu propose des formules adaptées aux familles, aux entreprises, aux associations et à tout groupe souhaitant protéger ses membres. Un seul abonnement, une couverture pour tous.",
+        avantages: [
+            {
+                icon:  "🏢",
+                titre: "Entreprises",
+                texte: "Offrez à vos employés une couverture santé complète. Facturation mensuelle simplifiée."
+            },
+            {
+                icon:  "👨‍👩‍👧‍👦",
+                titre: "Familles",
+                texte: "Protégez jusqu'à 4 membres de votre famille avec une seule formule Standard."
+            },
+            {
+                icon:  "🤝",
+                titre: "Associations & Groupes",
+                texte: "Mutualisez l'accès aux soins pour votre communauté. Tarifs groupes disponibles."
+            },
         ]
     },
+
+    /* ── FOOTER ───────────────────────────────────────── */
     footer: {
-        description:"Plateforme numérique de mise en relation entre patients et professionnels de santé indépendants. La santé simple et accessible, partout en Afrique.",
-        mention:"Né au Congo, pour l'Afrique",
-        email:"support@bolamu.cg",
-        copyright:"© 2026 Bolamu — NBA Gestion SARLU — Brazzaville, République du Congo"
+        description: "Plateforme numérique de mise en relation entre patients et professionnels de santé indépendants. La santé simple et accessible, partout en Afrique.",
+        mention:     "Né au Congo, pour l'Afrique",
+        email:       "support@bolamu.cg",
+        copyright:   "© 2026 Bolamu — NBA Gestion SARLU — Brazzaville, République du Congo"
     }
 };
 </script>
@@ -455,7 +584,9 @@ const BOLAMU_CONFIG = {
     <a href="#" class="logo-svg">
         <div class="logo-icon"><div class="logo-leaf"></div></div>
         <div class="logo-text-wrap">
-            <div class="logo-name"><span class="logo-name-blue">Bola</span><span class="logo-name-teal">mu</span></div>
+            <div class="logo-name">
+                <span class="logo-name-blue">Bola</span><span class="logo-name-teal">mu</span>
+            </div>
             <div class="logo-tagline">La santé simple et accessible</div>
         </div>
     </a>
@@ -538,7 +669,9 @@ const BOLAMU_CONFIG = {
     <div class="groupes-visual">
         <div class="groupes-card-preview">
             <h4>Votre abonnement Bolamu</h4>
-            <div class="groupes-card-logo"><span class="blue">Bola</span><span class="teal">mu</span></div>
+            <div class="groupes-card-logo">
+                <span class="blue">Bola</span><span class="teal">mu</span>
+            </div>
         </div>
         <div class="groupes-members-label">Membres de votre groupe</div>
         <div class="groupes-members">
@@ -612,14 +745,16 @@ const BOLAMU_CONFIG = {
             </ul>
         </div>
         <div class="footer-col">
-            <h4>Acteurs</h4>
-            <ul>
-                <li><a href="/patient/dashboard.html">Espace Patient</a></li>
-                <li><a href="/medecin/dashboard.html">Espace Médecin</a></li>
-                <li><a href="/pharmacie/dashboard.html">Espace Pharmacie</a></li>
-                <li><a href="/labo/dashboard.html">Espace Laboratoire</a></li>
-            </ul>
-        </div>
+    <h4>Acteurs</h4>
+    <ul>
+        <!-- On redirige vers les dossiers spécifiques que nous avons créés -->
+        <li><a href="/patient/dashboard.html">Espace Patient</a></li>
+        <li><a href="/medecin/dashboard.html">Espace Médecin</a></li>
+        <li><a href="/pharmacie/dashboard.html">Espace Pharmacie</a></li>
+        <li><a href="/labo/dashboard.html">Espace Laboratoire</a></li>
+    </ul>
+</div>
+
         <div class="footer-col">
             <h4>Légal</h4>
             <ul>
@@ -637,9 +772,13 @@ const BOLAMU_CONFIG = {
 </footer>
 
 <script>
+/* ══════════════════════════════════════════════════════════════
+   MOTEUR DE RENDU — NE PAS MODIFIER
+════════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
     const C = BOLAMU_CONFIG;
 
+    // Hero
     document.getElementById('hero-badge').textContent = C.hero.badge;
     document.getElementById('hero-titre').innerHTML = C.hero.titre;
     document.getElementById('hero-sous-titre').textContent = C.hero.sousTitre;
@@ -649,12 +788,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('hero-photo-nom').textContent = C.hero.photoNom;
     document.getElementById('hero-photo-statut').textContent = C.hero.photoStatut;
 
+    // Stats
     document.getElementById('stats-section').innerHTML = C.stats.map(s => `
         <div class="stat-item">
             <span class="stat-number">${s.nombre}</span>
             <span class="stat-label">${s.label.replace('\n','<br>')}</span>
         </div>`).join('');
 
+    // Comment ça marche
     document.getElementById('comment-sous-titre').textContent = C.comment.sousTitre;
     document.getElementById('comment-etapes').innerHTML = C.comment.etapes.map((e,i) => `
         <div class="how-card">
@@ -664,6 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>${e.texte}</p>
         </div>`).join('');
 
+    // Formules
     document.getElementById('formules-sous-titre').textContent = C.formules.sousTitre;
     document.getElementById('formules-grid').innerHTML = C.formules.plans.map(p => `
         <div class="plan-card ${p.featured ? 'featured' : ''}">
@@ -673,10 +815,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="plan-period">FCFA / mois</div>
             <div class="plan-annual">${p.annuel}</div>
             <div class="plan-divider"></div>
-            <ul class="plan-features">${p.avantages.map(a => `<li>${a}</li>`).join('')}</ul>
+            <ul class="plan-features">
+                ${p.avantages.map(a => `<li>${a}</li>`).join('')}
+            </ul>
             <a href="#connexion" class="btn-plan">Choisir ${p.nom}</a>
         </div>`).join('');
 
+    // Acteurs
     document.getElementById('acteurs-grid').innerHTML = C.acteurs.map(a => `
         <div class="actor-card">
             <img src="${a.photo}" alt="${a.tag}">
@@ -687,6 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>`).join('');
 
+    // Articles
     document.getElementById('articles-grid').innerHTML = C.articles.map((a, i) => `
         <div class="article-card ${i === 0 ? 'featured' : ''}">
             <img class="article-image" src="${a.photo}" alt="${a.categorie}">
@@ -701,14 +847,19 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>`).join('');
 
+    // Groupes
     document.getElementById('groupes-titre').textContent = C.groupes.titre;
     document.getElementById('groupes-sous-titre').textContent = C.groupes.sousTitre;
     document.getElementById('groupes-features').innerHTML = C.groupes.avantages.map(a => `
         <div class="groupes-feature">
             <div class="groupes-feature-icon">${a.icon}</div>
-            <div class="groupes-feature-text"><h4>${a.titre}</h4><p>${a.texte}</p></div>
+            <div class="groupes-feature-text">
+                <h4>${a.titre}</h4>
+                <p>${a.texte}</p>
+            </div>
         </div>`).join('');
 
+    // Footer
     document.getElementById('footer-desc').textContent = C.footer.description;
     document.getElementById('footer-email').textContent = C.footer.email;
     document.getElementById('footer-email').href = 'mailto:' + C.footer.email;
@@ -716,7 +867,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('footer-mention').textContent = C.footer.mention;
 });
 
-/* ══ AUTHENTIFICATION OTP + JWT ════════════════════════════════ */
+/* ══ AUTHENTIFICATION OTP ══════════════════════════════════════ */
 let selectedType = 'patient';
 let currentPhone = '';
 
@@ -778,7 +929,6 @@ async function verifyOtp() {
         });
         const data = await res.json();
         if (res.ok && data.success) {
-            // 🔐 Sauvegarder le token JWT et les infos utilisateur
             localStorage.setItem('bolamu_token', data.token);
             localStorage.setItem('bolamu_phone', data.phone);
             localStorage.setItem('bolamu_role', data.role);
@@ -795,3 +945,8 @@ async function verifyOtp() {
 
 </body>
 </html>
+
+
+
+
+
