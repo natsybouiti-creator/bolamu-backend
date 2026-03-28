@@ -1,61 +1,106 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const pool = require('./config/db'); // 🟢 Importation pour tester la connexion au démarrage
+const pool = require('./config/db');
+const authMiddleware = require('./middleware/auth.middleware');
 
-// 1. IMPORTATION DES ROUTES
+const app = express();
+
+// ============================================================
+// 1. MIDDLEWARES
+// ============================================================
+app.use(express.json());
+
+app.use((req, res, next) => {
+    res.setHeader('X-Powered-By', 'Bolamu');
+    next();
+});
+
+app.use(express.static(path.join(process.cwd(), 'public')));
+
+// ============================================================
+// 2. IMPORT DES ROUTES
+// ============================================================
 const authRoutes = require('./routes/auth.routes');
 const patientRoutes = require('./routes/patient.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
 const paymentRoutes = require('./routes/payment.routes');
 
-const app = express();
+// ============================================================
+// 3. ROUTES API
+// ============================================================
 
-app.use(express.json());
-app.use(express.static(path.join(process.cwd(), 'public')));
-
-// 2. ACTIVATION DES ROUTES
+// Auth — publique (pas de JWT, c'est ici qu'on se connecte)
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/patients', patientRoutes);
-app.use('/api/v1/doctors', doctorRoutes);
-app.use('/api/v1/appointments', appointmentRoutes);
-app.use('/api/v1/payments', paymentRoutes);
 
-// Route directe vers la Landing Page
+// Routes protégées — JWT obligatoire
+app.use('/api/v1/patients', authMiddleware, patientRoutes);
+app.use('/api/v1/doctors', authMiddleware, doctorRoutes);
+app.use('/api/v1/appointments', authMiddleware, appointmentRoutes);
+app.use('/api/v1/payments', authMiddleware, paymentRoutes);
+
+// ============================================================
+// 4. ROUTES WEB
+// ============================================================
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
-// TEST DE CONNEXION CLOUD (Vérification Neon)
-app.get('/api/v1/patients/test', async (req, res) => {
+// ============================================================
+// 5. TEST CLOUD (NEON) — public
+// ============================================================
+app.get('/api/v1/test', async (req, res) => {
     try {
-        const result = await pool.query('SELECT NOW() as cloud_time'); 
-        res.json({ 
+        const result = await pool.query('SELECT NOW() as cloud_time');
+        res.json({
             success: true,
-            message: "🚀 Succès ! Ton PC est connecté au Cloud Neon (Francfort).", 
-            time: result.rows[0].cloud_time 
+            message: "🚀 Connecté au Cloud Neon",
+            time: result.rows[0].cloud_time
         });
     } catch (err) {
-        res.status(500).json({ 
+        console.error('[NEON TEST ERROR]', err.message);
+        res.status(500).json({
             success: false,
-            message: "La connexion au Cloud a échoué.", 
-            details: err.message 
+            message: "Erreur connexion Cloud",
+            error: err.message
         });
     }
 });
 
-// 3. LANCEMENT DU SERVEUR
-const PORT = process.env.PORT || 3005; 
+// ============================================================
+// 6. ROUTE 404
+// ============================================================
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route introuvable"
+    });
+});
+
+// ============================================================
+// 7. GESTION ERREUR GLOBALE
+// ============================================================
+app.use((err, req, res, next) => {
+    console.error('[GLOBAL ERROR]', err);
+    res.status(500).json({
+        success: false,
+        message: "Erreur interne serveur"
+    });
+});
+
+// ============================================================
+// 8. LANCEMENT SERVEUR
+// ============================================================
+const PORT = process.env.PORT || 3005;
+
 app.listen(PORT, async () => {
-    console.log(`✅ Serveur Bolamu en ligne sur le port ${PORT}`);
-    
-    // 🟢 Test automatique de la connexion Cloud au démarrage
+    console.log(`✅ Bolamu server running on port ${PORT}`);
     try {
         await pool.query('SELECT 1');
-        // Le message "📡 Connecté à la base de données CLOUD" s'affichera via db.js
+        console.log('📡 Connecté à Neon DB');
     } catch (err) {
-        console.error("❌ Impossible de joindre Neon. Vérifie ton .env !");
+        console.error('❌ Connexion Neon échouée');
         console.error(err.message);
     }
 });

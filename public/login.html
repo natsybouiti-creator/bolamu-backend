@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Connexion - Bolamu</title>
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.container {
+    background: #1e293b;
+    padding: 30px;
+    border-radius: 10px;
+    width: 300px;
+}
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+}
+button {
+    background: #22c55e;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Connexion</h2>
+
+```
+<select id="type">
+    <option value="patient">Patient</option>
+    <option value="medecin">Médecin</option>
+    <option value="pharmacie">Pharmacie</option>
+    <option value="labo">Laboratoire</option>
+</select>
+
+<input type="text" id="phone" placeholder="Numéro (+242...)">
+
+<button onclick="requestOtp()">Recevoir code</button>
+
+<input type="text" id="otp" placeholder="Code OTP">
+
+<button onclick="login()">Se connecter</button>
+```
+
+</div>
+
+<script>
+let selectedType = "patient";
+
+document.getElementById("type").addEventListener("change", (e) => {
+    selectedType = e.target.value;
+});
+
+async function requestOtp() {
+    const phone = document.getElementById("phone").value;
+
+    const res = await fetch('/api/v1/auth/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+}
+
+async function login() {
+    const phone = document.getElementById("phone").value;
+    const otp = document.getElementById("otp").value;
+
+    const res = await fetch('/api/v1/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+        window.location.href = `/${selectedType}/dashboard.html`;
+    } else {
+        alert(data.message || "Erreur connexion");
+    }
+}
+</script>
+
+</body>
+</html>
