@@ -444,15 +444,21 @@ function selectSlot(time, btn) {
   document.getElementById('btn-confirm-rdv').textContent = `Confirmer à ${time} →`;
 }
 
+// ✅ CORRECTION : token JWT ajouté dans les headers de la requête /book
 async function confirmerRdv() {
   if (!selectedDate || !selectedTime) return;
   const btn = document.getElementById('btn-confirm-rdv');
   btn.disabled = true;
   btn.textContent = 'Confirmation en cours...';
+
   try {
+    const token = localStorage.getItem('bolamu_token');
     const res = await fetch(`${API}/appointments/book`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({patient_phone:phone, doctor_id:selectedDoctorId, date:selectedDate, time:selectedTime})
     });
     const data = await res.json();
@@ -473,7 +479,10 @@ async function confirmerRdv() {
 
 async function loadRdv() {
   try {
-    const res = await fetch(`${API}/appointments/patient/${encodeURIComponent(phone)}`);
+    const token = localStorage.getItem('bolamu_token');
+    const res = await fetch(`${API}/appointments/patient/${encodeURIComponent(phone)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     const data = await res.json();
     const rdvs = data.appointments;
     const container = document.getElementById('rdv-list-accueil');
@@ -514,7 +523,10 @@ async function loadRdv() {
 
 async function loadSubscription(){
   try{
-    const res=await fetch(`${API}/patients/subscription?phone=${encodeURIComponent(phone)}`);
+    const token = localStorage.getItem('bolamu_token');
+    const res=await fetch(`${API}/patients/subscription?phone=${encodeURIComponent(phone)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     if(!res.ok)throw new Error();
     const {data:sub}=await res.json();
     const labels={essentiel:'Essentiel',standard:'Standard',premium:'Premium'};
