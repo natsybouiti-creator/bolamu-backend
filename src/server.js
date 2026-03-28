@@ -10,12 +10,10 @@ const app = express();
 // 1. MIDDLEWARES
 // ============================================================
 app.use(express.json());
-
 app.use((req, res, next) => {
     res.setHeader('X-Powered-By', 'Bolamu');
     next();
 });
-
 app.use(express.static(path.join(process.cwd(), 'public')));
 
 // ============================================================
@@ -30,11 +28,7 @@ const paymentRoutes = require('./routes/payment.routes');
 // ============================================================
 // 3. ROUTES API
 // ============================================================
-
-// Auth — publique (pas de JWT, c'est ici qu'on se connecte)
 app.use('/api/v1/auth', authRoutes);
-
-// Routes protégées — JWT obligatoire
 app.use('/api/v1/patients', authMiddleware, patientRoutes);
 app.use('/api/v1/doctors', authMiddleware, doctorRoutes);
 app.use('/api/v1/appointments', authMiddleware, appointmentRoutes);
@@ -93,7 +87,6 @@ app.use((err, req, res, next) => {
 // 8. LANCEMENT SERVEUR
 // ============================================================
 const PORT = process.env.PORT || 3005;
-
 app.listen(PORT, async () => {
     console.log(`✅ Bolamu server running on port ${PORT}`);
     try {
