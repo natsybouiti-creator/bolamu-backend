@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const pool = require('./config/db');
-const authMiddleware = require('./middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 
 const app = express();
 
