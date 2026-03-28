@@ -28,12 +28,15 @@ const prescriptionRoutes = require('./routes/prescription.routes');
 // ============================================================
 // 3. ROUTES API
 // ============================================================
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/patients', authMiddleware, patientRoutes);
-app.use('/api/v1/doctors', authMiddleware, doctorRoutes);
-app.use('/api/v1/appointments', authMiddleware, appointmentRoutes);
-app.use('/api/v1/payments', authMiddleware, paymentRoutes);
-app.use('/api/v1/prescriptions', authMiddleware, prescriptionRoutes);
+app.use('/api/v1/auth', authRoutes); // Public (Login / OTP)
+
+// On rend l'inscription publique, mais on protège le reste
+app.use('/api/v1/patients', patientRoutes); // Enlève authMiddleware ici pour l'inscription
+
+app.use('/api/v1/doctors', doctorRoutes); // Public (pour la recherche)
+app.use('/api/v1/appointments', authMiddleware, appointmentRoutes); // Protégé
+app.use('/api/v1/payments', authMiddleware, paymentRoutes); // Protégé
+app.use('/api/v1/prescriptions', authMiddleware, prescriptionRoutes); // Protégé
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
