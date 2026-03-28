@@ -1,101 +1,185 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Connexion - Bolamu</title>
-<style>
-body {
-    font-family: Arial;
-    background: #0f172a;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-.container {
-    background: #1e293b;
-    padding: 30px;
-    border-radius: 10px;
-    width: 300px;
-}
-input, button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-}
-button {
-    background: #22c55e;
-    border: none;
-    color: white;
-    cursor: pointer;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolamu — Connexion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
+      --bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#ffffff;
+      --border:rgba(10,36,99,0.1);
+      --grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);
+      --grad-bg:linear-gradient(135deg,#0A2463 0%,#1a3a7a 50%,#0A2463 100%);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--grad-bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,201,167,0.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(46,134,255,0.1) 0%,transparent 50%);pointer-events:none;}
+    .login-wrap{width:100%;max-width:460px;position:relative;z-index:1;}
+    .logo-area{text-align:center;margin-bottom:32px;}
+    .logo-icon{width:56px;height:56px;background:var(--grad-btn);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;position:relative;margin-bottom:12px;}
+    .logo-icon::after{content:'+';color:white;font-size:28px;font-weight:300;line-height:1;}
+    .logo-leaf{position:absolute;top:-4px;right:-3px;width:14px;height:14px;background:var(--vert);border-radius:50% 0 50% 0;transform:rotate(45deg);}
+    .logo-name{font-size:28px;font-weight:800;letter-spacing:-0.5px;color:white;}
+    .logo-name .t{color:var(--vert);}
+    .logo-tagline{font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;}
+    .card{background:rgba(255,255,255,0.97);border-radius:28px;padding:40px;box-shadow:0 40px 80px rgba(0,0,0,0.3);}
+    .step{display:none;} .step.active{display:block;}
+    .step-title{font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--texte);margin-bottom:6px;}
+    .step-sub{font-size:14px;color:var(--texte-doux);margin-bottom:28px;line-height:1.6;}
+    .field{margin-bottom:20px;}
+    .field label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;}
+    .field input{width:100%;border:2px solid var(--border);border-radius:14px;padding:14px 18px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);transition:border-color 0.2s;}
+    .field input:focus{border-color:var(--bleu-vif);}
+    .field input.otp-input{font-family:'Fraunces',serif;font-size:28px;font-weight:900;letter-spacing:8px;text-align:center;}
+    .btn-primary{width:100%;padding:16px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:4px;}
+    .btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
+    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+    .btn-back{background:transparent;border:none;color:var(--texte-doux);font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:16px;display:flex;align-items:center;gap:6px;padding:0;}
+    .btn-back:hover{color:var(--bleu);}
+    .msg-box{padding:14px 18px;border-radius:12px;font-size:14px;margin-bottom:20px;display:none;}
+    .msg-box.success{background:var(--vert-clair);border:1px solid #6ee7b7;color:#064e3b;}
+    .msg-box.error{background:#fde8e8;border:1px solid #fca5a5;color:#991b1b;}
+    .phone-display{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--bleu);background:var(--bleu-pale);padding:12px 18px;border-radius:12px;text-align:center;margin-bottom:20px;letter-spacing:1px;}
+    .timer{text-align:center;font-size:13px;color:var(--texte-doux);margin-top:12px;}
+    .timer span{color:var(--bleu-vif);font-weight:700;}
+    .divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+    .divider hr{flex:1;border:none;border-top:1px solid var(--border);}
+    .divider span{font-size:12px;color:var(--texte-doux);}
+    .roles-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px;}
+    .role-pill{background:var(--bleu-pale);border-radius:10px;padding:10px 12px;text-align:center;font-size:12px;font-weight:600;color:var(--texte-doux);}
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Connexion</h2>
+<div class="login-wrap">
+  <div class="logo-area">
+    <div class="logo-icon"><div class="logo-leaf"></div></div>
+    <div class="logo-name">Bola<span class="t">mu</span></div>
+    <div class="logo-tagline">La santé simple et accessible 🇨🇬</div>
+  </div>
 
-```
-<select id="type">
-    <option value="patient">Patient</option>
-    <option value="medecin">Médecin</option>
-    <option value="pharmacie">Pharmacie</option>
-    <option value="labo">Laboratoire</option>
-</select>
+  <div class="card">
+    <div id="msg" class="msg-box"></div>
 
-<input type="text" id="phone" placeholder="Numéro (+242...)">
+    <!-- ÉTAPE 1 : Numéro de téléphone -->
+    <div class="step active" id="step-phone">
+      <div class="step-title">Connexion</div>
+      <div class="step-sub">Entrez votre numéro de téléphone — vous recevrez un code de vérification par SMS.</div>
+      <div class="field">
+        <label>Numéro de téléphone</label>
+        <input type="tel" id="phone-input" placeholder="+242 06 XXX XX XX" maxlength="15">
+      </div>
+      <button class="btn-primary" onclick="requestOtp()" id="btn-otp">Recevoir mon code SMS →</button>
+      <div class="divider"><hr><span>Accessible à tous</span><hr></div>
+      <div class="roles-info">
+        <div class="role-pill">👤 Patients</div>
+        <div class="role-pill">🩺 Médecins</div>
+        <div class="role-pill">💊 Pharmacies</div>
+        <div class="role-pill">🔬 Laboratoires</div>
+      </div>
+    </div>
 
-<button onclick="requestOtp()">Recevoir code</button>
+    <!-- ÉTAPE 2 : Code OTP -->
+    <div class="step" id="step-otp">
+      <div class="step-title">Code de vérification</div>
+      <div class="step-sub">Un code à 4 chiffres a été envoyé par SMS au numéro :</div>
+      <div class="phone-display" id="phone-display">—</div>
+      <div class="field">
+        <label>Code reçu par SMS</label>
+        <input type="text" class="otp-input" id="otp-input" placeholder="····" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'')">
+      </div>
+      <button class="btn-primary" onclick="verifyOtp()" id="btn-verify">Confirmer et accéder →</button>
+      <div class="timer">Pas reçu ? <span onclick="requestOtp()" style="cursor:pointer;">Renvoyer le code</span></div>
+      <button class="btn-back" onclick="goBack()">← Changer de numéro</button>
+    </div>
 
-<input type="text" id="otp" placeholder="Code OTP">
-
-<button onclick="login()">Se connecter</button>
-```
-
+  </div>
 </div>
 
 <script>
-let selectedType = "patient";
+const API = '';
+let currentPhone = '';
 
-document.getElementById("type").addEventListener("change", (e) => {
-    selectedType = e.target.value;
-});
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg-box ' + type;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function goBack() {
+  document.getElementById('step-otp').classList.remove('active');
+  document.getElementById('step-phone').classList.add('active');
+}
 
 async function requestOtp() {
-    const phone = document.getElementById("phone").value;
+  const phone = document.getElementById('phone-input').value.trim();
+  if (!phone || phone.length < 8) {
+    showMsg('Veuillez entrer un numéro valide.', 'error');
+    return;
+  }
+  currentPhone = phone;
+  const btn = document.getElementById('btn-otp');
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours...';
 
+  try {
     const res = await fetch('/api/v1/auth/request-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
     });
-
     const data = await res.json();
-    alert(data.message);
+    if (res.ok && data.success) {
+      document.getElementById('phone-display').textContent = phone;
+      document.getElementById('step-phone').classList.remove('active');
+      document.getElementById('step-otp').classList.add('active');
+      showMsg('Code envoyé par SMS !', 'success');
+    } else {
+      showMsg(data.message || 'Erreur envoi SMS.', 'error');
+    }
+  } catch(e) {
+    showMsg('Erreur de connexion. Vérifiez internet.', 'error');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Recevoir mon code SMS →';
 }
 
-async function login() {
-    const phone = document.getElementById("phone").value;
-    const otp = document.getElementById("otp").value;
+async function verifyOtp() {
+  const otp = document.getElementById('otp-input').value.trim();
+  if (!otp || otp.length < 4) {
+    showMsg('Entrez le code reçu par SMS.', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true;
+  btn.textContent = 'Vérification...';
 
-    const res = await fetch('/api/v1/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp })
+  try {
+    const res = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: currentPhone, otp })
     });
-
     const data = await res.json();
-
-    if (res.ok) {
-        window.location.href = `/${selectedType}/dashboard.html`;
+    if (res.ok && data.success) {
+      localStorage.setItem('bolamu_token', data.token);
+      localStorage.setItem('bolamu_phone', data.phone);
+      localStorage.setItem('bolamu_role', data.role);
+      showMsg('🎉 Connexion réussie ! Redirection...', 'success');
+      setTimeout(() => { window.location.href = data.redirectUrl; }, 1500);
     } else {
-        alert(data.message || "Erreur connexion");
+      showMsg(data.message || 'Code incorrect.', 'error');
     }
+  } catch(e) {
+    showMsg('Erreur de connexion.', 'error');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Confirmer et accéder →';
 }
 </script>
-
 </body>
 </html>
