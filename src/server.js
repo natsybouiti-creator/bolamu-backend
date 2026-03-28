@@ -34,7 +34,8 @@ app.use('/api/v1/auth', authRoutes); // Public (Login / OTP)
 app.use('/api/v1/patients', patientRoutes); // Enlève authMiddleware ici pour l'inscription
 
 app.use('/api/v1/doctors', doctorRoutes); // Public (pour la recherche)
-app.use('/api/v1/appointments', authMiddleware, appointmentRoutes); // Protégé
+app.use('/api/v1/appointments/slots', appointmentRoutes); // Public - voir les créneaux
+app.use('/api/v1/appointments', authMiddleware, appointmentRoutes); // Protégé - réserver
 app.use('/api/v1/payments', authMiddleware, paymentRoutes); // Protégé
 app.use('/api/v1/prescriptions', authMiddleware, prescriptionRoutes); // Protégé
 // ============================================================
