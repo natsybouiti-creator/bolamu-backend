@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
-const authMiddleware = require('../middleware/auth.middleware');
+const authMiddleware = require('../../middleware/auth.middleware');
 
 router.get('/slots/:doctor_id', async (req, res) => {
     const { doctor_id } = req.params;
