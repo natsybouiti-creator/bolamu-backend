@@ -3,8 +3,23 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { uploadToCloudinary } = require('./cloudinary.util');
 const { sendBolamuSms } = require('../services/sms.service');
+
+async function uploadToCloudinary(fileBuffer, folder) {
+    const cloudinary = require('cloudinary').v2;
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder, resource_type: 'auto' },
+            (error, result) => error ? reject(error) : resolve(result)
+        );
+        stream.end(fileBuffer);
+    });
+}
 
 function generatePhmCode(phone) {
     const digits = phone.replace(/\D/g, '').slice(-8);
@@ -52,7 +67,6 @@ async function registerPharmacie(req, res) {
             return res.status(409).json({ success: false, message: 'Une pharmacie avec ce numéro existe déjà.' });
         }
 
-        // Upload Cloudinary — lazy
         let documentUrl = null;
         let documentPublicId = null;
         if (req.file) {
@@ -117,7 +131,10 @@ async function getPharmacieProfile(req, res) {
     const { phone } = req.query;
     if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
     try {
-        const result = await pool.query(`SELECT id, name, phone, responsible_name, rccm_number, city, neighborhood, status, member_code, trust_score, momo_number, is_active, created_at FROM pharmacies WHERE phone = $1`, [phone]);
+        const result = await pool.query(
+            `SELECT id, name, phone, responsible_name, rccm_number, city, neighborhood, status, member_code, trust_score, momo_number, is_active, created_at FROM pharmacies WHERE phone = $1`,
+            [phone]
+        );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Pharmacie introuvable.' });
         return res.json({ success: true, data: result.rows[0] });
     } catch (error) {
@@ -136,7 +153,11 @@ async function updatePharmacieStatus(req, res) {
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Pharmacie introuvable.' });
         const p = result.rows[0];
         try {
-            const msgs = { verified: `Bolamu : ${p.name} validée ! Code : ${p.member_code}.`, rejected: `Bolamu : Inscription ${p.name} non validée. Motif : ${reason || 'Dossier incomplet'}.`, suspended: `Bolamu : Compte ${p.name} suspendu.` };
+            const msgs = {
+                verified: `Bolamu : ${p.name} validée ! Code : ${p.member_code}.`,
+                rejected: `Bolamu : Inscription ${p.name} non validée. Motif : ${reason || 'Dossier incomplet'}.`,
+                suspended: `Bolamu : Compte ${p.name} suspendu.`
+            };
             if (msgs[status]) await sendBolamuSms(p.phone, msgs[status]);
         } catch (e) {}
         return res.json({ success: true, data: p });

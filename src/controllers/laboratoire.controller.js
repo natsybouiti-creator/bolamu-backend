@@ -3,8 +3,23 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { uploadToCloudinary } = require('./cloudinary.util');
 const { sendBolamuSms } = require('../services/sms.service');
+
+async function uploadToCloudinary(fileBuffer, folder) {
+    const cloudinary = require('cloudinary').v2;
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder, resource_type: 'auto' },
+            (error, result) => error ? reject(error) : resolve(result)
+        );
+        stream.end(fileBuffer);
+    });
+}
 
 function generateLabCode(phone) {
     const digits = phone.replace(/\D/g, '').slice(-8);
@@ -52,7 +67,6 @@ async function registerLaboratoire(req, res) {
             return res.status(409).json({ success: false, message: 'Un laboratoire avec ce numéro existe déjà.' });
         }
 
-        // Upload Cloudinary — lazy
         let documentUrl = null;
         let documentPublicId = null;
         if (req.file) {
@@ -117,7 +131,10 @@ async function getLaboratoireProfile(req, res) {
     const { phone } = req.query;
     if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
     try {
-        const result = await pool.query(`SELECT id, name, phone, director_name, rccm_number, agrement_number, city, neighborhood, status, member_code, trust_score, momo_number, created_at FROM laboratories WHERE phone = $1`, [phone]);
+        const result = await pool.query(
+            `SELECT id, name, phone, director_name, rccm_number, agrement_number, city, neighborhood, status, member_code, trust_score, momo_number, created_at FROM laboratories WHERE phone = $1`,
+            [phone]
+        );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Laboratoire introuvable.' });
         return res.json({ success: true, data: result.rows[0] });
     } catch (error) {
@@ -136,7 +153,11 @@ async function updateLaboratoireStatus(req, res) {
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Laboratoire introuvable.' });
         const l = result.rows[0];
         try {
-            const msgs = { verified: `Bolamu : ${l.name} validé ! Code : ${l.member_code}.`, rejected: `Bolamu : Inscription ${l.name} non validée. Motif : ${reason || 'Dossier incomplet'}.`, suspended: `Bolamu : Compte ${l.name} suspendu.` };
+            const msgs = {
+                verified: `Bolamu : ${l.name} validé ! Code : ${l.member_code}.`,
+                rejected: `Bolamu : Inscription ${l.name} non validée. Motif : ${reason || 'Dossier incomplet'}.`,
+                suspended: `Bolamu : Compte ${l.name} suspendu.`
+            };
             if (msgs[status]) await sendBolamuSms(l.phone, msgs[status]);
         } catch (e) {}
         return res.json({ success: true, data: l });

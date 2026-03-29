@@ -3,8 +3,23 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { uploadToCloudinary } = require('./cloudinary.util');
 const { sendBolamuSms } = require('../services/sms.service');
+
+async function uploadToCloudinary(fileBuffer, folder) {
+    const cloudinary = require('cloudinary').v2;
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder, resource_type: 'auto' },
+            (error, result) => error ? reject(error) : resolve(result)
+        );
+        stream.end(fileBuffer);
+    });
+}
 
 function calculateTrustScore(data) {
     let score = 0;
@@ -58,7 +73,6 @@ async function registerDoctor(req, res) {
             return res.status(409).json({ success: false, message: 'Ce numéro d\'ordre est déjà enregistré.' });
         }
 
-        // Upload Cloudinary — lazy
         let documentUrl = null;
         let documentPublicId = null;
         if (req.file) {
