@@ -1,135 +1,99 @@
 // ============================================================
-// BOLAMU — Contrôleur patients (Version Sécurisée ID + PIN)
+// BOLAMU — Contrôleur Patients
 // ============================================================
 const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
 
-// 1. GÉNÉRATEURS AUTOMATIQUES
-const generateBolamuId = () => `BOL-${Math.floor(1000 + Math.random() * 9000)}`;
-const generateSecretPin = () => Math.floor(1000 + Math.random() * 9000).toString();
+const generateBolamuId = () => `BLM-${Math.floor(1000 + Math.random() * 9000)}`;
 
-// ----------------------------------------------------------------
-// POST /api/v1/patients/register
-// ----------------------------------------------------------------
+// ─── INSCRIPTION PATIENT ──────────────────────────────────────────────────────
 async function registerPatient(req, res) {
-    const { phone, full_name, birth_date, gender, plan } = req.body;
+    const { phone, full_name, birth_date, gender, city, momo_number, cgu_accepted } = req.body;
 
     if (!phone || !full_name) {
-        return res.status(400).json({
-            success: false,
-            message: 'Champs obligatoires manquants : phone, full_name'
-        });
+        return res.status(400).json({ success: false, message: 'Champs obligatoires : phone, full_name' });
+    }
+
+    if (!/^\+242[0-9]{9}$/.test(phone)) {
+        return res.status(400).json({ success: false, message: 'Numéro invalide. Format : +242XXXXXXXXX' });
     }
 
     try {
-        // Vérifier si le numéro existe déjà
-        const existing = await pool.query(
-            'SELECT id FROM users WHERE phone = $1',
-            [phone]
-        );
-
+        const existing = await pool.query('SELECT id FROM users WHERE phone = $1', [phone]);
         if (existing.rows.length > 0) {
-            return res.status(409).json({
-                success: false,
-                message: 'Ce numéro est déjà enregistré.'
-            });
+            return res.status(409).json({ success: false, message: 'Ce numéro est déjà enregistré.' });
         }
 
-        // GÉNÉRATION DES IDENTIFIANTS SÉCURISÉS
         const bolamuId = generateBolamuId();
-        const secretPin = generateSecretPin();
 
-        // INSERTION DANS LA TABLE USERS (Inclus ID Bolamu et PIN)
         const newUser = await pool.query(
-            `INSERT INTO users (
-                phone, full_name, birth_date, gender, role, 
-                bolamu_id, secret_pin, is_active, created_at
-             )
-             VALUES ($1, $2, $3, $4, 'patient', $5, $6, TRUE, NOW())
+            `INSERT INTO users
+                (phone, full_name, birth_date, gender, role, bolamu_id, is_active,
+                 momo_number, cgu_accepted, cgu_accepted_at, onboarding_completed, created_at)
+             VALUES ($1,$2,$3,$4,'patient',$5,TRUE,$6,$7,NOW(),TRUE,NOW())
              RETURNING id, phone, full_name, bolamu_id, created_at`,
-            [phone, full_name, birth_date || null, gender || null, bolamuId, secretPin]
+            [
+                phone, full_name, birth_date || null, gender || null,
+                bolamuId, momo_number || phone,
+                cgu_accepted === 'true' || cgu_accepted === true
+            ]
         );
 
-        // LOG D'AUDIT
+        // Audit log avec les bonnes colonnes
         await pool.query(
-            `INSERT INTO audit_log (user_phone, action, details, created_at)
-             VALUES ($1, 'PATIENT_REGISTERED', $2, NOW())`,
-            [phone, JSON.stringify({ full_name, bolamu_id: bolamuId })]
-        );
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('patient.registered', $1, 'users', $2, $3)`,
+            [phone, newUser.rows[0].id, JSON.stringify({ full_name, bolamu_id: bolamuId })]
+        ).catch(() => {});
 
-        // ENVOI DU SMS DE BIENVENUE AVEC LES IDENTIFIANTS
-        const messageSms = `Bienvenue chez Bolamu ! Votre ID : ${bolamuId}. Votre code PIN secret : ${secretPin}. Gardez-le pour vous connecter.`;
-        
         try {
-            await sendBolamuSms(phone, messageSms);
-        } catch (smsErr) {
-            console.error("⚠️ SMS non envoyé, mais identifiants créés :", bolamuId);
-        }
+            await sendBolamuSms(phone,
+                `Bolamu : Bienvenue ${full_name} ! Votre ID Bolamu : ${bolamuId}. Connectez-vous sur bolamu-backend.onrender.com`
+            );
+        } catch (e) { console.log('⚠️ SMS non envoyé'); }
 
         return res.status(201).json({
             success: true,
-            message: 'Patient enregistré. Identifiants envoyés par SMS.',
+            message: 'Inscription réussie !',
             data: {
-                id: newUser.rows[0].id,
-                bolamu_id: newUser.rows[0].bolamu_id,
+                bolamu_id: bolamuId,
                 full_name: newUser.rows[0].full_name,
-                pin_code_sent: true
+                phone: newUser.rows[0].phone,
+                auto_validated: true,
+                trust_score: 85,
+                member_code: bolamuId
             }
         });
 
     } catch (error) {
-        console.error('[registerPatient] Erreur :', error.message);
-        return res.status(500).json({
-            success: false,
-            message: 'Erreur serveur. Réessayer.'
-        });
+        console.error('[registerPatient]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur : ' + error.message });
     }
 }
 
-// ----------------------------------------------------------------
-// GET /api/v1/patients/subscription?phone=+242XXXXXXXXX
-// ----------------------------------------------------------------
+// ─── ABONNEMENT ACTIF ─────────────────────────────────────────────────────────
 async function getSubscription(req, res) {
     const { phone } = req.query;
-
-    if (!phone) {
-        return res.status(400).json({
-            success: false,
-            message: 'Paramètre manquant : phone'
-        });
-    }
+    if (!phone) return res.status(400).json({ success: false, message: 'Paramètre phone manquant.' });
 
     try {
         const result = await pool.query(
             `SELECT plan, amount_fcfa, status, started_at, expires_at
              FROM subscriptions
-             WHERE patient_phone = $1
-               AND status = 'active'
-               AND is_active = TRUE
-               AND expires_at > NOW()
-             ORDER BY started_at DESC
-             LIMIT 1`,
+             WHERE patient_phone = $1 AND status = 'active' AND is_active = TRUE AND expires_at > NOW()
+             ORDER BY started_at DESC LIMIT 1`,
             [phone]
         );
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Aucun abonnement actif trouvé.'
-            });
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Aucun abonnement actif trouvé.' });
         }
 
-        return res.status(200).json({
-            success: true,
-            data: result.rows[0]
-        });
+        return res.json({ success: true, data: result.rows[0] });
 
     } catch (error) {
-        console.error('[getSubscription] Erreur :', error.message);
-        return res.status(500).json({
-            success: false,
-            message: 'Erreur serveur. Réessayer.'
-        });
+        console.error('[getSubscription]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
 }
 

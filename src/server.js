@@ -26,6 +26,8 @@ const doctorRoutes = require('./routes/doctor.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const prescriptionRoutes = require('./routes/prescription.routes');
+const pharmacieRoutes = require('./routes/pharmacie.routes');
+const laboratoireRoutes = require('./routes/laboratoire.routes');
 
 // ============================================================
 // 3. ROUTES API
@@ -36,6 +38,8 @@ app.use('/api/v1/doctors', doctorRoutes);
 app.use('/api/v1/appointments', appointmentRoutes);
 app.use('/api/v1/payments', authMiddleware, paymentRoutes);
 app.use('/api/v1/prescriptions', authMiddleware, prescriptionRoutes);
+app.use('/api/v1/pharmacies', pharmacieRoutes);
+app.use('/api/v1/laboratories', laboratoireRoutes);
 
 // ============================================================
 // 4. ROUTES WEB
@@ -45,23 +49,14 @@ app.get('/', (req, res) => {
 });
 
 // ============================================================
-// 5. TEST CLOUD (NEON) — public
+// 5. TEST CLOUD (NEON)
 // ============================================================
 app.get('/api/v1/test', async (req, res) => {
     try {
         const result = await pool.query('SELECT NOW() as cloud_time');
-        res.json({
-            success: true,
-            message: "🚀 Connecté au Cloud Neon",
-            time: result.rows[0].cloud_time
-        });
+        res.json({ success: true, message: '🚀 Connecté au Cloud Neon', time: result.rows[0].cloud_time });
     } catch (err) {
-        console.error('[NEON TEST ERROR]', err.message);
-        res.status(500).json({
-            success: false,
-            message: "Erreur connexion Cloud",
-            error: err.message
-        });
+        res.status(500).json({ success: false, message: 'Erreur connexion Cloud', error: err.message });
     }
 });
 
@@ -69,10 +64,7 @@ app.get('/api/v1/test', async (req, res) => {
 // 6. ROUTE 404
 // ============================================================
 app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: "Route introuvable"
-    });
+    res.status(404).json({ success: false, message: 'Route introuvable' });
 });
 
 // ============================================================
@@ -80,10 +72,7 @@ app.use((req, res) => {
 // ============================================================
 app.use((err, req, res, next) => {
     console.error('[GLOBAL ERROR]', err);
-    res.status(500).json({
-        success: false,
-        message: "Erreur interne serveur"
-    });
+    res.status(500).json({ success: false, message: 'Erreur interne serveur' });
 });
 
 // ============================================================
