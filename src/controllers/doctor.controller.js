@@ -53,7 +53,6 @@ function generateMedCode(phone) {
 
 // ─── INSCRIPTION MÉDECIN ──────────────────────────────────────────────────────
 async function registerDoctor(req, res) {
-    // Avec multer, req.body est peuplé automatiquement depuis le FormData
     const phone = req.body?.phone;
     const full_name = req.body?.full_name;
     const specialty = req.body?.specialty;
@@ -112,7 +111,6 @@ async function registerDoctor(req, res) {
                 documentPublicId = uploadResult.public_id;
             } catch (uploadErr) {
                 console.error('[Cloudinary] Upload erreur:', uploadErr.message);
-                // Non bloquant — on continue sans document
             }
         }
 
@@ -155,10 +153,11 @@ async function registerDoctor(req, res) {
             ]
         );
 
-        // Audit log
+        // Audit log — colonnes correctes
         await client.query(
-            `INSERT INTO audit_log (action, actor_phone, details) VALUES ('doctor.registered', $1, $2)`,
-            [phone, JSON.stringify({ full_name, specialty, trust_score: score, auto_status: autoStatus })]
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('doctor.registered', $1, 'doctors', $2, $3)`,
+            [phone, newDoctor.rows[0].id, JSON.stringify({ full_name, specialty, trust_score: score, auto_status: autoStatus })]
         );
 
         await client.query('COMMIT');
@@ -270,16 +269,17 @@ async function updateDoctorStatus(req, res) {
 
         try {
             const messages = {
-                verified: `Bolamu : Félicitations Dr. ${doc.full_name} ! Compte validé. Code : ${doc.member_code}. Connectez-vous sur bolamu-backend.onrender.com`,
-                rejected: `Bolamu : Inscription Dr. ${doc.full_name} non validée. Motif : ${reason || 'Dossier incomplet'}.`,
+                verified: `Bolamu : Félicitations Dr. ${doc.full_name} ! Compte validé. Code : ${doc.member_code}.`,
+                rejected: `Bolamu : Inscription non validée. Motif : ${reason || 'Dossier incomplet'}.`,
                 suspended: `Bolamu : Compte suspendu. Motif : ${reason || 'Activité suspecte'}.`
             };
             if (messages[status]) await sendBolamuSms(doc.phone, messages[status]);
         } catch (e) { console.log('⚠️ SMS non envoyé'); }
 
         await pool.query(
-            `INSERT INTO audit_log (action, actor_phone, details) VALUES ($1, $2, $3)`,
-            [`doctor.status_${status}`, doc.phone, JSON.stringify({ doctor_id: id, reason })]
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ($1, $2, 'doctors', $3, $4)`,
+            [`doctor.status_${status}`, doc.phone, parseInt(id), JSON.stringify({ reason })]
         ).catch(() => {});
 
         return res.json({ success: true, message: `Statut mis à jour : ${status}`, data: doc });
