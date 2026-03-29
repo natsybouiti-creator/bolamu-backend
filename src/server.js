@@ -10,6 +10,7 @@ const app = express();
 // 1. MIDDLEWARES
 // ============================================================
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
     res.setHeader('X-Powered-By', 'Bolamu');
     next();
@@ -25,18 +26,17 @@ const doctorRoutes = require('./routes/doctor.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const prescriptionRoutes = require('./routes/prescription.routes');
+
 // ============================================================
 // 3. ROUTES API
 // ============================================================
-app.use('/api/v1/auth', authRoutes); // Public (Login / OTP)
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/patients', patientRoutes);
+app.use('/api/v1/doctors', doctorRoutes);
+app.use('/api/v1/appointments', appointmentRoutes);
+app.use('/api/v1/payments', authMiddleware, paymentRoutes);
+app.use('/api/v1/prescriptions', authMiddleware, prescriptionRoutes);
 
-// On rend l'inscription publique, mais on protège le reste
-app.use('/api/v1/patients', patientRoutes); // Enlève authMiddleware ici pour l'inscription
-
-app.use('/api/v1/doctors', doctorRoutes); // Public (pour la recherche)
-app.use('/api/v1/appointments', appointmentRoutes); // Auth géré dans les routes
-app.use('/api/v1/payments', authMiddleware, paymentRoutes); // Protégé
-app.use('/api/v1/prescriptions', authMiddleware, prescriptionRoutes); // Protégé
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
