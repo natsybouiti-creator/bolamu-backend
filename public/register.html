@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolamu — Inscription</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
+      --bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#fff;
+      --rouge:#e74c3c;--amber:#f39c12;--border:rgba(10,36,99,0.1);
+      --emeraude:#00A878;--violet:#7C3AED;--orange:#EA580C;
+      --grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);
+      --grad-bg:linear-gradient(135deg,#0A2463 0%,#1a3a7a 50%,#0A2463 100%);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--grad-bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,201,167,0.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(46,134,255,0.1) 0%,transparent 50%);pointer-events:none;}
+
+    .wrap{width:100%;max-width:620px;position:relative;z-index:1;}
+
+    /* Logo */
+    .logo-area{text-align:center;margin-bottom:28px;}
+    .logo-icon{width:52px;height:52px;background:var(--grad-btn);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;position:relative;margin-bottom:10px;}
+    .logo-icon::after{content:'+';color:white;font-size:26px;font-weight:300;line-height:1;}
+    .logo-leaf{position:absolute;top:-3px;right:-2px;width:13px;height:13px;background:var(--vert);border-radius:50% 0 50% 0;transform:rotate(45deg);}
+    .logo-name{font-size:26px;font-weight:800;color:white;letter-spacing:-0.5px;}
+    .logo-name .t{color:var(--vert);}
+    .logo-tagline{font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;}
+
+    .card{background:rgba(255,255,255,0.97);border-radius:28px;padding:40px;box-shadow:0 40px 80px rgba(0,0,0,0.3);}
+
+    /* Steps bar */
+    .steps-bar{display:flex;align-items:center;margin-bottom:32px;}
+    .step-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;transition:all 0.3s;}
+    .step-dot.active{background:var(--bleu);color:white;}
+    .step-dot.done{background:var(--vert);color:white;}
+    .step-dot.idle{background:var(--border);color:var(--texte-doux);}
+    .step-line{flex:1;height:2px;background:var(--border);transition:background 0.3s;}
+    .step-line.done{background:var(--vert);}
+
+    /* Panels */
+    .panel{display:none;animation:fadeIn 0.25s ease;}
+    .panel.active{display:block;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    .panel-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--texte);margin-bottom:6px;}
+    .panel-sub{font-size:14px;color:var(--texte-doux);margin-bottom:24px;line-height:1.6;}
+
+    /* Rôles */
+    .roles-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+    .role-card{border:2px solid var(--border);border-radius:18px;padding:20px;cursor:pointer;transition:all 0.2s;text-align:center;position:relative;}
+    .role-card:hover{border-color:var(--bleu-vif);transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,36,99,0.1);}
+    .role-card.selected{border-color:var(--bleu);background:var(--bleu-pale);}
+    .role-card.selected::after{content:'✓';position:absolute;top:10px;right:14px;font-size:13px;font-weight:700;color:var(--bleu);}
+    .role-emoji{font-size:32px;margin-bottom:8px;}
+    .role-name{font-size:15px;font-weight:700;color:var(--texte);margin-bottom:3px;}
+    .role-desc{font-size:12px;color:var(--texte-doux);}
+    .role-card[data-role="patient"] .role-emoji-bg{background:#e0f2fe;}
+    .role-card[data-role="doctor"]{border-color:rgba(46,134,255,0.2);}
+    .role-card[data-role="pharmacie"]{border-color:rgba(0,168,120,0.2);}
+    .role-card[data-role="laboratoire"]{border-color:rgba(124,58,237,0.2);}
+
+    /* Form fields */
+    .field{margin-bottom:16px;}
+    .field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:7px;}
+    .field input,.field select,.field textarea{width:100%;border:2px solid var(--border);border-radius:13px;padding:13px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;background:white;}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--bleu-vif);}
+    .field textarea{resize:vertical;min-height:72px;}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .field-note{font-size:12px;color:var(--texte-doux);margin-top:5px;line-height:1.5;}
+
+    /* MoMo field */
+    .momo-field{background:linear-gradient(135deg,#fff8e1,#fff3cd);border:2px solid #f59e0b;border-radius:13px;padding:16px;margin-bottom:16px;}
+    .momo-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#92400e;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+    .momo-input{width:100%;border:none;background:transparent;font-size:15px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;font-weight:600;}
+    .momo-hint{font-size:12px;color:#92400e;margin-top:6px;line-height:1.5;}
+
+    /* Upload */
+    .upload-zone{border:2px dashed var(--border);border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;margin-bottom:16px;}
+    .upload-zone:hover,.upload-zone.drag{border-color:var(--bleu-vif);background:var(--bleu-pale);}
+    .upload-zone.has-file{border-color:var(--vert);background:var(--vert-clair);}
+    .upload-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .upload-icon{font-size:32px;margin-bottom:8px;}
+    .upload-title{font-size:14px;font-weight:700;color:var(--texte);margin-bottom:3px;}
+    .upload-sub{font-size:12px;color:var(--texte-doux);}
+
+    /* Score */
+    .score-box{background:var(--bleu-pale);border-radius:14px;padding:18px;margin-bottom:16px;}
+    .score-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .score-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);}
+    .score-val{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--bleu);}
+    .score-bar{height:6px;background:var(--border);border-radius:50px;overflow:hidden;margin-bottom:8px;}
+    .score-fill{height:100%;border-radius:50px;background:var(--grad-btn);transition:width 0.4s ease;}
+    .score-status{font-size:12px;font-weight:600;}
+    .score-checks{display:flex;flex-direction:column;gap:4px;margin-top:10px;}
+    .score-check{font-size:12px;display:flex;align-items:center;gap:6px;}
+    .check-ok{color:#047857;}.check-no{color:var(--texte-doux);}
+
+    /* CGU */
+    .cgu-box{background:#fafbff;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;}
+    .cgu-scroll{max-height:120px;overflow-y:auto;font-size:12px;color:var(--texte-doux);line-height:1.7;margin-bottom:12px;padding-right:4px;}
+    .cgu-scroll::-webkit-scrollbar{width:4px;}
+    .cgu-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+    .cgu-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+    .cgu-check input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--bleu);cursor:pointer;}
+    .cgu-check span{font-size:13px;color:var(--texte);line-height:1.5;}
+    .cgu-check a{color:var(--bleu-vif);text-decoration:none;font-weight:600;}
+
+    /* Boutons */
+    .btn-primary{width:100%;padding:15px;background:var(--grad-btn);color:white;border:none;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
+    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+    .btn-row{display:grid;grid-template-columns:48px 1fr;gap:10px;margin-top:4px;}
+    .btn-back{width:48px;height:48px;background:transparent;border:2px solid var(--border);border-radius:13px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+    .btn-back:hover{border-color:var(--bleu);color:var(--bleu);}
+    .btn-skip{width:100%;padding:12px;background:transparent;color:var(--texte-doux);border:2px solid var(--border);border-radius:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:8px;transition:all 0.2s;}
+    .btn-skip:hover{border-color:var(--texte-doux);}
+
+    /* Messages */
+    .msg{padding:13px 16px;border-radius:12px;font-size:13px;margin-bottom:16px;display:none;line-height:1.5;}
+    .msg.success{background:var(--vert-clair);border:1px solid #6ee7b7;color:#064e3b;}
+    .msg.error{background:#fde8e8;border:1px solid #fca5a5;color:#991b1b;}
+
+    /* Succès */
+    .success-screen{text-align:center;padding:16px 0;}
+    .success-icon{font-size:60px;margin-bottom:16px;}
+    .success-title{font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--texte);margin-bottom:8px;}
+    .success-sub{font-size:14px;color:var(--texte-doux);line-height:1.7;margin-bottom:20px;}
+    .result-badge{display:inline-flex;align-items:center;gap:10px;border-radius:14px;padding:14px 22px;margin-bottom:20px;}
+    .result-badge.verified{background:var(--vert-clair);border:2px solid #6ee7b7;}
+    .result-badge.pending{background:#fef9ec;border:2px solid #fcd34d;}
+    .result-score{font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:var(--bleu);}
+    .result-label{font-size:13px;color:var(--texte-doux);text-align:left;line-height:1.4;}
+    .member-code-box{background:var(--bleu);color:white;border-radius:14px;padding:16px 24px;margin-bottom:20px;display:none;}
+    .member-code-label{font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+    .member-code-val{font-family:'Fraunces',serif;font-size:24px;font-weight:900;letter-spacing:3px;}
+
+    .link-login{font-size:13px;color:var(--texte-doux);text-align:center;margin-top:16px;}
+    .link-login a{color:var(--bleu-vif);font-weight:700;text-decoration:none;}
+
+    /* Divider section */
+    .section-sep{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin:20px 0 14px;display:flex;align-items:center;gap:10px;}
+    .section-sep::before,.section-sep::after{content:'';flex:1;height:1px;background:var(--border);}
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="logo-area">
+    <div class="logo-icon"><div class="logo-leaf"></div></div>
+    <div class="logo-name">Bola<span class="t">mu</span></div>
+    <div class="logo-tagline">La santé simple et accessible 🇨🇬</div>
+  </div>
+
+  <div class="card">
+    <div id="msg" class="msg"></div>
+
+    <div class="steps-bar" id="steps-bar">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot idle" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot idle" id="dot-3">3</div>
+      <div class="step-line" id="line-3"></div>
+      <div class="step-dot idle" id="dot-4">4</div>
+    </div>
+
+    <!-- ═══ ÉTAPE 1 : CHOIX DU RÔLE ══════════════════════════════════════════ -->
+    <div class="panel active" id="panel-1">
+      <div class="panel-title">Bienvenue sur Bolamu</div>
+      <div class="panel-sub">Vous êtes... ? Choisissez votre profil pour un formulaire adapté à votre situation.</div>
+
+      <div class="roles-grid">
+        <div class="role-card" data-role="patient" onclick="selectRole('patient',this)">
+          <div class="role-emoji">👤</div>
+          <div class="role-name">Patient</div>
+          <div class="role-desc">Accéder aux soins via abonnement</div>
+        </div>
+        <div class="role-card" data-role="doctor" onclick="selectRole('doctor',this)">
+          <div class="role-emoji">🩺</div>
+          <div class="role-name">Médecin</div>
+          <div class="role-desc">Proposer des consultations</div>
+        </div>
+        <div class="role-card" data-role="pharmacie" onclick="selectRole('pharmacie',this)">
+          <div class="role-emoji">💊</div>
+          <div class="role-name">Pharmacie</div>
+          <div class="role-desc">Délivrer les ordonnances numériques</div>
+        </div>
+        <div class="role-card" data-role="laboratoire" onclick="selectRole('laboratoire',this)">
+          <div class="role-emoji">🔬</div>
+          <div class="role-name">Laboratoire</div>
+          <div class="role-desc">Traiter les analyses prescrites</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="goStep2()" id="btn-step1">Continuer →</button>
+      <div class="link-login">Déjà inscrit ? <a href="/login.html">Se connecter</a></div>
+    </div>
+
+    <!-- ═══ ÉTAPE 2 : INFORMATIONS ════════════════════════════════════════════ -->
+    <div class="panel" id="panel-2">
+      <div class="panel-title" id="step2-title">Vos informations</div>
+      <div class="panel-sub" id="step2-sub">Renseignez vos informations personnelles.</div>
+      <div id="step2-fields"></div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(1)">←</button>
+        <button class="btn-primary" onclick="goStep3()">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- ═══ ÉTAPE 3 : DOCUMENT + MOMO ════════════════════════════════════════ -->
+    <div class="panel" id="panel-3">
+      <div class="panel-title" id="step3-title">Document & paiement</div>
+      <div class="panel-sub" id="step3-sub">Uploadez votre justificatif et renseignez votre numéro Mobile Money.</div>
+      <div id="step3-fields"></div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(2)">←</button>
+        <button class="btn-primary" onclick="goStep4()">Continuer →</button>
+      </div>
+      <button class="btn-skip" onclick="goStep4(true)">Passer cette étape (réduira votre score)</button>
+    </div>
+
+    <!-- ═══ ÉTAPE 4 : CGU + CONFIRMATION ════════════════════════════════════ -->
+    <div class="panel" id="panel-4">
+      <div class="panel-title">Conditions d'utilisation</div>
+      <div class="panel-sub">Lisez et acceptez nos CGU avant de finaliser votre inscription.</div>
+
+      <!-- Score résumé -->
+      <div class="score-box" id="score-box-final">
+        <div class="score-header">
+          <span class="score-label">Score de confiance</span>
+          <span class="score-val" id="final-score-val">0/100</span>
+        </div>
+        <div class="score-bar"><div class="score-fill" id="final-score-fill" style="width:0%"></div></div>
+        <div class="score-status" id="final-score-status"></div>
+        <div class="score-checks" id="final-score-checks"></div>
+      </div>
+
+      <!-- CGU -->
+      <div class="cgu-box">
+        <div class="cgu-scroll" id="cgu-text">
+          <strong>Conditions Générales d'Utilisation — Bolamu</strong><br><br>
+          <strong>1. Objet</strong><br>
+          Bolamu est une plateforme de mise en relation entre patients, médecins, pharmacies et laboratoires en République du Congo. Bolamu n'est pas un prestataire de soins médicaux mais un intermédiaire technologique.<br><br>
+          <strong>2. Responsabilités professionnelles</strong><br>
+          Les médecins, pharmacies et laboratoires inscrits sur Bolamu exercent sous leur propre responsabilité professionnelle et déontologique. Bolamu ne saurait être tenu responsable des actes médicaux, pharmaceutiques ou d'analyses effectués par les professionnels de santé partenaires.<br><br>
+          <strong>3. Données personnelles</strong><br>
+          Les données collectées (informations personnelles, documents justificatifs) sont utilisées exclusivement pour la vérification d'identité et le fonctionnement de la plateforme. Elles ne sont jamais revendues à des tiers.<br><br>
+          <strong>4. Paiements</strong><br>
+          Les paiements s'effectuent via MTN Mobile Money. Bolamu prélève une commission sur chaque transaction conformément aux tarifs en vigueur. Les abonnements patients sont non remboursables.<br><br>
+          <strong>5. Fraude</strong><br>
+          Tout comportement frauduleux (fausse identité, fausses consultations, abus de la plateforme) entraînera la suspension immédiate du compte et pourra faire l'objet de poursuites judiciaires conformément à la législation congolaise.<br><br>
+          <strong>6. Modification des CGU</strong><br>
+          Bolamu se réserve le droit de modifier les présentes CGU. Les utilisateurs seront notifiés par SMS en cas de modification substantielle.<br><br>
+          En acceptant ces CGU, vous confirmez avoir lu, compris et accepté l'ensemble des conditions ci-dessus.
+        </div>
+        <label class="cgu-check">
+          <input type="checkbox" id="cgu-checkbox">
+          <span>J'ai lu et j'accepte les <a href="#">Conditions Générales d'Utilisation</a> de Bolamu. Je confirme que les informations fournies sont exactes et que j'assume l'entière responsabilité de mon activité sur la plateforme.</span>
+        </label>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(3)">←</button>
+        <button class="btn-primary" onclick="soumettre()" id="btn-submit">✅ Finaliser mon inscription</button>
+      </div>
+    </div>
+
+    <!-- ═══ ÉTAPE 5 : SUCCÈS ══════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-5">
+      <div class="success-screen">
+        <div class="success-icon" id="s-icon">⏳</div>
+        <div class="success-title" id="s-title">Inscription envoyée !</div>
+        <div class="result-badge pending" id="s-badge">
+          <div class="result-score" id="s-score">—</div>
+          <div class="result-label">Score de<br>confiance</div>
+        </div>
+        <div class="member-code-box" id="s-code-box">
+          <div class="member-code-label">Votre code membre Bolamu</div>
+          <div class="member-code-val" id="s-code">—</div>
+        </div>
+        <div class="success-sub" id="s-sub">Votre dossier est en cours de vérification.</div>
+        <button class="btn-primary" onclick="window.location.href='/login.html'">Se connecter →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'https://bolamu-backend.onrender.com/api/v1';
+let selectedRole = null;
+let formData = {};
+let selectedFile = null;
+let skipDoc = false;
+let currentScore = 0;
+let scoreChecks = [];
+
+// ─── SÉLECTION RÔLE ───────────────────────────────────────────────────────────
+function selectRole(role, el) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedRole = role;
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function goStep(n) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + n).classList.add('active');
+  const total = 4;
+  for (let i = 1; i <= total; i++) {
+    const dot = document.getElementById('dot-' + i);
+    const line = document.getElementById('line-' + i);
+    if (!dot) continue;
+    if (i < n) { dot.className = 'step-dot done'; dot.textContent = '✓'; }
+    else if (i === n) { dot.className = 'step-dot active'; dot.textContent = i; }
+    else { dot.className = 'step-dot idle'; dot.textContent = i; }
+    if (line) line.className = i < n ? 'step-line done' : 'step-line';
+  }
+}
+
+// ─── ÉTAPE 1 → 2 ─────────────────────────────────────────────────────────────
+function goStep2() {
+  if (!selectedRole) { showMsg('Choisissez votre profil pour continuer.', 'error'); return; }
+  buildStep2();
+  goStep(2);
+}
+
+function buildStep2() {
+  const titles = { patient: 'Informations personnelles', doctor: 'Informations professionnelles', pharmacie: 'Informations de la pharmacie', laboratoire: 'Informations du laboratoire' };
+  const subs = {
+    patient: 'Quelques informations pour personnaliser votre expérience Bolamu.',
+    doctor: 'Vos informations médicales seront vérifiées par l\'équipe Bolamu.',
+    pharmacie: 'Les informations de votre officine pour rejoindre le réseau Bolamu.',
+    laboratoire: 'Les informations de votre laboratoire pour intégrer la plateforme.'
+  };
+  document.getElementById('step2-title').textContent = titles[selectedRole];
+  document.getElementById('step2-sub').textContent = subs[selectedRole];
+
+  let html = '';
+
+  if (selectedRole === 'patient') {
+    html = `
+      <div class="field"><label>Téléphone *</label><input type="tel" id="f-phone" placeholder="+242 06 XXX XX XX"></div>
+      <div class="field-row">
+        <div class="field"><label>Prénom *</label><input type="text" id="f-firstname" placeholder="Prénom"></div>
+        <div class="field"><label>Nom *</label><input type="text" id="f-lastname" placeholder="Nom de famille"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Date de naissance *</label><input type="date" id="f-birthdate"></div>
+        <div class="field"><label>Genre</label>
+          <select id="f-gender"><option value="">—</option><option value="M">Homme</option><option value="F">Femme</option><option value="other">Autre</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Ville</label>
+        <select id="f-city"><option value="">Choisir...</option><option>Brazzaville</option><option>Pointe-Noire</option><option>Dolisie</option><option>Nkayi</option><option>Autre</option></select>
+      </div>`;
+  }
+
+  if (selectedRole === 'doctor') {
+    html = `
+      <div class="field"><label>Téléphone *</label><input type="tel" id="f-phone" placeholder="+242 06 XXX XX XX"></div>
+      <div class="field"><label>Nom complet *</label><input type="text" id="f-fullname" placeholder="Dr. Prénom Nom"></div>
+      <div class="field-row">
+        <div class="field"><label>Spécialité *</label>
+          <select id="f-specialty">
+            <option value="">Choisir...</option>
+            <option>Médecine générale</option><option>Pédiatrie</option><option>Gynécologie-Obstétrique</option>
+            <option>Cardiologie</option><option>Dermatologie</option><option>Ophtalmologie</option>
+            <option>Chirurgie générale</option><option>Médecine interne</option><option>Neurologie</option>
+            <option>Psychiatrie</option><option>Radiologie</option><option>Anesthésie-Réanimation</option><option>Autre</option>
+          </select>
+        </div>
+        <div class="field"><label>N° Ordre ONMC *</label><input type="text" id="f-regnumber" placeholder="Ex : ONMC-2024-XXX"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Ville *</label>
+          <select id="f-city"><option value="">Choisir...</option><option>Brazzaville</option><option>Pointe-Noire</option><option>Dolisie</option><option>Nkayi</option><option>Autre</option></select>
+        </div>
+        <div class="field"><label>Quartier</label><input type="text" id="f-neighborhood" placeholder="Ex : Bacongo..."></div>
+      </div>
+      <div class="field"><label>Présentation (optionnel)</label><textarea id="f-bio" placeholder="Années d'expérience, approche..."></textarea></div>`;
+  }
+
+  if (selectedRole === 'pharmacie') {
+    html = `
+      <div class="field"><label>Téléphone *</label><input type="tel" id="f-phone" placeholder="+242 06 XXX XX XX"></div>
+      <div class="field"><label>Nom de la pharmacie *</label><input type="text" id="f-name" placeholder="Ex : Pharmacie de la Paix"></div>
+      <div class="field"><label>Nom du responsable *</label><input type="text" id="f-responsible" placeholder="Prénom Nom du responsable"></div>
+      <div class="field-row">
+        <div class="field"><label>N° RCCM *</label><input type="text" id="f-rccm" placeholder="Ex : CG-BZV-XXX"></div>
+        <div class="field"><label>N° Autorisation santé *</label><input type="text" id="f-autorisation" placeholder="N° autorisation ministère"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Ville *</label>
+          <select id="f-city"><option value="">Choisir...</option><option>Brazzaville</option><option>Pointe-Noire</option><option>Dolisie</option><option>Nkayi</option><option>Autre</option></select>
+        </div>
+        <div class="field"><label>Quartier</label><input type="text" id="f-neighborhood" placeholder="Quartier, avenue..."></div>
+      </div>`;
+  }
+
+  if (selectedRole === 'laboratoire') {
+    html = `
+      <div class="field"><label>Téléphone *</label><input type="tel" id="f-phone" placeholder="+242 06 XXX XX XX"></div>
+      <div class="field"><label>Nom du laboratoire *</label><input type="text" id="f-name" placeholder="Ex : Laboratoire Santé Plus"></div>
+      <div class="field"><label>Directeur technique *</label><input type="text" id="f-director" placeholder="Prénom Nom du directeur technique"></div>
+      <div class="field-row">
+        <div class="field"><label>N° RCCM *</label><input type="text" id="f-rccm" placeholder="Ex : CG-BZV-XXX"></div>
+        <div class="field"><label>N° Agrément santé *</label><input type="text" id="f-agrement" placeholder="N° agrément ministère"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Ville *</label>
+          <select id="f-city"><option value="">Choisir...</option><option>Brazzaville</option><option>Pointe-Noire</option><option>Dolisie</option><option>Nkayi</option><option>Autre</option></select>
+        </div>
+        <div class="field"><label>Quartier</label><input type="text" id="f-neighborhood" placeholder="Quartier, avenue..."></div>
+      </div>`;
+  }
+
+  document.getElementById('step2-fields').innerHTML = html;
+}
+
+// ─── ÉTAPE 2 → 3 ─────────────────────────────────────────────────────────────
+function goStep3() {
+  const phone = document.getElementById('f-phone')?.value.trim();
+  if (!phone || !/^\+242[0-9]{9}$/.test(phone)) {
+    showMsg('Numéro invalide. Format : +242XXXXXXXXX', 'error'); return;
+  }
+
+  // Collecter les données selon le rôle
+  formData = { phone, role: selectedRole };
+
+  if (selectedRole === 'patient') {
+    const firstname = document.getElementById('f-firstname')?.value.trim();
+    const lastname = document.getElementById('f-lastname')?.value.trim();
+    if (!firstname || !lastname) { showMsg('Prénom et nom obligatoires.', 'error'); return; }
+    formData.full_name = firstname + ' ' + lastname;
+    formData.birth_date = document.getElementById('f-birthdate')?.value;
+    formData.gender = document.getElementById('f-gender')?.value;
+    formData.city = document.getElementById('f-city')?.value;
+  }
+
+  if (selectedRole === 'doctor') {
+    const fullname = document.getElementById('f-fullname')?.value.trim();
+    const specialty = document.getElementById('f-specialty')?.value;
+    const regnumber = document.getElementById('f-regnumber')?.value.trim();
+    const city = document.getElementById('f-city')?.value;
+    if (!fullname || !specialty || !regnumber || !city) { showMsg('Remplissez tous les champs obligatoires (*).', 'error'); return; }
+    formData.full_name = fullname;
+    formData.specialty = specialty;
+    formData.registration_number = regnumber;
+    formData.city = city;
+    formData.neighborhood = document.getElementById('f-neighborhood')?.value.trim();
+    formData.bio = document.getElementById('f-bio')?.value.trim();
+  }
+
+  if (selectedRole === 'pharmacie') {
+    const name = document.getElementById('f-name')?.value.trim();
+    const responsible = document.getElementById('f-responsible')?.value.trim();
+    const rccm = document.getElementById('f-rccm')?.value.trim();
+    const autorisation = document.getElementById('f-autorisation')?.value.trim();
+    const city = document.getElementById('f-city')?.value;
+    if (!name || !responsible || !rccm || !autorisation || !city) { showMsg('Remplissez tous les champs obligatoires (*).', 'error'); return; }
+    formData.name = name;
+    formData.responsible_name = responsible;
+    formData.rccm_number = rccm;
+    formData.autorisation_number = autorisation;
+    formData.city = city;
+    formData.neighborhood = document.getElementById('f-neighborhood')?.value.trim();
+  }
+
+  if (selectedRole === 'laboratoire') {
+    const name = document.getElementById('f-name')?.value.trim();
+    const director = document.getElementById('f-director')?.value.trim();
+    const rccm = document.getElementById('f-rccm')?.value.trim();
+    const agrement = document.getElementById('f-agrement')?.value.trim();
+    const city = document.getElementById('f-city')?.value;
+    if (!name || !director || !rccm || !agrement || !city) { showMsg('Remplissez tous les champs obligatoires (*).', 'error'); return; }
+    formData.name = name;
+    formData.director_name = director;
+    formData.rccm_number = rccm;
+    formData.agrement_number = agrement;
+    formData.city = city;
+    formData.neighborhood = document.getElementById('f-neighborhood')?.value.trim();
+  }
+
+  buildStep3();
+  goStep(3);
+}
+
+function buildStep3() {
+  const docLabels = {
+    patient: null,
+    doctor: 'Photo carte d\'ordre ONMC ou diplôme',
+    pharmacie: 'Photo RCCM ou autorisation ministérielle',
+    laboratoire: 'Photo RCCM ou agrément santé'
+  };
+
+  const momoLabel = selectedRole === 'patient'
+    ? '📱 Numéro MTN MoMo pour le paiement de l\'abonnement'
+    : '📱 Numéro MTN MoMo pour recevoir vos paiements';
+
+  const momoHint = selectedRole === 'patient'
+    ? 'Ce numéro sera débité lors du paiement de votre abonnement Bolamu.'
+    : 'Les paiements de vos prestations seront versés sur ce numéro Mobile Money.';
+
+  let html = `
+    <div class="momo-field">
+      <div class="momo-label">💰 ${momoLabel}</div>
+      <input class="momo-input" type="tel" id="f-momo" placeholder="+242 06 XXX XX XX" value="${formData.phone}">
+      <div class="momo-hint">${momoHint} Le numéro est pré-rempli avec votre téléphone — modifiez si différent.</div>
+    </div>`;
+
+  if (selectedRole !== 'patient' && docLabels[selectedRole]) {
+    html += `
+      <div class="section-sep">Document justificatif</div>
+      <div class="upload-zone" id="upload-zone" ondragover="dragOver(event)" ondrop="dropFile(event)">
+        <input type="file" class="upload-input" id="doc-input" accept=".jpg,.jpeg,.png,.pdf" onchange="fileChosen(this)">
+        <div id="upload-inner">
+          <div class="upload-icon">📄</div>
+          <div class="upload-title">${docLabels[selectedRole]}</div>
+          <div class="upload-sub">JPG, PNG ou PDF — max 5 MB — Glissez ou cliquez</div>
+        </div>
+      </div>
+      <div class="score-box">
+        <div class="score-header">
+          <span class="score-label">Score de confiance estimé</span>
+          <span class="score-val" id="live-score">0/100</span>
+        </div>
+        <div class="score-bar"><div class="score-fill" id="live-fill" style="width:0%"></div></div>
+        <div class="score-status" id="live-status"></div>
+        <div class="score-checks" id="live-checks"></div>
+      </div>`;
+  }
+
+  document.getElementById('step3-title').textContent = selectedRole === 'patient' ? 'Paiement & abonnement' : 'Document & règlement';
+  document.getElementById('step3-sub').textContent = selectedRole === 'patient'
+    ? 'Renseignez votre numéro Mobile Money pour activer votre abonnement.'
+    : 'Uploadez votre justificatif et renseignez votre numéro Mobile Money professionnel.';
+  document.getElementById('step3-fields').innerHTML = html;
+
+  if (selectedRole !== 'patient') updateLiveScore();
+}
+
+// ─── UPLOAD ───────────────────────────────────────────────────────────────────
+function dragOver(e) { e.preventDefault(); document.getElementById('upload-zone')?.classList.add('drag'); }
+function dropFile(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone')?.classList.remove('drag');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+}
+function fileChosen(input) { if (input.files[0]) processFile(input.files[0]); }
+function processFile(file) {
+  if (!['image/jpeg','image/png','image/jpg','application/pdf'].includes(file.type)) { showMsg('Format non supporté. JPG, PNG ou PDF.', 'error'); return; }
+  if (file.size > 5*1024*1024) { showMsg('Fichier trop lourd. Max 5 MB.', 'error'); return; }
+  selectedFile = file;
+  const zone = document.getElementById('upload-zone');
+  zone.classList.add('has-file');
+  document.getElementById('upload-inner').innerHTML = `
+    <div class="upload-icon">✅</div>
+    <div class="upload-title" style="color:#047857">${file.name}</div>
+    <div class="upload-sub">${(file.size/1024).toFixed(0)} KB — <span style="color:var(--bleu-vif);cursor:pointer" onclick="clearFile()">Changer</span></div>`;
+  updateLiveScore();
+}
+function clearFile() {
+  selectedFile = null;
+  document.getElementById('upload-zone').classList.remove('has-file');
+  document.getElementById('upload-inner').innerHTML = `<div class="upload-icon">📄</div><div class="upload-title">Glissez votre document ici</div><div class="upload-sub">JPG, PNG ou PDF — max 5 MB</div>`;
+  updateLiveScore();
+}
+
+// ─── SCORE ────────────────────────────────────────────────────────────────────
+function calcScore() {
+  let score = 0; scoreChecks = [];
+  const add = (pts, label) => { score += pts; scoreChecks.push({ ok: true, label: `${label} (+${pts})` }); };
+  const miss = (label) => scoreChecks.push({ ok: false, label });
+
+  const phone = formData.phone;
+  if (/^\+242(06|05)[0-9]{7}$/.test(phone)) add(20, 'Téléphone valide');
+  else miss('Téléphone valide');
+
+  if (selectedRole === 'doctor') {
+    if (formData.registration_number && /^[A-Z0-9\-\/]{4,20}$/i.test(formData.registration_number)) add(25, 'N° ordre ONMC valide');
+    else miss('N° ordre ONMC valide');
+    if (formData.full_name?.trim().split(' ').length >= 2) add(10, 'Nom complet');
+    else miss('Nom complet');
+  }
+  if (['pharmacie','laboratoire'].includes(selectedRole)) {
+    if (formData.rccm_number && formData.rccm_number.length >= 4) add(25, 'N° RCCM renseigné');
+    else miss('N° RCCM renseigné');
+    if (formData.name?.length > 2) add(10, 'Nom établissement');
+    else miss('Nom établissement');
+  }
+
+  if (selectedFile) add(30, 'Document justificatif uploadé');
+  else miss('Document justificatif uploadé');
+
+  if (formData.city) add(5, 'Ville renseignée');
+  if (selectedRole === 'patient') score = 85; // patients : score fixe, pas de doc requis
+
+  currentScore = Math.min(score, 100);
+  return currentScore;
+}
+
+function updateLiveScore() {
+  const score = calcScore();
+  const fill = document.getElementById('live-fill');
+  const val = document.getElementById('live-score');
+  const status = document.getElementById('live-status');
+  const checks = document.getElementById('live-checks');
+  if (!fill) return;
+  fill.style.width = score + '%';
+  val.textContent = score + '/100';
+  status.innerHTML = score >= 80
+    ? '<span style="color:#047857;font-weight:700">✅ Validation automatique probable</span>'
+    : score >= 50
+    ? '<span style="color:var(--amber);font-weight:700">⏳ Vérification manuelle requise</span>'
+    : '<span style="color:var(--rouge);font-weight:600">❌ Dossier incomplet</span>';
+  checks.innerHTML = scoreChecks.map(c => `<div class="score-check ${c.ok?'check-ok':'check-no'}">${c.ok?'✅':'○'} ${c.label}</div>`).join('');
+}
+
+// ─── ÉTAPE 3 → 4 ─────────────────────────────────────────────────────────────
+function goStep4(skip = false) {
+  skipDoc = skip;
+  const momo = document.getElementById('f-momo')?.value.trim();
+  formData.momo_number = momo || formData.phone;
+  calcScore();
+
+  // Mettre à jour score final
+  const score = currentScore;
+  document.getElementById('final-score-val').textContent = score + '/100';
+  document.getElementById('final-score-fill').style.width = score + '%';
+  document.getElementById('final-score-status').innerHTML = score >= 80
+    ? '<span style="color:#047857;font-weight:700">✅ Validation automatique probable</span>'
+    : '<span style="color:var(--amber);font-weight:700">⏳ Vérification manuelle sous 24h</span>';
+  document.getElementById('final-score-checks').innerHTML = scoreChecks
+    .map(c => `<div class="score-check ${c.ok?'check-ok':'check-no'}">${c.ok?'✅':'○'} ${c.label}</div>`).join('');
+
+  goStep(4);
+}
+
+// ─── SOUMISSION FINALE ────────────────────────────────────────────────────────
+async function soumettre() {
+  if (!document.getElementById('cgu-checkbox').checked) {
+    showMsg('Vous devez accepter les CGU pour continuer.', 'error'); return;
+  }
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours...';
+  formData.cgu_accepted = true;
+
+  try {
+    let endpoint, fd;
+
+    if (selectedRole === 'patient') {
+      // Patients : JSON simple
+      endpoint = `${API}/auth/register-patient`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erreur inscription');
+      showSuccess(data, true);
+    } else {
+      // Professionnels : FormData avec document
+      fd = new FormData();
+      Object.entries(formData).forEach(([k, v]) => { if (v !== null && v !== undefined && v !== '') fd.append(k, v); });
+      if (selectedFile && !skipDoc) fd.append('document', selectedFile);
+
+      const endpoints = { doctor: `${API}/doctors/register`, pharmacie: `${API}/pharmacies/register`, laboratoire: `${API}/laboratories/register` };
+      endpoint = endpoints[selectedRole];
+
+      const res = await fetch(endpoint, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erreur inscription');
+      showSuccess(data, false);
+    }
+
+  } catch(e) {
+    showMsg(e.message || 'Erreur de connexion.', 'error');
+    btn.disabled = false;
+    btn.textContent = '✅ Finaliser mon inscription';
+  }
+}
+
+function showSuccess(data, isPatient) {
+  const autoValidated = data.data?.auto_validated || isPatient;
+  const score = data.data?.trust_score || currentScore;
+  const memberCode = data.data?.member_code;
+
+  document.getElementById('s-icon').textContent = autoValidated ? '🎉' : '⏳';
+  document.getElementById('s-title').textContent = autoValidated ? 'Compte activé !' : 'Dossier soumis !';
+  document.getElementById('s-score').textContent = score + '/100';
+
+  const badge = document.getElementById('s-badge');
+  badge.className = autoValidated ? 'result-badge verified' : 'result-badge pending';
+
+  if (memberCode) {
+    document.getElementById('s-code-box').style.display = 'block';
+    document.getElementById('s-code').textContent = memberCode;
+  }
+
+  document.getElementById('s-sub').textContent = autoValidated
+    ? `Félicitations ! Votre inscription est confirmée. Vous pouvez vous connecter immédiatement.`
+    : `Votre dossier a été reçu (score : ${score}/100). L'équipe Bolamu vérifiera vos informations sous 24h. Vous recevrez un SMS de confirmation.`;
+
+  // Masquer steps-bar
+  document.getElementById('steps-bar').style.display = 'none';
+  goStep(5);
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + type;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+</script>
+</body>
+</html>
