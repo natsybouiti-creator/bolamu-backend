@@ -6,190 +6,231 @@
   <title>Bolamu Admin — Centre de Contrôle</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --noir:#0a0a0f;--noir2:#12121a;--noir3:#1a1a26;--noir4:#22222f;
-      --bleu:#2E86FF;--vert:#00C9A7;--rouge:#ff4757;--amber:#ffa502;--violet:#7C3AED;
-      --emeraude:#00A878;--rose:#ff6b9d;
-      --texte:#f0f0f8;--texte-doux:#8888aa;--border:rgba(255,255,255,0.07);
-      --grad-blue:linear-gradient(135deg,#2E86FF,#00C9A7);
-      --grad-red:linear-gradient(135deg,#ff4757,#ff6b35);
-      --grad-violet:linear-gradient(135deg,#7C3AED,#2E86FF);
+    :root{
+      --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
+      --bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#ffffff;
+      --rouge:#e74c3c;--amber:#f39c12;--border:rgba(10,36,99,0.1);
+      --violet:#7C3AED;--violet-clair:#EDE9FE;--emeraude:#00A878;--emeraude-clair:#E6F7F3;
+      --grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);
+      --grad-admin:linear-gradient(135deg,#0A2463,#1e3a8a);
+      --grad-red:linear-gradient(135deg,#e74c3c,#ff6b35);
       --grad-green:linear-gradient(135deg,#00A878,#00C9A7);
-      --grad-amber:linear-gradient(135deg,#ffa502,#ff6b35);
+      --grad-amber:linear-gradient(135deg,#f39c12,#ff6b35);
+      --grad-violet:linear-gradient(135deg,#7C3AED,#2E86FF);
+      --grad-credits:linear-gradient(135deg,#f59e0b,#d97706);
     }
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var(--texte);min-height:100vh;display:flex;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bleu-pale);color:var(--texte);min-height:100vh;display:flex;}
 
     /* SIDEBAR */
-    .sidebar{width:260px;min-height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;}
-    .sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
-    .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-    .logo-icon{width:36px;height:36px;background:var(--grad-blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:300;color:white;flex-shrink:0;}
-    .logo-name{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--texte);}
+    .sidebar{width:256px;min-height:100vh;background:var(--bleu);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;box-shadow:4px 0 20px rgba(10,36,99,0.15);}
+    .sidebar-logo{padding:24px 20px 18px;border-bottom:1px solid rgba(255,255,255,0.1);}
+    .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+    .logo-icon{width:36px;height:36px;background:var(--grad-btn);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;flex-shrink:0;position:relative;}
+    .logo-icon::after{content:'+';font-size:20px;font-weight:300;line-height:1;}
+    .logo-leaf{position:absolute;top:-3px;right:-2px;width:9px;height:9px;background:var(--vert);border-radius:50% 0 50% 0;transform:rotate(45deg);}
+    .logo-name{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:white;}
     .logo-name .t{color:var(--vert);}
-    .admin-badge{background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:var(--rouge);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:1px;display:inline-block;}
-    .sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px;}
-    .nav-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--texte-doux);padding:12px 12px 6px;}
-    .nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;cursor:pointer;transition:all 0.2s;color:var(--texte-doux);font-size:14px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;}
-    .nav-item:hover{background:var(--noir3);color:var(--texte);}
-    .nav-item.active{background:rgba(46,134,255,0.12);color:var(--bleu);font-weight:600;}
-    .nav-item .icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
-    .nav-badge{margin-left:auto;background:var(--rouge);color:white;padding:2px 8px;border-radius:50px;font-size:11px;font-weight:700;}
+    .admin-badge{background:rgba(231,76,60,0.25);border:1px solid rgba(231,76,60,0.5);color:#fca5a5;padding:3px 10px;border-radius:50px;font-size:10px;font-weight:700;letter-spacing:2px;display:inline-block;}
+
+    .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+    .nav-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.4);padding:14px 12px 6px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;transition:all 0.2s;color:rgba(255,255,255,0.65);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;}
+    .nav-item:hover{background:rgba(255,255,255,0.1);color:white;}
+    .nav-item.active{background:rgba(255,255,255,0.15);color:white;font-weight:700;}
+    .nav-item .icon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+    .nav-badge{margin-left:auto;background:var(--rouge);color:white;padding:2px 7px;border-radius:50px;font-size:10px;font-weight:700;}
     .nav-badge.amber{background:var(--amber);}
-    .sidebar-footer{padding:16px;border-top:1px solid var(--border);}
-    .admin-info{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--noir3);}
-    .admin-avatar{width:36px;height:36px;border-radius:10px;background:var(--grad-violet);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-    .admin-name{font-size:13px;font-weight:700;color:var(--texte);}
-    .admin-role{font-size:11px;color:var(--texte-doux);}
-    .logout-link{font-size:12px;color:var(--rouge);cursor:pointer;margin-left:auto;font-weight:600;}
+    .nav-badge.green{background:var(--emeraude);}
+
+    .sidebar-footer{padding:14px;border-top:1px solid rgba(255,255,255,0.1);}
+    .admin-info{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.08);}
+    .admin-avatar{width:34px;height:34px;border-radius:9px;background:var(--grad-btn);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+    .admin-name{font-size:12px;font-weight:700;color:white;}
+    .admin-role{font-size:10px;color:rgba(255,255,255,0.5);}
+    .logout-link{font-size:11px;color:rgba(231,76,60,0.8);cursor:pointer;margin-left:auto;font-weight:600;}
+    .logout-link:hover{color:#fca5a5;}
 
     /* MAIN */
-    .main{margin-left:260px;flex:1;min-height:100vh;}
-    .topbar{height:64px;background:var(--noir2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:99;}
+    .main{margin-left:256px;flex:1;min-height:100vh;}
+    .topbar{height:64px;background:rgba(255,255,255,0.97);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:99;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(10,36,99,0.06);}
     .topbar-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--texte);}
     .topbar-right{display:flex;align-items:center;gap:12px;}
     .status-dot{width:8px;height:8px;border-radius:50%;background:var(--vert);box-shadow:0 0 8px var(--vert);animation:pulse 2s infinite;}
-    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
     .status-label{font-size:13px;color:var(--texte-doux);}
-    .refresh-btn{padding:8px 16px;background:var(--noir3);border:1px solid var(--border);border-radius:8px;color:var(--texte-doux);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .refresh-btn{padding:8px 16px;background:var(--bleu-pale);border:1px solid var(--border);border-radius:8px;color:var(--texte-doux);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .refresh-btn:hover{border-color:var(--bleu);color:var(--bleu);}
 
-    /* PANELS */
+    /* CONTENT */
     .content{padding:28px 32px;}
-    .panel{display:none;}.panel.active{display:block;}
+    .panel{display:none;animation:fadeIn 0.2s ease;}.panel.active{display:block;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
     /* KPI GRID */
     .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-    .kpi-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;padding:24px;position:relative;overflow:hidden;transition:all 0.2s;}
-    .kpi-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
-    .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-    .kpi-card.blue::before{background:var(--grad-blue);}
+    .kpi-card{background:white;border:1px solid var(--border);border-radius:20px;padding:22px;position:relative;overflow:hidden;transition:all 0.2s;box-shadow:0 2px 12px rgba(10,36,99,0.04);}
+    .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,36,99,0.1);}
+    .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+    .kpi-card.blue::before{background:var(--grad-btn);}
     .kpi-card.green::before{background:var(--grad-green);}
     .kpi-card.amber::before{background:var(--grad-amber);}
     .kpi-card.red::before{background:var(--grad-red);}
     .kpi-card.violet::before{background:var(--grad-violet);}
-    .kpi-icon{font-size:24px;margin-bottom:12px;}
-    .kpi-value{font-family:'Fraunces',serif;font-size:36px;font-weight:900;line-height:1;margin-bottom:4px;}
-    .kpi-label{font-size:12px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
-    .kpi-trend{font-size:12px;font-weight:600;}
-    .kpi-trend.up{color:var(--vert);}
+    .kpi-card.credits::before{background:var(--grad-credits);}
+    .kpi-icon{font-size:22px;margin-bottom:10px;}
+    .kpi-value{font-family:'Fraunces',serif;font-size:34px;font-weight:900;line-height:1;margin-bottom:4px;color:var(--texte);}
+    .kpi-label{font-size:11px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+    .kpi-trend{font-size:12px;font-weight:600;color:var(--texte-doux);}
+    .kpi-trend.up{color:var(--emeraude);}
     .kpi-trend.down{color:var(--rouge);}
-    .kpi-trend.neutral{color:var(--texte-doux);}
 
-    /* CHARTS ROW */
+    /* CHARTS */
     .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
-    .chart-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;padding:24px;}
-    .chart-title{font-size:14px;font-weight:700;color:var(--texte);margin-bottom:4px;}
-    .chart-sub{font-size:12px;color:var(--texte-doux);margin-bottom:20px;}
-    .bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;}
-    .bar{flex:1;border-radius:6px 6px 0 0;position:relative;cursor:pointer;transition:all 0.2s;min-width:0;}
-    .bar:hover{filter:brightness(1.2);}
-    .bar-label{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--texte-doux);white-space:nowrap;}
-    .bar-value{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--texte);white-space:nowrap;}
+    .chart-card{background:white;border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 2px 12px rgba(10,36,99,0.04);}
+    .chart-title{font-size:15px;font-weight:700;color:var(--texte);margin-bottom:4px;}
+    .chart-sub{font-size:12px;color:var(--texte-doux);margin-bottom:18px;}
     .donut-wrapper{display:flex;align-items:center;gap:24px;}
-    .donut{width:120px;height:120px;flex-shrink:0;}
-    .donut-legend{display:flex;flex-direction:column;gap:10px;}
+    .donut{width:110px;height:110px;flex-shrink:0;}
+    .donut-legend{display:flex;flex-direction:column;gap:9px;flex:1;}
     .legend-item{display:flex;align-items:center;gap:8px;font-size:13px;}
-    .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-    .legend-label{color:var(--texte-doux);}
-    .legend-value{margin-left:auto;font-weight:700;color:var(--texte);}
+    .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+    .legend-label{color:var(--texte-doux);flex:1;}
+    .legend-value{font-weight:700;color:var(--texte);}
+    .bar-chart{display:flex;align-items:flex-end;gap:10px;height:100px;margin-top:20px;}
+    .bar{flex:1;border-radius:6px 6px 0 0;position:relative;cursor:pointer;transition:all 0.2s;}
+    .bar:hover{filter:brightness(1.1);}
+    .bar-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--texte-doux);white-space:nowrap;}
+    .bar-value{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--texte);white-space:nowrap;}
 
     /* TABLES */
-    .table-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:20px;}
-    .table-header{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+    .table-card{background:white;border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:20px;box-shadow:0 2px 12px rgba(10,36,99,0.04);}
+    .table-header{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
     .table-title{font-size:15px;font-weight:700;color:var(--texte);}
-    .table-count{font-size:12px;color:var(--texte-doux);}
+    .table-count{font-size:12px;color:var(--texte-doux);background:var(--bleu-pale);padding:3px 10px;border-radius:50px;font-weight:600;}
     table{width:100%;border-collapse:collapse;}
-    th{padding:12px 24px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);border-bottom:1px solid var(--border);background:var(--noir3);}
-    td{padding:14px 24px;font-size:14px;border-bottom:1px solid var(--border);}
+    th{padding:11px 20px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);border-bottom:1px solid var(--border);background:var(--bleu-pale);}
+    td{padding:13px 20px;font-size:13px;border-bottom:1px solid var(--border);color:var(--texte);}
     tr:last-child td{border-bottom:none;}
-    tr:hover td{background:rgba(255,255,255,0.02);}
-    .td-phone{font-family:'Fraunces',serif;font-weight:700;letter-spacing:0.5px;}
-    .td-code{font-family:'Fraunces',serif;font-size:13px;letter-spacing:2px;color:var(--bleu);}
-    .td-score{font-weight:700;}
-    .score-bar{height:4px;border-radius:2px;background:var(--noir4);margin-top:4px;overflow:hidden;}
-    .score-fill{height:100%;border-radius:2px;background:var(--grad-blue);}
+    tr:hover td{background:rgba(10,36,99,0.02);}
+    .td-phone{font-family:'Fraunces',serif;font-weight:700;font-size:13px;letter-spacing:0.5px;}
+    .td-code{font-family:'Fraunces',serif;font-size:12px;letter-spacing:2px;color:var(--bleu-vif);}
 
     /* BADGES */
-    .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:600;}
-    .badge-verified{background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.2);}
-    .badge-pending{background:rgba(255,165,2,0.12);color:var(--amber);border:1px solid rgba(255,165,2,0.2);}
-    .badge-suspended{background:rgba(255,71,87,0.12);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);}
-    .badge-high{background:rgba(255,71,87,0.15);color:var(--rouge);border:1px solid rgba(255,71,87,0.25);}
-    .badge-medium{background:rgba(255,165,2,0.15);color:var(--amber);border:1px solid rgba(255,165,2,0.25);}
-    .badge-low{background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.2);}
-    .badge-patient{background:rgba(46,134,255,0.12);color:var(--bleu);}
-    .badge-doctor{background:rgba(0,200,167,0.12);color:var(--vert);}
-    .badge-pharmacie{background:rgba(0,168,120,0.12);color:var(--emeraude);}
-    .badge-laboratoire{background:rgba(124,58,237,0.12);color:var(--violet);}
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;}
+    .badge-verified{background:var(--vert-clair);color:#047857;}
+    .badge-pending{background:#fef9ec;color:#92400e;}
+    .badge-suspended{background:#fde8e8;color:var(--rouge);}
+    .badge-rejected{background:#fde8e8;color:var(--rouge);}
+    .badge-high{background:#fde8e8;color:var(--rouge);}
+    .badge-medium{background:#fef9ec;color:var(--amber);}
+    .badge-low{background:var(--vert-clair);color:#047857;}
+    .badge-patient{background:#e0f2fe;color:#0369a1;}
+    .badge-doctor{background:var(--vert-clair);color:#047857;}
+    .badge-pharmacie{background:var(--emeraude-clair);color:var(--emeraude);}
+    .badge-laboratoire{background:var(--violet-clair);color:var(--violet);}
 
-    /* ACTION BUTTONS */
-    .btn-validate{padding:6px 14px;background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.25);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-validate:hover{background:var(--vert);color:var(--noir);}
-    .btn-reject{padding:6px 14px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    /* BUTTONS */
+    .btn-validate{padding:5px 12px;background:var(--vert-clair);color:#047857;border:1px solid rgba(0,200,167,0.3);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-validate:hover{background:var(--emeraude);color:white;}
+    .btn-reject{padding:5px 12px;background:#fde8e8;color:var(--rouge);border:1px solid rgba(231,76,60,0.2);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .btn-reject:hover{background:var(--rouge);color:white;}
-    .btn-suspend{padding:6px 14px;background:rgba(255,165,2,0.1);color:var(--amber);border:1px solid rgba(255,165,2,0.2);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-suspend:hover{background:var(--amber);color:var(--noir);}
-    .btn-view{padding:6px 14px;background:rgba(46,134,255,0.1);color:var(--bleu);border:1px solid rgba(46,134,255,0.2);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-suspend{padding:5px 12px;background:#fef9ec;color:var(--amber);border:1px solid rgba(243,156,18,0.2);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-suspend:hover{background:var(--amber);color:white;}
+    .btn-reactivate{padding:5px 12px;background:var(--vert-clair);color:#047857;border:1px solid rgba(0,200,167,0.3);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-reactivate:hover{background:var(--emeraude);color:white;}
+    .btn-view{padding:5px 12px;background:var(--bleu-pale);color:var(--bleu);border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .btn-view:hover{background:var(--bleu);color:white;}
+    .btn-primary{padding:10px 20px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-primary:hover{opacity:0.9;}
+    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
     .actions{display:flex;gap:6px;flex-wrap:wrap;}
 
-    /* SEARCH */
-    .search-bar{display:flex;gap:12px;margin-bottom:20px;}
-    .search-input{flex:1;background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
-    .search-input:focus{border-color:var(--bleu);}
+    /* SEARCH BAR */
+    .search-bar{display:flex;gap:12px;margin-bottom:18px;}
+    .search-input{flex:1;background:white;border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;box-shadow:0 1px 4px rgba(10,36,99,0.04);}
+    .search-input:focus{border-color:var(--bleu-vif);}
     .search-input::placeholder{color:var(--texte-doux);}
-    .filter-select{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;cursor:pointer;}
-    .filter-select:focus{border-color:var(--bleu);}
+    .filter-select{background:white;border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;cursor:pointer;box-shadow:0 1px 4px rgba(10,36,99,0.04);}
+    .filter-select:focus{border-color:var(--bleu-vif);}
+
+    /* SCORE BAR */
+    .score-bar-wrap{display:flex;align-items:center;gap:8px;}
+    .score-bar{height:4px;width:60px;border-radius:2px;background:var(--border);overflow:hidden;}
+    .score-fill{height:100%;border-radius:2px;background:var(--grad-btn);}
 
     /* MODAL */
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,36,99,0.4);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;}
     .modal-overlay.open{display:flex;}
-    .modal{background:var(--noir2);border:1px solid var(--border);border-radius:24px;padding:36px;max-width:480px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,0.5);}
-    .modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;}
-    .modal-sub{font-size:14px;color:var(--texte-doux);margin-bottom:24px;line-height:1.6;}
-    .modal-field{margin-bottom:16px;}
-    .modal-field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;}
-    .modal-input{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
-    .modal-input:focus{border-color:var(--bleu);}
-    .modal-actions{display:flex;gap:10px;margin-top:24px;}
-    .btn-confirm{flex:1;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+    .modal{background:white;border-radius:24px;padding:36px;max-width:500px;width:90%;box-shadow:0 40px 80px rgba(10,36,99,0.2);animation:modalIn 0.3s ease;}
+    @keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+    .modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:6px;color:var(--texte);}
+    .modal-sub{font-size:14px;color:var(--texte-doux);margin-bottom:22px;line-height:1.6;}
+    .modal-field{margin-bottom:14px;}
+    .modal-field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:7px;}
+    .modal-input{width:100%;background:var(--bleu-pale);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
+    .modal-input:focus{border-color:var(--bleu-vif);}
+    .modal-actions{display:flex;gap:10px;margin-top:22px;}
+    .btn-confirm{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
     .btn-confirm.green{background:var(--grad-green);color:white;}
     .btn-confirm.red{background:var(--grad-red);color:white;}
-    .btn-cancel-modal{padding:13px 20px;background:transparent;color:var(--texte-doux);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-
-    /* ACTIVITY FEED */
-    .feed-list{display:flex;flex-direction:column;gap:0;}
-    .feed-item{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
-    .feed-item:last-child{border-bottom:none;}
-    .feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-    .feed-content{flex:1;}
-    .feed-action{font-size:13px;color:var(--texte);font-weight:500;margin-bottom:2px;}
-    .feed-time{font-size:11px;color:var(--texte-doux);}
-    .feed-actor{font-weight:700;color:var(--bleu);}
-
-    /* EMPTY STATE */
-    .empty{text-align:center;padding:48px;color:var(--texte-doux);}
-    .empty-icon{font-size:40px;margin-bottom:12px;}
-    .loading{text-align:center;padding:40px;color:var(--texte-doux);}
+    .btn-confirm.blue{background:var(--grad-btn);color:white;}
+    .btn-cancel-modal{padding:12px 18px;background:transparent;color:var(--texte-doux);border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 
     /* STAT ROW */
-    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-    .stat-mini{background:var(--noir3);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;}
-    .stat-mini-icon{font-size:24px;}
-    .stat-mini-val{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--texte);line-height:1;}
+    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+    .stat-mini{background:white;border:1px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(10,36,99,0.04);}
+    .stat-mini-icon{font-size:22px;}
+    .stat-mini-val{font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--texte);line-height:1;}
     .stat-mini-lbl{font-size:11px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
 
-    /* TOAST */
-    .toast{position:fixed;bottom:24px;right:24px;background:var(--noir2);border:1px solid var(--border);border-radius:14px;padding:14px 20px;font-size:14px;font-weight:600;display:none;z-index:9999;box-shadow:0 20px 40px rgba(0,0,0,0.4);animation:slideIn 0.3s ease;}
-    .toast.show{display:flex;align-items:center;gap:10px;}
-    .toast.success{border-color:rgba(0,200,167,0.3);color:var(--vert);}
-    .toast.error{border-color:rgba(255,71,87,0.3);color:var(--rouge);}
-    @keyframes slideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+    /* CONFIG CARD */
+    .config-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px;}
+    .config-card{background:white;border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(10,36,99,0.04);}
+    .config-card h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:14px;}
+    .config-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bleu-pale);}
+    .config-row:last-child{border-bottom:none;}
+    .config-label{font-size:13px;color:var(--texte);font-weight:500;}
+    .config-input{width:100px;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;text-align:right;}
+    .config-input:focus{border-color:var(--bleu-vif);}
 
-    /* DOCUMENT PREVIEW */
-    .doc-link{color:var(--bleu);text-decoration:none;font-size:12px;font-weight:600;}
-    .doc-link:hover{text-decoration:underline;}
+    /* CREDITS */
+    .credit-card{background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:20px;color:white;margin-bottom:16px;}
+    .credit-balance{font-family:'Fraunces',serif;font-size:40px;font-weight:900;line-height:1;margin-bottom:4px;}
+    .credit-label{font-size:12px;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:1.5px;}
+
+    /* PARTNER CARD */
+    .partners-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+    .partner-card{background:white;border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 2px 8px rgba(10,36,99,0.04);transition:all 0.2s;}
+    .partner-card:hover{border-color:var(--bleu-vif);transform:translateY(-2px);}
+    .partner-icon{font-size:28px;margin-bottom:10px;}
+    .partner-name{font-size:14px;font-weight:700;color:var(--texte);margin-bottom:3px;}
+    .partner-cat{font-size:11px;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+    .partner-discount{font-size:13px;color:var(--emeraude);font-weight:700;}
+
+    /* FEED */
+    .feed-list{display:flex;flex-direction:column;}
+    .feed-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+    .feed-item:last-child{border-bottom:none;}
+    .feed-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+    .feed-action{font-size:13px;color:var(--texte);font-weight:500;margin-bottom:2px;}
+    .feed-time{font-size:11px;color:var(--texte-doux);}
+    .feed-actor{font-weight:700;color:var(--bleu-vif);}
+
+    /* DOC LINK */
+    .doc-link{color:var(--bleu-vif);text-decoration:none;font-size:12px;font-weight:600;padding:4px 8px;background:var(--bleu-pale);border-radius:6px;}
+    .doc-link:hover{background:var(--bleu-vif);color:white;}
+
+    .empty{text-align:center;padding:48px;color:var(--texte-doux);}
+    .empty-icon{font-size:40px;margin-bottom:12px;}
+    .loading{text-align:center;padding:40px;color:var(--texte-doux);font-size:14px;}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;right:24px;border-radius:12px;padding:13px 18px;font-size:13px;font-weight:600;display:none;z-index:9999;box-shadow:0 20px 40px rgba(10,36,99,0.15);border:1px solid var(--border);background:white;animation:slideIn 0.3s ease;}
+    .toast.show{display:flex;align-items:center;gap:8px;}
+    .toast.success{border-color:rgba(0,200,167,0.3);color:#047857;}
+    .toast.error{border-color:rgba(231,76,60,0.3);color:var(--rouge);}
+    @keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
   </style>
 </head>
 <body>
@@ -198,62 +239,35 @@
 <div class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-row">
-      <div class="logo-icon">+</div>
+      <div class="logo-icon"><div class="logo-leaf"></div></div>
       <div class="logo-name">Bola<span class="t">mu</span></div>
     </div>
     <span class="admin-badge">ADMIN</span>
   </div>
-
   <nav class="sidebar-nav">
     <div class="nav-section">Vue générale</div>
-    <button class="nav-item active" onclick="showPanel('overview',this)">
-      <span class="icon">📊</span> Tableau de bord
-    </button>
-    <button class="nav-item" onclick="showPanel('activity',this)">
-      <span class="icon">⚡</span> Activité en direct
-    </button>
+    <button class="nav-item active" onclick="showPanel('overview',this)"><span class="icon">📊</span> Tableau de bord</button>
+    <button class="nav-item" onclick="showPanel('activity',this)"><span class="icon">⚡</span> Activité en direct</button>
 
     <div class="nav-section">Comptes</div>
-    <button class="nav-item" onclick="showPanel('pending',this)">
-      <span class="icon">⏳</span> En attente
-      <span class="nav-badge amber" id="badge-pending">0</span>
-    </button>
-    <button class="nav-item" onclick="showPanel('doctors',this)">
-      <span class="icon">🩺</span> Médecins
-    </button>
-    <button class="nav-item" onclick="showPanel('pharmacies',this)">
-      <span class="icon">💊</span> Pharmacies
-    </button>
-    <button class="nav-item" onclick="showPanel('laboratories',this)">
-      <span class="icon">🔬</span> Laboratoires
-    </button>
-    <button class="nav-item" onclick="showPanel('patients',this)">
-      <span class="icon">👤</span> Patients
-    </button>
+    <button class="nav-item" onclick="showPanel('pending',this)"><span class="icon">⏳</span> En attente <span class="nav-badge amber" id="badge-pending">0</span></button>
+    <button class="nav-item" onclick="showPanel('doctors',this)"><span class="icon">🩺</span> Médecins</button>
+    <button class="nav-item" onclick="showPanel('pharmacies',this)"><span class="icon">💊</span> Pharmacies</button>
+    <button class="nav-item" onclick="showPanel('laboratories',this)"><span class="icon">🔬</span> Laboratoires</button>
+    <button class="nav-item" onclick="showPanel('patients',this)"><span class="icon">👤</span> Patients</button>
 
     <div class="nav-section">Plateforme</div>
-    <button class="nav-item" onclick="showPanel('appointments',this)">
-      <span class="icon">📅</span> Rendez-vous
-    </button>
-    <button class="nav-item" onclick="showPanel('prescriptions',this)">
-      <span class="icon">📋</span> Ordonnances
-    </button>
-    <button class="nav-item" onclick="showPanel('fraud',this)">
-      <span class="icon">🚨</span> Fraudes
-      <span class="nav-badge" id="badge-fraud">0</span>
-    </button>
-    <button class="nav-item" onclick="showPanel('audit',this)">
-      <span class="icon">📝</span> Journal d'audit
-    </button>
+    <button class="nav-item" onclick="showPanel('appointments',this)"><span class="icon">📅</span> Rendez-vous</button>
+    <button class="nav-item" onclick="showPanel('prescriptions',this)"><span class="icon">📋</span> Ordonnances</button>
+    <button class="nav-item" onclick="showPanel('credits',this)"><span class="icon">⭐</span> Crédits Bolamu</button>
+    <button class="nav-item" onclick="showPanel('fraud',this)"><span class="icon">🚨</span> Fraudes <span class="nav-badge" id="badge-fraud">0</span></button>
+    <button class="nav-item" onclick="showPanel('config',this)"><span class="icon">⚙️</span> Configuration</button>
+    <button class="nav-item" onclick="showPanel('audit',this)"><span class="icon">📝</span> Journal audit</button>
   </nav>
-
   <div class="sidebar-footer">
     <div class="admin-info">
       <div class="admin-avatar">👑</div>
-      <div>
-        <div class="admin-name" id="admin-name">Admin Bolamu</div>
-        <div class="admin-role">Superadmin</div>
-      </div>
+      <div><div class="admin-name" id="admin-name">Admin Bolamu</div><div class="admin-role">Superadmin</div></div>
       <span class="logout-link" onclick="logout()">↩</span>
     </div>
   </div>
@@ -266,94 +280,95 @@
     <div class="topbar-right">
       <div class="status-dot"></div>
       <span class="status-label">Bolamu en ligne</span>
-      <button class="refresh-btn" onclick="refreshAll()">↻ Actualiser</button>
+      <button class="refresh-btn" onclick="refreshCurrent()">↻ Actualiser</button>
     </div>
   </div>
 
   <div class="content">
 
-    <!-- ═══ OVERVIEW ═══════════════════════════════════════════════════════ -->
+    <!-- ═══ OVERVIEW ══════════════════════════════════════════════════════════ -->
     <div class="panel active" id="panel-overview">
-      <div class="kpi-grid" id="kpi-grid">
-        <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value" id="kpi-patients">—</div><div class="kpi-label">Patients inscrits</div><div class="kpi-trend neutral" id="kpi-patients-trend">Chargement...</div></div>
-        <div class="kpi-card green"><div class="kpi-icon">🩺</div><div class="kpi-value" id="kpi-doctors">—</div><div class="kpi-label">Médecins actifs</div><div class="kpi-trend neutral" id="kpi-doctors-trend">Chargement...</div></div>
-        <div class="kpi-card amber"><div class="kpi-icon">📅</div><div class="kpi-value" id="kpi-rdv">—</div><div class="kpi-label">RDV total</div><div class="kpi-trend neutral" id="kpi-rdv-trend">Chargement...</div></div>
-        <div class="kpi-card violet"><div class="kpi-icon">💊</div><div class="kpi-value" id="kpi-pharma">—</div><div class="kpi-label">Pharmacies</div><div class="kpi-trend neutral">Partenaires actives</div></div>
+      <div class="kpi-grid">
+        <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-sub">Chargement...</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">🩺</div><div class="kpi-value" id="kpi-doctors">—</div><div class="kpi-label">Médecins actifs</div><div class="kpi-trend" id="kpi-doctors-sub">Chargement...</div></div>
+        <div class="kpi-card amber"><div class="kpi-icon">📅</div><div class="kpi-value" id="kpi-rdv">—</div><div class="kpi-label">RDV total</div><div class="kpi-trend" id="kpi-rdv-sub">Chargement...</div></div>
+        <div class="kpi-card violet"><div class="kpi-icon">💊</div><div class="kpi-value" id="kpi-pharma">—</div><div class="kpi-label">Partenaires Pro</div><div class="kpi-trend" id="kpi-pharma-sub">Chargement...</div></div>
       </div>
-
+      <div class="kpi-grid">
+        <div class="kpi-card credits"><div class="kpi-icon">⭐</div><div class="kpi-value" id="kpi-credits-total">—</div><div class="kpi-label">Crédits distribués</div><div class="kpi-trend">Total en circulation</div></div>
+        <div class="kpi-card red"><div class="kpi-icon">🚨</div><div class="kpi-value" id="kpi-frauds">—</div><div class="kpi-label">Signaux fraude</div><div class="kpi-trend" id="kpi-frauds-sub">Chargement...</div></div>
+        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpi-prescriptions">—</div><div class="kpi-label">Ordonnances</div><div class="kpi-trend" id="kpi-pres-sub">Chargement...</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">⏳</div><div class="kpi-value" id="kpi-pending">—</div><div class="kpi-label">En attente validation</div><div class="kpi-trend up" id="kpi-pending-sub">À traiter</div></div>
+      </div>
       <div class="charts-row">
         <div class="chart-card">
-          <div class="chart-title">Inscriptions par rôle</div>
-          <div class="chart-sub">Répartition des comptes sur la plateforme</div>
+          <div class="chart-title">Répartition des comptes</div>
+          <div class="chart-sub">Tous les intervenants sur la plateforme</div>
           <div class="donut-wrapper">
-            <svg class="donut" viewBox="0 0 120 120" id="donut-svg">
-              <circle cx="60" cy="60" r="45" fill="none" stroke="#22222f" stroke-width="18"/>
-              <circle cx="60" cy="60" r="45" fill="none" stroke="#2E86FF" stroke-width="18" stroke-dasharray="0 283" stroke-dashoffset="71" id="donut-patient" style="transition:stroke-dasharray 1s ease;"/>
-              <circle cx="60" cy="60" r="45" fill="none" stroke="#00C9A7" stroke-width="18" stroke-dasharray="0 283" stroke-dashoffset="71" id="donut-doctor" style="transition:stroke-dasharray 1s ease 0.2s;"/>
-              <circle cx="60" cy="60" r="45" fill="none" stroke="#00A878" stroke-width="18" stroke-dasharray="0 283" stroke-dashoffset="71" id="donut-pharma" style="transition:stroke-dasharray 1s ease 0.4s;"/>
-              <circle cx="60" cy="60" r="45" fill="none" stroke="#7C3AED" stroke-width="18" stroke-dasharray="0 283" stroke-dashoffset="71" id="donut-labo" style="transition:stroke-dasharray 1s ease 0.6s;"/>
-              <text x="60" y="55" text-anchor="middle" fill="#f0f0f8" font-size="18" font-weight="900" font-family="Fraunces,serif" id="donut-total">—</text>
-              <text x="60" y="70" text-anchor="middle" fill="#8888aa" font-size="9" font-family="Plus Jakarta Sans,sans-serif">comptes</text>
+            <svg class="donut" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="45" fill="none" stroke="#F4F8FF" stroke-width="16"/>
+              <circle cx="60" cy="60" r="45" fill="none" stroke="#2E86FF" stroke-width="16" stroke-dasharray="0 283" stroke-dashoffset="71" id="d-patient" style="transition:stroke-dasharray 1s ease;"/>
+              <circle cx="60" cy="60" r="45" fill="none" stroke="#00C9A7" stroke-width="16" stroke-dasharray="0 283" stroke-dashoffset="71" id="d-doctor" style="transition:stroke-dasharray 1s ease 0.15s;"/>
+              <circle cx="60" cy="60" r="45" fill="none" stroke="#00A878" stroke-width="16" stroke-dasharray="0 283" stroke-dashoffset="71" id="d-pharma" style="transition:stroke-dasharray 1s ease 0.3s;"/>
+              <circle cx="60" cy="60" r="45" fill="none" stroke="#7C3AED" stroke-width="16" stroke-dasharray="0 283" stroke-dashoffset="71" id="d-labo" style="transition:stroke-dasharray 1s ease 0.45s;"/>
+              <text x="60" y="55" text-anchor="middle" fill="#0A2463" font-size="17" font-weight="900" font-family="Fraunces,serif" id="d-total">—</text>
+              <text x="60" y="68" text-anchor="middle" fill="#5A6E8C" font-size="8" font-family="Plus Jakarta Sans,sans-serif">comptes</text>
             </svg>
-            <div class="donut-legend" id="donut-legend">
-              <div class="legend-item"><div class="legend-dot" style="background:#2E86FF"></div><span class="legend-label">Patients</span><span class="legend-value" id="leg-patients">—</span></div>
-              <div class="legend-item"><div class="legend-dot" style="background:#00C9A7"></div><span class="legend-label">Médecins</span><span class="legend-value" id="leg-doctors">—</span></div>
-              <div class="legend-item"><div class="legend-dot" style="background:#00A878"></div><span class="legend-label">Pharmacies</span><span class="legend-value" id="leg-pharmacies">—</span></div>
-              <div class="legend-item"><div class="legend-dot" style="background:#7C3AED"></div><span class="legend-label">Labos</span><span class="legend-value" id="leg-labos">—</span></div>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#2E86FF"></div><span class="legend-label">Patients</span><span class="legend-value" id="leg-p">—</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#00C9A7"></div><span class="legend-label">Médecins</span><span class="legend-value" id="leg-d">—</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#00A878"></div><span class="legend-label">Pharmacies</span><span class="legend-value" id="leg-ph">—</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#7C3AED"></div><span class="legend-label">Labos</span><span class="legend-value" id="leg-l">—</span></div>
             </div>
           </div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">RDV par statut</div>
-          <div class="chart-sub">Vue d'ensemble des consultations</div>
-          <div id="rdv-stats-chart" style="margin-top:8px;"></div>
+          <div class="chart-title">Activité RDV</div>
+          <div class="chart-sub">Distribution par statut</div>
+          <div id="rdv-chart"></div>
         </div>
       </div>
-
       <div class="charts-row">
         <div class="chart-card">
-          <div class="chart-title">Comptes en attente de validation</div>
-          <div class="chart-sub">Dossiers soumis non encore vérifiés</div>
-          <div id="pending-mini-list" style="margin-top:8px;"><div class="loading">Chargement...</div></div>
+          <div class="chart-title">⏳ Dossiers en attente</div>
+          <div class="chart-sub">Validation requise</div>
+          <div id="mini-pending"><div class="loading">Chargement...</div></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Derniers signaux fraude</div>
-          <div class="chart-sub">Activités suspectes détectées</div>
-          <div id="fraud-mini-list" style="margin-top:8px;"><div class="loading">Chargement...</div></div>
+          <div class="chart-title">🚨 Derniers signaux fraude</div>
+          <div class="chart-sub">Haute sévérité uniquement</div>
+          <div id="mini-fraud"><div class="loading">Chargement...</div></div>
         </div>
       </div>
     </div>
 
-    <!-- ═══ ACTIVITY ════════════════════════════════════════════════════════ -->
+    <!-- ═══ ACTIVITY ══════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-activity">
       <div class="stat-row">
-        <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="act-rdv-today">—</div><div class="stat-mini-lbl">RDV aujourd'hui</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">💊</div><div><div class="stat-mini-val" id="act-prescriptions">—</div><div class="stat-mini-lbl">Ordonnances créées</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">🆕</div><div><div class="stat-mini-val" id="act-new-users">—</div><div class="stat-mini-lbl">Nouveaux inscrits</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="act-rdv">—</div><div class="stat-mini-lbl">RDV validés aujourd'hui</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">💊</div><div><div class="stat-mini-val" id="act-pres">—</div><div class="stat-mini-lbl">Ordonnances créées</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">🆕</div><div><div class="stat-mini-val" id="act-users">—</div><div class="stat-mini-lbl">Nouveaux inscrits</div></div></div>
       </div>
       <div class="table-card">
-        <div class="table-header"><span class="table-title">Journal d'activité récent</span><span class="table-count" id="activity-count">— événements</span></div>
-        <div id="activity-feed" style="padding:0 24px;max-height:500px;overflow-y:auto;"><div class="loading">Chargement...</div></div>
+        <div class="table-header"><span class="table-title">Journal d'activité récent</span><span class="table-count" id="act-count">—</span></div>
+        <div id="activity-feed" style="padding:0 20px;max-height:520px;overflow-y:auto;"><div class="loading">Chargement...</div></div>
       </div>
     </div>
 
-    <!-- ═══ PENDING ═════════════════════════════════════════════════════════ -->
+    <!-- ═══ PENDING ════════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-pending">
       <div class="table-card">
-        <div class="table-header">
-          <span class="table-title">Comptes en attente de validation</span>
-          <span class="table-count" id="pending-count">— dossiers</span>
-        </div>
+        <div class="table-header"><span class="table-title">Comptes en attente de validation</span><span class="table-count" id="pending-count">—</span></div>
         <div id="pending-list"><div class="loading">Chargement...</div></div>
       </div>
     </div>
 
-    <!-- ═══ DOCTORS ══════════════════════════════════════════════════════════ -->
+    <!-- ═══ DOCTORS ═══════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-doctors">
       <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher par nom, téléphone, spécialité..." id="search-doctors" oninput="filterTable('doctors-table',this.value)">
-        <select class="filter-select" id="filter-doctors-status" onchange="loadDoctors()">
-          <option value="">Tous les statuts</option>
+        <input class="search-input" type="text" placeholder="🔍 Rechercher médecin..." id="search-doctors" oninput="filterTable('doctors-table',this.value)">
+        <select class="filter-select" onchange="loadDoctors(this.value)">
+          <option value="">Tous statuts</option>
           <option value="verified">Vérifiés</option>
           <option value="pending">En attente</option>
           <option value="suspended">Suspendus</option>
@@ -365,33 +380,27 @@
       </div>
     </div>
 
-    <!-- ═══ PHARMACIES ═══════════════════════════════════════════════════════ -->
+    <!-- ═══ PHARMACIES ════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-pharmacies">
-      <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher une pharmacie..." id="search-pharmacies" oninput="filterTable('pharmacies-table',this.value)">
-      </div>
+      <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher pharmacie..." oninput="filterTable('pharmacies-table',this.value)"></div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Pharmacies</span><span class="table-count" id="pharmacies-count">—</span></div>
         <div id="pharmacies-list"><div class="loading">Chargement...</div></div>
       </div>
     </div>
 
-    <!-- ═══ LABORATORIES ═════════════════════════════════════════════════════ -->
+    <!-- ═══ LABORATORIES ══════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-laboratories">
-      <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher un laboratoire..." id="search-laboratories">
-      </div>
+      <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher laboratoire..." oninput="filterTable('laboratories-table',this.value)"></div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Laboratoires</span><span class="table-count" id="laboratories-count">—</span></div>
         <div id="laboratories-list"><div class="loading">Chargement...</div></div>
       </div>
     </div>
 
-    <!-- ═══ PATIENTS ═════════════════════════════════════════════════════════ -->
+    <!-- ═══ PATIENTS ══════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-patients">
-      <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher un patient..." id="search-patients" oninput="filterTable('patients-table',this.value)">
-      </div>
+      <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher patient..." oninput="filterTable('patients-table',this.value)"></div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Patients</span><span class="table-count" id="patients-count">—</span></div>
         <div id="patients-list"><div class="loading">Chargement...</div></div>
@@ -402,7 +411,7 @@
     <div class="panel" id="panel-appointments">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">✅</div><div><div class="stat-mini-val" id="appt-done">—</div><div class="stat-mini-lbl">Terminés</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="appt-confirmed">—</div><div class="stat-mini-lbl">Confirmés</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="appt-conf">—</div><div class="stat-mini-lbl">Confirmés</div></div></div>
         <div class="stat-mini"><div class="stat-mini-icon">📊</div><div><div class="stat-mini-val" id="appt-total">—</div><div class="stat-mini-lbl">Total</div></div></div>
       </div>
       <div class="table-card">
@@ -411,7 +420,7 @@
       </div>
     </div>
 
-    <!-- ═══ PRESCRIPTIONS ════════════════════════════════════════════════════ -->
+    <!-- ═══ PRESCRIPTIONS ═════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-prescriptions">
       <div class="table-card">
         <div class="table-header"><span class="table-title">Ordonnances numériques</span><span class="table-count" id="pres-count">—</span></div>
@@ -419,12 +428,38 @@
       </div>
     </div>
 
-    <!-- ═══ FRAUD ═════════════════════════════════════════════════════════════ -->
+    <!-- ═══ CREDITS ═══════════════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-credits">
+      <div class="stat-row">
+        <div class="stat-mini"><div class="stat-mini-icon">⭐</div><div><div class="stat-mini-val" id="cr-total">—</div><div class="stat-mini-lbl">Total en circulation</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">👤</div><div><div class="stat-mini-val" id="cr-accounts">—</div><div class="stat-mini-lbl">Comptes crédités</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">🏪</div><div><div class="stat-mini-val" id="cr-partners">—</div><div class="stat-mini-lbl">Partenaires actifs</div></div></div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-bottom:18px;">
+        <button class="btn-primary" onclick="openGrantCredits()">+ Attribuer des crédits</button>
+        <button class="btn-primary" style="background:var(--grad-green);" onclick="distributeMonthly()">📅 Distribution mensuelle</button>
+        <button class="btn-primary" style="background:var(--grad-violet);" onclick="showPanel('credits-partners',null)">🏪 Gérer les partenaires</button>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div class="chart-title">Partenaires Bolamu Credits</div>
+        <div class="chart-sub">Où les membres peuvent dépenser leurs crédits</div>
+        <div class="partners-grid" id="partners-grid" style="margin-top:16px;"><div class="loading">Chargement...</div></div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Soldes par membre</span><span class="table-count" id="cr-count">—</span></div>
+        <div id="credits-list"><div class="loading">Chargement...</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ FRAUD ══════════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-fraud">
       <div class="stat-row">
-        <div class="stat-mini"><div class="stat-mini-icon">🔴</div><div><div class="stat-mini-val" id="fraud-high">—</div><div class="stat-mini-lbl">Sévérité haute</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">🟡</div><div><div class="stat-mini-val" id="fraud-medium">—</div><div class="stat-mini-lbl">Sévérité moyenne</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">🟢</div><div><div class="stat-mini-val" id="fraud-low">—</div><div class="stat-mini-lbl">Sévérité basse</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">🔴</div><div><div class="stat-mini-val" id="fr-high">—</div><div class="stat-mini-lbl">Haute sévérité</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">🟡</div><div><div class="stat-mini-val" id="fr-med">—</div><div class="stat-mini-lbl">Moyenne</div></div></div>
+        <div class="stat-mini"><div class="stat-mini-icon">🟢</div><div><div class="stat-mini-val" id="fr-low">—</div><div class="stat-mini-lbl">Basse</div></div></div>
       </div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Signaux de fraude détectés</span><span class="table-count" id="fraud-count">—</span></div>
@@ -432,10 +467,42 @@
       </div>
     </div>
 
+    <!-- ═══ CONFIG ════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-config">
+      <div class="config-grid">
+        <div class="config-card">
+          <h3>💰 Prix abonnements patients (FCFA/mois)</h3>
+          <div class="config-row"><span class="config-label">Essentiel</span><input class="config-input" id="cfg-price_essentiel" type="number" placeholder="1000"></div>
+          <div class="config-row"><span class="config-label">Standard</span><input class="config-input" id="cfg-price_standard" type="number" placeholder="2500"></div>
+          <div class="config-row"><span class="config-label">Premium</span><input class="config-input" id="cfg-price_premium" type="number" placeholder="5000"></div>
+        </div>
+        <div class="config-card">
+          <h3>🩺 Rémunération médecins (FCFA/consultation)</h3>
+          <div class="config-row"><span class="config-label">Phase Bootstrap</span><input class="config-input" id="cfg-doctor_fee_bootstrap" type="number" placeholder="2500"></div>
+          <div class="config-row"><span class="config-label">Phase Croissance</span><input class="config-input" id="cfg-doctor_fee_growth" type="number" placeholder="3500"></div>
+          <div class="config-row"><span class="config-label">Phase Maturité</span><input class="config-input" id="cfg-doctor_fee_maturity" type="number" placeholder="5000"></div>
+        </div>
+        <div class="config-card">
+          <h3>⭐ Crédits mensuels par rôle</h3>
+          <div class="config-row"><span class="config-label">Patient abonné</span><input class="config-input" id="cfg-credits_patient_monthly" type="number" placeholder="100"></div>
+          <div class="config-row"><span class="config-label">Bonus fidélité (3 mois)</span><input class="config-input" id="cfg-credits_patient_loyal_bonus" type="number" placeholder="50"></div>
+          <div class="config-row"><span class="config-label">Médecin actif</span><input class="config-input" id="cfg-credits_doctor_monthly" type="number" placeholder="200"></div>
+          <div class="config-row"><span class="config-label">Pharmacie/Labo Pro</span><input class="config-input" id="cfg-credits_pro_monthly" type="number" placeholder="150"></div>
+        </div>
+        <div class="config-card">
+          <h3>⚙️ Paramètres plateforme</h3>
+          <div class="config-row"><span class="config-label">Phase active</span><input class="config-input" id="cfg-active_phase" type="text" placeholder="bootstrap" style="width:120px;text-align:left;"></div>
+          <div class="config-row"><span class="config-label">Ratio médecin/patients</span><input class="config-input" id="cfg-doctor_patient_ratio" type="number" placeholder="200"></div>
+          <div class="config-row"><span class="config-label">Seuil rentabilité</span><input class="config-input" id="cfg-breakeven_subscribers" type="number" placeholder="280"></div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveConfig()" style="width:100%;padding:14px;font-size:15px;">💾 Sauvegarder la configuration</button>
+    </div>
+
     <!-- ═══ AUDIT ══════════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-audit">
       <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher dans le journal..." id="search-audit" oninput="filterTable('audit-table',this.value)">
+        <input class="search-input" type="text" placeholder="🔍 Rechercher dans le journal..." oninput="filterTable('audit-table',this.value)">
         <select class="filter-select" onchange="loadAudit(this.value)">
           <option value="">Tous les événements</option>
           <option value="doctor.registered">Inscriptions médecin</option>
@@ -443,6 +510,7 @@
           <option value="patient.registered">Inscriptions patient</option>
           <option value="appointment_validated">Validations consultation</option>
           <option value="prescription_delivered">Délivrances ordonnance</option>
+          <option value="credits.granted">Attribution crédits</option>
         </select>
       </div>
       <div class="table-card">
@@ -454,38 +522,29 @@
   </div>
 </div>
 
-<!-- MODAL ACTION -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <div id="modal-body"></div>
-  </div>
-</div>
-
-<!-- TOAST -->
+<!-- MODAL -->
+<div class="modal-overlay" id="modal"><div class="modal"><div id="modal-body"></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 const API = 'https://bolamu-backend.onrender.com/api/v1';
 const token = localStorage.getItem('bolamu_token');
 const phone = localStorage.getItem('bolamu_phone');
-
 if (!token || !phone) { window.location.href = '/login.html'; }
+document.getElementById('admin-name').textContent = phone;
 
-document.getElementById('admin-name').textContent = phone || 'Admin Bolamu';
-
-// ─── NAVIGATION ───────────────────────────────────────────────────────────────
-const panelTitles = {
-  overview:'Tableau de bord', activity:'Activité en direct', pending:'Comptes en attente',
-  doctors:'Médecins', pharmacies:'Pharmacies', laboratories:'Laboratoires', patients:'Patients',
-  appointments:'Rendez-vous', prescriptions:'Ordonnances', fraud:'Signaux fraude', audit:'Journal d\'audit'
-};
+let currentPanel = 'overview';
+const panelTitles = { overview:'Tableau de bord', activity:'Activité en direct', pending:'Comptes en attente', doctors:'Médecins', pharmacies:'Pharmacies', laboratories:'Laboratoires', patients:'Patients', appointments:'Rendez-vous', prescriptions:'Ordonnances', credits:'Crédits Bolamu', fraud:'Signaux fraude', config:'Configuration', audit:'Journal audit' };
 
 function showPanel(name, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
+  const panel = document.getElementById('panel-' + name);
+  if (!panel) return;
+  panel.classList.add('active');
   if (btn) btn.classList.add('active');
   document.getElementById('panel-title').textContent = panelTitles[name] || name;
+  currentPanel = name;
   loadPanel(name);
 }
 
@@ -500,456 +559,430 @@ function loadPanel(name) {
     case 'patients': loadPatients(); break;
     case 'appointments': loadAppointments(); break;
     case 'prescriptions': loadPrescriptions(); break;
+    case 'credits': loadCredits(); break;
     case 'fraud': loadFraud(); break;
+    case 'config': loadConfig(); break;
     case 'audit': loadAudit(); break;
   }
 }
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-async function api(path) {
-  const res = await fetch(`${API}${path}`, { headers: { 'Authorization': `Bearer ${token}` } });
-  return res.json();
+async function apiFetch(path) {
+  const r = await fetch(`${API}${path}`, { headers: { 'Authorization': `Bearer ${token}` } });
+  return r.json();
 }
 
-function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+function fDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }); }
+function fDateTime(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); }
+
+function bStatut(s) {
+  const map = { verified:'badge-verified ✅ Vérifié', pending:'badge-pending ⏳ En attente', suspended:'badge-suspended 🚫 Suspendu', rejected:'badge-rejected ❌ Rejeté', termine:'badge-verified ✅ Terminé', confirme:'badge-pending 📅 Confirmé', active:'badge-verified ✅ Active', livre:'badge-verified ✅ Délivré' };
+  const v = map[s] || 'badge-pending ' + s;
+  const [cls, ...label] = v.split(' ');
+  return `<span class="badge ${cls}">${label.join(' ')}</span>`;
 }
 
-function formatDateShort(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
+function setDonut(id, val, circ, offset) {
+  const el = document.getElementById(id);
+  if (el) { el.setAttribute('stroke-dasharray', `${val} ${circ}`); el.setAttribute('stroke-dashoffset', offset); }
 }
 
-function badgeStatut(s) {
-  const map = { verified:'badge-verified', pending:'badge-pending', suspended:'badge-suspended', active:'badge-verified', termine:'badge-verified', confirme:'badge-pending' };
-  const labels = { verified:'✅ Vérifié', pending:'⏳ En attente', suspended:'🚫 Suspendu', active:'✅ Actif', termine:'✅ Terminé', confirme:'📅 Confirmé' };
-  return `<span class="badge ${map[s]||'badge-pending'}">${labels[s]||s}</span>`;
+function filterTable(tid, q) {
+  document.querySelectorAll(`#${tid} tr`).forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'; });
 }
 
-function showToast(msg, type='success') {
-  const t = document.getElementById('toast');
-  t.className = `toast show ${type}`;
-  t.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + msg;
-  setTimeout(() => t.className = 'toast', 3000);
-}
-
-function filterTable(tableId, query) {
-  const q = query.toLowerCase();
-  const rows = document.querySelectorAll(`#${tableId} tr`);
-  rows.forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-}
-
-// ─── OVERVIEW ─────────────────────────────────────────────────────────────────
+// ─── OVERVIEW ────────────────────────────────────────────────────────────────
 async function loadOverview() {
   try {
-    const [doctorsData, pharmaData, labsData, patientsData, rdvData, fraudData, pendingData] = await Promise.all([
-      api('/doctors/all'),
-      api('/pharmacies/all'),
-      api('/laboratories/all'),
-      fetch(`${API}/admin/stats/patients`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ count: 0 })),
-      fetch(`${API}/admin/stats/appointments`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ data: [] })),
-      fetch(`${API}/admin/fraud`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ data: [] })),
-      api('/doctors/pending')
+    const [docs, pharmas, labs, pats, rdvs, frauds, pends, pres, creds] = await Promise.all([
+      apiFetch('/doctors/all'),
+      apiFetch('/pharmacies/all'),
+      apiFetch('/laboratories/all'),
+      apiFetch('/admin/stats/patients'),
+      apiFetch('/admin/appointments'),
+      apiFetch('/admin/fraud'),
+      apiFetch('/doctors/pending'),
+      apiFetch('/admin/prescriptions'),
+      apiFetch('/credits/admin/all')
     ]);
 
-    const doctors = doctorsData.data || [];
-    const pharmas = pharmaData.data || [];
-    const labs = labsData.data || [];
-    const rdvs = rdvData.data || [];
-    const frauds = fraudData.data || [];
-    const pending = pendingData.data || [];
+    const D = docs.data||[], P = pharmas.data||[], L = labs.data||[], RDV = rdvs.data||[];
+    const FR = frauds.data||[], PEN = pends.data||[], PRES = pres.data||[], CR = creds.data||[];
+    const patCount = pats.count || 0;
+    const verDoc = D.filter(d=>d.status==='verified').length;
+    const verPha = P.filter(p=>p.status==='verified').length;
+    const verLab = L.filter(l=>l.status==='verified').length;
+    const pendTotal = PEN.length + P.filter(p=>p.status==='pending').length + L.filter(l=>l.status==='pending').length;
+    const totalCredits = CR.reduce((s,c) => s + (c.balance||0), 0);
 
-    // KPIs
-    const verifiedDoctors = doctors.filter(d => d.status === 'verified').length;
-    document.getElementById('kpi-patients').textContent = patientsData.count || '—';
-    document.getElementById('kpi-doctors').textContent = verifiedDoctors;
-    document.getElementById('kpi-rdv').textContent = rdvs.length || '—';
-    document.getElementById('kpi-pharma').textContent = pharmas.filter(p => p.status === 'verified').length;
+    document.getElementById('kpi-patients').textContent = patCount;
+    document.getElementById('kpi-patients-sub').textContent = `${D.length + P.length + L.length} professionnels`;
+    document.getElementById('kpi-doctors').textContent = verDoc;
+    document.getElementById('kpi-doctors-sub').textContent = `${D.filter(d=>d.status==='pending').length} en attente`;
+    document.getElementById('kpi-rdv').textContent = RDV.length;
+    document.getElementById('kpi-rdv-sub').textContent = `${RDV.filter(r=>r.status==='termine').length} terminés`;
+    document.getElementById('kpi-pharma').textContent = verPha + verLab;
+    document.getElementById('kpi-pharma-sub').textContent = `${verPha} pharma + ${verLab} labo`;
+    document.getElementById('kpi-credits-total').textContent = totalCredits;
+    document.getElementById('kpi-frauds').textContent = FR.length;
+    document.getElementById('kpi-frauds-sub').className = `kpi-trend ${FR.filter(f=>f.severity==='high').length > 0 ? 'down' : 'up'}`;
+    document.getElementById('kpi-frauds-sub').textContent = `${FR.filter(f=>f.severity==='high').length} haute sévérité`;
+    document.getElementById('kpi-prescriptions').textContent = PRES.length;
+    document.getElementById('kpi-pres-sub').textContent = `${PRES.filter(p=>p.status==='livre').length} délivrées`;
+    document.getElementById('kpi-pending').textContent = pendTotal;
 
-    document.getElementById('kpi-doctors-trend').textContent = `${doctors.filter(d=>d.status==='pending').length} en attente`;
-    document.getElementById('kpi-rdv-trend').textContent = `${rdvs.filter(r=>r.status==='termine').length} terminés`;
-    document.getElementById('kpi-patients-trend').className = 'kpi-trend up';
-
-    // Badge nav
-    const totalPending = pending.length + pharmas.filter(p=>p.status==='pending').length + labs.filter(l=>l.status==='pending').length;
-    document.getElementById('badge-pending').textContent = totalPending;
-    document.getElementById('badge-fraud').textContent = frauds.filter(f=>f.severity==='high').length;
+    document.getElementById('badge-pending').textContent = pendTotal;
+    document.getElementById('badge-fraud').textContent = FR.filter(f=>f.severity==='high').length;
 
     // Donut
-    const total = (patientsData.count||0) + doctors.length + pharmas.length + labs.length;
+    const total = patCount + D.length + P.length + L.length;
     if (total > 0) {
-      const circ = 283;
-      const pPat = ((patientsData.count||0)/total)*circ;
-      const pDoc = (doctors.length/total)*circ;
-      const pPha = (pharmas.length/total)*circ;
-      const pLab = (labs.length/total)*circ;
-      let offset = 71;
-      setDonutSegment('donut-patient', pPat, circ, offset); offset -= pPat;
-      setDonutSegment('donut-doctor', pDoc, circ, offset); offset -= pDoc;
-      setDonutSegment('donut-pharma', pPha, circ, offset); offset -= pPha;
-      setDonutSegment('donut-labo', pLab, circ, offset);
-      document.getElementById('donut-total').textContent = total;
+      const c = 283;
+      const pp = (patCount/total)*c, pd = (D.length/total)*c, pph = (P.length/total)*c, pl = (L.length/total)*c;
+      let off = 71;
+      setDonut('d-patient', pp, c, off); off -= pp;
+      setDonut('d-doctor', pd, c, off); off -= pd;
+      setDonut('d-pharma', pph, c, off); off -= pph;
+      setDonut('d-labo', pl, c, off);
+      document.getElementById('d-total').textContent = total;
     }
-    document.getElementById('leg-patients').textContent = patientsData.count || 0;
-    document.getElementById('leg-doctors').textContent = doctors.length;
-    document.getElementById('leg-pharmacies').textContent = pharmas.length;
-    document.getElementById('leg-labos').textContent = labs.length;
+    document.getElementById('leg-p').textContent = patCount;
+    document.getElementById('leg-d').textContent = D.length;
+    document.getElementById('leg-ph').textContent = P.length;
+    document.getElementById('leg-l').textContent = L.length;
 
-    // RDV stats
-    const rdvStatuses = { confirme: 0, termine: 0, autre: 0 };
-    rdvs.forEach(r => { if (r.status === 'confirme') rdvStatuses.confirme++; else if (r.status === 'termine') rdvStatuses.termine++; else rdvStatuses.autre++; });
-    const maxRdv = Math.max(...Object.values(rdvStatuses), 1);
-    document.getElementById('rdv-stats-chart').innerHTML = `
-      <div class="bar-chart" style="margin-top:24px;">
-        ${[['Confirmés', rdvStatuses.confirme, '#2E86FF'], ['Terminés', rdvStatuses.termine, '#00C9A7'], ['Autres', rdvStatuses.autre, '#7C3AED']].map(([l,v,c]) => `
-          <div class="bar" style="background:${c};height:${Math.max((v/maxRdv)*100,4)}%;opacity:0.85;">
-            <span class="bar-value">${v}</span>
-            <span class="bar-label">${l}</span>
-          </div>`).join('')}
-      </div>`;
+    // RDV Chart
+    const rdvMap = { confirme: RDV.filter(r=>r.status==='confirme').length, termine: RDV.filter(r=>r.status==='termine').length };
+    const mx = Math.max(...Object.values(rdvMap), 1);
+    document.getElementById('rdv-chart').innerHTML = `<div class="bar-chart">
+      ${[['Confirmés', rdvMap.confirme, '#2E86FF'], ['Terminés', rdvMap.termine, '#00C9A7']].map(([l,v,c]) =>
+        `<div class="bar" style="background:${c};height:${Math.max((v/mx)*90,6)}%;opacity:0.85;"><span class="bar-value">${v}</span><span class="bar-label">${l}</span></div>`).join('')}
+    </div>`;
 
-    // Mini pending list
-    const pendingEl = document.getElementById('pending-mini-list');
-    if (!totalPending) {
-      pendingEl.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Aucun compte en attente</p></div>`;
-    } else {
-      const allPending = [
-        ...pending.map(d => ({ name: d.full_name, phone: d.phone, type: 'Médecin', score: d.trust_score, id: d.id, entity: 'doctor' })),
-        ...pharmas.filter(p=>p.status==='pending').map(p => ({ name: p.name, phone: p.phone, type: 'Pharmacie', score: p.trust_score, id: p.id, entity: 'pharmacie' })),
-        ...labs.filter(l=>l.status==='pending').map(l => ({ name: l.name, phone: l.phone, type: 'Laboratoire', score: l.trust_score, id: l.id, entity: 'laboratoire' }))
-      ];
-      pendingEl.innerHTML = allPending.slice(0,4).map(p => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-          <div><div style="font-size:13px;font-weight:700;">${p.name || p.phone}</div><div style="font-size:11px;color:var(--texte-doux);">${p.type} — Score ${p.score||0}/100</div></div>
-          <div style="display:flex;gap:6px;">
-            <button class="btn-validate" onclick="openValidate('${p.entity}','${p.id}','${p.name||p.phone}')">Valider</button>
-            <button class="btn-reject" onclick="openReject('${p.entity}','${p.id}','${p.name||p.phone}')">Rejeter</button>
-          </div>
-        </div>`).join('');
-    }
+    // Mini pending
+    const allPend = [
+      ...PEN.map(d => ({ name: d.full_name, phone: d.phone, type: 'Médecin', score: d.trust_score, id: d.id, entity: 'doctor', doc: d.document_url })),
+      ...P.filter(p=>p.status==='pending').map(p => ({ name: p.name, phone: p.phone, type: 'Pharmacie', score: p.trust_score, id: p.id, entity: 'pharmacie', doc: p.document_url })),
+      ...L.filter(l=>l.status==='pending').map(l => ({ name: l.name, phone: l.phone, type: 'Laboratoire', score: l.trust_score, id: l.id, entity: 'laboratoire', doc: l.document_url }))
+    ];
+    const pendEl = document.getElementById('mini-pending');
+    if (!allPend.length) { pendEl.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Aucun dossier en attente</p></div>`; }
+    else { pendEl.innerHTML = allPend.slice(0,4).map(p => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div><div style="font-size:13px;font-weight:700;">${p.name||p.phone}</div>
+        <div style="font-size:11px;color:var(--texte-doux);">${p.type} — Score ${p.score||0}/100 ${p.doc?`<a href="${p.doc}" target="_blank" class="doc-link" style="margin-left:6px;">📄 Doc</a>`:''}</div></div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-validate" onclick="openValidate('${p.entity}','${p.id}','${p.name||p.phone}')">✅</button>
+          <button class="btn-reject" onclick="openReject('${p.entity}','${p.id}','${p.name||p.phone}')">❌</button>
+        </div>
+      </div>`).join(''); }
 
     // Mini fraud
-    const fraudEl = document.getElementById('fraud-mini-list');
-    const highFrauds = frauds.filter(f => f.severity === 'high').slice(0, 4);
-    if (!highFrauds.length) {
-      fraudEl.innerHTML = `<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal haute sévérité</p></div>`;
-    } else {
-      fraudEl.innerHTML = highFrauds.map(f => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-          <div><div style="font-size:13px;font-weight:700;color:var(--rouge);">${f.signal_type}</div><div style="font-size:11px;color:var(--texte-doux);">${f.actor_phone} — ${formatDateShort(f.created_at)}</div></div>
-          <span class="badge badge-high">HIGH</span>
-        </div>`).join('');
-    }
-
-  } catch(e) {
-    console.error('loadOverview', e);
-  }
-}
-
-function setDonutSegment(id, value, circ, offset) {
-  const el = document.getElementById(id);
-  if (el) { el.setAttribute('stroke-dasharray', `${value} ${circ}`); el.setAttribute('stroke-dashoffset', offset); }
+    const highFr = FR.filter(f=>f.severity==='high').slice(0,4);
+    const frEl = document.getElementById('mini-fraud');
+    if (!highFr.length) { frEl.innerHTML = `<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal haute sévérité</p></div>`; }
+    else { frEl.innerHTML = highFr.map(f => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div><div style="font-size:13px;font-weight:700;color:var(--rouge);">${f.signal_type?.replace(/_/g,' ')}</div>
+        <div style="font-size:11px;color:var(--texte-doux);">${f.actor_phone} — ${fDate(f.created_at)}</div></div>
+        <span class="badge badge-high">HIGH</span>
+      </div>`).join(''); }
+  } catch(e) { console.error('loadOverview', e); }
 }
 
 // ─── ACTIVITY ─────────────────────────────────────────────────────────────────
 async function loadActivity() {
   try {
-    const data = await api('/admin/audit?limit=50');
+    const data = await apiFetch('/admin/audit?limit=100');
     const items = data.data || [];
-    document.getElementById('activity-count').textContent = `${items.length} événements`;
-
+    document.getElementById('act-count').textContent = `${items.length} événements`;
     const today = new Date().toDateString();
-    const rdvToday = items.filter(i => i.event_type === 'appointment_validated' && new Date(i.created_at).toDateString() === today).length;
-    const presTotal = items.filter(i => i.event_type === 'prescription_created' || i.event_type === 'prescription_delivered').length;
-    const newUsers = items.filter(i => i.event_type?.includes('.registered') && new Date(i.created_at).toDateString() === today).length;
-
-    document.getElementById('act-rdv-today').textContent = rdvToday;
-    document.getElementById('act-prescriptions').textContent = presTotal;
-    document.getElementById('act-new-users').textContent = newUsers;
-
-    const colors = { 'doctor.registered':'#00C9A7', 'pharmacie.registered':'#00A878', 'patient.registered':'#2E86FF', 'appointment_validated':'#ffa502', 'prescription_delivered':'#7C3AED', 'prescription_created':'#ff6b9d' };
-
-    document.getElementById('activity-feed').innerHTML = `<div class="feed-list">${items.map(i => `
+    document.getElementById('act-rdv').textContent = items.filter(i=>i.event_type==='appointment_validated'&&new Date(i.created_at).toDateString()===today).length;
+    document.getElementById('act-pres').textContent = items.filter(i=>i.event_type==='prescription_created').length;
+    document.getElementById('act-users').textContent = items.filter(i=>i.event_type?.includes('.registered')&&new Date(i.created_at).toDateString()===today).length;
+    const colors = {'doctor.registered':'#00C9A7','pharmacie.registered':'#00A878','patient.registered':'#2E86FF','appointment_validated':'#f39c12','prescription_delivered':'#7C3AED','prescription_created':'#e74c3c','credits.granted':'#d97706'};
+    document.getElementById('activity-feed').innerHTML = `<div class="feed-list">${items.map(i=>`
       <div class="feed-item">
-        <div class="feed-dot" style="background:${colors[i.event_type]||'#8888aa'}"></div>
+        <div class="feed-dot" style="background:${colors[i.event_type]||'#5A6E8C'}"></div>
         <div class="feed-content">
-          <div class="feed-action"><span class="feed-actor">${i.actor_phone}</span> — ${i.event_type?.replace(/_/g,' ') || '—'}</div>
-          <div class="feed-time">${formatDate(i.created_at)}</div>
+          <div class="feed-action"><span class="feed-actor">${i.actor_phone}</span> — ${i.event_type?.replace(/_/g,' ')||'—'}</div>
+          <div class="feed-time">${fDateTime(i.created_at)}</div>
         </div>
       </div>`).join('')}</div>`;
-  } catch(e) {
-    document.getElementById('activity-feed').innerHTML = `<div class="empty"><div class="empty-icon">📝</div><p>Impossible de charger l'activité.</p></div>`;
-  }
+  } catch(e) { document.getElementById('activity-feed').innerHTML = `<div class="empty"><p>Erreur de chargement.</p></div>`; }
 }
 
 // ─── PENDING ──────────────────────────────────────────────────────────────────
 async function loadPending() {
   try {
-    const [doctorsData, pharmaData, labsData] = await Promise.all([
-      api('/doctors/pending'),
-      api('/pharmacies/all'),
-      api('/laboratories/all')
-    ]);
-    const doctors = (doctorsData.data || []).map(d => ({...d, entity:'doctor', display_name: d.full_name}));
-    const pharmas = (pharmaData.data || []).filter(p => p.status === 'pending').map(p => ({...p, entity:'pharmacie', display_name: p.name}));
-    const labs = (labsData.data || []).filter(l => l.status === 'pending').map(l => ({...l, entity:'laboratoire', display_name: l.name}));
-    const all = [...doctors, ...pharmas, ...labs].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-
+    const [d, p, l] = await Promise.all([apiFetch('/doctors/pending'), apiFetch('/pharmacies/all'), apiFetch('/laboratories/all')]);
+    const all = [
+      ...(d.data||[]).map(x => ({...x, entity:'doctor', display_name:x.full_name})),
+      ...(p.data||[]).filter(x=>x.status==='pending').map(x => ({...x, entity:'pharmacie', display_name:x.name})),
+      ...(l.data||[]).filter(x=>x.status==='pending').map(x => ({...x, entity:'laboratoire', display_name:x.name}))
+    ].sort((a,b) => new Date(b.created_at)-new Date(a.created_at));
     document.getElementById('pending-count').textContent = `${all.length} dossiers`;
-
-    if (!all.length) {
-      document.getElementById('pending-list').innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Aucun compte en attente de validation</p></div>`;
-      return;
-    }
-
-    document.getElementById('pending-list').innerHTML = `
-      <table id="pending-table">
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Type</th><th>Score</th><th>Document</th><th>Date</th><th>Actions</th></tr></thead>
-        <tbody>${all.map(p => `
-          <tr>
-            <td><span style="font-weight:700;">${p.display_name || '—'}</span></td>
-            <td class="td-phone">${p.phone}</td>
-            <td><span class="badge badge-${p.entity==='doctor'?'doctor':p.entity==='pharmacie'?'pharmacie':'laboratoire'}">${p.entity}</span></td>
-            <td>
-              <span class="td-score" style="color:${(p.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${p.trust_score||0}/100</span>
-              <div class="score-bar"><div class="score-fill" style="width:${p.trust_score||0}%"></div></div>
-            </td>
-            <td>${p.document_url ? `<a href="${p.document_url}" target="_blank" class="doc-link">📄 Voir</a>` : '<span style="color:var(--texte-doux);font-size:12px;">Non fourni</span>'}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${formatDateShort(p.created_at)}</td>
-            <td><div class="actions">
-              <button class="btn-validate" onclick="openValidate('${p.entity}','${p.id}','${p.display_name||p.phone}')">✅ Valider</button>
-              <button class="btn-reject" onclick="openReject('${p.entity}','${p.id}','${p.display_name||p.phone}')">❌ Rejeter</button>
-            </div></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
-  } catch(e) {
-    document.getElementById('pending-list').innerHTML = `<div class="empty"><p>Erreur de chargement.</p></div>`;
-  }
+    if (!all.length) { document.getElementById('pending-list').innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Aucun dossier en attente</p></div>`; return; }
+    document.getElementById('pending-list').innerHTML = `<table id="pending-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Type</th><th>Score</th><th>Document</th><th>Date</th><th>Actions</th></tr></thead><tbody>${all.map(x=>`
+      <tr>
+        <td><strong>${x.display_name||'—'}</strong></td>
+        <td class="td-phone">${x.phone}</td>
+        <td>${bStatut(x.entity==='doctor'?'doctor':x.entity)}<span class="badge badge-${x.entity}" style="margin-left:4px;">${x.entity}</span></td>
+        <td><div class="score-bar-wrap"><span style="font-weight:700;font-size:12px;color:${(x.trust_score||0)>=80?'var(--emeraude)':'var(--amber)'}">${x.trust_score||0}</span><div class="score-bar"><div class="score-fill" style="width:${x.trust_score||0}%"></div></div></span>/100</div></td>
+        <td>${x.document_url?`<a href="${x.document_url}" target="_blank" class="doc-link">📄 Voir</a>`:'<span style="color:var(--texte-doux);font-size:11px;">Non fourni</span>'}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${fDate(x.created_at)}</td>
+        <td><div class="actions">
+          <button class="btn-validate" onclick="openValidate('${x.entity}','${x.id}','${x.display_name||x.phone}')">✅ Valider</button>
+          <button class="btn-reject" onclick="openReject('${x.entity}','${x.id}','${x.display_name||x.phone}')">❌ Rejeter</button>
+        </div></td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { document.getElementById('pending-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
 }
 
 // ─── DOCTORS ──────────────────────────────────────────────────────────────────
-async function loadDoctors() {
+async function loadDoctors(statusFilter='') {
   try {
-    const data = await api('/doctors/all');
-    const doctors = data.data || [];
-    document.getElementById('doctors-count').textContent = `${doctors.length} médecins`;
-    if (!doctors.length) { document.getElementById('doctors-list').innerHTML = `<div class="empty"><div class="empty-icon">🩺</div><p>Aucun médecin</p></div>`; return; }
-    document.getElementById('doctors-list').innerHTML = `
-      <table id="doctors-table">
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Spécialité</th><th>Code</th><th>Score</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody>${doctors.map(d => `
-          <tr>
-            <td><span style="font-weight:700;">${d.full_name||'—'}</span></td>
-            <td class="td-phone">${d.phone}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${d.specialty||'—'}</td>
-            <td class="td-code">${d.member_code||'—'}</td>
-            <td><span style="font-size:13px;font-weight:700;color:${(d.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${d.trust_score||0}/100</span></td>
-            <td>${badgeStatut(d.status)}</td>
-            <td><div class="actions">
-              ${d.status !== 'verified' ? `<button class="btn-validate" onclick="openValidate('doctor','${d.id}','${d.full_name||d.phone}')">✅</button>` : ''}
-              ${d.status !== 'suspended' ? `<button class="btn-suspend" onclick="openSuspend('doctor','${d.id}','${d.full_name||d.phone}')">🚫</button>` : `<button class="btn-validate" onclick="changeStatus('doctor','${d.id}','verified','')">↩</button>`}
-            </div></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
+    const data = await apiFetch('/doctors/all');
+    let items = data.data || [];
+    if (statusFilter) items = items.filter(d => d.status === statusFilter);
+    document.getElementById('doctors-count').textContent = `${items.length} médecins`;
+    document.getElementById('doctors-list').innerHTML = `<table id="doctors-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Spécialité</th><th>Code</th><th>Score</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${items.map(d=>`
+      <tr>
+        <td><strong>${d.full_name||'—'}</strong></td>
+        <td class="td-phone">${d.phone}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${d.specialty||'—'}</td>
+        <td class="td-code">${d.member_code||'—'}</td>
+        <td><span style="font-weight:700;font-size:12px;color:${(d.trust_score||0)>=80?'var(--emeraude)':'var(--amber)'}">${d.trust_score||0}/100</span></td>
+        <td>${bStatut(d.status)}</td>
+        <td><div class="actions">
+          ${d.status!=='verified'?`<button class="btn-validate" onclick="openValidate('doctor','${d.id}','${d.full_name||d.phone}')">✅</button>`:''}
+          ${d.status==='suspended'?`<button class="btn-reactivate" onclick="changeStatus('doctor','${d.id}','verified','')">↩</button>`:`<button class="btn-suspend" onclick="openSuspend('doctor','${d.id}','${d.full_name||d.phone}')">🚫</button>`}
+          ${d.document_url?`<a href="${d.document_url}" target="_blank" class="btn-view">📄</a>`:''}
+        </div></td>
+      </tr>`).join('')}</tbody></table>`;
   } catch(e) { document.getElementById('doctors-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
 }
 
 // ─── PHARMACIES ───────────────────────────────────────────────────────────────
 async function loadPharmacies() {
   try {
-    const data = await api('/pharmacies/all');
+    const data = await apiFetch('/pharmacies/all');
     const items = data.data || [];
     document.getElementById('pharmacies-count').textContent = `${items.length} pharmacies`;
-    document.getElementById('pharmacies-list').innerHTML = `
-      <table id="pharmacies-table">
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>Code</th><th>Score</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody>${items.map(p => `
-          <tr>
-            <td><span style="font-weight:700;">${p.name||'—'}</span></td>
-            <td class="td-phone">${p.phone}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${p.responsible_name||'—'}</td>
-            <td class="td-code">${p.member_code||'—'}</td>
-            <td><span style="font-size:13px;font-weight:700;color:${(p.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${p.trust_score||0}/100</span></td>
-            <td>${badgeStatut(p.status)}</td>
-            <td><div class="actions">
-              ${p.status !== 'verified' ? `<button class="btn-validate" onclick="openValidate('pharmacie','${p.id}','${p.name||p.phone}')">✅</button>` : ''}
-              ${p.status !== 'suspended' ? `<button class="btn-suspend" onclick="openSuspend('pharmacie','${p.id}','${p.name||p.phone}')">🚫</button>` : ''}
-              ${p.document_url ? `<a href="${p.document_url}" target="_blank" class="btn-view">📄</a>` : ''}
-            </div></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
+    document.getElementById('pharmacies-list').innerHTML = `<table id="pharmacies-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>RCCM</th><th>Score</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${items.map(p=>`
+      <tr>
+        <td><strong>${p.name||'—'}</strong></td>
+        <td class="td-phone">${p.phone}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${p.responsible_name||'—'}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${p.rccm_number||'—'}</td>
+        <td><span style="font-weight:700;font-size:12px;color:${(p.trust_score||0)>=80?'var(--emeraude)':'var(--amber)'}">${p.trust_score||0}/100</span></td>
+        <td>${bStatut(p.status)}</td>
+        <td><div class="actions">
+          ${p.status!=='verified'?`<button class="btn-validate" onclick="openValidate('pharmacie','${p.id}','${p.name||p.phone}')">✅</button>`:''}
+          ${p.status==='suspended'?`<button class="btn-reactivate" onclick="changeStatus('pharmacie','${p.id}','verified','')">↩</button>`:`<button class="btn-suspend" onclick="openSuspend('pharmacie','${p.id}','${p.name||p.phone}')">🚫</button>`}
+          ${p.document_url?`<a href="${p.document_url}" target="_blank" class="btn-view">📄</a>`:''}
+        </div></td>
+      </tr>`).join('')}</tbody></table>`;
   } catch(e) { document.getElementById('pharmacies-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
 }
 
 // ─── LABORATORIES ─────────────────────────────────────────────────────────────
 async function loadLaboratories() {
   try {
-    const data = await api('/laboratories/all');
+    const data = await apiFetch('/laboratories/all');
     const items = data.data || [];
     document.getElementById('laboratories-count').textContent = `${items.length} laboratoires`;
-    document.getElementById('laboratories-list').innerHTML = `
-      <table id="laboratories-table">
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Directeur</th><th>Code</th><th>Score</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody>${items.map(l => `
-          <tr>
-            <td><span style="font-weight:700;">${l.name||'—'}</span></td>
-            <td class="td-phone">${l.phone}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${l.director_name||'—'}</td>
-            <td class="td-code">${l.member_code||'—'}</td>
-            <td><span style="font-size:13px;font-weight:700;color:${(l.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${l.trust_score||0}/100</span></td>
-            <td>${badgeStatut(l.status)}</td>
-            <td><div class="actions">
-              ${l.status !== 'verified' ? `<button class="btn-validate" onclick="openValidate('laboratoire','${l.id}','${l.name||l.phone}')">✅</button>` : ''}
-              ${l.status !== 'suspended' ? `<button class="btn-suspend" onclick="openSuspend('laboratoire','${l.id}','${l.name||l.phone}')">🚫</button>` : ''}
-            </div></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
+    document.getElementById('laboratories-list').innerHTML = `<table id="laboratories-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Directeur</th><th>RCCM</th><th>Score</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${items.map(l=>`
+      <tr>
+        <td><strong>${l.name||'—'}</strong></td>
+        <td class="td-phone">${l.phone}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${l.director_name||'—'}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${l.rccm_number||'—'}</td>
+        <td><span style="font-weight:700;font-size:12px;color:${(l.trust_score||0)>=80?'var(--emeraude)':'var(--amber)'}">${l.trust_score||0}/100</span></td>
+        <td>${bStatut(l.status)}</td>
+        <td><div class="actions">
+          ${l.status!=='verified'?`<button class="btn-validate" onclick="openValidate('laboratoire','${l.id}','${l.name||l.phone}')">✅</button>`:''}
+          ${l.status==='suspended'?`<button class="btn-reactivate" onclick="changeStatus('laboratoire','${l.id}','verified','')">↩</button>`:`<button class="btn-suspend" onclick="openSuspend('laboratoire','${l.id}','${l.name||l.phone}')">🚫</button>`}
+          ${l.document_url?`<a href="${l.document_url}" target="_blank" class="btn-view">📄</a>`:''}
+        </div></td>
+      </tr>`).join('')}</tbody></table>`;
   } catch(e) { document.getElementById('laboratories-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
 }
 
 // ─── PATIENTS ─────────────────────────────────────────────────────────────────
 async function loadPatients() {
   try {
-    const data = await fetch(`${API}/admin/users?role=patient`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+    const data = await apiFetch('/admin/users?role=patient');
     const items = data.data || [];
     document.getElementById('patients-count').textContent = `${items.length} patients`;
     if (!items.length) { document.getElementById('patients-list').innerHTML = `<div class="empty"><div class="empty-icon">👤</div><p>Aucun patient</p></div>`; return; }
-    document.getElementById('patients-list').innerHTML = `
-      <table id="patients-table">
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>ID Bolamu</th><th>Ville</th><th>Statut</th><th>Inscrit le</th></tr></thead>
-        <tbody>${items.map(p => `
-          <tr>
-            <td><span style="font-weight:700;">${p.full_name||'—'}</span></td>
-            <td class="td-phone">${p.phone}</td>
-            <td class="td-code">${p.bolamu_id||'—'}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${p.city||'—'}</td>
-            <td>${p.is_active ? '<span class="badge badge-verified">✅ Actif</span>' : '<span class="badge badge-suspended">🚫 Inactif</span>'}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${formatDateShort(p.created_at)}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
+    document.getElementById('patients-list').innerHTML = `<table id="patients-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>ID Bolamu</th><th>Statut</th><th>Inscrit le</th><th>Actions</th></tr></thead><tbody>${items.map(p=>`
+      <tr>
+        <td><strong>${p.full_name||'—'}</strong></td>
+        <td class="td-phone">${p.phone}</td>
+        <td class="td-code">${p.bolamu_id||'—'}</td>
+        <td>${p.is_active?'<span class="badge badge-verified">✅ Actif</span>':'<span class="badge badge-suspended">🚫 Inactif</span>'}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${fDate(p.created_at)}</td>
+        <td><div class="actions">
+          ${p.is_active?`<button class="btn-suspend" onclick="toggleUser('${p.phone}',false)">🚫 Bannir</button>`:`<button class="btn-reactivate" onclick="toggleUser('${p.phone}',true)">↩ Réactiver</button>`}
+          <button class="btn-view" onclick="openGrantCredits('${p.phone}')">⭐ Crédits</button>
+        </div></td>
+      </tr>`).join('')}</tbody></table>`;
   } catch(e) { document.getElementById('patients-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
 }
 
 // ─── APPOINTMENTS ─────────────────────────────────────────────────────────────
 async function loadAppointments() {
   try {
-    const data = await fetch(`${API}/admin/appointments`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+    const data = await apiFetch('/admin/appointments');
     const items = data.data || [];
-    const done = items.filter(a => a.status === 'termine').length;
-    const confirmed = items.filter(a => a.status === 'confirme').length;
     document.getElementById('appt-total').textContent = items.length;
-    document.getElementById('appt-done').textContent = done;
-    document.getElementById('appt-confirmed').textContent = confirmed;
+    document.getElementById('appt-done').textContent = items.filter(a=>a.status==='termine').length;
+    document.getElementById('appt-conf').textContent = items.filter(a=>a.status==='confirme').length;
     document.getElementById('appt-count').textContent = `${items.length} RDV`;
-    document.getElementById('appointments-list').innerHTML = `
-      <table>
-        <thead><tr><th>Patient</th><th>Médecin ID</th><th>Date</th><th>Heure</th><th>Code session</th><th>Statut</th><th>Durée</th></tr></thead>
-        <tbody>${items.slice(0,100).map(a => `
-          <tr>
-            <td class="td-phone">${a.patient_phone}</td>
-            <td style="color:var(--texte-doux);">ID ${a.doctor_id}</td>
-            <td style="font-size:13px;">${formatDateShort(a.appointment_date||a.date)}</td>
-            <td style="font-size:13px;color:var(--texte-doux);">${(a.appointment_time||a.time||'—').substring(0,5)}</td>
-            <td class="td-code">${a.session_code||'—'}</td>
-            <td>${badgeStatut(a.status)}</td>
-            <td style="font-size:13px;color:var(--texte-doux);">${a.consultation_duration_minutes ? a.consultation_duration_minutes+'min' : '—'}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
-  } catch(e) { document.getElementById('appointments-list').innerHTML = `<div class="empty"><p>Erreur de chargement.</p></div>`; }
+    document.getElementById('appointments-list').innerHTML = `<table><thead><tr><th>Patient</th><th>Médecin ID</th><th>Date</th><th>Heure</th><th>Code session</th><th>Statut</th><th>Durée</th></tr></thead><tbody>${items.slice(0,200).map(a=>`
+      <tr>
+        <td class="td-phone">${a.patient_phone}</td>
+        <td style="color:var(--texte-doux);">ID ${a.doctor_id}</td>
+        <td style="font-size:12px;">${fDate(a.appointment_date||a.date)}</td>
+        <td style="font-size:12px;color:var(--texte-doux);">${(a.appointment_time||a.time||'—').substring(0,5)}</td>
+        <td class="td-code">${a.session_code||'—'}</td>
+        <td>${bStatut(a.status)}</td>
+        <td style="font-size:12px;color:var(--texte-doux);">${a.consultation_duration_minutes?a.consultation_duration_minutes+'min':'—'}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { document.getElementById('appointments-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
 }
 
 // ─── PRESCRIPTIONS ────────────────────────────────────────────────────────────
 async function loadPrescriptions() {
   try {
-    const data = await fetch(`${API}/admin/prescriptions`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+    const data = await apiFetch('/admin/prescriptions');
     const items = data.data || [];
     document.getElementById('pres-count').textContent = `${items.length} ordonnances`;
-    document.getElementById('prescriptions-list').innerHTML = `
-      <table>
-        <thead><tr><th>Patient</th><th>Médecin</th><th>Code session</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead>
-        <tbody>${items.slice(0,100).map(p => `
-          <tr>
-            <td class="td-phone">${p.patient_phone}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${p.doctor_phone}</td>
-            <td class="td-code">${p.session_code||'—'}</td>
-            <td>${p.status === 'livre' ? '<span class="badge badge-verified">✅ Délivré</span>' : '<span class="badge badge-pending">⏳ Active</span>'}</td>
-            <td style="font-size:13px;color:var(--texte-doux);">${p.pharmacie_phone||'—'}</td>
-            <td style="font-size:13px;color:var(--texte-doux);">${formatDateShort(p.created_at)}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
+    document.getElementById('prescriptions-list').innerHTML = `<table><thead><tr><th>Patient</th><th>Médecin</th><th>Code session</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead><tbody>${items.slice(0,200).map(p=>`
+      <tr>
+        <td class="td-phone">${p.patient_phone}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${p.doctor_phone}</td>
+        <td class="td-code">${p.session_code||'—'}</td>
+        <td>${bStatut(p.status==='livre'?'livre':'active')}</td>
+        <td style="font-size:12px;color:var(--texte-doux);">${p.pharmacie_phone||'—'}</td>
+        <td style="font-size:12px;color:var(--texte-doux);">${fDate(p.created_at)}</td>
+      </tr>`).join('')}</tbody></table>`;
   } catch(e) { document.getElementById('prescriptions-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
+}
+
+// ─── CREDITS ──────────────────────────────────────────────────────────────────
+async function loadCredits() {
+  try {
+    const [crData, partData] = await Promise.all([apiFetch('/credits/admin/all'), apiFetch('/credits/partners')]);
+    const creds = crData.data || [], parts = partData.data || [];
+    const total = creds.reduce((s,c)=>s+(c.balance||0),0);
+    document.getElementById('cr-total').textContent = total;
+    document.getElementById('cr-accounts').textContent = creds.length;
+    document.getElementById('cr-partners').textContent = parts.length;
+    document.getElementById('cr-count').textContent = `${creds.length} comptes`;
+
+    // Partenaires
+    const catIcons = { pharmacie:'💊', sport:'🏋️', nutrition:'🥗', 'bien-être':'🧘', optique:'👓', dentaire:'🦷', autre:'🏪' };
+    document.getElementById('partners-grid').innerHTML = parts.length ? parts.map(p=>`
+      <div class="partner-card">
+        <div class="partner-icon">${catIcons[p.category]||'🏪'}</div>
+        <div class="partner-name">${p.name}</div>
+        <div class="partner-cat">${p.category} — ${p.city||'Brazzaville'}</div>
+        <div class="partner-discount">-${p.discount_per_100_credits}% / 100 crédits</div>
+        <div style="font-size:11px;color:var(--texte-doux);margin-top:4px;">Min: ${p.min_credits} crédits</div>
+      </div>`).join('') : `<div class="empty"><p>Aucun partenaire</p></div>`;
+
+    // Table crédits
+    document.getElementById('credits-list').innerHTML = creds.length ? `<table><thead><tr><th>Membre</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Mois consécutifs</th><th>Action</th></tr></thead><tbody>${creds.map(c=>`
+      <tr>
+        <td class="td-phone">${c.display_name||c.phone}</td>
+        <td><span class="badge badge-${c.role}">${c.role}</span></td>
+        <td><strong style="color:var(--amber);font-family:'Fraunces',serif;font-size:16px;">${c.balance||0}</strong> ⭐</td>
+        <td style="color:var(--emeraude);font-weight:700;">+${c.total_earned||0}</td>
+        <td style="color:var(--rouge);font-weight:700;">-${c.total_spent||0}</td>
+        <td style="color:var(--texte-doux);">${c.consecutive_months||0} mois</td>
+        <td><button class="btn-view" onclick="openGrantCredits('${c.phone}')">+ Crédits</button></td>
+      </tr>`).join('')}</tbody></table>` : `<div class="empty"><div class="empty-icon">⭐</div><p>Aucun compte crédits pour l'instant</p></div>`;
+  } catch(e) { console.error('loadCredits', e); }
 }
 
 // ─── FRAUD ────────────────────────────────────────────────────────────────────
 async function loadFraud() {
   try {
-    const data = await fetch(`${API}/admin/fraud`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+    const data = await apiFetch('/admin/fraud');
     const items = data.data || [];
     document.getElementById('fraud-count').textContent = `${items.length} signaux`;
-    document.getElementById('fraud-high').textContent = items.filter(f=>f.severity==='high').length;
-    document.getElementById('fraud-medium').textContent = items.filter(f=>f.severity==='medium').length;
-    document.getElementById('fraud-low').textContent = items.filter(f=>f.severity==='low').length;
-
-    if (!items.length) { document.getElementById('fraud-list').innerHTML = `<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal de fraude détecté</p></div>`; return; }
-    document.getElementById('fraud-list').innerHTML = `
-      <table>
-        <thead><tr><th>Type</th><th>Acteur</th><th>Sévérité</th><th>RDV ID</th><th>Détails</th><th>Date</th><th>Action</th></tr></thead>
-        <tbody>${items.map(f => `
-          <tr>
-            <td style="font-weight:700;font-size:13px;">${f.signal_type?.replace(/_/g,' ')}</td>
-            <td class="td-phone">${f.actor_phone}</td>
-            <td><span class="badge badge-${f.severity}">${f.severity?.toUpperCase()}</span></td>
-            <td style="color:var(--texte-doux);font-size:13px;">${f.appointment_id||'—'}</td>
-            <td style="font-size:12px;color:var(--texte-doux);max-width:200px;overflow:hidden;text-overflow:ellipsis;">${JSON.stringify(f.details||{}).substring(0,60)}</td>
-            <td style="font-size:12px;color:var(--texte-doux);">${formatDateShort(f.created_at)}</td>
-            <td><button class="btn-suspend" onclick="openSuspendByPhone('${f.actor_phone}')">🚫 Suspendre</button></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
+    document.getElementById('fr-high').textContent = items.filter(f=>f.severity==='high').length;
+    document.getElementById('fr-med').textContent = items.filter(f=>f.severity==='medium').length;
+    document.getElementById('fr-low').textContent = items.filter(f=>f.severity==='low').length;
+    if (!items.length) { document.getElementById('fraud-list').innerHTML = `<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal détecté</p></div>`; return; }
+    document.getElementById('fraud-list').innerHTML = `<table><thead><tr><th>Type</th><th>Acteur</th><th>Sévérité</th><th>RDV</th><th>Date</th><th>Action</th></tr></thead><tbody>${items.map(f=>`
+      <tr>
+        <td><strong style="font-size:12px;">${f.signal_type?.replace(/_/g,' ')}</strong></td>
+        <td class="td-phone">${f.actor_phone}</td>
+        <td><span class="badge badge-${f.severity}">${f.severity?.toUpperCase()}</span></td>
+        <td style="color:var(--texte-doux);font-size:12px;">${f.appointment_id||'—'}</td>
+        <td style="font-size:12px;color:var(--texte-doux);">${fDate(f.created_at)}</td>
+        <td><button class="btn-suspend" onclick="openSuspendPhone('${f.actor_phone}')">🚫 Suspendre</button></td>
+      </tr>`).join('')}</tbody></table>`;
   } catch(e) { document.getElementById('fraud-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
+}
+
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+async function loadConfig() {
+  try {
+    const data = await apiFetch('/admin/config');
+    const configs = data.data || [];
+    configs.forEach(c => {
+      const el = document.getElementById(`cfg-${c.key}`);
+      if (el) el.value = c.value;
+    });
+  } catch(e) {}
+}
+
+async function saveConfig() {
+  const keys = ['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity','credits_patient_monthly','credits_patient_loyal_bonus','credits_doctor_monthly','credits_pro_monthly','active_phase','doctor_patient_ratio','breakeven_subscribers'];
+  try {
+    for (const key of keys) {
+      const el = document.getElementById(`cfg-${key}`);
+      if (el && el.value) {
+        await fetch(`${API}/admin/config`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, value: el.value })
+        });
+      }
+    }
+    showToast('Configuration sauvegardée !');
+  } catch(e) { showToast('Erreur sauvegarde', 'error'); }
 }
 
 // ─── AUDIT ────────────────────────────────────────────────────────────────────
 async function loadAudit(filter='') {
   try {
-    const url = filter ? `/admin/audit?event_type=${filter}` : '/admin/audit?limit=200';
-    const data = await api(url);
+    const url = filter ? `/admin/audit?event_type=${filter}` : '/admin/audit?limit=300';
+    const data = await apiFetch(url);
     const items = data.data || [];
     document.getElementById('audit-count').textContent = `${items.length} entrées`;
-    document.getElementById('audit-list').innerHTML = `
-      <table id="audit-table">
-        <thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID cible</th><th>Date</th></tr></thead>
-        <tbody>${items.map(a => `
-          <tr>
-            <td style="font-weight:600;font-size:13px;">${a.event_type||'—'}</td>
-            <td class="td-phone">${a.actor_phone||'—'}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${a.target_table||'—'}</td>
-            <td style="color:var(--texte-doux);font-size:13px;">${a.target_id||'—'}</td>
-            <td style="font-size:12px;color:var(--texte-doux);">${formatDate(a.created_at)}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
+    document.getElementById('audit-list').innerHTML = `<table id="audit-table"><thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead><tbody>${items.map(a=>`
+      <tr>
+        <td><strong style="font-size:12px;">${a.event_type||'—'}</strong></td>
+        <td class="td-phone">${a.actor_phone||'—'}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${a.target_table||'—'}</td>
+        <td style="color:var(--texte-doux);font-size:12px;">${a.target_id||'—'}</td>
+        <td style="font-size:11px;color:var(--texte-doux);">${fDateTime(a.created_at)}</td>
+      </tr>`).join('')}</tbody></table>`;
   } catch(e) { document.getElementById('audit-list').innerHTML = `<div class="empty"><p>Erreur.</p></div>`; }
 }
 
-// ─── ACTIONS VALIDATION ───────────────────────────────────────────────────────
+// ─── MODALES ──────────────────────────────────────────────────────────────────
 function openValidate(entity, id, name) {
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-title">✅ Valider le compte</div>
-    <div class="modal-sub">Voulez-vous valider et activer le compte de <strong>${name}</strong> ? Un SMS de confirmation sera envoyé automatiquement.</div>
+    <div class="modal-sub">Valider et activer le compte de <strong>${name}</strong> ? Un SMS de confirmation sera envoyé automatiquement.</div>
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-      <button class="btn-confirm green" onclick="changeStatus('${entity}','${id}','verified','')">✅ Confirmer la validation</button>
+      <button class="btn-confirm green" onclick="changeStatus('${entity}','${id}','verified','')">✅ Confirmer</button>
     </div>`;
   document.getElementById('modal').classList.add('open');
 }
@@ -957,11 +990,11 @@ function openValidate(entity, id, name) {
 function openReject(entity, id, name) {
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-title">❌ Rejeter le dossier</div>
-    <div class="modal-sub">Le compte de <strong>${name}</strong> sera rejeté et un SMS explicatif sera envoyé.</div>
-    <div class="modal-field"><label>Motif du rejet</label><input class="modal-input" id="reject-reason" placeholder="Ex : Numéro d'ordre invalide, document illisible..."></div>
+    <div class="modal-sub">Le compte de <strong>${name}</strong> sera rejeté.</div>
+    <div class="modal-field"><label>Motif du rejet</label><input class="modal-input" id="m-reason" placeholder="Ex : Document illisible, numéro d'ordre invalide..."></div>
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-      <button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','rejected',document.getElementById('reject-reason').value)">❌ Confirmer le rejet</button>
+      <button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','rejected',document.getElementById('m-reason').value)">❌ Rejeter</button>
     </div>`;
   document.getElementById('modal').classList.add('open');
 }
@@ -969,57 +1002,109 @@ function openReject(entity, id, name) {
 function openSuspend(entity, id, name) {
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-title">🚫 Suspendre le compte</div>
-    <div class="modal-sub">Le compte de <strong>${name}</strong> sera suspendu immédiatement.</div>
-    <div class="modal-field"><label>Motif de suspension</label><input class="modal-input" id="suspend-reason" placeholder="Ex : Activité frauduleuse détectée..."></div>
+    <div class="modal-sub">Suspendre immédiatement le compte de <strong>${name}</strong>.</div>
+    <div class="modal-field"><label>Motif</label><input class="modal-input" id="m-reason" placeholder="Ex : Activité frauduleuse..."></div>
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-      <button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','suspended',document.getElementById('suspend-reason').value)">🚫 Suspendre</button>
+      <button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','suspended',document.getElementById('m-reason').value)">🚫 Suspendre</button>
     </div>`;
   document.getElementById('modal').classList.add('open');
 }
 
-function openSuspendByPhone(actorPhone) {
+function openSuspendPhone(actorPhone) {
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-title">🚫 Suspendre ce compte</div>
-    <div class="modal-sub">Suspendre le compte associé au numéro <strong>${actorPhone}</strong> suite à un signal de fraude.</div>
+    <div class="modal-sub">Suspendre le compte <strong>${actorPhone}</strong> suite à un signal de fraude.</div>
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-      <button class="btn-confirm red" onclick="closeModal();showToast('Suspension par numéro — fonctionnalité à connecter au backend','error')">🚫 Suspendre</button>
+      <button class="btn-confirm red" onclick="closeModal();showToast('Suspension — identifiez d abord le type de compte (médecin/pharmacie) puis suspendez depuis l onglet correspondant','error')">OK</button>
     </div>`;
   document.getElementById('modal').classList.add('open');
+}
+
+function openGrantCredits(targetPhone='') {
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-title">⭐ Attribuer des crédits</div>
+    <div class="modal-sub">Ajouter des crédits Bolamu manuellement à un membre.</div>
+    <div class="modal-field"><label>Téléphone</label><input class="modal-input" id="m-phone" value="${targetPhone}" placeholder="+242XXXXXXXXX"></div>
+    <div class="modal-field"><label>Montant (crédits)</label><input class="modal-input" id="m-amount" type="number" placeholder="100" min="1"></div>
+    <div class="modal-field"><label>Motif</label><input class="modal-input" id="m-reason" placeholder="Ex : Bonus fidélité, correction manuelle..."></div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm blue" onclick="grantCredits()">⭐ Attribuer</button>
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+async function distributeMonthly() {
+  if (!confirm('Lancer la distribution mensuelle des crédits pour tous les membres actifs ?')) return;
+  try {
+    const res = await fetch(`${API}/credits/distribute-monthly`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.success) showToast(`Distribution effectuée : ${data.data?.distributed} comptes crédités`);
+    else showToast(data.message || 'Erreur', 'error');
+  } catch(e) { showToast('Erreur de connexion', 'error'); }
+}
+
+async function grantCredits() {
+  const phone = document.getElementById('m-phone')?.value.trim();
+  const amount = document.getElementById('m-amount')?.value;
+  const reason = document.getElementById('m-reason')?.value.trim();
+  if (!phone || !amount || !reason) { showToast('Remplissez tous les champs', 'error'); return; }
+  closeModal();
+  try {
+    const res = await fetch(`${API}/credits/grant`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, amount: parseInt(amount), reason })
+    });
+    const data = await res.json();
+    if (data.success) { showToast(`${amount} crédits attribués à ${phone}`); loadCredits(); }
+    else showToast(data.message || 'Erreur', 'error');
+  } catch(e) { showToast('Erreur de connexion', 'error'); }
+}
+
+async function toggleUser(userPhone, active) {
+  try {
+    const res = await fetch(`${API}/admin/users/${encodeURIComponent(userPhone)}/toggle`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: active })
+    });
+    const data = await res.json();
+    if (data.success) { showToast(active ? 'Compte réactivé' : 'Compte banni'); loadPatients(); }
+    else showToast(data.message || 'Erreur', 'error');
+  } catch(e) { showToast('Erreur', 'error'); }
 }
 
 async function changeStatus(entity, id, status, reason) {
   closeModal();
-  const endpoints = { doctor: `/doctors/${id}/status`, pharmacie: `/pharmacies/${id}/status`, laboratoire: `/laboratories/${id}/status` };
-  const endpoint = endpoints[entity];
-  if (!endpoint) { showToast('Entité non reconnue', 'error'); return; }
+  const endpoints = { doctor:`/doctors/${id}/status`, pharmacie:`/pharmacies/${id}/status`, laboratoire:`/laboratories/${id}/status` };
+  if (!endpoints[entity]) { showToast('Entité non reconnue', 'error'); return; }
   try {
-    const res = await fetch(`${API}${endpoint}`, {
+    const res = await fetch(`${API}${endpoints[entity]}`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status, reason })
     });
     const data = await res.json();
-    if (data.success) {
-      showToast(`Statut mis à jour : ${status}`);
-      refreshAll();
-    } else {
-      showToast(data.message || 'Erreur', 'error');
-    }
-  } catch(e) {
-    showToast('Erreur de connexion', 'error');
-  }
+    if (data.success) { showToast(`Statut mis à jour : ${status}`); refreshCurrent(); }
+    else showToast(data.message || 'Erreur', 'error');
+  } catch(e) { showToast('Erreur de connexion', 'error'); }
 }
 
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
-document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+document.getElementById('modal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
 
-function refreshAll() {
-  const active = document.querySelector('.nav-item.active');
-  const panelName = active?.onclick?.toString().match(/'(\w+)'/)?.[1];
-  if (panelName) loadPanel(panelName);
-  else loadOverview();
+function refreshCurrent() { loadPanel(currentPanel); }
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.className = `toast show ${type}`;
+  t.innerHTML = (type==='success'?'✅ ':'❌ ') + msg;
+  setTimeout(()=>t.className='toast', 3500);
 }
 
 function logout() {
@@ -1028,7 +1113,6 @@ function logout() {
   window.location.href = '/login.html';
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
 loadOverview();
 </script>
 </body>
