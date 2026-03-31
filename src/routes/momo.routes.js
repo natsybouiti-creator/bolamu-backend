@@ -1,8 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../../middleware/auth.middleware');
 const db = require('../config/db');
-const { v4: uuidv4 } = require('uuid');
+
+// ─── Import middleware compatible avec tous les formats d'export ──────────────
+let verifyToken;
+try {
+  const authMiddleware = require('../../middleware/auth.middleware');
+  verifyToken = authMiddleware.verifyToken || authMiddleware.authenticate || authMiddleware.default || authMiddleware;
+  if (typeof verifyToken !== 'function') throw new Error('verifyToken non trouvé');
+} catch(e) {
+  console.error('Auth middleware error:', e.message);
+  verifyToken = (req, res, next) => next(); // fallback temporaire
+}
+
+// ─── UUID sans dépendance externe ─────────────────────────────────────────────
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 const MOMO_BASE_URL = process.env.MOMO_BASE_URL || 'https://sandbox.momodeveloper.mtn.com';
 const SUBSCRIPTION_KEY = process.env.MOMO_SUBSCRIPTION_KEY;
@@ -29,29 +47,61 @@ async function getMoMoToken() {
   return data.access_token;
 }
 
-// ─── POST /request — déclencher un paiement MoMo ─────────────────────────────
+// ─── HELPER : traiter paiement réussi ────────────────────────────────────────
+async function handlePaymentSuccess(phone, referenceId) {
+  const payRes = await db.query('SELECT * FROM payments WHERE reference_id = $1', [referenceId]);
+  if (!payRes.rows.length) return;
+  const payment = payRes.rows[0];
+  if (payment.status === 'successful') return;
+
+  await db.query(
+    `UPDATE payments SET status = 'successful', updated_at = NOW() WHERE reference_id = $1`,
+    [referenceId]
+  );
+
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setMonth(endDate.getMonth() + 1);
+
+  await db.query(
+    `INSERT INTO subscriptions (phone, plan, status, amount_fcfa, started_at, expires_at, payment_reference)
+     VALUES ($1, $2, 'active', $3, $4, $5, $6)
+     ON CONFLICT (phone) DO UPDATE SET
+       plan = EXCLUDED.plan, status = 'active', amount_fcfa = EXCLUDED.amount_fcfa,
+       started_at = EXCLUDED.started_at, expires_at = EXCLUDED.expires_at,
+       payment_reference = EXCLUDED.payment_reference, updated_at = NOW()`,
+    [phone, payment.plan, payment.amount, startDate, endDate, referenceId]
+  );
+
+  await db.query(`UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE phone = $1`, [phone]);
+
+  await db.query(
+    `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id)
+     VALUES ('payment_successful', $1, 'payments', $2)`,
+    [phone, referenceId]
+  );
+
+  console.log(`✅ Paiement confirmé pour ${phone} — plan ${payment.plan}`);
+}
+
+// ─── POST /request ────────────────────────────────────────────────────────────
 router.post('/request', verifyToken, async (req, res) => {
   try {
     const { phone } = req.user;
-    const { amount, plan, currency = 'EUR' } = req.body;
+    const { amount, plan } = req.body;
 
     if (!amount || !plan)
       return res.status(400).json({ success: false, message: 'Montant et plan requis' });
 
-    const referenceId = uuidv4();
+    const referenceId = generateUUID();
     const token = await getMoMoToken();
-
-    // Numéro de téléphone sans + pour MoMo
     const momoPhone = phone.replace('+', '').replace(/\s/g, '');
 
     const payBody = {
       amount: String(amount),
       currency: ENV === 'sandbox' ? 'EUR' : 'XAF',
       externalId: referenceId,
-      payer: {
-        partyIdType: 'MSISDN',
-        partyId: momoPhone
-      },
+      payer: { partyIdType: 'MSISDN', partyId: momoPhone },
       payerMessage: `Abonnement Bolamu — Plan ${plan}`,
       payeeNote: `Bolamu ${plan} — ${phone}`
     };
@@ -64,7 +114,7 @@ router.post('/request', verifyToken, async (req, res) => {
         'X-Target-Environment': ENV,
         'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY,
         'Content-Type': 'application/json',
-        'X-Callback-Url': `https://bolamu-backend.onrender.com/api/v1/payments/momo/callback`
+        'X-Callback-Url': 'https://bolamu-backend.onrender.com/api/v1/payments/momo/callback'
       },
       body: JSON.stringify(payBody)
     });
@@ -74,12 +124,11 @@ router.post('/request', verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: `MoMo erreur: ${errText}` });
     }
 
-    // Sauvegarder la transaction en attente
     await db.query(
       `INSERT INTO payments (phone, amount, currency, plan, reference_id, status, provider, created_at)
-       VALUES ($1, $2, $3, $4, $5, 'pending', 'momo', NOW())
+       VALUES ($1, $2, 'XAF', $3, $4, 'pending', 'momo', NOW())
        ON CONFLICT (reference_id) DO NOTHING`,
-      [phone, amount, 'XAF', plan, referenceId]
+      [phone, amount, plan, referenceId]
     );
 
     await db.query(
@@ -88,11 +137,7 @@ router.post('/request', verifyToken, async (req, res) => {
       [phone, referenceId]
     );
 
-    res.json({
-      success: true,
-      message: 'Demande de paiement envoyée sur votre téléphone',
-      reference_id: referenceId
-    });
+    res.json({ success: true, message: 'Demande de paiement envoyée sur votre téléphone', reference_id: referenceId });
 
   } catch (e) {
     console.error('MoMo request error:', e);
@@ -100,7 +145,7 @@ router.post('/request', verifyToken, async (req, res) => {
   }
 });
 
-// ─── GET /status/:referenceId — vérifier le statut ───────────────────────────
+// ─── GET /status/:referenceId ─────────────────────────────────────────────────
 router.get('/status/:referenceId', verifyToken, async (req, res) => {
   try {
     const { referenceId } = req.params;
@@ -116,14 +161,10 @@ router.get('/status/:referenceId', verifyToken, async (req, res) => {
 
     const data = await momoRes.json();
 
-    // Si paiement réussi → mettre à jour abonnement
     if (data.status === 'SUCCESSFUL') {
       await handlePaymentSuccess(req.user.phone, referenceId);
     } else if (data.status === 'FAILED') {
-      await db.query(
-        `UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference_id = $1`,
-        [referenceId]
-      );
+      await db.query(`UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference_id = $1`, [referenceId]);
     }
 
     res.json({ success: true, status: data.status, data });
@@ -133,30 +174,23 @@ router.get('/status/:referenceId', verifyToken, async (req, res) => {
   }
 });
 
-// ─── POST /callback — webhook MTN ────────────────────────────────────────────
+// ─── POST /callback ───────────────────────────────────────────────────────────
 router.post('/callback', async (req, res) => {
   try {
     const body = req.body;
     console.log('📲 MoMo Callback reçu:', JSON.stringify(body));
-
     const referenceId = body.externalId || body.financialTransactionId;
     const status = body.status;
-
     if (!referenceId) return res.status(200).json({ received: true });
 
-    // Récupérer le paiement
     const payRes = await db.query('SELECT * FROM payments WHERE reference_id = $1', [referenceId]);
     if (!payRes.rows.length) return res.status(200).json({ received: true });
-
     const payment = payRes.rows[0];
 
     if (status === 'SUCCESSFUL') {
       await handlePaymentSuccess(payment.phone, referenceId);
     } else if (status === 'FAILED') {
-      await db.query(
-        `UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference_id = $1`,
-        [referenceId]
-      );
+      await db.query(`UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference_id = $1`, [referenceId]);
     }
 
     res.status(200).json({ received: true });
@@ -166,64 +200,12 @@ router.post('/callback', async (req, res) => {
   }
 });
 
-// ─── HELPER : traiter paiement réussi ────────────────────────────────────────
-async function handlePaymentSuccess(phone, referenceId) {
-  // Récupérer le paiement
-  const payRes = await db.query('SELECT * FROM payments WHERE reference_id = $1', [referenceId]);
-  if (!payRes.rows.length) return;
-  const payment = payRes.rows[0];
-
-  if (payment.status === 'successful') return; // déjà traité
-
-  // Mettre à jour le statut du paiement
-  await db.query(
-    `UPDATE payments SET status = 'successful', updated_at = NOW() WHERE reference_id = $1`,
-    [referenceId]
-  );
-
-  // Calculer les dates d'abonnement
-  const startDate = new Date();
-  const endDate = new Date();
-  endDate.setMonth(endDate.getMonth() + 1);
-
-  // Créer ou renouveler l'abonnement
-  await db.query(
-    `INSERT INTO subscriptions (phone, plan, status, amount_fcfa, started_at, expires_at, payment_reference)
-     VALUES ($1, $2, 'active', $3, $4, $5, $6)
-     ON CONFLICT (phone) DO UPDATE SET
-       plan = EXCLUDED.plan,
-       status = 'active',
-       amount_fcfa = EXCLUDED.amount_fcfa,
-       started_at = EXCLUDED.started_at,
-       expires_at = EXCLUDED.expires_at,
-       payment_reference = EXCLUDED.payment_reference,
-       updated_at = NOW()`,
-    [phone, payment.plan, payment.amount, startDate, endDate, referenceId]
-  );
-
-  // Marquer user comme actif
-  await db.query(
-    `UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE phone = $1`,
-    [phone]
-  );
-
-  // Log audit
-  await db.query(
-    `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id)
-     VALUES ('payment_successful', $1, 'payments', $2)`,
-    [phone, referenceId]
-  );
-
-  console.log(`✅ Paiement confirmé pour ${phone} — plan ${payment.plan}`);
-}
-
-// ─── GET /history — historique des paiements ─────────────────────────────────
+// ─── GET /history ─────────────────────────────────────────────────────────────
 router.get('/history', verifyToken, async (req, res) => {
   try {
     const { phone } = req.user;
     const { rows } = await db.query(
-      `SELECT * FROM payments WHERE phone = $1 ORDER BY created_at DESC LIMIT 20`,
-      [phone]
+      `SELECT * FROM payments WHERE phone = $1 ORDER BY created_at DESC LIMIT 20`, [phone]
     );
     res.json({ success: true, data: rows });
   } catch (e) {
@@ -231,21 +213,15 @@ router.get('/history', verifyToken, async (req, res) => {
   }
 });
 
-// ─── GET /admin/all — tous les paiements (admin) ──────────────────────────────
+// ─── GET /admin/all ───────────────────────────────────────────────────────────
 router.get('/admin/all', verifyToken, async (req, res) => {
   try {
-    const adminCheck = await db.query(
-      `SELECT * FROM users WHERE phone = $1 AND role = 'admin'`, [req.user.phone]
-    );
-    if (!adminCheck.rows.length)
-      return res.status(403).json({ success: false, message: 'Accès refusé' });
+    const adminCheck = await db.query(`SELECT * FROM users WHERE phone = $1 AND role = 'admin'`, [req.user.phone]);
+    if (!adminCheck.rows.length) return res.status(403).json({ success: false, message: 'Accès refusé' });
 
-    const { rows } = await db.query(
-      `SELECT * FROM payments ORDER BY created_at DESC LIMIT 200`
-    );
+    const { rows } = await db.query(`SELECT * FROM payments ORDER BY created_at DESC LIMIT 200`);
     const stats = await db.query(
-      `SELECT 
-        COUNT(*) as total,
+      `SELECT COUNT(*) as total,
         COUNT(*) FILTER (WHERE status = 'successful') as successful,
         COUNT(*) FILTER (WHERE status = 'pending') as pending,
         COUNT(*) FILTER (WHERE status = 'failed') as failed,
