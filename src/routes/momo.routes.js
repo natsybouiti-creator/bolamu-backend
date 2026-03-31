@@ -96,8 +96,9 @@ router.post('/request', verifyToken, async (req, res) => {
         const referenceId = generateUUID();
         const token = await getMoMoToken();
 
-        // Nettoyer le numéro de téléphone pour MoMo
-        const momoPhone = phone.replace('+', '').replace(/\s/g, '');
+        // En sandbox, utiliser le numéro de test MTN qui accepte automatiquement
+        const realPhone = phone.replace('+', '').replace(/\s/g, '');
+        const momoPhone = ENV === 'sandbox' ? '46733123450' : realPhone;
 
         const payBody = {
             amount: String(amount),
