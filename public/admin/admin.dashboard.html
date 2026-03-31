@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolamu — Accès Administration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --noir:#0a0a0f;--noir2:#12121a;--noir3:#1a1a26;
+      --bleu:#2E86FF;--vert:#00C9A7;--rouge:#ff4757;--amber:#ffa502;
+      --texte:#f0f0f8;--texte-doux:#8888aa;--border:rgba(255,255,255,0.07);
+      --grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);
+      --grad-bg:linear-gradient(135deg,#0a0a0f 0%,#12121a 50%,#0a0a0f 100%);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--grad-bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,201,167,0.05) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(46,134,255,0.08) 0%,transparent 50%);pointer-events:none;}
+
+    .wrap{width:100%;max-width:420px;position:relative;z-index:1;}
+
+    .logo-area{text-align:center;margin-bottom:32px;}
+    .logo-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+    .logo-icon{width:44px;height:44px;background:var(--grad-btn);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:300;color:white;}
+    .logo-name{font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:var(--texte);}
+    .logo-name .t{color:var(--vert);}
+    .admin-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:var(--rouge);padding:4px 14px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:1.5px;}
+
+    .card{background:var(--noir2);border:1px solid var(--border);border-radius:24px;padding:36px;box-shadow:0 40px 80px rgba(0,0,0,0.5);}
+
+    .card-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--texte);margin-bottom:6px;}
+    .card-sub{font-size:14px;color:var(--texte-doux);margin-bottom:28px;line-height:1.6;}
+
+    .field{margin-bottom:18px;}
+    .field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--texte-doux);margin-bottom:8px;}
+    .field input{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:13px 16px;font-size:15px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
+    .field input:focus{border-color:var(--bleu);}
+    .field input::placeholder{color:var(--texte-doux);}
+    .field .input-wrap{position:relative;}
+    .field .toggle-pw{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texte-doux);cursor:pointer;font-size:16px;padding:0;}
+
+    .btn-primary{width:100%;padding:15px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:4px;}
+    .btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
+    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+    .msg-box{padding:13px 16px;border-radius:10px;font-size:13px;margin-bottom:18px;display:none;align-items:center;gap:8px;}
+    .msg-box.show{display:flex;}
+    .msg-box.error{background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.25);color:var(--rouge);}
+    .msg-box.success{background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:var(--vert);}
+
+    .security-note{margin-top:20px;padding:12px 16px;background:rgba(255,165,2,0.08);border:1px solid rgba(255,165,2,0.15);border-radius:10px;font-size:12px;color:var(--texte-doux);display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+    .security-note .icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+
+    .attempts{font-size:12px;color:var(--texte-doux);text-align:center;margin-top:14px;}
+    .attempts span{color:var(--rouge);font-weight:700;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo-area">
+    <div class="logo-row">
+      <div class="logo-icon">+</div>
+      <div class="logo-name">Bola<span class="t">mu</span></div>
+    </div>
+    <div class="admin-pill">🛡️ ESPACE ADMINISTRATION</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Connexion sécurisée</div>
+    <div class="card-sub">Accès réservé aux administrateurs Bolamu. Toute tentative non autorisée est enregistrée.</div>
+
+    <div class="msg-box" id="msg"></div>
+
+    <div class="field">
+      <label>Numéro de téléphone</label>
+      <input type="tel" id="phone" placeholder="+242 06 XXX XX XX" maxlength="15" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Mot de passe administrateur</label>
+      <div class="input-wrap">
+        <input type="password" id="password" placeholder="••••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="toggle-pw" onclick="togglePw()" type="button" id="toggle-btn">👁</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-login" onclick="doLogin()">Accéder au panneau de contrôle →</button>
+
+    <div class="security-note">
+      <span class="icon">🔒</span>
+      <span>Cette page n'est pas référencée publiquement. Les tentatives de connexion échouées sont enregistrées avec l'adresse IP.</span>
+    </div>
+
+    <div class="attempts" id="attempts-info" style="display:none">
+      Tentatives échouées : <span id="attempts-count">0</span>/5
+    </div>
+  </div>
+</div>
+
+<script>
+  // Redirection si déjà connecté en admin
+  const t = localStorage.getItem('bolamu_token');
+  const r = localStorage.getItem('bolamu_role');
+  if (t && r === 'admin') window.location.href = '/admin/dashboard.html';
+
+  let attempts = 0;
+
+  function showMsg(text, type) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = `msg-box show ${type}`;
+    setTimeout(() => el.className = 'msg-box', 5000);
+  }
+
+  function togglePw() {
+    const inp = document.getElementById('password');
+    const btn = document.getElementById('toggle-btn');
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+
+  async function doLogin() {
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!phone || !password) { showMsg('Veuillez remplir tous les champs.', 'error'); return; }
+    if (attempts >= 5) { showMsg('Trop de tentatives. Réessayez dans quelques minutes.', 'error'); return; }
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true;
+    btn.textContent = 'Vérification en cours...';
+
+    try {
+      const res = await fetch('/api/v1/auth/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        localStorage.setItem('bolamu_token', data.token);
+        localStorage.setItem('bolamu_phone', data.phone);
+        localStorage.setItem('bolamu_role', data.role);
+        showMsg('✅ Connexion réussie ! Redirection...', 'success');
+        setTimeout(() => window.location.href = '/admin/dashboard.html', 1200);
+      } else {
+        attempts++;
+        document.getElementById('attempts-info').style.display = 'block';
+        document.getElementById('attempts-count').textContent = attempts;
+        showMsg(data.message || 'Identifiants incorrects.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Accéder au panneau de contrôle →';
+      }
+    } catch(e) {
+      showMsg('Erreur de connexion. Vérifiez internet.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Accéder au panneau de contrôle →';
+    }
+  }
+</script>
+</body>
+</html>
