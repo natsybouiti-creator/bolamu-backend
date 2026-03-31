@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middleware/auth.middleware');
+const { verifyToken } = require('../../middleware/auth.middleware');
 const db = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 
