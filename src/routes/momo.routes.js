@@ -42,12 +42,13 @@ async function getMoMoToken() {
     }
 
     const data = JSON.parse(text);
-    console.log('[MoMo] Token OK ✅');
+
+    console.log('[MoMo] Token généré ✅');
 
     return data.access_token;
 }
 
-// ─── HELPER : paiement réussi ─────────────────────────────────────────────────
+// ─── HELPER : traiter paiement réussi ─────────────────────────────────────────
 async function handlePaymentSuccess(phone, referenceId) {
     try {
         const payRes = await db.query('SELECT * FROM payments WHERE reference = $1', [referenceId]);
@@ -87,9 +88,9 @@ router.post('/request', verifyToken, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Montant et plan requis.' });
         }
 
-        console.log('[MoMo] Paiement pour:', phone);
+        console.log('[MoMo] Requête paiement pour:', phone, 'plan:', plan, 'montant:', amount);
 
-        const referenceId = crypto.randomUUID(); // ✅ FIX IMPORTANT
+        const referenceId = crypto.randomUUID(); // ✅ UUID fiable
         const token = await getMoMoToken();
 
         const bodyData = JSON.stringify({
@@ -104,7 +105,7 @@ router.post('/request', verifyToken, async (req, res) => {
             payeeNote: "Bolamu"
         });
 
-        console.log('[MoMo] Envoi requesttopay:', referenceId);
+        console.log('[MoMo] Envoi requesttopay avec ref:', referenceId);
 
         const momoRes = await fetch(`${MOMO_BASE_URL}/collection/v1_0/requesttopay`, {
             method: 'POST',
@@ -113,20 +114,21 @@ router.post('/request', verifyToken, async (req, res) => {
                 'X-Reference-Id': referenceId,
                 'X-Target-Environment': 'sandbox',
                 'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(bodyData) // ✅ FIX FINAL
             },
             body: bodyData
         });
 
         const responseText = await momoRes.text();
 
-        console.log('[MoMo] Status:', momoRes.status);
-        console.log('[MoMo] Response:', responseText);
+        console.log('[MoMo] Réponse status:', momoRes.status);
+        console.log('[MoMo] Réponse body:', responseText);
 
         if (momoRes.status !== 202) {
             return res.status(400).json({
                 success: false,
-                message: `MoMo error ${momoRes.status}`,
+                message: `Erreur MoMo (${momoRes.status})`,
                 details: responseText
             });
         }
@@ -137,19 +139,21 @@ router.post('/request', verifyToken, async (req, res) => {
             [phone, amount, plan, referenceId]
         );
 
+        console.log('[MoMo] ✅ Paiement initié avec succès');
+
         res.json({
             success: true,
-            message: 'Paiement envoyé ✅',
+            message: 'Demande de paiement envoyée',
             reference_id: referenceId
         });
 
     } catch(e) {
-        console.error('[MoMo] ERROR:', e.message);
+        console.error('[MoMo] request error:', e.message);
         res.status(500).json({ success: false, message: e.message });
     }
 });
 
-// ─── STATUS ───────────────────────────────────────────────────────────────────
+// ─── GET /status/:referenceId ─────────────────────────────────────────────────
 router.get('/status/:referenceId', verifyToken, async (req, res) => {
     try {
         const { referenceId } = req.params;
@@ -165,6 +169,8 @@ router.get('/status/:referenceId', verifyToken, async (req, res) => {
         });
 
         const data = await momoRes.json();
+
+        console.log('[MoMo] Status:', data.status);
 
         if (data.status === 'SUCCESSFUL') {
             await handlePaymentSuccess(phone, referenceId);
