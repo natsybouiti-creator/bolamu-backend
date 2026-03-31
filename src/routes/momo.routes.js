@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../../middleware/auth.middleware');
-const db = require('../config/database');
+const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 
 const MOMO_BASE_URL = process.env.MOMO_BASE_URL || 'https://sandbox.momodeveloper.mtn.com';
