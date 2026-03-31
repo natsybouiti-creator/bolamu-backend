@@ -16,6 +16,16 @@ async function requestOtp(req, res) {
         return res.status(400).json({ success: false, message: "Numéro requis" });
     }
 
+    // Bloquer les admins sur le login OTP public
+    const adminCheck = await pool.query(`SELECT role FROM users WHERE phone = $1`, [phone]).catch(() => ({ rows: [] }));
+    if (adminCheck.rows[0]?.role === 'admin') {
+        return res.status(403).json({
+            success: false,
+            message: "Accès non autorisé. Utilisez le portail administrateur.",
+            redirectUrl: "/admin/login.html"
+        });
+    }
+
     const otpCode = generateOtp();
     const hashedOtp = hashText(otpCode);
     const expiresAt = new Date(Date.now() + 10 * 60000);
@@ -131,6 +141,15 @@ async function login(req, res) {
 
         const user = userResult.rows[0];
 
+        // Bloquer les admins sur le login OTP public
+        if (user.role === 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: "Accès non autorisé. Utilisez le portail administrateur.",
+                redirectUrl: "/admin/login.html"
+            });
+        }
+
         // Générer le token JWT
         const token = jwt.sign(
             { id: user.id, phone: user.phone, role: user.role },
@@ -138,18 +157,16 @@ async function login(req, res) {
             { expiresIn: JWT_EXPIRES }
         );
 
-        // Redirection selon rôle — aligné avec les valeurs réelles en base
+        // Redirection selon rôle
         let redirectUrl = "/login.html";
         switch (user.role) {
-            case 'patient':      redirectUrl = "/patient/dashboard.html"; break;
-            case 'doctor':       redirectUrl = "/medecin/dashboard.html"; break;
-            case 'pharmacie':    redirectUrl = "/pharmacie/dashboard.html"; break;
-            case 'laboratoire':  redirectUrl = "/laboratoire/dashboard.html"; break;
-            case 'admin':        redirectUrl = "/admin/dashboard.html"; break;
-            // Anciens rôles pour compatibilité
-            case 'pharmacy':     redirectUrl = "/pharmacie/dashboard.html"; break;
-            case 'laboratory':   redirectUrl = "/laboratoire/dashboard.html"; break;
-            case 'medecin':      redirectUrl = "/medecin/dashboard.html"; break;
+            case 'patient':     redirectUrl = "/patient/dashboard.html"; break;
+            case 'doctor':      redirectUrl = "/medecin/dashboard.html"; break;
+            case 'pharmacie':   redirectUrl = "/pharmacie/dashboard.html"; break;
+            case 'laboratoire': redirectUrl = "/laboratoire/dashboard.html"; break;
+            case 'pharmacy':    redirectUrl = "/pharmacie/dashboard.html"; break;
+            case 'laboratory':  redirectUrl = "/laboratoire/dashboard.html"; break;
+            case 'medecin':     redirectUrl = "/medecin/dashboard.html"; break;
         }
 
         return res.status(200).json({
