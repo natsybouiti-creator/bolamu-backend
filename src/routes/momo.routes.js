@@ -22,28 +22,31 @@ function generateUUID() {
     });
 }
 
-const MOMO_BASE_URL = process.env.MOMO_BASE_URL || 'https://sandbox.momodeveloper.mtn.com';
+// ─── CONFIG MOMO ─────────────────────────────────────────────────────────────
+const MOMO_BASE_URL = 'https://sandbox.momodeveloper.mtn.com';
 const SUBSCRIPTION_KEY = process.env.MOMO_SUBSCRIPTION_KEY;
 const API_USER = process.env.MOMO_API_USER;
 const API_KEY = process.env.MOMO_API_KEY;
-const ENV = process.env.MOMO_ENVIRONMENT || process.env.MOMO_ENV || 'sandbox';
+const IS_SANDBOX = true; // passer à false en production
 
 // ─── HELPER : token OAuth2 ────────────────────────────────────────────────────
 async function getMoMoToken() {
     const credentials = Buffer.from(`${API_USER}:${API_KEY}`).toString('base64');
+    console.log('[MoMo] Génération token avec API_USER:', API_USER?.slice(0,8)+'...');
     const res = await fetch(`${MOMO_BASE_URL}/collection/token/`, {
         method: 'POST',
         headers: {
             'Authorization': `Basic ${credentials}`,
             'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY,
-            'X-Target-Environment': ENV
+            'X-Target-Environment': 'sandbox'
         }
     });
     if (!res.ok) {
         const err = await res.text();
-        throw new Error(`Token MoMo échoué: ${err}`);
+        throw new Error(`Token MoMo échoué (${res.status}): ${err}`);
     }
     const data = await res.json();
+    console.log('[MoMo] Token généré ✅');
     return data.access_token;
 }
 
@@ -60,7 +63,6 @@ async function handlePaymentSuccess(phone, referenceId) {
             [referenceId]
         );
 
-        // Mettre à jour l'abonnement patient
         await db.query(
             `UPDATE users SET 
                 statut_abonnement = 'actif',
@@ -93,45 +95,45 @@ router.post('/request', verifyToken, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Montant et plan requis.' });
         }
 
+        console.log('[MoMo] Requête paiement pour:', phone, 'plan:', plan, 'montant:', amount);
+
         const referenceId = generateUUID();
         const token = await getMoMoToken();
 
-        // En sandbox, utiliser le numéro de test MTN qui accepte automatiquement
-        const realPhone = phone.replace('+', '').replace(/\s/g, '');
-        const momoPhone = ENV === 'sandbox' ? '46733123450' : realPhone;
-
         const payBody = {
-          amount: ENV === 'sandbox' ? '100' : String(amount),
-currency: ENV === 'sandbox' ? 'EUR' : 'XAF',
+            amount: '100',           // sandbox : montant fixe 100 EUR
+            currency: 'EUR',         // sandbox : EUR obligatoire
             externalId: referenceId,
-            payer: { partyIdType: 'MSISDN', partyId: momoPhone },
-            payerMessage: `Abonnement Bolamu — Plan ${plan}`,
+            payer: {
+                partyIdType: 'MSISDN',
+                partyId: '46733123450'  // sandbox : numéro de test MTN
+            },
+            payerMessage: `Abonnement Bolamu ${plan}`,
             payeeNote: `Bolamu ${plan} — ${phone}`
         };
+
+        console.log('[MoMo] Envoi requesttopay avec ref:', referenceId);
 
         const momoRes = await fetch(`${MOMO_BASE_URL}/collection/v1_0/requesttopay`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'X-Reference-Id': referenceId,
-                'X-Target-Environment': ENV,
+                'X-Target-Environment': 'sandbox',
                 'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payBody)
         });
 
+        console.log('[MoMo] Réponse status:', momoRes.status);
+
         if (momoRes.status !== 202) {
             const errText = await momoRes.text();
-            console.error('MoMo error:', errText);
-console.error('MoMo status:', momoRes.status);
-console.error('MoMo ENV:', ENV);
-console.error('MoMo SUBSCRIPTION_KEY présente:', !!SUBSCRIPTION_KEY);
-console.error('MoMo API_USER présent:', !!API_USER);
-            return res.status(400).json({ success: false, message: `Erreur MoMo: ${errText}` });
+            console.error('[MoMo] Erreur requesttopay:', momoRes.status, errText);
+            return res.status(400).json({ success: false, message: `Erreur MoMo (${momoRes.status}): ${errText}` });
         }
 
-        // Insérer le paiement en base avec les bonnes colonnes
         await db.query(
             `INSERT INTO payments (patient_phone, amount_fcfa, operator, plan, reference, status, created_at)
              VALUES ($1, $2, 'mtn', $3, $4, 'pending', NOW())
@@ -145,6 +147,8 @@ console.error('MoMo API_USER présent:', !!API_USER);
             [phone, referenceId, JSON.stringify({ amount, plan })]
         ).catch(() => {});
 
+        console.log('[MoMo] ✅ Paiement initié avec succès, ref:', referenceId);
+
         res.json({
             success: true,
             message: 'Demande de paiement envoyée sur votre téléphone MTN MoMo',
@@ -152,7 +156,7 @@ console.error('MoMo API_USER présent:', !!API_USER);
         });
 
     } catch(e) {
-        console.error('MoMo request error:', e.message);
+        console.error('[MoMo] request error:', e.message);
         res.status(500).json({ success: false, message: e.message });
     }
 });
@@ -167,12 +171,13 @@ router.get('/status/:referenceId', verifyToken, async (req, res) => {
         const momoRes = await fetch(`${MOMO_BASE_URL}/collection/v1_0/requesttopay/${referenceId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'X-Target-Environment': ENV,
+                'X-Target-Environment': 'sandbox',
                 'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY
             }
         });
 
         const data = await momoRes.json();
+        console.log('[MoMo] Status check:', referenceId, '→', data.status);
 
         if (data.status === 'SUCCESSFUL') {
             await handlePaymentSuccess(phone, referenceId);
@@ -186,6 +191,7 @@ router.get('/status/:referenceId', verifyToken, async (req, res) => {
         res.json({ success: true, status: data.status, data });
 
     } catch(e) {
+        console.error('[MoMo] status error:', e.message);
         res.status(500).json({ success: false, message: e.message });
     }
 });
@@ -195,25 +201,17 @@ router.post('/callback', async (req, res) => {
     try {
         const body = req.body;
         console.log('📲 MoMo Callback reçu:', JSON.stringify(body));
-
         const referenceId = body.externalId || body.financialTransactionId;
         const status = body.status;
         if (!referenceId) return res.status(200).json({ received: true });
-
         const payRes = await db.query('SELECT * FROM payments WHERE reference = $1', [referenceId]);
         if (!payRes.rows.length) return res.status(200).json({ received: true });
-
         const payment = payRes.rows[0];
-
         if (status === 'SUCCESSFUL') {
             await handlePaymentSuccess(payment.patient_phone, referenceId);
         } else if (status === 'FAILED') {
-            await db.query(
-                `UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = $1`,
-                [referenceId]
-            ).catch(() => {});
+            await db.query(`UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = $1`, [referenceId]).catch(() => {});
         }
-
         res.status(200).json({ received: true });
     } catch(e) {
         console.error('MoMo callback error:', e.message);
