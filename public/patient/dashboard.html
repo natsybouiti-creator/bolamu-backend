@@ -154,6 +154,12 @@
     .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;}
     .detail-row:last-child{border-bottom:none;}
     .loading{text-align:center;padding:48px;color:var(--texte-doux);}
+    /* CREDITS */
+    .credits-balance-card{background:var(--grad-card);border-radius:24px;padding:36px;color:white;margin-bottom:24px;position:relative;overflow:hidden;}
+    .credits-balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(0,201,167,0.2) 0%,transparent 70%);border-radius:50%;}
+    .credits-partners-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:20px;}
+    .credit-partner-card{border:1px solid var(--border);border-radius:16px;padding:18px;cursor:pointer;transition:all 0.2s;background:white;}
+    .credit-partner-card:hover{border-color:var(--bleu-vif);transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,134,255,0.1);}
   </style>
 </head>
 <body>
@@ -178,7 +184,7 @@
   </div>
 </div>
 
-<!-- MODAL SUCCÈS -->
+<!-- MODAL SUCCÈS RDV -->
 <div class="modal-overlay" id="modal-success">
   <div class="modal" style="text-align:center;">
     <div style="font-size:52px;margin-bottom:12px;">✅</div>
@@ -188,6 +194,20 @@
     <p style="font-size:13px;color:var(--texte-doux);margin-bottom:8px;" id="success-details"></p>
     <p style="font-size:13px;color:var(--vert);font-weight:600;margin-bottom:24px;">📲 Un SMS de confirmation a été envoyé.</p>
     <button class="btn-confirm" onclick="closeSuccess()">Fermer</button>
+  </div>
+</div>
+
+<!-- MODAL PAIEMENT MOMO -->
+<div id="modal-payment" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.55);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+  <div style="background:white;border-radius:28px;padding:40px;width:100%;max-width:480px;box-shadow:0 40px 80px rgba(10,36,99,0.2);max-height:90vh;overflow-y:auto;margin:20px;">
+    <div id="payment-body"></div>
+  </div>
+</div>
+
+<!-- MODAL DÉPENSE CRÉDITS -->
+<div id="modal-spend" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.55);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+  <div style="background:white;border-radius:28px;padding:40px;width:100%;max-width:440px;box-shadow:0 40px 80px rgba(10,36,99,0.2);margin:20px;">
+    <div id="modal-spend-body"></div>
   </div>
 </div>
 
@@ -207,6 +227,7 @@
   <button class="tab" onclick="showTab('medecins',this)">👨‍⚕️ Médecins</button>
   <button class="tab" onclick="showTab('dossier',this)">📋 Dossier médical</button>
   <button class="tab" onclick="showTab('carte',this)">🗺️ Partenaires</button>
+  <button class="tab" onclick="showTab('credits',this)">🪙 Mes Crédits</button>
   <button class="tab" onclick="showTab('profil',this)">👤 Mon profil</button>
 </div>
 
@@ -255,6 +276,16 @@
       <button class="btn-filter" onclick="showTab('medecins', document.querySelectorAll('.tab')[1])">+ Nouveau RDV</button>
     </div>
     <div id="rdv-list-accueil"><div class="loading">Chargement...</div></div>
+
+    <!-- BOUTON ABONNEMENT -->
+    <div style="margin-top:28px;background:white;border-radius:20px;padding:28px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:12px;">Abonnement Bolamu</div>
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">Accédez à tous les services de santé</div>
+      <div style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;line-height:1.6;">Consultations illimitées, ordonnances numériques, laboratoires partenaires et bien plus.</div>
+      <button onclick="openPayment('essentiel')" style="padding:14px 32px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        💳 S'abonner via MTN MoMo →
+      </button>
+    </div>
   </div>
 
   <!-- MÉDECINS -->
@@ -319,6 +350,62 @@
     </div>
   </div>
 
+  <!-- CRÉDITS -->
+  <div class="panel" id="panel-credits">
+    <div class="credits-balance-card">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.6);margin-bottom:8px;position:relative;z-index:2;">Bolamu Credits</div>
+      <div style="font-family:'Fraunces',serif;font-size:56px;font-weight:900;line-height:1;margin-bottom:6px;position:relative;z-index:2;" id="cr-balance">—</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:24px;position:relative;z-index:2;">crédits disponibles</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;position:relative;z-index:2;">
+        <div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.15);">
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Mois consécutifs</div>
+          <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;" id="cr-months">—</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.15);">
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Total gagné</div>
+          <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;" id="cr-earned">—</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.15);">
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Total dépensé</div>
+          <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;" id="cr-spent">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:white;border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:24px;box-shadow:0 2px 12px rgba(10,36,99,0.04);">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:16px;">Comment gagner des crédits ?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:var(--bleu-pale);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:24px;">📅</div>
+          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Abonnement actif</div><div style="font-size:12px;color:var(--texte-doux);">+100 crédits / mois</div></div>
+        </div>
+        <div style="background:var(--vert-clair);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:24px;">🏆</div>
+          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Fidélité 3 mois</div><div style="font-size:12px;color:#047857;">+50 crédits bonus</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:white;border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:24px;box-shadow:0 2px 12px rgba(10,36,99,0.04);">
+      <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:15px;font-weight:700;">Dépenser mes crédits</div>
+        <div style="font-size:12px;color:var(--texte-doux);">Partenaires santé & bien-être</div>
+      </div>
+      <div class="credits-partners-grid" id="cr-partners-grid">
+        <div style="text-align:center;padding:32px;color:var(--texte-doux);grid-column:1/-1;">Chargement...</div>
+      </div>
+    </div>
+
+    <div style="background:white;border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 2px 12px rgba(10,36,99,0.04);">
+      <div style="padding:18px 24px;border-bottom:1px solid var(--border);">
+        <div style="font-size:15px;font-weight:700;">Historique des transactions</div>
+      </div>
+      <div id="cr-history">
+        <div style="text-align:center;padding:32px;color:var(--texte-doux);">Chargement...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- PROFIL -->
   <div class="panel" id="panel-profil">
     <div class="section-header"><h2 class="section-title-dash">Mon profil</h2></div>
@@ -340,6 +427,11 @@
           <div class="detail-row"><span class="info-label">Début</span><span id="d-debut">—</span></div>
           <div class="detail-row"><span class="info-label">Expiration</span><span id="d-fin">—</span></div>
           <div class="detail-row"><span class="info-label">Statut</span><span id="d-statut">—</span></div>
+          <div style="margin-top:16px;">
+            <button onclick="openPayment('essentiel')" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+              💳 Renouveler via MoMo →
+            </button>
+          </div>
         </div>
         <div class="detail-card">
           <h3>Sécurité & accès</h3>
@@ -355,11 +447,7 @@
 <script>
 const API = 'https://bolamu-backend.onrender.com/api/v1';
 const phone = localStorage.getItem('bolamu_phone') || '+242060000001';
-let selectedDoctorId = null;
-let selectedDoctorName = '';
-let selectedTime = null;
-let selectedDate = null;
-
+let selectedDoctorId = null, selectedDoctorName = '', selectedTime = null, selectedDate = null;
 const today = new Date().toISOString().split('T')[0];
 
 function generateCode(p) {
@@ -376,11 +464,282 @@ function initQR(){
   new QRCode(document.getElementById('qrcode'),{text:memberCode,width:130,height:130,colorDark:'#0A2463',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
 }
 
+// ══════════════════════════════════════════════════════════════
+// PAIEMENT MOMO
+// ══════════════════════════════════════════════════════════════
+const PLANS = {
+  essentiel: { label:'Essentiel', price:2000, desc:'Consultations illimitées, RDV en ligne' },
+  standard:  { label:'Standard',  price:5000, desc:'Essentiel + ordonnances numériques, labos' },
+  premium:   { label:'Premium',   price:10000, desc:'Standard + priorité, support dédié' }
+};
+let currentPlan = 'essentiel';
+let currentReferenceId = null;
+let paymentCheckInterval = null;
+
+function openPayment(plan) {
+  currentPlan = plan || 'essentiel';
+  renderPlanSelect();
+  document.getElementById('modal-payment').style.display = 'flex';
+}
+
+function closePayment() {
+  document.getElementById('modal-payment').style.display = 'none';
+  if (paymentCheckInterval) { clearInterval(paymentCheckInterval); paymentCheckInterval = null; }
+}
+
+function renderPlanSelect() {
+  document.getElementById('payment-body').innerHTML = `
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:40px;margin-bottom:8px;">💳</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--bleu);margin-bottom:4px;">Choisir mon abonnement</div>
+      <div style="font-size:14px;color:var(--texte-doux);">Paiement sécurisé via MTN Mobile Money</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      ${Object.entries(PLANS).map(([key,p])=>`
+        <div onclick="selectPlan('${key}')" style="border:2px solid ${currentPlan===key?'var(--bleu-vif)':'var(--border)'};background:${currentPlan===key?'var(--bleu-pale)':'white'};border-radius:16px;padding:16px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--bleu);margin-bottom:3px;">${p.label}</div>
+            <div style="font-size:12px;color:var(--texte-doux);">${p.desc}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:12px;">
+            <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--bleu-vif);">${p.price.toLocaleString('fr-FR')}</div>
+            <div style="font-size:11px;color:var(--texte-doux);">FCFA/mois</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div style="background:var(--bleu-pale);border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--texte-doux);line-height:1.6;">
+      📲 Une notification sera envoyée sur <strong style="color:var(--bleu);">${phone}</strong> pour confirmer le paiement MTN MoMo.
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closePayment()" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Annuler</button>
+      <button onclick="initiatePayment()" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+        💳 Payer ${PLANS[currentPlan].price.toLocaleString('fr-FR')} FCFA →
+      </button>
+    </div>`;
+}
+
+function selectPlan(plan) { currentPlan = plan; renderPlanSelect(); }
+
+async function initiatePayment() {
+  const token = localStorage.getItem('bolamu_token');
+  const p = PLANS[currentPlan];
+  document.getElementById('payment-body').innerHTML = `
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:48px;margin-bottom:16px;">⏳</div>
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">Envoi de la demande...</div>
+      <div style="font-size:14px;color:var(--texte-doux);">Connexion à MTN Mobile Money</div>
+    </div>`;
+  try {
+    const res = await fetch(`${API}/payments/momo/request`, {
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({amount:p.price, plan:currentPlan})
+    });
+    const data = await res.json();
+    if (!data.success) { showPaymentError(data.message||'Erreur lors de la demande'); return; }
+    currentReferenceId = data.reference_id;
+    showPaymentPending();
+    startPaymentCheck();
+  } catch(e) { showPaymentError('Erreur de connexion au serveur'); }
+}
+
+function showPaymentPending() {
+  const p = PLANS[currentPlan];
+  document.getElementById('payment-body').innerHTML = `
+    <div style="text-align:center;padding:20px 0;">
+      <div style="font-size:56px;margin-bottom:16px;">📲</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--bleu);margin-bottom:8px;">Confirmez sur votre téléphone</div>
+      <div style="font-size:14px;color:var(--texte-doux);line-height:1.7;margin-bottom:24px;">
+        Notification MTN MoMo envoyée sur<br>
+        <strong style="color:var(--bleu);font-size:16px;">${phone}</strong><br><br>
+        Entrez votre <strong>code PIN MoMo</strong> pour confirmer<br>
+        <strong style="color:var(--bleu-vif);font-size:18px;">${p.price.toLocaleString('fr-FR')} FCFA</strong>
+      </div>
+      <div style="background:var(--bleu-pale);border-radius:16px;padding:16px;margin-bottom:24px;">
+        <div style="font-size:12px;color:var(--texte-doux);margin-bottom:8px;">Vérification automatique</div>
+        <div style="font-family:'Fraunces',serif;font-size:32px;font-weight:900;color:var(--bleu);" id="countdown">30</div>
+        <div style="font-size:12px;color:var(--texte-doux);">secondes</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="closePayment()" style="padding:12px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Annuler</button>
+        <button onclick="checkPaymentNow()" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ J'ai confirmé → Vérifier</button>
+      </div>
+    </div>`;
+  let count = 30;
+  const countTimer = setInterval(() => {
+    count--;
+    const el = document.getElementById('countdown');
+    if (el) el.textContent = count;
+    if (count <= 0) clearInterval(countTimer);
+  }, 1000);
+}
+
+function startPaymentCheck() {
+  let attempts = 0;
+  paymentCheckInterval = setInterval(async () => {
+    attempts++;
+    if (attempts > 12) { clearInterval(paymentCheckInterval); return; }
+    await checkPaymentStatus();
+  }, 5000);
+}
+
+async function checkPaymentNow() {
+  if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+  await checkPaymentStatus();
+}
+
+async function checkPaymentStatus() {
+  if (!currentReferenceId) return;
+  const token = localStorage.getItem('bolamu_token');
+  try {
+    const res = await fetch(`${API}/payments/momo/status/${currentReferenceId}`, {
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const data = await res.json();
+    if (data.status === 'SUCCESSFUL') { clearInterval(paymentCheckInterval); showPaymentSuccess(); }
+    else if (data.status === 'FAILED') { clearInterval(paymentCheckInterval); showPaymentError('Paiement refusé ou annulé. Vérifiez votre solde MoMo.'); }
+  } catch(e) { console.error('Check status error:', e); }
+}
+
+function showPaymentSuccess() {
+  const p = PLANS[currentPlan];
+  document.getElementById('payment-body').innerHTML = `
+    <div style="text-align:center;padding:20px 0;">
+      <div style="font-size:64px;margin-bottom:16px;">🎉</div>
+      <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--bleu);margin-bottom:8px;">Paiement confirmé !</div>
+      <div style="font-size:14px;color:var(--texte-doux);line-height:1.7;margin-bottom:24px;">
+        Abonnement <strong style="color:var(--bleu-vif);">${p.label}</strong> activé !<br>
+        Accès à tous les services Bolamu.<br>
+        <strong style="color:var(--vert);">+100 crédits Bolamu</strong> ajoutés 🪙
+      </div>
+      <button onclick="closePayment();loadSubscription();loadRdv();" style="width:100%;padding:14px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+        ✅ Accéder à mon espace →
+      </button>
+    </div>`;
+}
+
+function showPaymentError(msg) {
+  document.getElementById('payment-body').innerHTML = `
+    <div style="text-align:center;padding:20px 0;">
+      <div style="font-size:56px;margin-bottom:16px;">❌</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--rouge);margin-bottom:8px;">Paiement échoué</div>
+      <div style="font-size:14px;color:var(--texte-doux);line-height:1.6;margin-bottom:24px;">${msg}</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="closePayment()" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Fermer</button>
+        <button onclick="renderPlanSelect()" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔄 Réessayer</button>
+      </div>
+    </div>`;
+}
+
+document.getElementById('modal-payment').addEventListener('click', function(e){ if(e.target===this) closePayment(); });
+
+// ══════════════════════════════════════════════════════════════
+// CRÉDITS
+// ══════════════════════════════════════════════════════════════
+const catIcons = { pharmacie:'💊', sport:'🏋️', nutrition:'🥗', 'bien-être':'🧘', optique:'👓', dentaire:'🦷' };
+
+async function loadCredits() {
+  try {
+    const token = localStorage.getItem('bolamu_token');
+    const res = await fetch(`${API}/credits/balance`, { headers:{'Authorization':`Bearer ${token}`} });
+    const data = await res.json();
+    if (!data.success) return;
+    const cr = data.data || {};
+    document.getElementById('cr-balance').textContent = (cr.balance||0).toLocaleString('fr-FR');
+    document.getElementById('cr-months').textContent = cr.consecutive_months||0;
+    document.getElementById('cr-earned').textContent = (cr.total_earned||0).toLocaleString('fr-FR');
+    document.getElementById('cr-spent').textContent = (cr.total_spent||0).toLocaleString('fr-FR');
+
+    const partners = data.partners||[];
+    const pgEl = document.getElementById('cr-partners-grid');
+    pgEl.innerHTML = !partners.length
+      ? `<div style="text-align:center;padding:32px;color:var(--texte-doux);grid-column:1/-1;"><div style="font-size:40px;margin-bottom:12px;">🤝</div><p>Partenaires bientôt disponibles</p></div>`
+      : partners.map(p=>`
+          <div class="credit-partner-card" onclick="openSpend('${p.id}','${p.name}',${p.min_credits},${p.discount_per_100_credits})">
+            <div style="font-size:28px;margin-bottom:10px;">${catIcons[p.category]||'🤝'}</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:3px;">${p.name}</div>
+            <div style="font-size:12px;color:var(--texte-doux);margin-bottom:10px;">${p.city||'Brazzaville'} • ${p.category}</div>
+            <div style="background:var(--vert-clair);color:#047857;padding:4px 10px;border-radius:50px;font-size:12px;font-weight:700;display:inline-block;">
+              -${p.discount_per_100_credits}% / 100 crédits
+            </div>
+          </div>`).join('');
+
+    const history = data.history||[];
+    const histEl = document.getElementById('cr-history');
+    histEl.innerHTML = !history.length
+      ? `<div style="text-align:center;padding:32px;color:var(--texte-doux);"><div style="font-size:40px;margin-bottom:12px;">🪙</div><p>Aucune transaction pour l'instant</p></div>`
+      : `<div>${history.map(h=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:${h.type==='earn'?'var(--vert-clair)':'#fde8e8'};display:flex;align-items:center;justify-content:center;font-size:16px;">${h.type==='earn'?'⬆':'⬇'}</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;">${h.reason}</div>
+                <div style="font-size:11px;color:var(--texte-doux);">${new Date(h.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'})}</div>
+              </div>
+            </div>
+            <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:${h.type==='earn'?'var(--vert)':'var(--rouge)'};">
+              ${h.type==='earn'?'+':'−'}${h.amount}
+            </div>
+          </div>`).join('')}</div>`;
+  } catch(e) { console.error('loadCredits error:', e); }
+}
+
+function openSpend(partnerId, partnerName, minCredits, discountPer100) {
+  const balance = parseInt((document.getElementById('cr-balance').textContent||'0').replace(/\s/g,''))||0;
+  document.getElementById('modal-spend-body').innerHTML = `
+    <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">Dépenser chez ${partnerName}</div>
+    <div style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;line-height:1.6;">
+      Solde : <strong style="color:var(--bleu);">${balance.toLocaleString('fr-FR')} crédits</strong><br>
+      Minimum : <strong>${minCredits} crédits</strong> • Remise : <strong>${discountPer100}% / 100 crédits</strong>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;">Crédits à utiliser</label>
+      <input type="number" id="spend-amount" value="${minCredits}" min="${minCredits}" max="${balance}" step="50"
+        style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:18px;font-weight:700;font-family:'Fraunces',serif;color:var(--bleu);outline:none;text-align:center;"
+        oninput="updateDiscount(${discountPer100})">
+    </div>
+    <div id="spend-preview" style="background:var(--vert-clair);border-radius:12px;padding:14px;text-align:center;margin-bottom:20px;">
+      <div style="font-size:12px;color:#047857;font-weight:600;margin-bottom:4px;">Remise obtenue</div>
+      <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#047857;" id="spend-discount">—</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="document.getElementById('modal-spend').style.display='none'" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Annuler</button>
+      <button onclick="confirmSpend('${partnerId}','${partnerName}')" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ Confirmer</button>
+    </div>`;
+  updateDiscount(discountPer100);
+  document.getElementById('modal-spend').style.display = 'flex';
+}
+
+function updateDiscount(rate) {
+  const amount = parseInt(document.getElementById('spend-amount')?.value)||0;
+  const el = document.getElementById('spend-discount');
+  if (el) el.textContent = `-${Math.floor((amount/100)*rate)}%`;
+}
+
+async function confirmSpend(partnerId, partnerName) {
+  const amount = parseInt(document.getElementById('spend-amount').value);
+  if (!amount || amount <= 0) return;
+  const token = localStorage.getItem('bolamu_token');
+  try {
+    const res = await fetch(`${API}/credits/spend`, {
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({partner_id:partnerId, amount})
+    });
+    const data = await res.json();
+    document.getElementById('modal-spend').style.display = 'none';
+    if (data.success) { alert(`✅ ${amount} crédits dépensés chez ${partnerName} !\nRemise : ${data.discount_obtained}%\nNouveau solde : ${data.new_balance} crédits`); loadCredits(); }
+    else alert('❌ ' + (data.message||'Erreur'));
+  } catch(e) { alert('Erreur de connexion'); }
+}
+
+document.getElementById('modal-spend').addEventListener('click', function(e){ if(e.target===this) this.style.display='none'; });
+
+// ══════════════════════════════════════════════════════════════
+// RDV
+// ══════════════════════════════════════════════════════════════
 function prendreRdv(doctorId, doctorName) {
-  selectedDoctorId = doctorId;
-  selectedDoctorName = doctorName;
-  selectedTime = null;
-  selectedDate = null;
+  selectedDoctorId = doctorId; selectedDoctorName = doctorName; selectedTime = null; selectedDate = null;
   document.getElementById('modal-doctor-name').textContent = 'avec ' + doctorName;
   document.getElementById('rdv-date').value = '';
   document.getElementById('rdv-date').min = today;
@@ -391,173 +750,121 @@ function prendreRdv(doctorId, doctorName) {
 }
 
 function closeModal() { document.getElementById('modal-rdv').classList.remove('open'); }
-
-function closeSuccess() {
-  document.getElementById('modal-success').classList.remove('open');
-  loadRdv();
-}
+function closeSuccess() { document.getElementById('modal-success').classList.remove('open'); loadRdv(); }
 
 async function loadSlots() {
   const date = document.getElementById('rdv-date').value;
   if (!date) return;
-  selectedDate = date;
-  selectedTime = null;
+  selectedDate = date; selectedTime = null;
   document.getElementById('btn-confirm-rdv').disabled = true;
-  document.getElementById('btn-confirm-rdv').textContent = 'Choisir un créneau →';
-  document.getElementById('slots-container').innerHTML = '<div class="slots-loading">⏳ Chargement des créneaux...</div>';
-
+  document.getElementById('slots-container').innerHTML = '<div class="slots-loading">⏳ Chargement...</div>';
   try {
     const res = await fetch(`${API}/appointments/slots/${selectedDoctorId}?date=${date}`);
     const data = await res.json();
     if (!data.success) throw new Error();
-
     const joursNoms = {lundi:'Lundi',mardi:'Mardi',mercredi:'Mercredi',jeudi:'Jeudi',vendredi:'Vendredi',samedi:'Samedi',dimanche:'Dimanche'};
     const dateStr = new Date(date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
-
-    if (data.slots.length === 0 && data.pris.length === 0) {
-      document.getElementById('slots-container').innerHTML = `<div class="slots-empty">😴 Aucune disponibilité ce ${data.jour}. Essayez un autre jour.</div>`;
-      return;
+    if (!data.slots.length && !data.pris.length) {
+      document.getElementById('slots-container').innerHTML = `<div class="slots-empty">😴 Aucune disponibilité ce ${data.jour}.</div>`; return;
     }
-
-    const allSlots = [...new Set([...data.slots, ...data.pris])].sort();
+    const allSlots = [...new Set([...data.slots,...data.pris])].sort();
     document.getElementById('slots-container').innerHTML = `
       <div class="slots-jour">${joursNoms[data.jour]||data.jour} ${dateStr}</div>
-      <div class="slots-grid">
-        ${allSlots.map(s => {
-          const libre = data.slots.includes(s);
-          return `<button class="slot-btn${libre?'':' pris'}" 
-            ${libre ? `onclick="selectSlot('${s}',this)"` : 'disabled'}>
-            ${s}${libre?'':' ✗'}
-          </button>`;
-        }).join('')}
-      </div>`;
-  } catch(e) {
-    document.getElementById('slots-container').innerHTML = '<div class="slots-empty">⚠️ Erreur. Vérifiez que le serveur tourne.</div>';
-  }
+      <div class="slots-grid">${allSlots.map(s=>{
+        const libre=data.slots.includes(s);
+        return `<button class="slot-btn${libre?'':' pris'}" ${libre?`onclick="selectSlot('${s}',this)"`:' disabled'}>${s}${libre?'':' ✗'}</button>`;
+      }).join('')}</div>`;
+  } catch(e) { document.getElementById('slots-container').innerHTML = '<div class="slots-empty">⚠️ Erreur.</div>'; }
 }
 
 function selectSlot(time, btn) {
   selectedTime = time;
-  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
   document.getElementById('btn-confirm-rdv').disabled = false;
   document.getElementById('btn-confirm-rdv').textContent = `Confirmer à ${time} →`;
 }
 
-// ✅ CORRECTION : token JWT ajouté dans les headers de la requête /book
 async function confirmerRdv() {
   if (!selectedDate || !selectedTime) return;
   const btn = document.getElementById('btn-confirm-rdv');
-  btn.disabled = true;
-  btn.textContent = 'Confirmation en cours...';
-
+  btn.disabled = true; btn.textContent = 'Confirmation...';
   try {
     const token = localStorage.getItem('bolamu_token');
     const res = await fetch(`${API}/appointments/book`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({patient_phone:phone, doctor_id:selectedDoctorId, date:selectedDate, time:selectedTime})
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({patient_phone:phone, doctor_id:selectedDoctorId, date:selectedDate, time:selectedTime})
     });
     const data = await res.json();
     if (data.success) {
       closeModal();
-      const dateStr = new Date(selectedDate).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
       document.getElementById('success-code').textContent = data.appointment.session_code;
-      document.getElementById('success-details').textContent = `${selectedDoctorName} — ${dateStr} à ${selectedTime}`;
+      document.getElementById('success-details').textContent = `${selectedDoctorName} — ${new Date(selectedDate).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})} à ${selectedTime}`;
       document.getElementById('modal-success').classList.add('open');
-    } else {
-      alert('❌ ' + (data.message || 'Ce créneau est déjà pris.'));
-      loadSlots();
-    }
-  } catch(e) { alert('Erreur de connexion au serveur.'); }
-  btn.disabled = false;
-  btn.textContent = `Confirmer à ${selectedTime} →`;
+    } else { alert('❌ ' + (data.message||'Ce créneau est déjà pris.')); loadSlots(); }
+  } catch(e) { alert('Erreur de connexion.'); }
+  btn.disabled = false; btn.textContent = `Confirmer à ${selectedTime} →`;
 }
 
 async function loadRdv() {
   try {
     const token = localStorage.getItem('bolamu_token');
-    const res = await fetch(`${API}/appointments/patient/${encodeURIComponent(phone)}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await fetch(`${API}/appointments/patient/${encodeURIComponent(phone)}`, { headers:{'Authorization':`Bearer ${token}`} });
     const data = await res.json();
     const rdvs = data.appointments;
     const container = document.getElementById('rdv-list-accueil');
     const histo = document.getElementById('historique-list');
-    if (!rdvs || !rdvs.length) {
+    if (!rdvs||!rdvs.length) {
       const empty = `<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous.<br>Cliquez sur <strong>+ Nouveau RDV</strong> pour commencer.</p></div>`;
-      container.innerHTML = empty;
-      histo.innerHTML = `<div class="empty-state"><div class="empty-icon">🏥</div><p>Votre historique apparaîtra après votre première consultation.</p></div>`;
-      return;
+      container.innerHTML = empty; histo.innerHTML = `<div class="empty-state"><div class="empty-icon">🏥</div><p>Votre historique apparaîtra après votre première consultation.</p></div>`; return;
     }
-    const html = rdvs.map(r => {
+    const html = rdvs.map(r=>{
       const dateStr = new Date(r.appointment_date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
       const timeStr = (r.appointment_time||'').slice(0,5);
-      const badge = r.status==='confirme'?'<span class="badge badge-confirme">✅ Confirmé</span>':
-                    r.status==='termine'?'<span class="badge badge-termine">Terminé</span>':
-                    `<span class="badge badge-pending">${r.status}</span>`;
-      return `<div class="rdv-card">
-        <div class="rdv-left">
-          <div class="rdv-icon">👨‍⚕️</div>
-          <div>
-            <div class="rdv-doctor">${r.doctor_name||'Médecin'}</div>
-            <div class="rdv-date">${dateStr} à ${timeStr}</div>
-            <div style="margin-top:6px">${badge}</div>
-          </div>
-        </div>
-        <div class="rdv-right">
-          <div class="rdv-code">${r.session_code}</div>
-          <div class="rdv-code-label">Code session</div>
-        </div>
-      </div>`;
+      const badge = r.status==='confirme'?'<span class="badge badge-confirme">✅ Confirmé</span>':r.status==='termine'?'<span class="badge badge-termine">Terminé</span>':`<span class="badge badge-pending">${r.status}</span>`;
+      return `<div class="rdv-card"><div class="rdv-left"><div class="rdv-icon">👨‍⚕️</div><div><div class="rdv-doctor">${r.doctor_name||'Médecin'}</div><div class="rdv-date">${dateStr} à ${timeStr}</div><div style="margin-top:6px">${badge}</div></div></div><div class="rdv-right"><div class="rdv-code">${r.session_code}</div><div class="rdv-code-label">Code session</div></div></div>`;
     }).join('');
     container.innerHTML = `<div class="rdv-list">${html}</div>`;
     histo.innerHTML = `<div class="rdv-list">${html}</div>`;
-  } catch(e) {
-    document.getElementById('rdv-list-accueil').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Impossible de charger les RDV.</p></div>`;
-  }
+  } catch(e) { document.getElementById('rdv-list-accueil').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Impossible de charger les RDV.</p></div>`; }
 }
 
-async function loadSubscription(){
-  try{
+async function loadSubscription() {
+  try {
     const token = localStorage.getItem('bolamu_token');
-    const res=await fetch(`${API}/patients/subscription?phone=${encodeURIComponent(phone)}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if(!res.ok)throw new Error();
-    const {data:sub}=await res.json();
-    const labels={essentiel:'Essentiel',standard:'Standard',premium:'Premium'};
-    const label=labels[sub.plan]||sub.plan;
-    const expDate=new Date(sub.expires_at);
-    const jours=Math.ceil((expDate-new Date())/86400000);
-    const actif=sub.status==='active'&&jours>0;
+    const res = await fetch(`${API}/patients/subscription?phone=${encodeURIComponent(phone)}`, { headers:{'Authorization':`Bearer ${token}`} });
+    if (!res.ok) throw new Error();
+    const {data:sub} = await res.json();
+    const labels = {essentiel:'Essentiel',standard:'Standard',premium:'Premium'};
+    const label = labels[sub.plan]||sub.plan;
+    const expDate = new Date(sub.expires_at);
+    const jours = Math.ceil((expDate-new Date())/86400000);
+    const actif = sub.status==='active'&&jours>0;
     ['card-plan','profil-plan-badge'].forEach(id=>document.getElementById(id).textContent=label);
-    document.getElementById('stat-plan').textContent=label;
-    document.getElementById('stat-montant').textContent=`${sub.amount_fcfa.toLocaleString('fr-FR')} FCFA / mois`;
-    document.getElementById('stat-statut').innerHTML=actif?`<span class="badge badge-actif">Actif</span>`:`<span class="badge badge-expire">Expiré</span>`;
-    document.getElementById('stat-expiration').textContent=actif?`Expire le ${expDate.toLocaleDateString('fr-FR')} (${jours}j)`:'Abonnement expiré';
-    document.getElementById('d-plan').textContent=label;
-    document.getElementById('d-montant').textContent=`${sub.amount_fcfa.toLocaleString('fr-FR')} FCFA`;
-    document.getElementById('d-debut').textContent=new Date(sub.started_at).toLocaleDateString('fr-FR');
-    document.getElementById('d-fin').textContent=expDate.toLocaleDateString('fr-FR');
-    document.getElementById('d-statut').innerHTML=actif?`<span class="badge badge-actif">Actif</span>`:`<span class="badge badge-expire">Expiré</span>`;
-    document.getElementById('dos-plan').textContent=label;
-    if(actif&&jours<=7)showAlert(`Abonnement expirant dans ${jours} jour(s).`,'warning');
-    if(!actif)showAlert('Abonnement expiré. Renouvelez pour accéder aux services.','danger');
-  }catch{document.getElementById('stat-plan').textContent='—';}
+    document.getElementById('stat-plan').textContent = label;
+    document.getElementById('stat-montant').textContent = `${sub.amount_fcfa.toLocaleString('fr-FR')} FCFA / mois`;
+    document.getElementById('stat-statut').innerHTML = actif?`<span class="badge badge-actif">Actif</span>`:`<span class="badge badge-expire">Expiré</span>`;
+    document.getElementById('stat-expiration').textContent = actif?`Expire le ${expDate.toLocaleDateString('fr-FR')} (${jours}j)`:'Abonnement expiré';
+    document.getElementById('d-plan').textContent = label;
+    document.getElementById('d-montant').textContent = `${sub.amount_fcfa.toLocaleString('fr-FR')} FCFA`;
+    document.getElementById('d-debut').textContent = new Date(sub.started_at).toLocaleDateString('fr-FR');
+    document.getElementById('d-fin').textContent = expDate.toLocaleDateString('fr-FR');
+    document.getElementById('d-statut').innerHTML = actif?`<span class="badge badge-actif">Actif</span>`:`<span class="badge badge-expire">Expiré</span>`;
+    document.getElementById('dos-plan').textContent = label;
+    if (actif&&jours<=7) showAlert(`Abonnement expirant dans ${jours} jour(s).`,'warning');
+    if (!actif) showAlert('Abonnement expiré. Renouvelez pour accéder aux services.','danger');
+  } catch { document.getElementById('stat-plan').textContent='—'; }
 }
 
-async function loadDoctors(){
+async function loadDoctors() {
   const sp=document.getElementById('filter-specialty').value;
   const ci=document.getElementById('filter-city').value;
   let url=`${API}/doctors?`;
   if(sp)url+=`specialty=${encodeURIComponent(sp)}&`;
   if(ci)url+=`city=${encodeURIComponent(ci)}&`;
   document.getElementById('doctors-grid').innerHTML='<div class="loading">Chargement...</div>';
-  try{
+  try {
     const res=await fetch(url);
     const {data}=await res.json();
     const docs=data.doctors; const total=data.pagination.total;
@@ -570,13 +877,10 @@ async function loadDoctors(){
           <div class="doctor-avatar">${d.full_name.charAt(0)}</div>
           <div><div class="doctor-name">${d.full_name}</div><div class="doctor-meta">${d.city}${d.neighborhood?' · '+d.neighborhood:''}</div></div>
         </div>
-        <div class="doctor-tags">
-          <span class="doctor-tag">👨‍⚕️ ${d.specialty}</span>
-          <span class="doctor-tag">📊 ${d.total_consultations} consult.</span>
-        </div>
+        <div class="doctor-tags"><span class="doctor-tag">👨‍⚕️ ${d.specialty}</span><span class="doctor-tag">📊 ${d.total_consultations} consult.</span></div>
         <button class="btn-rdv" onclick="prendreRdv(${d.id},'${d.full_name.replace(/'/g,"\\'")}')">Prendre rendez-vous →</button>
       </div>`).join('');
-  }catch{document.getElementById('doctors-grid').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur. Serveur démarré ?</p></div>`;}
+  } catch { document.getElementById('doctors-grid').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur.</p></div>`; }
 }
 
 const PARTNERS=[
@@ -585,8 +889,6 @@ const PARTNERS=[
   {name:'Labo BioAnalyse',type:'Laboratoire',icon:'🔬',dist:'2.0 km'},
   {name:'Dr. Nkouka — Cardiologue',type:'Médecin',icon:'👩‍⚕️',dist:'2.4 km'},
   {name:'Pharmacie du Plateau',type:'Pharmacie',icon:'💊',dist:'3.1 km'},
-  {name:'Centre Médical Poto-Poto',type:'Médecin',icon:'🏥',dist:'3.5 km'},
-  {name:'Labo Analyses Congo',type:'Laboratoire',icon:'🔬',dist:'4.2 km'},
 ];
 let activeFilter='tous';
 function filterMap(f,btn){activeFilter=f;document.querySelectorAll('.map-filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderPartners();}
@@ -598,16 +900,20 @@ function renderPartners(){
 }
 
 function showAlert(msg,type){document.getElementById('alert-box').innerHTML=`<div class="alert alert-${type}">⚠️ ${msg}</div>`;}
+
 function showTab(name,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='medecins')loadDoctors();
-  if(name==='dossier')loadRdv();
+  if(name==='medecins') loadDoctors();
+  if(name==='dossier') loadRdv();
+  if(name==='credits') loadCredits();
 }
+
 function logout(){localStorage.removeItem('bolamu_token');localStorage.removeItem('bolamu_phone');window.location.href='/';}
 
+// INIT
 document.getElementById('topbar-phone').textContent=phone;
 document.getElementById('card-phone').textContent=phone;
 document.getElementById('card-code').textContent=memberCode;
