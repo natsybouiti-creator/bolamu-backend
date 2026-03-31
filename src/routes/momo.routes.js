@@ -124,6 +124,10 @@ router.post('/request', verifyToken, async (req, res) => {
         if (momoRes.status !== 202) {
             const errText = await momoRes.text();
             console.error('MoMo error:', errText);
+console.error('MoMo status:', momoRes.status);
+console.error('MoMo ENV:', ENV);
+console.error('MoMo SUBSCRIPTION_KEY présente:', !!SUBSCRIPTION_KEY);
+console.error('MoMo API_USER présent:', !!API_USER);
             return res.status(400).json({ success: false, message: `Erreur MoMo: ${errText}` });
         }
 
