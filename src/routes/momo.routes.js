@@ -101,8 +101,8 @@ router.post('/request', verifyToken, async (req, res) => {
         const momoPhone = ENV === 'sandbox' ? '46733123450' : realPhone;
 
         const payBody = {
-            amount: String(amount),
-            currency: ENV === 'sandbox' ? 'EUR' : 'XAF',
+          amount: ENV === 'sandbox' ? '100' : String(amount),
+currency: ENV === 'sandbox' ? 'EUR' : 'XAF',
             externalId: referenceId,
             payer: { partyIdType: 'MSISDN', partyId: momoPhone },
             payerMessage: `Abonnement Bolamu — Plan ${plan}`,
