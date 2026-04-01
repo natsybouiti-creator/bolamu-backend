@@ -446,7 +446,15 @@
 
 <script>
 const API = 'https://bolamu-backend.onrender.com/api/v1';
-const phone = localStorage.getItem('bolamu_phone') || '+242060000001';
+// ── VÉRIFICATION AUTHENTIFICATION ──────────────────────────────
+const token = localStorage.getItem('bolamu_token');
+const role  = localStorage.getItem('bolamu_role');
+const phone = localStorage.getItem('bolamu_phone');
+
+if (!token || !phone || role !== 'patient') {
+    window.location.href = '/login.html';
+}
+// ───────────────────────────────────────────────────────────────
 let selectedDoctorId = null, selectedDoctorName = '', selectedTime = null, selectedDate = null;
 const today = new Date().toISOString().split('T')[0];
 
