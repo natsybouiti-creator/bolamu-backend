@@ -2,6 +2,7 @@
 // BOLAMU — Routes Admin v2 — Cockpit complet
 // ============================================================
 const express = require('express');
+const { verifyToken } = require('../../middleware/auth.middleware');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../../middleware/auth.middleware');
