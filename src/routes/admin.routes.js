@@ -2,7 +2,6 @@
 // BOLAMU — Routes Admin v2 — Cockpit complet
 // ============================================================
 const express = require('express');
-const { verifyToken } = require('../../middleware/auth.middleware');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../../middleware/auth.middleware');
@@ -556,9 +555,9 @@ router.get('/credits', authMiddleware, adminOnly, async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
 });
 // POST /admin/subscriptions/activate
-router.post('/subscriptions/activate', verifyToken, async (req, res) => {
+router.post('/subscriptions/activate', authMiddleware, adminOnly, async (req, res) => {
   try {
-    const adminCheck = await db.query(`SELECT * FROM users WHERE phone = $1 AND role = 'admin'`, [req.user.phone]);
+    const adminCheck = await pool.query(`SELECT * FROM users WHERE phone = $1 AND role = 'admin'`, [req.user.phone]);
     if (!adminCheck.rows.length) return res.status(403).json({ success: false, message: 'Accès refusé' });
     const { phone, plan, billing = 'monthly', notes } = req.body;
     const PLANS = { essentiel:{monthly:1000,annual:12000}, standard:{monthly:2500,annual:30000}, premium:{monthly:5000,annual:60000} };
