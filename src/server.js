@@ -30,7 +30,7 @@ const laboratoireRoutes  = require('./routes/laboratoire.routes');
 const adminRoutes        = require('./routes/admin.routes');
 const creditsRoutes      = require('./routes/credits.routes');
 const momoRoutes         = require('./routes/momo.routes');
-
+const telemedicineRoutes = require('./routes/telemedicine.routes');
 // ============================================================
 // 3. ROUTES API
 // ============================================================
@@ -45,7 +45,7 @@ app.use('/api/v1/pharmacies',    pharmacieRoutes);
 app.use('/api/v1/laboratories',  laboratoireRoutes);
 app.use('/api/v1/admin',         adminRoutes);
 app.use('/api/v1/credits',       creditsRoutes);
-
+app.use('/api/v1/telemedicine', telemedicineRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
