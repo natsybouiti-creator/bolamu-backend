@@ -630,8 +630,7 @@ async function verifyOTPAndNext() {
     const res = await fetch(`${API}/auth/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: state.fullPhone, code })
-    });
+body: JSON.stringify({ phone: state.fullPhone, otp: code })    });
     const data = await res.json();
     if (data.success) {
       renderStep4();
