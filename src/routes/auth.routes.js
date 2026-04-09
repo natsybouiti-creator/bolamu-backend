@@ -1,6 +1,6 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
-const { authMiddleware } = require('../middleware/auth.middleware');
+const { authMiddleware } = require('../../middleware/auth.middleware');
 
 const {
     requestOtp,
@@ -12,18 +12,18 @@ const {
     registerLaboratoire
 } = require('../controllers/auth.controller');
 
-// ─── OTP & LOGIN ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ OTP & LOGIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 router.post('/request-otp', requestOtp);
 router.post('/verify-otp', verifyOtp);
 router.post('/login', login);
 
-// ─── REGISTER ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ REGISTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 router.post('/register/patient',     registerPatient);
 router.post('/register/doctor',      registerDoctor);
 router.post('/register/pharmacie',   registerPharmacie);
 router.post('/register/laboratoire', registerLaboratoire);
 
-// ─── LOGIN ADMIN SÉCURISÉ ─────────────────────────────────────────────────────
+// â”€â”€â”€ LOGIN ADMIN SÃ‰CURISÃ‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
@@ -32,7 +32,7 @@ router.post('/admin-login', async (req, res) => {
     const { phone, password } = req.body;
 
     if (!phone || !password) {
-        return res.status(400).json({ success: false, message: 'Téléphone et mot de passe requis.' });
+        return res.status(400).json({ success: false, message: 'TÃ©lÃ©phone et mot de passe requis.' });
     }
 
     try {
@@ -46,13 +46,13 @@ router.post('/admin-login', async (req, res) => {
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('admin.login_failed', $1, 'users', NULL, $2)`,
                 [phone, JSON.stringify({ reason: 'phone_not_found' })]
             ).catch(() => {});
-            return res.status(401).json({ success: false, message: 'Accès refusé.' });
+            return res.status(401).json({ success: false, message: 'AccÃ¨s refusÃ©.' });
         }
 
         const user = result.rows[0];
 
         if (!user.is_active || user.banned) {
-            return res.status(403).json({ success: false, message: 'Compte désactivé.' });
+            return res.status(403).json({ success: false, message: 'Compte dÃ©sactivÃ©.' });
         }
 
         if (!user.admin_password || user.admin_password !== password) {
@@ -78,7 +78,7 @@ router.post('/admin-login', async (req, res) => {
     }
 });
 
-// ─── GET /api/v1/auth/me ──────────────────────────────────────────────────────
+// â”€â”€â”€ GET /api/v1/auth/me â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 router.get('/me', authMiddleware, (req, res) => {
   res.json({ 
     success: true, 
