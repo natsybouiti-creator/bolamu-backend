@@ -5,178 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bolamu Admin — Centre de Contrôle</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
-  /* ═══════════════════════════════════════════════════════════════
-   PATCH RESPONSIVE — admin/dashboard.html
-   Coller ce bloc juste avant la balise </style> existante
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ── Tablette (≤ 1200px) ─────────────────────────────────────── */
-@media (max-width: 1200px) {
-  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
-  .charts-row { grid-template-columns: 1fr; }
-  .config-grid { grid-template-columns: 1fr; }
-  .credits-summary { grid-template-columns: repeat(2, 1fr); }
-  .stat-row { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* ── Tablette petite (≤ 900px) ───────────────────────────────── */
-@media (max-width: 900px) {
-  .sidebar { transform: translateX(-260px); transition: transform 0.3s ease; z-index: 200; }
-  .sidebar.open { transform: translateX(0); }
-  .main { margin-left: 0; }
-  .topbar { padding: 0 16px; }
-
-  /* Bouton hamburger */
-  .mobile-sidebar-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px; height: 36px;
-    background: var(--noir3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    color: var(--texte);
-    margin-right: 8px;
-    flex-shrink: 0;
-  }
-
-  /* Overlay sidebar */
-  .sidebar-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 199;
-  }
-  .sidebar-overlay.open { display: block; }
-
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .content { padding: 20px 16px; }
-
-  /* Tables scrollables */
-  .table-card { overflow-x: auto; }
-  table { min-width: 600px; }
-
-  /* Search bar */
-  .search-bar { flex-wrap: wrap; }
-  .search-input { min-width: 100%; }
-
-  .stat-row { grid-template-columns: 1fr 1fr 1fr; }
-}
-
-/* ── Mobile (≤ 640px) ────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .topbar { height: 56px; }
-  .topbar-title { font-size: 16px; }
-  .topbar-right { gap: 8px; }
-  .status-label { display: none; }
-  .refresh-btn { padding: 7px 12px; font-size: 12px; }
-  .content { padding: 16px 12px; }
-
-  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .kpi-card { padding: 16px; border-radius: 14px; }
-  .kpi-value { font-size: 26px; }
-  .kpi-icon { font-size: 18px; }
-  .kpi-label { font-size: 10px; }
-  .kpi-trend { font-size: 11px; }
-
-  .charts-row { gap: 12px; }
-  .chart-card { padding: 18px; border-radius: 14px; }
-  .donut-wrapper { flex-direction: column; gap: 16px; align-items: center; }
-  .donut { width: 100px; height: 100px; }
-
-  .stat-row { grid-template-columns: 1fr; gap: 8px; }
-  .stat-mini { padding: 14px 16px; border-radius: 10px; }
-
-  .table-header { padding: 14px 16px; flex-direction: column; gap: 8px; align-items: flex-start; }
-  th { padding: 8px 12px; font-size: 10px; }
-  td { padding: 10px 12px; font-size: 12px; }
-  .actions { gap: 4px; }
-  .btn-validate, .btn-reject, .btn-suspend, .btn-view, .btn-ban, .btn-unban, .btn-credit {
-    padding: 4px 8px; font-size: 10px; border-radius: 6px;
-  }
-
-  .credits-summary { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .credit-stat { padding: 12px; border-radius: 10px; }
-  .credit-stat-val { font-size: 18px; }
-
-  /* Modal */
-  .modal { padding: 24px 16px; border-radius: 18px; }
-  .modal-title { font-size: 18px; }
-  .modal-info-grid { grid-template-columns: 1fr; }
-  .modal-actions { flex-direction: column; gap: 8px; }
-  .btn-confirm, .btn-cancel-modal { width: 100%; }
-
-  /* Config grid */
-  .config-grid { grid-template-columns: 1fr; }
-  .config-card { padding: 16px; border-radius: 12px; }
-}
-
-/* ── Inject hamburger JS (à ajouter dans le <script> existant) ──
-   Ajouter ce code dans la fonction loadOverview() ou en bas du script :
-// ── SIDEBAR MOBILE ─────────────────────────────────────────────
-function initMobileSidebar() {
-  const toggle = document.createElement('button');
-  toggle.className = 'mobile-sidebar-toggle';
-  toggle.innerHTML = '☰';
-  toggle.onclick = toggleSidebar;
-  document.querySelector('.topbar').prepend(toggle);
-
-  const overlay = document.createElement('div');
-  overlay.className = 'sidebar-overlay';
-  overlay.onclick = closeSidebar;
-  document.body.appendChild(overlay);
-
-  // Fermer sidebar au clic nav item
-  document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (window.innerWidth <= 900) closeSidebar();
-    });
-  });
-}
-
-function toggleSidebar() {
-  document.querySelector('.sidebar').classList.toggle('open');
-  document.querySelector('.sidebar-overlay').classList.toggle('open');
-}
-
-function closeSidebar() {
-  document.querySelector('.sidebar').classList.remove('open');
-  document.querySelector('.sidebar-overlay').classList.remove('open');
-}
-
-if (window.innerWidth <= 900) initMobileSidebar();
-// ───────────────────────────────────────────────────────────────
-   // SIDEBAR MOBILE
-   function initMobileSidebar() {
-     const toggle = document.createElement('button');
-     toggle.className = 'mobile-sidebar-toggle';
-     toggle.innerHTML = '☰';
-     toggle.onclick = toggleSidebar;
-     document.querySelector('.topbar').prepend(toggle);
-
-     const overlay = document.createElement('div');
-     overlay.className = 'sidebar-overlay';
-     overlay.onclick = closeSidebar;
-     document.body.appendChild(overlay);
-   }
-   function toggleSidebar() {
-     document.querySelector('.sidebar').classList.toggle('open');
-     document.querySelector('.sidebar-overlay').classList.toggle('open');
-   }
-   function closeSidebar() {
-     document.querySelector('.sidebar').classList.remove('open');
-     document.querySelector('.sidebar-overlay').classList.remove('open');
-   }
-   // Fermer sidebar quand on clique un nav item sur mobile
-   document.querySelectorAll('.nav-item').forEach(btn => {
-     const original = btn.onclick;
-     btn.addEventListener('click', () => { if (window.innerWidth <= 900) closeSidebar(); });
-   });
-   if (window.innerWidth <= 900) initMobileSidebar();
-   ─────────────────────────────────────────────────────────────── */<style>
+  <style>
     :root {
       --noir:#0a0a0f;--noir2:#12121a;--noir3:#1a1a26;--noir4:#22222f;
       --bleu:#2E86FF;--vert:#00C9A7;--rouge:#ff4757;--amber:#ffa502;--violet:#7C3AED;
@@ -190,8 +19,7 @@ if (window.innerWidth <= 900) initMobileSidebar();
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var(--texte);min-height:100vh;display:flex;}
-
-    .sidebar{width:260px;min-height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;}
+    .sidebar{width:260px;min-height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform 0.3s ease;}
     .sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
     .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
     .logo-icon{width:36px;height:36px;background:var(--grad-blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:300;color:white;flex-shrink:0;}
@@ -212,7 +40,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .admin-name{font-size:13px;font-weight:700;color:var(--texte);}
     .admin-role{font-size:11px;color:var(--texte-doux);}
     .logout-link{font-size:12px;color:var(--rouge);cursor:pointer;margin-left:auto;font-weight:600;}
-
     .main{margin-left:260px;flex:1;min-height:100vh;}
     .topbar{height:64px;background:var(--noir2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:99;}
     .topbar-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--texte);}
@@ -222,10 +49,8 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .status-label{font-size:13px;color:var(--texte-doux);}
     .refresh-btn{padding:8px 16px;background:var(--noir3);border:1px solid var(--border);border-radius:8px;color:var(--texte-doux);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .refresh-btn:hover{border-color:var(--bleu);color:var(--bleu);}
-
     .content{padding:28px 32px;}
     .panel{display:none;}.panel.active{display:block;}
-
     .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
     .kpi-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;padding:22px;position:relative;overflow:hidden;transition:all 0.2s;}
     .kpi-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
@@ -240,7 +65,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .kpi-label{font-size:11px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
     .kpi-trend{font-size:12px;font-weight:600;color:var(--texte-doux);}
     .kpi-trend.up{color:var(--vert);}
-
     .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
     .chart-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;padding:24px;}
     .chart-title{font-size:14px;font-weight:700;color:var(--texte);margin-bottom:4px;}
@@ -257,7 +81,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .bar:hover{filter:brightness(1.2);}
     .bar-label{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--texte-doux);white-space:nowrap;}
     .bar-value{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--texte);white-space:nowrap;}
-
     .table-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:20px;}
     .table-header{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
     .table-title{font-size:15px;font-weight:700;color:var(--texte);}
@@ -271,7 +94,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .td-code{font-family:'Fraunces',serif;font-size:12px;letter-spacing:2px;color:var(--bleu);}
     .score-bar{height:3px;border-radius:2px;background:var(--noir4);margin-top:4px;overflow:hidden;}
     .score-fill{height:100%;border-radius:2px;background:var(--grad-blue);}
-
     .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;}
     .badge-verified{background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.2);}
     .badge-pending{background:rgba(255,165,2,0.12);color:var(--amber);border:1px solid rgba(255,165,2,0.2);}
@@ -285,7 +107,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .badge-laboratoire{background:rgba(124,58,237,0.12);color:var(--violet);}
     .badge-patient{background:rgba(46,134,255,0.12);color:var(--bleu);}
     .badge-pro{background:rgba(255,165,2,0.15);color:var(--amber);}
-
     .btn-validate{padding:5px 12px;background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.25);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .btn-validate:hover{background:var(--vert);color:var(--noir);}
     .btn-reject{padding:5px 12px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
@@ -299,21 +120,17 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .btn-unban{padding:5px 12px;background:rgba(0,200,167,0.15);color:var(--vert);border:1px solid rgba(0,200,167,0.3);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
     .btn-credit{padding:5px 12px;background:rgba(124,58,237,0.12);color:var(--violet);border:1px solid rgba(124,58,237,0.25);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
     .actions{display:flex;gap:5px;flex-wrap:wrap;}
-
     .search-bar{display:flex;gap:12px;margin-bottom:20px;}
     .search-input{flex:1;background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
     .search-input:focus{border-color:var(--bleu);}
     .search-input::placeholder{color:var(--texte-doux);}
     .filter-select{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;cursor:pointer;}
     .filter-select:focus{border-color:var(--bleu);}
-
     .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
     .stat-mini{background:var(--noir3);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;}
     .stat-mini-icon{font-size:24px;}
     .stat-mini-val{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--texte);line-height:1;}
     .stat-mini-lbl{font-size:11px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
-
-    /* CONFIG PANEL */
     .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
     .config-card{background:var(--noir2);border:1px solid var(--border);border-radius:16px;padding:20px;}
     .config-section-title{font-size:13px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
@@ -323,14 +140,10 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .config-desc{font-size:11px;color:var(--texte-doux);opacity:0.6;margin-top:2px;}
     .config-val{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--vert);cursor:pointer;padding:4px 10px;border-radius:8px;transition:background 0.2s;}
     .config-val:hover{background:rgba(0,200,167,0.1);}
-
-    /* CREDITS PANEL */
     .credits-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
     .credit-stat{background:var(--noir3);border-radius:12px;padding:16px;text-align:center;}
     .credit-stat-val{font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--violet);}
     .credit-stat-lbl{font-size:11px;color:var(--texte-doux);margin-top:4px;}
-
-    /* FEED */
     .feed-list{display:flex;flex-direction:column;}
     .feed-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);}
     .feed-item:last-child{border-bottom:none;}
@@ -338,8 +151,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .feed-action{font-size:13px;color:var(--texte);font-weight:500;margin-bottom:2px;}
     .feed-time{font-size:11px;color:var(--texte-doux);}
     .feed-actor{font-weight:700;color:var(--bleu);}
-
-    /* MODAL */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;}
     .modal-overlay.open{display:flex;}
     .modal{background:var(--noir2);border:1px solid var(--border);border-radius:24px;padding:36px;max-width:500px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,0.6);max-height:85vh;overflow-y:auto;}
@@ -364,7 +175,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .btn-confirm.blue{background:var(--grad-blue);color:white;}
     .btn-confirm.violet{background:var(--grad-violet);color:white;}
     .btn-cancel-modal{padding:13px 20px;background:transparent;color:var(--texte-doux);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-
     .toast{position:fixed;bottom:24px;right:24px;background:var(--noir2);border:1px solid var(--border);border-radius:14px;padding:14px 20px;font-size:14px;font-weight:600;display:none;z-index:9999;box-shadow:0 20px 40px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;}
     .toast.show{display:flex;align-items:center;gap:10px;}
     .toast.success{border-color:rgba(0,200,167,0.3);color:var(--vert);}
@@ -375,11 +185,75 @@ if (window.innerWidth <= 900) initMobileSidebar();
     .empty{text-align:center;padding:48px;color:var(--texte-doux);}
     .empty-icon{font-size:40px;margin-bottom:12px;}
     .loading{text-align:center;padding:40px;color:var(--texte-doux);}
+
+    /* ── RESPONSIVE ──────────────────────────────────────────────── */
+    .mobile-sidebar-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--noir3);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:18px;color:var(--texte);margin-right:8px;flex-shrink:0;}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
+    .sidebar-overlay.open{display:block;}
+
+    @media(max-width:1200px){
+      .kpi-grid{grid-template-columns:repeat(3,1fr);}
+      .charts-row{grid-template-columns:1fr;}
+      .config-grid{grid-template-columns:1fr;}
+      .credits-summary{grid-template-columns:repeat(2,1fr);}
+      .stat-row{grid-template-columns:repeat(2,1fr);}
+    }
+    @media(max-width:900px){
+      .sidebar{transform:translateX(-260px);}
+      .sidebar.open{transform:translateX(0);}
+      .main{margin-left:0;}
+      .topbar{padding:0 16px;}
+      .mobile-sidebar-toggle{display:flex;}
+      .kpi-grid{grid-template-columns:repeat(2,1fr);}
+      .content{padding:20px 16px;}
+      .table-card{overflow-x:auto;}
+      table{min-width:600px;}
+      .search-bar{flex-wrap:wrap;}
+      .search-input{min-width:100%;}
+      .stat-row{grid-template-columns:repeat(3,1fr);}
+    }
+    @media(max-width:640px){
+      .topbar{height:56px;}
+      .topbar-title{font-size:16px;}
+      .topbar-right{gap:8px;}
+      .status-label{display:none;}
+      .refresh-btn{padding:7px 12px;font-size:12px;}
+      .content{padding:16px 12px;}
+      .kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}
+      .kpi-card{padding:16px;border-radius:14px;}
+      .kpi-value{font-size:26px;}
+      .kpi-icon{font-size:18px;}
+      .kpi-label{font-size:10px;}
+      .kpi-trend{font-size:11px;}
+      .charts-row{gap:12px;}
+      .chart-card{padding:18px;border-radius:14px;}
+      .donut-wrapper{flex-direction:column;gap:16px;align-items:center;}
+      .donut{width:100px;height:100px;}
+      .stat-row{grid-template-columns:1fr;gap:8px;}
+      .stat-mini{padding:14px 16px;border-radius:10px;}
+      .table-header{padding:14px 16px;flex-direction:column;gap:8px;align-items:flex-start;}
+      th{padding:8px 12px;font-size:10px;}
+      td{padding:10px 12px;font-size:12px;}
+      .actions{gap:4px;}
+      .btn-validate,.btn-reject,.btn-suspend,.btn-view,.btn-ban,.btn-unban,.btn-credit{padding:4px 8px;font-size:10px;border-radius:6px;}
+      .credits-summary{grid-template-columns:1fr 1fr;gap:8px;}
+      .credit-stat{padding:12px;border-radius:10px;}
+      .credit-stat-val{font-size:18px;}
+      .modal{padding:24px 16px;border-radius:18px;width:95%;}
+      .modal-title{font-size:18px;}
+      .modal-info-grid{grid-template-columns:1fr;}
+      .modal-actions{flex-direction:column;gap:8px;}
+      .btn-confirm,.btn-cancel-modal{width:100%;}
+      .config-grid{grid-template-columns:1fr;}
+      .config-card{padding:16px;border-radius:12px;}
+    }
   </style>
 </head>
 <body>
 
-<div class="sidebar">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-row">
       <div class="logo-icon">+</div>
@@ -418,7 +292,10 @@ if (window.innerWidth <= 900) initMobileSidebar();
 
 <div class="main">
   <div class="topbar">
-    <div class="topbar-title" id="panel-title">Tableau de bord</div>
+    <div style="display:flex;align-items:center;">
+      <button class="mobile-sidebar-toggle" id="hamburger" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title" id="panel-title">Tableau de bord</div>
+    </div>
     <div class="topbar-right">
       <div class="status-dot"></div>
       <span class="status-label">Bolamu en ligne</span>
@@ -427,7 +304,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
   </div>
   <div class="content">
 
-    <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
       <div class="kpi-grid">
         <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">Chargement...</div></div>
@@ -481,7 +357,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- ACTIVITY -->
     <div class="panel" id="panel-activity">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="act-rdv-today">—</div><div class="stat-mini-lbl">RDV aujourd'hui</div></div></div>
@@ -494,7 +369,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- PENDING -->
     <div class="panel" id="panel-pending">
       <div class="table-card">
         <div class="table-header"><span class="table-title">Comptes en attente de validation</span><span class="table-count" id="pending-count">—</span></div>
@@ -502,7 +376,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- DOCTORS -->
     <div class="panel" id="panel-doctors">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher par nom, téléphone, spécialité..." oninput="filterTable('doctors-table',this.value)">
@@ -519,7 +392,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- PHARMACIES -->
     <div class="panel" id="panel-pharmacies">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher une pharmacie..." oninput="filterTable('pharmacies-table',this.value)">
@@ -536,29 +408,22 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- LABORATORIES -->
     <div class="panel" id="panel-laboratories">
-      <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher un laboratoire..." oninput="filterTable('laboratories-table',this.value)">
-      </div>
+      <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher un laboratoire..." oninput="filterTable('laboratories-table',this.value)"></div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Laboratoires</span><span class="table-count" id="laboratories-count">—</span></div>
         <div id="laboratories-list"><div class="loading">Chargement...</div></div>
       </div>
     </div>
 
-    <!-- PATIENTS -->
     <div class="panel" id="panel-patients">
-      <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher un patient..." oninput="filterTable('patients-table',this.value)">
-      </div>
+      <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher un patient..." oninput="filterTable('patients-table',this.value)"></div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Patients</span><span class="table-count" id="patients-count">—</span></div>
         <div id="patients-list"><div class="loading">Chargement...</div></div>
       </div>
     </div>
 
-    <!-- APPOINTMENTS -->
     <div class="panel" id="panel-appointments">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">✅</div><div><div class="stat-mini-val" id="appt-done">—</div><div class="stat-mini-lbl">Terminés</div></div></div>
@@ -571,7 +436,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- PRESCRIPTIONS -->
     <div class="panel" id="panel-prescriptions">
       <div class="table-card">
         <div class="table-header"><span class="table-title">Ordonnances numériques</span><span class="table-count" id="pres-count">—</span></div>
@@ -579,7 +443,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- PAYMENTS -->
     <div class="panel" id="panel-payments">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">💰</div><div><div class="stat-mini-val" id="pay-total-rev">—</div><div class="stat-mini-lbl">Total encaissé (FCFA)</div></div></div>
@@ -592,7 +455,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- FRAUD -->
     <div class="panel" id="panel-fraud">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">🔴</div><div><div class="stat-mini-val" id="fraud-high">—</div><div class="stat-mini-lbl">Sévérité haute</div></div></div>
@@ -605,7 +467,6 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- AUDIT -->
     <div class="panel" id="panel-audit">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher dans le journal..." oninput="filterTable('audit-table',this.value)">
@@ -625,12 +486,10 @@ if (window.innerWidth <= 900) initMobileSidebar();
       </div>
     </div>
 
-    <!-- CONFIG -->
     <div class="panel" id="panel-config">
       <div class="config-grid" id="config-grid"><div class="loading">Chargement...</div></div>
     </div>
 
-    <!-- CREDITS -->
     <div class="panel" id="panel-credits">
       <div class="credits-summary">
         <div class="credit-stat"><div class="credit-stat-val" id="cr-total-accounts">—</div><div class="credit-stat-lbl">Comptes crédits</div></div>
@@ -650,12 +509,9 @@ if (window.innerWidth <= 900) initMobileSidebar();
   </div>
 </div>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal"><div id="modal-body"></div></div>
 </div>
-
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -663,9 +519,21 @@ const API = '/api/v1';
 const token = localStorage.getItem('bolamu_token');
 const phone = localStorage.getItem('bolamu_phone');
 const role  = localStorage.getItem('bolamu_role');
-
 if (!token || role !== 'admin') window.location.href = '/login.html';
 document.getElementById('admin-name').textContent = phone || 'Admin Bolamu';
+
+// ── SIDEBAR MOBILE ────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => { if (window.innerWidth <= 900) closeSidebar(); });
+});
 
 const panelTitles = {
   overview:'Tableau de bord', activity:'Activité en direct', pending:'Comptes en attente',
@@ -724,16 +592,11 @@ function filterTable(id, q) {
   document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.textContent.toLowerCase().includes(q)?'':'none');
 }
 
-// ─── OVERVIEW ─────────────────────────────────────────────────────────────────
 async function loadOverview() {
   try {
     const [stats, pendingData, fraudData, rdvData] = await Promise.all([
-      api('/admin/stats'),
-      api('/admin/pending'),
-      api('/admin/fraud'),
-      api('/admin/appointments')
+      api('/admin/stats'), api('/admin/pending'), api('/admin/fraud'), api('/admin/appointments')
     ]);
-
     if (stats.success) {
       const s = stats.data;
       document.getElementById('kpi-patients').textContent = fmtNum(s.users.patients);
@@ -751,12 +614,11 @@ async function loadOverview() {
       document.getElementById('kpi-rdv-trend').textContent = `${s.activity.appointments_today} aujourd'hui`;
       document.getElementById('badge-pending').textContent = s.pending.total;
       document.getElementById('badge-fraud').textContent = s.fraud.high_severity;
-
       const total = s.users.patients + s.users.doctors + s.users.pharmacies + s.users.laboratories;
       if (total > 0) {
         const C = 283;
-        const pPat = (s.users.patients/total)*C, pDoc=(s.users.doctors/total)*C;
-        const pPha = (s.users.pharmacies/total)*C, pLab=(s.users.laboratories/total)*C;
+        const pPat=(s.users.patients/total)*C, pDoc=(s.users.doctors/total)*C;
+        const pPha=(s.users.pharmacies/total)*C, pLab=(s.users.laboratories/total)*C;
         let off = 71;
         [['donut-patient',pPat],['donut-doctor',pDoc],['donut-pharma',pPha],['donut-labo',pLab]].forEach(([id,v])=>{
           const el=document.getElementById(id);
@@ -769,24 +631,18 @@ async function loadOverview() {
       document.getElementById('leg-pharmacies').textContent = s.users.pharmacies;
       document.getElementById('leg-labos').textContent = s.users.laboratories;
     }
-
-    // Bar chart RDV
     if (rdvData.data) {
       const items = rdvData.data;
       const confirmed = items.filter(a=>a.status==='confirme').length;
       const done = items.filter(a=>a.status==='termine').length;
       const other = items.length - confirmed - done;
       const maxV = Math.max(confirmed, done, other, 1);
-      document.getElementById('rdv-bar-chart').innerHTML = `
-        <div class="bar-chart">
-          ${[['Confirmés',confirmed,'#2E86FF'],['Terminés',done,'#00C9A7'],['Autres',other,'#7C3AED']].map(([l,v,c])=>`
-          <div class="bar" style="background:${c};height:${Math.max((v/maxV)*100,4)}%;opacity:0.85;">
-            <span class="bar-value">${v}</span><span class="bar-label">${l}</span>
-          </div>`).join('')}
-        </div>`;
+      document.getElementById('rdv-bar-chart').innerHTML = `<div class="bar-chart">
+        ${[['Confirmés',confirmed,'#2E86FF'],['Terminés',done,'#00C9A7'],['Autres',other,'#7C3AED']].map(([l,v,c])=>`
+        <div class="bar" style="background:${c};height:${Math.max((v/maxV)*100,4)}%;opacity:0.85;">
+          <span class="bar-value">${v}</span><span class="bar-label">${l}</span>
+        </div>`).join('')}</div>`;
     }
-
-    // Mini pending
     if (pendingData.data) {
       const all = pendingData.data;
       const el = document.getElementById('pending-mini-list');
@@ -801,8 +657,6 @@ async function loadOverview() {
           </div>
         </div>`).join('');
     }
-
-    // Mini fraud
     if (fraudData.data) {
       const highs = fraudData.data.filter(f=>f.severity==='high').slice(0,4);
       const el = document.getElementById('fraud-mini-list');
@@ -817,7 +671,6 @@ async function loadOverview() {
   } catch(e) { console.error('overview',e); }
 }
 
-// ─── ACTIVITY ─────────────────────────────────────────────────────────────────
 async function loadActivity() {
   const data = await api('/admin/audit?limit=50');
   const items = data.data||[];
@@ -828,14 +681,11 @@ async function loadActivity() {
   document.getElementById('act-new-users').textContent = items.filter(i=>i.event_type?.includes('.registered')&&new Date(i.created_at).toDateString()===today).length;
   const colors={'doctor.registered':'#00C9A7','pharmacie.registered':'#00A878','patient.registered':'#2E86FF','appointment_validated':'#ffa502','prescription_delivered':'#7C3AED','account.banned':'#ff4757','credits.granted':'#7C3AED','config.updated':'#ff6b9d'};
   document.getElementById('activity-feed').innerHTML = `<div class="feed-list">${items.map(i=>`
-    <div class="feed-item">
-      <div class="feed-dot" style="background:${colors[i.event_type]||'#8888aa'}"></div>
-      <div><div class="feed-action"><span class="feed-actor">${i.actor_phone}</span> — ${i.event_type?.replace(/_/g,' ')||'—'}</div>
-      <div class="feed-time">${fmtDate(i.created_at)}</div></div>
-    </div>`).join('')}</div>`;
+    <div class="feed-item"><div class="feed-dot" style="background:${colors[i.event_type]||'#8888aa'}"></div>
+    <div><div class="feed-action"><span class="feed-actor">${i.actor_phone}</span> — ${i.event_type?.replace(/_/g,' ')||'—'}</div>
+    <div class="feed-time">${fmtDate(i.created_at)}</div></div></div>`).join('')}</div>`;
 }
 
-// ─── PENDING ──────────────────────────────────────────────────────────────────
 async function loadPending() {
   const data = await api('/admin/pending');
   const all = data.data||[];
@@ -844,12 +694,11 @@ async function loadPending() {
   document.getElementById('pending-list').innerHTML = `
     <table id="pending-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Type</th><th>Score</th><th>Document</th><th>Date</th><th>Actions</th></tr></thead>
     <tbody>${all.map(p=>`<tr>
-      <td><strong>${p.name||'—'}</strong></td>
-      <td class="td-phone">${p.phone}</td>
+      <td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td>
       <td><span class="badge badge-${p.type}">${p.type}</span></td>
       <td><span style="font-weight:700;color:${(p.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${p.trust_score||0}/100</span>
           <div class="score-bar"><div class="score-fill" style="width:${p.trust_score||0}%"></div></div></td>
-      <td>${p.document_url?`<a href="${p.document_url}" target="_blank" class="doc-link">📄 Voir</a>`:'<span style="color:var(--texte-doux);font-size:12px;">Non fourni</span>'}</td>
+      <td>${p.document_url?`<a href="${p.document_url}" target="_blank" class="doc-link">📄 Voir</a>`:'—'}</td>
       <td style="color:var(--texte-doux)">${fmtShort(p.created_at)}</td>
       <td><div class="actions">
         <button class="btn-validate" onclick="openValidate('${p.type}','${p.id}','${(p.name||p.phone).replace(/'/g,'')}')">✅ Valider</button>
@@ -859,7 +708,6 @@ async function loadPending() {
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── DOCTORS ──────────────────────────────────────────────────────────────────
 async function loadDoctors(status='') {
   const data = await api(`/admin/doctors${status?`?status=${status}`:''}`);
   const items = data.data||[];
@@ -882,52 +730,46 @@ async function loadDoctors(status='') {
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── PHARMACIES ───────────────────────────────────────────────────────────────
 async function loadPharmacies(status='') {
   const data = await api(`/admin/pharmacies${status?`?status=${status}`:''}`);
   const items = data.data||[];
   document.getElementById('pharmacies-count').textContent = `${items.length} pharmacies`;
   document.getElementById('pharmacies-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>`:`
-    <table id="pharmacies-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>Code</th><th>Statut</th><th>Abonnement Pro</th><th>MoMo</th><th>Actions</th></tr></thead>
+    <table id="pharmacies-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>Code</th><th>Statut</th><th>Pro</th><th>MoMo</th><th>Actions</th></tr></thead>
     <tbody>${items.map(p=>`<tr>
       <td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${p.responsible_name||'—'}</td>
       <td class="td-code">${p.member_code||'—'}</td>
       <td>${badge(p.status)}</td>
-      <td>${p.abonnement_actif?`<span class="badge badge-pro">⭐ Pro jusqu'au ${fmtShort(p.abonnement_fin)}</span>`:'<span style="color:var(--texte-doux);font-size:12px">Standard</span>'}</td>
+      <td>${p.abonnement_actif?`<span class="badge badge-pro">⭐ Pro</span>`:'Standard'}</td>
       <td style="font-size:11px;color:var(--texte-doux)">${p.momo_number||'—'}</td>
       <td><div class="actions">
         ${p.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('pharmacie','${p.id}','verified','')">✅</button>`:''}
         <button class="btn-view" onclick="openProfile('${p.phone}')">👁</button>
-        ${p.abonnement_actif?`<button class="btn-suspend" onclick="toggleAbonnement('pharmacie','${p.id}',false)">Désactiver Pro</button>`:`<button class="btn-validate" onclick="toggleAbonnement('pharmacie','${p.id}',true)">⭐ Activer Pro</button>`}
         <button class="btn-ban" onclick="openBan('${p.phone}','${p.name.replace(/'/g,'')}')">🔒</button>
       </div></td>
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── LABORATORIES ─────────────────────────────────────────────────────────────
 async function loadLaboratories() {
   const data = await api('/admin/laboratories');
   const items = data.data||[];
   document.getElementById('laboratories-count').textContent = `${items.length} laboratoires`;
   document.getElementById('laboratories-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">🔬</div><p>Aucun laboratoire</p></div>`:`
-    <table id="laboratories-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Directeur</th><th>Code</th><th>Statut</th><th>Abonnement Pro</th><th>Actions</th></tr></thead>
+    <table id="laboratories-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Directeur</th><th>Code</th><th>Statut</th><th>Actions</th></tr></thead>
     <tbody>${items.map(l=>`<tr>
       <td><strong>${l.name||'—'}</strong></td><td class="td-phone">${l.phone}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${l.director_name||'—'}</td>
       <td class="td-code">${l.member_code||'—'}</td>
       <td>${badge(l.status)}</td>
-      <td>${l.abonnement_actif?`<span class="badge badge-pro">⭐ Pro</span>`:'Standard'}</td>
       <td><div class="actions">
         ${l.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('laboratoire','${l.id}','verified','')">✅</button>`:''}
         <button class="btn-view" onclick="openProfile('${l.phone}')">👁</button>
-        ${l.abonnement_actif?`<button class="btn-suspend" onclick="toggleAbonnement('laboratoire','${l.id}',false)">Désactiver Pro</button>`:`<button class="btn-validate" onclick="toggleAbonnement('laboratoire','${l.id}',true)">⭐ Activer Pro</button>`}
         <button class="btn-ban" onclick="openBan('${l.phone}','${l.name.replace(/'/g,'')}')">🔒</button>
       </div></td>
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── PATIENTS ─────────────────────────────────────────────────────────────────
 async function loadPatients() {
   const data = await api('/admin/users?role=patient&page=1');
   const items = data.data||[];
@@ -943,13 +785,12 @@ async function loadPatients() {
       <td style="color:var(--texte-doux);font-size:12px">${fmtShort(p.created_at)}</td>
       <td><div class="actions">
         <button class="btn-view" onclick="openProfile('${p.phone}')">👁</button>
-        ${p.banned?`<button class="btn-unban" onclick="unbanUser('${p.phone}')">↩ Réanimer</button>`:`<button class="btn-ban" onclick="openBan('${p.phone}','${(p.full_name||p.phone).replace(/'/g,'')}')">🔒</button>`}
+        ${p.banned?`<button class="btn-unban" onclick="unbanUser('${p.phone}')">↩</button>`:`<button class="btn-ban" onclick="openBan('${p.phone}','${(p.full_name||p.phone).replace(/'/g,'')}')">🔒</button>`}
         <button class="btn-credit" onclick="openGrantCredit('${p.phone}')">💎</button>
       </div></td>
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── APPOINTMENTS ─────────────────────────────────────────────────────────────
 async function loadAppointments() {
   const data = await api('/admin/appointments');
   const items = data.data||[];
@@ -972,13 +813,12 @@ async function loadAppointments() {
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── PRESCRIPTIONS ────────────────────────────────────────────────────────────
 async function loadPrescriptions() {
   const data = await api('/admin/prescriptions');
   const items = data.data||[];
   document.getElementById('pres-count').textContent = `${items.length} ordonnances`;
   document.getElementById('prescriptions-list').innerHTML = !items.length?`<div class="empty"><p>Aucune ordonnance</p></div>`:`
-    <table><thead><tr><th>Patient</th><th>Médecin</th><th>Code session</th><th>Médicaments</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead>
+    <table><thead><tr><th>Patient</th><th>Médecin</th><th>Code</th><th>Médicaments</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead>
     <tbody>${items.slice(0,200).map(p=>`<tr>
       <td class="td-phone">${p.patient_phone}</td>
       <td style="font-size:12px">${p.doctor_name||p.doctor_phone}</td>
@@ -990,7 +830,6 @@ async function loadPrescriptions() {
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── PAYMENTS ─────────────────────────────────────────────────────────────────
 async function loadPayments() {
   const data = await api('/admin/payments');
   const items = data.data||[];
@@ -1011,7 +850,6 @@ async function loadPayments() {
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── FRAUD ────────────────────────────────────────────────────────────────────
 async function loadFraud() {
   const data = await api('/admin/fraud');
   const items = data.data||[];
@@ -1020,13 +858,11 @@ async function loadFraud() {
   document.getElementById('fraud-medium').textContent = items.filter(f=>f.severity==='medium').length;
   document.getElementById('fraud-low').textContent = items.filter(f=>f.severity==='low').length;
   document.getElementById('fraud-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal détecté</p></div>`:`
-    <table><thead><tr><th>Type</th><th>Acteur</th><th>Nom</th><th>Sévérité</th><th>RDV</th><th>Date</th><th>Action</th></tr></thead>
+    <table><thead><tr><th>Type</th><th>Acteur</th><th>Sévérité</th><th>Date</th><th>Action</th></tr></thead>
     <tbody>${items.map(f=>`<tr>
       <td style="font-weight:700;font-size:12px">${f.signal_type?.replace(/_/g,' ')}</td>
       <td class="td-phone">${f.actor_phone}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${f.actor_name||'—'}</td>
       <td>${badge(f.severity)}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${f.appointment_id||'—'}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${fmtShort(f.created_at)}</td>
       <td><div class="actions">
         <button class="btn-ban" onclick="suspendFraud(${f.id})">🔒 Bannir</button>
@@ -1035,7 +871,6 @@ async function loadFraud() {
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── AUDIT ────────────────────────────────────────────────────────────────────
 async function loadAudit(filter='') {
   const data = await api(`/admin/audit${filter?`?event_type=${filter}`:''}`);
   const items = data.data||[];
@@ -1052,7 +887,6 @@ async function loadAudit(filter='') {
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── CONFIG ────────────────────────────────────────────────────────────────────
 async function loadConfig() {
   const data = await api('/admin/config');
   const items = data.data||[];
@@ -1069,14 +903,13 @@ async function loadConfig() {
       ${cfgs.map(c=>`
         <div class="config-item">
           <div><div class="config-key">${c.key}</div><div class="config-desc">${c.description||''}</div></div>
-          <div class="config-val" onclick="openEditConfig('${c.key}','${c.value}','${(c.description||'').replace(/'/g,'')}')" title="Cliquer pour modifier">
+          <div class="config-val" onclick="openEditConfig('${c.key}','${c.value}','${(c.description||'').replace(/'/g,'')}')">
             ${c.value}${['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity','price_pharma_highlight','credit_amount_auto','credit_amount_quarterly'].includes(c.key)?' FCFA':''}
           </div>
         </div>`).join('')}
     </div>`).join('');
 }
 
-// ─── CREDITS ──────────────────────────────────────────────────────────────────
 async function loadCredits() {
   const data = await api('/admin/credits');
   const items = data.data||[];
@@ -1088,7 +921,7 @@ async function loadCredits() {
   document.getElementById('cr-total-earned').textContent = fmtNum(totalEarned);
   document.getElementById('cr-total-spent').textContent = fmtNum(totalSpent);
   document.getElementById('credits-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte crédits</p></div>`:`
-    <table><thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Mois consécutifs</th><th>Actions</th></tr></thead>
+    <table><thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Mois</th><th>Actions</th></tr></thead>
     <tbody>${items.map(c=>`<tr>
       <td><strong>${c.display_name||'—'}</strong></td>
       <td class="td-phone">${c.phone}</td>
@@ -1096,99 +929,80 @@ async function loadCredits() {
       <td style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--violet)">${fmtNum(c.balance)} 💎</td>
       <td style="color:var(--vert);font-weight:700">+${fmtNum(c.total_earned)}</td>
       <td style="color:var(--rouge);font-weight:700">-${fmtNum(c.total_spent)}</td>
-      <td style="color:var(--texte-doux)">${c.consecutive_months||0} mois</td>
+      <td style="color:var(--texte-doux)">${c.consecutive_months||0}</td>
       <td><button class="btn-credit" onclick="openGrantCredit('${c.phone}')">💎 Attribuer</button></td>
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ─── ACTIONS ──────────────────────────────────────────────────────────────────
 function openValidate(type, id, name) {
-  modal(`✅ Valider le compte`,
-    `Voulez-vous valider et activer le compte de <strong>${name}</strong> ? Un SMS de confirmation sera envoyé automatiquement.`,
+  modal(`✅ Valider le compte`, `Voulez-vous valider et activer le compte de <strong>${name}</strong> ?`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
      <button class="btn-confirm green" onclick="doValidate('${type}','${id}','approved')">✅ Confirmer la validation</button>`);
 }
-
 function openReject(type, id, name) {
   modal(`❌ Rejeter le dossier`, `Le dossier de <strong>${name}</strong> sera rejeté.`,
-    `<div class="modal-field"><label>Motif du rejet</label><input class="modal-input" id="m-reason" placeholder="Ex : Document illisible, numéro d'ordre invalide..."></div>`,
+    `<div class="modal-field"><label>Motif du rejet</label><input class="modal-input" id="m-reason" placeholder="Ex : Document illisible..."></div>`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
      <button class="btn-confirm red" onclick="doValidate('${type}','${id}','rejected',document.getElementById('m-reason').value)">❌ Confirmer le rejet</button>`);
 }
-
 function openSuspend(entity, id, name) {
   modal(`🚫 Suspendre`, `Suspendre le compte de <strong>${name}</strong>.`,
     `<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-reason" placeholder="Motif..."></div>`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
      <button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','suspended',document.getElementById('m-reason').value)">🚫 Suspendre</button>`);
 }
-
 function openBan(phone, name) {
-  modal(`🔒 Bannir ce compte`, `Le compte de <strong>${name}</strong> (${phone}) sera banni définitivement. Un SMS sera envoyé.`,
-    `<div class="modal-field"><label>Motif du bannissement</label><input class="modal-input" id="m-ban-reason" placeholder="Ex : Activité frauduleuse grave, usurpation d'identité..."></div>`,
+  modal(`🔒 Bannir ce compte`, `Le compte de <strong>${name}</strong> (${phone}) sera banni définitivement.`,
+    `<div class="modal-field"><label>Motif du bannissement</label><input class="modal-input" id="m-ban-reason" placeholder="Ex : Activité frauduleuse..."></div>`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
      <button class="btn-confirm red" onclick="banUser('${phone}',document.getElementById('m-ban-reason').value)">🔒 Bannir définitivement</button>`);
 }
-
 function openEditConfig(key, value, desc) {
-  modal(`⚙️ Modifier la configuration`, `Paramètre : <strong>${key}</strong><br><span style="font-size:12px;color:var(--texte-doux)">${desc}</span>`,
-    `<div class="modal-field"><label>Nouvelle valeur</label><input class="modal-input" id="m-config-val" value="${value}" placeholder="Nouvelle valeur..."></div>`,
+  modal(`⚙️ Modifier la configuration`, `Paramètre : <strong>${key}</strong>`,
+    `<div class="modal-field"><label>Nouvelle valeur</label><input class="modal-input" id="m-config-val" value="${value}"></div>`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
      <button class="btn-confirm blue" onclick="saveConfig('${key}',document.getElementById('m-config-val').value)">💾 Enregistrer</button>`);
 }
-
 function openGrantCredit(prePhone='') {
   modal(`💎 Attribuer des crédits`, `Attribution manuelle de crédits Bolamu.`,
     `<div class="modal-field"><label>Téléphone</label><input class="modal-input" id="m-cr-phone" value="${prePhone}" placeholder="+242..."></div>
      <div class="modal-field"><label>Montant (crédits)</label><input class="modal-input" id="m-cr-amount" type="number" placeholder="Ex: 500"></div>
-     <div class="modal-field"><label>Motif</label><input class="modal-input" id="m-cr-reason" placeholder="Ex: Bonus fidélité Q1 2026"></div>`,
+     <div class="modal-field"><label>Motif</label><input class="modal-input" id="m-cr-reason" placeholder="Ex: Bonus fidélité..."></div>`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
      <button class="btn-confirm violet" onclick="grantCredit()">💎 Attribuer</button>`);
 }
 
-// ─── API CALLS ─────────────────────────────────────────────────────────────────
 async function doValidate(type, id, action, reason='') {
   closeModal();
   const act = action==='approved'?'approve':'reject';
   const data = await api('/admin/validate',{method:'PATCH',body:JSON.stringify({id:parseInt(id),type,action:act,reason})});
   if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');
 }
-
 async function changeStatus(entity, id, status, reason='') {
   closeModal();
   const endpoints={doctor:`/admin/doctors/${id}/status`,pharmacie:`/admin/pharmacies/${id}/status`,laboratoire:`/admin/laboratories/${id}/status`};
   const data = await api(endpoints[entity],{method:'PATCH',body:JSON.stringify({status,reason})});
   if(data.success){showToast(`Statut → ${status}`);refreshAll();}else showToast(data.message,'error');
 }
-
 async function banUser(phone, reason) {
   closeModal();
   const data = await api(`/admin/users/${encodeURIComponent(phone)}/ban`,{method:'PATCH',body:JSON.stringify({reason})});
   if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');
 }
-
 async function unbanUser(phone) {
   const data = await api(`/admin/users/${encodeURIComponent(phone)}/unban`,{method:'PATCH',body:'{}'});
   if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');
 }
-
 async function suspendFraud(id) {
   if(!confirm('Bannir ce compte pour fraude ?')) return;
   const data = await api(`/admin/fraud/${id}/suspend`,{method:'PATCH',body:'{}'});
   if(data.success){showToast(data.message);loadFraud();}else showToast(data.message,'error');
 }
-
-async function toggleAbonnement(type, id, active) {
-  const data = await api(`/admin/pros/${type}/${id}/abonnement`,{method:'PATCH',body:JSON.stringify({active})});
-  if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');
-}
-
 async function saveConfig(key, value) {
   closeModal();
   const data = await api(`/admin/config/${key}`,{method:'PATCH',body:JSON.stringify({value})});
   if(data.success){showToast(data.message);loadConfig();}else showToast(data.message,'error');
 }
-
 async function grantCredit() {
   const phone = document.getElementById('m-cr-phone').value.trim();
   const amount = document.getElementById('m-cr-amount').value.trim();
@@ -1199,7 +1013,6 @@ async function grantCredit() {
   if(data.success){showToast(data.message);loadCredits();}else showToast(data.message,'error');
 }
 
-// ─── PROFIL MODAL ─────────────────────────────────────────────────────────────
 async function openProfile(phone) {
   showModal();
   document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 Fiche</div><div class="loading">Chargement...</div>`;
@@ -1216,42 +1029,21 @@ async function openProfile(phone) {
         <div class="modal-info-item"><label>Statut</label><span>${u.banned?'🔒 Banni':u.is_active?'✅ Actif':'🚫 Inactif'}</span></div>
         <div class="modal-info-item"><label>Abonnement</label><span>${u.statut_abonnement||'—'}</span></div>
         <div class="modal-info-item"><label>Crédits</label><span style="color:var(--violet)">${u.credits_balance||0} 💎</span></div>
-        <div class="modal-info-item"><label>ID Bolamu</label><span>${u.bolamu_id||'—'}</span></div>
         <div class="modal-info-item"><label>Inscrit le</label><span>${fmtShort(u.created_at)}</span></div>
-        ${u.ban_reason?`<div class="modal-info-item"><label>Motif ban</label><span style="color:var(--rouge)">${u.ban_reason}</span></div>`:''}
       </div>
     </div>
     ${pp?`<div class="modal-section">
       <div class="modal-section-title">Profil professionnel</div>
       <div class="modal-info-grid">
         <div class="modal-info-item"><label>Statut dossier</label><span>${badge(pp.status)}</span></div>
-        <div class="modal-info-item"><label>Score confiance</label><span style="color:${(pp.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${pp.trust_score||0}/100</span></div>
+        <div class="modal-info-item"><label>Score confiance</label><span>${pp.trust_score||0}/100</span></div>
         <div class="modal-info-item"><label>Code membre</label><span style="color:var(--bleu)">${pp.member_code||'—'}</span></div>
-        <div class="modal-info-item"><label>MoMo</label><span>${pp.momo_number||'—'}</span></div>
         ${pp.specialty?`<div class="modal-info-item"><label>Spécialité</label><span>${pp.specialty}</span></div>`:''}
-        ${pp.rccm_number?`<div class="modal-info-item"><label>RCCM</label><span>${pp.rccm_number}</span></div>`:''}
         ${pp.registration_number?`<div class="modal-info-item"><label>N° Ordre</label><span>${pp.registration_number}</span></div>`:''}
       </div>
-      ${pp.document_url?`<div style="margin-top:12px;padding:12px;background:var(--noir3);border-radius:10px;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:20px">📄</span>
-        <a href="${pp.document_url}" target="_blank" class="doc-link">Voir le document justificatif →</a>
+      ${pp.document_url?`<div style="margin-top:12px;padding:12px;background:var(--noir3);border-radius:10px;">
+        <a href="${pp.document_url}" target="_blank" class="doc-link">📄 Voir le document justificatif →</a>
       </div>`:''}
-    </div>`:''}
-    ${ap.length?`<div class="modal-section"><div class="modal-section-title">Rendez-vous (${ap.length})</div>
-      <table class="modal-mini-table"><thead><tr><th>Date</th><th>Médecin</th><th>Statut</th><th>Code</th></tr></thead>
-      <tbody>${ap.slice(0,8).map(a=>`<tr><td>${fmtShort(a.appointment_date)}</td><td>${a.doctor_name||'—'}</td><td>${badge(a.status)}</td><td style="color:var(--bleu)">${a.session_code||'—'}</td></tr>`).join('')}</tbody></table>
-    </div>`:''}
-    ${pr.length?`<div class="modal-section"><div class="modal-section-title">Ordonnances (${pr.length})</div>
-      <table class="modal-mini-table"><thead><tr><th>Date</th><th>Médecin</th><th>Statut</th></tr></thead>
-      <tbody>${pr.slice(0,8).map(p=>`<tr><td>${fmtShort(p.created_at)}</td><td>${p.doctor_name||p.doctor_phone}</td><td>${badge(p.status==='livre'?'verified':'pending')}</td></tr>`).join('')}</tbody></table>
-    </div>`:''}
-    ${py.length?`<div class="modal-section"><div class="modal-section-title">Paiements (${py.length})</div>
-      <table class="modal-mini-table"><thead><tr><th>Date</th><th>Montant</th><th>Opérateur</th><th>Statut</th></tr></thead>
-      <tbody>${py.slice(0,8).map(p=>`<tr><td>${fmtShort(p.created_at)}</td><td style="color:var(--vert);font-weight:700">${fmtNum(p.amount_fcfa)} FCFA</td><td>${p.operator||'—'}</td><td>${badge(p.status)}</td></tr>`).join('')}</tbody></table>
-    </div>`:''}
-    ${fs.length?`<div class="modal-section"><div class="modal-section-title" style="color:var(--rouge)">⚠️ Signaux fraude (${fs.length})</div>
-      <table class="modal-mini-table"><thead><tr><th>Type</th><th>Sévérité</th><th>Date</th></tr></thead>
-      <tbody>${fs.map(f=>`<tr><td>${f.signal_type}</td><td>${badge(f.severity)}</td><td>${fmtShort(f.created_at)}</td></tr>`).join('')}</tbody></table>
     </div>`:''}
     <div class="modal-actions">
       ${u.banned?`<button class="btn-confirm green" onclick="unbanUser('${u.phone}');closeModal()">↩ Réanimer le compte</button>`:`<button class="btn-confirm red" onclick="closeModal();openBan('${u.phone}','${(u.full_name||u.phone).replace(/'/g,'')}')">🔒 Bannir ce compte</button>`}
@@ -1259,7 +1051,6 @@ async function openProfile(phone) {
     </div>`;
 }
 
-// ─── MODAL HELPERS ─────────────────────────────────────────────────────────────
 function modal(title, sub, body='', actions='') {
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-title">${title}</div>
@@ -1279,7 +1070,6 @@ function refreshAll() {
 }
 function logout() { localStorage.clear(); window.location.href='/login.html'; }
 
-// ─── INIT ──────────────────────────────────────────────────────────────────────
 loadOverview();
 setInterval(loadOverview, 60000);
 </script>
