@@ -44,7 +44,6 @@
     .security-note .icon{font-size:14px;flex-shrink:0;margin-top:1px;}
     .attempts{font-size:12px;color:var(--texte-doux);text-align:center;margin-top:14px;}
     .attempts span{color:var(--rouge);font-weight:700;}
-
     @media(max-width:480px){
       body{padding:16px;}
       .wrap{max-width:100%;}
@@ -92,22 +91,43 @@
   </div>
 </div>
 <script>
-  const t = localStorage.getItem('bolamu_token');
-  const r = localStorage.getItem('bolamu_role');
-  if (t && r === 'admin') window.location.href = '/admin/dashboard.html';
+  // Vérifie si le token existant est encore valide avant de rediriger
+  (async function checkExistingSession() {
+    const t = localStorage.getItem('bolamu_token');
+    const r = localStorage.getItem('bolamu_role');
+    if (t && r === 'admin') {
+      try {
+        const res = await fetch('/api/v1/auth/me', {
+          headers: { 'Authorization': 'Bearer ' + t }
+        });
+        if (res.ok) {
+          window.location.href = '/admin/dashboard.html';
+          return;
+        } else {
+          localStorage.clear();
+        }
+      } catch(e) {
+        localStorage.clear();
+      }
+    }
+  })();
+
   let attempts = 0;
+
   function showMsg(text, type) {
     const el = document.getElementById('msg');
     el.textContent = text;
     el.className = `msg-box show ${type}`;
     setTimeout(() => el.className = 'msg-box', 5000);
   }
+
   function togglePw() {
     const inp = document.getElementById('password');
     const btn = document.getElementById('toggle-btn');
     if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
     else { inp.type = 'password'; btn.textContent = '👁'; }
   }
+
   async function doLogin() {
     const phone = document.getElementById('phone').value.trim();
     const password = document.getElementById('password').value.trim();
@@ -117,7 +137,8 @@
     btn.disabled = true; btn.textContent = 'Vérification en cours...';
     try {
       const res = await fetch('/api/v1/auth/admin-login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password })
       });
       const data = await res.json();
@@ -132,11 +153,13 @@
         document.getElementById('attempts-info').style.display = 'block';
         document.getElementById('attempts-count').textContent = attempts;
         showMsg(data.message || 'Identifiants incorrects.', 'error');
-        btn.disabled = false; btn.textContent = 'Accéder au panneau de contrôle →';
+        btn.disabled = false;
+        btn.textContent = 'Accéder au panneau de contrôle →';
       }
     } catch(e) {
       showMsg('Erreur de connexion. Vérifiez internet.', 'error');
-      btn.disabled = false; btn.textContent = 'Accéder au panneau de contrôle →';
+      btn.disabled = false;
+      btn.textContent = 'Accéder au panneau de contrôle →';
     }
   }
 </script>
