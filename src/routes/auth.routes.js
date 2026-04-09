@@ -76,5 +76,13 @@ router.post('/admin-login', async (req, res) => {
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
 });
-
+// GET /api/v1/auth/me — vérifie le token et retourne le rôle
+router.get('/me', authMiddleware, (req, res) => {
+  res.json({ 
+    success: true, 
+    id: req.user.id, 
+    role: req.user.role, 
+    phone: req.user.phone 
+  });
+});
 module.exports = router;
