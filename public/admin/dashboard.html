@@ -5,7 +5,178 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bolamu Admin — Centre de Contrôle</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
-  <style>
+  /* ═══════════════════════════════════════════════════════════════
+   PATCH RESPONSIVE — admin/dashboard.html
+   Coller ce bloc juste avant la balise </style> existante
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tablette (≤ 1200px) ─────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+  .config-grid { grid-template-columns: 1fr; }
+  .credits-summary { grid-template-columns: repeat(2, 1fr); }
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Tablette petite (≤ 900px) ───────────────────────────────── */
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-260px); transition: transform 0.3s ease; z-index: 200; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .topbar { padding: 0 16px; }
+
+  /* Bouton hamburger */
+  .mobile-sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    background: var(--noir3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--texte);
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  /* Overlay sidebar */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+  }
+  .sidebar-overlay.open { display: block; }
+
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .content { padding: 20px 16px; }
+
+  /* Tables scrollables */
+  .table-card { overflow-x: auto; }
+  table { min-width: 600px; }
+
+  /* Search bar */
+  .search-bar { flex-wrap: wrap; }
+  .search-input { min-width: 100%; }
+
+  .stat-row { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* ── Mobile (≤ 640px) ────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .topbar { height: 56px; }
+  .topbar-title { font-size: 16px; }
+  .topbar-right { gap: 8px; }
+  .status-label { display: none; }
+  .refresh-btn { padding: 7px 12px; font-size: 12px; }
+  .content { padding: 16px 12px; }
+
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi-card { padding: 16px; border-radius: 14px; }
+  .kpi-value { font-size: 26px; }
+  .kpi-icon { font-size: 18px; }
+  .kpi-label { font-size: 10px; }
+  .kpi-trend { font-size: 11px; }
+
+  .charts-row { gap: 12px; }
+  .chart-card { padding: 18px; border-radius: 14px; }
+  .donut-wrapper { flex-direction: column; gap: 16px; align-items: center; }
+  .donut { width: 100px; height: 100px; }
+
+  .stat-row { grid-template-columns: 1fr; gap: 8px; }
+  .stat-mini { padding: 14px 16px; border-radius: 10px; }
+
+  .table-header { padding: 14px 16px; flex-direction: column; gap: 8px; align-items: flex-start; }
+  th { padding: 8px 12px; font-size: 10px; }
+  td { padding: 10px 12px; font-size: 12px; }
+  .actions { gap: 4px; }
+  .btn-validate, .btn-reject, .btn-suspend, .btn-view, .btn-ban, .btn-unban, .btn-credit {
+    padding: 4px 8px; font-size: 10px; border-radius: 6px;
+  }
+
+  .credits-summary { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .credit-stat { padding: 12px; border-radius: 10px; }
+  .credit-stat-val { font-size: 18px; }
+
+  /* Modal */
+  .modal { padding: 24px 16px; border-radius: 18px; }
+  .modal-title { font-size: 18px; }
+  .modal-info-grid { grid-template-columns: 1fr; }
+  .modal-actions { flex-direction: column; gap: 8px; }
+  .btn-confirm, .btn-cancel-modal { width: 100%; }
+
+  /* Config grid */
+  .config-grid { grid-template-columns: 1fr; }
+  .config-card { padding: 16px; border-radius: 12px; }
+}
+
+/* ── Inject hamburger JS (à ajouter dans le <script> existant) ──
+   Ajouter ce code dans la fonction loadOverview() ou en bas du script :
+// ── SIDEBAR MOBILE ─────────────────────────────────────────────
+function initMobileSidebar() {
+  const toggle = document.createElement('button');
+  toggle.className = 'mobile-sidebar-toggle';
+  toggle.innerHTML = '☰';
+  toggle.onclick = toggleSidebar;
+  document.querySelector('.topbar').prepend(toggle);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'sidebar-overlay';
+  overlay.onclick = closeSidebar;
+  document.body.appendChild(overlay);
+
+  // Fermer sidebar au clic nav item
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (window.innerWidth <= 900) closeSidebar();
+    });
+  });
+}
+
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.querySelector('.sidebar-overlay').classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.querySelector('.sidebar-overlay').classList.remove('open');
+}
+
+if (window.innerWidth <= 900) initMobileSidebar();
+// ───────────────────────────────────────────────────────────────
+   // SIDEBAR MOBILE
+   function initMobileSidebar() {
+     const toggle = document.createElement('button');
+     toggle.className = 'mobile-sidebar-toggle';
+     toggle.innerHTML = '☰';
+     toggle.onclick = toggleSidebar;
+     document.querySelector('.topbar').prepend(toggle);
+
+     const overlay = document.createElement('div');
+     overlay.className = 'sidebar-overlay';
+     overlay.onclick = closeSidebar;
+     document.body.appendChild(overlay);
+   }
+   function toggleSidebar() {
+     document.querySelector('.sidebar').classList.toggle('open');
+     document.querySelector('.sidebar-overlay').classList.toggle('open');
+   }
+   function closeSidebar() {
+     document.querySelector('.sidebar').classList.remove('open');
+     document.querySelector('.sidebar-overlay').classList.remove('open');
+   }
+   // Fermer sidebar quand on clique un nav item sur mobile
+   document.querySelectorAll('.nav-item').forEach(btn => {
+     const original = btn.onclick;
+     btn.addEventListener('click', () => { if (window.innerWidth <= 900) closeSidebar(); });
+   });
+   if (window.innerWidth <= 900) initMobileSidebar();
+   ─────────────────────────────────────────────────────────────── */<style>
     :root {
       --noir:#0a0a0f;--noir2:#12121a;--noir3:#1a1a26;--noir4:#22222f;
       --bleu:#2E86FF;--vert:#00C9A7;--rouge:#ff4757;--amber:#ffa502;--violet:#7C3AED;

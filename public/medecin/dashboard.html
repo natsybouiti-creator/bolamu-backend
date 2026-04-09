@@ -5,7 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bolamu — Espace Médecin</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
-  <style>
+  /* ═══════════════════════════════════════════════════════════════
+   PATCH RESPONSIVE — medecin/dashboard.html
+   Coller ce bloc juste avant la balise </style> existante
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tabs scrollables ────────────────────────────────────────── */
+.tabs-bar {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  flex-wrap: nowrap;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+.tab { flex-shrink: 0; }
+
+/* ── Tablette (≤ 1024px) ─────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .top-grid { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .profil-layout { grid-template-columns: 1fr; }
+  .horaires-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ── Mobile (≤ 768px) ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .topbar { padding: 0 16px; height: 56px; }
+  .topbar-right { gap: 6px; }
+  .phone-pill { display: none; }
+  .tabs-bar { padding: 0 8px; top: 56px; }
+  .tab { padding: 14px 12px; font-size: 12px; }
+  .main { padding: 124px 16px 80px; }
+
+  /* Top grid */
+  .top-grid { grid-template-columns: 1fr; gap: 16px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-card { padding: 18px; }
+  .stat-value { font-size: 26px; }
+
+  /* Carte médecin */
+  .med-card { padding: 24px; border-radius: 18px; }
+  .med-name { font-size: 18px; }
+  .med-code { font-size: 18px; letter-spacing: 2px; }
+
+  /* RDV cards */
+  .rdv-card { padding: 18px; }
+  .rdv-card-top { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .rdv-meta { flex-wrap: wrap; gap: 6px; }
+  .rdv-actions { flex-wrap: wrap; gap: 8px; }
+  .btn-valider, .btn-tele, .btn-outline { padding: 10px 16px; font-size: 13px; }
+
+  /* Profil */
+  .profil-layout { grid-template-columns: 1fr; }
+  .profil-card { padding: 24px; }
+  .horaires-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .horaire-day { padding: 10px 4px; }
+  .day-name { font-size: 9px; }
+  .day-hours { font-size: 10px; }
+
+  /* Modal validation */
+  .modal { padding: 24px 18px; border-radius: 18px; max-height: 85vh; }
+  .modal-title { font-size: 18px; }
+  .code-boxes { gap: 8px; }
+  .code-box { width: 52px; height: 56px; font-size: 22px; border-radius: 12px; }
+
+  /* Patients grid */
+  .patients-grid { grid-template-columns: 1fr; }
+
+  /* Bandeau attente */
+  .bandeau-attente { padding: 14px 16px; font-size: 13px; flex-direction: column; gap: 10px; }
+
+  /* Jitsi modal */
+  #modal-jitsi > div:first-child { padding: 12px 16px; flex-direction: column; gap: 8px; align-items: flex-start; }
+  #modal-jitsi #jitsi-post-actions { flex-direction: column; padding: 12px 16px; }
+  #modal-jitsi #jitsi-post-actions button { width: 100%; }
+}
+
+/* ── Petit mobile (≤ 480px) ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .horaires-grid { grid-template-columns: repeat(4, 1fr); }
+  .code-box { width: 44px; height: 48px; font-size: 18px; }
+  .code-boxes { gap: 6px; }
+  .tab { font-size: 11px; padding: 12px 8px; }
+  .med-code { font-size: 16px; }
+}<style>
     :root{
       --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
       --bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#ffffff;
