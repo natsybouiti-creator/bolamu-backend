@@ -22,7 +22,6 @@
     .sidebar{width:260px;min-height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform 0.3s ease;}
     .sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
     .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-    .logo-icon{width:36px;height:36px;background:var(--grad-blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:300;color:white;flex-shrink:0;}
     .logo-name{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--texte);}
     .logo-name .t{color:var(--vert);}
     .admin-badge{background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:var(--rouge);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:1px;display:inline-block;}
@@ -256,7 +255,7 @@
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-row">
-      <div class="logo-icon">+</div>
+      <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
       <div class="logo-name">Bola<span class="t">mu</span></div>
     </div>
     <span class="admin-badge">ADMIN</span>
@@ -519,30 +518,7 @@ const API = '/api/v1';
 const token = localStorage.getItem('bolamu_token');
 const phone = localStorage.getItem('bolamu_phone');
 const role  = localStorage.getItem('bolamu_role');
-
-// ── GUARD ADMIN — vérification locale + serveur ───────────────
-if (!token || role !== 'admin') {
-  localStorage.clear();
-  window.location.replace('/admin/login.html');
-}
-
-(async function verifyTokenServer() {
-  try {
-    const res = await fetch('/api/v1/auth/me', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    const data = await res.json();
-    if (!res.ok || data.role !== 'admin') {
-      localStorage.clear();
-      window.location.replace('/admin/login.html');
-    }
-  } catch(e) {
-    localStorage.clear();
-    window.location.replace('/admin/login.html');
-  }
-})();
-// ─────────────────────────────────────────────────────────────
-
+if (!token || role !== 'admin') window.location.href = '/login.html';
 document.getElementById('admin-name').textContent = phone || 'Admin Bolamu';
 
 // ── SIDEBAR MOBILE ────────────────────────────────────────────
@@ -1091,7 +1067,7 @@ function refreshAll() {
   const m = active?.onclick?.toString().match(/'(\w+)'/);
   if(m) loadPanel(m[1]); else loadOverview();
 }
-function logout() { localStorage.clear(); window.location.replace('/admin/login.html'); }
+function logout() { localStorage.clear(); window.location.href='/login.html'; }
 
 loadOverview();
 setInterval(loadOverview, 60000);

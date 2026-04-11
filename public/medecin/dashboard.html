@@ -5,118 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bolamu — Espace Médecin</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
-  /* ═══════════════════════════════════════════════════════════════
-   PATCH RESPONSIVE — medecin/dashboard.html
-   Coller ce bloc juste avant la balise </style> existante
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ── Tabs scrollables ────────────────────────────────────────── */
-.tabs-bar {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  flex-wrap: nowrap;
-}
-.tabs-bar::-webkit-scrollbar { display: none; }
-.tab { flex-shrink: 0; }
-
-/* ── Tablette (≤ 1024px) ─────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .top-grid { grid-template-columns: 1fr; }
-  .stat-grid { grid-template-columns: 1fr 1fr; }
-  .profil-layout { grid-template-columns: 1fr; }
-  .horaires-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
-/* ── Mobile (≤ 768px) ────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .topbar { padding: 0 16px; height: 56px; }
-  .topbar-right { gap: 6px; }
-  .phone-pill { display: none; }
-  .tabs-bar { padding: 0 8px; top: 56px; }
-  .tab { padding: 14px 12px; font-size: 12px; }
-  .main { padding: 124px 16px 80px; }
-
-  /* Top grid */
-  .top-grid { grid-template-columns: 1fr; gap: 16px; }
-  .stat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .stat-card { padding: 18px; }
-  .stat-value { font-size: 26px; }
-
-  /* Carte médecin */
-  .med-card { padding: 24px; border-radius: 18px; }
-  .med-name { font-size: 18px; }
-  .med-code { font-size: 18px; letter-spacing: 2px; }
-
-  /* RDV cards */
-  .rdv-card { padding: 18px; }
-  .rdv-card-top { flex-direction: column; gap: 10px; align-items: flex-start; }
-  .rdv-meta { flex-wrap: wrap; gap: 6px; }
-  .rdv-actions { flex-wrap: wrap; gap: 8px; }
-  .btn-valider, .btn-tele, .btn-outline { padding: 10px 16px; font-size: 13px; }
-
-  /* Profil */
-  .profil-layout { grid-template-columns: 1fr; }
-  .profil-card { padding: 24px; }
-  .horaires-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .horaire-day { padding: 10px 4px; }
-  .day-name { font-size: 9px; }
-  .day-hours { font-size: 10px; }
-
-  /* Modal validation */
-  .modal { padding: 24px 18px; border-radius: 18px; max-height: 85vh; }
-  .modal-title { font-size: 18px; }
-  .code-boxes { gap: 8px; }
-  .code-box { width: 52px; height: 56px; font-size: 22px; border-radius: 12px; }
-
-  /* Patients grid */
-  .patients-grid { grid-template-columns: 1fr; }
-
-  /* Bandeau attente */
-  .bandeau-attente { padding: 14px 16px; font-size: 13px; flex-direction: column; gap: 10px; }
-
-  /* Jitsi modal */
-  #modal-jitsi > div:first-child { padding: 12px 16px; flex-direction: column; gap: 8px; align-items: flex-start; }
-  #modal-jitsi #jitsi-post-actions { flex-direction: column; padding: 12px 16px; }
-  #modal-jitsi #jitsi-post-actions button { width: 100%; }
-}
-
-/* ── Petit mobile (≤ 480px) ──────────────────────────────────── */
-@media (max-width: 480px) {
-  .stat-grid { grid-template-columns: 1fr; }
-  .horaires-grid { grid-template-columns: repeat(4, 1fr); }
-  .code-box { width: 44px; height: 48px; font-size: 18px; }
-  .code-boxes { gap: 6px; }
-  .tab { font-size: 11px; padding: 12px 8px; }
-  .med-code { font-size: 16px; }
-}<style>
+  <style>
     :root{
       --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
       --bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#ffffff;
       --rouge:#e74c3c;--amber:#f39c12;--border:rgba(10,36,99,0.1);
       --grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);
       --grad-card:linear-gradient(135deg,#0A2463,#2E86FF);
+      --bottom-nav-h:64px;
     }
-    *{margin:0;padding:0;box-sizing:border-box;}
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
     body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bleu-pale);color:var(--texte);min-height:100vh;}
     .topbar{position:fixed;top:0;width:100%;z-index:100;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);box-shadow:0 2px 20px rgba(10,36,99,0.06);}
-    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-    .logo-icon{width:36px;height:36px;background:var(--grad-btn);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
-    .logo-icon::after{content:'+';color:white;font-size:20px;font-weight:300;line-height:1;}
-    .logo-leaf{position:absolute;top:-3px;right:-2px;width:10px;height:10px;background:var(--vert);border-radius:50% 0 50% 0;transform:rotate(45deg);}
-    .logo-name{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}    .logo-name{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
     .logo-name .b{color:var(--bleu);}.logo-name .t{color:var(--vert);}
     .topbar-right{display:flex;align-items:center;gap:12px;}
     .phone-pill{background:var(--vert-clair);color:#047857;padding:6px 16px;border-radius:50px;font-size:13px;font-weight:600;}
     .role-pill{background:var(--bleu);color:white;padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:0.5px;}
-    .logout-btn{padding:8px 18px;border:2px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--texte-doux);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .logout-btn{padding:8px 18px;border:2px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--texte-doux);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:40px;}
     .logout-btn:hover{border-color:var(--bleu);color:var(--bleu);}
-    .tabs-bar{position:fixed;top:64px;width:100%;z-index:99;background:var(--blanc);border-bottom:1px solid var(--border);padding:0 40px;display:flex;box-shadow:0 2px 10px rgba(10,36,99,0.04);}
-    .tab{padding:16px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--texte-doux);border-bottom:3px solid transparent;transition:all 0.2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Plus Jakarta Sans',sans-serif;}
+    .tabs-bar{position:fixed;top:64px;width:100%;z-index:99;background:var(--blanc);border-bottom:1px solid var(--border);padding:0 40px;display:flex;box-shadow:0 2px 10px rgba(10,36,99,0.04);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+    .tabs-bar::-webkit-scrollbar{display:none;}
+    .tab{padding:16px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--texte-doux);border-bottom:3px solid transparent;transition:all 0.2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Plus Jakarta Sans',sans-serif;flex-shrink:0;}
     .tab:hover{color:var(--bleu-vif);}.tab.active{color:var(--bleu);border-bottom-color:var(--bleu);}
+    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);height:var(--bottom-nav-h);padding:0 4px;padding-bottom:env(safe-area-inset-bottom);}
+    .bottom-nav-inner{display:flex;height:100%;align-items:center;justify-content:space-around;}
+    .bnav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 6px;cursor:pointer;flex:1;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;border-radius:12px;min-height:52px;}
+    .bnav-item.active .bnav-icon,.bnav-item.active .bnav-label{color:var(--bleu-vif);font-weight:700;}
+    .bnav-icon{font-size:20px;line-height:1;}
+    .bnav-label{font-size:10px;font-weight:500;color:var(--texte-doux);white-space:nowrap;}
     .main{padding:148px 40px 60px;max-width:1200px;margin:0 auto;}
     .panel{display:none;}.panel.active{display:block;}
-    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
     .section-title{font-family:'Fraunces',serif;font-size:26px;font-weight:900;letter-spacing:-0.5px;}
     .top-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;}
     .med-card{background:var(--grad-card);border-radius:24px;padding:36px;color:white;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(10,36,99,0.25);}
@@ -143,7 +63,7 @@
     .rdv-list{display:flex;flex-direction:column;gap:12px;}
     .rdv-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);transition:all 0.2s;}
     .rdv-card:hover{border-color:var(--bleu-vif);transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,36,99,0.1);}
-    .rdv-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .rdv-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
     .rdv-patient{display:flex;align-items:center;gap:14px;}
     .rdv-avatar{width:46px;height:46px;border-radius:14px;background:var(--bleu-pale);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
     .rdv-name{font-size:16px;font-weight:700;margin-bottom:3px;}
@@ -152,47 +72,45 @@
     .rdv-meta span{background:var(--bleu-pale);color:var(--texte-doux);padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;}
     .rdv-meta span strong{color:var(--texte);font-weight:700;}
     .rdv-actions{display:flex;gap:10px;flex-wrap:wrap;}
-    .btn-valider{padding:11px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-valider{padding:11px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-valider:hover{opacity:0.9;transform:translateY(-1px);}
     .btn-valider:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-    .btn-tele{padding:11px 20px;background:linear-gradient(135deg,#7C3AED,#2E86FF);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-tele{padding:11px 20px;background:linear-gradient(135deg,#7C3AED,#2E86FF);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-tele:hover{opacity:0.9;transform:translateY(-1px);}
-    .btn-outline{padding:11px 24px;background:transparent;color:var(--bleu);border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-outline:hover{border-color:var(--bleu);}
     .rdv-termine{opacity:0.6;}
     .empty-state{text-align:center;padding:60px 24px;color:var(--texte-doux);}
     .empty-icon{font-size:48px;margin-bottom:16px;}
     .loading{text-align:center;padding:48px;color:var(--texte-doux);}
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,36,99,0.5);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,36,99,0.5);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:16px;}
     .modal-overlay.open{display:flex;}
-    .modal{background:white;border-radius:28px;padding:40px;max-width:520px;width:90%;box-shadow:0 40px 100px rgba(10,36,99,0.3);animation:modalIn 0.3s ease;}
+    .modal{background:white;border-radius:28px;padding:40px;max-width:520px;width:100%;box-shadow:0 40px 100px rgba(10,36,99,0.3);animation:modalIn 0.3s ease;max-height:90vh;overflow-y:auto;}
     @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
     .modal-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:8px;}
     .modal-sub{font-size:14px;color:var(--texte-doux);margin-bottom:28px;line-height:1.6;}
     .modal-section{margin-bottom:20px;}
     .modal-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:10px;display:block;}
-    .code-boxes{display:flex;gap:12px;margin-bottom:8px;}
+    .code-boxes{display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
     .code-box{width:64px;height:64px;border:2px solid var(--border);border-radius:16px;font-size:28px;font-weight:900;text-align:center;color:var(--texte);outline:none;transition:all 0.2s;font-family:'Plus Jakarta Sans',sans-serif;}
     .code-box:focus{border-color:var(--bleu-vif);box-shadow:0 0 0 4px rgba(46,134,255,0.12);}
     .code-error{color:var(--rouge);font-size:13px;margin-top:6px;display:none;}
     .form-group{margin-bottom:18px;}
     .form-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;display:block;}
-    .form-textarea{width:100%;border:2px solid var(--border);border-radius:14px;padding:14px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;resize:vertical;min-height:100px;transition:border-color 0.2s;}
+    .form-textarea{width:100%;border:2px solid var(--border);border-radius:14px;padding:14px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;resize:vertical;min-height:100px;transition:border-color 0.2s;}
     .form-textarea:focus{border-color:var(--bleu-vif);}
-    .form-input{width:100%;border:2px solid var(--border);border-radius:14px;padding:14px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
+    .form-input{width:100%;border:2px solid var(--border);border-radius:14px;padding:14px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
     .form-input:focus{border-color:var(--bleu-vif);}
     .modal-hint{background:var(--bleu-pale);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--texte-doux);margin-bottom:20px;line-height:1.5;}
-    .modal-actions{display:flex;gap:10px;}
-    .btn-primary{flex:1;padding:14px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .modal-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .btn-primary{flex:1;padding:14px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:52px;}
     .btn-primary:hover{opacity:0.9;}
     .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
-    .btn-cancel{padding:14px 20px;background:transparent;color:var(--texte-doux);border:2px solid var(--border);border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-cancel{padding:14px 20px;background:transparent;color:var(--texte-doux);border:2px solid var(--border);border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:52px;}
     .btn-cancel:hover{border-color:var(--texte-doux);}
     .validation-success{text-align:center;padding:20px 0;}
     .success-icon{font-size:56px;margin-bottom:16px;}
     .success-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:8px;color:var(--texte);}
     .success-sub{font-size:14px;color:var(--texte-doux);line-height:1.6;margin-bottom:24px;}
-    .patients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+    .patients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
     .patient-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);}
     .profil-layout{display:grid;grid-template-columns:300px 1fr;gap:24px;}
     .profil-card{background:var(--grad-card);border-radius:24px;padding:36px;color:white;text-align:center;}
@@ -204,7 +122,7 @@
     .profil-code-val{font-family:'Fraunces',serif;font-size:20px;font-weight:900;letter-spacing:3px;}
     .detail-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);margin-bottom:16px;}
     .detail-card h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:16px;}
-    .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;}
+    .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;flex-wrap:wrap;gap:4px;}
     .detail-row:last-child{border-bottom:none;}
     .info-label{color:var(--texte-doux);font-weight:500;}
     .info-value{font-weight:600;}
@@ -223,20 +141,59 @@
     .step-line{flex:1;height:2px;background:var(--border);}
     .step-line.done{background:var(--vert);}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.4);}}
+
+    /* RESPONSIVE */
+    @media(max-width:1024px){
+      .top-grid{grid-template-columns:1fr;}
+      .stat-grid{grid-template-columns:1fr 1fr;}
+      .profil-layout{grid-template-columns:1fr;}
+      .horaires-grid{grid-template-columns:repeat(4,1fr);}
+    }
+    @media(max-width:768px){
+      .topbar{padding:0 16px;height:56px;}
+      .logo-name{font-size:17px;}
+      .phone-pill,.role-pill{display:none;}
+      .logout-btn{padding:6px 14px;font-size:12px;}
+      .tabs-bar{display:none;}
+      .bottom-nav{display:flex;}
+      .main{padding:72px 16px calc(var(--bottom-nav-h) + 16px);}
+      .top-grid{grid-template-columns:1fr;gap:16px;}
+      .med-card{padding:24px;}
+      .med-code{font-size:18px;letter-spacing:2px;}
+      .stat-grid{grid-template-columns:1fr 1fr;gap:12px;}
+      .stat-card{padding:18px;}
+      .stat-value{font-size:26px;}
+      .rdv-card{padding:16px;}
+      .rdv-card-top{flex-direction:column;align-items:flex-start;}
+      .rdv-actions{gap:8px;}
+      .btn-valider,.btn-tele{padding:10px 16px;font-size:13px;}
+      .modal{padding:24px 16px;border-radius:20px;}
+      .code-boxes{gap:8px;}
+      .code-box{width:54px;height:58px;font-size:24px;}
+      .profil-layout{grid-template-columns:1fr;gap:16px;}
+      .patients-grid{grid-template-columns:1fr;}
+      .horaires-grid{grid-template-columns:repeat(4,1fr);}
+      .section-title{font-size:20px;}
+    }
+    @media(max-width:480px){
+      .code-box{width:44px;height:50px;font-size:20px;}
+      .code-boxes{gap:6px;}
+      .modal-actions{flex-direction:column;}
+      .btn-primary,.btn-cancel{flex:none;width:100%;}
+      .horaires-grid{grid-template-columns:repeat(3,1fr);}
+      .rdv-actions{flex-direction:column;}
+      .btn-valider,.btn-tele{width:100%;}
+    }
   </style>
 </head>
 <body>
 
-<!-- ══ MODAL VALIDATION CONSULTATION ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-validation">
-  <div class="modal">
-    <div id="modal-content"></div>
-  </div>
+  <div class="modal"><div id="modal-content"></div></div>
 </div>
 
-<!-- ══ MODAL JITSI ════════════════════════════════════════════════════════════ -->
 <div id="modal-jitsi" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.95);z-index:500;flex-direction:column;">
-  <div style="background:rgba(255,255,255,0.05);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);">
+  <div style="background:rgba(255,255,255,0.05);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="width:10px;height:10px;border-radius:50%;background:#00C9A7;animation:pulse 2s infinite;"></div>
       <span style="color:white;font-weight:700;font-size:15px;" id="jitsi-session-label">Consultation en cours</span>
@@ -250,24 +207,23 @@
     <iframe id="jitsi-iframe" style="width:100%;height:100%;border:none;" allow="camera; microphone; fullscreen; display-capture; autoplay"></iframe>
     <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,36,99,0.9);color:white;">
       <div style="font-size:56px;margin-bottom:16px;">📹</div>
-      <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;margin-bottom:8px;">Connexion en cours...</div>
+      <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;margin-bottom:8px;">Connexion en cours…</div>
       <div style="font-size:14px;color:rgba(255,255,255,0.7);">Votre session vidéo se prépare</div>
     </div>
   </div>
-  <div id="jitsi-post-actions" style="display:none;background:rgba(255,255,255,0.05);padding:16px 24px;border-top:1px solid rgba(255,255,255,0.1);gap:12px;justify-content:center;">
-    <button onclick="closeJitsiAndValidate()" style="padding:12px 28px;background:linear-gradient(135deg,#2E86FF,#00C9A7);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+  <div id="jitsi-post-actions" style="display:none;background:rgba(255,255,255,0.05);padding:16px 24px;border-top:1px solid rgba(255,255,255,0.1);gap:12px;justify-content:center;flex-wrap:wrap;">
+    <button onclick="closeJitsiAndValidate()" style="padding:12px 28px;background:linear-gradient(135deg,#2E86FF,#00C9A7);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:48px;">
       ✅ Terminer et valider la consultation
     </button>
-    <button onclick="closeJitsi()" style="padding:12px 20px;background:transparent;color:rgba(255,255,255,0.7);border:2px solid rgba(255,255,255,0.2);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+    <button onclick="closeJitsi()" style="padding:12px 20px;background:transparent;color:rgba(255,255,255,0.7);border:2px solid rgba(255,255,255,0.2);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:48px;">
       Fermer sans valider
     </button>
   </div>
 </div>
 
-<!-- ══ TOPBAR ══════════════════════════════════════════════════════════════════ -->
 <div class="topbar">
   <a href="/" class="logo">
-    <div class="logo-icon"><div class="logo-leaf"></div></div>
+    <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
     <div class="logo-name"><span class="b">Bola</span><span class="t">mu</span></div>
   </a>
   <div class="topbar-right">
@@ -277,7 +233,6 @@
   </div>
 </div>
 
-<!-- ══ TABS ════════════════════════════════════════════════════════════════════ -->
 <div class="tabs-bar">
   <button class="tab active" onclick="showTab('accueil',this)">🏠 Tableau de bord</button>
   <button class="tab" onclick="showTab('rdv',this)">📅 Mes RDV</button>
@@ -286,13 +241,30 @@
   <button class="tab" onclick="showTab('profil',this)">👤 Mon profil</button>
 </div>
 
-<!-- ══ MAIN ════════════════════════════════════════════════════════════════════ -->
-<div class="main">
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-item active" onclick="showTabMobile('accueil',this)">
+      <span class="bnav-icon">🏠</span><span class="bnav-label">Accueil</span>
+    </button>
+    <button class="bnav-item" onclick="showTabMobile('rdv',this)">
+      <span class="bnav-icon">📅</span><span class="bnav-label">RDV</span>
+    </button>
+    <button class="bnav-item" onclick="showTabMobile('telemedicine',this)">
+      <span class="bnav-icon">📹</span><span class="bnav-label">Vidéo</span>
+    </button>
+    <button class="bnav-item" onclick="showTabMobile('patients',this)">
+      <span class="bnav-icon">👥</span><span class="bnav-label">Patients</span>
+    </button>
+    <button class="bnav-item" onclick="showTabMobile('profil',this)">
+      <span class="bnav-icon">👤</span><span class="bnav-label">Profil</span>
+    </button>
+  </div>
+</nav>
 
-  <!-- TABLEAU DE BORD -->
+<div class="main">
   <div class="panel active" id="panel-accueil">
     <div id="bandeau-attente" class="bandeau-attente" style="display:none;">
-      ⏳ <div><strong>Compte en cours de vérification</strong> — Votre inscription est en cours de validation par l'équipe Bolamu. Vous recevrez un SMS de confirmation sous 24h.</div>
+      ⏳ <div><strong>Compte en cours de vérification</strong> — Votre inscription est en cours de validation. SMS sous 24h.</div>
     </div>
     <div class="top-grid">
       <div class="med-card">
@@ -306,66 +278,32 @@
         <div class="med-code-lbl">Code médecin — identifiant Bolamu</div>
       </div>
       <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-label">RDV aujourd'hui</div>
-          <div class="stat-value" id="s-today">0</div>
-          <div class="stat-sub">Consultations prévues</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Ce mois</div>
-          <div class="stat-value" id="s-month">0</div>
-          <div class="stat-sub">Consultations totales</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Statut</div>
-          <div style="margin-top:6px" id="s-statut"><span class="badge badge-pending">⏳ En attente</span></div>
-          <div class="stat-sub" style="margin-top:8px">Vérification Bolamu</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Patients suivis</div>
-          <div class="stat-value" id="s-patients">0</div>
-          <div class="stat-sub">Total cumulé</div>
-        </div>
+        <div class="stat-card"><div class="stat-label">RDV aujourd'hui</div><div class="stat-value" id="s-today">0</div><div class="stat-sub">Consultations prévues</div></div>
+        <div class="stat-card"><div class="stat-label">Ce mois</div><div class="stat-value" id="s-month">0</div><div class="stat-sub">Consultations totales</div></div>
+        <div class="stat-card"><div class="stat-label">Statut</div><div style="margin-top:6px" id="s-statut"><span class="badge badge-pending">⏳ En attente</span></div><div class="stat-sub" style="margin-top:8px">Vérification Bolamu</div></div>
+        <div class="stat-card"><div class="stat-label">Patients suivis</div><div class="stat-value" id="s-patients">0</div><div class="stat-sub">Total cumulé</div></div>
       </div>
     </div>
-    <div class="section-header">
-      <h2 class="section-title">RDV du jour</h2>
-    </div>
-    <div id="accueil-rdv"><div class="loading">Chargement...</div></div>
+    <div class="section-header"><h2 class="section-title">RDV du jour</h2></div>
+    <div id="accueil-rdv"><div class="loading">Chargement…</div></div>
   </div>
-
-  <!-- MES RDV -->
   <div class="panel" id="panel-rdv">
-    <div class="section-header">
-      <h2 class="section-title">Tous mes rendez-vous</h2>
-    </div>
-    <div id="all-rdv"><div class="loading">Chargement...</div></div>
+    <div class="section-header"><h2 class="section-title">Tous mes rendez-vous</h2></div>
+    <div id="all-rdv"><div class="loading">Chargement…</div></div>
   </div>
-
-  <!-- MES PATIENTS -->
   <div class="panel" id="panel-patients">
-    <div class="section-header">
-      <h2 class="section-title">Mes patients</h2>
-    </div>
-    <div id="patients-list"><div class="loading">Chargement...</div></div>
+    <div class="section-header"><h2 class="section-title">Mes patients</h2></div>
+    <div id="patients-list"><div class="loading">Chargement…</div></div>
   </div>
-
-  <!-- TÉLÉCONSULTATION -->
   <div class="panel" id="panel-telemedicine">
-    <div class="section-header">
-      <h2 class="section-title">📹 Téléconsultations</h2>
-    </div>
-    <div style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:20px;padding:28px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:24px;">
+    <div class="section-header"><h2 class="section-title">📹 Téléconsultations</h2></div>
+    <div style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:20px;padding:28px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
       <div style="font-size:48px;">🩺</div>
-      <div>
-        <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:6px;">Consultations vidéo sécurisées</div>
-        <div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6;">Consultez vos patients à distance via Jitsi Meet — chiffré de bout en bout, sans installation requise. Cliquez sur "Démarrer" pour lancer une session.</div>
-      </div>
+      <div><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:6px;">Consultations vidéo sécurisées</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6;">Consultez vos patients à distance via Jitsi Meet — chiffré de bout en bout. Cliquez sur "Démarrer" pour lancer une session.</div></div>
     </div>
-    <div id="tele-rdv-list"><div class="loading">Chargement...</div></div>
+    <div id="tele-rdv-list"><div class="loading">Chargement…</div></div>
   </div>
-
-  <!-- PROFIL -->
   <div class="panel" id="panel-profil">
     <div class="section-header"><h2 class="section-title">Mon profil</h2></div>
     <div class="profil-layout">
@@ -389,221 +327,153 @@
         </div>
         <div class="detail-card">
           <h3>Horaires de consultation</h3>
-          <div id="horaires-display"><div style="color:var(--texte-doux);font-size:14px;">Chargement...</div></div>
+          <div id="horaires-display"><div style="color:var(--texte-doux);font-size:14px;">Chargement…</div></div>
         </div>
       </div>
     </div>
   </div>
-
-</div><!-- fin .main -->
+</div>
 
 <script>
-const API = 'https://bolamu-backend.onrender.com/api/v1';
-const phone = localStorage.getItem('bolamu_phone');
-const token = localStorage.getItem('bolamu_token');
+const API='https://bolamu-backend.onrender.com/api/v1';
+const phone=localStorage.getItem('bolamu_phone');
+const token=localStorage.getItem('bolamu_token');
+if(!token||!phone){window.location.href='/login.html';}
+document.getElementById('topbar-phone').textContent=phone;
 
-if (!token || !phone) { window.location.href = '/login.html'; }
-
-document.getElementById('topbar-phone').textContent = phone;
-
-function generateMedCode(p) {
-  const digits = p.replace(/\D/g,'').slice(-8);
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i=0;i<8;i+=2){ const n=parseInt(digits.slice(i,i+2)); code+=chars[n%chars.length]; }
+function generateMedCode(p){
+  const digits=p.replace(/\D/g,'').slice(-8);
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';
+  for(let i=0;i<8;i+=2){const n=parseInt(digits.slice(i,i+2));code+=chars[n%chars.length];}
   return 'MED-'+code.slice(0,4);
 }
 
-// ══════════════════════════════════════════════════════════════
-// PROFIL
-// ══════════════════════════════════════════════════════════════
-async function loadProfil() {
-  try {
-    const res = await fetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    const d = data.data || {};
-    const name = d.full_name || 'Dr. —';
-    const spec = d.specialty || 'Médecine générale';
-    const code = d.member_code || generateMedCode(phone);
-    const statut = d.status || 'pending';
-
-    document.getElementById('mc-name').textContent = name;
-    document.getElementById('mc-specialty').textContent = spec;
-    document.getElementById('mc-code').textContent = code;
-    document.getElementById('p-name').textContent = name;
-    document.getElementById('p-spec').textContent = spec;
-    document.getElementById('p-code').textContent = code;
-    document.getElementById('d-name').textContent = name;
-    document.getElementById('d-spec').textContent = spec;
-    document.getElementById('d-ordre').textContent = d.registration_number || '—';
-    document.getElementById('d-phone').textContent = phone;
-
-    const statutHtml = statut === 'verified'
-      ? '<span class="badge badge-actif">✅ Vérifié</span>'
-      : '<span class="badge badge-pending">⏳ En attente</span>';
-    document.getElementById('s-statut').innerHTML = statutHtml;
-    document.getElementById('d-statut').innerHTML = statutHtml;
-
-    if (statut !== 'verified') {
-      document.getElementById('bandeau-attente').style.display = 'flex';
-    }
-    if (d.available_hours) renderHoraires(d.available_hours);
-
-  } catch(e) {
-    document.getElementById('mc-name').textContent = 'Dr. Médecin';
-    document.getElementById('mc-code').textContent = generateMedCode(phone);
-  }
+function showTab(name,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='telemedicine')loadTeleRdv();
+  if(name==='rdv')loadRdv();
+  if(name==='patients')loadRdv();
+}
+function showTabMobile(name,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='telemedicine')loadTeleRdv();
+  if(name==='rdv'||name==='patients')loadRdv();
 }
 
-function renderHoraires(hours) {
-  const jours = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
-  const labels = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
-  let html = '<div class="horaires-grid">';
-  jours.forEach((j, i) => {
-    const h = hours[j];
-    const actif = h && h.start && h.end;
-    html += `<div class="horaire-day ${actif?'actif':''}">
-      <div class="day-name">${labels[i]}</div>
-      <div class="day-hours">${actif ? h.start+'–'+h.end : '—'}</div>
-    </div>`;
-  });
-  html += '</div>';
-  document.getElementById('horaires-display').innerHTML = html;
+async function loadProfil(){
+  try{
+    const res=await fetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    const d=data.data||{};
+    const name=d.full_name||'Dr. —';
+    const spec=d.specialty||'Médecine générale';
+    const code=d.member_code||generateMedCode(phone);
+    const statut=d.status||'pending';
+    document.getElementById('mc-name').textContent=name;
+    document.getElementById('mc-specialty').textContent=spec;
+    document.getElementById('mc-code').textContent=code;
+    document.getElementById('p-name').textContent=name;
+    document.getElementById('p-spec').textContent=spec;
+    document.getElementById('p-code').textContent=code;
+    document.getElementById('d-name').textContent=name;
+    document.getElementById('d-spec').textContent=spec;
+    document.getElementById('d-ordre').textContent=d.registration_number||'—';
+    document.getElementById('d-phone').textContent=phone;
+    const statutHtml=statut==='verified'?'<span class="badge badge-actif">✅ Vérifié</span>':'<span class="badge badge-pending">⏳ En attente</span>';
+    document.getElementById('s-statut').innerHTML=statutHtml;
+    document.getElementById('d-statut').innerHTML=statutHtml;
+    if(statut!=='verified')document.getElementById('bandeau-attente').style.display='flex';
+    if(d.available_hours)renderHoraires(d.available_hours);
+  }catch(e){document.getElementById('mc-name').textContent='Dr. Médecin';document.getElementById('mc-code').textContent=generateMedCode(phone);}
 }
 
-// ══════════════════════════════════════════════════════════════
-// RDV
-// ══════════════════════════════════════════════════════════════
-let allRdvData = [];
-
-async function loadRdv() {
-  try {
-    const res = await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    allRdvData = data.data || data || [];
-
-    const today = new Date().toISOString().split('T')[0];
-    const rdvAujourdhui = allRdvData.filter(r => {
-      const d = r.appointment_date || r.date || '';
-      return d.startsWith(today);
-    });
-    const rdvMois = allRdvData.filter(r => {
-      const d = new Date(r.appointment_date || r.date || r.created_at);
-      const now = new Date();
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    });
-
-    document.getElementById('s-today').textContent = rdvAujourdhui.length;
-    document.getElementById('s-month').textContent = rdvMois.length;
-    const uniquePatients = [...new Set(allRdvData.map(r => r.patient_phone))];
-    document.getElementById('s-patients').textContent = uniquePatients.length;
-
-    renderRdvList(rdvAujourdhui.length ? rdvAujourdhui : allRdvData.slice(0, 5), 'accueil-rdv');
-    renderRdvList(allRdvData, 'all-rdv');
-
-    const patientsEl = document.getElementById('patients-list');
-    if (!uniquePatients.length) {
-      patientsEl.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><p>Aucun patient pour l'instant.</p></div>`;
-    } else {
-      patientsEl.innerHTML = `<div class="patients-grid">${uniquePatients.map(p => {
-        const rdvPatient = allRdvData.filter(r => r.patient_phone === p);
-        return `<div class="patient-card">
-          <div style="font-size:24px;margin-bottom:10px;">👤</div>
-          <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${p}</div>
-          <div style="font-size:13px;color:var(--texte-doux);">${rdvPatient.length} RDV — dernier : ${rdvPatient[0] ? formatDate(rdvPatient[0].appointment_date || rdvPatient[0].date) : '—'}</div>
-        </div>`;
-      }).join('')}</div>`;
-    }
-
-  } catch(e) {
-    ['accueil-rdv','all-rdv'].forEach(id => {
-      document.getElementById(id).innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous pour l'instant.</p></div>`;
-    });
-  }
+function renderHoraires(hours){
+  const jours=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+  const labels=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  let html='<div class="horaires-grid">';
+  jours.forEach((j,i)=>{const h=hours[j];const actif=h&&h.start&&h.end;html+=`<div class="horaire-day ${actif?'actif':''}"><div class="day-name">${labels[i]}</div><div class="day-hours">${actif?h.start+'–'+h.end:'—'}</div></div>`;});
+  html+='</div>';
+  document.getElementById('horaires-display').innerHTML=html;
 }
 
-function renderRdvList(rdvs, containerId) {
-  const el = document.getElementById(containerId);
-  if (!rdvs || !rdvs.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous pour l'instant.</p></div>`;
-    return;
-  }
-  el.innerHTML = `<div class="rdv-list">${rdvs.map(r => {
-    const termine = r.status === 'termine' || r.status === 'completed';
-    const peutValider = !termine && r.session_code;
-    const dateRdv = r.appointment_date || r.date || '';
-    const heureRdv = (r.appointment_time || r.time || '—').substring(0,5);
-    return `
-    <div class="rdv-card ${termine?'rdv-termine':''}">
+let allRdvData=[];
+async function loadRdv(){
+  try{
+    const res=await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    allRdvData=data.data||data||[];
+    const today=new Date().toISOString().split('T')[0];
+    const rdvAujourdhui=allRdvData.filter(r=>(r.appointment_date||r.date||'').startsWith(today));
+    const rdvMois=allRdvData.filter(r=>{const d=new Date(r.appointment_date||r.date||r.created_at);const now=new Date();return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+    document.getElementById('s-today').textContent=rdvAujourdhui.length;
+    document.getElementById('s-month').textContent=rdvMois.length;
+    const uniquePatients=[...new Set(allRdvData.map(r=>r.patient_phone))];
+    document.getElementById('s-patients').textContent=uniquePatients.length;
+    renderRdvList(rdvAujourdhui.length?rdvAujourdhui:allRdvData.slice(0,5),'accueil-rdv');
+    renderRdvList(allRdvData,'all-rdv');
+    const patientsEl=document.getElementById('patients-list');
+    if(!uniquePatients.length){patientsEl.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><p>Aucun patient pour l'instant.</p></div>`;}
+    else{patientsEl.innerHTML=`<div class="patients-grid">${uniquePatients.map(p=>{const rdvPatient=allRdvData.filter(r=>r.patient_phone===p);return `<div class="patient-card"><div style="font-size:24px;margin-bottom:10px;">👤</div><div style="font-size:16px;font-weight:700;margin-bottom:4px;">${p}</div><div style="font-size:13px;color:var(--texte-doux);">${rdvPatient.length} RDV — dernier : ${rdvPatient[0]?formatDate(rdvPatient[0].appointment_date||rdvPatient[0].date):'—'}</div></div>`;}).join('')}</div>`;}
+  }catch(e){['accueil-rdv','all-rdv'].forEach(id=>{document.getElementById(id).innerHTML=`<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous pour l'instant.</p></div>`;});}
+}
+
+function renderRdvList(rdvs,containerId){
+  const el=document.getElementById(containerId);
+  if(!rdvs||!rdvs.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous pour l'instant.</p></div>`;return;}
+  el.innerHTML=`<div class="rdv-list">${rdvs.map(r=>{
+    const termine=r.status==='termine'||r.status==='completed';
+    const peutValider=!termine&&r.session_code;
+    const dateRdv=r.appointment_date||r.date||'';
+    const heureRdv=(r.appointment_time||r.time||'—').substring(0,5);
+    return `<div class="rdv-card ${termine?'rdv-termine':''}">
       <div class="rdv-card-top">
-        <div class="rdv-patient">
-          <div class="rdv-avatar">👤</div>
-          <div>
-            <div class="rdv-name">${r.patient_phone}</div>
-            <div class="rdv-phone">Code : <strong style="font-family:'Fraunces',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code || '—'}</strong></div>
-          </div>
-        </div>
+        <div class="rdv-patient"><div class="rdv-avatar">👤</div><div>
+          <div class="rdv-name">${r.patient_phone}</div>
+          <div class="rdv-phone">Code : <strong style="font-family:'Fraunces',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code||'—'}</strong></div>
+        </div></div>
         <span class="badge ${termine?'badge-termine':'badge-confirme'}">${termine?'✅ Terminé':'📅 Confirmé'}</span>
       </div>
-      <div class="rdv-meta">
-        <span>📅 <strong>${formatDate(dateRdv)}</strong></span>
-        <span>⏰ <strong>${heureRdv}</strong></span>
-      </div>
+      <div class="rdv-meta"><span>📅 <strong>${formatDate(dateRdv)}</strong></span><span>⏰ <strong>${heureRdv}</strong></span></div>
       <div class="rdv-actions">
-        ${peutValider ? `
-          <button class="btn-valider" onclick="ouvrirValidation('${r.id}','${r.patient_phone}','${r.session_code}','${dateRdv}','${heureRdv}')">
-            ✅ Valider la consultation
-          </button>
-          <button class="btn-tele" onclick="demarrerTeleconsultation('${r.id}','${r.session_code}','${r.patient_phone}')">
-            📹 Téléconsultation
-          </button>` : ''}
-        ${termine ? '<span style="font-size:13px;color:#047857;font-weight:600;">✅ Consultation terminée</span>' : ''}
+        ${peutValider?`
+          <button class="btn-valider" onclick="ouvrirValidation('${r.id}','${r.patient_phone}','${r.session_code}','${dateRdv}','${heureRdv}')">✅ Valider</button>
+          <button class="btn-tele" onclick="demarrerTeleconsultation('${r.id}','${r.session_code}','${r.patient_phone}')">📹 Téléconsultation</button>`:''}
+        ${termine?'<span style="font-size:13px;color:#047857;font-weight:600;">✅ Consultation terminée</span>':''}
       </div>
     </div>`;
   }).join('')}</div>`;
 }
 
-// ══════════════════════════════════════════════════════════════
-// VALIDATION CONSULTATION
-// ══════════════════════════════════════════════════════════════
-let currentRdv = {};
-let consultationStartTime = null;
+let currentRdv={};
+let consultationStartTime=null;
 
-function ouvrirValidation(rdvId, patientPhone, sessionCode, date, time) {
-  currentRdv = { rdvId, patientPhone, sessionCode, date, time };
-  consultationStartTime = Date.now();
-  fetch(`${API}/appointments/${rdvId}/open`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-  }).catch(() => {});
+function ouvrirValidation(rdvId,patientPhone,sessionCode,date,time){
+  currentRdv={rdvId,patientPhone,sessionCode,date,time};
+  consultationStartTime=Date.now();
+  fetch(`${API}/appointments/${rdvId}/open`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}}).catch(()=>{});
   afficherEtapeCode();
   document.getElementById('modal-validation').classList.add('open');
 }
 
-function afficherEtapeCode() {
-  document.getElementById('modal-content').innerHTML = `
-    <div class="step-indicator">
-      <div class="step active">1</div>
-      <div class="step-line"></div>
-      <div class="step pending">2</div>
-    </div>
+function afficherEtapeCode(){
+  document.getElementById('modal-content').innerHTML=`
+    <div class="step-indicator"><div class="step active">1</div><div class="step-line"></div><div class="step pending">2</div></div>
     <div class="modal-title">Valider la consultation</div>
-    <div class="modal-sub">
-      Patient : <strong>${currentRdv.patientPhone}</strong><br>
-      RDV : ${formatDate(currentRdv.date)} à ${currentRdv.time || '—'}<br><br>
-      Demandez au patient son <strong>code de session à 4 chiffres</strong>.
-    </div>
+    <div class="modal-sub">Patient : <strong>${currentRdv.patientPhone}</strong><br>RDV : ${formatDate(currentRdv.date)} à ${currentRdv.time||'—'}<br><br>Demandez au patient son <strong>code de session à 4 chiffres</strong>.</div>
     <div class="modal-section">
       <span class="modal-label">Code session patient</span>
       <div class="code-boxes">
-        <input class="code-box" type="text" maxlength="1" id="c1" oninput="nextBox(this,'c2')" onkeydown="prevBox(event,this,null)">
-        <input class="code-box" type="text" maxlength="1" id="c2" oninput="nextBox(this,'c3')" onkeydown="prevBox(event,this,'c1')">
-        <input class="code-box" type="text" maxlength="1" id="c3" oninput="nextBox(this,'c4')" onkeydown="prevBox(event,this,'c2')">
-        <input class="code-box" type="text" maxlength="1" id="c4" oninput="nextBox(this,null)" onkeydown="prevBox(event,this,'c3')">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c1" oninput="nextBox(this,'c2')" onkeydown="prevBox(event,this,null)">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c2" oninput="nextBox(this,'c3')" onkeydown="prevBox(event,this,'c1')">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c3" oninput="nextBox(this,'c4')" onkeydown="prevBox(event,this,'c2')">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c4" oninput="nextBox(this,null)" onkeydown="prevBox(event,this,'c3')">
       </div>
       <div class="code-error" id="code-error">Code incorrect — vérifiez avec le patient.</div>
     </div>
@@ -611,45 +481,32 @@ function afficherEtapeCode() {
       <button class="btn-cancel" onclick="fermerModal()">Annuler</button>
       <button class="btn-primary" onclick="verifierCode()">Vérifier →</button>
     </div>`;
-  setTimeout(() => document.getElementById('c1').focus(), 100);
+  setTimeout(()=>document.getElementById('c1').focus(),100);
 }
 
-function nextBox(el, nextId) {
-  el.value = el.value.replace(/\D/g,'');
-  if (el.value && nextId) document.getElementById(nextId).focus();
-}
-function prevBox(e, el, prevId) {
-  if (e.key === 'Backspace' && !el.value && prevId) document.getElementById(prevId).focus();
-}
+function nextBox(el,nextId){el.value=el.value.replace(/\D/g,'');if(el.value&&nextId)document.getElementById(nextId).focus();}
+function prevBox(e,el,prevId){if(e.key==='Backspace'&&!el.value&&prevId)document.getElementById(prevId).focus();}
 
-function verifierCode() {
-  const code = ['c1','c2','c3','c4'].map(id => document.getElementById(id).value).join('');
-  if (code.length < 4) return;
-  if (code !== currentRdv.sessionCode) {
-    document.getElementById('code-error').style.display = 'block';
-    ['c1','c2','c3','c4'].forEach(id => { document.getElementById(id).style.borderColor = 'var(--rouge)'; });
-    return;
-  }
+function verifierCode(){
+  const code=['c1','c2','c3','c4'].map(id=>document.getElementById(id).value).join('');
+  if(code.length<4)return;
+  if(code!==currentRdv.sessionCode){document.getElementById('code-error').style.display='block';['c1','c2','c3','c4'].forEach(id=>{document.getElementById(id).style.borderColor='var(--rouge)';});return;}
   afficherEtapeOrdonnance();
 }
 
-function afficherEtapeOrdonnance() {
-  document.getElementById('modal-content').innerHTML = `
-    <div class="step-indicator">
-      <div class="step done">✓</div>
-      <div class="step-line done"></div>
-      <div class="step active">2</div>
-    </div>
+function afficherEtapeOrdonnance(){
+  document.getElementById('modal-content').innerHTML=`
+    <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step active">2</div></div>
     <div class="modal-title">Rédiger l'ordonnance</div>
     <div class="modal-sub">Code validé ✅ — Rédigez l'ordonnance numérique pour ce patient.</div>
-    <div class="modal-hint">💡 Listez un médicament par ligne avec la posologie. Ex :<br><em>Paracétamol 1000mg — 3x/jour pendant 5 jours</em></div>
+    <div class="modal-hint">💡 Listez un médicament par ligne. Ex :<br><em>Paracétamol 1000mg — 3x/jour pendant 5 jours</em></div>
     <div class="form-group">
       <label class="form-label">Médicaments prescrits *</label>
       <textarea class="form-textarea" id="ord-medications" placeholder="Paracétamol 1000mg — 3x/jour pendant 5 jours&#10;Amoxicilline 500mg — 2x/jour pendant 7 jours"></textarea>
     </div>
     <div class="form-group">
       <label class="form-label">Instructions complémentaires</label>
-      <input class="form-input" id="ord-instructions" placeholder="Ex : Prendre après les repas, éviter l'alcool...">
+      <input class="form-input" id="ord-instructions" placeholder="Ex : Prendre après les repas…">
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="afficherEtapeCode()">← Retour</button>
@@ -657,196 +514,96 @@ function afficherEtapeOrdonnance() {
     </div>`;
 }
 
-async function confirmerValidation() {
-  const medications = document.getElementById('ord-medications').value.trim();
-  const instructions = document.getElementById('ord-instructions').value.trim();
-  if (!medications) {
-    document.getElementById('ord-medications').style.borderColor = 'var(--rouge)';
-    return;
-  }
-  const btn = document.getElementById('btn-confirmer');
-  btn.disabled = true; btn.textContent = 'Validation en cours...';
-  const dureeMinutes = Math.round((Date.now() - consultationStartTime) / 60000);
-  try {
-    await fetch(`${API}/appointments/${currentRdv.rdvId}/validate`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_code: currentRdv.sessionCode, consultation_duration_minutes: dureeMinutes })
-    });
-    const resPres = await fetch(`${API}/prescriptions/create`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        appointment_id: currentRdv.rdvId,
-        patient_phone: currentRdv.patientPhone,
-        doctor_phone: phone,
-        medications,
-        instructions: instructions || null
-      })
-    });
-    const dataPres = await resPres.json();
-    if (!resPres.ok) throw new Error(dataPres.message || 'Erreur ordonnance');
-    document.getElementById('modal-content').innerHTML = `
+async function confirmerValidation(){
+  const medications=document.getElementById('ord-medications').value.trim();
+  const instructions=document.getElementById('ord-instructions').value.trim();
+  if(!medications){document.getElementById('ord-medications').style.borderColor='var(--rouge)';return;}
+  const btn=document.getElementById('btn-confirmer');
+  btn.disabled=true;btn.textContent='Validation en cours…';
+  const dureeMinutes=Math.round((Date.now()-consultationStartTime)/60000);
+  try{
+    await fetch(`${API}/appointments/${currentRdv.rdvId}/validate`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({session_code:currentRdv.sessionCode,consultation_duration_minutes:dureeMinutes})});
+    const resPres=await fetch(`${API}/prescriptions/create`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,medications,instructions:instructions||null})});
+    const dataPres=await resPres.json();
+    if(!resPres.ok)throw new Error(dataPres.message||'Erreur ordonnance');
+    document.getElementById('modal-content').innerHTML=`
       <div class="validation-success">
         <div class="success-icon">✅</div>
         <div class="success-title">Consultation validée !</div>
         <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Fraunces',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong></div>
         <button class="btn-primary" onclick="fermerModal();loadRdv()">Fermer</button>
       </div>`;
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = '✅ Valider et créer l\'ordonnance';
-    alert('Erreur : ' + e.message);
-  }
+  }catch(e){btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
 }
 
-function fermerModal() {
-  document.getElementById('modal-validation').classList.remove('open');
-}
-document.getElementById('modal-validation').addEventListener('click', function(e) {
-  if (e.target === this) fermerModal();
-});
+function fermerModal(){document.getElementById('modal-validation').classList.remove('open');}
+document.getElementById('modal-validation').addEventListener('click',function(e){if(e.target===this)fermerModal();});
 
-// ══════════════════════════════════════════════════════════════
-// TÉLÉMÉDECINE JITSI
-// ══════════════════════════════════════════════════════════════
-let currentJitsiRdv = null;
-
-async function loadTeleRdv() {
-  try {
-    const res = await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    const rdvs = (data.data || data || []).filter(r =>
-      r.status === 'confirme' || r.status === 'en_cours'
-    );
-    const container = document.getElementById('tele-rdv-list');
-    if (!rdvs.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun RDV confirmé pour le moment.<br>Les téléconsultations apparaissent ici dès qu'un RDV est confirmé.</p></div>`;
-      return;
-    }
-    container.innerHTML = `<div class="rdv-list">${rdvs.map(r => {
-      const dateRdv = r.appointment_date || r.date || '';
-      const heureRdv = (r.appointment_time || r.time || '—').substring(0,5);
-      const isEnCours = r.status === 'en_cours';
-      return `
-        <div class="rdv-card" style="${isEnCours ? 'border-color:var(--vert);' : ''}">
-          <div class="rdv-card-top">
-            <div class="rdv-patient">
-              <div class="rdv-avatar">👤</div>
-              <div>
-                <div class="rdv-name">${r.patient_phone}</div>
-                <div class="rdv-phone">Code : <strong style="font-family:'Fraunces',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code}</strong></div>
-              </div>
-            </div>
-            ${isEnCours
-              ? '<span style="background:rgba(0,201,167,0.15);color:#047857;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;">🔴 En cours</span>'
-              : '<span class="badge badge-confirme">📅 Confirmé</span>'
-            }
-          </div>
-          <div class="rdv-meta">
-            <span>📅 <strong>${formatDate(dateRdv)}</strong></span>
-            <span>⏰ <strong>${heureRdv}</strong></span>
-          </div>
-          <div class="rdv-actions">
-            <button class="btn-tele" onclick="demarrerTeleconsultation('${r.id}','${r.session_code}','${r.patient_phone}')">
-              📹 ${isEnCours ? 'Reprendre la session' : 'Démarrer la téléconsultation'}
-            </button>
-          </div>
-        </div>`;
+let currentJitsiRdv=null;
+async function loadTeleRdv(){
+  try{
+    const res=await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    const rdvs=(data.data||data||[]).filter(r=>r.status==='confirme'||r.status==='en_cours');
+    const container=document.getElementById('tele-rdv-list');
+    if(!rdvs.length){container.innerHTML=`<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun RDV confirmé pour le moment.<br>Les téléconsultations apparaissent ici dès qu'un RDV est confirmé.</p></div>`;return;}
+    container.innerHTML=`<div class="rdv-list">${rdvs.map(r=>{
+      const dateRdv=r.appointment_date||r.date||'';
+      const heureRdv=(r.appointment_time||r.time||'—').substring(0,5);
+      const isEnCours=r.status==='en_cours';
+      return `<div class="rdv-card" style="${isEnCours?'border-color:var(--vert);':''}">
+        <div class="rdv-card-top">
+          <div class="rdv-patient"><div class="rdv-avatar">👤</div><div>
+            <div class="rdv-name">${r.patient_phone}</div>
+            <div class="rdv-phone">Code : <strong style="font-family:'Fraunces',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code}</strong></div>
+          </div></div>
+          ${isEnCours?'<span style="background:rgba(0,201,167,0.15);color:#047857;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;">🔴 En cours</span>':'<span class="badge badge-confirme">📅 Confirmé</span>'}
+        </div>
+        <div class="rdv-meta"><span>📅 <strong>${formatDate(dateRdv)}</strong></span><span>⏰ <strong>${heureRdv}</strong></span></div>
+        <div class="rdv-actions">
+          <button class="btn-tele" onclick="demarrerTeleconsultation('${r.id}','${r.session_code}','${r.patient_phone}')">📹 ${isEnCours?'Reprendre la session':'Démarrer la téléconsultation'}</button>
+        </div>
+      </div>`;
     }).join('')}</div>`;
-  } catch(e) {
-    document.getElementById('tele-rdv-list').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur de chargement.</p></div>`;
-  }
+  }catch(e){document.getElementById('tele-rdv-list').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur de chargement.</p></div>`;}
 }
 
-async function demarrerTeleconsultation(rdvId, sessionCode, patientPhone) {
-  try {
-    await fetch(`${API}/telemedicine/start`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ appointment_id: rdvId })
-    });
-  } catch(e) {
-    console.log('Notif patient non envoyée:', e.message);
-  }
-  currentJitsiRdv = { rdvId, sessionCode, role: 'doctor' };
-  ouvrirJitsi(rdvId, sessionCode, 'doctor');
+async function demarrerTeleconsultation(rdvId,sessionCode,patientPhone){
+  try{await fetch(`${API}/telemedicine/start`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:rdvId})});}catch(e){console.log('Notif patient non envoyée:',e.message);}
+  currentJitsiRdv={rdvId,sessionCode,role:'doctor'};
+  ouvrirJitsi(rdvId,sessionCode,'doctor');
 }
 
-function ouvrirJitsi(rdvId, sessionCode, role) {
-  const roomName = `bolamu-${sessionCode}-${rdvId}`;
-  const displayName = encodeURIComponent(role === 'doctor' ? `Dr. Bolamu` : phone);
-  const jitsiUrl = `https://meet.jit.si/${roomName}#userInfo.displayName="${displayName}"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
-
-  document.getElementById('jitsi-session-label').textContent = `Consultation — Patient ${sessionCode}`;
-  document.getElementById('jitsi-code-display').textContent = `Code: ${sessionCode}`;
-  document.getElementById('jitsi-iframe').src = jitsiUrl;
-  document.getElementById('modal-jitsi').style.display = 'flex';
-  document.getElementById('jitsi-loading').style.display = 'flex';
-  document.getElementById('jitsi-post-actions').style.display = 'none';
-
-  setTimeout(() => {
-    const loading = document.getElementById('jitsi-loading');
-    if (loading) loading.style.display = 'none';
-    document.getElementById('jitsi-post-actions').style.display = 'flex';
-  }, 4000);
+function ouvrirJitsi(rdvId,sessionCode,role){
+  const roomName=`bolamu-${sessionCode}-${rdvId}`;
+  const displayName=encodeURIComponent(role==='doctor'?'Dr. Bolamu':phone);
+  const jitsiUrl=`https://meet.jit.si/${roomName}#userInfo.displayName="${displayName}"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
+  document.getElementById('jitsi-session-label').textContent=`Consultation — Patient ${sessionCode}`;
+  document.getElementById('jitsi-code-display').textContent=`Code: ${sessionCode}`;
+  document.getElementById('jitsi-iframe').src=jitsiUrl;
+  document.getElementById('modal-jitsi').style.display='flex';
+  document.getElementById('jitsi-loading').style.display='flex';
+  document.getElementById('jitsi-post-actions').style.display='none';
+  setTimeout(()=>{const loading=document.getElementById('jitsi-loading');if(loading)loading.style.display='none';document.getElementById('jitsi-post-actions').style.display='flex';},4000);
 }
 
-function closeJitsi() {
-  document.getElementById('modal-jitsi').style.display = 'none';
-  document.getElementById('jitsi-iframe').src = '';
-  document.getElementById('jitsi-loading').style.display = 'flex';
-  document.getElementById('jitsi-post-actions').style.display = 'none';
-  currentJitsiRdv = null;
+function closeJitsi(){
+  document.getElementById('modal-jitsi').style.display='none';
+  document.getElementById('jitsi-iframe').src='';
+  document.getElementById('jitsi-loading').style.display='flex';
+  document.getElementById('jitsi-post-actions').style.display='none';
+  currentJitsiRdv=null;
 }
 
-function closeJitsiAndValidate() {
-  const rdv = currentJitsiRdv;
-  closeJitsi();
-  if (rdv) {
-    const found = allRdvData.find(r => String(r.id) === String(rdv.rdvId));
-    if (found) {
-      ouvrirValidation(
-        found.id,
-        found.patient_phone,
-        found.session_code,
-        found.appointment_date || found.date,
-        (found.appointment_time || found.time || '').substring(0,5)
-      );
-    }
-  }
+function closeJitsiAndValidate(){
+  const rdv=currentJitsiRdv;closeJitsi();
+  if(rdv){const found=allRdvData.find(r=>String(r.id)===String(rdv.rdvId));if(found){ouvrirValidation(found.id,found.patient_phone,found.session_code,found.appointment_date||found.date,(found.appointment_time||found.time||'').substring(0,5));}}
 }
 
-// ══════════════════════════════════════════════════════════════
-// UTILITAIRES
-// ══════════════════════════════════════════════════════════════
-function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
-}
+function formatDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});}
+function logout(){localStorage.removeItem('bolamu_token');localStorage.removeItem('bolamu_phone');localStorage.removeItem('bolamu_role');window.location.href='/login.html';}
 
-function showTab(name, btn) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  btn.classList.add('active');
-  if (name === 'telemedicine') loadTeleRdv();
-  if (name === 'rdv') loadRdv();
-  if (name === 'patients') loadRdv();
-}
-
-function logout() {
-  localStorage.removeItem('bolamu_token');
-  localStorage.removeItem('bolamu_phone');
-  localStorage.removeItem('bolamu_role');
-  window.location.href = '/login.html';
-}
-
-// INIT
-loadProfil();
-loadRdv();
+loadProfil();loadRdv();
 </script>
 </body>
 </html>

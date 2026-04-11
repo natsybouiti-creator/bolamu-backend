@@ -15,16 +15,18 @@
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bleu-pale);color:var(--texte);min-height:100vh;display:flex;flex-direction:column;}
+
+    /* ── TOPBAR ── */
     .topbar{padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);box-shadow:0 2px 20px rgba(10,36,99,0.06);}
-    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-    .logo-icon{width:36px;height:36px;background:var(--grad-btn);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
-    .logo-icon::after{content:'+';color:white;font-size:20px;font-weight:300;line-height:1;}
-    .logo-leaf{position:absolute;top:-3px;right:-2px;width:10px;height:10px;background:var(--vert);border-radius:50% 0 50% 0;transform:rotate(45deg);}
-    .logo-name{font-size:20px;font-weight:800;letter-spacing:-0.5px;color:var(--bleu);}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}    .logo-name{font-size:20px;font-weight:800;letter-spacing:-0.5px;color:var(--bleu);}
     .logo-name .t{color:var(--vert);}
     .topbar-link{font-size:14px;color:var(--texte-doux);text-decoration:none;font-weight:600;white-space:nowrap;}
-    .main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;}
+
+    /* ── MAIN ── */
+    .main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
     .card{background:white;border-radius:28px;padding:48px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(10,36,99,0.1);}
+
+    /* ── STEPS ── */
     .step-header{margin-bottom:32px;}
     .step-pills{display:flex;gap:6px;margin-bottom:20px;}
     .step-pill{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background 0.3s;}
@@ -33,6 +35,8 @@
     .step-label{font-size:12px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
     .step-title{font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:var(--texte);margin-bottom:6px;}
     .step-sub{font-size:14px;color:var(--texte-doux);line-height:1.6;}
+
+    /* ── FORMS ── */
     .form-group{margin-bottom:18px;}
     .form-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;}
     .form-label .required{color:var(--rouge);}
@@ -47,6 +51,8 @@
     .country-code:focus{border-color:var(--bleu-vif);}
     .error-msg{color:var(--rouge);font-size:12px;margin-top:6px;display:none;}
     .hint{font-size:12px;color:var(--texte-doux);margin-top:6px;line-height:1.5;}
+
+    /* ── ROLE CARDS ── */
     .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;}
     .role-card{border:2px solid var(--border);border-radius:16px;padding:18px;cursor:pointer;transition:all 0.2s;text-align:center;background:white;}
     .role-card:hover{border-color:var(--bleu-vif);background:var(--bleu-pale);}
@@ -55,70 +61,79 @@
     .role-name{font-size:14px;font-weight:700;color:var(--texte);margin-bottom:3px;}
     .role-desc{font-size:11px;color:var(--texte-doux);}
     .intl-badge{background:linear-gradient(135deg,#2E86FF,#7C3AED);color:white;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700;display:inline-block;margin-top:4px;}
-    .btn-primary{width:100%;padding:15px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:8px;}
+
+    /* ── BUTTONS ── */
+    .btn-primary{width:100%;padding:15px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:8px;min-height:52px;}
     .btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
     .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-    .btn-secondary{width:100%;padding:13px;background:transparent;color:var(--texte-doux);border:2px solid var(--border);border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:8px;}
+    .btn-secondary{width:100%;padding:13px;background:transparent;color:var(--texte-doux);border:2px solid var(--border);border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:8px;min-height:52px;}
     .btn-secondary:hover{border-color:var(--bleu-vif);color:var(--bleu);}
+
+    /* ── OTP ── */
     .otp-boxes{display:flex;gap:10px;justify-content:center;margin:20px 0;}
     .otp-box{width:52px;height:60px;border:2px solid var(--border);border-radius:14px;font-size:24px;font-weight:700;text-align:center;outline:none;font-family:'Fraunces',serif;color:var(--texte);transition:all 0.2s;}
     .otp-box:focus{border-color:var(--bleu-vif);box-shadow:0 0 0 4px rgba(46,134,255,0.08);}
+
+    /* ── SCORE ── */
     .score-bar-wrap{background:var(--bleu-pale);border-radius:14px;padding:16px;margin-bottom:18px;}
     .score-bar-top{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;}
     .score-bar-bg{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
     .score-bar-fill{height:100%;border-radius:4px;background:var(--grad-btn);transition:width 0.5s ease;}
     .score-label{font-weight:700;color:var(--bleu-vif);}
+
+    /* ── CGU ── */
     .cgu-box{background:var(--bleu-pale);border-radius:14px;padding:16px;max-height:120px;overflow-y:auto;font-size:12px;color:var(--texte-doux);line-height:1.6;margin-bottom:16px;}
     .checkbox-row{display:flex;align-items:flex-start;gap:10px;font-size:14px;cursor:pointer;}
-    .checkbox-row input[type="checkbox"]{width:18px;height:18px;cursor:pointer;flex-shrink:0;margin-top:2px;accent-color:var(--bleu-vif);}
+    .checkbox-row input[type="checkbox"]{width:20px;height:20px;cursor:pointer;flex-shrink:0;margin-top:2px;accent-color:var(--bleu-vif);}
+
+    /* ── UPLOAD ── */
     .upload-zone{border:2px dashed var(--border);border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;}
     .upload-zone:hover{border-color:var(--bleu-vif);background:var(--bleu-pale);}
     .upload-zone.uploaded{border-color:var(--vert);background:var(--vert-clair);}
     .upload-icon{font-size:28px;margin-bottom:8px;}
     .upload-text{font-size:13px;color:var(--texte-doux);}
+
+    /* ── ALERTS ── */
     .alert{padding:12px 16px;border-radius:12px;font-size:14px;margin-bottom:16px;}
     .alert-error{background:#fde8e8;border:1px solid rgba(231,76,60,0.2);color:var(--rouge);}
     .alert-success{background:var(--vert-clair);border:1px solid rgba(0,201,167,0.2);color:#047857;}
     .alert-info{background:var(--bleu-pale);border:1px solid var(--border);color:var(--texte-doux);}
     .intl-info{background:linear-gradient(135deg,rgba(46,134,255,0.08),rgba(124,58,237,0.08));border:1px solid rgba(46,134,255,0.2);border-radius:14px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--texte-doux);line-height:1.6;}
+
+    /* ── LANG CHIPS ── */
     .lang-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-    .lang-chip{padding:6px 14px;border:2px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;background:white;}
+    .lang-chip{padding:8px 14px;border:2px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;background:white;min-height:40px;display:flex;align-items:center;}
     .lang-chip.selected{border-color:var(--bleu-vif);background:var(--bleu-pale);color:var(--bleu);}
 
-    /* ── RESPONSIVE ─────────────────────────────────────────── */
+    /* ── RESPONSIVE ── */
     @media(max-width:600px){
       .topbar{padding:0 16px;height:56px;}
-      .logo-name{font-size:18px;}
       .topbar-link{font-size:12px;}
-      .main{padding:20px 12px 40px;}
+      .logo-name{font-size:17px;}
+      .main{padding:16px;}
       .card{padding:24px 16px;border-radius:20px;}
       .step-title{font-size:22px;}
       .form-row{grid-template-columns:1fr;}
-      .role-grid{grid-template-columns:1fr 1fr;}
-      .otp-boxes{gap:7px;}
-      .otp-box{width:44px;height:52px;font-size:20px;}
-      .btn-primary{font-size:15px;}
-      .phone-group{gap:8px;}
-      .country-code{width:95px;font-size:13px;}
-    }
-    @media(max-width:400px){
-      .role-grid{grid-template-columns:1fr 1fr;}
+      .role-grid{grid-template-columns:1fr 1fr;gap:8px;}
       .role-card{padding:14px 10px;}
-      .role-icon{font-size:22px;}
+      .role-icon{font-size:24px;}
       .role-name{font-size:13px;}
-      .otp-box{width:38px;height:46px;font-size:18px;}
-      .otp-boxes{gap:5px;}
+      .otp-box{width:44px;height:52px;font-size:20px;}
+      .otp-boxes{gap:6px;}
+      .phone-group{flex-direction:column;}
+      .country-code{width:100%;}
+      .btn-primary,.btn-secondary{font-size:15px;}
     }
-    @media(min-width:601px) and (max-width:900px){
-      .main{padding:32px 20px;}
-      .card{padding:36px 32px;}
+    @media(max-width:380px){
+      .otp-box{width:38px;height:48px;font-size:18px;}
+      .role-card{padding:12px 8px;}
     }
   </style>
 </head>
 <body>
 <div class="topbar">
   <a href="/" class="logo">
-    <div class="logo-icon"><div class="logo-leaf"></div></div>
+    <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
     <div class="logo-name">Bola<span class="t">mu</span></div>
   </a>
   <a href="/login.html" class="topbar-link">Déjà membre ? Se connecter →</a>
@@ -147,71 +162,54 @@
 const API = 'https://bolamu-backend.onrender.com/api/v1';
 
 const state = {
-  step: 1, role: '', phone: '', fullPhone: '', countryCode: '+242', isInternational: false,
-  firstName: '', lastName: '', gender: '', age: '', city: '', neighborhood: '',
-  fullName: '', specialty: '', registrationNumber: '', orderCountry: 'Congo-Brazzaville',
-  countryOfResidence: 'Congo-Brazzaville', consultationLanguages: ['Français'],
-  availableHours: {}, documentUrl: '', pharmacyName: '', responsibleName: '',
-  rccmNumber: '', labName: '', directorName: '', agrementNumber: '', trustScore: 30, cguAccepted: false
+  step:1,role:'',phone:'',fullPhone:'',countryCode:'+242',isInternational:false,
+  firstName:'',lastName:'',gender:'',age:'',city:'',neighborhood:'',
+  fullName:'',specialty:'',registrationNumber:'',orderCountry:'Congo-Brazzaville',
+  countryOfResidence:'Congo-Brazzaville',consultationLanguages:['Français'],
+  availableHours:{},documentUrl:'',
+  pharmacyName:'',responsibleName:'',rccmNumber:'',
+  labName:'',directorName:'',agrementNumber:'',
+  trustScore:30,cguAccepted:false
 };
 
-const COUNTRIES = [
-  { code: '+242', flag: '🇨🇬', name: 'Congo-Brazzaville' },
-  { code: '+243', flag: '🇨🇩', name: 'Congo-Kinshasa' },
-  { code: '+33',  flag: '🇫🇷', name: 'France' },
-  { code: '+32',  flag: '🇧🇪', name: 'Belgique' },
-  { code: '+1',   flag: '🇨🇦', name: 'Canada' },
-  { code: '+27',  flag: '🇿🇦', name: 'Afrique du Sud' },
-  { code: '+225', flag: '🇨🇮', name: 'Côte d\'Ivoire' },
-  { code: '+221', flag: '🇸🇳', name: 'Sénégal' },
-  { code: '+237', flag: '🇨🇲', name: 'Cameroun' },
-  { code: '+229', flag: '🇧🇯', name: 'Bénin' },
-  { code: '+228', flag: '🇹🇬', name: 'Togo' },
-  { code: '+224', flag: '🇬🇳', name: 'Guinée' },
-  { code: '+223', flag: '🇲🇱', name: 'Mali' },
-  { code: '+226', flag: '🇧🇫', name: 'Burkina Faso' },
-  { code: '+44',  flag: '🇬🇧', name: 'Royaume-Uni' },
-  { code: '+34',  flag: '🇪🇸', name: 'Espagne' },
-  { code: '+49',  flag: '🇩🇪', name: 'Allemagne' },
-  { code: '+39',  flag: '🇮🇹', name: 'Italie' },
-  { code: '+212', flag: '🇲🇦', name: 'Maroc' },
-  { code: '+216', flag: '🇹🇳', name: 'Tunisie' },
-  { code: '+213', flag: '🇩🇿', name: 'Algérie' },
-  { code: '+234', flag: '🇳🇬', name: 'Nigeria' },
-  { code: '+254', flag: '🇰🇪', name: 'Kenya' },
-  { code: '+255', flag: '🇹🇿', name: 'Tanzanie' },
-  { code: '+256', flag: '🇺🇬', name: 'Ouganda' },
+const COUNTRIES=[
+  {code:'+242',flag:'🇨🇬',name:'Congo-Brazzaville'},{code:'+243',flag:'🇨🇩',name:'Congo-Kinshasa'},
+  {code:'+33',flag:'🇫🇷',name:'France'},{code:'+32',flag:'🇧🇪',name:'Belgique'},
+  {code:'+1',flag:'🇨🇦',name:'Canada'},{code:'+27',flag:'🇿🇦',name:'Afrique du Sud'},
+  {code:'+225',flag:'🇨🇮',name:"Côte d'Ivoire"},{code:'+221',flag:'🇸🇳',name:'Sénégal'},
+  {code:'+237',flag:'🇨🇲',name:'Cameroun'},{code:'+229',flag:'🇧🇯',name:'Bénin'},
+  {code:'+228',flag:'🇹🇬',name:'Togo'},{code:'+224',flag:'🇬🇳',name:'Guinée'},
+  {code:'+223',flag:'🇲🇱',name:'Mali'},{code:'+226',flag:'🇧🇫',name:'Burkina Faso'},
+  {code:'+44',flag:'🇬🇧',name:'Royaume-Uni'},{code:'+34',flag:'🇪🇸',name:'Espagne'},
+  {code:'+49',flag:'🇩🇪',name:'Allemagne'},{code:'+39',flag:'🇮🇹',name:'Italie'},
+  {code:'+212',flag:'🇲🇦',name:'Maroc'},{code:'+216',flag:'🇹🇳',name:'Tunisie'},
+  {code:'+213',flag:'🇩🇿',name:'Algérie'},{code:'+234',flag:'🇳🇬',name:'Nigeria'},
+  {code:'+254',flag:'🇰🇪',name:'Kenya'},{code:'+255',flag:'🇹🇿',name:'Tanzanie'},
+  {code:'+256',flag:'🇺🇬',name:'Ouganda'},
 ];
 
-const SPECIALTIES = [
-  'Médecine générale','Cardiologie','Pédiatrie','Gynécologie-Obstétrique',
-  'Chirurgie générale','Orthopédie','Ophtalmologie','ORL','Dermatologie',
-  'Neurologie','Psychiatrie','Radiologie','Anesthésiologie','Urologie',
-  'Gastro-entérologie','Endocrinologie','Pneumologie','Infectiologie',
-  'Oncologie','Médecine interne','Médecine du travail','Médecine d\'urgence'
-];
+const SPECIALTIES=['Médecine générale','Cardiologie','Pédiatrie','Gynécologie-Obstétrique','Chirurgie générale','Orthopédie','Ophtalmologie','ORL','Dermatologie','Neurologie','Psychiatrie','Radiologie','Anesthésiologie','Urologie','Gastro-entérologie','Endocrinologie','Pneumologie','Infectiologie','Oncologie','Médecine interne','Médecine du travail','Médecine d\'urgence'];
+const LANGUAGES=['Français','Anglais','Portugais','Arabe','Lingala','Kikongo','Swahili','Espagnol'];
 
-const LANGUAGES = ['Français','Anglais','Portugais','Arabe','Lingala','Kikongo','Swahili','Espagnol'];
-
-function updateHeader(label, title, sub) {
-  document.getElementById('step-label').textContent = label;
-  document.getElementById('step-title').textContent = title;
-  document.getElementById('step-sub').textContent = sub;
-  for (let i = 1; i <= 4; i++) {
-    const pill = document.getElementById('pill-' + i);
-    pill.className = 'step-pill' + (i < state.step ? ' done' : i === state.step ? ' active' : '');
+function updateHeader(label,title,sub){
+  document.getElementById('step-label').textContent=label;
+  document.getElementById('step-title').textContent=title;
+  document.getElementById('step-sub').textContent=sub;
+  for(let i=1;i<=4;i++){
+    const pill=document.getElementById('pill-'+i);
+    pill.className='step-pill'+(i<state.step?' done':i===state.step?' active':'');
   }
 }
 
-function showAlert(msg, type = 'error') {
-  document.getElementById('alert-box').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
-  setTimeout(() => { document.getElementById('alert-box').innerHTML = ''; }, 5000);
+function showAlert(msg,type='error'){
+  document.getElementById('alert-box').innerHTML=`<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(()=>{document.getElementById('alert-box').innerHTML='';},5000);
 }
 
-function renderStep1() {
-  state.step = 1;
-  updateHeader('Étape 1 sur 4', 'Choisissez votre rôle', 'Bolamu s\'adapte à votre profil pour vous offrir la meilleure expérience.');
-  document.getElementById('step-content').innerHTML = `
+function renderStep1(){
+  state.step=1;
+  updateHeader('Étape 1 sur 4','Choisissez votre rôle','Bolamu s\'adapte à votre profil pour vous offrir la meilleure expérience.');
+  document.getElementById('step-content').innerHTML=`
     <div class="role-grid">
       <div class="role-card ${state.role==='patient'?'selected':''}" onclick="selectRole('patient')">
         <div class="role-icon">👤</div>
@@ -235,112 +233,80 @@ function renderStep1() {
         <div class="role-desc">Analyses médicales</div>
       </div>
     </div>
-    <button class="btn-primary" onclick="goStep2()" ${!state.role?'disabled':''} id="btn-step1">
-      Continuer →
-    </button>`;
+    <button class="btn-primary" onclick="goStep2()" ${!state.role?'disabled':''} id="btn-step1">Continuer →</button>`;
 }
 
-function selectRole(role) { state.role = role; renderStep1(); }
-function goStep2() { if (!state.role) return; renderStep2(); }
+function selectRole(role){state.role=role;renderStep1();}
+function goStep2(){if(!state.role)return;renderStep2();}
 
-function renderStep2() {
-  state.step = 2;
-  const isDoctor = state.role === 'doctor';
-  const isPatient = state.role === 'patient';
-  const roleLabels = { patient: 'Patient', doctor: 'Médecin', pharmacie: 'Pharmacie', laboratoire: 'Laboratoire' };
-  updateHeader('Étape 2 sur 4', 'Vos informations', `Créez votre compte ${roleLabels[state.role]} Bolamu.`);
+function renderStep2(){
+  state.step=2;
+  const isDoctor=state.role==='doctor';
+  const isPatient=state.role==='patient';
+  const roleLabels={patient:'Patient',doctor:'Médecin',pharmacie:'Pharmacie',laboratoire:'Laboratoire'};
+  updateHeader('Étape 2 sur 4','Vos informations',`Créez votre compte ${roleLabels[state.role]} Bolamu.`);
 
-  const countryOptions = COUNTRIES.map(c =>
-    `<option value="${c.code}" ${c.code === state.countryCode ? 'selected' : ''}>${c.flag} ${c.code}</option>`
-  ).join('');
+  const countryOptions=COUNTRIES.map(c=>`<option value="${c.code}" ${c.code===state.countryCode?'selected':''}>${c.flag} ${c.code}</option>`).join('');
+  let extraFields='';
 
-  let extraFields = '';
-  if (isPatient) {
-    extraFields = `
+  if(isPatient){
+    extraFields=`
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Prénom <span class="required">*</span></label>
-          <input class="form-input" id="f-firstname" type="text" placeholder="Votre prénom" value="${state.firstName}" oninput="state.firstName=this.value">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Nom <span class="required">*</span></label>
-          <input class="form-input" id="f-lastname" type="text" placeholder="Votre nom" value="${state.lastName}" oninput="state.lastName=this.value">
-        </div>
+        <div class="form-group"><label class="form-label">Prénom <span class="required">*</span></label>
+        <input class="form-input" id="f-firstname" type="text" placeholder="Votre prénom" value="${state.firstName}" oninput="state.firstName=this.value"></div>
+        <div class="form-group"><label class="form-label">Nom <span class="required">*</span></label>
+        <input class="form-input" id="f-lastname" type="text" placeholder="Votre nom" value="${state.lastName}" oninput="state.lastName=this.value"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Sexe <span class="required">*</span></label>
-          <select class="form-select" id="f-gender" onchange="state.gender=this.value">
-            <option value="">Choisir</option>
-            <option value="M" ${state.gender==='M'?'selected':''}>Masculin</option>
-            <option value="F" ${state.gender==='F'?'selected':''}>Féminin</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Âge <span class="required">*</span></label>
-          <input class="form-input" id="f-age" type="number" min="1" max="120" placeholder="Votre âge" value="${state.age}" oninput="state.age=this.value">
-        </div>
+        <div class="form-group"><label class="form-label">Sexe <span class="required">*</span></label>
+        <select class="form-select" id="f-gender" onchange="state.gender=this.value">
+          <option value="">Choisir</option>
+          <option value="M" ${state.gender==='M'?'selected':''}>Masculin</option>
+          <option value="F" ${state.gender==='F'?'selected':''}>Féminin</option>
+        </select></div>
+        <div class="form-group"><label class="form-label">Âge <span class="required">*</span></label>
+        <input class="form-input" id="f-age" type="number" min="1" max="120" placeholder="Votre âge" value="${state.age}" oninput="state.age=this.value"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Ville</label>
-          <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Quartier</label>
-          <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto, Bacongo..." value="${state.neighborhood}" oninput="state.neighborhood=this.value">
-        </div>
+        <div class="form-group"><label class="form-label">Ville</label>
+        <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value"></div>
+        <div class="form-group"><label class="form-label">Quartier</label>
+        <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto…" value="${state.neighborhood}" oninput="state.neighborhood=this.value"></div>
       </div>`;
-  } else if (isDoctor) {
-    extraFields = `
+  } else if(isDoctor){
+    extraFields=`
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Prénom <span class="required">*</span></label>
-          <input class="form-input" id="f-firstname" type="text" placeholder="Votre prénom" value="${state.firstName}" oninput="state.firstName=this.value">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Nom <span class="required">*</span></label>
-          <input class="form-input" id="f-lastname" type="text" placeholder="Votre nom" value="${state.lastName}" oninput="state.lastName=this.value">
-        </div>
+        <div class="form-group"><label class="form-label">Prénom <span class="required">*</span></label>
+        <input class="form-input" id="f-firstname" type="text" placeholder="Votre prénom" value="${state.firstName}" oninput="state.firstName=this.value"></div>
+        <div class="form-group"><label class="form-label">Nom <span class="required">*</span></label>
+        <input class="form-input" id="f-lastname" type="text" placeholder="Votre nom" value="${state.lastName}" oninput="state.lastName=this.value"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Pays de résidence <span class="required">*</span></label>
-        <select class="form-select" id="f-residence" onchange="state.countryOfResidence=this.options[this.selectedIndex].text;detectInternational()">
-          ${COUNTRIES.map(c=>`<option value="${c.code}" ${c.name===state.countryOfResidence?'selected':''}>${c.flag} ${c.name}</option>`).join('')}
-        </select>
-      </div>
+      <div class="form-group"><label class="form-label">Pays de résidence <span class="required">*</span></label>
+      <select class="form-select" id="f-residence" onchange="state.countryOfResidence=this.options[this.selectedIndex].text;detectInternational()">
+        ${COUNTRIES.map(c=>`<option value="${c.code}" ${c.name===state.countryOfResidence?'selected':''}>${c.flag} ${c.name}</option>`).join('')}
+      </select></div>
       <div id="intl-notice" style="display:none;" class="intl-info">
         🌍 <strong>Médecin international détecté</strong> — Vous pourrez consulter des patients africains en télémédecine depuis votre pays.
       </div>`;
-  } else if (state.role === 'pharmacie') {
-    extraFields = `
-      <div class="form-group">
-        <label class="form-label">Nom de la pharmacie <span class="required">*</span></label>
-        <input class="form-input" id="f-pharma-name" type="text" placeholder="Pharmacie Centrale..." value="${state.pharmacyName}" oninput="state.pharmacyName=this.value">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Nom du responsable <span class="required">*</span></label>
-        <input class="form-input" id="f-responsible" type="text" placeholder="Dr. Jean Mavoungou" value="${state.responsibleName}" oninput="state.responsibleName=this.value">
-      </div>`;
-  } else if (state.role === 'laboratoire') {
-    extraFields = `
-      <div class="form-group">
-        <label class="form-label">Nom du laboratoire <span class="required">*</span></label>
-        <input class="form-input" id="f-lab-name" type="text" placeholder="Labo BioAnalyse..." value="${state.labName}" oninput="state.labName=this.value">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Nom du directeur technique <span class="required">*</span></label>
-        <input class="form-input" id="f-director" type="text" placeholder="Dr. Marie Nkouka" value="${state.directorName}" oninput="state.directorName=this.value">
-      </div>`;
+  } else if(state.role==='pharmacie'){
+    extraFields=`
+      <div class="form-group"><label class="form-label">Nom de la pharmacie <span class="required">*</span></label>
+      <input class="form-input" id="f-pharma-name" type="text" placeholder="Pharmacie Centrale…" value="${state.pharmacyName}" oninput="state.pharmacyName=this.value"></div>
+      <div class="form-group"><label class="form-label">Nom du responsable <span class="required">*</span></label>
+      <input class="form-input" id="f-responsible" type="text" placeholder="Dr. Jean Mavoungou" value="${state.responsibleName}" oninput="state.responsibleName=this.value"></div>`;
+  } else if(state.role==='laboratoire'){
+    extraFields=`
+      <div class="form-group"><label class="form-label">Nom du laboratoire <span class="required">*</span></label>
+      <input class="form-input" id="f-lab-name" type="text" placeholder="Labo BioAnalyse…" value="${state.labName}" oninput="state.labName=this.value"></div>
+      <div class="form-group"><label class="form-label">Nom du directeur technique <span class="required">*</span></label>
+      <input class="form-input" id="f-director" type="text" placeholder="Dr. Marie Nkouka" value="${state.directorName}" oninput="state.directorName=this.value"></div>`;
   }
 
-  document.getElementById('step-content').innerHTML = `
+  document.getElementById('step-content').innerHTML=`
     <div class="form-group">
       <label class="form-label">Numéro de téléphone <span class="required">*</span></label>
       <div class="phone-group">
-        <select class="country-code" id="country-code" onchange="updateCountryCode(this.value)">
-          ${countryOptions}
-        </select>
+        <select class="country-code" id="country-code" onchange="updateCountryCode(this.value)">${countryOptions}</select>
         <input class="form-input" id="f-phone" type="tel" placeholder="06 XXX XX XX" value="${state.phone}" oninput="state.phone=this.value;updateFullPhone()">
       </div>
       <div class="hint">Ce numéro recevra votre code de vérification</div>
@@ -354,140 +320,113 @@ function renderStep2() {
   detectInternational();
 }
 
-function updateCountryCode(code) { state.countryCode = code; updateFullPhone(); detectInternational(); }
-function updateFullPhone() {
-  const num = document.getElementById('f-phone')?.value || '';
-  const clean = num.replace(/^0/, '').replace(/\s/g, '');
-  state.fullPhone = state.countryCode + clean;
+function updateCountryCode(code){state.countryCode=code;updateFullPhone();detectInternational();}
+function updateFullPhone(){
+  const num=document.getElementById('f-phone')?.value||'';
+  const clean=num.replace(/^0/,'').replace(/\s/g,'');
+  state.fullPhone=state.countryCode+clean;
 }
-function detectInternational() {
-  const noticeEl = document.getElementById('intl-notice');
-  if (!noticeEl) return;
-  const isIntl = state.countryCode !== '+242' && state.countryCode !== '+243';
-  state.isInternational = isIntl;
-  noticeEl.style.display = isIntl ? 'block' : 'none';
+function detectInternational(){
+  const noticeEl=document.getElementById('intl-notice');
+  if(!noticeEl)return;
+  const isIntl=state.countryCode!=='+242'&&state.countryCode!=='+243';
+  state.isInternational=isIntl;
+  noticeEl.style.display=isIntl?'block':'none';
 }
 
-function goStep3() {
+function goStep3(){
   updateFullPhone();
-  if (!state.fullPhone || state.fullPhone.length < 8) return showAlert('Veuillez entrer un numéro de téléphone valide.');
-  if (state.role === 'patient') {
-    if (!state.firstName || !state.lastName) return showAlert('Prénom et nom sont obligatoires.');
-    if (!state.gender) return showAlert('Veuillez indiquer votre sexe.');
-    if (!state.age || state.age < 1) return showAlert('Veuillez indiquer votre âge.');
+  if(!state.fullPhone||state.fullPhone.length<8)return showAlert('Veuillez entrer un numéro de téléphone valide.');
+  if(state.role==='patient'){
+    if(!state.firstName||!state.lastName)return showAlert('Prénom et nom sont obligatoires.');
+    if(!state.gender)return showAlert('Veuillez indiquer votre sexe.');
+    if(!state.age||state.age<1)return showAlert('Veuillez indiquer votre âge.');
   }
-  if (state.role === 'doctor' && (!state.firstName || !state.lastName)) return showAlert('Prénom et nom sont obligatoires.');
-  if (state.role === 'pharmacie' && !state.pharmacyName) return showAlert('Nom de la pharmacie obligatoire.');
-  if (state.role === 'laboratoire' && !state.labName) return showAlert('Nom du laboratoire obligatoire.');
+  if(state.role==='doctor'&&(!state.firstName||!state.lastName))return showAlert('Prénom et nom sont obligatoires.');
+  if(state.role==='pharmacie'&&!state.pharmacyName)return showAlert('Nom de la pharmacie obligatoire.');
+  if(state.role==='laboratoire'&&!state.labName)return showAlert('Nom du laboratoire obligatoire.');
   sendOTP();
 }
 
-async function sendOTP() {
-  const btn = document.querySelector('#step-content .btn-primary');
-  if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours...'; }
-  try {
-    const res = await fetch(`${API}/auth/request-otp`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: state.fullPhone })
-    });
-    const data = await res.json();
-    if (data.success || res.ok) { renderStep3(); }
-    else { showAlert(data.message || 'Erreur lors de l\'envoi du code.'); if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; } }
-  } catch(e) { showAlert('Erreur de connexion au serveur.'); if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; } }
+async function sendOTP(){
+  const btn=document.querySelector('#step-content .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='Envoi en cours…';}
+  try{
+    const res=await fetch(`${API}/auth/request-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:state.fullPhone})});
+    const data=await res.json();
+    if(data.success||res.ok){renderStep3();}
+    else{showAlert(data.message||'Erreur lors de l\'envoi du code.');if(btn){btn.disabled=false;btn.textContent='Continuer →';}}
+  }catch(e){showAlert('Erreur de connexion au serveur.');if(btn){btn.disabled=false;btn.textContent='Continuer →';}}
 }
 
-function renderStep3() {
-  state.step = 3;
-  updateHeader('Étape 3 sur 4', 'Vérification', `Code envoyé au ${state.fullPhone}`);
-  const isDoctor = state.role === 'doctor';
-  const isPharma = state.role === 'pharmacie';
-  const isLabo = state.role === 'laboratoire';
-  const isPro = isDoctor || isPharma || isLabo;
+function renderStep3(){
+  state.step=3;
+  updateHeader('Étape 3 sur 4','Vérification',`Code envoyé au ${state.fullPhone}`);
+  const isDoctor=state.role==='doctor';
+  const isPharma=state.role==='pharmacie';
+  const isLabo=state.role==='laboratoire';
+  const isPro=isDoctor||isPharma||isLabo;
+  let proFields='';
 
-  let proFields = '';
-  if (isDoctor) {
-    const specOptions = SPECIALTIES.map(s => `<option value="${s}" ${s===state.specialty?'selected':''}>${s}</option>`).join('');
-    const orderCountryOptions = COUNTRIES.map(c => `<option value="${c.name}" ${c.name===state.orderCountry?'selected':''}>${c.flag} ${c.name}</option>`).join('');
-    const langChips = LANGUAGES.map(l =>
-      `<div class="lang-chip ${state.consultationLanguages.includes(l)?'selected':''}" onclick="toggleLang('${l}')">${l}</div>`
-    ).join('');
-    proFields = `
+  if(isDoctor){
+    const specOptions=SPECIALTIES.map(s=>`<option value="${s}" ${s===state.specialty?'selected':''}>${s}</option>`).join('');
+    const orderCountryOptions=COUNTRIES.map(c=>`<option value="${c.name}" ${c.name===state.orderCountry?'selected':''}>${c.flag} ${c.name}</option>`).join('');
+    const langChips=LANGUAGES.map(l=>`<div class="lang-chip ${state.consultationLanguages.includes(l)?'selected':''}" onclick="toggleLang('${l}')">${l}</div>`).join('');
+    proFields=`
       <div class="form-group" style="margin-top:20px;">
         <label class="form-label">Spécialité <span class="required">*</span></label>
         <select class="form-select" id="f-specialty" onchange="state.specialty=this.value">
           <option value="">Choisir une spécialité</option>${specOptions}
         </select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Pays d'inscription à l'Ordre <span class="required">*</span></label>
-        <select class="form-select" id="f-order-country" onchange="state.orderCountry=this.options[this.selectedIndex].text">
-          ${orderCountryOptions}
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">N° d'inscription à l'Ordre des médecins <span class="required">*</span></label>
-        <input class="form-input" id="f-reg-number" type="text" placeholder="Ex: CMCB-2024-001" value="${state.registrationNumber}" oninput="state.registrationNumber=this.value;calcScore()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Langues de consultation</label>
-        <div class="lang-chips" id="lang-chips">${langChips}</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ville d'exercice</label>
-        <input class="form-input" id="f-city" type="text" placeholder="Brazzaville, Paris..." value="${state.city}" oninput="state.city=this.value">
-      </div>`;
-  } else if (isPharma) {
-    proFields = `
-      <div class="form-group" style="margin-top:20px;">
-        <label class="form-label">N° RCCM <span class="required">*</span></label>
-        <input class="form-input" id="f-rccm" type="text" placeholder="RCCM/CG/BZV/..." value="${state.rccmNumber}" oninput="state.rccmNumber=this.value;calcScore()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ville</label>
-        <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Quartier</label>
-        <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto, Bacongo..." value="${state.neighborhood}" oninput="state.neighborhood=this.value">
-      </div>`;
-  } else if (isLabo) {
-    proFields = `
-      <div class="form-group" style="margin-top:20px;">
-        <label class="form-label">N° Agrément santé <span class="required">*</span></label>
-        <input class="form-input" id="f-agrement" type="text" placeholder="AGR/MS/..." value="${state.agrementNumber}" oninput="state.agrementNumber=this.value;calcScore()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">N° RCCM</label>
-        <input class="form-input" id="f-rccm" type="text" placeholder="RCCM/CG/BZV/..." value="${state.rccmNumber}" oninput="state.rccmNumber=this.value;calcScore()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ville</label>
-        <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value">
-      </div>`;
+      <div class="form-group"><label class="form-label">Pays d'inscription à l'Ordre <span class="required">*</span></label>
+      <select class="form-select" id="f-order-country" onchange="state.orderCountry=this.options[this.selectedIndex].text">${orderCountryOptions}</select></div>
+      <div class="form-group"><label class="form-label">N° d'inscription à l'Ordre <span class="required">*</span></label>
+      <input class="form-input" id="f-reg-number" type="text" placeholder="Ex: CMCB-2024-001" value="${state.registrationNumber}" oninput="state.registrationNumber=this.value;calcScore()">
+      <div class="hint">Numéro délivré par l'Ordre des médecins de votre pays</div></div>
+      <div class="form-group"><label class="form-label">Langues de consultation</label>
+      <div class="lang-chips" id="lang-chips">${langChips}</div></div>
+      <div class="form-group"><label class="form-label">Ville d'exercice</label>
+      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville, Paris…" value="${state.city}" oninput="state.city=this.value"></div>`;
+  } else if(isPharma){
+    proFields=`
+      <div class="form-group" style="margin-top:20px;"><label class="form-label">N° RCCM <span class="required">*</span></label>
+      <input class="form-input" id="f-rccm" type="text" placeholder="RCCM/CG/BZV/…" value="${state.rccmNumber}" oninput="state.rccmNumber=this.value;calcScore()"></div>
+      <div class="form-group"><label class="form-label">Ville</label>
+      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value"></div>
+      <div class="form-group"><label class="form-label">Quartier</label>
+      <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto, Bacongo…" value="${state.neighborhood}" oninput="state.neighborhood=this.value"></div>`;
+  } else if(isLabo){
+    proFields=`
+      <div class="form-group" style="margin-top:20px;"><label class="form-label">N° Agrément santé <span class="required">*</span></label>
+      <input class="form-input" id="f-agrement" type="text" placeholder="AGR/MS/…" value="${state.agrementNumber}" oninput="state.agrementNumber=this.value;calcScore()"></div>
+      <div class="form-group"><label class="form-label">N° RCCM</label>
+      <input class="form-input" id="f-rccm" type="text" placeholder="RCCM/CG/BZV/…" value="${state.rccmNumber}" oninput="state.rccmNumber=this.value;calcScore()"></div>
+      <div class="form-group"><label class="form-label">Ville</label>
+      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value"></div>`;
   }
 
-  document.getElementById('step-content').innerHTML = `
+  document.getElementById('step-content').innerHTML=`
     <div style="text-align:center;margin-bottom:8px;">
       <p style="font-size:14px;color:var(--texte-doux);">Entrez le code à 6 chiffres reçu par SMS</p>
     </div>
     <div class="otp-boxes">
-      ${[1,2,3,4,5,6].map(i=>`<input class="otp-box" type="text" maxlength="1" id="otp${i}" oninput="otpNext(this,${i})" onkeydown="otpPrev(event,this,${i})">`).join('')}
+      ${[1,2,3,4,5,6].map(i=>`<input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp${i}" oninput="otpNext(this,${i})" onkeydown="otpPrev(event,this,${i})">`).join('')}
     </div>
     <div style="text-align:center;margin-bottom:16px;">
       <span style="font-size:13px;color:var(--texte-doux);">Pas reçu ? </span>
       <span style="font-size:13px;color:var(--bleu-vif);cursor:pointer;font-weight:600;" onclick="sendOTP()">Renvoyer le code</span>
     </div>
     ${proFields}
-    ${isPro ? `
+    ${isPro?`
     <div class="form-group">
       <label class="form-label">Document justificatif</label>
       <div class="upload-zone" id="upload-zone" onclick="document.getElementById('doc-input').click()">
         <input type="file" id="doc-input" style="display:none" accept="image/*,application/pdf" onchange="uploadDoc(this)">
         <div class="upload-icon" id="upload-icon">📄</div>
-        <div class="upload-text" id="upload-text">Cliquez pour uploader votre document<br><span style="font-size:11px;">Diplôme, carte professionnelle (PDF ou image)</span></div>
+        <div class="upload-text" id="upload-text">Cliquez pour uploader<br><span style="font-size:11px;">Diplôme, carte pro, certificat (PDF ou image)</span></div>
       </div>
-    </div>` : ''}
-    ${isPro ? `
+    </div>
     <div class="score-bar-wrap">
       <div class="score-bar-top">
         <span style="font-weight:600;font-size:13px;">Score de confiance</span>
@@ -495,89 +434,79 @@ function renderStep3() {
       </div>
       <div class="score-bar-bg"><div class="score-bar-fill" id="score-fill" style="width:${state.trustScore}%"></div></div>
       <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;">Plus votre profil est complet, plus vous serez mis en avant.</p>
-    </div>` : ''}
+    </div>`:''}
     <div style="display:flex;gap:10px;">
       <button class="btn-secondary" onclick="renderStep2()" style="flex:0.4;">← Retour</button>
       <button class="btn-primary" onclick="verifyOTPAndNext()" style="flex:1;margin-top:0;" id="btn-verify">Vérifier →</button>
     </div>`;
 
-  setTimeout(() => document.getElementById('otp1')?.focus(), 100);
+  setTimeout(()=>document.getElementById('otp1')?.focus(),100);
   calcScore();
 }
 
-function otpNext(el, i) { el.value = el.value.replace(/\D/g, ''); if (el.value && i < 6) document.getElementById('otp' + (i+1))?.focus(); }
-function otpPrev(e, el, i) { if (e.key === 'Backspace' && !el.value && i > 1) document.getElementById('otp' + (i-1))?.focus(); }
+function otpNext(el,i){el.value=el.value.replace(/\D/g,'');if(el.value&&i<6)document.getElementById('otp'+(i+1))?.focus();}
+function otpPrev(e,el,i){if(e.key==='Backspace'&&!el.value&&i>1)document.getElementById('otp'+(i-1))?.focus();}
 
-function toggleLang(lang) {
-  const idx = state.consultationLanguages.indexOf(lang);
-  if (idx >= 0) state.consultationLanguages.splice(idx, 1); else state.consultationLanguages.push(lang);
-  document.querySelectorAll('.lang-chip').forEach(el => {
-    el.className = 'lang-chip' + (state.consultationLanguages.includes(el.textContent) ? ' selected' : '');
+function toggleLang(lang){
+  const idx=state.consultationLanguages.indexOf(lang);
+  if(idx>=0)state.consultationLanguages.splice(idx,1);
+  else state.consultationLanguages.push(lang);
+  document.querySelectorAll('.lang-chip').forEach(el=>{
+    el.className='lang-chip'+(state.consultationLanguages.includes(el.textContent)?' selected':'');
   });
 }
 
-function calcScore() {
-  let score = 30;
-  if (state.role === 'doctor') {
-    if (state.registrationNumber) score += 30; if (state.documentUrl) score += 25;
-    if (state.specialty) score += 10; if (state.isInternational && state.registrationNumber) score += 5;
-  } else if (state.role === 'pharmacie') {
-    if (state.rccmNumber) score += 35; if (state.documentUrl) score += 25; if (state.responsibleName) score += 10;
-  } else if (state.role === 'laboratoire') {
-    if (state.agrementNumber) score += 35; if (state.rccmNumber) score += 10; if (state.documentUrl) score += 25;
-  }
-  state.trustScore = Math.min(score, 100);
-  const scoreEl = document.getElementById('score-val');
-  const fillEl = document.getElementById('score-fill');
-  if (scoreEl) scoreEl.textContent = state.trustScore + '/100';
-  if (fillEl) fillEl.style.width = state.trustScore + '%';
+function calcScore(){
+  let score=30;
+  if(state.role==='doctor'){if(state.registrationNumber)score+=30;if(state.documentUrl)score+=25;if(state.specialty)score+=10;if(state.isInternational&&state.registrationNumber)score+=5;}
+  else if(state.role==='pharmacie'){if(state.rccmNumber)score+=35;if(state.documentUrl)score+=25;if(state.responsibleName)score+=10;}
+  else if(state.role==='laboratoire'){if(state.agrementNumber)score+=35;if(state.rccmNumber)score+=10;if(state.documentUrl)score+=25;}
+  state.trustScore=Math.min(score,100);
+  const scoreEl=document.getElementById('score-val');
+  const fillEl=document.getElementById('score-fill');
+  if(scoreEl)scoreEl.textContent=state.trustScore+'/100';
+  if(fillEl)fillEl.style.width=state.trustScore+'%';
 }
 
-async function uploadDoc(input) {
-  const file = input.files[0]; if (!file) return;
-  const zone = document.getElementById('upload-zone');
-  const icon = document.getElementById('upload-icon');
-  const text = document.getElementById('upload-text');
-  zone.className = 'upload-zone'; icon.textContent = '⏳'; text.textContent = 'Upload en cours...';
-  try {
-    const formData = new FormData(); formData.append('file', file); formData.append('upload_preset', 'bolamu_docs');
-    const res = await fetch('https://api.cloudinary.com/v1_1/bolamu/raw/upload', { method:'POST', body:formData });
-    const data = await res.json();
-    if (data.secure_url) {
-      state.documentUrl = data.secure_url; zone.className = 'upload-zone uploaded';
-      icon.textContent = '✅'; text.textContent = file.name + ' — Uploadé avec succès'; calcScore();
-    }
-  } catch(e) { icon.textContent = '❌'; text.textContent = 'Erreur upload. Réessayez.'; }
+async function uploadDoc(input){
+  const file=input.files[0];if(!file)return;
+  const zone=document.getElementById('upload-zone');
+  const icon=document.getElementById('upload-icon');
+  const text=document.getElementById('upload-text');
+  zone.className='upload-zone';icon.textContent='⏳';text.textContent='Upload en cours…';
+  try{
+    const formData=new FormData();formData.append('file',file);formData.append('upload_preset','bolamu_docs');
+    const res=await fetch('https://api.cloudinary.com/v1_1/bolamu/raw/upload',{method:'POST',body:formData});
+    const data=await res.json();
+    if(data.secure_url){state.documentUrl=data.secure_url;zone.className='upload-zone uploaded';icon.textContent='✅';text.textContent=file.name+' — Uploadé avec succès';calcScore();}
+  }catch(e){icon.textContent='❌';text.textContent='Erreur upload. Réessayez.';}
 }
 
-async function verifyOTPAndNext() {
-  const code = [1,2,3,4,5,6].map(i => document.getElementById('otp'+i)?.value || '').join('');
-  if (code.length < 6) return showAlert('Entrez les 6 chiffres du code.');
-  if (state.role === 'doctor' && !state.specialty) return showAlert('Choisissez votre spécialité.');
-  if (state.role === 'doctor' && !state.registrationNumber) return showAlert('Le numéro d\'ordre est obligatoire.');
-  const btn = document.getElementById('btn-verify');
-  btn.disabled = true; btn.textContent = 'Vérification...';
-  try {
-    const res = await fetch(`${API}/auth/verify-otp`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: state.fullPhone, otp: code })
-    });
-    const data = await res.json();
-    if (data.success) { renderStep4(); }
-    else { showAlert(data.message || 'Code incorrect.'); btn.disabled = false; btn.textContent = 'Vérifier →'; }
-  } catch(e) { showAlert('Erreur de connexion.'); btn.disabled = false; btn.textContent = 'Vérifier →'; }
+async function verifyOTPAndNext(){
+  const code=[1,2,3,4,5,6].map(i=>document.getElementById('otp'+i)?.value||'').join('');
+  if(code.length<6)return showAlert('Entrez les 6 chiffres du code.');
+  if(state.role==='doctor'&&!state.specialty)return showAlert('Choisissez votre spécialité.');
+  if(state.role==='doctor'&&!state.registrationNumber)return showAlert('Le numéro d\'ordre est obligatoire.');
+  const btn=document.getElementById('btn-verify');
+  btn.disabled=true;btn.textContent='Vérification…';
+  try{
+    const res=await fetch(`${API}/auth/verify-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:state.fullPhone,otp:code})});
+    const data=await res.json();
+    if(data.success){renderStep4();}
+    else{showAlert(data.message||'Code incorrect.');btn.disabled=false;btn.textContent='Vérifier →';}
+  }catch(e){showAlert('Erreur de connexion.');btn.disabled=false;btn.textContent='Vérifier →';}
 }
 
-function renderStep4() {
-  state.step = 4;
-  updateHeader('Étape 4 sur 4', 'Conditions d\'utilisation', 'Dernière étape avant d\'accéder à Bolamu.');
-  document.getElementById('step-content').innerHTML = `
+function renderStep4(){
+  state.step=4;
+  updateHeader('Étape 4 sur 4','Conditions d\'utilisation','Dernière étape avant d\'accéder à Bolamu.');
+  document.getElementById('step-content').innerHTML=`
     <div class="cgu-box">
       <strong>Conditions Générales d'Utilisation Bolamu</strong><br><br>
       <strong>1. Responsabilité médicale</strong> — Les médecins inscrits sont seuls responsables de leurs actes médicaux. Bolamu est une infrastructure numérique.<br><br>
-      <strong>2. Données personnelles</strong> — Vos données de santé sont chiffrées (AES-256) et ne sont jamais partagées sans votre consentement.<br><br>
-      <strong>3. Paiements</strong> — Les transactions via MTN MoMo sont sécurisées. Bolamu perçoit une commission sur chaque transaction.<br><br>
-      <strong>4. Utilisation</strong> — Toute fraude, fausse identité ou usage abusif entraîne la suspension immédiate du compte.<br><br>
+      <strong>2. Données personnelles</strong> — Vos données de santé sont chiffrées (AES-256) et ne sont jamais partagées sans votre consentement explicite.<br><br>
+      <strong>3. Paiements</strong> — Les transactions via MTN MoMo sont sécurisées. Bolamu perçoit une commission de service.<br><br>
+      <strong>4. Utilisation</strong> — Toute fraude ou usage abusif entraîne la suspension immédiate du compte.<br><br>
       <strong>5. Médecins internationaux</strong> — Les médecins étrangers certifient être en règle avec l'ordre de leur pays.<br><br>
       <strong>6. Droit applicable</strong> — Ces CGU sont soumises au droit de la République du Congo.
     </div>
@@ -589,54 +518,32 @@ function renderStep4() {
     </div>
     <div style="display:flex;gap:10px;">
       <button class="btn-secondary" onclick="renderStep3()" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" onclick="finalRegister()" style="flex:1;margin-top:0;" id="btn-register">
-        ✅ Créer mon compte Bolamu
-      </button>
+      <button class="btn-primary" onclick="finalRegister()" style="flex:1;margin-top:0;" id="btn-register">✅ Créer mon compte Bolamu</button>
     </div>`;
 }
 
-async function finalRegister() {
-  if (!state.cguAccepted) return showAlert('Veuillez accepter les CGU pour continuer.');
-  const btn = document.getElementById('btn-register');
-  btn.disabled = true; btn.textContent = 'Création en cours...';
-  try {
-    let payload = {
-      phone: state.fullPhone, role: state.role, cgu_accepted: true,
-      trust_score: state.trustScore, document_url: state.documentUrl || null,
-      city: state.city || null, neighborhood: state.neighborhood || null,
-    };
-    if (state.role === 'patient') {
-      payload.first_name = state.firstName; payload.last_name = state.lastName;
-      payload.full_name = `${state.firstName} ${state.lastName}`.trim();
-      payload.gender = state.gender; payload.age = parseInt(state.age);
-    } else if (state.role === 'doctor') {
-      payload.full_name = `Dr. ${state.firstName} ${state.lastName}`.trim();
-      payload.specialty = state.specialty; payload.registration_number = state.registrationNumber;
-      payload.order_country = state.orderCountry; payload.country_of_residence = state.countryOfResidence;
-      payload.consultation_languages = state.consultationLanguages.join(', ');
-      payload.is_international = state.isInternational;
-    } else if (state.role === 'pharmacie') {
-      payload.name = state.pharmacyName; payload.responsible_name = state.responsibleName;
-      payload.rccm_number = state.rccmNumber;
-    } else if (state.role === 'laboratoire') {
-      payload.name = state.labName; payload.director_name = state.directorName;
-      payload.agrement_number = state.agrementNumber; payload.rccm_number = state.rccmNumber;
-    }
-    const endpoint = { patient:'/auth/register/patient', doctor:'/auth/register/doctor', pharmacie:'/auth/register/pharmacie', laboratoire:'/auth/register/laboratoire' }[state.role];
-    const res = await fetch(`${API}${endpoint}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-    const data = await res.json();
-    if (data.success) {
-      if (data.token) localStorage.setItem('bolamu_token', data.token);
-      localStorage.setItem('bolamu_phone', state.fullPhone);
-      localStorage.setItem('bolamu_role', state.role);
-      const redirects = { patient:'/patient/dashboard.html', doctor:'/medecin/dashboard.html', pharmacie:'/pharmacie/dashboard.html', laboratoire:'/laboratoire/dashboard.html' };
-      showAlert('Compte créé avec succès ! Redirection...', 'success');
-      setTimeout(() => { window.location.href = redirects[state.role]; }, 1500);
-    } else {
-      showAlert(data.message || 'Erreur lors de la création du compte.');
-      btn.disabled = false; btn.textContent = '✅ Créer mon compte Bolamu';
-    }
-  } catch(e) { showAlert('Erreur de connexion au serveur.'); btn.disabled = false; btn.textContent = '✅ Créer mon compte Bolamu'; }
+async function finalRegister(){
+  if(!state.cguAccepted)return showAlert('Veuillez accepter les CGU pour continuer.');
+  const btn=document.getElementById('btn-register');
+  btn.disabled=true;btn.textContent='Création en cours…';
+  try{
+    let payload={phone:state.fullPhone,role:state.role,cgu_accepted:true,trust_score:state.trustScore,document_url:state.documentUrl||null,city:state.city||null,neighborhood:state.neighborhood||null};
+    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);}
+    else if(state.role==='doctor'){payload.full_name=`Dr. ${state.firstName} ${state.lastName}`.trim();payload.specialty=state.specialty;payload.registration_number=state.registrationNumber;payload.order_country=state.orderCountry;payload.country_of_residence=state.countryOfResidence;payload.consultation_languages=state.consultationLanguages.join(', ');payload.is_international=state.isInternational;}
+    else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;}
+    else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;}
+    const endpoint={patient:'/auth/register/patient',doctor:'/auth/register/doctor',pharmacie:'/auth/register/pharmacie',laboratoire:'/auth/register/laboratoire'}[state.role];
+    const res=await fetch(`${API}${endpoint}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(data.success){
+      if(data.token)localStorage.setItem('bolamu_token',data.token);
+      localStorage.setItem('bolamu_phone',state.fullPhone);
+      localStorage.setItem('bolamu_role',state.role);
+      const redirects={patient:'/patient/dashboard.html',doctor:'/medecin/dashboard.html',pharmacie:'/pharmacie/dashboard.html',laboratoire:'/laboratoire/dashboard.html'};
+      showAlert('Compte créé avec succès ! Redirection…','success');
+      setTimeout(()=>{window.location.href=redirects[state.role];},1500);
+    }else{showAlert(data.message||'Erreur lors de la création du compte.');btn.disabled=false;btn.textContent='✅ Créer mon compte Bolamu';}
+  }catch(e){showAlert('Erreur de connexion au serveur.');btn.disabled=false;btn.textContent='✅ Créer mon compte Bolamu';}
 }
 
 renderStep1();
