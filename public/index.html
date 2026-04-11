@@ -19,9 +19,6 @@
         html{scroll-behavior:smooth;}
         body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);background:var(--blanc);overflow-x:hidden;}
         .logo-svg{display:flex;align-items:center;gap:10px;text-decoration:none;}
-        .logo-icon{width:40px;height:40px;background:var(--grad-btn);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
-        .logo-icon::after{content:'+';color:white;font-size:22px;font-weight:300;line-height:1;}
-        .logo-leaf{position:absolute;top:-4px;right:-2px;width:12px;height:12px;background:#00C9A7;border-radius:50% 0 50% 0;transform:rotate(45deg);}
         .logo-name{font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
         .logo-name-blue{color:var(--bleu);} .logo-name-teal{color:var(--vert);}
         .logo-tagline{font-size:10px;font-weight:500;color:var(--texte-doux);letter-spacing:0.5px;text-transform:uppercase;}
@@ -196,9 +193,6 @@
         footer{background:var(--bleu);color:white;padding:60px 40px;}
         .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:40px;}
         .footer-logo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-        .footer-logo-icon{width:34px;height:34px;background:var(--grad-btn);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
-        .footer-logo-icon::after{content:'+';color:white;font-size:18px;font-weight:300;}
-        .footer-logo-leaf{position:absolute;top:-3px;right:-2px;width:10px;height:10px;background:#00C9A7;border-radius:50% 0 50% 0;transform:rotate(45deg);}
         .footer-logo-name{font-size:20px;font-weight:800;}
         .footer-logo-name .w{color:white;} .footer-logo-name .t{color:#00C9A7;}
         .footer-desc{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.75;margin-bottom:20px;}
@@ -268,7 +262,7 @@
 
 <nav>
     <a href="#" class="logo-svg">
-        <div class="logo-icon"><div class="logo-leaf"></div></div>
+        <svg width="40" height="40" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
         <div>
             <div class="logo-name"><span class="logo-name-blue">Bola</span><span class="logo-name-teal">mu</span></div>
             <div class="logo-tagline">La santé simple et accessible</div>
@@ -569,7 +563,7 @@
     <div class="footer-grid">
         <div>
             <div class="footer-logo-wrap">
-                <div class="footer-logo-icon"><div class="footer-logo-leaf"></div></div>
+                <svg width="34" height="34" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
                 <div class="footer-logo-name"><span class="w">Bola</span><span class="t">mu</span></div>
             </div>
             <p class="footer-desc">Plateforme numérique de mise en relation entre patients et professionnels de santé indépendants. La santé simple et accessible, partout en Afrique.</p>
@@ -651,7 +645,6 @@ async function requestOtp() {
         if (!age || age < 1) return showMessage('Veuillez entrer votre âge', 'error');
     }
 
-    // CORRECTION : sauvegarde le numéro dans sessionStorage
     sessionStorage.setItem('bolamu_otp_phone', phone);
 
     try {
@@ -689,7 +682,6 @@ async function verifyOtp() {
     const otp = digits.map(function(id){ return document.getElementById(id).value; }).join('');
     if (otp.length !== 6) return showMessage('Entrez les 6 chiffres', 'error');
 
-    // CORRECTION : récupère le numéro depuis sessionStorage
     const phone = sessionStorage.getItem('bolamu_otp_phone') || '';
     if (!phone) return showMessage('Session expirée, veuillez recommencer', 'error');
 
@@ -709,7 +701,6 @@ async function verifyOtp() {
         });
         const data = await res.json();
         if (res.ok && data.success) {
-            // CORRECTION : nettoyage après connexion réussie
             sessionStorage.removeItem('bolamu_otp_phone');
             localStorage.setItem('bolamu_token', data.token);
             localStorage.setItem('bolamu_phone', data.phone);
