@@ -612,7 +612,13 @@ function generateCode(p){
   return 'BLM-'+code.slice(0,4)+code.slice(4);
 }
 const memberCode=generateCode(phone);
-
+function handleRdv(doctorId, doctorName) {
+  if (hasActiveSubscription) {
+    prendreRdv(doctorId, doctorName);
+  } else {
+    openPayment('essentiel');
+  }
+}
 function initQR(){
   document.getElementById('qrcode').innerHTML='';
   new QRCode(document.getElementById('qrcode'),{text:memberCode,width:130,height:130,colorDark:'#0A2463',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
@@ -991,9 +997,9 @@ async function loadDoctors(){
           <div><div class="doctor-name">${d.full_name}</div><div class="doctor-meta">${d.city}${d.neighborhood?' · '+d.neighborhood:''}</div></div>
         </div>
         <div class="doctor-tags"><span class="doctor-tag">👨‍⚕️ ${d.specialty}</span><span class="doctor-tag">📊 ${d.total_consultations} consult.</span></div>
-        <button class="btn-rdv" onclick="${hasActiveSubscription?`prendreRdv(${d.id},'${d.full_name.replace(/'/g,"\\'")}')`:``openPayment('essentiel')``}">
-          ${hasActiveSubscription?'Prendre rendez-vous →':'🔒 Abonnez-vous pour réserver →'}
-        </button>
+        <button class="btn-rdv" onclick="handleRdv(${d.id},'${d.full_name.replace(/'/g, "\\'")}')">
+  ${hasActiveSubscription?'Prendre rendez-vous →':'🔒 Abonnez-vous pour réserver →'}
+</button>
       </div>`).join('');
   }catch{document.getElementById('doctors-grid').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur.</p></div>`;}
 }
@@ -1017,7 +1023,10 @@ function renderPartners(){
 function showAlert(msg,type){document.getElementById('alert-box').innerHTML=`<div class="alert alert-${type}">⚠️ ${msg}</div>`;}
 
 function logout(){localStorage.removeItem('bolamu_token');localStorage.removeItem('bolamu_phone');window.location.href='/';}
-
+function handleRdv(doctorId, doctorName) {
+  if (hasActiveSubscription) prendreRdv(doctorId, doctorName);
+  else openPayment('essentiel');
+}
 // INIT
 document.getElementById('topbar-phone').textContent=phone;
 document.getElementById('card-phone').textContent=phone;
