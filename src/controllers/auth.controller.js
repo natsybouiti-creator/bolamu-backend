@@ -67,52 +67,115 @@ async function verifyOtp(req, res) {
 
 // ============================================================
 // 3. LOGIN COMPLET (OTP → JWT → DASHBOARD)
+//    Si le numéro n'existe pas et que les données patient
+//    sont présentes, on crée le compte automatiquement.
 // ============================================================
 async function login(req, res) {
-    const { phone, otp } = req.body;
+    const { phone, otp, prenom, nom, sexe, age } = req.body;
     if (!phone || !otp) return res.status(400).json({ success: false, message: "Téléphone et OTP requis" });
 
     try {
+        // ── Vérification OTP ──
         const otpResult = await pool.query(`SELECT * FROM otp_codes WHERE phone = $1`, [phone]);
-        if (otpResult.rows.length === 0) return res.status(404).json({ success: false, message: "OTP non trouvé" });
+        if (otpResult.rows.length === 0) return res.status(404).json({ success: false, message: "OTP non trouvé. Veuillez redemander un code." });
 
         const record = otpResult.rows[0];
-        if (new Date() > new Date(record.expires_at)) return res.status(400).json({ success: false, message: "OTP expiré" });
-        if (record.attempts >= 5) return res.status(403).json({ success: false, message: "Trop de tentatives" });
+        if (new Date() > new Date(record.expires_at)) return res.status(400).json({ success: false, message: "OTP expiré. Veuillez redemander un code." });
+        if (record.attempts >= 5) return res.status(403).json({ success: false, message: "Trop de tentatives. Veuillez redemander un code." });
 
         const hashedInput = hashText(otp);
         if (hashedInput !== record.hashed_otp) {
             await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [phone]);
-            return res.status(401).json({ success: false, message: "OTP invalide" });
+            return res.status(401).json({ success: false, message: "Code OTP incorrect." });
         }
 
+        // OTP valide → on le supprime
         await pool.query(`DELETE FROM otp_codes WHERE phone = $1`, [phone]);
 
-        const userResult = await pool.query(`SELECT id, phone, role FROM users WHERE phone = $1`, [phone]);
+        // ── Chercher l'utilisateur ──
+        let userResult = await pool.query(`SELECT id, phone, role, full_name FROM users WHERE phone = $1`, [phone]);
+
+        // ── Si inexistant et données patient fournies → création automatique ──
         if (userResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: "Utilisateur introuvable. Veuillez vous inscrire d'abord." });
+            if (prenom && nom) {
+                // Créer le compte patient à la volée
+                const full_name = `${prenom} ${nom}`.trim();
+                const countResult = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'patient'`);
+                const count = parseInt(countResult.rows[0].count) + 1;
+                const member_code = `BLM-${String(count).padStart(5, '0')}`;
+
+                const insertResult = await pool.query(
+                    `INSERT INTO users (
+                        phone, role, full_name, first_name, last_name,
+                        gender, age, member_code,
+                        cgu_accepted, cgu_accepted_at,
+                        is_active, trust_score, created_at
+                    ) VALUES (
+                        $1, 'patient', $2, $3, $4,
+                        $5, $6, $7,
+                        true, NOW(),
+                        true, 80, NOW()
+                    ) RETURNING id, phone, role, full_name, member_code`,
+                    [phone, full_name, prenom, nom, sexe || null, age || null, member_code]
+                );
+
+                userResult = { rows: [insertResult.rows[0]] };
+
+                await pool.query(
+                    `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+                     VALUES ('register.patient.auto', $1, 'users', $2, $3)`,
+                    [phone, insertResult.rows[0].id, JSON.stringify({ member_code, source: 'login_auto' })]
+                ).catch(() => {});
+
+            } else {
+                // Pas de données patient → vraiment introuvable, inviter à s'inscrire
+                return res.status(404).json({
+                    success: false,
+                    message: "Compte introuvable. Veuillez compléter votre inscription."
+                });
+            }
         }
 
         const user = userResult.rows[0];
+
+        // ── Blocage admin ──
         if (user.role === 'admin') {
-            return res.status(403).json({ success: false, message: "Accès non autorisé. Utilisez le portail administrateur.", redirectUrl: "/admin/login.html" });
+            return res.status(403).json({
+                success: false,
+                message: "Accès non autorisé. Utilisez le portail administrateur.",
+                redirectUrl: "/admin/login.html"
+            });
         }
 
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        // ── Génération JWT ──
+        const token = jwt.sign(
+            { id: user.id, phone: user.phone, role: user.role },
+            JWT_SECRET,
+            { expiresIn: JWT_EXPIRES }
+        );
 
+        // ── Redirection selon rôle ──
         let redirectUrl = "/login.html";
         switch (user.role) {
             case 'patient':     redirectUrl = "/patient/dashboard.html"; break;
             case 'doctor':      redirectUrl = "/medecin/dashboard.html"; break;
+            case 'medecin':     redirectUrl = "/medecin/dashboard.html"; break;
             case 'pharmacie':   redirectUrl = "/pharmacie/dashboard.html"; break;
             case 'laboratoire': redirectUrl = "/laboratoire/dashboard.html"; break;
-            case 'medecin':     redirectUrl = "/medecin/dashboard.html"; break;
         }
 
-        return res.status(200).json({ success: true, message: "Connexion réussie", token, role: user.role, phone: user.phone, redirectUrl });
+        return res.status(200).json({
+            success: true,
+            message: "Connexion réussie",
+            token,
+            role: user.role,
+            phone: user.phone,
+            redirectUrl
+        });
+
     } catch (err) {
-        console.error(err);
-        return res.status(500).json({ success: false, message: "Erreur login" });
+        console.error('[login]', err.message);
+        return res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
     }
 }
 
