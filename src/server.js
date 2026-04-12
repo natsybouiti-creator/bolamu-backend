@@ -44,6 +44,7 @@ app.use('/api/v1/prescriptions', prescriptionRoutes);
 app.use('/api/v1/pharmacies',    pharmacieRoutes);
 app.use('/api/v1/laboratories',  laboratoireRoutes);
 app.use('/api/v1/admin',         adminRoutes);
+app.use('/api/v1/articles', require('./routes/articles.routes'));
 app.use('/api/v1/credits',       creditsRoutes);
 app.use('/api/v1/telemedicine', telemedicineRoutes);
 // ============================================================
