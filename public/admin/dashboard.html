@@ -186,8 +186,8 @@
     .empty-icon{font-size:40px;margin-bottom:12px;}
     .loading{text-align:center;padding:40px;color:var(--texte-doux);}
 
-    /* ── ARTICLES PANEL ── */
-    .articles-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:4px;}
+    /* ── ARTICLES ── */
+    .articles-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:4px;}
     .article-admin-card{background:var(--noir2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all 0.2s;}
     .article-admin-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
     .article-admin-thumb{width:100%;height:140px;object-fit:cover;display:block;}
@@ -200,14 +200,12 @@
     .cat-prevention{background:rgba(46,134,255,0.15);color:var(--bleu);}
     .article-admin-title{font-size:14px;font-weight:700;color:var(--texte);line-height:1.4;margin-bottom:8px;}
     .article-admin-meta{font-size:11px;color:var(--texte-doux);margin-bottom:12px;}
-    .article-admin-actions{display:flex;gap:8px;}
+    .article-admin-actions{display:flex;gap:8px;flex-wrap:wrap;}
     .btn-edit{padding:6px 14px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.25);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .btn-edit:hover{background:var(--bleu);color:white;}
     .btn-delete{padding:6px 14px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .btn-delete:hover{background:var(--rouge);color:white;}
     .btn-toggle-pub{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;border:1px solid;}
-
-    /* Article modal large */
     .modal-large{max-width:720px;}
     .img-preview{width:100%;height:160px;object-fit:cover;border-radius:10px;margin-top:8px;display:none;}
     .img-preview-placeholder{width:100%;height:100px;background:var(--noir3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-top:8px;}
@@ -218,46 +216,9 @@
     .mobile-sidebar-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--noir3);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:18px;color:var(--texte);margin-right:8px;flex-shrink:0;}
     .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
     .sidebar-overlay.open{display:block;}
-
-    @media(max-width:1200px){
-      .kpi-grid{grid-template-columns:repeat(3,1fr);}
-      .charts-row{grid-template-columns:1fr;}
-      .config-grid{grid-template-columns:1fr;}
-      .credits-summary{grid-template-columns:repeat(2,1fr);}
-      .stat-row{grid-template-columns:repeat(2,1fr);}
-    }
-    @media(max-width:900px){
-      .sidebar{transform:translateX(-260px);}
-      .sidebar.open{transform:translateX(0);}
-      .main{margin-left:0;}
-      .topbar{padding:0 16px;}
-      .mobile-sidebar-toggle{display:flex;}
-      .kpi-grid{grid-template-columns:repeat(2,1fr);}
-      .content{padding:20px 16px;}
-      .table-card{overflow-x:auto;}
-      table{min-width:600px;}
-      .search-bar{flex-wrap:wrap;}
-      .search-input{min-width:100%;}
-      .stat-row{grid-template-columns:repeat(3,1fr);}
-      .articles-admin-grid{grid-template-columns:1fr;}
-    }
-    @media(max-width:640px){
-      .topbar{height:56px;}
-      .topbar-title{font-size:16px;}
-      .topbar-right{gap:8px;}
-      .status-label{display:none;}
-      .refresh-btn{padding:7px 12px;font-size:12px;}
-      .content{padding:16px 12px;}
-      .kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}
-      .kpi-card{padding:16px;border-radius:14px;}
-      .kpi-value{font-size:26px;}
-      .modal{padding:24px 16px;border-radius:18px;width:95%;}
-      .modal-title{font-size:18px;}
-      .modal-info-grid{grid-template-columns:1fr;}
-      .modal-actions{flex-direction:column;gap:8px;}
-      .btn-confirm,.btn-cancel-modal{width:100%;}
-      .config-grid{grid-template-columns:1fr;}
-    }
+    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr;}.config-grid{grid-template-columns:1fr;}.credits-summary{grid-template-columns:repeat(2,1fr);}.stat-row{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:900px){.sidebar{transform:translateX(-260px);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.topbar{padding:0 16px;}.mobile-sidebar-toggle{display:flex;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.content{padding:20px 16px;}.table-card{overflow-x:auto;}table{min-width:600px;}.search-bar{flex-wrap:wrap;}.search-input{min-width:100%;}.stat-row{grid-template-columns:repeat(3,1fr);}.articles-admin-grid{grid-template-columns:1fr;}}
+    @media(max-width:640px){.topbar{height:56px;}.topbar-title{font-size:16px;}.topbar-right{gap:8px;}.status-label{display:none;}.refresh-btn{padding:7px 12px;font-size:12px;}.content{padding:16px 12px;}.kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}.kpi-card{padding:16px;border-radius:14px;}.kpi-value{font-size:26px;}.modal{padding:24px 16px;border-radius:18px;width:95%;}.modal-title{font-size:18px;}.modal-info-grid{grid-template-columns:1fr;}.modal-actions{flex-direction:column;gap:8px;}.btn-confirm,.btn-cancel-modal{width:100%;}.config-grid{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
@@ -316,7 +277,6 @@
   </div>
   <div class="content">
 
-    <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
       <div class="kpi-grid">
         <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">Chargement...</div></div>
@@ -370,7 +330,6 @@
       </div>
     </div>
 
-    <!-- ACTIVITY -->
     <div class="panel" id="panel-activity">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="act-rdv-today">—</div><div class="stat-mini-lbl">RDV aujourd'hui</div></div></div>
@@ -383,7 +342,6 @@
       </div>
     </div>
 
-    <!-- PENDING -->
     <div class="panel" id="panel-pending">
       <div class="table-card">
         <div class="table-header"><span class="table-title">Comptes en attente de validation</span><span class="table-count" id="pending-count">—</span></div>
@@ -391,16 +349,10 @@
       </div>
     </div>
 
-    <!-- DOCTORS -->
     <div class="panel" id="panel-doctors">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher par nom, téléphone, spécialité..." oninput="filterTable('doctors-table',this.value)">
-        <select class="filter-select" onchange="loadDoctors(this.value)">
-          <option value="">Tous les statuts</option>
-          <option value="verified">Vérifiés</option>
-          <option value="pending">En attente</option>
-          <option value="suspended">Suspendus</option>
-        </select>
+        <select class="filter-select" onchange="loadDoctors(this.value)"><option value="">Tous les statuts</option><option value="verified">Vérifiés</option><option value="pending">En attente</option><option value="suspended">Suspendus</option></select>
       </div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Médecins</span><span class="table-count" id="doctors-count">—</span></div>
@@ -408,16 +360,10 @@
       </div>
     </div>
 
-    <!-- PHARMACIES -->
     <div class="panel" id="panel-pharmacies">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher une pharmacie..." oninput="filterTable('pharmacies-table',this.value)">
-        <select class="filter-select" onchange="loadPharmacies(this.value)">
-          <option value="">Toutes</option>
-          <option value="verified">Vérifiées</option>
-          <option value="pending">En attente</option>
-          <option value="suspended">Suspendues</option>
-        </select>
+        <select class="filter-select" onchange="loadPharmacies(this.value)"><option value="">Toutes</option><option value="verified">Vérifiées</option><option value="pending">En attente</option><option value="suspended">Suspendues</option></select>
       </div>
       <div class="table-card">
         <div class="table-header"><span class="table-title">Pharmacies</span><span class="table-count" id="pharmacies-count">—</span></div>
@@ -425,7 +371,6 @@
       </div>
     </div>
 
-    <!-- LABORATORIES -->
     <div class="panel" id="panel-laboratories">
       <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher un laboratoire..." oninput="filterTable('laboratories-table',this.value)"></div>
       <div class="table-card">
@@ -434,7 +379,6 @@
       </div>
     </div>
 
-    <!-- PATIENTS -->
     <div class="panel" id="panel-patients">
       <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher un patient..." oninput="filterTable('patients-table',this.value)"></div>
       <div class="table-card">
@@ -443,7 +387,6 @@
       </div>
     </div>
 
-    <!-- APPOINTMENTS -->
     <div class="panel" id="panel-appointments">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">✅</div><div><div class="stat-mini-val" id="appt-done">—</div><div class="stat-mini-lbl">Terminés</div></div></div>
@@ -456,7 +399,6 @@
       </div>
     </div>
 
-    <!-- PRESCRIPTIONS -->
     <div class="panel" id="panel-prescriptions">
       <div class="table-card">
         <div class="table-header"><span class="table-title">Ordonnances numériques</span><span class="table-count" id="pres-count">—</span></div>
@@ -464,7 +406,6 @@
       </div>
     </div>
 
-    <!-- PAYMENTS -->
     <div class="panel" id="panel-payments">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">💰</div><div><div class="stat-mini-val" id="pay-total-rev">—</div><div class="stat-mini-lbl">Total encaissé (FCFA)</div></div></div>
@@ -477,7 +418,6 @@
       </div>
     </div>
 
-    <!-- FRAUD -->
     <div class="panel" id="panel-fraud">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">🔴</div><div><div class="stat-mini-val" id="fraud-high">—</div><div class="stat-mini-lbl">Sévérité haute</div></div></div>
@@ -490,7 +430,6 @@
       </div>
     </div>
 
-    <!-- AUDIT -->
     <div class="panel" id="panel-audit">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher dans le journal..." oninput="filterTable('audit-table',this.value)">
@@ -510,9 +449,7 @@
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════
-         ARTICLES & BLOG — NOUVEAU PANEL
-    ══════════════════════════════════════════ -->
+    <!-- ══ ARTICLES & BLOG ══ -->
     <div class="panel" id="panel-articles">
       <div class="table-card" style="margin-bottom:24px;">
         <div class="table-header">
@@ -520,12 +457,8 @@
             <div class="table-title">📰 Articles & Blog Bolamu</div>
             <div class="table-count" id="articles-count">Chargement...</div>
           </div>
-          <button class="btn-validate" style="padding:10px 20px;font-size:13px;" onclick="openArticleForm()">
-            ✏️ Nouvel article
-          </button>
+          <button class="btn-validate" style="padding:10px 20px;font-size:13px;" onclick="openArticleForm()">✏️ Nouvel article</button>
         </div>
-
-        <!-- Filtres -->
         <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
           <button class="btn-view" id="art-filter-tous" onclick="loadArticlesAdmin('tous',this)" style="font-weight:700;">Tous</button>
           <button class="btn-view" id="art-filter-paludisme" onclick="loadArticlesAdmin('paludisme',this)">🦟 Paludisme</button>
@@ -533,44 +466,24 @@
           <button class="btn-view" id="art-filter-nutrition" onclick="loadArticlesAdmin('nutrition',this)">🥗 Nutrition</button>
           <button class="btn-view" id="art-filter-prevention" onclick="loadArticlesAdmin('prevention',this)">🛡️ Prévention</button>
         </div>
-
-        <!-- Grille articles -->
         <div style="padding:20px 24px;">
-          <div class="articles-admin-grid" id="articles-admin-grid">
-            <div class="loading">Chargement des articles...</div>
-          </div>
+          <div class="articles-admin-grid" id="articles-admin-grid"><div class="loading">Chargement des articles...</div></div>
         </div>
       </div>
-
-      <!-- Guide utilisation -->
       <div style="background:var(--noir2);border:1px solid var(--border);border-radius:16px;padding:20px 24px;">
         <div style="font-size:13px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📖 Guide d'utilisation</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-          <div style="background:var(--noir3);border-radius:12px;padding:16px;">
-            <div style="font-size:20px;margin-bottom:8px;">✏️</div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Créer un article</div>
-            <div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Cliquez sur "Nouvel article", remplissez le titre, le résumé, le contenu et choisissez une catégorie.</div>
-          </div>
-          <div style="background:var(--noir3);border-radius:12px;padding:16px;">
-            <div style="font-size:20px;margin-bottom:8px;">🖼️</div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Ajouter une photo</div>
-            <div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Collez l'URL d'une image depuis Unsplash.com ou Pexels.com. L'aperçu s'affiche automatiquement.</div>
-          </div>
-          <div style="background:var(--noir3);border-radius:12px;padding:16px;">
-            <div style="font-size:20px;margin-bottom:8px;">👁️</div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Publier / Dépublier</div>
-            <div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Le bouton vert/rouge sur chaque article permet de le mettre en ligne ou de le retirer sans le supprimer.</div>
-          </div>
+          <div style="background:var(--noir3);border-radius:12px;padding:16px;"><div style="font-size:20px;margin-bottom:8px;">✏️</div><div style="font-size:13px;font-weight:700;margin-bottom:4px;">Créer un article</div><div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Cliquez sur "Nouvel article", remplissez le titre, le résumé, le contenu et choisissez une catégorie.</div></div>
+          <div style="background:var(--noir3);border-radius:12px;padding:16px;"><div style="font-size:20px;margin-bottom:8px;">🖼️</div><div style="font-size:13px;font-weight:700;margin-bottom:4px;">Ajouter une photo</div><div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Collez l'URL d'une image depuis Unsplash.com ou Pexels.com. L'aperçu s'affiche automatiquement.</div></div>
+          <div style="background:var(--noir3);border-radius:12px;padding:16px;"><div style="font-size:20px;margin-bottom:8px;">👁️</div><div style="font-size:13px;font-weight:700;margin-bottom:4px;">Publier / Dépublier</div><div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Le bouton vert/rouge sur chaque article permet de le mettre en ligne ou de le retirer sans le supprimer.</div></div>
         </div>
       </div>
     </div>
 
-    <!-- CONFIG -->
     <div class="panel" id="panel-config">
       <div class="config-grid" id="config-grid"><div class="loading">Chargement...</div></div>
     </div>
 
-    <!-- CREDITS -->
     <div class="panel" id="panel-credits">
       <div class="credits-summary">
         <div class="credit-stat"><div class="credit-stat-val" id="cr-total-accounts">—</div><div class="credit-stat-lbl">Comptes crédits</div></div>
@@ -579,10 +492,7 @@
         <div class="credit-stat"><div class="credit-stat-val" id="cr-total-spent">—</div><div class="credit-stat-lbl">Total dépensés</div></div>
       </div>
       <div class="table-card">
-        <div class="table-header">
-          <span class="table-title">Comptes crédits</span>
-          <button class="btn-validate" onclick="openGrantCredit()">💎 Attribuer des crédits</button>
-        </div>
+        <div class="table-header"><span class="table-title">Comptes crédits</span><button class="btn-validate" onclick="openGrantCredit()">💎 Attribuer des crédits</button></div>
         <div id="credits-list"><div class="loading">Chargement...</div></div>
       </div>
     </div>
@@ -590,18 +500,8 @@
   </div>
 </div>
 
-<!-- MODAL PRINCIPALE -->
-<div class="modal-overlay" id="modal">
-  <div class="modal" id="modal-inner"><div id="modal-body"></div></div>
-</div>
-
-<!-- MODAL ARTICLE (large) -->
-<div class="modal-overlay" id="modal-article">
-  <div class="modal modal-large" style="max-height:90vh;overflow-y:auto;">
-    <div id="modal-article-body"></div>
-  </div>
-</div>
-
+<div class="modal-overlay" id="modal"><div class="modal" id="modal-inner"><div id="modal-body"></div></div></div>
+<div class="modal-overlay" id="modal-article"><div class="modal modal-large" style="max-height:90vh;overflow-y:auto;"><div id="modal-article-body"></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -612,157 +512,91 @@ const role  = localStorage.getItem('bolamu_role');
 if (!token || role !== 'admin') window.location.href = '/login.html';
 document.getElementById('admin-name').textContent = phone || 'Admin Bolamu';
 
-// ── SIDEBAR ──
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebar-overlay').classList.toggle('open');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('open');
-}
-document.querySelectorAll('.nav-item').forEach(btn => {
-  btn.addEventListener('click', () => { if (window.innerWidth <= 900) closeSidebar(); });
-});
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
+document.querySelectorAll('.nav-item').forEach(btn=>{btn.addEventListener('click',()=>{if(window.innerWidth<=900)closeSidebar();});});
 
-const panelTitles = {
-  overview:'Tableau de bord', activity:'Activité en direct', pending:'Comptes en attente',
-  doctors:'Médecins', pharmacies:'Pharmacies', laboratories:'Laboratoires', patients:'Patients',
-  appointments:'Rendez-vous', prescriptions:'Ordonnances', payments:'Paiements',
-  fraud:'Signaux fraude', audit:"Journal d'audit", articles:'Articles & Blog',
-  config:'Configuration', credits:'Crédits'
-};
+const panelTitles={overview:'Tableau de bord',activity:'Activité en direct',pending:'Comptes en attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Signaux fraude',audit:"Journal d'audit",articles:'Articles & Blog',config:'Configuration',credits:'Crédits'};
 
-function showPanel(name, btn) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  if (btn) btn.classList.add('active');
-  document.getElementById('panel-title').textContent = panelTitles[name] || name;
+function showPanel(name,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  document.getElementById('panel-title').textContent=panelTitles[name]||name;
   loadPanel(name);
 }
-
-function loadPanel(name) {
-  const fn = {
-    overview:loadOverview, activity:loadActivity, pending:loadPending,
-    doctors:()=>loadDoctors(), pharmacies:()=>loadPharmacies(), laboratories:loadLaboratories,
-    patients:loadPatients, appointments:loadAppointments, prescriptions:loadPrescriptions,
-    payments:loadPayments, fraud:loadFraud, audit:()=>loadAudit(),
-    articles:()=>loadArticlesAdmin('tous'), config:loadConfig, credits:loadCredits
-  };
-  if (fn[name]) fn[name]();
+function loadPanel(name){
+  const fn={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:()=>loadPharmacies(),laboratories:loadLaboratories,patients:loadPatients,appointments:loadAppointments,prescriptions:loadPrescriptions,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),articles:()=>loadArticlesAdmin('tous'),config:loadConfig,credits:loadCredits};
+  if(fn[name])fn[name]();
 }
 
-async function api(path, opts={}) {
-  const res = await fetch(`${API}${path}`, {
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    ...opts
-  });
+async function api(path,opts={}){
+  const res=await fetch(`${API}${path}`,{headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},...opts});
   return res.json();
 }
 
-function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
-function fmtShort(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }
-function fmtNum(n) { if (n===null||n===undefined) return '—'; return Number(n).toLocaleString('fr-FR'); }
+function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function fmtShort(d){if(!d)return'—';return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});}
+function fmtNum(n){if(n===null||n===undefined)return'—';return Number(n).toLocaleString('fr-FR');}
 
-function badge(s) {
-  const m = { verified:'badge-verified ✅ Vérifié', pending:'badge-pending ⏳ En attente',
-    suspended:'badge-suspended 🚫 Suspendu', banned:'badge-banned 🔒 Banni',
-    termine:'badge-verified ✅ Terminé', confirme:'badge-pending 📅 Confirmé',
-    active:'badge-verified ✅ Actif', high:'badge-high 🔴 HIGH',
-    medium:'badge-medium 🟡 MEDIUM', low:'badge-low 🟢 LOW',
-    success:'badge-verified ✅ Succès', failed:'badge-suspended ❌ Échoué' };
-  const v = m[s] || `badge-pending ${s}`;
-  const [cls, ...label] = v.split(' ');
-  return `<span class="badge ${cls}">${label.join(' ')}</span>`;
+function badge(s){
+  const m={verified:'badge-verified ✅ Vérifié',pending:'badge-pending ⏳ En attente',suspended:'badge-suspended 🚫 Suspendu',banned:'badge-banned 🔒 Banni',termine:'badge-verified ✅ Terminé',confirme:'badge-pending 📅 Confirmé',active:'badge-verified ✅ Actif',high:'badge-high 🔴 HIGH',medium:'badge-medium 🟡 MEDIUM',low:'badge-low 🟢 LOW',success:'badge-verified ✅ Succès',failed:'badge-suspended ❌ Échoué'};
+  const v=m[s]||`badge-pending ${s}`;const[cls,...label]=v.split(' ');
+  return`<span class="badge ${cls}">${label.join(' ')}</span>`;
 }
 
-function showToast(msg, type='success') {
-  const t = document.getElementById('toast');
-  t.className = `toast show ${type}`;
-  t.innerHTML = (type==='success'?'✅ ':'❌ ')+msg;
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');t.className=`toast show ${type}`;t.innerHTML=(type==='success'?'✅ ':'❌ ')+msg;
   setTimeout(()=>t.className='toast',3500);
 }
+function filterTable(id,q){q=q.toLowerCase();document.querySelectorAll(`#${id} tbody tr`).forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');}
 
-function filterTable(id, q) {
-  q = q.toLowerCase();
-  document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.textContent.toLowerCase().includes(q)?'':'none');
-}
+// ══ ARTICLES ══
+const CAT_LABELS={paludisme:'🦟 Paludisme',grossesse:'🤱 Grossesse',nutrition:'🥗 Nutrition',prevention:'🛡️ Prévention'};
+const CAT_BG={paludisme:'rgba(0,200,167,0.08)',grossesse:'rgba(255,107,157,0.08)',nutrition:'rgba(255,165,2,0.08)',prevention:'rgba(46,134,255,0.08)'};
+const CAT_EMOJI={paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️'};
 
-// ══════════════════════════════════════════════════
-// ARTICLES ADMIN
-// ══════════════════════════════════════════════════
-const CAT_LABELS = { paludisme:'🦟 Paludisme', grossesse:'🤱 Grossesse', nutrition:'🥗 Nutrition', prevention:'🛡️ Prévention' };
-const CAT_BG = { paludisme:'rgba(0,200,167,0.08)', grossesse:'rgba(255,107,157,0.08)', nutrition:'rgba(255,165,2,0.08)', prevention:'rgba(46,134,255,0.08)' };
-const CAT_EMOJI = { paludisme:'🦟', grossesse:'🤱', nutrition:'🥗', prevention:'🛡️' };
-
-async function loadArticlesAdmin(filter='tous', btn=null) {
-  // Mettre à jour les boutons de filtre
-  document.querySelectorAll('[id^="art-filter-"]').forEach(b => {
-    b.style.background = 'rgba(46,134,255,0.1)';
-    b.style.fontWeight = '600';
-  });
-  if (btn) { btn.style.background = 'var(--bleu)'; btn.style.color = 'white'; btn.style.fontWeight = '700'; }
-  else {
-    const defBtn = document.getElementById('art-filter-tous');
-    if (defBtn) { defBtn.style.background = 'var(--bleu)'; defBtn.style.color = 'white'; }
-  }
-
-  const grid = document.getElementById('articles-admin-grid');
-  grid.innerHTML = '<div class="loading">Chargement...</div>';
-
-  try {
-    const url = filter === 'tous' ? '/articles/admin/all' : `/articles?category=${filter}&limit=50`;
-    const data = await api(url);
-    const items = data.articles || [];
-
-    document.getElementById('articles-count').textContent = `${items.length} article${items.length > 1 ? 's' : ''}`;
-
-    if (!items.length) {
-      grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📰</div><p>Aucun article dans cette catégorie.<br>Cliquez sur <strong>Nouvel article</strong> pour commencer.</p></div>`;
-      return;
-    }
-
-    grid.innerHTML = items.map(a => `
+async function loadArticlesAdmin(filter='tous',btn=null){
+  document.querySelectorAll('[id^="art-filter-"]').forEach(b=>{b.style.background='rgba(46,134,255,0.1)';b.style.color='var(--bleu)';b.style.fontWeight='600';});
+  const target=btn||document.getElementById('art-filter-tous');
+  if(target){target.style.background='var(--bleu)';target.style.color='white';target.style.fontWeight='700';}
+  const grid=document.getElementById('articles-admin-grid');
+  grid.innerHTML='<div class="loading">Chargement...</div>';
+  try{
+    const url=filter==='tous'?'/articles/admin/all':`/articles?category=${filter}&limit=50`;
+    const data=await api(url);
+    const items=data.articles||[];
+    document.getElementById('articles-count').textContent=`${items.length} article${items.length>1?'s':''}`;
+    if(!items.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📰</div><p>Aucun article.<br>Cliquez sur <strong>Nouvel article</strong> pour commencer.</p></div>`;return;}
+    grid.innerHTML=items.map(a=>`
       <div class="article-admin-card">
-        ${a.image_url
-          ? `<img class="article-admin-thumb" src="${a.image_url}" alt="${a.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="article-admin-thumb-placeholder" style="display:none;background:${CAT_BG[a.category]||'var(--noir3)'};">${a.emoji||CAT_EMOJI[a.category]||'📄'}</div>`
-          : `<div class="article-admin-thumb-placeholder" style="background:${CAT_BG[a.category]||'var(--noir3)'};">${a.emoji||CAT_EMOJI[a.category]||'📄'}</div>`
-        }
+        ${a.image_url?`<img class="article-admin-thumb" src="${a.image_url}" alt="${a.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="article-admin-thumb-placeholder" style="display:none;background:${CAT_BG[a.category]||'var(--noir3)'};">${a.emoji||CAT_EMOJI[a.category]||'📄'}</div>`:`<div class="article-admin-thumb-placeholder" style="background:${CAT_BG[a.category]||'var(--noir3)'};">${a.emoji||CAT_EMOJI[a.category]||'📄'}</div>`}
         <div class="article-admin-body">
           <span class="article-admin-cat cat-${a.category}">${CAT_LABELS[a.category]||a.category}</span>
-          ${!a.is_published ? '<span class="badge badge-suspended" style="margin-left:6px;font-size:10px;">⚫ Brouillon</span>' : ''}
-          ${a.is_featured ? '<span class="badge badge-verified" style="margin-left:6px;font-size:10px;">⭐ À la une</span>' : ''}
+          ${!a.is_published?'<span class="badge badge-suspended" style="margin-left:6px;font-size:10px;">⚫ Brouillon</span>':''}
+          ${a.is_featured?'<span class="badge badge-verified" style="margin-left:6px;font-size:10px;">⭐ À la une</span>':''}
           <div class="article-admin-title">${a.title}</div>
           <div class="article-admin-meta">✍️ ${a.author||'Dr. Bolamu'} · ⏱ ${a.read_time||'5 min'} · 📅 ${fmtShort(a.created_at)}</div>
           <div class="article-admin-actions">
-            <button class="btn-edit" onclick="openArticleForm(${JSON.stringify(a).replace(/"/g,'&quot;')})">✏️ Modifier</button>
-            <button class="btn-toggle-pub" style="background:${a.is_published?'rgba(255,71,87,0.1)':'rgba(0,200,167,0.1)'};color:${a.is_published?'var(--rouge)':'var(--vert)'};border-color:${a.is_published?'rgba(255,71,87,0.3)':'rgba(0,200,167,0.3)'};"
-              onclick="togglePublish(${a.id},${a.is_published})">${a.is_published?'⚫ Dépublier':'🟢 Publier'}</button>
+            <button class="btn-edit" onclick='openArticleForm(${JSON.stringify(a)})'>✏️ Modifier</button>
+            <button class="btn-toggle-pub" style="background:${a.is_published?'rgba(255,71,87,0.1)':'rgba(0,200,167,0.1)'};color:${a.is_published?'var(--rouge)':'var(--vert)'};border-color:${a.is_published?'rgba(255,71,87,0.3)':'rgba(0,200,167,0.3)'};" onclick="togglePublish(${a.id},${a.is_published})">${a.is_published?'⚫ Dépublier':'🟢 Publier'}</button>
             <button class="btn-delete" onclick="confirmDelete(${a.id},'${a.title.replace(/'/g,"\\'")}')">🗑️</button>
           </div>
         </div>
       </div>`).join('');
-  } catch(e) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p></div>`;
-  }
+  }catch(e){grid.innerHTML=`<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p></div>`;}
 }
 
-function openArticleForm(article=null) {
-  const isEdit = !!article;
-  document.getElementById('modal-article-body').innerHTML = `
+function openArticleForm(article=null){
+  const isEdit=!!article;
+  document.getElementById('modal-article-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div class="modal-title">${isEdit ? '✏️ Modifier l\'article' : '✏️ Nouvel article'}</div>
+      <div class="modal-title">${isEdit?'✏️ Modifier l\'article':'✏️ Nouvel article'}</div>
       <button onclick="closeArticleModal()" style="background:var(--noir3);border:1px solid var(--border);color:var(--texte-doux);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:18px;">✕</button>
     </div>
-
-    <div class="modal-field">
-      <label>Titre de l'article *</label>
-      <input class="modal-input" id="art-title" placeholder="Ex: Comment prévenir le paludisme..." value="${isEdit?(article.title||''):''}">
-    </div>
-
-    <div class="modal-field">
-      <label>Catégorie *</label>
+    <div class="modal-field"><label>Titre *</label><input class="modal-input" id="art-title" placeholder="Ex: Comment prévenir le paludisme..." value="${isEdit?(article.title||''):''}"></div>
+    <div class="modal-field"><label>Catégorie *</label>
       <select class="modal-select" id="art-category">
         <option value="paludisme" ${isEdit&&article.category==='paludisme'?'selected':''}>🦟 Paludisme</option>
         <option value="grossesse" ${isEdit&&article.category==='grossesse'?'selected':''}>🤱 Suivi grossesse</option>
@@ -770,630 +604,141 @@ function openArticleForm(article=null) {
         <option value="prevention" ${isEdit&&article.category==='prevention'?'selected':''}>🛡️ Prévention</option>
       </select>
     </div>
-
-    <div class="modal-field">
-      <label>Résumé (affiché sur la carte) *</label>
-      <textarea class="modal-textarea" id="art-excerpt" placeholder="1-2 phrases qui donnent envie de lire..." style="min-height:80px;">${isEdit?(article.excerpt||''):''}</textarea>
-    </div>
-
+    <div class="modal-field"><label>Résumé (affiché sur la carte) *</label><textarea class="modal-textarea" id="art-excerpt" style="min-height:80px;" placeholder="1-2 phrases...">${isEdit?(article.excerpt||''):''}</textarea></div>
     <div class="modal-field">
       <label>URL de l'image (optionnel)</label>
       <input class="modal-input" id="art-image" placeholder="https://images.unsplash.com/photo-..." value="${isEdit?(article.image_url||''):''}" oninput="previewImage(this.value)">
-      <div style="font-size:11px;color:var(--texte-doux);margin-top:6px;">💡 Trouvez des photos gratuites sur <a href="https://unsplash.com" target="_blank" style="color:var(--bleu)">unsplash.com</a> — clic droit sur l'image → Copier l'adresse</div>
+      <div style="font-size:11px;color:var(--texte-doux);margin-top:6px;">💡 Photos gratuites sur <a href="https://unsplash.com" target="_blank" style="color:var(--bleu)">unsplash.com</a></div>
       <img id="art-img-preview" class="img-preview" src="" alt="Aperçu">
       <div id="art-img-placeholder" class="img-preview-placeholder" style="${isEdit&&article.image_url?'display:none;':''}">${isEdit?(article.emoji||'📄'):'📄'}</div>
     </div>
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div class="modal-field">
-        <label>Emoji (si pas de photo)</label>
-        <input class="modal-input" id="art-emoji" placeholder="🦟" value="${isEdit?(article.emoji||''):''}" maxlength="4">
-      </div>
-      <div class="modal-field">
-        <label>Temps de lecture</label>
-        <input class="modal-input" id="art-readtime" placeholder="5 min" value="${isEdit?(article.read_time||'5 min'):'5 min'}">
-      </div>
+      <div class="modal-field"><label>Emoji (si pas de photo)</label><input class="modal-input" id="art-emoji" placeholder="🦟" value="${isEdit?(article.emoji||''):''}" maxlength="4"></div>
+      <div class="modal-field"><label>Temps de lecture</label><input class="modal-input" id="art-readtime" placeholder="5 min" value="${isEdit?(article.read_time||'5 min'):'5 min'}"></div>
     </div>
-
-    <div class="modal-field">
-      <label>Auteur</label>
-      <input class="modal-input" id="art-author" placeholder="Dr. Bolamu" value="${isEdit?(article.author||'Dr. Bolamu'):'Dr. Bolamu'}">
+    <div class="modal-field"><label>Auteur</label><input class="modal-input" id="art-author" placeholder="Dr. Bolamu" value="${isEdit?(article.author||'Dr. Bolamu'):'Dr. Bolamu'}"></div>
+    <div class="modal-field"><label>Contenu complet * <span style="color:var(--texte-doux);font-size:10px;font-weight:400;">(HTML : &lt;p&gt;, &lt;h4&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;)</span></label>
+      <textarea class="modal-textarea" id="art-content" style="min-height:200px;" placeholder="<p>Votre contenu...</p>">${isEdit?(article.content||''):''}</textarea>
     </div>
-
-    <div class="modal-field">
-      <label>Contenu complet * <span style="color:var(--texte-doux);font-size:10px;font-weight:400;">(HTML basique accepté : &lt;p&gt;, &lt;h4&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;)</span></label>
-      <textarea class="modal-textarea" id="art-content" placeholder="&lt;p&gt;Votre contenu ici...&lt;/p&gt;&#10;&lt;h4&gt;Sous-titre&lt;/h4&gt;&#10;&lt;ul&gt;&lt;li&gt;Point 1&lt;/li&gt;&lt;/ul&gt;" style="min-height:200px;">${isEdit?(article.content||''):''}</textarea>
-    </div>
-
     <div style="display:flex;gap:24px;margin-bottom:16px;">
-      <div class="toggle-switch">
-        <label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Publié</label>
-        <input type="checkbox" id="art-published" ${isEdit?(article.is_published!==false?'checked':''):'checked'}>
-      </div>
-      <div class="toggle-switch">
-        <label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">⭐ À la une</label>
-        <input type="checkbox" id="art-featured" ${isEdit&&article.is_featured?'checked':''}>
-      </div>
+      <div class="toggle-switch"><label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Publié</label><input type="checkbox" id="art-published" ${isEdit?(article.is_published!==false?'checked':''):'checked'}></div>
+      <div class="toggle-switch"><label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">⭐ À la une</label><input type="checkbox" id="art-featured" ${isEdit&&article.is_featured?'checked':''}></div>
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeArticleModal()">Annuler</button>
-      <button class="btn-confirm blue" onclick="saveArticle(${isEdit?article.id:'null'})">${isEdit?'💾 Enregistrer les modifications':'✅ Publier l\'article'}</button>
+      <button class="btn-confirm blue" onclick="saveArticle(${isEdit?article.id:'null'})">${isEdit?'💾 Enregistrer':'✅ Publier l\'article'}</button>
     </div>`;
-
-  // Aperçu image si déjà une URL
-  if (isEdit && article.image_url) previewImage(article.image_url);
-
+  if(isEdit&&article.image_url)previewImage(article.image_url);
   document.getElementById('modal-article').classList.add('open');
 }
 
-function previewImage(url) {
-  const img = document.getElementById('art-img-preview');
-  const placeholder = document.getElementById('art-img-placeholder');
-  if (!img || !placeholder) return;
-  if (url && url.startsWith('http')) {
-    img.src = url;
-    img.style.display = 'block';
-    placeholder.style.display = 'none';
-    img.onerror = () => { img.style.display='none'; placeholder.style.display='flex'; };
-  } else {
-    img.style.display = 'none';
-    placeholder.style.display = 'flex';
-  }
+function previewImage(url){
+  const img=document.getElementById('art-img-preview');const ph=document.getElementById('art-img-placeholder');if(!img||!ph)return;
+  if(url&&url.startsWith('http')){img.src=url;img.style.display='block';ph.style.display='none';img.onerror=()=>{img.style.display='none';ph.style.display='flex';};}
+  else{img.style.display='none';ph.style.display='flex';}
 }
 
-async function saveArticle(id) {
-  const title = document.getElementById('art-title').value.trim();
-  const excerpt = document.getElementById('art-excerpt').value.trim();
-  const content = document.getElementById('art-content').value.trim();
-  const category = document.getElementById('art-category').value;
-
-  if (!title || !excerpt || !content) {
-    showToast('Titre, résumé et contenu sont obligatoires', 'error');
-    return;
-  }
-
-  const body = {
-    title, excerpt, content, category,
-    image_url: document.getElementById('art-image').value.trim() || null,
-    emoji: document.getElementById('art-emoji').value.trim() || '📄',
-    author: document.getElementById('art-author').value.trim() || 'Dr. Bolamu',
-    read_time: document.getElementById('art-readtime').value.trim() || '5 min',
-    is_published: document.getElementById('art-published').checked,
-    is_featured: document.getElementById('art-featured').checked
-  };
-
-  try {
-    const data = id
-      ? await api(`/articles/${id}`, { method:'PUT', body:JSON.stringify(body) })
-      : await api('/articles', { method:'POST', body:JSON.stringify(body) });
-
-    if (data.success) {
-      showToast(id ? 'Article modifié ✅' : 'Article publié ✅');
-      closeArticleModal();
-      loadArticlesAdmin('tous');
-    } else {
-      showToast(data.message || 'Erreur', 'error');
-    }
-  } catch(e) {
-    showToast('Erreur de connexion', 'error');
-  }
+async function saveArticle(id){
+  const title=document.getElementById('art-title').value.trim();
+  const excerpt=document.getElementById('art-excerpt').value.trim();
+  const content=document.getElementById('art-content').value.trim();
+  const category=document.getElementById('art-category').value;
+  if(!title||!excerpt||!content){showToast('Titre, résumé et contenu sont obligatoires','error');return;}
+  const body={title,excerpt,content,category,image_url:document.getElementById('art-image').value.trim()||null,emoji:document.getElementById('art-emoji').value.trim()||'📄',author:document.getElementById('art-author').value.trim()||'Dr. Bolamu',read_time:document.getElementById('art-readtime').value.trim()||'5 min',is_published:document.getElementById('art-published').checked,is_featured:document.getElementById('art-featured').checked};
+  try{
+    const data=id?await api(`/articles/${id}`,{method:'PUT',body:JSON.stringify(body)}):await api('/articles',{method:'POST',body:JSON.stringify(body)});
+    if(data.success){showToast(id?'Article modifié ✅':'Article publié ✅');closeArticleModal();loadArticlesAdmin('tous');}
+    else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur de connexion','error');}
 }
 
-async function togglePublish(id, currentlyPublished) {
-  const data = await api(`/articles/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify({ is_published: !currentlyPublished })
-  });
-  if (data.success) {
-    showToast(currentlyPublished ? 'Article dépublié' : 'Article publié ✅');
-    loadArticlesAdmin('tous');
-  } else {
-    showToast(data.message || 'Erreur', 'error');
-  }
+async function togglePublish(id,currentlyPublished){
+  const data=await api(`/articles/${id}`,{method:'PUT',body:JSON.stringify({is_published:!currentlyPublished})});
+  if(data.success){showToast(currentlyPublished?'Article dépublié':'Article publié ✅');loadArticlesAdmin('tous');}
+  else showToast(data.message||'Erreur','error');
 }
 
-function confirmDelete(id, title) {
-  document.getElementById('modal-body').innerHTML = `
-    <div class="modal-title">🗑️ Supprimer l'article</div>
-    <div class="modal-sub">Voulez-vous supprimer <strong>"${title}"</strong> ? Cette action est irréversible.</div>
-    <div class="modal-actions">
-      <button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-      <button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer définitivement</button>
-    </div>`;
+function confirmDelete(id,title){
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">🗑️ Supprimer l'article</div><div class="modal-sub">Voulez-vous supprimer <strong>"${title}"</strong> ? Action irréversible.</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer</button></div>`;
   showModal();
 }
-
-async function deleteArticle(id) {
-  closeModal();
-  const data = await api(`/articles/${id}`, { method: 'DELETE' });
-  if (data.success) {
-    showToast('Article supprimé');
-    loadArticlesAdmin('tous');
-  } else {
-    showToast(data.message || 'Erreur', 'error');
-  }
+async function deleteArticle(id){
+  closeModal();const data=await api(`/articles/${id}`,{method:'DELETE'});
+  if(data.success){showToast('Article supprimé');loadArticlesAdmin('tous');}else showToast(data.message||'Erreur','error');
 }
+function closeArticleModal(){document.getElementById('modal-article').classList.remove('open');}
+document.getElementById('modal-article').addEventListener('click',function(e){if(e.target===this)closeArticleModal();});
 
-function closeArticleModal() {
-  document.getElementById('modal-article').classList.remove('open');
-}
-document.getElementById('modal-article').addEventListener('click', function(e) {
-  if (e.target === this) closeArticleModal();
-});
-
-// ══════════════════════════════════════════════════
-// TOUTES LES AUTRES FONCTIONS EXISTANTES
-// ══════════════════════════════════════════════════
-
-async function loadOverview() {
-  try {
-    const [stats, pendingData, fraudData, rdvData] = await Promise.all([
-      api('/admin/stats'), api('/admin/pending'), api('/admin/fraud'), api('/admin/appointments')
-    ]);
-    if (stats.success) {
-      const s = stats.data;
-      document.getElementById('kpi-patients').textContent = fmtNum(s.users.patients);
-      document.getElementById('kpi-doctors').textContent = fmtNum(s.users.doctors);
-      document.getElementById('kpi-rdv').textContent = fmtNum(s.activity.appointments_total);
-      document.getElementById('kpi-pharma').textContent = fmtNum(s.users.pharmacies);
-      document.getElementById('kpi-rev-today').textContent = fmtNum(s.revenue.today)+' FCFA';
-      document.getElementById('kpi-rev-month').textContent = fmtNum(s.revenue.month)+' FCFA ce mois';
-      document.getElementById('kpi-presc').textContent = fmtNum(s.activity.prescriptions);
-      document.getElementById('kpi-pending').textContent = fmtNum(s.pending.total);
-      document.getElementById('kpi-fraud').textContent = fmtNum(s.fraud.high_severity);
-      document.getElementById('kpi-banned').textContent = `${s.users.banned||0} bannis`;
-      document.getElementById('kpi-patients-trend').textContent = `${s.users.active_subscriptions||0} abonnés actifs`;
-      document.getElementById('kpi-doctors-trend').textContent = `${s.pending.doctors} en attente`;
-      document.getElementById('kpi-rdv-trend').textContent = `${s.activity.appointments_today} aujourd'hui`;
-      document.getElementById('badge-pending').textContent = s.pending.total;
-      document.getElementById('badge-fraud').textContent = s.fraud.high_severity;
-      const total = s.users.patients + s.users.doctors + s.users.pharmacies + s.users.laboratories;
-      if (total > 0) {
-        const C = 283;
-        const pPat=(s.users.patients/total)*C, pDoc=(s.users.doctors/total)*C;
-        const pPha=(s.users.pharmacies/total)*C, pLab=(s.users.laboratories/total)*C;
-        let off = 71;
-        [['donut-patient',pPat],['donut-doctor',pDoc],['donut-pharma',pPha],['donut-labo',pLab]].forEach(([id,v])=>{
-          const el=document.getElementById(id);
-          if(el){el.setAttribute('stroke-dasharray',`${v} ${C}`);el.setAttribute('stroke-dashoffset',off);off-=v;}
-        });
-        document.getElementById('donut-total').textContent = total;
-      }
-      document.getElementById('leg-patients').textContent = s.users.patients;
-      document.getElementById('leg-doctors').textContent = s.users.doctors;
-      document.getElementById('leg-pharmacies').textContent = s.users.pharmacies;
-      document.getElementById('leg-labos').textContent = s.users.laboratories;
+// ══ TOUTES LES AUTRES FONCTIONS ══
+async function loadOverview(){
+  try{
+    const[stats,pendingData,fraudData,rdvData]=await Promise.all([api('/admin/stats'),api('/admin/pending'),api('/admin/fraud'),api('/admin/appointments')]);
+    if(stats.success){
+      const s=stats.data;
+      document.getElementById('kpi-patients').textContent=fmtNum(s.users.patients);document.getElementById('kpi-doctors').textContent=fmtNum(s.users.doctors);document.getElementById('kpi-rdv').textContent=fmtNum(s.activity.appointments_total);document.getElementById('kpi-pharma').textContent=fmtNum(s.users.pharmacies);document.getElementById('kpi-rev-today').textContent=fmtNum(s.revenue.today)+' FCFA';document.getElementById('kpi-rev-month').textContent=fmtNum(s.revenue.month)+' FCFA ce mois';document.getElementById('kpi-presc').textContent=fmtNum(s.activity.prescriptions);document.getElementById('kpi-pending').textContent=fmtNum(s.pending.total);document.getElementById('kpi-fraud').textContent=fmtNum(s.fraud.high_severity);document.getElementById('kpi-banned').textContent=`${s.users.banned||0} bannis`;document.getElementById('kpi-patients-trend').textContent=`${s.users.active_subscriptions||0} abonnés actifs`;document.getElementById('kpi-doctors-trend').textContent=`${s.pending.doctors} en attente`;document.getElementById('kpi-rdv-trend').textContent=`${s.activity.appointments_today} aujourd'hui`;document.getElementById('badge-pending').textContent=s.pending.total;document.getElementById('badge-fraud').textContent=s.fraud.high_severity;
+      const total=s.users.patients+s.users.doctors+s.users.pharmacies+s.users.laboratories;
+      if(total>0){const C=283;const pPat=(s.users.patients/total)*C,pDoc=(s.users.doctors/total)*C,pPha=(s.users.pharmacies/total)*C,pLab=(s.users.laboratories/total)*C;let off=71;[['donut-patient',pPat],['donut-doctor',pDoc],['donut-pharma',pPha],['donut-labo',pLab]].forEach(([id,v])=>{const el=document.getElementById(id);if(el){el.setAttribute('stroke-dasharray',`${v} ${C}`);el.setAttribute('stroke-dashoffset',off);off-=v;}});document.getElementById('donut-total').textContent=total;}
+      document.getElementById('leg-patients').textContent=s.users.patients;document.getElementById('leg-doctors').textContent=s.users.doctors;document.getElementById('leg-pharmacies').textContent=s.users.pharmacies;document.getElementById('leg-labos').textContent=s.users.laboratories;
     }
-    if (rdvData.data) {
-      const items = rdvData.data;
-      const confirmed = items.filter(a=>a.status==='confirme').length;
-      const done = items.filter(a=>a.status==='termine').length;
-      const other = items.length - confirmed - done;
-      const maxV = Math.max(confirmed, done, other, 1);
-      document.getElementById('rdv-bar-chart').innerHTML = `<div class="bar-chart">
-        ${[['Confirmés',confirmed,'#2E86FF'],['Terminés',done,'#00C9A7'],['Autres',other,'#7C3AED']].map(([l,v,c])=>`
-        <div class="bar" style="background:${c};height:${Math.max((v/maxV)*100,4)}%;opacity:0.85;">
-          <span class="bar-value">${v}</span><span class="bar-label">${l}</span>
-        </div>`).join('')}</div>`;
-    }
-    if (pendingData.data) {
-      const all = pendingData.data;
-      const el = document.getElementById('pending-mini-list');
-      if (!all.length) { el.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><p>Aucun dossier en attente</p></div>`; }
-      else el.innerHTML = all.slice(0,4).map(p=>`
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-          <div><div style="font-size:13px;font-weight:700;">${p.name||p.phone}</div>
-          <div style="font-size:11px;color:var(--texte-doux);">${p.type} — Score ${p.trust_score||0}/100</div></div>
-          <div style="display:flex;gap:5px;">
-            <button class="btn-validate" onclick="openValidate('${p.type}','${p.id}','${p.name||p.phone}')">✅</button>
-            <button class="btn-reject" onclick="openReject('${p.type}','${p.id}','${p.name||p.phone}')">❌</button>
-          </div>
-        </div>`).join('');
-    }
-    if (fraudData.data) {
-      const highs = fraudData.data.filter(f=>f.severity==='high').slice(0,4);
-      const el = document.getElementById('fraud-mini-list');
-      if (!highs.length) el.innerHTML=`<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal haute sévérité</p></div>`;
-      else el.innerHTML = highs.map(f=>`
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-          <div><div style="font-size:13px;font-weight:700;color:var(--rouge);">${f.signal_type}</div>
-          <div style="font-size:11px;color:var(--texte-doux);">${f.actor_phone} — ${fmtShort(f.created_at)}</div></div>
-          <span class="badge badge-high">HIGH</span>
-        </div>`).join('');
-    }
-  } catch(e) { console.error('overview',e); }
+    if(rdvData.data){const items=rdvData.data;const confirmed=items.filter(a=>a.status==='confirme').length;const done=items.filter(a=>a.status==='termine').length;const other=items.length-confirmed-done;const maxV=Math.max(confirmed,done,other,1);document.getElementById('rdv-bar-chart').innerHTML=`<div class="bar-chart">${[['Confirmés',confirmed,'#2E86FF'],['Terminés',done,'#00C9A7'],['Autres',other,'#7C3AED']].map(([l,v,c])=>`<div class="bar" style="background:${c};height:${Math.max((v/maxV)*100,4)}%;opacity:0.85;"><span class="bar-value">${v}</span><span class="bar-label">${l}</span></div>`).join('')}</div>`;}
+    if(pendingData.data){const all=pendingData.data;const el=document.getElementById('pending-mini-list');if(!all.length){el.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><p>Aucun dossier en attente</p></div>`;}else el.innerHTML=all.slice(0,4).map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><div><div style="font-size:13px;font-weight:700;">${p.name||p.phone}</div><div style="font-size:11px;color:var(--texte-doux);">${p.type} — Score ${p.trust_score||0}/100</div></div><div style="display:flex;gap:5px;"><button class="btn-validate" onclick="openValidate('${p.type}','${p.id}','${p.name||p.phone}')">✅</button><button class="btn-reject" onclick="openReject('${p.type}','${p.id}','${p.name||p.phone}')">❌</button></div></div>`).join('');}
+    if(fraudData.data){const highs=fraudData.data.filter(f=>f.severity==='high').slice(0,4);const el=document.getElementById('fraud-mini-list');if(!highs.length)el.innerHTML=`<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal haute sévérité</p></div>`;else el.innerHTML=highs.map(f=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><div><div style="font-size:13px;font-weight:700;color:var(--rouge);">${f.signal_type}</div><div style="font-size:11px;color:var(--texte-doux);">${f.actor_phone} — ${fmtShort(f.created_at)}</div></div><span class="badge badge-high">HIGH</span></div>`).join('');}
+  }catch(e){console.error('overview',e);}
 }
 
-async function loadActivity() {
-  const data = await api('/admin/audit?limit=50');
-  const items = data.data||[];
-  const today = new Date().toDateString();
-  document.getElementById('activity-count').textContent = `${items.length} événements`;
-  document.getElementById('act-rdv-today').textContent = items.filter(i=>i.event_type==='appointment_validated'&&new Date(i.created_at).toDateString()===today).length;
-  document.getElementById('act-prescriptions').textContent = items.filter(i=>i.event_type?.includes('prescription')).length;
-  document.getElementById('act-new-users').textContent = items.filter(i=>i.event_type?.includes('.registered')&&new Date(i.created_at).toDateString()===today).length;
-  const colors={'doctor.registered':'#00C9A7','pharmacie.registered':'#00A878','patient.registered':'#2E86FF','appointment_validated':'#ffa502','prescription_delivered':'#7C3AED','account.banned':'#ff4757','credits.granted':'#7C3AED','config.updated':'#ff6b9d'};
-  document.getElementById('activity-feed').innerHTML = `<div class="feed-list">${items.map(i=>`
-    <div class="feed-item"><div class="feed-dot" style="background:${colors[i.event_type]||'#8888aa'}"></div>
-    <div><div class="feed-action"><span class="feed-actor">${i.actor_phone}</span> — ${i.event_type?.replace(/_/g,' ')||'—'}</div>
-    <div class="feed-time">${fmtDate(i.created_at)}</div></div></div>`).join('')}</div>`;
-}
+async function loadActivity(){const data=await api('/admin/audit?limit=50');const items=data.data||[];const today=new Date().toDateString();document.getElementById('activity-count').textContent=`${items.length} événements`;document.getElementById('act-rdv-today').textContent=items.filter(i=>i.event_type==='appointment_validated'&&new Date(i.created_at).toDateString()===today).length;document.getElementById('act-prescriptions').textContent=items.filter(i=>i.event_type?.includes('prescription')).length;document.getElementById('act-new-users').textContent=items.filter(i=>i.event_type?.includes('.registered')&&new Date(i.created_at).toDateString()===today).length;const colors={'doctor.registered':'#00C9A7','pharmacie.registered':'#00A878','patient.registered':'#2E86FF','appointment_validated':'#ffa502','prescription_delivered':'#7C3AED','account.banned':'#ff4757','credits.granted':'#7C3AED','config.updated':'#ff6b9d'};document.getElementById('activity-feed').innerHTML=`<div class="feed-list">${items.map(i=>`<div class="feed-item"><div class="feed-dot" style="background:${colors[i.event_type]||'#8888aa'}"></div><div><div class="feed-action"><span class="feed-actor">${i.actor_phone}</span> — ${i.event_type?.replace(/_/g,' ')||'—'}</div><div class="feed-time">${fmtDate(i.created_at)}</div></div></div>`).join('')}</div>`;}
 
-async function loadPending() {
-  const data = await api('/admin/pending');
-  const all = data.data||[];
-  document.getElementById('pending-count').textContent = `${all.length} dossiers`;
-  if (!all.length) { document.getElementById('pending-list').innerHTML=`<div class="empty"><div class="empty-icon">✅</div><p>Aucun compte en attente</p></div>`; return; }
-  document.getElementById('pending-list').innerHTML = `
-    <table id="pending-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Type</th><th>Score</th><th>Document</th><th>Date</th><th>Actions</th></tr></thead>
-    <tbody>${all.map(p=>`<tr>
-      <td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td>
-      <td><span class="badge badge-${p.type}">${p.type}</span></td>
-      <td><span style="font-weight:700;color:${(p.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${p.trust_score||0}/100</span>
-          <div class="score-bar"><div class="score-fill" style="width:${p.trust_score||0}%"></div></div></td>
-      <td>${p.document_url?`<a href="${p.document_url}" target="_blank" class="doc-link">📄 Voir</a>`:'—'}</td>
-      <td style="color:var(--texte-doux)">${fmtShort(p.created_at)}</td>
-      <td><div class="actions">
-        <button class="btn-validate" onclick="openValidate('${p.type}','${p.id}','${(p.name||p.phone).replace(/'/g,'')}')">✅ Valider</button>
-        <button class="btn-reject" onclick="openReject('${p.type}','${p.id}','${(p.name||p.phone).replace(/'/g,'')}')">❌ Rejeter</button>
-        <button class="btn-view" onclick="openProfile('${p.phone}')">👁 Fiche</button>
-      </div></td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadPending(){const data=await api('/admin/pending');const all=data.data||[];document.getElementById('pending-count').textContent=`${all.length} dossiers`;if(!all.length){document.getElementById('pending-list').innerHTML=`<div class="empty"><div class="empty-icon">✅</div><p>Aucun compte en attente</p></div>`;return;}document.getElementById('pending-list').innerHTML=`<table id="pending-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Type</th><th>Score</th><th>Document</th><th>Date</th><th>Actions</th></tr></thead><tbody>${all.map(p=>`<tr><td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td><td><span class="badge badge-${p.type}">${p.type}</span></td><td><span style="font-weight:700;color:${(p.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${p.trust_score||0}/100</span><div class="score-bar"><div class="score-fill" style="width:${p.trust_score||0}%"></div></div></td><td>${p.document_url?`<a href="${p.document_url}" target="_blank" class="doc-link">📄 Voir</a>`:'—'}</td><td style="color:var(--texte-doux)">${fmtShort(p.created_at)}</td><td><div class="actions"><button class="btn-validate" onclick="openValidate('${p.type}','${p.id}','${(p.name||p.phone).replace(/'/g,'')}')">✅ Valider</button><button class="btn-reject" onclick="openReject('${p.type}','${p.id}','${(p.name||p.phone).replace(/'/g,'')}')">❌ Rejeter</button><button class="btn-view" onclick="openProfile('${p.phone}')">👁 Fiche</button></div></td></tr>`).join('')}</tbody></table>`;}
 
-async function loadDoctors(status='') {
-  const data = await api(`/admin/doctors${status?`?status=${status}`:''}`);
-  const items = data.data||[];
-  document.getElementById('doctors-count').textContent = `${items.length} médecins`;
-  document.getElementById('doctors-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">🩺</div><p>Aucun médecin</p></div>`:`
-    <table id="doctors-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Spécialité</th><th>Code</th><th>Score</th><th>Statut</th><th>MoMo</th><th>Actions</th></tr></thead>
-    <tbody>${items.map(d=>`<tr>
-      <td><strong>${d.full_name||'—'}</strong></td><td class="td-phone">${d.phone}</td>
-      <td style="color:var(--texte-doux);font-size:12px">${d.specialty||'—'}</td>
-      <td class="td-code">${d.member_code||'—'}</td>
-      <td><span style="font-weight:700;color:${(d.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${d.trust_score||0}/100</span></td>
-      <td>${badge(d.status)}</td>
-      <td style="font-size:11px;color:var(--texte-doux)">${d.momo_number||'—'}</td>
-      <td><div class="actions">
-        ${d.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('doctor','${d.id}','verified','')">✅</button>`:''}
-        ${d.status!=='suspended'?`<button class="btn-suspend" onclick="openSuspend('doctor','${d.id}','${(d.full_name||d.phone).replace(/'/g,'')}')">🚫</button>`:`<button class="btn-validate" onclick="changeStatus('doctor','${d.id}','verified','')">↩</button>`}
-        <button class="btn-view" onclick="openProfile('${d.phone}')">👁</button>
-        <button class="btn-ban" onclick="openBan('${d.phone}','${(d.full_name||d.phone).replace(/'/g,'')}')">🔒</button>
-      </div></td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadDoctors(status=''){const data=await api(`/admin/doctors${status?`?status=${status}`:''}`);const items=data.data||[];document.getElementById('doctors-count').textContent=`${items.length} médecins`;document.getElementById('doctors-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">🩺</div><p>Aucun médecin</p></div>`:`<table id="doctors-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Spécialité</th><th>Code</th><th>Score</th><th>Statut</th><th>MoMo</th><th>Actions</th></tr></thead><tbody>${items.map(d=>`<tr><td><strong>${d.full_name||'—'}</strong></td><td class="td-phone">${d.phone}</td><td style="color:var(--texte-doux);font-size:12px">${d.specialty||'—'}</td><td class="td-code">${d.member_code||'—'}</td><td><span style="font-weight:700;color:${(d.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${d.trust_score||0}/100</span></td><td>${badge(d.status)}</td><td style="font-size:11px;color:var(--texte-doux)">${d.momo_number||'—'}</td><td><div class="actions">${d.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('doctor','${d.id}','verified','')">✅</button>`:''} ${d.status!=='suspended'?`<button class="btn-suspend" onclick="openSuspend('doctor','${d.id}','${(d.full_name||d.phone).replace(/'/g,'')}')">🚫</button>`:`<button class="btn-validate" onclick="changeStatus('doctor','${d.id}','verified','')">↩</button>`}<button class="btn-view" onclick="openProfile('${d.phone}')">👁</button><button class="btn-ban" onclick="openBan('${d.phone}','${(d.full_name||d.phone).replace(/'/g,'')}')">🔒</button></div></td></tr>`).join('')}</tbody></table>`;}
 
-async function loadPharmacies(status='') {
-  const data = await api(`/admin/pharmacies${status?`?status=${status}`:''}`);
-  const items = data.data||[];
-  document.getElementById('pharmacies-count').textContent = `${items.length} pharmacies`;
-  document.getElementById('pharmacies-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>`:`
-    <table id="pharmacies-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>Code</th><th>Statut</th><th>Actions</th></tr></thead>
-    <tbody>${items.map(p=>`<tr>
-      <td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${p.responsible_name||'—'}</td>
-      <td class="td-code">${p.member_code||'—'}</td>
-      <td>${badge(p.status)}</td>
-      <td><div class="actions">
-        ${p.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('pharmacie','${p.id}','verified','')">✅</button>`:''}
-        <button class="btn-view" onclick="openProfile('${p.phone}')">👁</button>
-        <button class="btn-ban" onclick="openBan('${p.phone}','${p.name.replace(/'/g,'')}')">🔒</button>
-      </div></td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadPharmacies(status=''){const data=await api(`/admin/pharmacies${status?`?status=${status}`:''}`);const items=data.data||[];document.getElementById('pharmacies-count').textContent=`${items.length} pharmacies`;document.getElementById('pharmacies-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>`:`<table id="pharmacies-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>Code</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${items.map(p=>`<tr><td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td><td style="font-size:12px;color:var(--texte-doux)">${p.responsible_name||'—'}</td><td class="td-code">${p.member_code||'—'}</td><td>${badge(p.status)}</td><td><div class="actions">${p.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('pharmacie','${p.id}','verified','')">✅</button>`:''}<button class="btn-view" onclick="openProfile('${p.phone}')">👁</button><button class="btn-ban" onclick="openBan('${p.phone}','${p.name.replace(/'/g,'')}')">🔒</button></div></td></tr>`).join('')}</tbody></table>`;}
 
-async function loadLaboratories() {
-  const data = await api('/admin/laboratories');
-  const items = data.data||[];
-  document.getElementById('laboratories-count').textContent = `${items.length} laboratoires`;
-  document.getElementById('laboratories-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">🔬</div><p>Aucun laboratoire</p></div>`:`
-    <table id="laboratories-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Directeur</th><th>Code</th><th>Statut</th><th>Actions</th></tr></thead>
-    <tbody>${items.map(l=>`<tr>
-      <td><strong>${l.name||'—'}</strong></td><td class="td-phone">${l.phone}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${l.director_name||'—'}</td>
-      <td class="td-code">${l.member_code||'—'}</td>
-      <td>${badge(l.status)}</td>
-      <td><div class="actions">
-        ${l.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('laboratoire','${l.id}','verified','')">✅</button>`:''}
-        <button class="btn-view" onclick="openProfile('${l.phone}')">👁</button>
-        <button class="btn-ban" onclick="openBan('${l.phone}','${l.name.replace(/'/g,'')}')">🔒</button>
-      </div></td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadLaboratories(){const data=await api('/admin/laboratories');const items=data.data||[];document.getElementById('laboratories-count').textContent=`${items.length} laboratoires`;document.getElementById('laboratories-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">🔬</div><p>Aucun laboratoire</p></div>`:`<table id="laboratories-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Directeur</th><th>Code</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${items.map(l=>`<tr><td><strong>${l.name||'—'}</strong></td><td class="td-phone">${l.phone}</td><td style="font-size:12px;color:var(--texte-doux)">${l.director_name||'—'}</td><td class="td-code">${l.member_code||'—'}</td><td>${badge(l.status)}</td><td><div class="actions">${l.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('laboratoire','${l.id}','verified','')">✅</button>`:''}<button class="btn-view" onclick="openProfile('${l.phone}')">👁</button><button class="btn-ban" onclick="openBan('${l.phone}','${l.name.replace(/'/g,'')}')">🔒</button></div></td></tr>`).join('')}</tbody></table>`;}
 
-async function loadPatients() {
-  const data = await api('/admin/users?role=patient&page=1');
-  const items = data.data||[];
-  document.getElementById('patients-count').textContent = `${items.length} patients`;
-  document.getElementById('patients-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">👤</div><p>Aucun patient</p></div>`:`
-    <table id="patients-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>ID Bolamu</th><th>Abonnement</th><th>Crédits</th><th>Statut</th><th>Inscrit le</th><th>Actions</th></tr></thead>
-    <tbody>${items.map(p=>`<tr>
-      <td><strong>${p.full_name||'—'}</strong></td><td class="td-phone">${p.phone}</td>
-      <td class="td-code">${p.bolamu_id||'—'}</td>
-      <td>${p.statut_abonnement?badge(p.statut_abonnement):'—'}</td>
-      <td style="color:var(--violet);font-weight:700">${p.credits_balance||0} 💎</td>
-      <td>${p.banned?badge('banned'):p.is_active?`<span class="badge badge-verified">✅ Actif</span>`:`<span class="badge badge-suspended">🚫 Inactif</span>`}</td>
-      <td style="color:var(--texte-doux);font-size:12px">${fmtShort(p.created_at)}</td>
-      <td><div class="actions">
-        <button class="btn-view" onclick="openProfile('${p.phone}')">👁</button>
-        ${p.banned?`<button class="btn-unban" onclick="unbanUser('${p.phone}')">↩</button>`:`<button class="btn-ban" onclick="openBan('${p.phone}','${(p.full_name||p.phone).replace(/'/g,'')}')">🔒</button>`}
-        <button class="btn-credit" onclick="openGrantCredit('${p.phone}')">💎</button>
-      </div></td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadPatients(){const data=await api('/admin/users?role=patient&page=1');const items=data.data||[];document.getElementById('patients-count').textContent=`${items.length} patients`;document.getElementById('patients-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">👤</div><p>Aucun patient</p></div>`:`<table id="patients-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>ID Bolamu</th><th>Abonnement</th><th>Crédits</th><th>Statut</th><th>Inscrit le</th><th>Actions</th></tr></thead><tbody>${items.map(p=>`<tr><td><strong>${p.full_name||'—'}</strong></td><td class="td-phone">${p.phone}</td><td class="td-code">${p.bolamu_id||'—'}</td><td>${p.statut_abonnement?badge(p.statut_abonnement):'—'}</td><td style="color:var(--violet);font-weight:700">${p.credits_balance||0} 💎</td><td>${p.banned?badge('banned'):p.is_active?`<span class="badge badge-verified">✅ Actif</span>`:`<span class="badge badge-suspended">🚫 Inactif</span>`}</td><td style="color:var(--texte-doux);font-size:12px">${fmtShort(p.created_at)}</td><td><div class="actions"><button class="btn-view" onclick="openProfile('${p.phone}')">👁</button>${p.banned?`<button class="btn-unban" onclick="unbanUser('${p.phone}')">↩</button>`:`<button class="btn-ban" onclick="openBan('${p.phone}','${(p.full_name||p.phone).replace(/'/g,'')}')">🔒</button>`}<button class="btn-credit" onclick="openGrantCredit('${p.phone}')">💎</button></div></td></tr>`).join('')}</tbody></table>`;}
 
-async function loadAppointments() {
-  const data = await api('/admin/appointments');
-  const items = data.data||[];
-  const done = items.filter(a=>a.status==='termine').length;
-  const confirmed = items.filter(a=>a.status==='confirme').length;
-  document.getElementById('appt-total').textContent = items.length;
-  document.getElementById('appt-done').textContent = done;
-  document.getElementById('appt-confirmed').textContent = confirmed;
-  document.getElementById('appt-count').textContent = `${items.length} RDV`;
-  document.getElementById('appointments-list').innerHTML = !items.length?`<div class="empty"><p>Aucun rendez-vous</p></div>`:`
-    <table><thead><tr><th>Patient</th><th>Médecin</th><th>Date</th><th>Heure</th><th>Code session</th><th>Statut</th></tr></thead>
-    <tbody>${items.slice(0,200).map(a=>`<tr>
-      <td class="td-phone">${a.patient_phone}</td>
-      <td style="font-size:12px">${a.doctor_name||`ID ${a.doctor_id}`}</td>
-      <td style="font-size:12px">${fmtShort(a.appointment_date)}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${(a.appointment_time||'—').substring(0,5)}</td>
-      <td class="td-code">${a.session_code||'—'}</td>
-      <td>${badge(a.status)}</td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadAppointments(){const data=await api('/admin/appointments');const items=data.data||[];const done=items.filter(a=>a.status==='termine').length;const confirmed=items.filter(a=>a.status==='confirme').length;document.getElementById('appt-total').textContent=items.length;document.getElementById('appt-done').textContent=done;document.getElementById('appt-confirmed').textContent=confirmed;document.getElementById('appt-count').textContent=`${items.length} RDV`;document.getElementById('appointments-list').innerHTML=!items.length?`<div class="empty"><p>Aucun rendez-vous</p></div>`:`<table><thead><tr><th>Patient</th><th>Médecin</th><th>Date</th><th>Heure</th><th>Code session</th><th>Statut</th></tr></thead><tbody>${items.slice(0,200).map(a=>`<tr><td class="td-phone">${a.patient_phone}</td><td style="font-size:12px">${a.doctor_name||`ID ${a.doctor_id}`}</td><td style="font-size:12px">${fmtShort(a.appointment_date)}</td><td style="font-size:12px;color:var(--texte-doux)">${(a.appointment_time||'—').substring(0,5)}</td><td class="td-code">${a.session_code||'—'}</td><td>${badge(a.status)}</td></tr>`).join('')}</tbody></table>`;}
 
-async function loadPrescriptions() {
-  const data = await api('/admin/prescriptions');
-  const items = data.data||[];
-  document.getElementById('pres-count').textContent = `${items.length} ordonnances`;
-  document.getElementById('prescriptions-list').innerHTML = !items.length?`<div class="empty"><p>Aucune ordonnance</p></div>`:`
-    <table><thead><tr><th>Patient</th><th>Médecin</th><th>Code</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead>
-    <tbody>${items.slice(0,200).map(p=>`<tr>
-      <td class="td-phone">${p.patient_phone}</td>
-      <td style="font-size:12px">${p.doctor_name||p.doctor_phone}</td>
-      <td class="td-code">${p.session_code||'—'}</td>
-      <td>${badge(p.status==='livre'?'verified':p.status==='active'?'pending':p.status)}</td>
-      <td style="font-size:11px;color:var(--texte-doux)">${p.pharmacie_phone||'—'}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${fmtShort(p.created_at)}</td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadPrescriptions(){const data=await api('/admin/prescriptions');const items=data.data||[];document.getElementById('pres-count').textContent=`${items.length} ordonnances`;document.getElementById('prescriptions-list').innerHTML=!items.length?`<div class="empty"><p>Aucune ordonnance</p></div>`:`<table><thead><tr><th>Patient</th><th>Médecin</th><th>Code</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead><tbody>${items.slice(0,200).map(p=>`<tr><td class="td-phone">${p.patient_phone}</td><td style="font-size:12px">${p.doctor_name||p.doctor_phone}</td><td class="td-code">${p.session_code||'—'}</td><td>${badge(p.status==='livre'?'verified':p.status==='active'?'pending':p.status)}</td><td style="font-size:11px;color:var(--texte-doux)">${p.pharmacie_phone||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtShort(p.created_at)}</td></tr>`).join('')}</tbody></table>`;}
 
-async function loadPayments() {
-  const data = await api('/admin/payments');
-  const items = data.data||[];
-  document.getElementById('pay-total-rev').textContent = fmtNum(data.total_revenue)+' FCFA';
-  document.getElementById('pay-total-count').textContent = fmtNum(data.total_count);
-  document.getElementById('pay-momo').textContent = items.filter(p=>p.operator==='mtn'||p.operator==='airtel').length;
-  document.getElementById('pay-count').textContent = `${items.length} transactions`;
-  document.getElementById('payments-list').innerHTML = !items.length?`<div class="empty"><p>Aucun paiement</p></div>`:`
-    <table><thead><tr><th>Patient</th><th>Montant (FCFA)</th><th>Opérateur</th><th>Plan</th><th>Statut</th><th>Date</th></tr></thead>
-    <tbody>${items.map(p=>`<tr>
-      <td><span style="font-weight:600">${p.patient_name||p.patient_phone}</span></td>
-      <td style="font-weight:700;color:var(--vert)">${fmtNum(p.amount_fcfa)}</td>
-      <td style="text-transform:uppercase;font-size:12px">${p.operator||'—'}</td>
-      <td style="font-size:12px">${p.plan||'—'}</td>
-      <td>${badge(p.status)}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${fmtDate(p.created_at)}</td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadPayments(){const data=await api('/admin/payments');const items=data.data||[];document.getElementById('pay-total-rev').textContent=fmtNum(data.total_revenue)+' FCFA';document.getElementById('pay-total-count').textContent=fmtNum(data.total_count);document.getElementById('pay-momo').textContent=items.filter(p=>p.operator==='mtn'||p.operator==='airtel').length;document.getElementById('pay-count').textContent=`${items.length} transactions`;document.getElementById('payments-list').innerHTML=!items.length?`<div class="empty"><p>Aucun paiement</p></div>`:`<table><thead><tr><th>Patient</th><th>Montant (FCFA)</th><th>Opérateur</th><th>Plan</th><th>Statut</th><th>Date</th></tr></thead><tbody>${items.map(p=>`<tr><td><span style="font-weight:600">${p.patient_name||p.patient_phone}</span></td><td style="font-weight:700;color:var(--vert)">${fmtNum(p.amount_fcfa)}</td><td style="text-transform:uppercase;font-size:12px">${p.operator||'—'}</td><td style="font-size:12px">${p.plan||'—'}</td><td>${badge(p.status)}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtDate(p.created_at)}</td></tr>`).join('')}</tbody></table>`;}
 
-async function loadFraud() {
-  const data = await api('/admin/fraud');
-  const items = data.data||[];
-  document.getElementById('fraud-count').textContent = `${items.length} signaux`;
-  document.getElementById('fraud-high').textContent = items.filter(f=>f.severity==='high').length;
-  document.getElementById('fraud-medium').textContent = items.filter(f=>f.severity==='medium').length;
-  document.getElementById('fraud-low').textContent = items.filter(f=>f.severity==='low').length;
-  document.getElementById('fraud-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal détecté</p></div>`:`
-    <table><thead><tr><th>Type</th><th>Acteur</th><th>Sévérité</th><th>Date</th><th>Action</th></tr></thead>
-    <tbody>${items.map(f=>`<tr>
-      <td style="font-weight:700;font-size:12px">${f.signal_type?.replace(/_/g,' ')}</td>
-      <td class="td-phone">${f.actor_phone}</td>
-      <td>${badge(f.severity)}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${fmtShort(f.created_at)}</td>
-      <td><div class="actions">
-        <button class="btn-ban" onclick="suspendFraud(${f.id})">🔒 Bannir</button>
-        <button class="btn-view" onclick="openProfile('${f.actor_phone}')">👁</button>
-      </div></td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadFraud(){const data=await api('/admin/fraud');const items=data.data||[];document.getElementById('fraud-count').textContent=`${items.length} signaux`;document.getElementById('fraud-high').textContent=items.filter(f=>f.severity==='high').length;document.getElementById('fraud-medium').textContent=items.filter(f=>f.severity==='medium').length;document.getElementById('fraud-low').textContent=items.filter(f=>f.severity==='low').length;document.getElementById('fraud-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal détecté</p></div>`:`<table><thead><tr><th>Type</th><th>Acteur</th><th>Sévérité</th><th>Date</th><th>Action</th></tr></thead><tbody>${items.map(f=>`<tr><td style="font-weight:700;font-size:12px">${f.signal_type?.replace(/_/g,' ')}</td><td class="td-phone">${f.actor_phone}</td><td>${badge(f.severity)}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtShort(f.created_at)}</td><td><div class="actions"><button class="btn-ban" onclick="suspendFraud(${f.id})">🔒 Bannir</button><button class="btn-view" onclick="openProfile('${f.actor_phone}')">👁</button></div></td></tr>`).join('')}</tbody></table>`;}
 
-async function loadAudit(filter='') {
-  const data = await api(`/admin/audit${filter?`?event_type=${filter}`:''}`);
-  const items = data.data||[];
-  document.getElementById('audit-count').textContent = `${items.length} entrées`;
-  document.getElementById('audit-list').innerHTML = !items.length?`<div class="empty"><p>Journal vide</p></div>`:`
-    <table id="audit-table"><thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead>
-    <tbody>${items.map(a=>`<tr>
-      <td style="font-weight:600;font-size:12px">${a.event_type||'—'}</td>
-      <td class="td-phone">${a.actor_phone||'—'}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${a.target_table||'—'}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${a.target_id||'—'}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${fmtDate(a.created_at)}</td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadAudit(filter=''){const data=await api(`/admin/audit${filter?`?event_type=${filter}`:''}`);const items=data.data||[];document.getElementById('audit-count').textContent=`${items.length} entrées`;document.getElementById('audit-list').innerHTML=!items.length?`<div class="empty"><p>Journal vide</p></div>`:`<table id="audit-table"><thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead><tbody>${items.map(a=>`<tr><td style="font-weight:600;font-size:12px">${a.event_type||'—'}</td><td class="td-phone">${a.actor_phone||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${a.target_table||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${a.target_id||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtDate(a.created_at)}</td></tr>`).join('')}</tbody></table>`;}
 
-async function loadConfig() {
-  const data = await api('/admin/config');
-  const items = data.data||[];
-  const groups = {
-    'Abonnements patients': items.filter(i=>['price_essentiel','price_standard','price_premium'].includes(i.key)),
-    'Rémunération médecins': items.filter(i=>i.key.startsWith('doctor_fee')),
-    'Phase commerciale': items.filter(i=>['active_phase','doctor_patient_ratio','breakeven_subscribers','subscription_duration_days'].includes(i.key)),
-    'Système de crédits': items.filter(i=>i.key.startsWith('credit'))
-  };
-  document.getElementById('config-grid').innerHTML = Object.entries(groups).map(([title, cfgs])=>`
-    <div class="config-card">
-      <div class="config-section-title">${title}</div>
-      ${cfgs.map(c=>`
-        <div class="config-item">
-          <div><div class="config-key">${c.key}</div><div class="config-desc">${c.description||''}</div></div>
-          <div class="config-val" onclick="openEditConfig('${c.key}','${c.value}','${(c.description||'').replace(/'/g,'')}')">
-            ${c.value}${['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity'].includes(c.key)?' FCFA':''}
-          </div>
-        </div>`).join('')}
-    </div>`).join('');
-}
+async function loadConfig(){const data=await api('/admin/config');const items=data.data||[];const groups={'Abonnements patients':items.filter(i=>['price_essentiel','price_standard','price_premium'].includes(i.key)),'Rémunération médecins':items.filter(i=>i.key.startsWith('doctor_fee')),'Phase commerciale':items.filter(i=>['active_phase','doctor_patient_ratio','breakeven_subscribers','subscription_duration_days'].includes(i.key)),'Système de crédits':items.filter(i=>i.key.startsWith('credit'))};document.getElementById('config-grid').innerHTML=Object.entries(groups).map(([title,cfgs])=>`<div class="config-card"><div class="config-section-title">${title}</div>${cfgs.map(c=>`<div class="config-item"><div><div class="config-key">${c.key}</div><div class="config-desc">${c.description||''}</div></div><div class="config-val" onclick="openEditConfig('${c.key}','${c.value}','${(c.description||'').replace(/'/g,'')}')"> ${c.value}${['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity'].includes(c.key)?' FCFA':''}</div></div>`).join('')}</div>`).join('');}
 
-async function loadCredits() {
-  const data = await api('/admin/credits');
-  const items = data.data||[];
-  const totalBal = items.reduce((s,c)=>s+(c.balance||0),0);
-  const totalEarned = items.reduce((s,c)=>s+(c.total_earned||0),0);
-  const totalSpent = items.reduce((s,c)=>s+(c.total_spent||0),0);
-  document.getElementById('cr-total-accounts').textContent = items.length;
-  document.getElementById('cr-total-balance').textContent = fmtNum(totalBal);
-  document.getElementById('cr-total-earned').textContent = fmtNum(totalEarned);
-  document.getElementById('cr-total-spent').textContent = fmtNum(totalSpent);
-  document.getElementById('credits-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte crédits</p></div>`:`
-    <table><thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Actions</th></tr></thead>
-    <tbody>${items.map(c=>`<tr>
-      <td><strong>${c.display_name||'—'}</strong></td>
-      <td class="td-phone">${c.phone}</td>
-      <td><span class="badge badge-${c.role}">${c.role}</span></td>
-      <td style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--violet)">${fmtNum(c.balance)} 💎</td>
-      <td style="color:var(--vert);font-weight:700">+${fmtNum(c.total_earned)}</td>
-      <td style="color:var(--rouge);font-weight:700">-${fmtNum(c.total_spent)}</td>
-      <td><button class="btn-credit" onclick="openGrantCredit('${c.phone}')">💎 Attribuer</button></td>
-    </tr>`).join('')}</tbody></table>`;
-}
+async function loadCredits(){const data=await api('/admin/credits');const items=data.data||[];const totalBal=items.reduce((s,c)=>s+(c.balance||0),0);const totalEarned=items.reduce((s,c)=>s+(c.total_earned||0),0);const totalSpent=items.reduce((s,c)=>s+(c.total_spent||0),0);document.getElementById('cr-total-accounts').textContent=items.length;document.getElementById('cr-total-balance').textContent=fmtNum(totalBal);document.getElementById('cr-total-earned').textContent=fmtNum(totalEarned);document.getElementById('cr-total-spent').textContent=fmtNum(totalSpent);document.getElementById('credits-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte crédits</p></div>`:`<table><thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Actions</th></tr></thead><tbody>${items.map(c=>`<tr><td><strong>${c.display_name||'—'}</strong></td><td class="td-phone">${c.phone}</td><td><span class="badge badge-${c.role}">${c.role}</span></td><td style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--violet)">${fmtNum(c.balance)} 💎</td><td style="color:var(--vert);font-weight:700">+${fmtNum(c.total_earned)}</td><td style="color:var(--rouge);font-weight:700">-${fmtNum(c.total_spent)}</td><td><button class="btn-credit" onclick="openGrantCredit('${c.phone}')">💎 Attribuer</button></td></tr>`).join('')}</tbody></table>`;}
 
-// ── MODALS ACTIONS ──
-function openValidate(type, id, name) {
-  modal(`✅ Valider le compte`, `Voulez-vous valider et activer le compte de <strong>${name}</strong> ?`,
-    `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-     <button class="btn-confirm green" onclick="doValidate('${type}','${id}','approved')">✅ Confirmer la validation</button>`);
-}
-function openReject(type, id, name) {
-  modal(`❌ Rejeter le dossier`, `Le dossier de <strong>${name}</strong> sera rejeté.`,
-    `<div class="modal-field"><label>Motif du rejet</label><input class="modal-input" id="m-reason" placeholder="Ex : Document illisible..."></div>`,
-    `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-     <button class="btn-confirm red" onclick="doValidate('${type}','${id}','rejected',document.getElementById('m-reason').value)">❌ Confirmer le rejet</button>`);
-}
-function openSuspend(entity, id, name) {
-  modal(`🚫 Suspendre`, `Suspendre le compte de <strong>${name}</strong>.`,
-    `<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-reason" placeholder="Motif..."></div>`,
-    `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-     <button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','suspended',document.getElementById('m-reason').value)">🚫 Suspendre</button>`);
-}
-function openBan(phone, name) {
-  modal(`🔒 Bannir ce compte`, `Le compte de <strong>${name}</strong> (${phone}) sera banni.`,
-    `<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-ban-reason" placeholder="Ex : Activité frauduleuse..."></div>`,
-    `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-     <button class="btn-confirm red" onclick="banUser('${phone}',document.getElementById('m-ban-reason').value)">🔒 Bannir</button>`);
-}
-function openEditConfig(key, value, desc) {
-  modal(`⚙️ Modifier`, `Paramètre : <strong>${key}</strong>`,
-    `<div class="modal-field"><label>Nouvelle valeur</label><input class="modal-input" id="m-config-val" value="${value}"></div>`,
-    `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-     <button class="btn-confirm blue" onclick="saveConfig('${key}',document.getElementById('m-config-val').value)">💾 Enregistrer</button>`);
-}
-function openGrantCredit(prePhone='') {
-  modal(`💎 Attribuer des crédits`, `Attribution manuelle.`,
-    `<div class="modal-field"><label>Téléphone</label><input class="modal-input" id="m-cr-phone" value="${prePhone}" placeholder="+242..."></div>
-     <div class="modal-field"><label>Montant</label><input class="modal-input" id="m-cr-amount" type="number" placeholder="500"></div>
-     <div class="modal-field"><label>Motif</label><input class="modal-input" id="m-cr-reason" placeholder="Bonus fidélité..."></div>`,
-    `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-     <button class="btn-confirm violet" onclick="grantCredit()">💎 Attribuer</button>`);
-}
+function openValidate(type,id,name){modal(`✅ Valider le compte`,`Voulez-vous valider et activer le compte de <strong>${name}</strong> ?`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm green" onclick="doValidate('${type}','${id}','approved')">✅ Confirmer</button>`);}
+function openReject(type,id,name){modal(`❌ Rejeter le dossier`,`Le dossier de <strong>${name}</strong> sera rejeté.`,`<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-reason" placeholder="Ex : Document illisible..."></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="doValidate('${type}','${id}','rejected',document.getElementById('m-reason').value)">❌ Confirmer</button>`);}
+function openSuspend(entity,id,name){modal(`🚫 Suspendre`,`Suspendre le compte de <strong>${name}</strong>.`,`<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-reason" placeholder="Motif..."></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','suspended',document.getElementById('m-reason').value)">🚫 Suspendre</button>`);}
+function openBan(phone,name){modal(`🔒 Bannir`,`Le compte de <strong>${name}</strong> (${phone}) sera banni.`,`<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-ban-reason" placeholder="Ex : Activité frauduleuse..."></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="banUser('${phone}',document.getElementById('m-ban-reason').value)">🔒 Bannir</button>`);}
+function openEditConfig(key,value,desc){modal(`⚙️ Modifier`,`Paramètre : <strong>${key}</strong>`,`<div class="modal-field"><label>Nouvelle valeur</label><input class="modal-input" id="m-config-val" value="${value}"></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm blue" onclick="saveConfig('${key}',document.getElementById('m-config-val').value)">💾 Enregistrer</button>`);}
+function openGrantCredit(prePhone=''){modal(`💎 Attribuer des crédits`,`Attribution manuelle.`,`<div class="modal-field"><label>Téléphone</label><input class="modal-input" id="m-cr-phone" value="${prePhone}" placeholder="+242..."></div><div class="modal-field"><label>Montant</label><input class="modal-input" id="m-cr-amount" type="number" placeholder="500"></div><div class="modal-field"><label>Motif</label><input class="modal-input" id="m-cr-reason" placeholder="Bonus fidélité..."></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm violet" onclick="grantCredit()">💎 Attribuer</button>`);}
 
-async function doValidate(type, id, action, reason='') {
-  closeModal();
-  const act = action==='approved'?'approve':'reject';
-  const data = await api('/admin/validate',{method:'PATCH',body:JSON.stringify({id:parseInt(id),type,action:act,reason})});
-  if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');
-}
-async function changeStatus(entity, id, status, reason='') {
-  closeModal();
-  const endpoints={doctor:`/admin/doctors/${id}/status`,pharmacie:`/admin/pharmacies/${id}/status`,laboratoire:`/admin/laboratories/${id}/status`};
-  const data = await api(endpoints[entity],{method:'PATCH',body:JSON.stringify({status,reason})});
-  if(data.success){showToast(`Statut → ${status}`);refreshAll();}else showToast(data.message,'error');
-}
-async function banUser(phone, reason) {
-  closeModal();
-  const data = await api(`/admin/users/${encodeURIComponent(phone)}/ban`,{method:'PATCH',body:JSON.stringify({reason})});
-  if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');
-}
-async function unbanUser(phone) {
-  const data = await api(`/admin/users/${encodeURIComponent(phone)}/unban`,{method:'PATCH',body:'{}'});
-  if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');
-}
-async function suspendFraud(id) {
-  if(!confirm('Bannir ce compte pour fraude ?')) return;
-  const data = await api(`/admin/fraud/${id}/suspend`,{method:'PATCH',body:'{}'});
-  if(data.success){showToast(data.message);loadFraud();}else showToast(data.message,'error');
-}
-async function saveConfig(key, value) {
-  closeModal();
-  const data = await api(`/admin/config/${key}`,{method:'PATCH',body:JSON.stringify({value})});
-  if(data.success){showToast(data.message);loadConfig();}else showToast(data.message,'error');
-}
-async function grantCredit() {
-  const phone = document.getElementById('m-cr-phone').value.trim();
-  const amount = document.getElementById('m-cr-amount').value.trim();
-  const reason = document.getElementById('m-cr-reason').value.trim();
-  if(!phone||!amount||!reason){showToast('Tous les champs sont requis','error');return;}
-  closeModal();
-  const data = await api('/admin/credits/grant',{method:'POST',body:JSON.stringify({phone,amount:parseInt(amount),reason})});
-  if(data.success){showToast(data.message);loadCredits();}else showToast(data.message,'error');
-}
+async function doValidate(type,id,action,reason=''){closeModal();const act=action==='approved'?'approve':'reject';const data=await api('/admin/validate',{method:'PATCH',body:JSON.stringify({id:parseInt(id),type,action:act,reason})});if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');}
+async function changeStatus(entity,id,status,reason=''){closeModal();const endpoints={doctor:`/admin/doctors/${id}/status`,pharmacie:`/admin/pharmacies/${id}/status`,laboratoire:`/admin/laboratories/${id}/status`};const data=await api(endpoints[entity],{method:'PATCH',body:JSON.stringify({status,reason})});if(data.success){showToast(`Statut → ${status}`);refreshAll();}else showToast(data.message,'error');}
+async function banUser(phone,reason){closeModal();const data=await api(`/admin/users/${encodeURIComponent(phone)}/ban`,{method:'PATCH',body:JSON.stringify({reason})});if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');}
+async function unbanUser(phone){const data=await api(`/admin/users/${encodeURIComponent(phone)}/unban`,{method:'PATCH',body:'{}'});if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');}
+async function suspendFraud(id){if(!confirm('Bannir ce compte pour fraude ?'))return;const data=await api(`/admin/fraud/${id}/suspend`,{method:'PATCH',body:'{}'});if(data.success){showToast(data.message);loadFraud();}else showToast(data.message,'error');}
+async function saveConfig(key,value){closeModal();const data=await api(`/admin/config/${key}`,{method:'PATCH',body:JSON.stringify({value})});if(data.success){showToast(data.message);loadConfig();}else showToast(data.message,'error');}
+async function grantCredit(){const phone=document.getElementById('m-cr-phone').value.trim();const amount=document.getElementById('m-cr-amount').value.trim();const reason=document.getElementById('m-cr-reason').value.trim();if(!phone||!amount||!reason){showToast('Tous les champs sont requis','error');return;}closeModal();const data=await api('/admin/credits/grant',{method:'POST',body:JSON.stringify({phone,amount:parseInt(amount),reason})});if(data.success){showToast(data.message);loadCredits();}else showToast(data.message,'error');}
 
-async function openProfile(phone) {
-  showModal();
-  document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 Fiche</div><div class="loading">Chargement...</div>`;
-  const data = await api(`/admin/users/${encodeURIComponent(phone)}/profile`);
-  if(!data.success){document.getElementById('modal-body').innerHTML=`<div class="modal-title">Erreur</div><p style="color:var(--rouge)">${data.message}</p><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;return;}
-  const {user:u,pro_profile:pp} = data.data;
-  document.getElementById('modal-body').innerHTML = `
-    <div class="modal-title">${u.full_name||u.phone}</div>
-    <div class="modal-section">
-      <div class="modal-section-title">Informations compte</div>
-      <div class="modal-info-grid">
-        <div class="modal-info-item"><label>Téléphone</label><span>${u.phone}</span></div>
-        <div class="modal-info-item"><label>Rôle</label><span>${u.role}</span></div>
-        <div class="modal-info-item"><label>Statut</label><span>${u.banned?'🔒 Banni':u.is_active?'✅ Actif':'🚫 Inactif'}</span></div>
-        <div class="modal-info-item"><label>Crédits</label><span style="color:var(--violet)">${u.credits_balance||0} 💎</span></div>
-        <div class="modal-info-item"><label>Inscrit le</label><span>${fmtShort(u.created_at)}</span></div>
-      </div>
-    </div>
-    ${pp?`<div class="modal-section">
-      <div class="modal-section-title">Profil professionnel</div>
-      <div class="modal-info-grid">
-        <div class="modal-info-item"><label>Statut dossier</label><span>${badge(pp.status)}</span></div>
-        <div class="modal-info-item"><label>Score</label><span>${pp.trust_score||0}/100</span></div>
-        <div class="modal-info-item"><label>Code</label><span style="color:var(--bleu)">${pp.member_code||'—'}</span></div>
-      </div>
-      ${pp.document_url?`<div style="margin-top:12px;"><a href="${pp.document_url}" target="_blank" class="doc-link">📄 Voir le document →</a></div>`:''}
-    </div>`:''}
-    <div class="modal-actions">
-      ${u.banned?`<button class="btn-confirm green" onclick="unbanUser('${u.phone}');closeModal()">↩ Réanimer</button>`:`<button class="btn-confirm red" onclick="closeModal();openBan('${u.phone}','${(u.full_name||u.phone).replace(/'/g,'')}')">🔒 Bannir</button>`}
-      <button class="btn-cancel-modal" onclick="closeModal()">Fermer</button>
-    </div>`;
-}
+async function openProfile(phone){showModal();document.getElementById('modal-body').innerHTML=`<div class="modal-title">👁 Fiche</div><div class="loading">Chargement...</div>`;const data=await api(`/admin/users/${encodeURIComponent(phone)}/profile`);if(!data.success){document.getElementById('modal-body').innerHTML=`<div class="modal-title">Erreur</div><p style="color:var(--rouge)">${data.message}</p><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;return;}const{user:u,pro_profile:pp}=data.data;document.getElementById('modal-body').innerHTML=`<div class="modal-title">${u.full_name||u.phone}</div><div class="modal-section"><div class="modal-section-title">Informations compte</div><div class="modal-info-grid"><div class="modal-info-item"><label>Téléphone</label><span>${u.phone}</span></div><div class="modal-info-item"><label>Rôle</label><span>${u.role}</span></div><div class="modal-info-item"><label>Statut</label><span>${u.banned?'🔒 Banni':u.is_active?'✅ Actif':'🚫 Inactif'}</span></div><div class="modal-info-item"><label>Crédits</label><span style="color:var(--violet)">${u.credits_balance||0} 💎</span></div><div class="modal-info-item"><label>Inscrit le</label><span>${fmtShort(u.created_at)}</span></div></div></div>${pp?`<div class="modal-section"><div class="modal-section-title">Profil professionnel</div><div class="modal-info-grid"><div class="modal-info-item"><label>Statut</label><span>${badge(pp.status)}</span></div><div class="modal-info-item"><label>Score</label><span>${pp.trust_score||0}/100</span></div><div class="modal-info-item"><label>Code</label><span style="color:var(--bleu)">${pp.member_code||'—'}</span></div></div>${pp.document_url?`<div style="margin-top:12px;"><a href="${pp.document_url}" target="_blank" class="doc-link">📄 Voir le document →</a></div>`:''}</div>`:''}<div class="modal-actions">${u.banned?`<button class="btn-confirm green" onclick="unbanUser('${u.phone}');closeModal()">↩ Réanimer</button>`:`<button class="btn-confirm red" onclick="closeModal();openBan('${u.phone}','${(u.full_name||u.phone).replace(/'/g,'')}')">🔒 Bannir</button>`}<button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;}
 
-function modal(title, sub, body='', actions='') {
-  document.getElementById('modal-body').innerHTML = `
-    <div class="modal-title">${title}</div>
-    <div class="modal-sub">${sub}</div>
-    ${body}
-    <div class="modal-actions">${actions}</div>`;
-  showModal();
-}
-function showModal() { document.getElementById('modal').classList.add('open'); }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
-document.getElementById('modal').addEventListener('click', function(e){if(e.target===this)closeModal();});
+function modal(title,sub,body='',actions=''){document.getElementById('modal-body').innerHTML=`<div class="modal-title">${title}</div><div class="modal-sub">${sub}</div>${body}<div class="modal-actions">${actions}</div>`;showModal();}
+function showModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-function refreshAll() {
-  const active = document.querySelector('.nav-item.active');
-  const m = active?.onclick?.toString().match(/'(\w+)'/);
-  if(m) loadPanel(m[1]); else loadOverview();
-}
-function logout() { localStorage.clear(); window.location.href='/login.html'; }
+function refreshAll(){const active=document.querySelector('.nav-item.active');const m=active?.onclick?.toString().match(/'(\w+)'/);if(m)loadPanel(m[1]);else loadOverview();}
+function logout(){localStorage.clear();window.location.href='/admin/login.html';}
 
 loadOverview();
-setInterval(loadOverview, 60000);
+setInterval(loadOverview,60000);
 </script>
 </body>
 </html>
