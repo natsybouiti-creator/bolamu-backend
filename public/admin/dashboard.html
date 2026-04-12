@@ -159,14 +159,15 @@
     .modal-field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;}
     .modal-input{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
     .modal-input:focus{border-color:var(--bleu);}
+    .modal-textarea{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;resize:vertical;min-height:120px;line-height:1.6;}
+    .modal-textarea:focus{border-color:var(--bleu);}
+    .modal-select{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;cursor:pointer;}
+    .modal-select:focus{border-color:var(--bleu);}
     .modal-section{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
     .modal-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:12px;}
     .modal-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     .modal-info-item label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--texte-doux);display:block;margin-bottom:3px;}
     .modal-info-item span{font-size:13px;font-weight:500;color:var(--texte);}
-    .modal-mini-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
-    .modal-mini-table th{padding:5px 8px;color:var(--texte-doux);font-size:10px;text-align:left;background:var(--noir3);border-bottom:1px solid var(--border);}
-    .modal-mini-table td{padding:7px 8px;border-bottom:1px solid var(--border);}
     .modal-actions{display:flex;gap:10px;margin-top:24px;}
     .btn-confirm{flex:1;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
     .btn-confirm.green{background:var(--grad-green);color:white;}
@@ -185,7 +186,35 @@
     .empty-icon{font-size:40px;margin-bottom:12px;}
     .loading{text-align:center;padding:40px;color:var(--texte-doux);}
 
-    /* ── RESPONSIVE ──────────────────────────────────────────────── */
+    /* ── ARTICLES PANEL ── */
+    .articles-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:4px;}
+    .article-admin-card{background:var(--noir2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all 0.2s;}
+    .article-admin-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
+    .article-admin-thumb{width:100%;height:140px;object-fit:cover;display:block;}
+    .article-admin-thumb-placeholder{width:100%;height:140px;display:flex;align-items:center;justify-content:center;font-size:48px;}
+    .article-admin-body{padding:16px;}
+    .article-admin-cat{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:8px;}
+    .cat-paludisme{background:rgba(0,200,167,0.15);color:var(--vert);}
+    .cat-grossesse{background:rgba(255,107,157,0.15);color:var(--rose);}
+    .cat-nutrition{background:rgba(255,165,2,0.15);color:var(--amber);}
+    .cat-prevention{background:rgba(46,134,255,0.15);color:var(--bleu);}
+    .article-admin-title{font-size:14px;font-weight:700;color:var(--texte);line-height:1.4;margin-bottom:8px;}
+    .article-admin-meta{font-size:11px;color:var(--texte-doux);margin-bottom:12px;}
+    .article-admin-actions{display:flex;gap:8px;}
+    .btn-edit{padding:6px 14px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.25);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-edit:hover{background:var(--bleu);color:white;}
+    .btn-delete{padding:6px 14px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .btn-delete:hover{background:var(--rouge);color:white;}
+    .btn-toggle-pub{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;border:1px solid;}
+
+    /* Article modal large */
+    .modal-large{max-width:720px;}
+    .img-preview{width:100%;height:160px;object-fit:cover;border-radius:10px;margin-top:8px;display:none;}
+    .img-preview-placeholder{width:100%;height:100px;background:var(--noir3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-top:8px;}
+    .toggle-switch{display:flex;align-items:center;gap:12px;margin-top:4px;}
+    .toggle-switch input[type=checkbox]{width:40px;height:22px;cursor:pointer;accent-color:var(--bleu);}
+
+    /* ── RESPONSIVE ── */
     .mobile-sidebar-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--noir3);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:18px;color:var(--texte);margin-right:8px;flex-shrink:0;}
     .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
     .sidebar-overlay.open{display:block;}
@@ -210,6 +239,7 @@
       .search-bar{flex-wrap:wrap;}
       .search-input{min-width:100%;}
       .stat-row{grid-template-columns:repeat(3,1fr);}
+      .articles-admin-grid{grid-template-columns:1fr;}
     }
     @media(max-width:640px){
       .topbar{height:56px;}
@@ -221,30 +251,12 @@
       .kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}
       .kpi-card{padding:16px;border-radius:14px;}
       .kpi-value{font-size:26px;}
-      .kpi-icon{font-size:18px;}
-      .kpi-label{font-size:10px;}
-      .kpi-trend{font-size:11px;}
-      .charts-row{gap:12px;}
-      .chart-card{padding:18px;border-radius:14px;}
-      .donut-wrapper{flex-direction:column;gap:16px;align-items:center;}
-      .donut{width:100px;height:100px;}
-      .stat-row{grid-template-columns:1fr;gap:8px;}
-      .stat-mini{padding:14px 16px;border-radius:10px;}
-      .table-header{padding:14px 16px;flex-direction:column;gap:8px;align-items:flex-start;}
-      th{padding:8px 12px;font-size:10px;}
-      td{padding:10px 12px;font-size:12px;}
-      .actions{gap:4px;}
-      .btn-validate,.btn-reject,.btn-suspend,.btn-view,.btn-ban,.btn-unban,.btn-credit{padding:4px 8px;font-size:10px;border-radius:6px;}
-      .credits-summary{grid-template-columns:1fr 1fr;gap:8px;}
-      .credit-stat{padding:12px;border-radius:10px;}
-      .credit-stat-val{font-size:18px;}
       .modal{padding:24px 16px;border-radius:18px;width:95%;}
       .modal-title{font-size:18px;}
       .modal-info-grid{grid-template-columns:1fr;}
       .modal-actions{flex-direction:column;gap:8px;}
       .btn-confirm,.btn-cancel-modal{width:100%;}
       .config-grid{grid-template-columns:1fr;}
-      .config-card{padding:16px;border-radius:12px;}
     }
   </style>
 </head>
@@ -276,7 +288,8 @@
     <button class="nav-item" onclick="showPanel('payments',this)"><span class="icon">💳</span> Paiements</button>
     <button class="nav-item" onclick="showPanel('fraud',this)"><span class="icon">🚨</span> Fraudes<span class="nav-badge" id="badge-fraud">0</span></button>
     <button class="nav-item" onclick="showPanel('audit',this)"><span class="icon">📝</span> Journal d'audit</button>
-    <div class="nav-section">Paramètres</div>
+    <div class="nav-section">Contenu & Paramètres</div>
+    <button class="nav-item" onclick="showPanel('articles',this)"><span class="icon">📰</span> Articles & Blog</button>
     <button class="nav-item" onclick="showPanel('config',this)"><span class="icon">⚙️</span> Configuration</button>
     <button class="nav-item" onclick="showPanel('credits',this)"><span class="icon">💎</span> Crédits</button>
   </nav>
@@ -303,6 +316,7 @@
   </div>
   <div class="content">
 
+    <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
       <div class="kpi-grid">
         <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">Chargement...</div></div>
@@ -356,6 +370,7 @@
       </div>
     </div>
 
+    <!-- ACTIVITY -->
     <div class="panel" id="panel-activity">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="act-rdv-today">—</div><div class="stat-mini-lbl">RDV aujourd'hui</div></div></div>
@@ -368,6 +383,7 @@
       </div>
     </div>
 
+    <!-- PENDING -->
     <div class="panel" id="panel-pending">
       <div class="table-card">
         <div class="table-header"><span class="table-title">Comptes en attente de validation</span><span class="table-count" id="pending-count">—</span></div>
@@ -375,6 +391,7 @@
       </div>
     </div>
 
+    <!-- DOCTORS -->
     <div class="panel" id="panel-doctors">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher par nom, téléphone, spécialité..." oninput="filterTable('doctors-table',this.value)">
@@ -391,6 +408,7 @@
       </div>
     </div>
 
+    <!-- PHARMACIES -->
     <div class="panel" id="panel-pharmacies">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher une pharmacie..." oninput="filterTable('pharmacies-table',this.value)">
@@ -407,6 +425,7 @@
       </div>
     </div>
 
+    <!-- LABORATORIES -->
     <div class="panel" id="panel-laboratories">
       <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher un laboratoire..." oninput="filterTable('laboratories-table',this.value)"></div>
       <div class="table-card">
@@ -415,6 +434,7 @@
       </div>
     </div>
 
+    <!-- PATIENTS -->
     <div class="panel" id="panel-patients">
       <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher un patient..." oninput="filterTable('patients-table',this.value)"></div>
       <div class="table-card">
@@ -423,6 +443,7 @@
       </div>
     </div>
 
+    <!-- APPOINTMENTS -->
     <div class="panel" id="panel-appointments">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">✅</div><div><div class="stat-mini-val" id="appt-done">—</div><div class="stat-mini-lbl">Terminés</div></div></div>
@@ -435,6 +456,7 @@
       </div>
     </div>
 
+    <!-- PRESCRIPTIONS -->
     <div class="panel" id="panel-prescriptions">
       <div class="table-card">
         <div class="table-header"><span class="table-title">Ordonnances numériques</span><span class="table-count" id="pres-count">—</span></div>
@@ -442,6 +464,7 @@
       </div>
     </div>
 
+    <!-- PAYMENTS -->
     <div class="panel" id="panel-payments">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">💰</div><div><div class="stat-mini-val" id="pay-total-rev">—</div><div class="stat-mini-lbl">Total encaissé (FCFA)</div></div></div>
@@ -454,6 +477,7 @@
       </div>
     </div>
 
+    <!-- FRAUD -->
     <div class="panel" id="panel-fraud">
       <div class="stat-row">
         <div class="stat-mini"><div class="stat-mini-icon">🔴</div><div><div class="stat-mini-val" id="fraud-high">—</div><div class="stat-mini-lbl">Sévérité haute</div></div></div>
@@ -466,6 +490,7 @@
       </div>
     </div>
 
+    <!-- AUDIT -->
     <div class="panel" id="panel-audit">
       <div class="search-bar">
         <input class="search-input" type="text" placeholder="🔍 Rechercher dans le journal..." oninput="filterTable('audit-table',this.value)">
@@ -485,10 +510,67 @@
       </div>
     </div>
 
+    <!-- ══════════════════════════════════════════
+         ARTICLES & BLOG — NOUVEAU PANEL
+    ══════════════════════════════════════════ -->
+    <div class="panel" id="panel-articles">
+      <div class="table-card" style="margin-bottom:24px;">
+        <div class="table-header">
+          <div>
+            <div class="table-title">📰 Articles & Blog Bolamu</div>
+            <div class="table-count" id="articles-count">Chargement...</div>
+          </div>
+          <button class="btn-validate" style="padding:10px 20px;font-size:13px;" onclick="openArticleForm()">
+            ✏️ Nouvel article
+          </button>
+        </div>
+
+        <!-- Filtres -->
+        <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-view" id="art-filter-tous" onclick="loadArticlesAdmin('tous',this)" style="font-weight:700;">Tous</button>
+          <button class="btn-view" id="art-filter-paludisme" onclick="loadArticlesAdmin('paludisme',this)">🦟 Paludisme</button>
+          <button class="btn-view" id="art-filter-grossesse" onclick="loadArticlesAdmin('grossesse',this)">🤱 Grossesse</button>
+          <button class="btn-view" id="art-filter-nutrition" onclick="loadArticlesAdmin('nutrition',this)">🥗 Nutrition</button>
+          <button class="btn-view" id="art-filter-prevention" onclick="loadArticlesAdmin('prevention',this)">🛡️ Prévention</button>
+        </div>
+
+        <!-- Grille articles -->
+        <div style="padding:20px 24px;">
+          <div class="articles-admin-grid" id="articles-admin-grid">
+            <div class="loading">Chargement des articles...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guide utilisation -->
+      <div style="background:var(--noir2);border:1px solid var(--border);border-radius:16px;padding:20px 24px;">
+        <div style="font-size:13px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📖 Guide d'utilisation</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <div style="background:var(--noir3);border-radius:12px;padding:16px;">
+            <div style="font-size:20px;margin-bottom:8px;">✏️</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Créer un article</div>
+            <div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Cliquez sur "Nouvel article", remplissez le titre, le résumé, le contenu et choisissez une catégorie.</div>
+          </div>
+          <div style="background:var(--noir3);border-radius:12px;padding:16px;">
+            <div style="font-size:20px;margin-bottom:8px;">🖼️</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Ajouter une photo</div>
+            <div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Collez l'URL d'une image depuis Unsplash.com ou Pexels.com. L'aperçu s'affiche automatiquement.</div>
+          </div>
+          <div style="background:var(--noir3);border-radius:12px;padding:16px;">
+            <div style="font-size:20px;margin-bottom:8px;">👁️</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Publier / Dépublier</div>
+            <div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Le bouton vert/rouge sur chaque article permet de le mettre en ligne ou de le retirer sans le supprimer.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
     <div class="panel" id="panel-config">
       <div class="config-grid" id="config-grid"><div class="loading">Chargement...</div></div>
     </div>
 
+    <!-- CREDITS -->
     <div class="panel" id="panel-credits">
       <div class="credits-summary">
         <div class="credit-stat"><div class="credit-stat-val" id="cr-total-accounts">—</div><div class="credit-stat-lbl">Comptes crédits</div></div>
@@ -508,9 +590,18 @@
   </div>
 </div>
 
+<!-- MODAL PRINCIPALE -->
 <div class="modal-overlay" id="modal">
-  <div class="modal"><div id="modal-body"></div></div>
+  <div class="modal" id="modal-inner"><div id="modal-body"></div></div>
 </div>
+
+<!-- MODAL ARTICLE (large) -->
+<div class="modal-overlay" id="modal-article">
+  <div class="modal modal-large" style="max-height:90vh;overflow-y:auto;">
+    <div id="modal-article-body"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -521,7 +612,7 @@ const role  = localStorage.getItem('bolamu_role');
 if (!token || role !== 'admin') window.location.href = '/login.html';
 document.getElementById('admin-name').textContent = phone || 'Admin Bolamu';
 
-// ── SIDEBAR MOBILE ────────────────────────────────────────────
+// ── SIDEBAR ──
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebar-overlay').classList.toggle('open');
@@ -538,7 +629,8 @@ const panelTitles = {
   overview:'Tableau de bord', activity:'Activité en direct', pending:'Comptes en attente',
   doctors:'Médecins', pharmacies:'Pharmacies', laboratories:'Laboratoires', patients:'Patients',
   appointments:'Rendez-vous', prescriptions:'Ordonnances', payments:'Paiements',
-  fraud:'Signaux fraude', audit:"Journal d'audit", config:'Configuration', credits:'Crédits'
+  fraud:'Signaux fraude', audit:"Journal d'audit", articles:'Articles & Blog',
+  config:'Configuration', credits:'Crédits'
 };
 
 function showPanel(name, btn) {
@@ -551,15 +643,21 @@ function showPanel(name, btn) {
 }
 
 function loadPanel(name) {
-  const fn = { overview:loadOverview, activity:loadActivity, pending:loadPending,
+  const fn = {
+    overview:loadOverview, activity:loadActivity, pending:loadPending,
     doctors:()=>loadDoctors(), pharmacies:()=>loadPharmacies(), laboratories:loadLaboratories,
     patients:loadPatients, appointments:loadAppointments, prescriptions:loadPrescriptions,
-    payments:loadPayments, fraud:loadFraud, audit:()=>loadAudit(), config:loadConfig, credits:loadCredits };
+    payments:loadPayments, fraud:loadFraud, audit:()=>loadAudit(),
+    articles:()=>loadArticlesAdmin('tous'), config:loadConfig, credits:loadCredits
+  };
   if (fn[name]) fn[name]();
 }
 
 async function api(path, opts={}) {
-  const res = await fetch(`${API}${path}`, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, ...opts });
+  const res = await fetch(`${API}${path}`, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    ...opts
+  });
   return res.json();
 }
 
@@ -590,6 +688,243 @@ function filterTable(id, q) {
   q = q.toLowerCase();
   document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.textContent.toLowerCase().includes(q)?'':'none');
 }
+
+// ══════════════════════════════════════════════════
+// ARTICLES ADMIN
+// ══════════════════════════════════════════════════
+const CAT_LABELS = { paludisme:'🦟 Paludisme', grossesse:'🤱 Grossesse', nutrition:'🥗 Nutrition', prevention:'🛡️ Prévention' };
+const CAT_BG = { paludisme:'rgba(0,200,167,0.08)', grossesse:'rgba(255,107,157,0.08)', nutrition:'rgba(255,165,2,0.08)', prevention:'rgba(46,134,255,0.08)' };
+const CAT_EMOJI = { paludisme:'🦟', grossesse:'🤱', nutrition:'🥗', prevention:'🛡️' };
+
+async function loadArticlesAdmin(filter='tous', btn=null) {
+  // Mettre à jour les boutons de filtre
+  document.querySelectorAll('[id^="art-filter-"]').forEach(b => {
+    b.style.background = 'rgba(46,134,255,0.1)';
+    b.style.fontWeight = '600';
+  });
+  if (btn) { btn.style.background = 'var(--bleu)'; btn.style.color = 'white'; btn.style.fontWeight = '700'; }
+  else {
+    const defBtn = document.getElementById('art-filter-tous');
+    if (defBtn) { defBtn.style.background = 'var(--bleu)'; defBtn.style.color = 'white'; }
+  }
+
+  const grid = document.getElementById('articles-admin-grid');
+  grid.innerHTML = '<div class="loading">Chargement...</div>';
+
+  try {
+    const url = filter === 'tous' ? '/articles/admin/all' : `/articles?category=${filter}&limit=50`;
+    const data = await api(url);
+    const items = data.articles || [];
+
+    document.getElementById('articles-count').textContent = `${items.length} article${items.length > 1 ? 's' : ''}`;
+
+    if (!items.length) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📰</div><p>Aucun article dans cette catégorie.<br>Cliquez sur <strong>Nouvel article</strong> pour commencer.</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = items.map(a => `
+      <div class="article-admin-card">
+        ${a.image_url
+          ? `<img class="article-admin-thumb" src="${a.image_url}" alt="${a.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="article-admin-thumb-placeholder" style="display:none;background:${CAT_BG[a.category]||'var(--noir3)'};">${a.emoji||CAT_EMOJI[a.category]||'📄'}</div>`
+          : `<div class="article-admin-thumb-placeholder" style="background:${CAT_BG[a.category]||'var(--noir3)'};">${a.emoji||CAT_EMOJI[a.category]||'📄'}</div>`
+        }
+        <div class="article-admin-body">
+          <span class="article-admin-cat cat-${a.category}">${CAT_LABELS[a.category]||a.category}</span>
+          ${!a.is_published ? '<span class="badge badge-suspended" style="margin-left:6px;font-size:10px;">⚫ Brouillon</span>' : ''}
+          ${a.is_featured ? '<span class="badge badge-verified" style="margin-left:6px;font-size:10px;">⭐ À la une</span>' : ''}
+          <div class="article-admin-title">${a.title}</div>
+          <div class="article-admin-meta">✍️ ${a.author||'Dr. Bolamu'} · ⏱ ${a.read_time||'5 min'} · 📅 ${fmtShort(a.created_at)}</div>
+          <div class="article-admin-actions">
+            <button class="btn-edit" onclick="openArticleForm(${JSON.stringify(a).replace(/"/g,'&quot;')})">✏️ Modifier</button>
+            <button class="btn-toggle-pub" style="background:${a.is_published?'rgba(255,71,87,0.1)':'rgba(0,200,167,0.1)'};color:${a.is_published?'var(--rouge)':'var(--vert)'};border-color:${a.is_published?'rgba(255,71,87,0.3)':'rgba(0,200,167,0.3)'};"
+              onclick="togglePublish(${a.id},${a.is_published})">${a.is_published?'⚫ Dépublier':'🟢 Publier'}</button>
+            <button class="btn-delete" onclick="confirmDelete(${a.id},'${a.title.replace(/'/g,"\\'")}')">🗑️</button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p></div>`;
+  }
+}
+
+function openArticleForm(article=null) {
+  const isEdit = !!article;
+  document.getElementById('modal-article-body').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div class="modal-title">${isEdit ? '✏️ Modifier l\'article' : '✏️ Nouvel article'}</div>
+      <button onclick="closeArticleModal()" style="background:var(--noir3);border:1px solid var(--border);color:var(--texte-doux);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:18px;">✕</button>
+    </div>
+
+    <div class="modal-field">
+      <label>Titre de l'article *</label>
+      <input class="modal-input" id="art-title" placeholder="Ex: Comment prévenir le paludisme..." value="${isEdit?(article.title||''):''}">
+    </div>
+
+    <div class="modal-field">
+      <label>Catégorie *</label>
+      <select class="modal-select" id="art-category">
+        <option value="paludisme" ${isEdit&&article.category==='paludisme'?'selected':''}>🦟 Paludisme</option>
+        <option value="grossesse" ${isEdit&&article.category==='grossesse'?'selected':''}>🤱 Suivi grossesse</option>
+        <option value="nutrition" ${isEdit&&article.category==='nutrition'?'selected':''}>🥗 Nutrition</option>
+        <option value="prevention" ${isEdit&&article.category==='prevention'?'selected':''}>🛡️ Prévention</option>
+      </select>
+    </div>
+
+    <div class="modal-field">
+      <label>Résumé (affiché sur la carte) *</label>
+      <textarea class="modal-textarea" id="art-excerpt" placeholder="1-2 phrases qui donnent envie de lire..." style="min-height:80px;">${isEdit?(article.excerpt||''):''}</textarea>
+    </div>
+
+    <div class="modal-field">
+      <label>URL de l'image (optionnel)</label>
+      <input class="modal-input" id="art-image" placeholder="https://images.unsplash.com/photo-..." value="${isEdit?(article.image_url||''):''}" oninput="previewImage(this.value)">
+      <div style="font-size:11px;color:var(--texte-doux);margin-top:6px;">💡 Trouvez des photos gratuites sur <a href="https://unsplash.com" target="_blank" style="color:var(--bleu)">unsplash.com</a> — clic droit sur l'image → Copier l'adresse</div>
+      <img id="art-img-preview" class="img-preview" src="" alt="Aperçu">
+      <div id="art-img-placeholder" class="img-preview-placeholder" style="${isEdit&&article.image_url?'display:none;':''}">${isEdit?(article.emoji||'📄'):'📄'}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="modal-field">
+        <label>Emoji (si pas de photo)</label>
+        <input class="modal-input" id="art-emoji" placeholder="🦟" value="${isEdit?(article.emoji||''):''}" maxlength="4">
+      </div>
+      <div class="modal-field">
+        <label>Temps de lecture</label>
+        <input class="modal-input" id="art-readtime" placeholder="5 min" value="${isEdit?(article.read_time||'5 min'):'5 min'}">
+      </div>
+    </div>
+
+    <div class="modal-field">
+      <label>Auteur</label>
+      <input class="modal-input" id="art-author" placeholder="Dr. Bolamu" value="${isEdit?(article.author||'Dr. Bolamu'):'Dr. Bolamu'}">
+    </div>
+
+    <div class="modal-field">
+      <label>Contenu complet * <span style="color:var(--texte-doux);font-size:10px;font-weight:400;">(HTML basique accepté : &lt;p&gt;, &lt;h4&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;)</span></label>
+      <textarea class="modal-textarea" id="art-content" placeholder="&lt;p&gt;Votre contenu ici...&lt;/p&gt;&#10;&lt;h4&gt;Sous-titre&lt;/h4&gt;&#10;&lt;ul&gt;&lt;li&gt;Point 1&lt;/li&gt;&lt;/ul&gt;" style="min-height:200px;">${isEdit?(article.content||''):''}</textarea>
+    </div>
+
+    <div style="display:flex;gap:24px;margin-bottom:16px;">
+      <div class="toggle-switch">
+        <label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Publié</label>
+        <input type="checkbox" id="art-published" ${isEdit?(article.is_published!==false?'checked':''):'checked'}>
+      </div>
+      <div class="toggle-switch">
+        <label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">⭐ À la une</label>
+        <input type="checkbox" id="art-featured" ${isEdit&&article.is_featured?'checked':''}>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeArticleModal()">Annuler</button>
+      <button class="btn-confirm blue" onclick="saveArticle(${isEdit?article.id:'null'})">${isEdit?'💾 Enregistrer les modifications':'✅ Publier l\'article'}</button>
+    </div>`;
+
+  // Aperçu image si déjà une URL
+  if (isEdit && article.image_url) previewImage(article.image_url);
+
+  document.getElementById('modal-article').classList.add('open');
+}
+
+function previewImage(url) {
+  const img = document.getElementById('art-img-preview');
+  const placeholder = document.getElementById('art-img-placeholder');
+  if (!img || !placeholder) return;
+  if (url && url.startsWith('http')) {
+    img.src = url;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    img.onerror = () => { img.style.display='none'; placeholder.style.display='flex'; };
+  } else {
+    img.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+}
+
+async function saveArticle(id) {
+  const title = document.getElementById('art-title').value.trim();
+  const excerpt = document.getElementById('art-excerpt').value.trim();
+  const content = document.getElementById('art-content').value.trim();
+  const category = document.getElementById('art-category').value;
+
+  if (!title || !excerpt || !content) {
+    showToast('Titre, résumé et contenu sont obligatoires', 'error');
+    return;
+  }
+
+  const body = {
+    title, excerpt, content, category,
+    image_url: document.getElementById('art-image').value.trim() || null,
+    emoji: document.getElementById('art-emoji').value.trim() || '📄',
+    author: document.getElementById('art-author').value.trim() || 'Dr. Bolamu',
+    read_time: document.getElementById('art-readtime').value.trim() || '5 min',
+    is_published: document.getElementById('art-published').checked,
+    is_featured: document.getElementById('art-featured').checked
+  };
+
+  try {
+    const data = id
+      ? await api(`/articles/${id}`, { method:'PUT', body:JSON.stringify(body) })
+      : await api('/articles', { method:'POST', body:JSON.stringify(body) });
+
+    if (data.success) {
+      showToast(id ? 'Article modifié ✅' : 'Article publié ✅');
+      closeArticleModal();
+      loadArticlesAdmin('tous');
+    } else {
+      showToast(data.message || 'Erreur', 'error');
+    }
+  } catch(e) {
+    showToast('Erreur de connexion', 'error');
+  }
+}
+
+async function togglePublish(id, currentlyPublished) {
+  const data = await api(`/articles/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ is_published: !currentlyPublished })
+  });
+  if (data.success) {
+    showToast(currentlyPublished ? 'Article dépublié' : 'Article publié ✅');
+    loadArticlesAdmin('tous');
+  } else {
+    showToast(data.message || 'Erreur', 'error');
+  }
+}
+
+function confirmDelete(id, title) {
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-title">🗑️ Supprimer l'article</div>
+    <div class="modal-sub">Voulez-vous supprimer <strong>"${title}"</strong> ? Cette action est irréversible.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer définitivement</button>
+    </div>`;
+  showModal();
+}
+
+async function deleteArticle(id) {
+  closeModal();
+  const data = await api(`/articles/${id}`, { method: 'DELETE' });
+  if (data.success) {
+    showToast('Article supprimé');
+    loadArticlesAdmin('tous');
+  } else {
+    showToast(data.message || 'Erreur', 'error');
+  }
+}
+
+function closeArticleModal() {
+  document.getElementById('modal-article').classList.remove('open');
+}
+document.getElementById('modal-article').addEventListener('click', function(e) {
+  if (e.target === this) closeArticleModal();
+});
+
+// ══════════════════════════════════════════════════
+// TOUTES LES AUTRES FONCTIONS EXISTANTES
+// ══════════════════════════════════════════════════
 
 async function loadOverview() {
   try {
@@ -734,14 +1069,12 @@ async function loadPharmacies(status='') {
   const items = data.data||[];
   document.getElementById('pharmacies-count').textContent = `${items.length} pharmacies`;
   document.getElementById('pharmacies-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>`:`
-    <table id="pharmacies-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>Code</th><th>Statut</th><th>Pro</th><th>MoMo</th><th>Actions</th></tr></thead>
+    <table id="pharmacies-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>Code</th><th>Statut</th><th>Actions</th></tr></thead>
     <tbody>${items.map(p=>`<tr>
       <td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${p.responsible_name||'—'}</td>
       <td class="td-code">${p.member_code||'—'}</td>
       <td>${badge(p.status)}</td>
-      <td>${p.abonnement_actif?`<span class="badge badge-pro">⭐ Pro</span>`:'Standard'}</td>
-      <td style="font-size:11px;color:var(--texte-doux)">${p.momo_number||'—'}</td>
       <td><div class="actions">
         ${p.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('pharmacie','${p.id}','verified','')">✅</button>`:''}
         <button class="btn-view" onclick="openProfile('${p.phone}')">👁</button>
@@ -800,7 +1133,7 @@ async function loadAppointments() {
   document.getElementById('appt-confirmed').textContent = confirmed;
   document.getElementById('appt-count').textContent = `${items.length} RDV`;
   document.getElementById('appointments-list').innerHTML = !items.length?`<div class="empty"><p>Aucun rendez-vous</p></div>`:`
-    <table><thead><tr><th>Patient</th><th>Médecin</th><th>Date</th><th>Heure</th><th>Code session</th><th>Statut</th><th>Durée</th></tr></thead>
+    <table><thead><tr><th>Patient</th><th>Médecin</th><th>Date</th><th>Heure</th><th>Code session</th><th>Statut</th></tr></thead>
     <tbody>${items.slice(0,200).map(a=>`<tr>
       <td class="td-phone">${a.patient_phone}</td>
       <td style="font-size:12px">${a.doctor_name||`ID ${a.doctor_id}`}</td>
@@ -808,7 +1141,6 @@ async function loadAppointments() {
       <td style="font-size:12px;color:var(--texte-doux)">${(a.appointment_time||'—').substring(0,5)}</td>
       <td class="td-code">${a.session_code||'—'}</td>
       <td>${badge(a.status)}</td>
-      <td style="font-size:12px;color:var(--texte-doux)">${a.consultation_duration_minutes?a.consultation_duration_minutes+'min':'—'}</td>
     </tr>`).join('')}</tbody></table>`;
 }
 
@@ -817,12 +1149,11 @@ async function loadPrescriptions() {
   const items = data.data||[];
   document.getElementById('pres-count').textContent = `${items.length} ordonnances`;
   document.getElementById('prescriptions-list').innerHTML = !items.length?`<div class="empty"><p>Aucune ordonnance</p></div>`:`
-    <table><thead><tr><th>Patient</th><th>Médecin</th><th>Code</th><th>Médicaments</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead>
+    <table><thead><tr><th>Patient</th><th>Médecin</th><th>Code</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead>
     <tbody>${items.slice(0,200).map(p=>`<tr>
       <td class="td-phone">${p.patient_phone}</td>
       <td style="font-size:12px">${p.doctor_name||p.doctor_phone}</td>
       <td class="td-code">${p.session_code||'—'}</td>
-      <td style="font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.medications||'—'}</td>
       <td>${badge(p.status==='livre'?'verified':p.status==='active'?'pending':p.status)}</td>
       <td style="font-size:11px;color:var(--texte-doux)">${p.pharmacie_phone||'—'}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${fmtShort(p.created_at)}</td>
@@ -837,14 +1168,13 @@ async function loadPayments() {
   document.getElementById('pay-momo').textContent = items.filter(p=>p.operator==='mtn'||p.operator==='airtel').length;
   document.getElementById('pay-count').textContent = `${items.length} transactions`;
   document.getElementById('payments-list').innerHTML = !items.length?`<div class="empty"><p>Aucun paiement</p></div>`:`
-    <table><thead><tr><th>Patient</th><th>Montant (FCFA)</th><th>Opérateur</th><th>Plan</th><th>Statut</th><th>Référence</th><th>Date</th></tr></thead>
+    <table><thead><tr><th>Patient</th><th>Montant (FCFA)</th><th>Opérateur</th><th>Plan</th><th>Statut</th><th>Date</th></tr></thead>
     <tbody>${items.map(p=>`<tr>
       <td><span style="font-weight:600">${p.patient_name||p.patient_phone}</span></td>
       <td style="font-weight:700;color:var(--vert)">${fmtNum(p.amount_fcfa)}</td>
       <td style="text-transform:uppercase;font-size:12px">${p.operator||'—'}</td>
       <td style="font-size:12px">${p.plan||'—'}</td>
       <td>${badge(p.status)}</td>
-      <td style="font-size:11px;font-family:monospace;color:var(--texte-doux)">${p.reference||'—'}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${fmtDate(p.created_at)}</td>
     </tr>`).join('')}</tbody></table>`;
 }
@@ -875,13 +1205,12 @@ async function loadAudit(filter='') {
   const items = data.data||[];
   document.getElementById('audit-count').textContent = `${items.length} entrées`;
   document.getElementById('audit-list').innerHTML = !items.length?`<div class="empty"><p>Journal vide</p></div>`:`
-    <table id="audit-table"><thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Payload</th><th>Date</th></tr></thead>
+    <table id="audit-table"><thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead>
     <tbody>${items.map(a=>`<tr>
       <td style="font-weight:600;font-size:12px">${a.event_type||'—'}</td>
       <td class="td-phone">${a.actor_phone||'—'}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${a.target_table||'—'}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${a.target_id||'—'}</td>
-      <td style="font-size:11px;color:var(--texte-doux);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.payload?JSON.stringify(a.payload).substring(0,60):'—'}</td>
       <td style="font-size:12px;color:var(--texte-doux)">${fmtDate(a.created_at)}</td>
     </tr>`).join('')}</tbody></table>`;
 }
@@ -893,7 +1222,6 @@ async function loadConfig() {
     'Abonnements patients': items.filter(i=>['price_essentiel','price_standard','price_premium'].includes(i.key)),
     'Rémunération médecins': items.filter(i=>i.key.startsWith('doctor_fee')),
     'Phase commerciale': items.filter(i=>['active_phase','doctor_patient_ratio','breakeven_subscribers','subscription_duration_days'].includes(i.key)),
-    'Abonnements pros': items.filter(i=>['price_pharma_highlight'].includes(i.key)),
     'Système de crédits': items.filter(i=>i.key.startsWith('credit'))
   };
   document.getElementById('config-grid').innerHTML = Object.entries(groups).map(([title, cfgs])=>`
@@ -903,7 +1231,7 @@ async function loadConfig() {
         <div class="config-item">
           <div><div class="config-key">${c.key}</div><div class="config-desc">${c.description||''}</div></div>
           <div class="config-val" onclick="openEditConfig('${c.key}','${c.value}','${(c.description||'').replace(/'/g,'')}')">
-            ${c.value}${['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity','price_pharma_highlight','credit_amount_auto','credit_amount_quarterly'].includes(c.key)?' FCFA':''}
+            ${c.value}${['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity'].includes(c.key)?' FCFA':''}
           </div>
         </div>`).join('')}
     </div>`).join('');
@@ -920,7 +1248,7 @@ async function loadCredits() {
   document.getElementById('cr-total-earned').textContent = fmtNum(totalEarned);
   document.getElementById('cr-total-spent').textContent = fmtNum(totalSpent);
   document.getElementById('credits-list').innerHTML = !items.length?`<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte crédits</p></div>`:`
-    <table><thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Mois</th><th>Actions</th></tr></thead>
+    <table><thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Actions</th></tr></thead>
     <tbody>${items.map(c=>`<tr>
       <td><strong>${c.display_name||'—'}</strong></td>
       <td class="td-phone">${c.phone}</td>
@@ -928,11 +1256,11 @@ async function loadCredits() {
       <td style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--violet)">${fmtNum(c.balance)} 💎</td>
       <td style="color:var(--vert);font-weight:700">+${fmtNum(c.total_earned)}</td>
       <td style="color:var(--rouge);font-weight:700">-${fmtNum(c.total_spent)}</td>
-      <td style="color:var(--texte-doux)">${c.consecutive_months||0}</td>
       <td><button class="btn-credit" onclick="openGrantCredit('${c.phone}')">💎 Attribuer</button></td>
     </tr>`).join('')}</tbody></table>`;
 }
 
+// ── MODALS ACTIONS ──
 function openValidate(type, id, name) {
   modal(`✅ Valider le compte`, `Voulez-vous valider et activer le compte de <strong>${name}</strong> ?`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
@@ -951,22 +1279,22 @@ function openSuspend(entity, id, name) {
      <button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','suspended',document.getElementById('m-reason').value)">🚫 Suspendre</button>`);
 }
 function openBan(phone, name) {
-  modal(`🔒 Bannir ce compte`, `Le compte de <strong>${name}</strong> (${phone}) sera banni définitivement.`,
-    `<div class="modal-field"><label>Motif du bannissement</label><input class="modal-input" id="m-ban-reason" placeholder="Ex : Activité frauduleuse..."></div>`,
+  modal(`🔒 Bannir ce compte`, `Le compte de <strong>${name}</strong> (${phone}) sera banni.`,
+    `<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-ban-reason" placeholder="Ex : Activité frauduleuse..."></div>`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
-     <button class="btn-confirm red" onclick="banUser('${phone}',document.getElementById('m-ban-reason').value)">🔒 Bannir définitivement</button>`);
+     <button class="btn-confirm red" onclick="banUser('${phone}',document.getElementById('m-ban-reason').value)">🔒 Bannir</button>`);
 }
 function openEditConfig(key, value, desc) {
-  modal(`⚙️ Modifier la configuration`, `Paramètre : <strong>${key}</strong>`,
+  modal(`⚙️ Modifier`, `Paramètre : <strong>${key}</strong>`,
     `<div class="modal-field"><label>Nouvelle valeur</label><input class="modal-input" id="m-config-val" value="${value}"></div>`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
      <button class="btn-confirm blue" onclick="saveConfig('${key}',document.getElementById('m-config-val').value)">💾 Enregistrer</button>`);
 }
 function openGrantCredit(prePhone='') {
-  modal(`💎 Attribuer des crédits`, `Attribution manuelle de crédits Bolamu.`,
+  modal(`💎 Attribuer des crédits`, `Attribution manuelle.`,
     `<div class="modal-field"><label>Téléphone</label><input class="modal-input" id="m-cr-phone" value="${prePhone}" placeholder="+242..."></div>
-     <div class="modal-field"><label>Montant (crédits)</label><input class="modal-input" id="m-cr-amount" type="number" placeholder="Ex: 500"></div>
-     <div class="modal-field"><label>Motif</label><input class="modal-input" id="m-cr-reason" placeholder="Ex: Bonus fidélité..."></div>`,
+     <div class="modal-field"><label>Montant</label><input class="modal-input" id="m-cr-amount" type="number" placeholder="500"></div>
+     <div class="modal-field"><label>Motif</label><input class="modal-input" id="m-cr-reason" placeholder="Bonus fidélité..."></div>`,
     `<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button>
      <button class="btn-confirm violet" onclick="grantCredit()">💎 Attribuer</button>`);
 }
@@ -1017,7 +1345,7 @@ async function openProfile(phone) {
   document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 Fiche</div><div class="loading">Chargement...</div>`;
   const data = await api(`/admin/users/${encodeURIComponent(phone)}/profile`);
   if(!data.success){document.getElementById('modal-body').innerHTML=`<div class="modal-title">Erreur</div><p style="color:var(--rouge)">${data.message}</p><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;return;}
-  const {user:u,pro_profile:pp,appointments:ap,prescriptions:pr,payments:py,fraud_signals:fs} = data.data;
+  const {user:u,pro_profile:pp} = data.data;
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-title">${u.full_name||u.phone}</div>
     <div class="modal-section">
@@ -1026,7 +1354,6 @@ async function openProfile(phone) {
         <div class="modal-info-item"><label>Téléphone</label><span>${u.phone}</span></div>
         <div class="modal-info-item"><label>Rôle</label><span>${u.role}</span></div>
         <div class="modal-info-item"><label>Statut</label><span>${u.banned?'🔒 Banni':u.is_active?'✅ Actif':'🚫 Inactif'}</span></div>
-        <div class="modal-info-item"><label>Abonnement</label><span>${u.statut_abonnement||'—'}</span></div>
         <div class="modal-info-item"><label>Crédits</label><span style="color:var(--violet)">${u.credits_balance||0} 💎</span></div>
         <div class="modal-info-item"><label>Inscrit le</label><span>${fmtShort(u.created_at)}</span></div>
       </div>
@@ -1035,17 +1362,13 @@ async function openProfile(phone) {
       <div class="modal-section-title">Profil professionnel</div>
       <div class="modal-info-grid">
         <div class="modal-info-item"><label>Statut dossier</label><span>${badge(pp.status)}</span></div>
-        <div class="modal-info-item"><label>Score confiance</label><span>${pp.trust_score||0}/100</span></div>
-        <div class="modal-info-item"><label>Code membre</label><span style="color:var(--bleu)">${pp.member_code||'—'}</span></div>
-        ${pp.specialty?`<div class="modal-info-item"><label>Spécialité</label><span>${pp.specialty}</span></div>`:''}
-        ${pp.registration_number?`<div class="modal-info-item"><label>N° Ordre</label><span>${pp.registration_number}</span></div>`:''}
+        <div class="modal-info-item"><label>Score</label><span>${pp.trust_score||0}/100</span></div>
+        <div class="modal-info-item"><label>Code</label><span style="color:var(--bleu)">${pp.member_code||'—'}</span></div>
       </div>
-      ${pp.document_url?`<div style="margin-top:12px;padding:12px;background:var(--noir3);border-radius:10px;">
-        <a href="${pp.document_url}" target="_blank" class="doc-link">📄 Voir le document justificatif →</a>
-      </div>`:''}
+      ${pp.document_url?`<div style="margin-top:12px;"><a href="${pp.document_url}" target="_blank" class="doc-link">📄 Voir le document →</a></div>`:''}
     </div>`:''}
     <div class="modal-actions">
-      ${u.banned?`<button class="btn-confirm green" onclick="unbanUser('${u.phone}');closeModal()">↩ Réanimer le compte</button>`:`<button class="btn-confirm red" onclick="closeModal();openBan('${u.phone}','${(u.full_name||u.phone).replace(/'/g,'')}')">🔒 Bannir ce compte</button>`}
+      ${u.banned?`<button class="btn-confirm green" onclick="unbanUser('${u.phone}');closeModal()">↩ Réanimer</button>`:`<button class="btn-confirm red" onclick="closeModal();openBan('${u.phone}','${(u.full_name||u.phone).replace(/'/g,'')}')">🔒 Bannir</button>`}
       <button class="btn-cancel-modal" onclick="closeModal()">Fermer</button>
     </div>`;
 }
