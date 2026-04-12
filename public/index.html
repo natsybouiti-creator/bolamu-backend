@@ -18,10 +18,14 @@
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
         html{scroll-behavior:smooth;}
         body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);background:var(--blanc);overflow-x:hidden;}
+
+        /* ── LOGO SVG ── */
         .logo-svg{display:flex;align-items:center;gap:10px;text-decoration:none;}
         .logo-name{font-size:22px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
         .logo-name-blue{color:var(--bleu);} .logo-name-teal{color:var(--vert);}
         .logo-tagline{font-size:10px;font-weight:500;color:var(--texte-doux);letter-spacing:0.5px;text-transform:uppercase;}
+
+        /* ── NAV ── */
         nav{position:fixed;top:0;width:100%;z-index:200;padding:14px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(10,36,99,0.08);box-shadow:0 2px 20px rgba(10,36,99,0.06);}
         .nav-links{display:flex;gap:28px;list-style:none;}
         .nav-links a{text-decoration:none;color:var(--texte-doux);font-size:14px;font-weight:500;transition:color 0.2s;}
@@ -38,6 +42,8 @@
         .mobile-menu a{display:block;padding:16px 0;font-size:16px;font-weight:600;color:var(--texte);text-decoration:none;border-bottom:1px solid rgba(10,36,99,0.06);}
         .mobile-menu .mobile-cta{margin-top:24px;display:flex;flex-direction:column;gap:12px;}
         .mobile-menu .btn-solid,.mobile-menu .btn-outline{display:block;text-align:center;padding:14px;}
+
+        /* ── HERO ── */
         .hero{min-height:100vh;background:var(--grad-hero);display:flex;align-items:center;padding:100px 40px 60px;position:relative;overflow:hidden;}
         .hero::before{content:'';position:absolute;top:-300px;right:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(0,201,167,0.25) 0%,transparent 65%);border-radius:50%;}
         .hero::after{content:'';position:absolute;bottom:-150px;left:30%;width:500px;height:500px;background:radial-gradient(circle,rgba(46,134,255,0.2) 0%,transparent 65%);border-radius:50%;}
@@ -59,14 +65,20 @@
         .hero-image-overlay p{font-size:13px;color:rgba(255,255,255,0.8);margin-bottom:4px;}
         .hero-image-overlay strong{font-size:16px;}
         .verified-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,201,167,0.2);border:1px solid rgba(0,201,167,0.5);padding:4px 12px;border-radius:20px;font-size:12px;color:#00C9A7;font-weight:600;margin-top:8px;}
+
+        /* ── STATS ── */
         .stats{background:var(--bleu);padding:48px 40px;display:grid;grid-template-columns:repeat(4,1fr);gap:32px;}
         .stat-item{text-align:center;color:white;}
         .stat-number{font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:#00C9A7;display:block;line-height:1;margin-bottom:8px;}
         .stat-label{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.5;}
+
+        /* ── SECTIONS COMMUNES ── */
         .section{padding:80px 40px;}
         .section-tag{display:inline-block;background:var(--vert-clair);color:var(--vert);padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;margin-bottom:14px;text-transform:uppercase;letter-spacing:1.5px;}
         .section-title{font-family:'Fraunces',serif;font-size:44px;font-weight:900;line-height:1.1;letter-spacing:-1.5px;margin-bottom:14px;}
         .section-subtitle{font-size:16px;color:var(--texte-doux);line-height:1.75;max-width:560px;font-weight:300;}
+
+        /* ── COMMENT ÇA MARCHE ── */
         .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px;}
         .how-card{background:var(--bleu-pale);border-radius:20px;padding:36px 28px;position:relative;transition:transform 0.3s,box-shadow 0.3s;border:1px solid rgba(10,36,99,0.06);}
         .how-card:hover{transform:translateY(-8px);box-shadow:0 20px 40px rgba(10,36,99,0.12);}
@@ -74,6 +86,8 @@
         .how-icon{font-size:40px;margin-bottom:16px;display:block;}
         .how-card h3{font-size:20px;font-weight:700;margin-bottom:10px;}
         .how-card p{font-size:14px;color:var(--texte-doux);line-height:1.7;}
+
+        /* ── PLANS ── */
         .plans{background:var(--bleu-pale);}
         .plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px;align-items:start;}
         .plan-card{background:white;border-radius:24px;padding:36px 28px;border:2px solid transparent;transition:all 0.3s;position:relative;}
@@ -97,6 +111,8 @@
         .btn-plan{width:100%;padding:14px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;text-decoration:none;display:block;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;}
         .plan-card.featured .btn-plan{background:white;color:var(--bleu);}
         .btn-plan:hover{opacity:0.9;transform:translateY(-2px);}
+
+        /* ── ACTEURS ── */
         .actors-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:48px;}
         .actor-card{border-radius:20px;overflow:hidden;position:relative;height:260px;cursor:pointer;transition:transform 0.3s;}
         .actor-card:hover{transform:scale(1.02);}
@@ -105,6 +121,8 @@
         .actor-tag{display:inline-block;background:rgba(0,201,167,0.3);border:1px solid rgba(0,201,167,0.5);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;color:#00C9A7;}
         .actor-overlay h3{font-size:20px;font-weight:700;margin-bottom:4px;}
         .actor-overlay p{font-size:13px;color:rgba(255,255,255,0.75);}
+
+        /* ── INTERNATIONAL ── */
         .intl{background:linear-gradient(135deg,#0A2463 0%,#1a3a7a 50%,#0d2d5a 100%);padding:80px 40px;}
         .intl-inner{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
         .intl-content{color:white;}
@@ -124,18 +142,76 @@
         .intl-cta{margin-top:24px;text-align:center;}
         .btn-intl{display:inline-block;padding:14px 32px;background:var(--grad-btn);color:white;border:none;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
         .btn-intl:hover{opacity:0.9;transform:translateY(-2px);}
+
+        /* ══════════════════════════════════════════════════════════
+           SECTION ARTICLES — NOUVEAU
+        ══════════════════════════════════════════════════════════ */
         .prevention{background:var(--bleu-pale);}
-        .articles-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:20px;margin-top:48px;}
+
+        /* Filtres catégories */
+        .articles-filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:36px;margin-bottom:28px;}
+        .art-filter{padding:8px 20px;border:2px solid rgba(10,36,99,0.12);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;background:white;color:var(--texte-doux);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+        .art-filter:hover{border-color:var(--bleu-vif);color:var(--bleu);}
+        .art-filter.active{border-color:var(--bleu-vif);background:var(--bleu-vif);color:white;}
+
+        /* Grille articles */
+        .articles-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:20px;}
+        .articles-grid.filtered{grid-template-columns:repeat(3,1fr);}
+
+        /* Carte article */
         .article-card{border-radius:20px;overflow:hidden;background:white;transition:transform 0.3s,box-shadow 0.3s;cursor:pointer;border:1px solid rgba(10,36,99,0.06);}
         .article-card:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(10,36,99,0.1);}
-        .article-image{width:100%;height:180px;object-fit:cover;}
-        .article-card.featured .article-image{height:260px;}
+        .article-thumb{width:100%;height:180px;object-fit:cover;display:block;background:var(--bleu-pale);}
+        .article-card.featured .article-thumb{height:260px;}
+        .article-thumb-placeholder{width:100%;height:180px;display:flex;align-items:center;justify-content:center;font-size:56px;}
+        .article-card.featured .article-thumb-placeholder{height:260px;}
         .article-content{padding:20px;}
-        .article-category{display:inline-block;background:var(--vert-clair);color:var(--vert);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:10px;}
-        .article-content h3{font-size:17px;font-weight:700;line-height:1.4;margin-bottom:8px;}
+        .article-category{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:10px;}
+        .cat-grossesse{background:#fce7f3;color:#be185d;}
+        .cat-paludisme{background:#d1fae5;color:#065f46;}
+        .cat-nutrition{background:#fef3c7;color:#92400e;}
+        .cat-prevention{background:var(--vert-clair);color:#047857;}
+        .cat-sante{background:var(--bleu-pale);color:var(--bleu);}
+        .article-content h3{font-size:17px;font-weight:700;line-height:1.4;margin-bottom:8px;color:var(--texte);}
         .article-card.featured .article-content h3{font-size:21px;}
         .article-content p{font-size:13px;color:var(--texte-doux);line-height:1.65;margin-bottom:14px;}
         .article-meta{font-size:12px;color:#aaa;display:flex;align-items:center;gap:8px;}
+        .article-read-more{display:inline-flex;align-items:center;gap:6px;color:var(--bleu-vif);font-size:13px;font-weight:600;margin-top:4px;}
+
+        /* Bouton voir tous */
+        .articles-cta{text-align:center;margin-top:32px;}
+        .btn-articles-more{padding:14px 36px;background:white;color:var(--bleu);border:2px solid rgba(10,36,99,0.15);border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+        .btn-articles-more:hover{border-color:var(--bleu-vif);color:var(--bleu-vif);transform:translateY(-2px);}
+
+        /* ══════════════════════════════════════════════════════════
+           MODAL ARTICLE
+        ══════════════════════════════════════════════════════════ */
+        .art-modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,36,99,0.6);backdrop-filter:blur(6px);z-index:500;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+        .art-modal-overlay.open{display:flex;}
+        .art-modal{background:white;border-radius:28px;max-width:740px;width:100%;box-shadow:0 40px 100px rgba(10,36,99,0.25);animation:modalIn 0.3s ease;position:relative;margin:auto;}
+        @keyframes modalIn{from{opacity:0;transform:translateY(24px)scale(0.97);}to{opacity:1;transform:translateY(0)scale(1);}}
+        .art-modal-hero{width:100%;height:280px;object-fit:cover;border-radius:28px 28px 0 0;display:block;}
+        .art-modal-hero-placeholder{width:100%;height:280px;border-radius:28px 28px 0 0;display:flex;align-items:center;justify-content:center;font-size:80px;}
+        .art-modal-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.95);border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:all 0.2s;}
+        .art-modal-close:hover{transform:scale(1.1);}
+        .art-modal-body{padding:36px;}
+        .art-modal-cat{display:inline-block;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px;}
+        .art-modal-title{font-family:'Fraunces',serif;font-size:32px;font-weight:900;line-height:1.2;margin-bottom:12px;color:var(--texte);letter-spacing:-0.5px;}
+        .art-modal-meta{display:flex;align-items:center;gap:16px;font-size:13px;color:var(--texte-doux);margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid rgba(10,36,99,0.08);}
+        .art-modal-content{font-size:15px;color:var(--texte);line-height:1.85;}
+        .art-modal-content h4{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--bleu);margin:28px 0 12px;}
+        .art-modal-content p{margin-bottom:16px;}
+        .art-modal-content ul{padding-left:20px;margin-bottom:16px;}
+        .art-modal-content ul li{margin-bottom:8px;line-height:1.7;}
+        .art-modal-content .highlight{background:var(--vert-clair);border-left:4px solid var(--vert);padding:16px 20px;border-radius:0 12px 12px 0;margin:20px 0;font-weight:500;}
+        .art-modal-content .warning{background:#fef3c7;border-left:4px solid #f59e0b;padding:16px 20px;border-radius:0 12px 12px 0;margin:20px 0;}
+        .art-modal-cta{margin-top:32px;padding-top:24px;border-top:1px solid rgba(10,36,99,0.08);display:flex;gap:12px;flex-wrap:wrap;}
+        .btn-modal-primary{padding:13px 28px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+        .btn-modal-primary:hover{opacity:0.9;transform:translateY(-1px);}
+        .btn-modal-secondary{padding:13px 24px;background:transparent;color:var(--texte-doux);border:2px solid rgba(10,36,99,0.15);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+        .btn-modal-secondary:hover{border-color:var(--bleu-vif);color:var(--bleu);}
+
+        /* ── GROUPES ── */
         .groupes{background:linear-gradient(135deg,var(--bleu) 0%,#1a3a7a 50%,#0d2d5a 100%);padding:80px 40px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
         .groupes-content{color:white;}
         .groupes-content .section-tag{background:rgba(0,201,167,0.2);color:#00C9A7;}
@@ -157,6 +233,8 @@
         .groupes-members{display:flex;gap:8px;flex-wrap:wrap;}
         .member-avatar{width:46px;height:46px;border-radius:50%;background:var(--vert-clair);display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid rgba(255,255,255,0.2);}
         .member-add{background:var(--grad-btn);color:white;font-size:24px;font-weight:300;border:none;cursor:pointer;}
+
+        /* ── CONNEXION ── */
         .login-section{padding:80px 40px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
         .login-info h2{font-family:'Fraunces',serif;font-size:44px;font-weight:900;line-height:1.1;letter-spacing:-1.5px;margin-bottom:18px;}
         .login-info p{font-size:15px;color:var(--texte-doux);line-height:1.75;margin-bottom:28px;}
@@ -190,6 +268,8 @@
         .message.error{background:#fde8e8;color:#c0392b;border:1px solid #c0392b;}
         .register-link{text-align:center;margin-top:14px;font-size:13px;color:var(--texte-doux);}
         .register-link a{color:var(--bleu-vif);font-weight:700;text-decoration:none;}
+
+        /* ── FOOTER ── */
         footer{background:var(--bleu);color:white;padding:60px 40px;}
         .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:40px;}
         .footer-logo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
@@ -204,9 +284,13 @@
         .footer-bottom{border-top:1px solid rgba(255,255,255,0.1);padding-top:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
         .footer-bottom p{font-size:12px;color:rgba(255,255,255,0.35);}
         .flag-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);padding:6px 14px;border-radius:20px;font-size:12px;color:rgba(255,255,255,0.6);}
+
+        /* ── WA FLOAT ── */
         .wa-float{position:fixed;bottom:24px;right:24px;z-index:999;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 8px 24px rgba(37,211,102,0.4);cursor:pointer;text-decoration:none;transition:all 0.3s;animation:wabounce 2s infinite;}
         @keyframes wabounce{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
-        .wa-float:hover{transform:scale(1.1)!important;box-shadow:0 12px 32px rgba(37,211,102,0.5);}
+        .wa-float:hover{transform:scale(1.1)!important;}
+
+        /* ── RESPONSIVE ── */
         @media(max-width:1024px){
             .hero-image{width:340px;height:420px;right:20px;}
             .hero h1{font-size:50px;}
@@ -215,6 +299,8 @@
             .groupes{grid-template-columns:1fr;}
             .login-section{grid-template-columns:1fr;}
             .footer-grid{grid-template-columns:1fr 1fr;gap:32px;}
+            .articles-grid{grid-template-columns:1fr 1fr;}
+            .article-card.featured .article-thumb,.article-card.featured .article-thumb-placeholder{height:200px;}
         }
         @media(max-width:768px){
             nav{padding:14px 20px;}
@@ -235,6 +321,7 @@
             .plan-card.featured{transform:none;}
             .actors-grid{grid-template-columns:1fr;gap:16px;}
             .articles-grid{grid-template-columns:1fr;gap:16px;}
+            .articles-grid.filtered{grid-template-columns:1fr;}
             .groupes{padding:56px 20px;grid-template-columns:1fr;gap:40px;}
             .groupes-visual{display:none;}
             .intl{padding:56px 20px;}
@@ -247,22 +334,53 @@
             .footer-grid{grid-template-columns:1fr;gap:28px;}
             .footer-bottom{flex-direction:column;gap:12px;text-align:center;}
             .form-row{grid-template-columns:1fr;}
+            .art-modal{border-radius:20px;}
+            .art-modal-body{padding:24px 20px;}
+            .art-modal-title{font-size:24px;}
+            .art-modal-hero,.art-modal-hero-placeholder{height:200px;}
+            .art-modal-overlay{padding:16px;}
         }
         @media(max-width:480px){
             .hero h1{font-size:36px;}
             .section-title{font-size:30px;}
             .plan-price{font-size:40px;}
             .otp-inputs input{width:40px;height:48px;font-size:20px;}
+            .articles-filters{gap:6px;}
+            .art-filter{padding:7px 14px;font-size:12px;}
         }
     </style>
 </head>
 <body>
 
-<a class="wa-float" href="https://wa.me/242069735418?text=Bonjour%20Bolamu%2C%20je%20suis%20intéressé%20par%20vos%20solutions" target="_blank" title="Contactez-nous sur WhatsApp">💬</a>
+<!-- ── MODAL ARTICLE ─────────────────────────────────────────────── -->
+<div class="art-modal-overlay" id="art-modal-overlay" onclick="closeArticleModal(event)">
+  <div class="art-modal" id="art-modal">
+    <button class="art-modal-close" onclick="closeArticleModalDirect()">✕</button>
+    <div id="art-modal-hero-wrap"></div>
+    <div class="art-modal-body">
+      <div id="art-modal-cat-badge"></div>
+      <div class="art-modal-title" id="art-modal-title"></div>
+      <div class="art-modal-meta" id="art-modal-meta"></div>
+      <div class="art-modal-content" id="art-modal-content"></div>
+      <div class="art-modal-cta">
+        <a href="#connexion" class="btn-modal-primary" onclick="closeArticleModalDirect()">📅 Prendre un RDV Bolamu</a>
+        <button class="btn-modal-secondary" onclick="closeArticleModalDirect()">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- ── WA FLOAT ── -->
+<a class="wa-float" href="https://wa.me/242069735418?text=Bonjour%20Bolamu" target="_blank" title="WhatsApp">💬</a>
+
+<!-- ── NAV ── -->
 <nav>
     <a href="#" class="logo-svg">
-        <svg width="40" height="40" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
+        <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="22" r="22" fill="#2E86FF"/>
+          <text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text>
+          <ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/>
+        </svg>
         <div>
             <div class="logo-name"><span class="logo-name-blue">Bola</span><span class="logo-name-teal">mu</span></div>
             <div class="logo-tagline">La santé simple et accessible</div>
@@ -296,6 +414,7 @@
     </div>
 </div>
 
+<!-- ── HERO ── -->
 <section class="hero">
     <div class="hero-content">
         <div class="hero-badge"><div class="dot"></div><span>Plateforme active à Brazzaville</span></div>
@@ -307,7 +426,7 @@
         </div>
     </div>
     <div class="hero-image">
-        <img src="docteur_optimized.jpg" alt="Médecin partenaire Bolamu">
+        <img src="docteur_optimized.jpg" alt="Médecin partenaire Bolamu" onerror="this.style.display='none'">
         <div class="hero-image-overlay">
             <p>Médecin partenaire Bolamu</p>
             <strong>Disponible maintenant</strong>
@@ -316,6 +435,7 @@
     </div>
 </section>
 
+<!-- ── STATS ── -->
 <div class="stats">
     <div class="stat-item"><span class="stat-number">25 000</span><span class="stat-label">FCFA/an selon l'OMS<br>pour soigner un Africain</span></div>
     <div class="stat-item"><span class="stat-number">250 000</span><span class="stat-label">Soignants visés<br>sur la plateforme</span></div>
@@ -323,6 +443,7 @@
     <div class="stat-item"><span class="stat-number">4M</span><span class="stat-label">Adhérents<br>objectif</span></div>
 </div>
 
+<!-- ── COMMENT ÇA MARCHE ── -->
 <section class="section" id="comment">
     <div class="section-tag">Simple & Rapide</div>
     <h2 class="section-title">Accédez à nos services<br>en 3 étapes simples</h2>
@@ -334,6 +455,7 @@
     </div>
 </section>
 
+<!-- ── PLANS ── -->
 <section class="section plans" id="formules">
     <div class="section-tag">Nos Offres</div>
     <h2 class="section-title">Choisissez votre<br>formule d'accès</h2>
@@ -391,6 +513,7 @@
     </div>
 </section>
 
+<!-- ── ACTEURS ── -->
 <section class="section" id="acteurs">
     <div class="section-tag">Notre Écosystème</div>
     <h2 class="section-title">Un système où<br>chacun gagne</h2>
@@ -403,6 +526,7 @@
     </div>
 </section>
 
+<!-- ── INTERNATIONAL ── -->
 <section class="intl" id="international">
     <div class="intl-inner">
         <div class="intl-content">
@@ -437,39 +561,32 @@
     </div>
 </section>
 
+<!-- ══════════════════════════════════════════════════════
+     SECTION ARTICLES DYNAMIQUES — NOUVELLE
+══════════════════════════════════════════════════════ -->
 <section class="section prevention" id="prevention">
     <div class="section-tag">Santé & Prévention</div>
     <h2 class="section-title">Informez-vous,<br>protégez-vous</h2>
     <p class="section-subtitle">Le meilleur système de santé est celui où les gens ne tombent pas malades. Bolamu investit dans la prévention pour vous.</p>
-    <div class="articles-grid">
-        <div class="article-card featured">
-            <img class="article-image" src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&q=80" alt="Paludisme">
-            <div class="article-content">
-                <span class="article-category">🦟 Paludisme</span>
-                <h3>Comment protéger votre famille du paludisme pendant la saison des pluies</h3>
-                <p>Le paludisme tue encore plus d'une personne par minute en Afrique. Découvrez les gestes simples qui peuvent sauver des vies.</p>
-                <div class="article-meta"><span>👨‍⚕️ Dr. Bolamu</span><span>·</span><span>5 min de lecture</span></div>
-            </div>
-        </div>
-        <div class="article-card">
-            <img class="article-image" src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400&q=80" alt="Nutrition">
-            <div class="article-content">
-                <span class="article-category">🥗 Nutrition</span>
-                <h3>5 aliments locaux bons pour votre santé</h3>
-                <div class="article-meta"><span>3 min</span></div>
-            </div>
-        </div>
-        <div class="article-card">
-            <img class="article-image" src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80" alt="Bien-être">
-            <div class="article-content">
-                <span class="article-category">💪 Bien-être</span>
-                <h3>30 minutes d'activité par jour changent tout</h3>
-                <div class="article-meta"><span>4 min</span></div>
-            </div>
-        </div>
+
+    <!-- Filtres -->
+    <div class="articles-filters">
+        <button class="art-filter active" onclick="filterArticles('tous', this)">Tous les articles</button>
+        <button class="art-filter" onclick="filterArticles('grossesse', this)">🤱 Suivi grossesse</button>
+        <button class="art-filter" onclick="filterArticles('paludisme', this)">🦟 Paludisme</button>
+        <button class="art-filter" onclick="filterArticles('nutrition', this)">🥗 Nutrition</button>
+        <button class="art-filter" onclick="filterArticles('prevention', this)">🛡️ Prévention</button>
+    </div>
+
+    <!-- Grille articles — rendue par JS -->
+    <div class="articles-grid" id="articles-grid"></div>
+
+    <div class="articles-cta">
+        <button class="btn-articles-more" id="btn-show-more" onclick="showMoreArticles()">Voir tous les articles →</button>
     </div>
 </section>
 
+<!-- ── GROUPES ── -->
 <div class="groupes">
     <div class="groupes-content">
         <div class="section-tag">Solutions Groupe</div>
@@ -500,6 +617,7 @@
     </div>
 </div>
 
+<!-- ── CONNEXION ── -->
 <section class="login-section" id="connexion">
     <div class="login-info">
         <h2>Rejoignez<br>Bolamu<br>aujourd'hui</h2>
@@ -528,11 +646,7 @@
                 <div class="form-row">
                     <div class="form-field">
                         <label>Sexe</label>
-                        <select id="sexe">
-                            <option value="">Sélectionner</option>
-                            <option value="M">Masculin</option>
-                            <option value="F">Féminin</option>
-                        </select>
+                        <select id="sexe"><option value="">Sélectionner</option><option value="M">Masculin</option><option value="F">Féminin</option></select>
                     </div>
                     <div class="form-field"><label>Âge</label><input type="number" id="age" placeholder="25" min="1" max="120"></div>
                 </div>
@@ -553,17 +667,20 @@
             <button class="btn-login" onclick="verifyOtp()">Confirmer ✓</button>
         </div>
         <div class="message" id="message"></div>
-        <div class="register-link">
-            Professionnel de santé ? <a href="/register.html">Créer un compte professionnel →</a>
-        </div>
+        <div class="register-link">Professionnel de santé ? <a href="/register.html">Créer un compte professionnel →</a></div>
     </div>
 </section>
 
+<!-- ── FOOTER ── -->
 <footer>
     <div class="footer-grid">
         <div>
             <div class="footer-logo-wrap">
-                <svg width="34" height="34" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
+                <svg width="32" height="32" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+                  <circle cx="22" cy="22" r="22" fill="#2E86FF"/>
+                  <text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text>
+                  <ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/>
+                </svg>
                 <div class="footer-logo-name"><span class="w">Bola</span><span class="t">mu</span></div>
             </div>
             <p class="footer-desc">Plateforme numérique de mise en relation entre patients et professionnels de santé indépendants. La santé simple et accessible, partout en Afrique.</p>
@@ -573,7 +690,7 @@
             <ul>
                 <li><a href="#comment">Comment ça marche</a></li>
                 <li><a href="#formules">Nos formules</a></li>
-                <li><a href="#international">Médecins internationaux</a></li>
+                <li><a href="#prevention">Prévention</a></li>
                 <li><a href="https://wa.me/242069735418" target="_blank">Solutions groupe</a></li>
             </ul>
         </div>
@@ -603,127 +720,505 @@
 </footer>
 
 <script>
-/* ── NAVIGATION MOBILE ── */
-function toggleMenu() {
-    const menu = document.getElementById('mobile-menu');
-    menu.classList.toggle('open');
+/* ════════════════════════════════════════════════════
+   DONNÉES ARTICLES — modifie ici pour ajouter/changer
+════════════════════════════════════════════════════ */
+const ARTICLES = [
+  {
+    id: 1,
+    cat: 'paludisme',
+    catLabel: '🦟 Paludisme',
+    catClass: 'cat-paludisme',
+    featured: true,
+    emoji: '🦟',
+    title: 'Comment protéger votre famille du paludisme pendant la saison des pluies',
+    excerpt: 'Le paludisme tue encore plus d\'une personne par minute en Afrique. Découvrez les gestes simples qui peuvent sauver des vies dans votre foyer.',
+    author: 'Dr. Bolamu',
+    readTime: '5 min',
+    date: 'Avril 2026',
+    content: `
+      <p>Le paludisme reste l'une des principales causes de mortalité en République du Congo, particulièrement chez les enfants de moins de 5 ans et les femmes enceintes. La saison des pluies amplifie considérablement les risques.</p>
+      <div class="highlight">💡 <strong>Le saviez-vous ?</strong> Un enfant africain meurt du paludisme toutes les 2 minutes. La prévention est votre premier bouclier.</div>
+      <h4>Les gestes essentiels de protection</h4>
+      <ul>
+        <li><strong>Dormir sous moustiquaire</strong> imprégnée d'insecticide — c'est la protection la plus efficace, surtout pour les enfants et les femmes enceintes.</li>
+        <li><strong>Éliminer les eaux stagnantes</strong> autour de la maison : seaux, pots de fleurs, gouttières bouchées. Les moustiques Anophèles pondent dans l'eau.</li>
+        <li><strong>Porter des vêtements couvrants</strong> au crépuscule et à l'aube, moments où les moustiques sont les plus actifs.</li>
+        <li><strong>Utiliser des répulsifs</strong> approuvés sur les parties exposées de la peau.</li>
+        <li><strong>Ventiler et protéger les fenêtres</strong> avec des moustiquaires fixes.</li>
+      </ul>
+      <h4>Reconnaître les signes d'alarme</h4>
+      <p>Consultez un médecin immédiatement si vous observez :</p>
+      <ul>
+        <li>Fièvre élevée (> 38,5°C), frissons, sueurs abondantes</li>
+        <li>Maux de tête intenses et vomissements</li>
+        <li>Fatigue extrême, douleurs musculaires</li>
+        <li>Chez l'enfant : refus de manger, irritabilité inhabituelle, convulsions</li>
+      </ul>
+      <div class="warning">⚠️ <strong>Attention :</strong> Ne prenez jamais de traitement antipaludéen sans diagnostic médical confirmé. L'automédication favorise les résistances et peut masquer d'autres maladies.</div>
+      <h4>Le traitement préventif pour les femmes enceintes</h4>
+      <p>Bolamu connecte les femmes enceintes à des médecins qui prescrivent le traitement préventif intermittent (TPI) — remboursé dans les formules Standard et Premium. La consultation se fait en 15 minutes depuis votre téléphone.</p>
+    `
+  },
+  {
+    id: 2,
+    cat: 'grossesse',
+    catLabel: '🤱 Suivi grossesse',
+    catClass: 'cat-grossesse',
+    featured: false,
+    emoji: '🤱',
+    title: 'Suivi de grossesse : les 9 mois expliqués simplement',
+    excerpt: 'Chaque trimestre de grossesse apporte des changements importants. Voici ce que vous devez surveiller et quand consulter.',
+    author: 'Dr. Bolamu',
+    readTime: '7 min',
+    date: 'Mars 2026',
+    content: `
+      <p>Une grossesse bien suivie, c'est une naissance sereine. En République du Congo, beaucoup de complications pourraient être évitées avec un suivi médical régulier. Bolamu rend cela possible, depuis chez vous.</p>
+      <h4>1er trimestre (semaines 1 à 12)</h4>
+      <ul>
+        <li><strong>Consultations obligatoires :</strong> Première consultation dès confirmation de grossesse, prise en charge des nausées, bilan sanguin complet.</li>
+        <li><strong>Ce qui est normal :</strong> Nausées matinales, fatigue intense, seins sensibles, envies fréquentes d'uriner.</li>
+        <li><strong>Signes d'alarme :</strong> Saignements, douleurs pelviennes intenses, fièvre — consultez immédiatement.</li>
+      </ul>
+      <div class="highlight">🤱 <strong>Bolamu vous accompagne :</strong> Nos médecins gynécologues partenaires proposent des consultations de suivi à partir de 1 000 FCFA/mois dans l'abonnement Essentiel.</div>
+      <h4>2ème trimestre (semaines 13 à 26)</h4>
+      <ul>
+        <li>Échographie morphologique obligatoire (semaine 20-22)</li>
+        <li>Surveillance de la pression artérielle — risque de pré-éclampsie</li>
+        <li>Prévention de l'anémie par supplémentation en fer et acide folique</li>
+        <li>Traitement préventif du paludisme (TPI)</li>
+      </ul>
+      <h4>3ème trimestre (semaines 27 à 40)</h4>
+      <ul>
+        <li>Consultations mensuelles puis bi-hebdomadaires à l'approche du terme</li>
+        <li>Position du bébé, surveillance du col de l'utérus</li>
+        <li>Préparation à l'accouchement — hospitalisation recommandée</li>
+      </ul>
+      <div class="warning">⚠️ Consultez en urgence si : contractions avant 37 semaines, saignements, mouvements fœtaux absents depuis plus de 12h, perte de liquide amniotique.</div>
+      <h4>Nutrition pendant la grossesse</h4>
+      <p>Augmentez votre apport en : légumes verts (fer), légumineuses (protéines), poissons locaux (oméga-3), fruits (vitamines). Évitez : alcool, tabac, charcuteries non cuites, fromages non pasteurisés.</p>
+    `
+  },
+  {
+    id: 3,
+    cat: 'nutrition',
+    catLabel: '🥗 Nutrition',
+    catClass: 'cat-nutrition',
+    featured: false,
+    emoji: '🥗',
+    title: '5 aliments locaux essentiels pour votre santé',
+    excerpt: 'Vous n\'avez pas besoin de produits importés coûteux. Ces 5 aliments que vous trouvez au marché de Brazzaville sont des trésors nutritionnels.',
+    author: 'Dr. Bolamu',
+    readTime: '4 min',
+    date: 'Avril 2026',
+    content: `
+      <p>La nutrition est le fondement de la santé. Et bonne nouvelle : les marchés de Brazzaville regorgent d'aliments aux propriétés thérapeutiques extraordinaires, souvent ignorés au profit de produits importés moins bénéfiques.</p>
+      <h4>1. 🥬 Les feuilles de manioc (saka-saka)</h4>
+      <p>Exceptionnellement riches en fer, calcium et vitamine C. Une portion quotidienne couvre une grande partie de vos besoins en minéraux. Idéales pour prévenir l'anémie, particulièrement chez les femmes et les enfants.</p>
+      <h4>2. 🐟 Le poisson fumé (capitaine, silure)</h4>
+      <p>Source majeure de protéines et d'oméga-3. Les oméga-3 réduisent les inflammations, protègent le cœur et soutiennent le développement cérébral des enfants. Consommez 3 fois par semaine.</p>
+      <h4>3. 🫘 Les haricots et niébé</h4>
+      <p>Légumineuses à fort pouvoir rassasiant. Riches en fibres, protéines végétales et vitamines B. Un excellent substitut à la viande rouge pour les familles à budget limité. Associés au riz ou au manioc, ils forment une protéine complète.</p>
+      <div class="highlight">💡 <strong>Astuce pratique :</strong> Faites tremper les haricots 12h avant cuisson pour réduire les ballonnements et améliorer l'assimilation des nutriments.</div>
+      <h4>4. 🌿 La moringa (arbre de vie)</h4>
+      <p>Les feuilles de moringa contiennent 7× plus de vitamine C que l'orange, 4× plus de calcium que le lait, 4× plus de vitamine A que la carotte. En poudre dans une bouillie ou fraîches dans une sauce.</p>
+      <h4>5. 🍌 La banane plantain</h4>
+      <p>Riche en potassium, vitamine B6 et fibres. La banane plantain cuite est excellente pour la digestion et l'énergie durable. Choisissez-la plutôt mûre pour un index glycémique plus bas.</p>
+      <h4>Ce qu'il faut réduire</h4>
+      <ul>
+        <li>Huile de palme en excès (utiliser avec modération)</li>
+        <li>Sel ajouté (hypertension en forte hausse en RDC)</li>
+        <li>Sodas et jus sucrés industriels</li>
+        <li>Aliments ultra-transformés importés</li>
+      </ul>
+    `
+  },
+  {
+    id: 4,
+    cat: 'prevention',
+    catLabel: '🛡️ Prévention',
+    catClass: 'cat-prevention',
+    featured: false,
+    emoji: '🛡️',
+    title: '30 minutes d\'activité par jour changent tout',
+    excerpt: 'La sédentarité est un facteur de risque majeur pour le diabète, l\'hypertension et les maladies cardiaques. Voici comment intégrer le mouvement dans votre vie congolaise.',
+    author: 'Dr. Bolamu',
+    readTime: '3 min',
+    date: 'Avril 2026',
+    content: `
+      <p>L'Organisation Mondiale de la Santé recommande 150 minutes d'activité modérée par semaine — soit 30 minutes par jour, 5 jours sur 7. Des études montrent que cette seule habitude réduit de 30 à 35% le risque de maladies cardiovasculaires.</p>
+      <h4>Pourquoi c'est urgent au Congo</h4>
+      <p>L'urbanisation rapide de Brazzaville a transformé les modes de vie. On marche moins, on mange différemment, on travaille assis. Résultat : explosion des cas de diabète de type 2, d'hypertension et de surpoids.</p>
+      <div class="highlight">📊 <strong>Chiffre clé :</strong> 1 Congolais sur 4 souffre d'hypertension sans le savoir. L'activité physique régulière suffit à normaliser une tension légèrement élevée.</div>
+      <h4>30 minutes concrètes dans votre quotidien</h4>
+      <ul>
+        <li><strong>Matin :</strong> Descendre un arrêt de bus avant votre destination, marcher d'un bon pas.</li>
+        <li><strong>Midi :</strong> 15 minutes de marche après le déjeuner — aide aussi à la digestion et à la glycémie.</li>
+        <li><strong>Soir :</strong> Danse (ndombolo, coupé décalé...) — 30 minutes brûlent autant de calories que du jogging léger.</li>
+        <li><strong>Weekend :</strong> Natation au fleuve ou dans une piscine, vélo, football avec les enfants.</li>
+      </ul>
+      <h4>Les bienfaits que vous ressentirez en 4 semaines</h4>
+      <ul>
+        <li>Meilleur sommeil et récupération</li>
+        <li>Réduction du stress et de l'anxiété</li>
+        <li>Énergie augmentée en journée</li>
+        <li>Tension artérielle et glycémie stabilisées</li>
+        <li>Poids progressivement normalisé</li>
+      </ul>
+      <div class="warning">⚠️ Si vous avez une maladie cardiaque connue, du diabète ou si vous n'avez pas fait d'activité depuis longtemps, consultez un médecin Bolamu avant de commencer un programme sportif.</div>
+    `
+  },
+  {
+    id: 5,
+    cat: 'grossesse',
+    catLabel: '🤱 Suivi grossesse',
+    catClass: 'cat-grossesse',
+    featured: false,
+    emoji: '🍼',
+    title: 'Allaitement maternel : tout ce que vous devez savoir',
+    excerpt: 'L\'OMS recommande l\'allaitement exclusif jusqu\'à 6 mois. Pourquoi c\'est vital et comment bien démarrer.',
+    author: 'Dr. Bolamu',
+    readTime: '5 min',
+    date: 'Mars 2026',
+    content: `
+      <p>Le lait maternel est l'aliment le plus complet et adapté pour votre bébé. Il contient des anticorps qui le protègent contre les infections — particulièrement importantes dans les premières semaines de vie.</p>
+      <h4>Pourquoi l'allaitement est crucial</h4>
+      <ul>
+        <li>Réduit de 50% le risque de mortalité infantile avant 1 an</li>
+        <li>Protège contre les diarrhées et infections respiratoires (premières causes de décès infantile)</li>
+        <li>Développement cérébral optimal grâce aux acides gras du lait maternel</li>
+        <li>Renforcement du lien mère-enfant</li>
+        <li>Économique : aucun coût comparé aux laits infantiles</li>
+      </ul>
+      <div class="highlight">🍼 <strong>La première heure de vie est cruciale :</strong> Le colostrum (premier lait jaune) est concentré en anticorps. Mettez votre bébé au sein dans l'heure qui suit la naissance.</div>
+      <h4>Comment bien démarrer</h4>
+      <ul>
+        <li>Positionnez le bébé ventre contre ventre, son menton touchant votre sein</li>
+        <li>Il doit prendre l'aréole entière dans sa bouche, pas seulement le mamelon</li>
+        <li>Allaitez à la demande — 8 à 12 fois par 24h les premières semaines</li>
+        <li>Hydratez-vous bien (au moins 2L d'eau par jour)</li>
+      </ul>
+      <h4>Mythes à oublier</h4>
+      <ul>
+        <li>"Mon lait n'est pas assez nourrissant" — FAUX. Le lait maternel est toujours parfaitement adapté.</li>
+        <li>"Le bébé ne grossit pas assez" — Consultez une sage-femme Bolamu avant d'arrêter l'allaitement.</li>
+        <li>"J'ai un rhume, je ne dois pas allaiter" — FAUX. Les anticorps de votre rhume passent dans le lait et protègent votre bébé.</li>
+      </ul>
+    `
+  },
+  {
+    id: 6,
+    cat: 'prevention',
+    catLabel: '🛡️ Prévention',
+    catClass: 'cat-prevention',
+    featured: false,
+    emoji: '🩺',
+    title: 'Hypertension : le tueur silencieux que vous ignorez peut-être',
+    excerpt: 'L\'hypertension artérielle ne fait pas mal. C\'est pour ça qu\'elle tue. Vérifiez votre tension dès aujourd\'hui.',
+    author: 'Dr. Bolamu',
+    readTime: '4 min',
+    date: 'Février 2026',
+    content: `
+      <p>L'hypertension artérielle touche un adulte sur trois en Afrique subsaharienne, mais la moitié des personnes atteintes l'ignorent. Elle est la première cause d'AVC et de maladies cardiaques sur le continent.</p>
+      <h4>Ce qu'est l'hypertension</h4>
+      <p>La pression artérielle est la force exercée par le sang sur les parois de vos artères. On parle d'hypertension quand cette pression est chroniquement élevée : supérieure à 140/90 mmHg au repos.</p>
+      <div class="warning">⚠️ <strong>L'hypertension ne fait PAS mal.</strong> Pas de maux de tête systématiques, pas de signes visibles. Des millions de personnes vivent avec une tension dangereuse sans le savoir.</div>
+      <h4>Qui est à risque ?</h4>
+      <ul>
+        <li>Plus de 40 ans (risque multiplié par 3)</li>
+        <li>Antécédents familiaux d'hypertension</li>
+        <li>Surpoids ou obésité</li>
+        <li>Alimentation très salée</li>
+        <li>Sédentarité et stress chronique</li>
+        <li>Consommation d'alcool régulière</li>
+      </ul>
+      <h4>Comment se protéger</h4>
+      <ul>
+        <li>Mesurer sa tension régulièrement (disponible en pharmacie)</li>
+        <li>Réduire le sel à moins de 5g par jour</li>
+        <li>Pratiquer 30 minutes d'activité physique quotidienne</li>
+        <li>Maintenir un poids santé</li>
+        <li>Consulter un médecin Bolamu dès que votre tension dépasse 130/85</li>
+      </ul>
+      <div class="highlight">✅ <strong>Bonne nouvelle :</strong> Une hypertension légère se contrôle souvent uniquement avec le mode de vie. Les médecins Bolamu établissent un plan personnalisé en téléconsultation.</div>
+    `
+  },
+  {
+    id: 7,
+    cat: 'nutrition',
+    catLabel: '🥗 Nutrition',
+    catClass: 'cat-nutrition',
+    featured: false,
+    emoji: '💧',
+    title: 'Hydratation : combien d\'eau boire par jour sous la chaleur de Brazzaville ?',
+    excerpt: 'Avec les températures de Brazzaville, vos besoins en eau sont plus élevés que les recommandations standard. Voici comment rester bien hydraté.',
+    author: 'Dr. Bolamu',
+    readTime: '3 min',
+    date: 'Janvier 2026',
+    content: `
+      <p>La déshydratation est beaucoup plus courante qu'on ne le pense, même dans un pays où l'eau est relativement accessible. Elle réduit la concentration, les performances physiques et fragilise le système immunitaire.</p>
+      <h4>Vos besoins réels à Brazzaville</h4>
+      <p>Sous la chaleur congolaise (28-33°C habituels), un adulte actif a besoin de 2,5 à 3,5 litres d'eau par jour — contre les 2L recommandés en Europe. Ajoutez 500ml de plus pour chaque heure d'activité physique intense.</p>
+      <div class="highlight">💧 <strong>Astuce simple :</strong> Votre urine doit être jaune pâle à transparente. Si elle est foncée, vous n'êtes pas assez hydraté. C'est le signal le plus fiable.</div>
+      <h4>Les meilleures sources d'hydratation</h4>
+      <ul>
+        <li><strong>Eau filtrée ou bouillie</strong> — toujours la meilleure option</li>
+        <li><strong>Eau de coco fraîche</strong> — hydratation + sels minéraux naturels</li>
+        <li><strong>Bouillons de légumes</strong> — hydratation + nutriments</li>
+        <li><strong>Fruits à haute teneur en eau</strong> — papaye, melon, concombre, tomate</li>
+        <li><strong>Tisanes de citronnelle</strong> — hydratation + effet apaisant</li>
+      </ul>
+      <h4>Ce qu'il faut éviter</h4>
+      <ul>
+        <li>Sodas — contiennent du sucre qui augmente les besoins en eau</li>
+        <li>Alcool — fortement déshydratant</li>
+        <li>Café en excès (plus de 2 tasses par jour)</li>
+      </ul>
+      <h4>Signes de déshydratation à ne pas ignorer</h4>
+      <ul>
+        <li>Maux de tête persistants en milieu de journée</li>
+        <li>Fatigue inexpliquée</li>
+        <li>Bouche sèche, peau qui perd de son élasticité</li>
+        <li>Vertiges en se levant rapidement</li>
+      </ul>
+    `
+  },
+  {
+    id: 8,
+    cat: 'paludisme',
+    catLabel: '🦟 Paludisme',
+    catClass: 'cat-paludisme',
+    featured: false,
+    emoji: '🧪',
+    title: 'Test de diagnostic rapide du paludisme : où en trouver à Brazzaville ?',
+    excerpt: 'Les TDR permettent de diagnostiquer le paludisme en 15 minutes sans laboratoire. Voici ce que vous devez savoir.',
+    author: 'Dr. Bolamu',
+    readTime: '3 min',
+    date: 'Mars 2026',
+    content: `
+      <p>Le test de diagnostic rapide (TDR) du paludisme est un outil simple, fiable et peu coûteux qui détecte les protéines du parasite Plasmodium dans une goutte de sang prélevée au bout du doigt. Résultat en 15-20 minutes.</p>
+      <h4>Pourquoi c'est important</h4>
+      <p>Beaucoup de familles traitent la fièvre comme du paludisme sans confirmation. Cela favorise les résistances aux médicaments et peut masquer d'autres maladies graves comme la typhoïde, la méningite ou une pneumonie.</p>
+      <div class="highlight">🧪 <strong>Règle d'or :</strong> Testez avant de traiter. Un TDR négatif signifie chercher une autre cause de fièvre.</div>
+      <h4>Où trouver des TDR à Brazzaville</h4>
+      <ul>
+        <li>Toutes les pharmacies agréées Bolamu en disposent</li>
+        <li>Les centres de santé publics (gratuit ou à prix subventionné)</li>
+        <li>Les médecins Bolamu peuvent prescrire un TDR et l'interpréter en téléconsultation</li>
+      </ul>
+      <h4>Comment lire le résultat</h4>
+      <ul>
+        <li><strong>2 lignes (C et T) :</strong> Test POSITIF — paludisme confirmé, traitez immédiatement sur prescription médicale.</li>
+        <li><strong>1 ligne seulement (C) :</strong> Test NÉGATIF — cherchez une autre cause avec un médecin.</li>
+        <li><strong>Pas de ligne :</strong> Test invalide — recommencez avec un nouveau kit.</li>
+      </ul>
+      <div class="warning">⚠️ Un TDR négatif ne signifie pas que tout va bien. Si la fièvre persiste plus de 24-48h, consultez un médecin Bolamu même avec un résultat négatif.</div>
+    `
+  }
+];
+
+let currentFilter = 'tous';
+let showingAll = false;
+const INITIAL_COUNT = 4; // nombre d'articles affichés au départ
+
+/* ── Rendu des articles ── */
+function renderArticles(filter, all) {
+  const grid = document.getElementById('articles-grid');
+  const btn = document.getElementById('btn-show-more');
+  let filtered = filter === 'tous' ? ARTICLES : ARTICLES.filter(a => a.cat === filter);
+
+  // En mode "tous", le premier est featured (grande carte)
+  const isTous = filter === 'tous';
+  const displayCount = all ? filtered.length : Math.min(INITIAL_COUNT, filtered.length);
+  const visible = filtered.slice(0, displayCount);
+
+  grid.className = 'articles-grid' + (isTous && visible[0]?.featured ? '' : ' filtered');
+
+  grid.innerHTML = visible.map((a, i) => {
+    const isFeatured = isTous && i === 0;
+    return `
+    <div class="article-card${isFeatured ? ' featured' : ''}" onclick="openArticle(${a.id})">
+      <div class="article-thumb-placeholder" style="background:${catBg(a.cat)};height:${isFeatured?'260':'180'}px;">${a.emoji}</div>
+      <div class="article-content">
+        <span class="article-category ${a.catClass}">${a.catLabel}</span>
+        <h3>${a.title}</h3>
+        <p>${a.excerpt}</p>
+        <div class="article-meta">
+          <span>👨‍⚕️ ${a.author}</span><span>·</span><span>${a.readTime} de lecture</span><span>·</span><span>${a.date}</span>
+        </div>
+        <div class="article-read-more">Lire l'article <span>→</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Bouton "voir plus"
+  if (filtered.length > INITIAL_COUNT && !all) {
+    btn.style.display = 'inline-block';
+    btn.textContent = `Voir tous les ${filtered.length} articles →`;
+  } else {
+    btn.style.display = filtered.length <= INITIAL_COUNT ? 'none' : 'inline-block';
+    btn.textContent = 'Voir moins ↑';
+    btn.onclick = filtered.length > displayCount ? showMoreArticles : showLessArticles;
+  }
 }
-function closeMenu() {
-    document.getElementById('mobile-menu').classList.remove('open');
+
+function catBg(cat) {
+  return {grossesse:'#fce7f3',paludisme:'#d1fae5',nutrition:'#fef3c7',prevention:'#E6FBF7'}[cat] || '#F4F8FF';
 }
+
+function filterArticles(cat, btn) {
+  currentFilter = cat;
+  showingAll = false;
+  document.querySelectorAll('.art-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('btn-show-more').onclick = showMoreArticles;
+  renderArticles(cat, false);
+}
+
+function showMoreArticles() {
+  showingAll = true;
+  const btn = document.getElementById('btn-show-more');
+  btn.textContent = 'Voir moins ↑';
+  btn.onclick = showLessArticles;
+  renderArticles(currentFilter, true);
+}
+
+function showLessArticles() {
+  showingAll = false;
+  const btn = document.getElementById('btn-show-more');
+  btn.textContent = 'Voir tous les articles →';
+  btn.onclick = showMoreArticles;
+  renderArticles(currentFilter, false);
+}
+
+/* ── Modal article ── */
+function openArticle(id) {
+  const a = ARTICLES.find(x => x.id === id);
+  if (!a) return;
+
+  // Hero
+  document.getElementById('art-modal-hero-wrap').innerHTML =
+    `<div class="art-modal-hero-placeholder" style="background:${catBg(a.cat)};border-radius:28px 28px 0 0;">${a.emoji}</div>`;
+
+  // Badge catégorie
+  document.getElementById('art-modal-cat-badge').innerHTML =
+    `<span class="art-modal-cat ${a.catClass}">${a.catLabel}</span>`;
+
+  document.getElementById('art-modal-title').textContent = a.title;
+  document.getElementById('art-modal-meta').innerHTML =
+    `<span>👨‍⚕️ ${a.author}</span><span>·</span><span>⏱ ${a.readTime} de lecture</span><span>·</span><span>📅 ${a.date}</span>`;
+  document.getElementById('art-modal-content').innerHTML = a.content;
+
+  document.getElementById('art-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeArticleModal(event) {
+  if (event.target === document.getElementById('art-modal-overlay')) closeArticleModalDirect();
+}
+function closeArticleModalDirect() {
+  document.getElementById('art-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeArticleModalDirect(); });
+
+/* ── INIT articles ── */
+renderArticles('tous', false);
+
+/* ── NAV MOBILE ── */
+function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('open'); }
+function closeMenu() { document.getElementById('mobile-menu').classList.remove('open'); }
 
 /* ── FORMULAIRE ── */
 let selectedType = 'patient';
-
 function selectType(type, btn) {
-    selectedType = type;
-    document.querySelectorAll('.user-type-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const pf = document.getElementById('patient-fields');
-    if (type === 'patient') pf.classList.add('show');
-    else pf.classList.remove('show');
+  selectedType = type;
+  document.querySelectorAll('.user-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const pf = document.getElementById('patient-fields');
+  if (type === 'patient') pf.classList.add('show'); else pf.classList.remove('show');
 }
 
 function showMessage(text, type) {
-    const msg = document.getElementById('message');
-    msg.textContent = text;
-    msg.className = 'message ' + type;
-    msg.style.display = 'block';
+  const msg = document.getElementById('message');
+  msg.textContent = text; msg.className = 'message ' + type; msg.style.display = 'block';
 }
 
 async function requestOtp() {
-    const phone = document.getElementById('phoneInput').value.trim();
-    if (!phone) return showMessage('Veuillez entrer votre numéro', 'error');
-
-    if (selectedType === 'patient') {
-        const prenom = document.getElementById('prenom').value.trim();
-        const nom = document.getElementById('nom').value.trim();
-        const sexe = document.getElementById('sexe').value;
-        const age = document.getElementById('age').value;
-        if (!prenom || !nom) return showMessage('Veuillez entrer votre prénom et nom', 'error');
-        if (!sexe) return showMessage('Veuillez sélectionner votre sexe', 'error');
-        if (!age || age < 1) return showMessage('Veuillez entrer votre âge', 'error');
+  const phone = document.getElementById('phoneInput').value.trim();
+  if (!phone) return showMessage('Veuillez entrer votre numéro', 'error');
+  if (selectedType === 'patient') {
+    const prenom = document.getElementById('prenom').value.trim();
+    const nom = document.getElementById('nom').value.trim();
+    const sexe = document.getElementById('sexe').value;
+    const age = document.getElementById('age').value;
+    if (!prenom || !nom) return showMessage('Veuillez entrer votre prénom et nom', 'error');
+    if (!sexe) return showMessage('Veuillez sélectionner votre sexe', 'error');
+    if (!age || age < 1) return showMessage('Veuillez entrer votre âge', 'error');
+  }
+  sessionStorage.setItem('bolamu_otp_phone', phone);
+  try {
+    const res = await fetch('/api/v1/auth/request-otp', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+      showMessage('✅ Code envoyé sur ' + phone, 'success');
+      document.getElementById('d1').focus();
+    } else {
+      if (data.redirectUrl) window.location.href = data.redirectUrl;
+      else showMessage(data.message || 'Erreur', 'error');
     }
-
-    sessionStorage.setItem('bolamu_otp_phone', phone);
-
-    try {
-        const res = await fetch('/api/v1/auth/request-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
-            showMessage('✅ Code envoyé sur ' + phone, 'success');
-            document.getElementById('d1').focus();
-        } else {
-            if (data.redirectUrl) window.location.href = data.redirectUrl;
-            else showMessage(data.message || 'Erreur', 'error');
-        }
-    } catch(e) {
-        showMessage('Erreur de connexion au serveur', 'error');
-    }
+  } catch(e) { showMessage('Erreur de connexion au serveur', 'error'); }
 }
 
 function moveNext(current, nextId) {
-    if (current.value.length >= 1) document.getElementById(nextId) && document.getElementById(nextId).focus();
+  if (current.value.length >= 1) document.getElementById(nextId) && document.getElementById(nextId).focus();
 }
-
 function verifyIfComplete() {
-    const digits = ['d1','d2','d3','d4','d5','d6'];
-    if (digits.every(function(id){ return document.getElementById(id).value !== ''; })) verifyOtp();
+  const digits = ['d1','d2','d3','d4','d5','d6'];
+  if (digits.every(id => document.getElementById(id).value !== '')) verifyOtp();
 }
 
 async function verifyOtp() {
-    const digits = ['d1','d2','d3','d4','d5','d6'];
-    const otp = digits.map(function(id){ return document.getElementById(id).value; }).join('');
-    if (otp.length !== 6) return showMessage('Entrez les 6 chiffres', 'error');
-
-    const phone = sessionStorage.getItem('bolamu_otp_phone') || '';
-    if (!phone) return showMessage('Session expirée, veuillez recommencer', 'error');
-
-    const extraData = {};
-    if (selectedType === 'patient') {
-        extraData.prenom = document.getElementById('prenom').value.trim();
-        extraData.nom = document.getElementById('nom').value.trim();
-        extraData.sexe = document.getElementById('sexe').value;
-        extraData.age = parseInt(document.getElementById('age').value);
-    }
-
-    try {
-        const res = await fetch('/api/v1/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(Object.assign({ phone: phone, otp: otp }, extraData))
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-            sessionStorage.removeItem('bolamu_otp_phone');
-            localStorage.setItem('bolamu_token', data.token);
-            localStorage.setItem('bolamu_phone', data.phone);
-            localStorage.setItem('bolamu_role', data.role);
-            showMessage('🎉 Connexion réussie ! Bienvenue sur Bolamu', 'success');
-            setTimeout(function(){ window.location.href = data.redirectUrl; }, 1500);
-        } else {
-            showMessage(data.message || 'Code incorrect', 'error');
-        }
-    } catch(e) {
-        showMessage('Erreur de connexion', 'error');
-    }
+  const digits = ['d1','d2','d3','d4','d5','d6'];
+  const otp = digits.map(id => document.getElementById(id).value).join('');
+  if (otp.length !== 6) return showMessage('Entrez les 6 chiffres', 'error');
+  const phone = sessionStorage.getItem('bolamu_otp_phone') || '';
+  if (!phone) return showMessage('Session expirée, veuillez recommencer', 'error');
+  const extraData = {};
+  if (selectedType === 'patient') {
+    extraData.prenom = document.getElementById('prenom').value.trim();
+    extraData.nom = document.getElementById('nom').value.trim();
+    extraData.sexe = document.getElementById('sexe').value;
+    extraData.age = parseInt(document.getElementById('age').value);
+  }
+  try {
+    const res = await fetch('/api/v1/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ phone, otp }, extraData))
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      sessionStorage.removeItem('bolamu_otp_phone');
+      localStorage.setItem('bolamu_token', data.token);
+      localStorage.setItem('bolamu_phone', data.phone);
+      localStorage.setItem('bolamu_role', data.role);
+      showMessage('🎉 Connexion réussie ! Bienvenue sur Bolamu', 'success');
+      setTimeout(() => { window.location.href = data.redirectUrl; }, 1500);
+    } else { showMessage(data.message || 'Code incorrect', 'error'); }
+  } catch(e) { showMessage('Erreur de connexion', 'error'); }
 }
 
 // Smooth scroll
-document.querySelectorAll('a[href^="#"]').forEach(function(a) {
-    a.addEventListener('click', function(e) {
-        const target = document.querySelector(a.getAttribute('href'));
-        if (target) {
-            e.preventDefault();
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    });
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
 });
 </script>
 </body>
