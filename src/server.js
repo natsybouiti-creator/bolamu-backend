@@ -85,7 +85,7 @@ app.use((err, req, res, next) => {
 // 8. LANCEMENT SERVEUR
 // ============================================================
 const PORT = process.env.PORT || 3005;
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
     console.log(`✅ Bolamu server running on port ${PORT}`);
     try {
         await pool.query('SELECT 1');
@@ -95,3 +95,4 @@ app.listen(PORT, async () => {
         console.error(err.message);
     }
 });
+
