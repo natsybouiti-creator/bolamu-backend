@@ -9,27 +9,27 @@
     :root{--noir:#0a0a0f;--noir2:#12121a;--noir3:#1a1a26;--noir4:#22222f;--bleu:#2E86FF;--vert:#00C9A7;--rouge:#ff4757;--amber:#ffa502;--violet:#7C3AED;--emeraude:#00A878;--rose:#ff6b9d;--texte:#f0f0f8;--texte-doux:#8888aa;--border:rgba(255,255,255,0.07);--grad-blue:linear-gradient(135deg,#2E86FF,#00C9A7);--grad-red:linear-gradient(135deg,#ff4757,#ff6b35);--grad-violet:linear-gradient(135deg,#7C3AED,#2E86FF);--grad-green:linear-gradient(135deg,#00A878,#00C9A7);--grad-amber:linear-gradient(135deg,#ffa502,#ff6b35);}
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var(--texte);min-height:100vh;display:flex;}
-    .sidebar{width:260px;min-height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform 0.3s ease;}
-    .sidebar-logo{padding:18px 20px 14px;border-bottom:1px solid var(--border);}
-    .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-    .logo-name{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--texte);}
+    .sidebar{width:240px;min-height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform 0.3s ease;}
+    .sidebar-logo{padding:14px 18px 12px;border-bottom:1px solid var(--border);}
+    .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+    .logo-name{font-family:'Fraunces',serif;font-size:19px;font-weight:900;color:var(--texte);}
     .logo-name .t{color:var(--vert);}
-    .admin-badge{background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:var(--rouge);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:1px;display:inline-block;}
-    .sidebar-nav{flex:1;padding:10px 10px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;}
-    .nav-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--texte-doux);padding:4px 12px 1px;}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:5px 12px;border-radius:10px;cursor:pointer;transition:all 0.2s;color:var(--texte-doux);font-size:12px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;}
+    .admin-badge{background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:var(--rouge);padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700;letter-spacing:1px;display:inline-block;}
+    .sidebar-nav{flex:1;padding:8px 8px;display:flex;flex-direction:column;gap:0px;overflow-y:auto;scrollbar-width:thin;}
+    .nav-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--texte-doux);padding:4px 10px 1px;margin-top:2px;}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:4px 10px;border-radius:9px;cursor:pointer;transition:all 0.2s;color:var(--texte-doux);font-size:12px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;}
     .nav-item:hover{background:var(--noir3);color:var(--texte);}
     .nav-item.active{background:rgba(46,134,255,0.12);color:var(--bleu);font-weight:600;}
     .nav-item .icon{font-size:13px;width:16px;text-align:center;flex-shrink:0;}
-    .nav-badge{margin-left:auto;background:var(--rouge);color:white;padding:2px 7px;border-radius:50px;font-size:10px;font-weight:700;}
+    .nav-badge{margin-left:auto;background:var(--rouge);color:white;padding:2px 6px;border-radius:50px;font-size:10px;font-weight:700;}
     .nav-badge.amber{background:var(--amber);color:var(--noir);}
-    .sidebar-footer{padding:10px;border-top:1px solid var(--border);}
-    .admin-info{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--noir3);}
-    .admin-avatar{width:36px;height:36px;border-radius:10px;background:var(--grad-violet);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-    .admin-name-text{font-size:13px;font-weight:700;color:var(--texte);}
-    .admin-role-text{font-size:11px;color:var(--texte-doux);}
+    .sidebar-footer{padding:8px;border-top:1px solid var(--border);}
+    .admin-info{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;background:var(--noir3);}
+    .admin-avatar{width:30px;height:30px;border-radius:8px;background:var(--grad-violet);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+    .admin-name-text{font-size:12px;font-weight:700;color:var(--texte);}
+    .admin-role-text{font-size:10px;color:var(--texte-doux);}
     .logout-link{font-size:12px;color:var(--rouge);cursor:pointer;margin-left:auto;font-weight:600;}
-    .main{margin-left:260px;flex:1;min-height:100vh;}
+    .main{margin-left:240px;flex:1;min-height:100vh;}
     .topbar{height:64px;background:var(--noir2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:99;}
     .topbar-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--texte);}
     .topbar-right{display:flex;align-items:center;gap:12px;}
@@ -139,7 +139,6 @@
     .feed-action{font-size:13px;color:var(--texte);font-weight:500;margin-bottom:2px;}
     .feed-time{font-size:11px;color:var(--texte-doux);}
     .feed-actor{font-weight:700;color:var(--bleu);}
-    /* ARTICLES */
     .art-stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
     .art-stat{background:var(--noir3);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;}
     .art-stat-icon{font-size:28px;}
@@ -176,7 +175,6 @@
     .btn-art-pub{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;border:1px solid;}
     .btn-art-del{padding:6px 12px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .btn-art-del:hover{background:var(--rouge);color:white;}
-    /* MODALS */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;}
     .modal-overlay.open{display:flex;}
     .modal{background:var(--noir2);border:1px solid var(--border);border-radius:24px;padding:36px;max-width:500px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,0.6);max-height:90vh;overflow-y:auto;}
@@ -212,7 +210,6 @@
     .img-preview-wrap img{width:100%;height:160px;object-fit:cover;display:block;}
     .upload-zone{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:10px;}
     .upload-zone:hover{border-color:var(--bleu);background:rgba(46,134,255,0.04);}
-    .upload-zone.dragover{border-color:var(--bleu);background:rgba(46,134,255,0.08);}
     .toggle-row{display:flex;gap:24px;margin-top:4px;}
     .toggle-item{display:flex;align-items:center;gap:10px;}
     .toggle-item label{font-size:12px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer;}
@@ -239,7 +236,7 @@
     .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
     .sidebar-overlay.open{display:block;}
     @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr;}.config-grid{grid-template-columns:1fr;}.credits-summary{grid-template-columns:repeat(2,1fr);}.stat-row{grid-template-columns:repeat(2,1fr);}.art-stats-bar{grid-template-columns:repeat(2,1fr);}}
-    @media(max-width:900px){.sidebar{transform:translateX(-260px);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.topbar{padding:0 16px;}.mobile-sidebar-toggle{display:flex;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.content{padding:20px 16px;}.table-card{overflow-x:auto;}table{min-width:600px;}.search-bar{flex-wrap:wrap;}.search-input{min-width:100%;}.stat-row{grid-template-columns:repeat(3,1fr);}.articles-grid{grid-template-columns:1fr;}}
+    @media(max-width:900px){.sidebar{transform:translateX(-240px);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.topbar{padding:0 16px;}.mobile-sidebar-toggle{display:flex;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.content{padding:20px 16px;}.table-card{overflow-x:auto;}table{min-width:600px;}.search-bar{flex-wrap:wrap;}.search-input{min-width:100%;}.stat-row{grid-template-columns:repeat(3,1fr);}.articles-grid{grid-template-columns:1fr;}}
     @media(max-width:640px){.topbar{height:56px;}.topbar-title{font-size:16px;}.topbar-right{gap:8px;}.status-label{display:none;}.refresh-btn{padding:7px 12px;font-size:12px;}.content{padding:16px 12px;}.kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}.kpi-card{padding:16px;border-radius:14px;}.kpi-value{font-size:26px;}.modal{padding:24px 16px;border-radius:18px;width:95%;}.modal-lg{width:98%;padding:20px 14px;}.modal-title{font-size:18px;}.modal-info-grid{grid-template-columns:1fr;}.modal-2col{grid-template-columns:1fr;}.modal-actions{flex-direction:column;gap:8px;}.btn-confirm,.btn-cancel-modal{width:100%;}.config-grid{grid-template-columns:1fr;}.art-stats-bar{grid-template-columns:1fr 1fr;}}
   </style>
 </head>
@@ -248,7 +245,7 @@
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-row">
-      <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans',Arial,sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
+      <svg width="32" height="32" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans',Arial,sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
       <div class="logo-name">Bola<span class="t">mu</span></div>
     </div>
     <span class="admin-badge">ADMIN</span>
@@ -271,10 +268,9 @@
     <button class="nav-item" onclick="showPanel('audit',this)"><span class="icon">📝</span> Journal d'audit</button>
     <div class="nav-section">Contenu & Config</div>
     <button class="nav-item" onclick="showPanel('articles',this)"><span class="icon">📰</span> Articles & Blog</button>
-    <button class="nav-item" onclick="showPanel('config',this)"><span class="icon">⚙️</span> Configuration</button>
-    <input class="modal-input" id="art-category" placeholder="Ex: paludisme, grossesse, contraception..." value="${isEdit?(article.category||''):''}">
-<button class="nav-item" onclick="showPanel('credits',this)"><span class="icon">💎</span> Crédits</button>
     <button class="nav-item" onclick="showPanel('vitrine',this)"><span class="icon">🖼️</span> Vitrine & Hero</button>
+    <button class="nav-item" onclick="showPanel('config',this)"><span class="icon">⚙️</span> Configuration</button>
+    <button class="nav-item" onclick="showPanel('credits',this)"><span class="icon">💎</span> Crédits</button>
   </nav>
   <div class="sidebar-footer">
     <div class="admin-info">
@@ -439,29 +435,18 @@
         <div><div style="font-size:18px;font-weight:700;">Gestion des articles</div><div style="font-size:12px;color:var(--texte-doux);margin-top:2px;">Articles affichés sur la page d'accueil Bolamu</div></div>
         <button onclick="openArticleModal()" style="padding:12px 22px;background:var(--grad-blue);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✏️ Nouvel article</button>
       </div>
-      <div class="art-filters">
+      <div class="art-filters" id="art-filters-bar">
         <button class="art-filter-btn active" onclick="filterArticles('tous',this)">Tous</button>
-        <button class="art-filter-btn" onclick="filterArticles('paludisme',this)">🦟 Paludisme</button>
-        <button class="art-filter-btn" onclick="filterArticles('grossesse',this)">🤱 Grossesse</button>
-        <button class="art-filter-btn" onclick="filterArticles('nutrition',this)">🥗 Nutrition</button>
-        <button class="art-filter-btn" onclick="filterArticles('prevention',this)">🛡️ Prévention</button>
-        <button class="art-filter-btn" onclick="filterArticles('sante',this)">❤️ Santé générale</button>
-        <button class="art-filter-btn" onclick="filterArticles('seniors',this)">👴 Seniors</button>
       </div>
       <div class="articles-grid" id="articles-grid"><div class="loading">Chargement des articles...</div></div>
     </div>
 
-    <div class="panel" id="panel-config">
-      <div class="config-grid" id="config-grid"><div class="loading">Chargement...</div></div>
-    </div>
-
+    <!-- ══ VITRINE & HERO ══ -->
     <div class="panel" id="panel-vitrine">
       <div style="margin-bottom:24px;">
         <div style="font-size:18px;font-weight:700;margin-bottom:4px;">🖼️ Vitrine & Hero</div>
         <div style="font-size:12px;color:var(--texte-doux);">Modifiez les 4 cartes acteurs et la photo hero de la page d'accueil</div>
       </div>
-
-      <!-- HERO -->
       <div class="config-card" style="margin-bottom:20px;">
         <div class="config-section-title">🏥 Photo Hero (médecin en avant-plan)</div>
         <div class="modal-field">
@@ -483,13 +468,17 @@
         </div>
         <button class="btn-confirm blue" style="max-width:200px;padding:10px;" onclick="saveVitrineBlock('hero')">💾 Enregistrer Hero</button>
       </div>
-
-      <!-- 4 CARTES ACTEURS -->
       <div class="config-grid" id="vitrine-cards-grid">
         <div class="loading">Chargement...</div>
       </div>
     </div>
 
+    <!-- ══ CONFIGURATION ══ -->
+    <div class="panel" id="panel-config">
+      <div class="config-grid" id="config-grid"><div class="loading">Chargement...</div></div>
+    </div>
+
+    <!-- ══ CREDITS ══ -->
     <div class="panel" id="panel-credits">
       <div class="credits-summary">
         <div class="credit-stat"><div class="credit-stat-val" id="cr-total-accounts">—</div><div class="credit-stat-lbl">Comptes crédits</div></div>
@@ -536,7 +525,6 @@ if (!token || role !== 'admin') {
     if (!res.ok || data.role !== 'admin') { localStorage.clear(); window.location.replace('/admin/login.html'); }
   } catch(e) { localStorage.clear(); window.location.replace('/admin/login.html'); }
 })();
-// ─────────────────────────────────────────────────────────────
 
 document.getElementById('admin-name').textContent = phone || 'Admin Bolamu';
 
@@ -578,7 +566,7 @@ function showToast(msg,type='success'){
 function filterTable(id,q){q=q.toLowerCase();document.querySelectorAll(`#${id} tbody tr`).forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');}
 
 // ══════════════════════════════════════════════════════════════
-//  ARTICLES & BLOG — avec upload image depuis l'ordinateur
+//  ARTICLES & BLOG
 // ══════════════════════════════════════════════════════════════
 const CAT_INFO={
   paludisme:{label:'🦟 Paludisme',cls:'cat-paludisme',bg:'rgba(0,200,167,0.08)'},
@@ -587,6 +575,7 @@ const CAT_INFO={
   prevention:{label:'🛡️ Prévention',cls:'cat-prevention',bg:'rgba(46,134,255,0.08)'},
   sante:{label:'❤️ Santé générale',cls:'cat-sante',bg:'rgba(124,58,237,0.08)'},
   seniors:{label:'👴 Seniors',cls:'cat-seniors',bg:'rgba(0,168,120,0.08)'},
+  contraception:{label:'🩺 Contraception',cls:'cat-prevention',bg:'rgba(46,134,255,0.08)'},
 };
 
 let allArticles=[];
@@ -602,6 +591,14 @@ async function loadArticles(){
     document.getElementById('art-stat-pub').textContent=allArticles.filter(a=>a.is_published).length;
     document.getElementById('art-stat-draft').textContent=allArticles.filter(a=>!a.is_published).length;
     document.getElementById('art-stat-une').textContent=allArticles.filter(a=>a.is_featured).length;
+    // Générer filtres dynamiques depuis les catégories réelles
+    const cats=[...new Set(allArticles.map(a=>a.category).filter(Boolean))];
+    const bar=document.getElementById('art-filters-bar');
+    if(bar){
+      const catEmojis={paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️',sante:'❤️',seniors:'👴',contraception:'🩺',hygiene:'🧼'};
+      bar.innerHTML=`<button class="art-filter-btn active" onclick="filterArticles('tous',this)">Tous</button>`
+        +cats.map(c=>`<button class="art-filter-btn" onclick="filterArticles('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
+    }
     renderArticles(allArticles);
   }catch(e){grid.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p></div>`;}
 }
@@ -617,7 +614,7 @@ function renderArticles(items){
   const grid=document.getElementById('articles-grid');
   if(!items.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📰</div><p>Aucun article.<br>Cliquez sur <strong>Nouvel article</strong> pour commencer.</p></div>`;return;}
   grid.innerHTML=items.map(a=>{
-    const cat=CAT_INFO[a.category]||{label:a.category,cls:'cat-prevention',bg:'var(--noir3)'};
+    const cat=CAT_INFO[a.category]||{label:a.category||'Général',cls:'cat-prevention',bg:'var(--noir3)'};
     const thumb=a.image_url
       ?`<img class="art-thumb" src="${a.image_url}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="art-thumb-placeholder" style="display:none;background:${cat.bg}">${a.emoji||'📄'}</div>`
       :`<div class="art-thumb-placeholder" style="background:${cat.bg}">${a.emoji||'📄'}</div>`;
@@ -645,7 +642,7 @@ function renderArticles(items){
 async function togglePub(id,currentlyPublished){
   try{
     const data=await api(`/articles/${id}`,{method:'PUT',body:JSON.stringify({is_published:!currentlyPublished})});
-    if(data.success){showToast(currentlyPublished?'Article dépublié':'🟢 Article publié !');await loadArticles();filterArticles(currentFilter);}
+    if(data.success){showToast(currentlyPublished?'Article dépublié':'🟢 Article publié !');await loadArticles();}
     else showToast(data.message||'Erreur','error');
   }catch(e){showToast('Erreur de connexion','error');}
 }
@@ -659,20 +656,15 @@ async function deleteArticle(id){
   closeModal();
   try{
     const data=await api(`/articles/${id}`,{method:'DELETE'});
-    if(data.success){showToast('Article supprimé');await loadArticles();filterArticles(currentFilter);}
+    if(data.success){showToast('Article supprimé');await loadArticles();}
     else showToast(data.message||'Erreur','error');
   }catch(e){showToast('Erreur','error');}
 }
 
-// ── Upload image depuis l'ordinateur ─────────────────────────
 async function uploadImageToServer(file){
   const formData=new FormData();
   formData.append('image',file);
-  const res=await fetch('/api/v1/articles/upload-image',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+token},
-    body:formData
-  });
+  const res=await fetch('/api/v1/articles/upload-image',{method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
   const data=await res.json();
   if(!data.success)throw new Error(data.message||'Erreur upload');
   return data.image_url;
@@ -682,25 +674,20 @@ function artPreviewImage(url){
   const wrap=document.getElementById('art-img-preview-wrap');
   const img=document.getElementById('art-img-preview');
   if(!wrap||!img)return;
-  if(url&&(url.startsWith('http')||url.startsWith('blob'))){
-    img.src=url;wrap.classList.add('show');
-    img.onerror=()=>wrap.classList.remove('show');
-  }else{wrap.classList.remove('show');}
+  if(url&&(url.startsWith('http')||url.startsWith('blob'))){img.src=url;wrap.classList.add('show');img.onerror=()=>wrap.classList.remove('show');}
+  else{wrap.classList.remove('show');}
 }
 
 async function handleFileSelect(input){
-  const file=input.files[0];
-  if(!file)return;
-  const blobUrl=URL.createObjectURL(file);
-  artPreviewImage(blobUrl);
+  const file=input.files[0];if(!file)return;
+  const blobUrl=URL.createObjectURL(file);artPreviewImage(blobUrl);
   const urlInput=document.getElementById('art-image');
   const uploadBtn=document.getElementById('art-upload-btn');
   if(urlInput)urlInput.value='⏳ Upload en cours...';
   if(uploadBtn){uploadBtn.textContent='⏳';uploadBtn.disabled=true;}
   try{
     const cloudUrl=await uploadImageToServer(file);
-    if(urlInput)urlInput.value=cloudUrl;
-    artPreviewImage(cloudUrl);
+    if(urlInput)urlInput.value=cloudUrl;artPreviewImage(cloudUrl);
     if(uploadBtn){uploadBtn.textContent='📁 Choisir un fichier';uploadBtn.disabled=false;}
     showToast('Image uploadée ✅');
   }catch(e){
@@ -710,7 +697,6 @@ async function handleFileSelect(input){
   }
 }
 
-// ── Barre d'outils richtext ───────────────────────────────────
 function rtInsert(open,close){
   const ta=document.getElementById('art-content');if(!ta)return;
   const s=ta.selectionStart,e=ta.selectionEnd,sel=ta.value.substring(s,e);
@@ -720,7 +706,6 @@ function rtInsert(open,close){
   ta.selectionStart=s+o.length;ta.selectionEnd=s+o.length+sel.length;ta.focus();
 }
 
-// ── Formulaire article ────────────────────────────────────────
 function openArticleModal(article=null){
   const isEdit=!!article;
   document.getElementById('modal-article-body').innerHTML=`
@@ -729,7 +714,6 @@ function openArticleModal(article=null){
       <button onclick="closeArticleModal()" style="background:var(--noir3);border:1px solid var(--border);color:var(--texte-doux);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:18px;">✕</button>
     </div>
     <div style="font-size:13px;color:var(--texte-doux);margin-bottom:24px;">Cet article sera affiché sur la page d'accueil Bolamu une fois publié.</div>
-
     <div class="modal-2col">
       <div class="modal-field"><label>Catégorie *</label>
         <input class="modal-input" id="art-category" placeholder="Ex: paludisme, grossesse, contraception..." value="${isEdit?(article.category||''):''}">
@@ -737,10 +721,8 @@ function openArticleModal(article=null){
       </div>
       <div class="modal-field"><label>Temps de lecture</label><input class="modal-input" id="art-readtime" placeholder="5 min" value="${isEdit?(article.read_time||'5 min'):'5 min'}"></div>
     </div>
-
     <div class="modal-field"><label>Titre *</label><input class="modal-input" id="art-title" placeholder="Ex: Comment prévenir le paludisme..." value="${isEdit?(article.title||''):''}"></div>
     <div class="modal-field"><label>Résumé (affiché sur la carte d'accueil) *</label><textarea class="modal-textarea" id="art-excerpt" style="min-height:70px;" placeholder="1-2 phrases accrocheuses...">${isEdit?(article.excerpt||''):''}</textarea></div>
-
     <div class="modal-section-title">📝 Contenu de l'article</div>
     <div class="modal-field">
       <label>Contenu complet *</label>
@@ -754,42 +736,26 @@ function openArticleModal(article=null){
         <button class="rt-btn" onclick="rtInsert('&lt;br&gt;','')">↵</button>
         <button class="rt-btn" onclick="rtInsert('&lt;blockquote&gt;','&lt;/blockquote&gt;')">" Citation</button>
       </div>
-      <textarea class="rt-editor" id="art-content" placeholder="Rédigez votre article ici...&#10;&#10;Exemple :&#10;<h4>Titre de section</h4>&#10;<p>Votre paragraphe...</p>&#10;<ul>&#10;  <li>Point 1</li>&#10;  <li>Point 2</li>&#10;</ul>">${isEdit?(article.content||''):''}</textarea>
+      <textarea class="rt-editor" id="art-content" placeholder="Rédigez votre article ici...">${isEdit?(article.content||''):''}</textarea>
       <div class="help-box">💡 Balises : <strong>&lt;h4&gt;</strong> titre · <strong>&lt;p&gt;</strong> paragraphe · <strong>&lt;ul&gt;&lt;li&gt;</strong> liste · <strong>&lt;strong&gt;</strong> gras · <strong>&lt;em&gt;</strong> italique</div>
     </div>
-
     <div class="modal-section-title">🖼️ Image de l'article</div>
     <div class="modal-field">
       <label>Choisir une image</label>
-
-      <!-- Upload depuis l'ordinateur -->
       <div style="margin-bottom:12px;">
         <input type="file" id="art-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleFileSelect(this)">
-        <button id="art-upload-btn" type="button" onclick="document.getElementById('art-file-input').click()"
-          style="padding:10px 18px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.3);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;"
-          onmouseover="this.style.background='var(--bleu)';this.style.color='white'"
-          onmouseout="this.style.background='rgba(46,134,255,0.12)';this.style.color='var(--bleu)'">
-          📁 Choisir depuis mon ordinateur
-        </button>
+        <button id="art-upload-btn" type="button" onclick="document.getElementById('art-file-input').click()" style="padding:10px 18px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.3);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">📁 Choisir depuis mon ordinateur</button>
         <span style="font-size:11px;color:var(--texte-doux);margin-left:10px;">JPG, PNG, WEBP — max 5MB</span>
       </div>
-
-      <!-- OU URL externe -->
       <div style="font-size:11px;color:var(--texte-doux);margin-bottom:6px;">Ou coller une URL d'image :</div>
       <input class="modal-input" id="art-image" placeholder="https://images.unsplash.com/..." value="${isEdit?(article.image_url||''):''}" oninput="artPreviewImage(this.value)">
       <div style="font-size:11px;color:var(--texte-doux);margin-top:6px;">Photos gratuites : <a href="https://unsplash.com" target="_blank" style="color:var(--bleu)">unsplash.com</a> · <a href="https://pexels.com" target="_blank" style="color:var(--bleu)">pexels.com</a></div>
-
-      <!-- Aperçu -->
-      <div class="img-preview-wrap" id="art-img-preview-wrap">
-        <img id="art-img-preview" src="" alt="Aperçu">
-      </div>
+      <div class="img-preview-wrap" id="art-img-preview-wrap"><img id="art-img-preview" src="" alt="Aperçu"></div>
     </div>
-
     <div class="modal-2col">
       <div class="modal-field"><label>Emoji (si pas d'image)</label><input class="modal-input" id="art-emoji" placeholder="🦟" value="${isEdit?(article.emoji||''):''}" maxlength="4"></div>
       <div class="modal-field"><label>Auteur</label><input class="modal-input" id="art-author" placeholder="Dr. Bolamu" value="${isEdit?(article.author||'Dr. Bolamu'):'Dr. Bolamu'}"></div>
     </div>
-
     <div class="modal-section-title">⚙️ Options de publication</div>
     <div class="toggle-row" style="margin-bottom:24px;">
       <div class="toggle-item">
@@ -801,12 +767,10 @@ function openArticleModal(article=null){
         <label for="art-featured">⭐ Mettre à la une</label>
       </div>
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeArticleModal()">Annuler</button>
       <button class="btn-confirm blue" onclick="saveArticle(${isEdit?article.id:'null'})">${isEdit?'💾 Enregistrer':'✅ Créer l\'article'}</button>
     </div>`;
-
   if(isEdit&&article.image_url)artPreviewImage(article.image_url);
   document.getElementById('modal-article').classList.add('open');
 }
@@ -815,21 +779,13 @@ async function saveArticle(id){
   const title=document.getElementById('art-title').value.trim();
   const excerpt=document.getElementById('art-excerpt').value.trim();
   const content=document.getElementById('art-content').value.trim();
-  const category=document.getElementById('art-category').value;
+  const category=document.getElementById('art-category').value.trim();
   if(!title||!excerpt||!content){showToast('Titre, résumé et contenu sont obligatoires','error');return;}
   const imageVal=document.getElementById('art-image').value.trim();
-  const body={
-    title,excerpt,content,category,
-    image_url:(imageVal&&imageVal.startsWith('http'))?imageVal:null,
-    emoji:document.getElementById('art-emoji').value.trim()||'📄',
-    author:document.getElementById('art-author').value.trim()||'Dr. Bolamu',
-    read_time:document.getElementById('art-readtime').value.trim()||'5 min',
-    is_published:document.getElementById('art-published').checked,
-    is_featured:document.getElementById('art-featured').checked,
-  };
+  const body={title,excerpt,content,category,image_url:(imageVal&&imageVal.startsWith('http'))?imageVal:null,emoji:document.getElementById('art-emoji').value.trim()||'📄',author:document.getElementById('art-author').value.trim()||'Dr. Bolamu',read_time:document.getElementById('art-readtime').value.trim()||'5 min',is_published:document.getElementById('art-published').checked,is_featured:document.getElementById('art-featured').checked};
   try{
     const data=id?await api(`/articles/${id}`,{method:'PUT',body:JSON.stringify(body)}):await api('/articles',{method:'POST',body:JSON.stringify(body)});
-    if(data.success){showToast(id?'Article modifié ✅':'🟢 Article publié !');closeArticleModal();await loadArticles();filterArticles(currentFilter);}
+    if(data.success){showToast(id?'Article modifié ✅':'🟢 Article publié !');closeArticleModal();await loadArticles();}
     else showToast(data.message||'Erreur','error');
   }catch(e){showToast('Erreur de connexion','error');}
 }
@@ -864,7 +820,29 @@ async function loadPrescriptions(){const data=await api('/admin/prescriptions');
 async function loadPayments(){const data=await api('/admin/payments');const items=data.data||[];document.getElementById('pay-total-rev').textContent=fmtNum(data.total_revenue)+' FCFA';document.getElementById('pay-total-count').textContent=fmtNum(data.total_count);document.getElementById('pay-momo').textContent=items.filter(p=>p.operator==='mtn'||p.operator==='airtel').length;document.getElementById('pay-count').textContent=`${items.length} transactions`;document.getElementById('payments-list').innerHTML=!items.length?`<div class="empty"><p>Aucun paiement</p></div>`:`<table><thead><tr><th>Patient</th><th>Montant (FCFA)</th><th>Opérateur</th><th>Plan</th><th>Statut</th><th>Date</th></tr></thead><tbody>${items.map(p=>`<tr><td><span style="font-weight:600">${p.patient_name||p.patient_phone}</span></td><td style="font-weight:700;color:var(--vert)">${fmtNum(p.amount_fcfa)}</td><td style="text-transform:uppercase;font-size:12px">${p.operator||'—'}</td><td style="font-size:12px">${p.plan||'—'}</td><td>${badge(p.status)}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtDate(p.created_at)}</td></tr>`).join('')}</tbody></table>`;}
 async function loadFraud(){const data=await api('/admin/fraud');const items=data.data||[];document.getElementById('fraud-count').textContent=`${items.length} signaux`;document.getElementById('fraud-high').textContent=items.filter(f=>f.severity==='high').length;document.getElementById('fraud-medium').textContent=items.filter(f=>f.severity==='medium').length;document.getElementById('fraud-low').textContent=items.filter(f=>f.severity==='low').length;document.getElementById('fraud-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal détecté</p></div>`:`<table><thead><tr><th>Type</th><th>Acteur</th><th>Sévérité</th><th>Date</th><th>Action</th></tr></thead><tbody>${items.map(f=>`<tr><td style="font-weight:700;font-size:12px">${f.signal_type?.replace(/_/g,' ')}</td><td class="td-phone">${f.actor_phone}</td><td>${badge(f.severity)}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtShort(f.created_at)}</td><td><div class="actions"><button class="btn-ban" onclick="suspendFraud(${f.id})">🔒 Bannir</button><button class="btn-view" onclick="openProfile('${f.actor_phone}')">👁</button></div></td></tr>`).join('')}</tbody></table>`;}
 async function loadAudit(filter=''){const data=await api(`/admin/audit${filter?`?event_type=${filter}`:''}`);const items=data.data||[];document.getElementById('audit-count').textContent=`${items.length} entrées`;document.getElementById('audit-list').innerHTML=!items.length?`<div class="empty"><p>Journal vide</p></div>`:`<table id="audit-table"><thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead><tbody>${items.map(a=>`<tr><td style="font-weight:600;font-size:12px">${a.event_type||'—'}</td><td class="td-phone">${a.actor_phone||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${a.target_table||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${a.target_id||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtDate(a.created_at)}</td></tr>`).join('')}</tbody></table>`;}
-async function loadConfig(){const data=await api('/admin/config');const items=data.data||[];const groups={'Abonnements patients':items.filter(i=>['price_essentiel','price_standard','price_premium'].includes(i.key)),'Rémunération médecins':items.filter(i=>i.key.startsWith('doctor_fee')),'Phase commerciale':items.filter(i=>['active_phase','doctor_patient_ratio','breakeven_subscribers','subscription_duration_days'].includes(i.key)),'Système de crédits':items.filter(i=>i.key.startsWith('credit'))};document.getElementById('config-grid').innerHTML=Object.entries(groups).map(([title,cfgs])=>`<div class="config-card"><div class="config-section-title">${title}</div>${cfgs.map(c=>`<div class="config-item"><div><div class="config-key">${c.key}</div><div class="config-desc">${c.description||''}</div></div><div class="config-val" onclick="openEditConfig('${c.key}','${c.value}','${(c.description||'').replace(/'/g,'')}')"> ${c.value}${['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity'].includes(c.key)?' FCFA':''}</div></div>`).join('')}</div>`).join('');}
+
+// ══ CONFIG — avec gestion d'erreur ────────────────────────────
+async function loadConfig(){
+  try{
+    const data=await api('/admin/config');
+    const items=data.data||[];
+    if(!items.length){
+      document.getElementById('config-grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚙️</div><p>Aucune configuration disponible.<br><small style="color:var(--texte-doux)">Les paramètres apparaîtront ici une fois la plateforme configurée.</small></p></div>`;
+      return;
+    }
+    const groups={
+      'Abonnements patients':items.filter(i=>['price_essentiel','price_standard','price_premium'].includes(i.key)),
+      'Rémunération médecins':items.filter(i=>i.key.startsWith('doctor_fee')),
+      'Phase commerciale':items.filter(i=>['active_phase','doctor_patient_ratio','breakeven_subscribers','subscription_duration_days'].includes(i.key)),
+      'Système de crédits':items.filter(i=>i.key.startsWith('credit'))
+    };
+    const rendered=Object.entries(groups).filter(([,cfgs])=>cfgs.length>0).map(([title,cfgs])=>`<div class="config-card"><div class="config-section-title">${title}</div>${cfgs.map(c=>`<div class="config-item"><div><div class="config-key">${c.key}</div><div class="config-desc">${c.description||''}</div></div><div class="config-val" onclick="openEditConfig('${c.key}','${c.value}','${(c.description||'').replace(/'/g,'')}')"> ${c.value}${['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity'].includes(c.key)?' FCFA':''}</div></div>`).join('')}</div>`).join('');
+    document.getElementById('config-grid').innerHTML=rendered||`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚙️</div><p>Aucun paramètre trouvé.</p></div>`;
+  }catch(e){
+    document.getElementById('config-grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Erreur de chargement de la configuration.<br><small style="color:var(--texte-doux)">Vérifiez que la route /admin/config est disponible.</small></p></div>`;
+  }
+}
+
 async function loadCredits(){const data=await api('/admin/credits');const items=data.data||[];const totalBal=items.reduce((s,c)=>s+(c.balance||0),0);const totalEarned=items.reduce((s,c)=>s+(c.total_earned||0),0);const totalSpent=items.reduce((s,c)=>s+(c.total_spent||0),0);document.getElementById('cr-total-accounts').textContent=items.length;document.getElementById('cr-total-balance').textContent=fmtNum(totalBal);document.getElementById('cr-total-earned').textContent=fmtNum(totalEarned);document.getElementById('cr-total-spent').textContent=fmtNum(totalSpent);document.getElementById('credits-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte crédits</p></div>`:`<table><thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Actions</th></tr></thead><tbody>${items.map(c=>`<tr><td><strong>${c.display_name||'—'}</strong></td><td class="td-phone">${c.phone}</td><td><span class="badge badge-${c.role}">${c.role}</span></td><td style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--violet)">${fmtNum(c.balance)} 💎</td><td style="color:var(--vert);font-weight:700">+${fmtNum(c.total_earned)}</td><td style="color:var(--rouge);font-weight:700">-${fmtNum(c.total_spent)}</td><td><button class="btn-credit" onclick="openGrantCredit('${c.phone}')">💎 Attribuer</button></td></tr>`).join('')}</tbody></table>`;}
 
 function openValidate(type,id,name){modal(`✅ Valider`,`Valider le compte de <strong>${name}</strong> ?`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm green" onclick="doValidate('${type}','${id}','approved')">✅ Confirmer</button>`);}
@@ -887,41 +865,35 @@ async function openProfile(phone){showModal();document.getElementById('modal-bod
 function modal(title,sub,body='',actions=''){document.getElementById('modal-body').innerHTML=`<div class="modal-title">${title}</div><div class="modal-sub">${sub}</div>${body}<div class="modal-actions">${actions}</div>`;showModal();}
 function showModal(){document.getElementById('modal').classList.add('open');}
 function closeModal(){document.getElementById('modal').classList.remove('open');}
-
 function refreshAll(){const active=document.querySelector('.nav-item.active');const m=active?.onclick?.toString().match(/'(\w+)'/);if(m)loadPanel(m[1]);else loadOverview();}
 function logout(){localStorage.clear();window.location.replace('/admin/login.html');}
 
 // ══ VITRINE & HERO ════════════════════════════════════════════
-const VITRINE_DEFAULTS = {
-  hero: { name:'Médecin partenaire Bolamu', subtitle:'Disponible maintenant', image_url:'docteur_optimized.jpg' },
-  block_patients: { tag:'Patients', title:'Votre santé protégée', desc:'Accès illimité · Dossier médical sécurisé · Partenaires bien-être', image_url:'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80' },
-  block_medecins: { tag:'Médecins', title:'Votre dignité retrouvée', desc:'Payés à la prestation · Revenus réguliers sur MoMo · Indépendance totale', image_url:'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80' },
-  block_pharmacies: { tag:'Pharmacies', title:'Des clients qualifiés', desc:'Ordonnances numériques sécurisées · Visibilité plateforme · Zéro coût', image_url:'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&q=80' },
-  block_laboratoires: { tag:'Laboratoires', title:'Intégrez l\'écosystème', desc:'Résultats numériques sécurisés · Traçabilité totale · Partenariat certifié', image_url:'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80' },
+const VITRINE_DEFAULTS={
+  hero:{name:'Médecin partenaire Bolamu',subtitle:'Disponible maintenant',image_url:'docteur_optimized.jpg'},
+  block_patients:{tag:'Patients',title:'Votre santé protégée',desc:'Accès illimité · Dossier médical sécurisé · Partenaires bien-être',image_url:'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80'},
+  block_medecins:{tag:'Médecins',title:'Votre dignité retrouvée',desc:'Payés à la prestation · Revenus réguliers sur MoMo · Indépendance totale',image_url:'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80'},
+  block_pharmacies:{tag:'Pharmacies',title:'Des clients qualifiés',desc:'Ordonnances numériques sécurisées · Visibilité plateforme · Zéro coût',image_url:'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&q=80'},
+  block_laboratoires:{tag:'Laboratoires',title:"Intégrez l'écosystème",desc:'Résultats numériques sécurisés · Traçabilité totale · Partenariat certifié',image_url:'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80'},
 };
+let vitrineData={};
 
-let vitrineData = {};
-
-async function loadVitrine() {
-  try {
-    const res = await fetch('/api/v1/articles/content-blocks', { headers: {'Authorization':'Bearer '+token} });
-    const data = await res.json();
-    vitrineData = data.blocks || {};
-  } catch(e) { vitrineData = {}; }
-
-  // Remplir hero
-  const hero = vitrineData.hero || VITRINE_DEFAULTS.hero;
-  document.getElementById('hero-name').value = hero.name || '';
-  document.getElementById('hero-subtitle').value = hero.subtitle || '';
-  document.getElementById('hero-image-url').value = hero.image_url || '';
-  if (hero.image_url) vitPreview('hero-img-preview-wrap','hero-img-preview', hero.image_url);
-
-  // Remplir les 4 cartes
-  const cards = ['block_patients','block_medecins','block_pharmacies','block_laboratoires'];
-  const icons = { block_patients:'👤', block_medecins:'🩺', block_pharmacies:'💊', block_laboratoires:'🔬' };
-  document.getElementById('vitrine-cards-grid').innerHTML = cards.map(key => {
-    const d = vitrineData[key] || VITRINE_DEFAULTS[key] || {};
-    return `<div class="config-card">
+async function loadVitrine(){
+  try{
+    const res=await fetch('/api/v1/articles/content-blocks',{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    vitrineData=data.blocks||{};
+  }catch(e){vitrineData={};}
+  const hero=vitrineData.hero||VITRINE_DEFAULTS.hero;
+  document.getElementById('hero-name').value=hero.name||'';
+  document.getElementById('hero-subtitle').value=hero.subtitle||'';
+  document.getElementById('hero-image-url').value=hero.image_url||'';
+  if(hero.image_url)vitPreview('hero-img-preview-wrap','hero-img-preview',hero.image_url);
+  const cards=['block_patients','block_medecins','block_pharmacies','block_laboratoires'];
+  const icons={block_patients:'👤',block_medecins:'🩺',block_pharmacies:'💊',block_laboratoires:'🔬'};
+  document.getElementById('vitrine-cards-grid').innerHTML=cards.map(key=>{
+    const d=vitrineData[key]||VITRINE_DEFAULTS[key]||{};
+    return`<div class="config-card">
       <div class="config-section-title">${icons[key]} Carte ${(VITRINE_DEFAULTS[key]?.tag||key)}</div>
       <div class="modal-field"><label>Tag (ex: Patients)</label><input class="modal-input" id="${key}-tag" value="${d.tag||''}" placeholder="Patients"></div>
       <div class="modal-field"><label>Titre</label><input class="modal-input" id="${key}-title" value="${d.title||''}" placeholder="Votre santé protégée"></div>
@@ -938,55 +910,40 @@ async function loadVitrine() {
   }).join('');
 }
 
-function vitPreview(wrapId, imgId, url) {
-  const wrap = document.getElementById(wrapId);
-  const img = document.getElementById(imgId);
-  if (!wrap || !img) return;
-  if (url && url.startsWith('http')) { img.src = url; wrap.classList.add('show'); }
-  else wrap.classList.remove('show');
+function vitPreview(wrapId,imgId,url){
+  const wrap=document.getElementById(wrapId);const img=document.getElementById(imgId);if(!wrap||!img)return;
+  if(url&&url.startsWith('http')){img.src=url;wrap.classList.add('show');}else wrap.classList.remove('show');
 }
 
-async function handleVitrineUpload(input, urlInputId, wrapId, imgId) {
-  const file = input.files[0]; if (!file) return;
-  const formData = new FormData(); formData.append('image', file);
-  const urlInput = document.getElementById(urlInputId);
-  if (urlInput) urlInput.value = '⏳ Upload...';
-  try {
-    const res = await fetch('/api/v1/articles/upload-image', { method:'POST', headers:{'Authorization':'Bearer '+token}, body:formData });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.message);
-    if (urlInput) urlInput.value = data.image_url;
-    vitPreview(wrapId, imgId, data.image_url);
+async function handleVitrineUpload(input,urlInputId,wrapId,imgId){
+  const file=input.files[0];if(!file)return;
+  const formData=new FormData();formData.append('image',file);
+  const urlInput=document.getElementById(urlInputId);
+  if(urlInput)urlInput.value='⏳ Upload...';
+  try{
+    const res=await fetch('/api/v1/articles/upload-image',{method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
+    const data=await res.json();
+    if(!data.success)throw new Error(data.message);
+    if(urlInput)urlInput.value=data.image_url;
+    vitPreview(wrapId,imgId,data.image_url);
     showToast('Image uploadée ✅');
-  } catch(e) { if (urlInput) urlInput.value = ''; showToast('Erreur upload : '+e.message,'error'); }
+  }catch(e){if(urlInput)urlInput.value='';showToast('Erreur upload : '+e.message,'error');}
 }
 
-async function saveVitrineBlock(key) {
-  let body = {};
-  if (key === 'hero') {
-    body = {
-      name: document.getElementById('hero-name').value.trim(),
-      subtitle: document.getElementById('hero-subtitle').value.trim(),
-      image_url: document.getElementById('hero-image-url').value.trim(),
-    };
-  } else {
-    body = {
-      tag: document.getElementById(`${key}-tag`).value.trim(),
-      title: document.getElementById(`${key}-title`).value.trim(),
-      desc: document.getElementById(`${key}-desc`).value.trim(),
-      image_url: document.getElementById(`${key}-img-url`).value.trim(),
-    };
+async function saveVitrineBlock(key){
+  let body={};
+  if(key==='hero'){
+    body={name:document.getElementById('hero-name').value.trim(),subtitle:document.getElementById('hero-subtitle').value.trim(),image_url:document.getElementById('hero-image-url').value.trim()};
+  }else{
+    body={tag:document.getElementById(`${key}-tag`).value.trim(),title:document.getElementById(`${key}-title`).value.trim(),desc:document.getElementById(`${key}-desc`).value.trim(),image_url:document.getElementById(`${key}-img-url`).value.trim()};
   }
-  try {
-    const res = await fetch(`/api/v1/articles/content-blocks/${key}`, {
-      method:'PUT', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}, body:JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (data.success) showToast('✅ Sauvegardé — visible sur le site !');
+  try{
+    const res=await fetch(`/api/v1/articles/content-blocks/${key}`,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();
+    if(data.success)showToast('✅ Sauvegardé — visible sur le site !');
     else showToast(data.message||'Erreur','error');
-  } catch(e) { showToast('Erreur de connexion','error'); }
+  }catch(e){showToast('Erreur de connexion','error');}
 }
-// ─────────────────────────────────────────────────────────────
 
 loadOverview();
 setInterval(loadOverview,60000);
