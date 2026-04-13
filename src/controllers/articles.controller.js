@@ -1,7 +1,6 @@
 const pool = require('../config/db');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // ── Configuration Cloudinary ──────────────────────────────────
 cloudinary.config({
@@ -10,20 +9,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ── Stockage Multer → Cloudinary ─────────────────────────────
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder:         'bolamu/articles',       // dossier dans ton Cloudinary
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [
-      { width: 1200, height: 630, crop: 'fill', quality: 'auto' }  // optimisé pour les cartes
-    ],
-  },
-});
-
+// ── Multer : stockage en mémoire (pas sur disque) ─────────────
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -35,7 +23,6 @@ const upload = multer({
   },
 });
 
-// ── Middleware upload exporté pour la route ───────────────────
 const uploadMiddleware = upload.single('image');
 
 // ============================================================
@@ -46,11 +33,29 @@ async function uploadImage(req, res) {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Aucun fichier reçu.' });
     }
-    // req.file.path = URL Cloudinary après upload
+
+    // Upload vers Cloudinary via stream (pas besoin de multer-storage-cloudinary)
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'bolamu/articles',
+          transformation: [
+            { width: 1200, height: 630, crop: 'fill', quality: 'auto' }
+          ],
+          resource_type: 'image',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(req.file.buffer);
+    });
+
     return res.json({
       success:   true,
-      image_url: req.file.path,
-      public_id: req.file.filename,
+      image_url: result.secure_url,
+      public_id: result.public_id,
       message:   'Image uploadée avec succès.'
     });
   } catch (err) {
@@ -165,12 +170,11 @@ async function updateArticle(req, res) {
 async function deleteArticle(req, res) {
   const { id } = req.params;
   try {
-    // Récupérer le public_id Cloudinary pour supprimer l'image aussi
     const article = await pool.query(`SELECT image_url FROM articles WHERE id = $1`, [id]);
     const result = await pool.query(`DELETE FROM articles WHERE id=$1 RETURNING id,title`, [id]);
     if (!result.rows.length) return res.status(404).json({ success: false, message: 'Article introuvable' });
 
-    // Supprimer l'image sur Cloudinary si elle existe et vient de Cloudinary
+    // Supprimer l'image sur Cloudinary si elle vient de Cloudinary
     if (article.rows[0]?.image_url?.includes('cloudinary')) {
       try {
         const parts = article.rows[0].image_url.split('/');
