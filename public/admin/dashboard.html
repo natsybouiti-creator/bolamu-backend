@@ -272,7 +272,9 @@
     <div class="nav-section">Contenu & Config</div>
     <button class="nav-item" onclick="showPanel('articles',this)"><span class="icon">📰</span> Articles & Blog</button>
     <button class="nav-item" onclick="showPanel('config',this)"><span class="icon">⚙️</span> Configuration</button>
-    <button class="nav-item" onclick="showPanel('credits',this)"><span class="icon">💎</span> Crédits</button>
+    <input class="modal-input" id="art-category" placeholder="Ex: paludisme, grossesse, contraception..." value="${isEdit?(article.category||''):''}">
+<button class="nav-item" onclick="showPanel('credits',this)"><span class="icon">💎</span> Crédits</button>
+    <button class="nav-item" onclick="showPanel('vitrine',this)"><span class="icon">🖼️</span> Vitrine & Hero</button>
   </nav>
   <div class="sidebar-footer">
     <div class="admin-info">
@@ -453,6 +455,41 @@
       <div class="config-grid" id="config-grid"><div class="loading">Chargement...</div></div>
     </div>
 
+    <div class="panel" id="panel-vitrine">
+      <div style="margin-bottom:24px;">
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px;">🖼️ Vitrine & Hero</div>
+        <div style="font-size:12px;color:var(--texte-doux);">Modifiez les 4 cartes acteurs et la photo hero de la page d'accueil</div>
+      </div>
+
+      <!-- HERO -->
+      <div class="config-card" style="margin-bottom:20px;">
+        <div class="config-section-title">🏥 Photo Hero (médecin en avant-plan)</div>
+        <div class="modal-field">
+          <label>Nom du médecin mis en avant</label>
+          <input class="modal-input" id="hero-name" placeholder="Dr. Jean Moukala">
+        </div>
+        <div class="modal-field">
+          <label>Spécialité / Sous-titre</label>
+          <input class="modal-input" id="hero-subtitle" placeholder="Médecin généraliste · Disponible maintenant">
+        </div>
+        <div class="modal-field">
+          <label>Photo (URL ou upload)</label>
+          <div style="margin-bottom:10px;">
+            <input type="file" id="hero-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleVitrineUpload(this,'hero-image-url','hero-img-preview-wrap','hero-img-preview')">
+            <button type="button" onclick="document.getElementById('hero-file-input').click()" style="padding:10px 18px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.3);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">📁 Choisir depuis mon ordinateur</button>
+          </div>
+          <input class="modal-input" id="hero-image-url" placeholder="https://..." oninput="vitPreview('hero-img-preview-wrap','hero-img-preview',this.value)" style="margin-bottom:8px;">
+          <div class="img-preview-wrap" id="hero-img-preview-wrap"><img id="hero-img-preview" src="" alt=""></div>
+        </div>
+        <button class="btn-confirm blue" style="max-width:200px;padding:10px;" onclick="saveVitrineBlock('hero')">💾 Enregistrer Hero</button>
+      </div>
+
+      <!-- 4 CARTES ACTEURS -->
+      <div class="config-grid" id="vitrine-cards-grid">
+        <div class="loading">Chargement...</div>
+      </div>
+    </div>
+
     <div class="panel" id="panel-credits">
       <div class="credits-summary">
         <div class="credit-stat"><div class="credit-stat-val" id="cr-total-accounts">—</div><div class="credit-stat-lbl">Comptes crédits</div></div>
@@ -507,7 +544,7 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
 document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click',()=>{if(window.innerWidth<=900)closeSidebar();}));
 
-const panelTitles={overview:'Tableau de bord',activity:'Activité en direct',pending:'Comptes en attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Signaux fraude',audit:"Journal d'audit",articles:'Articles & Blog',config:'Configuration',credits:'Crédits'};
+const panelTitles={overview:'Tableau de bord',activity:'Activité en direct',pending:'Comptes en attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Signaux fraude',audit:"Journal d'audit",articles:'Articles & Blog',config:'Configuration',credits:'Crédits',vitrine:'Vitrine & Hero'};
 
 function showPanel(name,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -518,7 +555,7 @@ function showPanel(name,btn){
   loadPanel(name);
 }
 function loadPanel(name){
-  const fn={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:()=>loadPharmacies(),laboratories:loadLaboratories,patients:loadPatients,appointments:loadAppointments,prescriptions:loadPrescriptions,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),articles:loadArticles,config:loadConfig,credits:loadCredits};
+  const fn={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:()=>loadPharmacies(),laboratories:loadLaboratories,patients:loadPatients,appointments:loadAppointments,prescriptions:loadPrescriptions,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),articles:loadArticles,config:loadConfig,credits:loadCredits,vitrine:loadVitrine};
   if(fn[name])fn[name]();
 }
 
@@ -695,14 +732,8 @@ function openArticleModal(article=null){
 
     <div class="modal-2col">
       <div class="modal-field"><label>Catégorie *</label>
-        <select class="modal-select" id="art-category">
-          <option value="paludisme" ${isEdit&&article.category==='paludisme'?'selected':''}>🦟 Paludisme</option>
-          <option value="grossesse" ${isEdit&&article.category==='grossesse'?'selected':''}>🤱 Grossesse</option>
-          <option value="nutrition" ${isEdit&&article.category==='nutrition'?'selected':''}>🥗 Nutrition</option>
-          <option value="prevention" ${isEdit&&article.category==='prevention'?'selected':''}>🛡️ Prévention</option>
-          <option value="sante" ${isEdit&&article.category==='sante'?'selected':''}>❤️ Santé générale</option>
-          <option value="seniors" ${isEdit&&article.category==='seniors'?'selected':''}>👴 Seniors</option>
-        </select>
+        <input class="modal-input" id="art-category" placeholder="Ex: paludisme, grossesse, contraception..." value="${isEdit?(article.category||''):''}">
+        <div style="font-size:11px;color:var(--texte-doux);margin-top:6px;">Suggestions : <span style="cursor:pointer;color:var(--bleu)" onclick="document.getElementById('art-category').value='paludisme'">paludisme</span> · <span style="cursor:pointer;color:var(--bleu)" onclick="document.getElementById('art-category').value='grossesse'">grossesse</span> · <span style="cursor:pointer;color:var(--bleu)" onclick="document.getElementById('art-category').value='nutrition'">nutrition</span> · <span style="cursor:pointer;color:var(--bleu)" onclick="document.getElementById('art-category').value='prevention'">prevention</span> · <span style="cursor:pointer;color:var(--bleu)" onclick="document.getElementById('art-category').value='sante'">sante</span> · <span style="cursor:pointer;color:var(--bleu)" onclick="document.getElementById('art-category').value='contraception'">contraception</span> · <span style="cursor:pointer;color:var(--bleu)" onclick="document.getElementById('art-category').value='seniors'">seniors</span></div>
       </div>
       <div class="modal-field"><label>Temps de lecture</label><input class="modal-input" id="art-readtime" placeholder="5 min" value="${isEdit?(article.read_time||'5 min'):'5 min'}"></div>
     </div>
@@ -859,6 +890,103 @@ function closeModal(){document.getElementById('modal').classList.remove('open');
 
 function refreshAll(){const active=document.querySelector('.nav-item.active');const m=active?.onclick?.toString().match(/'(\w+)'/);if(m)loadPanel(m[1]);else loadOverview();}
 function logout(){localStorage.clear();window.location.replace('/admin/login.html');}
+
+// ══ VITRINE & HERO ════════════════════════════════════════════
+const VITRINE_DEFAULTS = {
+  hero: { name:'Médecin partenaire Bolamu', subtitle:'Disponible maintenant', image_url:'docteur_optimized.jpg' },
+  block_patients: { tag:'Patients', title:'Votre santé protégée', desc:'Accès illimité · Dossier médical sécurisé · Partenaires bien-être', image_url:'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80' },
+  block_medecins: { tag:'Médecins', title:'Votre dignité retrouvée', desc:'Payés à la prestation · Revenus réguliers sur MoMo · Indépendance totale', image_url:'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80' },
+  block_pharmacies: { tag:'Pharmacies', title:'Des clients qualifiés', desc:'Ordonnances numériques sécurisées · Visibilité plateforme · Zéro coût', image_url:'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&q=80' },
+  block_laboratoires: { tag:'Laboratoires', title:'Intégrez l\'écosystème', desc:'Résultats numériques sécurisés · Traçabilité totale · Partenariat certifié', image_url:'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80' },
+};
+
+let vitrineData = {};
+
+async function loadVitrine() {
+  try {
+    const res = await fetch('/api/v1/articles/content-blocks', { headers: {'Authorization':'Bearer '+token} });
+    const data = await res.json();
+    vitrineData = data.blocks || {};
+  } catch(e) { vitrineData = {}; }
+
+  // Remplir hero
+  const hero = vitrineData.hero || VITRINE_DEFAULTS.hero;
+  document.getElementById('hero-name').value = hero.name || '';
+  document.getElementById('hero-subtitle').value = hero.subtitle || '';
+  document.getElementById('hero-image-url').value = hero.image_url || '';
+  if (hero.image_url) vitPreview('hero-img-preview-wrap','hero-img-preview', hero.image_url);
+
+  // Remplir les 4 cartes
+  const cards = ['block_patients','block_medecins','block_pharmacies','block_laboratoires'];
+  const icons = { block_patients:'👤', block_medecins:'🩺', block_pharmacies:'💊', block_laboratoires:'🔬' };
+  document.getElementById('vitrine-cards-grid').innerHTML = cards.map(key => {
+    const d = vitrineData[key] || VITRINE_DEFAULTS[key] || {};
+    return `<div class="config-card">
+      <div class="config-section-title">${icons[key]} Carte ${(VITRINE_DEFAULTS[key]?.tag||key)}</div>
+      <div class="modal-field"><label>Tag (ex: Patients)</label><input class="modal-input" id="${key}-tag" value="${d.tag||''}" placeholder="Patients"></div>
+      <div class="modal-field"><label>Titre</label><input class="modal-input" id="${key}-title" value="${d.title||''}" placeholder="Votre santé protégée"></div>
+      <div class="modal-field"><label>Description</label><input class="modal-input" id="${key}-desc" value="${d.desc||''}" placeholder="Courte description..."></div>
+      <div class="modal-field">
+        <label>Photo</label>
+        <input type="file" id="${key}-file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleVitrineUpload(this,'${key}-img-url','${key}-preview-wrap','${key}-preview-img')">
+        <button type="button" onclick="document.getElementById('${key}-file').click()" style="padding:8px 14px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.3);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:8px;">📁 Choisir</button>
+        <input class="modal-input" id="${key}-img-url" value="${d.image_url||''}" placeholder="https://..." oninput="vitPreview('${key}-preview-wrap','${key}-preview-img',this.value)" style="margin-bottom:6px;">
+        <div class="img-preview-wrap ${d.image_url?'show':''}" id="${key}-preview-wrap"><img id="${key}-preview-img" src="${d.image_url||''}" alt=""></div>
+      </div>
+      <button class="btn-confirm blue" style="max-width:180px;padding:10px;" onclick="saveVitrineBlock('${key}')">💾 Enregistrer</button>
+    </div>`;
+  }).join('');
+}
+
+function vitPreview(wrapId, imgId, url) {
+  const wrap = document.getElementById(wrapId);
+  const img = document.getElementById(imgId);
+  if (!wrap || !img) return;
+  if (url && url.startsWith('http')) { img.src = url; wrap.classList.add('show'); }
+  else wrap.classList.remove('show');
+}
+
+async function handleVitrineUpload(input, urlInputId, wrapId, imgId) {
+  const file = input.files[0]; if (!file) return;
+  const formData = new FormData(); formData.append('image', file);
+  const urlInput = document.getElementById(urlInputId);
+  if (urlInput) urlInput.value = '⏳ Upload...';
+  try {
+    const res = await fetch('/api/v1/articles/upload-image', { method:'POST', headers:{'Authorization':'Bearer '+token}, body:formData });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    if (urlInput) urlInput.value = data.image_url;
+    vitPreview(wrapId, imgId, data.image_url);
+    showToast('Image uploadée ✅');
+  } catch(e) { if (urlInput) urlInput.value = ''; showToast('Erreur upload : '+e.message,'error'); }
+}
+
+async function saveVitrineBlock(key) {
+  let body = {};
+  if (key === 'hero') {
+    body = {
+      name: document.getElementById('hero-name').value.trim(),
+      subtitle: document.getElementById('hero-subtitle').value.trim(),
+      image_url: document.getElementById('hero-image-url').value.trim(),
+    };
+  } else {
+    body = {
+      tag: document.getElementById(`${key}-tag`).value.trim(),
+      title: document.getElementById(`${key}-title`).value.trim(),
+      desc: document.getElementById(`${key}-desc`).value.trim(),
+      image_url: document.getElementById(`${key}-img-url`).value.trim(),
+    };
+  }
+  try {
+    const res = await fetch(`/api/v1/articles/content-blocks/${key}`, {
+      method:'PUT', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) showToast('✅ Sauvegardé — visible sur le site !');
+    else showToast(data.message||'Erreur','error');
+  } catch(e) { showToast('Erreur de connexion','error'); }
+}
+// ─────────────────────────────────────────────────────────────
 
 loadOverview();
 setInterval(loadOverview,60000);

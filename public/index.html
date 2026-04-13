@@ -379,11 +379,11 @@
             <a href="#comment" class="btn-hero-secondary">Comment ça marche</a>
         </div>
     </div>
-    <div class="hero-image">
-        <img src="docteur_optimized.jpg" alt="Médecin partenaire Bolamu" onerror="this.style.display='none'">
+    <div class="hero-image" id="hero-card">
+        <img id="hero-img" src="docteur_optimized.jpg" alt="Médecin partenaire Bolamu" onerror="this.style.display='none'">
         <div class="hero-image-overlay">
-            <p>Médecin partenaire Bolamu</p>
-            <strong>Disponible maintenant</strong>
+            <p id="hero-subtitle-txt">Médecin partenaire Bolamu</p>
+            <strong id="hero-name-txt">Disponible maintenant</strong>
             <div><span class="verified-badge">✓ Certifié Bolamu</span></div>
         </div>
     </div>
@@ -472,7 +472,7 @@
     <div class="section-tag">Notre Écosystème</div>
     <h2 class="section-title">Un système où<br>chacun gagne</h2>
     <p class="section-subtitle">Bolamu n'est pas qu'une application. C'est un écosystème complet où patients, médecins, pharmacies et laboratoires trouvent leur place.</p>
-    <div class="actors-grid">
+    <div class="actors-grid" id="actors-grid">
         <div class="actor-card"><img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80" alt="Patients"><div class="actor-overlay"><div class="actor-tag">Patients</div><h3>Votre santé protégée</h3><p>Accès illimité · Dossier médical sécurisé · Partenaires bien-être</p></div></div>
         <div class="actor-card"><img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80" alt="Médecins"><div class="actor-overlay"><div class="actor-tag">Médecins</div><h3>Votre dignité retrouvée</h3><p>Payés à la prestation · Revenus réguliers sur MoMo · Indépendance totale</p></div></div>
         <div class="actor-card"><img src="https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&q=80" alt="Pharmacies"><div class="actor-overlay"><div class="actor-tag">Pharmacies</div><h3>Des clients qualifiés</h3><p>Ordonnances numériques sécurisées · Visibilité plateforme · Zéro coût</p></div></div>
@@ -520,12 +520,8 @@
     <div class="section-tag">Santé & Prévention</div>
     <h2 class="section-title">Informez-vous,<br>protégez-vous</h2>
     <p class="section-subtitle">Le meilleur système de santé est celui où les gens ne tombent pas malades. Bolamu investit dans la prévention pour vous.</p>
-    <div class="articles-filters">
+    <div class="articles-filters" id="articles-filters-bar">
         <button class="art-filter active" onclick="filterArticles('tous', this)">Tous les articles</button>
-        <button class="art-filter" onclick="filterArticles('grossesse', this)">🤱 Suivi grossesse</button>
-        <button class="art-filter" onclick="filterArticles('paludisme', this)">🦟 Paludisme</button>
-        <button class="art-filter" onclick="filterArticles('nutrition', this)">🥗 Nutrition</button>
-        <button class="art-filter" onclick="filterArticles('prevention', this)">🛡️ Prévention</button>
     </div>
     <div class="articles-grid" id="articles-grid"></div>
     <div class="articles-cta">
@@ -693,6 +689,14 @@ async function loadArticlesFromAPI(category) {
     const data = await res.json();
     if (!data.success) throw new Error(data.message);
     ARTICLES = data.articles || [];
+    // Générer filtres dynamiques depuis les catégories réelles
+    const cats = [...new Set(ARTICLES.map(a=>a.category).filter(Boolean))];
+    const bar = document.getElementById('articles-filters-bar');
+    if (bar && cats.length) {
+      const catEmojis = {paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️',sante:'❤️',seniors:'👴',contraception:'🩺',hygiene:'🧼'};
+      bar.innerHTML = `<button class="art-filter active" onclick="filterArticles('tous',this)">Tous les articles</button>`
+        + cats.map(c=>`<button class="art-filter" onclick="filterArticles('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
+    }
     renderArticles(category || 'tous', false);
   } catch(e) {
     console.error('Erreur articles:', e);
@@ -795,6 +799,42 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeArticle
 
 /* INIT */
 loadArticlesFromAPI('tous');
+loadVitrineBlocks();
+
+async function loadVitrineBlocks() {
+  try {
+    const res = await fetch('/api/v1/articles/content-blocks');
+    const data = await res.json();
+    if (!data.success) return;
+    const b = data.blocks;
+
+    // Hero
+    if (b.hero) {
+      const h = b.hero;
+      if (h.image_url) { const img = document.getElementById('hero-img'); if(img) img.src = h.image_url; }
+      if (h.name) { const el = document.getElementById('hero-name-txt'); if(el) el.textContent = h.name; }
+      if (h.subtitle) { const el = document.getElementById('hero-subtitle-txt'); if(el) el.textContent = h.subtitle; }
+    }
+
+    // 4 cartes acteurs
+    const KEYS = ['block_patients','block_medecins','block_pharmacies','block_laboratoires'];
+    const grid = document.getElementById('actors-grid');
+    if (!grid) return;
+    const cards = grid.querySelectorAll('.actor-card');
+    KEYS.forEach((key, i) => {
+      const d = b[key];
+      if (!d || !cards[i]) return;
+      const img = cards[i].querySelector('img');
+      const tag = cards[i].querySelector('.actor-tag');
+      const h3 = cards[i].querySelector('h3');
+      const p = cards[i].querySelector('p');
+      if (img && d.image_url) img.src = d.image_url;
+      if (tag && d.tag) tag.textContent = d.tag;
+      if (h3 && d.title) h3.textContent = d.title;
+      if (p && d.desc) p.textContent = d.desc;
+    });
+  } catch(e) { console.log('Vitrine: fallback statique'); }
+}
 
 /* NAV MOBILE */
 function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('open'); }
