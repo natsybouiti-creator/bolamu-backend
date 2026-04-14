@@ -1,234 +1,292 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bolamu Admin — Centre de Contrôle</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --noir:#0a0a0f;--noir2:#12121a;--noir3:#1a1a26;--noir4:#22222f;
-      --bleu:#2E86FF;--vert:#00C9A7;--rouge:#ff4757;--amber:#ffa502;--violet:#7C3AED;
-      --emeraude:#00A878;--rose:#ff6b9d;
-      --texte:#f0f0f8;--texte-doux:#8888aa;--border:rgba(255,255,255,0.07);
-      --grad-blue:linear-gradient(135deg,#2E86FF,#00C9A7);
-      --grad-red:linear-gradient(135deg,#ff4757,#ff6b35);
-      --grad-violet:linear-gradient(135deg,#7C3AED,#2E86FF);
-      --grad-green:linear-gradient(135deg,#00A878,#00C9A7);
-      --grad-amber:linear-gradient(135deg,#ffa502,#ff6b35);
-    }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var(--texte);min-height:100vh;display:flex;}
-    .sidebar{width:260px;min-height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform 0.3s ease;}
-    .sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
-    .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-    .logo-name{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--texte);}
-    .logo-name .t{color:var(--vert);}
-    .admin-badge{background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:var(--rouge);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:1px;display:inline-block;}
-    .sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
-    .nav-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--texte-doux);padding:12px 12px 4px;}
-    .nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;transition:all 0.2s;color:var(--texte-doux);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;}
-    .nav-item:hover{background:var(--noir3);color:var(--texte);}
-    .nav-item.active{background:rgba(46,134,255,0.12);color:var(--bleu);font-weight:600;}
-    .nav-item .icon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
-    .nav-badge{margin-left:auto;background:var(--rouge);color:white;padding:2px 7px;border-radius:50px;font-size:10px;font-weight:700;}
-    .nav-badge.amber{background:var(--amber);color:var(--noir);}
-    .sidebar-footer{padding:16px;border-top:1px solid var(--border);}
-    .admin-info{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--noir3);}
-    .admin-avatar{width:36px;height:36px;border-radius:10px;background:var(--grad-violet);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-    .admin-name{font-size:13px;font-weight:700;color:var(--texte);}
-    .admin-role{font-size:11px;color:var(--texte-doux);}
-    .logout-link{font-size:12px;color:var(--rouge);cursor:pointer;margin-left:auto;font-weight:600;}
-    .main{margin-left:260px;flex:1;min-height:100vh;}
-    .topbar{height:64px;background:var(--noir2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:99;}
-    .topbar-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:var(--texte);}
-    .topbar-right{display:flex;align-items:center;gap:12px;}
-    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--vert);box-shadow:0 0 8px var(--vert);animation:pulse 2s infinite;}
-    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
-    .status-label{font-size:13px;color:var(--texte-doux);}
-    .refresh-btn{padding:8px 16px;background:var(--noir3);border:1px solid var(--border);border-radius:8px;color:var(--texte-doux);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .refresh-btn:hover{border-color:var(--bleu);color:var(--bleu);}
-    .content{padding:28px 32px;}
-    .panel{display:none;}.panel.active{display:block;}
-    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-    .kpi-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;padding:22px;position:relative;overflow:hidden;transition:all 0.2s;}
-    .kpi-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
-    .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-    .kpi-card.blue::before{background:var(--grad-blue);}
-    .kpi-card.green::before{background:var(--grad-green);}
-    .kpi-card.amber::before{background:var(--grad-amber);}
-    .kpi-card.red::before{background:var(--grad-red);}
-    .kpi-card.violet::before{background:var(--grad-violet);}
-    .kpi-icon{font-size:22px;margin-bottom:10px;}
-    .kpi-value{font-family:'Fraunces',serif;font-size:34px;font-weight:900;line-height:1;margin-bottom:4px;}
-    .kpi-label{font-size:11px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-    .kpi-trend{font-size:12px;font-weight:600;color:var(--texte-doux);}
-    .kpi-trend.up{color:var(--vert);}
-    .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
-    .chart-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;padding:24px;}
-    .chart-title{font-size:14px;font-weight:700;color:var(--texte);margin-bottom:4px;}
-    .chart-sub{font-size:12px;color:var(--texte-doux);margin-bottom:16px;}
-    .donut-wrapper{display:flex;align-items:center;gap:24px;}
-    .donut{width:120px;height:120px;flex-shrink:0;}
-    .donut-legend{display:flex;flex-direction:column;gap:10px;}
-    .legend-item{display:flex;align-items:center;gap:8px;font-size:13px;}
-    .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-    .legend-label{color:var(--texte-doux);}
-    .legend-value{margin-left:auto;font-weight:700;color:var(--texte);}
-    .bar-chart{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:20px;}
-    .bar{flex:1;border-radius:6px 6px 0 0;position:relative;cursor:pointer;transition:all 0.2s;min-width:0;}
-    .bar:hover{filter:brightness(1.2);}
-    .bar-label{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--texte-doux);white-space:nowrap;}
-    .bar-value{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--texte);white-space:nowrap;}
-    .table-card{background:var(--noir2);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:20px;}
-    .table-header{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
-    .table-title{font-size:15px;font-weight:700;color:var(--texte);}
-    .table-count{font-size:12px;color:var(--texte-doux);}
-    table{width:100%;border-collapse:collapse;}
-    th{padding:11px 20px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);border-bottom:1px solid var(--border);background:var(--noir3);}
-    td{padding:13px 20px;font-size:13px;border-bottom:1px solid var(--border);}
-    tr:last-child td{border-bottom:none;}
-    tr:hover td{background:rgba(255,255,255,0.02);}
-    .td-phone{font-family:'Fraunces',serif;font-weight:700;letter-spacing:0.5px;font-size:12px;}
-    .td-code{font-family:'Fraunces',serif;font-size:12px;letter-spacing:2px;color:var(--bleu);}
-    .score-bar{height:3px;border-radius:2px;background:var(--noir4);margin-top:4px;overflow:hidden;}
-    .score-fill{height:100%;border-radius:2px;background:var(--grad-blue);}
-    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;}
-    .badge-verified{background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.2);}
-    .badge-pending{background:rgba(255,165,2,0.12);color:var(--amber);border:1px solid rgba(255,165,2,0.2);}
-    .badge-suspended{background:rgba(255,71,87,0.12);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);}
-    .badge-banned{background:rgba(255,71,87,0.2);color:var(--rouge);border:1px solid rgba(255,71,87,0.4);}
-    .badge-high{background:rgba(255,71,87,0.15);color:var(--rouge);}
-    .badge-medium{background:rgba(255,165,2,0.15);color:var(--amber);}
-    .badge-low{background:rgba(0,200,167,0.12);color:var(--vert);}
-    .badge-doctor{background:rgba(0,200,167,0.12);color:var(--vert);}
-    .badge-pharmacie{background:rgba(0,168,120,0.12);color:var(--emeraude);}
-    .badge-laboratoire{background:rgba(124,58,237,0.12);color:var(--violet);}
-    .badge-patient{background:rgba(46,134,255,0.12);color:var(--bleu);}
-    .badge-pro{background:rgba(255,165,2,0.15);color:var(--amber);}
-    .btn-validate{padding:5px 12px;background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.25);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-validate:hover{background:var(--vert);color:var(--noir);}
-    .btn-reject{padding:5px 12px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-reject:hover{background:var(--rouge);color:white;}
-    .btn-suspend{padding:5px 12px;background:rgba(255,165,2,0.1);color:var(--amber);border:1px solid rgba(255,165,2,0.2);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-suspend:hover{background:var(--amber);color:var(--noir);}
-    .btn-view{padding:5px 12px;background:rgba(46,134,255,0.1);color:var(--bleu);border:1px solid rgba(46,134,255,0.2);border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-view:hover{background:var(--bleu);color:white;}
-    .btn-ban{padding:5px 12px;background:rgba(255,71,87,0.15);color:var(--rouge);border:1px solid rgba(255,71,87,0.3);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-ban:hover{background:var(--rouge);color:white;}
-    .btn-unban{padding:5px 12px;background:rgba(0,200,167,0.15);color:var(--vert);border:1px solid rgba(0,200,167,0.3);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-    .btn-credit{padding:5px 12px;background:rgba(124,58,237,0.12);color:var(--violet);border:1px solid rgba(124,58,237,0.25);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-    .actions{display:flex;gap:5px;flex-wrap:wrap;}
-    .search-bar{display:flex;gap:12px;margin-bottom:20px;}
-    .search-input{flex:1;background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
-    .search-input:focus{border-color:var(--bleu);}
-    .search-input::placeholder{color:var(--texte-doux);}
-    .filter-select{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;cursor:pointer;}
-    .filter-select:focus{border-color:var(--bleu);}
-    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-    .stat-mini{background:var(--noir3);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;}
-    .stat-mini-icon{font-size:24px;}
-    .stat-mini-val{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--texte);line-height:1;}
-    .stat-mini-lbl{font-size:11px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
-    .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-    .config-card{background:var(--noir2);border:1px solid var(--border);border-radius:16px;padding:20px;}
-    .config-section-title{font-size:13px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-    .config-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
-    .config-item:last-child{border-bottom:none;}
-    .config-key{font-size:12px;color:var(--texte-doux);font-weight:600;}
-    .config-desc{font-size:11px;color:var(--texte-doux);opacity:0.6;margin-top:2px;}
-    .config-val{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--vert);cursor:pointer;padding:4px 10px;border-radius:8px;transition:background 0.2s;}
-    .config-val:hover{background:rgba(0,200,167,0.1);}
-    .credits-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-    .credit-stat{background:var(--noir3);border-radius:12px;padding:16px;text-align:center;}
-    .credit-stat-val{font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:var(--violet);}
-    .credit-stat-lbl{font-size:11px;color:var(--texte-doux);margin-top:4px;}
-    .feed-list{display:flex;flex-direction:column;}
-    .feed-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);}
-    .feed-item:last-child{border-bottom:none;}
-    .feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-    .feed-action{font-size:13px;color:var(--texte);font-weight:500;margin-bottom:2px;}
-    .feed-time{font-size:11px;color:var(--texte-doux);}
-    .feed-actor{font-weight:700;color:var(--bleu);}
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;}
-    .modal-overlay.open{display:flex;}
-    .modal{background:var(--noir2);border:1px solid var(--border);border-radius:24px;padding:36px;max-width:500px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,0.6);max-height:85vh;overflow-y:auto;}
-    .modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;}
-    .modal-sub{font-size:14px;color:var(--texte-doux);margin-bottom:24px;line-height:1.6;}
-    .modal-field{margin-bottom:16px;}
-    .modal-field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;}
-    .modal-input{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
-    .modal-input:focus{border-color:var(--bleu);}
-    .modal-textarea{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;resize:vertical;min-height:120px;line-height:1.6;}
-    .modal-textarea:focus{border-color:var(--bleu);}
-    .modal-select{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;cursor:pointer;}
-    .modal-select:focus{border-color:var(--bleu);}
-    .modal-section{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
-    .modal-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:12px;}
-    .modal-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .modal-info-item label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--texte-doux);display:block;margin-bottom:3px;}
-    .modal-info-item span{font-size:13px;font-weight:500;color:var(--texte);}
-    .modal-actions{display:flex;gap:10px;margin-top:24px;}
-    .btn-confirm{flex:1;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-    .btn-confirm.green{background:var(--grad-green);color:white;}
-    .btn-confirm.red{background:var(--grad-red);color:white;}
-    .btn-confirm.blue{background:var(--grad-blue);color:white;}
-    .btn-confirm.violet{background:var(--grad-violet);color:white;}
-    .btn-cancel-modal{padding:13px 20px;background:transparent;color:var(--texte-doux);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-    .toast{position:fixed;bottom:24px;right:24px;background:var(--noir2);border:1px solid var(--border);border-radius:14px;padding:14px 20px;font-size:14px;font-weight:600;display:none;z-index:9999;box-shadow:0 20px 40px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;}
-    .toast.show{display:flex;align-items:center;gap:10px;}
-    .toast.success{border-color:rgba(0,200,167,0.3);color:var(--vert);}
-    .toast.error{border-color:rgba(255,71,87,0.3);color:var(--rouge);}
-    @keyframes slideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-    .doc-link{color:var(--bleu);text-decoration:none;font-size:12px;font-weight:600;}
-    .doc-link:hover{text-decoration:underline;}
-    .empty{text-align:center;padding:48px;color:var(--texte-doux);}
-    .empty-icon{font-size:40px;margin-bottom:12px;}
-    .loading{text-align:center;padding:40px;color:var(--texte-doux);}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bolamu Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root{--noir:#0a0a0f;--noir2:#12121a;--noir3:#1a1a26;--noir4:#22222f;--bleu:#2E86FF;--vert:#00C9A7;--rouge:#ff4757;--amber:#ffa502;--violet:#7C3AED;--emeraude:#00A878;--rose:#ff6b9d;--texte:#f0f0f8;--texte-doux:#8888aa;--border:rgba(255,255,255,0.07);--grad-blue:linear-gradient(135deg,#2E86FF,#00C9A7);--grad-red:linear-gradient(135deg,#ff4757,#ff6b35);--grad-violet:linear-gradient(135deg,#7C3AED,#2E86FF);--grad-green:linear-gradient(135deg,#00A878,#00C9A7);--grad-amber:linear-gradient(135deg,#ffa502,#ff6b35);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var(--texte);min-height:100vh;display:flex;}
 
-    /* ── ARTICLES ── */
-    .articles-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:4px;}
-    .article-admin-card{background:var(--noir2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all 0.2s;}
-    .article-admin-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
-    .article-admin-thumb{width:100%;height:140px;object-fit:cover;display:block;}
-    .article-admin-thumb-placeholder{width:100%;height:140px;display:flex;align-items:center;justify-content:center;font-size:48px;}
-    .article-admin-body{padding:16px;}
-    .article-admin-cat{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:8px;}
-    .cat-paludisme{background:rgba(0,200,167,0.15);color:var(--vert);}
-    .cat-grossesse{background:rgba(255,107,157,0.15);color:var(--rose);}
-    .cat-nutrition{background:rgba(255,165,2,0.15);color:var(--amber);}
-    .cat-prevention{background:rgba(46,134,255,0.15);color:var(--bleu);}
-    .article-admin-title{font-size:14px;font-weight:700;color:var(--texte);line-height:1.4;margin-bottom:8px;}
-    .article-admin-meta{font-size:11px;color:var(--texte-doux);margin-bottom:12px;}
-    .article-admin-actions{display:flex;gap:8px;flex-wrap:wrap;}
-    .btn-edit{padding:6px 14px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.25);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-edit:hover{background:var(--bleu);color:white;}
-    .btn-delete{padding:6px 14px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .btn-delete:hover{background:var(--rouge);color:white;}
-    .btn-toggle-pub{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;border:1px solid;}
-    .modal-large{max-width:720px;}
-    .img-preview{width:100%;height:160px;object-fit:cover;border-radius:10px;margin-top:8px;display:none;}
-    .img-preview-placeholder{width:100%;height:100px;background:var(--noir3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-top:8px;}
-    .toggle-switch{display:flex;align-items:center;gap:12px;margin-top:4px;}
-    .toggle-switch input[type=checkbox]{width:40px;height:22px;cursor:pointer;accent-color:var(--bleu);}
+/* ── SIDEBAR ── */
+.sidebar{width:200px;height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;overflow:hidden;}
+.sidebar-logo{padding:8px 10px 6px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo-row{display:flex;align-items:center;gap:7px;margin-bottom:2px;}
+.logo-name{font-family:'Fraunces',serif;font-size:15px;font-weight:900;color:var(--texte);}
+.logo-name .t{color:var(--vert);}
+.admin-badge{background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:var(--rouge);padding:1px 6px;border-radius:50px;font-size:8px;font-weight:700;letter-spacing:1px;display:inline-block;}
+.sidebar-nav{flex:1;padding:3px 4px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--noir4) transparent;}
+.sidebar-nav::-webkit-scrollbar{width:2px;}
+.sidebar-nav::-webkit-scrollbar-thumb{background:var(--noir4);border-radius:2px;}
+.nav-section{font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--texte-doux);padding:4px 6px 1px;margin-top:2px;flex-shrink:0;}
+.nav-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;cursor:pointer;transition:all 0.15s;color:var(--texte-doux);font-size:10.5px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.2;}
+.nav-item:hover{background:var(--noir3);color:var(--texte);}
+.nav-item.active{background:rgba(46,134,255,0.12);color:var(--bleu);font-weight:600;}
+.nav-item .icon{font-size:10px;width:12px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--rouge);color:white;padding:1px 4px;border-radius:50px;font-size:7px;font-weight:700;}
+.nav-badge.amber{background:var(--amber);color:var(--noir);}
+.sidebar-footer{padding:5px 4px;border-top:1px solid var(--border);flex-shrink:0;}
+.admin-info{display:flex;align-items:center;gap:5px;padding:5px 6px;border-radius:7px;background:var(--noir3);}
+.admin-avatar{width:22px;height:22px;border-radius:6px;background:var(--grad-violet);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.admin-name-txt{font-size:9px;font-weight:700;color:var(--texte);}
+.admin-role-txt{font-size:8px;color:var(--texte-doux);}
+.logout-link{font-size:10px;color:var(--rouge);cursor:pointer;margin-left:auto;font-weight:600;}
 
-    /* ── RESPONSIVE ── */
-    .mobile-sidebar-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--noir3);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:18px;color:var(--texte);margin-right:8px;flex-shrink:0;}
-    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
-    .sidebar-overlay.open{display:block;}
-    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr;}.config-grid{grid-template-columns:1fr;}.credits-summary{grid-template-columns:repeat(2,1fr);}.stat-row{grid-template-columns:repeat(2,1fr);}}
-    @media(max-width:900px){.sidebar{transform:translateX(-260px);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.topbar{padding:0 16px;}.mobile-sidebar-toggle{display:flex;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.content{padding:20px 16px;}.table-card{overflow-x:auto;}table{min-width:600px;}.search-bar{flex-wrap:wrap;}.search-input{min-width:100%;}.stat-row{grid-template-columns:repeat(3,1fr);}.articles-admin-grid{grid-template-columns:1fr;}}
-    @media(max-width:640px){.topbar{height:56px;}.topbar-title{font-size:16px;}.topbar-right{gap:8px;}.status-label{display:none;}.refresh-btn{padding:7px 12px;font-size:12px;}.content{padding:16px 12px;}.kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}.kpi-card{padding:16px;border-radius:14px;}.kpi-value{font-size:26px;}.modal{padding:24px 16px;border-radius:18px;width:95%;}.modal-title{font-size:18px;}.modal-info-grid{grid-template-columns:1fr;}.modal-actions{flex-direction:column;gap:8px;}.btn-confirm,.btn-cancel-modal{width:100%;}.config-grid{grid-template-columns:1fr;}}
-  </style>
+/* ── MAIN ── */
+.main{margin-left:200px;flex:1;min-height:100vh;}
+.topbar{height:52px;background:var(--noir2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:99;}
+.topbar-title{font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:var(--texte);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--vert);box-shadow:0 0 6px var(--vert);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.status-label{font-size:11px;color:var(--texte-doux);}
+.refresh-btn{padding:5px 12px;background:var(--noir3);border:1px solid var(--border);border-radius:7px;color:var(--texte-doux);font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+.refresh-btn:hover{border-color:var(--bleu);color:var(--bleu);}
+.content{padding:18px 22px;}
+.panel{display:none;}.panel.active{display:block;}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.kpi-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;transition:all 0.2s;}
+.kpi-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi-card.blue::before{background:var(--grad-blue);}.kpi-card.green::before{background:var(--grad-green);}.kpi-card.amber::before{background:var(--grad-amber);}.kpi-card.red::before{background:var(--grad-red);}.kpi-card.violet::before{background:var(--grad-violet);}
+.kpi-icon{font-size:16px;margin-bottom:6px;}
+.kpi-value{font-family:'Fraunces',serif;font-size:26px;font-weight:900;line-height:1;margin-bottom:2px;}
+.kpi-label{font-size:9px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+.kpi-trend{font-size:9px;font-weight:600;color:var(--texte-doux);}
+
+/* ── CHARTS ── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.chart-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.chart-title{font-size:12px;font-weight:700;color:var(--texte);margin-bottom:2px;}
+.chart-sub{font-size:9px;color:var(--texte-doux);margin-bottom:10px;}
+.donut-wrapper{display:flex;align-items:center;gap:16px;}
+.donut{width:90px;height:90px;flex-shrink:0;}
+.donut-legend{display:flex;flex-direction:column;gap:6px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.legend-label{color:var(--texte-doux);}
+.legend-value{margin-left:auto;font-weight:700;color:var(--texte);}
+
+/* ── TABLE ── */
+.table-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.table-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:7px;}
+.table-title{font-size:12px;font-weight:700;color:var(--texte);}
+.table-count{font-size:9px;color:var(--texte-doux);}
+table{width:100%;border-collapse:collapse;}
+th{padding:8px 12px;text-align:left;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);border-bottom:1px solid var(--border);background:var(--noir3);}
+td{padding:9px 12px;font-size:10px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.td-phone{font-family:'Fraunces',serif;font-weight:700;letter-spacing:0.5px;font-size:9px;}
+.td-code{font-family:'Fraunces',serif;font-size:9px;letter-spacing:2px;color:var(--bleu);}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:50px;font-size:8px;font-weight:600;}
+.badge-verified{background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.2);}
+.badge-pending{background:rgba(255,165,2,0.12);color:var(--amber);border:1px solid rgba(255,165,2,0.2);}
+.badge-suspended{background:rgba(255,71,87,0.12);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);}
+.badge-banned{background:rgba(255,71,87,0.2);color:var(--rouge);border:1px solid rgba(255,71,87,0.4);}
+.badge-high{background:rgba(255,71,87,0.15);color:var(--rouge);}
+.badge-medium{background:rgba(255,165,2,0.15);color:var(--amber);}
+.badge-low{background:rgba(0,200,167,0.12);color:var(--vert);}
+.badge-doctor{background:rgba(0,200,167,0.12);color:var(--vert);}
+.badge-pharmacie{background:rgba(0,168,120,0.12);color:var(--emeraude);}
+.badge-laboratoire{background:rgba(124,58,237,0.12);color:var(--violet);}
+.badge-patient{background:rgba(46,134,255,0.12);color:var(--bleu);}
+
+/* ── BUTTONS ── */
+.btn-validate{padding:3px 8px;background:rgba(0,200,167,0.12);color:var(--vert);border:1px solid rgba(0,200,167,0.25);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+.btn-validate:hover{background:var(--vert);color:var(--noir);}
+.btn-reject{padding:3px 8px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.btn-suspend{padding:3px 8px;background:rgba(255,165,2,0.1);color:var(--amber);border:1px solid rgba(255,165,2,0.2);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.btn-view{padding:3px 8px;background:rgba(46,134,255,0.1);color:var(--bleu);border:1px solid rgba(46,134,255,0.2);border-radius:5px;font-size:8px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+.btn-view:hover{background:var(--bleu);color:white;}
+.btn-ban{padding:3px 8px;background:rgba(255,71,87,0.15);color:var(--rouge);border:1px solid rgba(255,71,87,0.3);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.btn-ban:hover{background:var(--rouge);color:white;}
+.btn-unban{padding:3px 8px;background:rgba(0,200,167,0.15);color:var(--vert);border:1px solid rgba(0,200,167,0.3);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.btn-credit{padding:3px 8px;background:rgba(124,58,237,0.12);color:var(--violet);border:1px solid rgba(124,58,237,0.25);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.actions{display:flex;gap:3px;flex-wrap:wrap;}
+
+/* ── SEARCH ── */
+.search-bar{display:flex;gap:7px;margin-bottom:12px;}
+.search-input{flex:1;background:var(--noir2);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
+.search-input:focus{border-color:var(--bleu);}
+.search-input::placeholder{color:var(--texte-doux);}
+.filter-select{background:var(--noir2);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;cursor:pointer;}
+.filter-select option{background:var(--noir3);}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-mini{background:var(--noir3);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.stat-mini-icon{font-size:16px;}
+.stat-mini-val{font-family:'Fraunces',serif;font-size:17px;font-weight:900;color:var(--texte);line-height:1;}
+.stat-mini-lbl{font-size:8px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+
+/* ── CONFIG ── */
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.config-card{background:var(--noir2);border:1px solid var(--border);border-radius:11px;padding:14px;}
+.config-section-title{font-size:9px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.config-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);}
+.config-item:last-child{border-bottom:none;}
+.config-key{font-size:9px;color:var(--texte-doux);font-weight:600;}
+.config-desc{font-size:8px;color:var(--texte-doux);opacity:0.6;margin-top:1px;}
+.config-val{font-family:'Fraunces',serif;font-size:14px;font-weight:900;color:var(--vert);cursor:pointer;padding:2px 6px;border-radius:5px;transition:background 0.2s;}
+.config-val:hover{background:rgba(0,200,167,0.1);}
+
+/* ── CREDITS ── */
+.credits-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px;}
+.credit-stat{background:var(--noir3);border-radius:8px;padding:10px;text-align:center;}
+.credit-stat-val{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--violet);}
+.credit-stat-lbl{font-size:8px;color:var(--texte-doux);margin-top:2px;}
+
+/* ── FEED ── */
+.feed-list{display:flex;flex-direction:column;}
+.feed-item{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+.feed-item:last-child{border-bottom:none;}
+.feed-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.feed-action{font-size:10px;color:var(--texte);font-weight:500;margin-bottom:1px;}
+.feed-time{font-size:8px;color:var(--texte-doux);}
+.feed-actor{font-weight:700;color:var(--bleu);}
+
+/* ── ARTICLES ── */
+.art-stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px;}
+.art-stat{background:var(--noir3);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.art-stat-icon{font-size:20px;}
+.art-stat-val{font-family:'Fraunces',serif;font-size:20px;font-weight:900;line-height:1;}
+.art-stat-lbl{font-size:8px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+.art-filters{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;}
+.art-filter-btn{padding:4px 10px;border-radius:14px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;border:1px solid var(--border);background:var(--noir3);color:var(--texte-doux);}
+.art-filter-btn:hover{border-color:var(--bleu);color:var(--bleu);}
+.art-filter-btn.active{background:var(--bleu);color:white;border-color:var(--bleu);}
+.articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.art-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all 0.2s;}
+.art-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
+.art-thumb{width:100%;height:120px;object-fit:cover;display:block;}
+.art-thumb-ph{width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-size:38px;}
+.art-body{padding:10px 12px;}
+.art-tags{display:flex;gap:3px;margin-bottom:6px;flex-wrap:wrap;}
+.art-cat{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:14px;font-size:8px;font-weight:700;}
+.cat-paludisme{background:rgba(0,200,167,0.15);color:var(--vert);}
+.cat-grossesse{background:rgba(255,107,157,0.15);color:var(--rose);}
+.cat-nutrition{background:rgba(255,165,2,0.15);color:var(--amber);}
+.cat-prevention{background:rgba(46,134,255,0.15);color:var(--bleu);}
+.cat-sante{background:rgba(124,58,237,0.15);color:var(--violet);}
+.cat-seniors{background:rgba(0,168,120,0.15);color:var(--emeraude);}
+.art-status-badge{padding:2px 6px;border-radius:14px;font-size:7px;font-weight:700;}
+.art-status-pub{background:rgba(0,200,167,0.15);color:var(--vert);}
+.art-status-draft{background:rgba(136,136,170,0.15);color:var(--texte-doux);}
+.art-status-une{background:rgba(255,165,2,0.15);color:var(--amber);}
+.art-title{font-size:11px;font-weight:700;color:var(--texte);line-height:1.4;margin-bottom:4px;}
+.art-excerpt{font-size:9px;color:var(--texte-doux);line-height:1.5;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.art-meta{font-size:8px;color:var(--texte-doux);margin-bottom:7px;display:flex;gap:5px;flex-wrap:wrap;}
+.art-actions{display:flex;gap:3px;flex-wrap:wrap;}
+.btn-art-edit{padding:3px 8px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.25);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+.btn-art-edit:hover{background:var(--bleu);color:white;}
+.btn-art-pub{padding:3px 8px;border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;border:1px solid;}
+.btn-art-del{padding:3px 8px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.btn-art-del:hover{background:var(--rouge);color:white;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--noir2);border:1px solid var(--border);border-radius:16px;padding:22px;max-width:440px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,0.6);max-height:90vh;overflow-y:auto;}
+.modal-lg{max-width:720px;width:95%;}
+.modal-xl{max-width:880px;width:96%;}
+.modal-title{font-family:'Fraunces',serif;font-size:16px;font-weight:900;margin-bottom:5px;}
+.modal-sub{font-size:11px;color:var(--texte-doux);margin-bottom:16px;line-height:1.6;}
+.modal-field{margin-bottom:10px;}
+.modal-field label{display:block;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;}
+.modal-input{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
+.modal-input:focus{border-color:var(--bleu);}
+.modal-input::placeholder{color:var(--texte-doux);}
+.modal-textarea{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;resize:vertical;line-height:1.6;}
+.modal-textarea:focus{border-color:var(--bleu);}
+.modal-select{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;cursor:pointer;}
+.modal-2col{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.modal-section-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin:12px 0 8px;padding-top:10px;border-top:1px solid var(--border);}
+.modal-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.modal-info-item label{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--texte-doux);display:block;margin-bottom:2px;}
+.modal-info-item span{font-size:10px;font-weight:500;color:var(--texte);}
+.modal-actions{display:flex;gap:7px;margin-top:16px;}
+.btn-confirm{flex:1;padding:10px;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+.btn-confirm:hover{opacity:0.9;transform:translateY(-1px);}
+.btn-confirm.green{background:var(--grad-green);color:white;}
+.btn-confirm.red{background:var(--grad-red);color:white;}
+.btn-confirm.blue{background:var(--grad-blue);color:white;}
+.btn-confirm.violet{background:var(--grad-violet);color:white;}
+.btn-cancel-modal{padding:10px 14px;background:transparent;color:var(--texte-doux);border:1px solid var(--border);border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.rt-toolbar{display:flex;gap:3px;flex-wrap:wrap;background:var(--noir4);border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;padding:4px 8px;}
+.rt-btn{padding:2px 6px;background:transparent;border:1px solid var(--border);border-radius:4px;font-size:9px;font-weight:700;color:var(--texte-doux);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;}
+.rt-btn:hover{background:var(--noir3);color:var(--texte);}
+.rt-editor{width:100%;min-height:150px;background:var(--noir3);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:10px 12px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;resize:vertical;line-height:1.7;}
+.rt-editor:focus{border-color:var(--bleu);}
+.img-preview-wrap{margin-top:6px;border-radius:8px;overflow:hidden;display:none;}
+.img-preview-wrap.show{display:block;}
+.img-preview-wrap img{width:100%;height:120px;object-fit:cover;display:block;}
+.toggle-row{display:flex;gap:16px;margin-top:4px;}
+.toggle-item{display:flex;align-items:center;gap:6px;}
+.toggle-item label{font-size:9px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer;}
+.toggle-item input[type=checkbox]{width:32px;height:17px;cursor:pointer;accent-color:var(--bleu);}
+
+/* ── PLANS EDITOR ── */
+.plans-edit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.plan-edit-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.plan-edit-title{font-size:11px;font-weight:700;color:var(--texte);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.plan-preview{border-radius:10px;padding:14px;margin-bottom:12px;border:2px solid transparent;}
+.plan-preview.featured-preview{border-color:var(--bleu);}
+
+/* ── TEXTES EDITOR ── */
+.textes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.texte-block{background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.texte-block-title{font-size:9px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.texte-block-input{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;resize:vertical;}
+.texte-block-input:focus{border-color:var(--bleu);}
+.save-block-btn{margin-top:7px;padding:5px 12px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.25);border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+.save-block-btn:hover{background:var(--bleu);color:white;}
+
+/* ── RÉSEAUX ── */
+.reseaux-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.reseau-block{background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;}
+.reseau-icon{font-size:22px;flex-shrink:0;}
+.reseau-name{font-size:10px;font-weight:700;color:var(--texte);margin-bottom:4px;}
+.reseau-input{flex:1;background:var(--noir3);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
+.reseau-input:focus{border-color:var(--bleu);}
+
+/* ── VITRINE ── */
+.vitrine-card{background:var(--noir2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:10px;}
+.vitrine-img-preview{display:none;width:100%;height:110px;object-fit:cover;border-radius:6px;margin-top:5px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:16px;right:16px;background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:11px;font-weight:600;display:none;z-index:9999;box-shadow:0 20px 40px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;}
+.toast.show{display:flex;align-items:center;gap:6px;}
+.toast.success{border-color:rgba(0,200,167,0.3);color:var(--vert);}
+.toast.error{border-color:rgba(255,71,87,0.3);color:var(--rouge);}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.empty{text-align:center;padding:32px;color:var(--texte-doux);}
+.empty-icon{font-size:28px;margin-bottom:8px;}
+.loading{text-align:center;padding:28px;color:var(--texte-doux);font-size:11px;}
+
+/* ── MOBILE ── */
+.mobile-sidebar-toggle{display:none;align-items:center;justify-content:center;width:30px;height:30px;background:var(--noir3);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--texte);margin-right:7px;flex-shrink:0;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
+.sidebar-overlay.open{display:block;}
+
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr;}.config-grid{grid-template-columns:1fr;}.credits-summary{grid-template-columns:repeat(2,1fr);}.plans-edit-grid{grid-template-columns:1fr 1fr;}.textes-grid{grid-template-columns:1fr;}.reseaux-grid{grid-template-columns:1fr;}}
+@media(max-width:800px){.sidebar{transform:translateX(-200px);}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.topbar{padding:0 12px;}.mobile-sidebar-toggle{display:flex;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.content{padding:12px;}.table-card{overflow-x:auto;}table{min-width:500px;}.plans-edit-grid{grid-template-columns:1fr;}}
+@media(max-width:560px){.kpi-grid{grid-template-columns:1fr 1fr;gap:7px;}.kpi-value{font-size:20px;}.modal{padding:16px 10px;}.modal-lg,.modal-xl{width:98%;padding:14px 10px;}.modal-2col{grid-template-columns:1fr;}.modal-actions{flex-direction:column;}.btn-confirm,.btn-cancel-modal{width:100%;}}
+</style>
 </head>
 <body>
-
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
-
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-row">
-      <svg width="36" height="36" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
+      <svg width="24" height="24" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans',Arial,sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
       <div class="logo-name">Bola<span class="t">mu</span></div>
     </div>
     <span class="admin-badge">ADMIN</span>
@@ -236,7 +294,7 @@
   <nav class="sidebar-nav">
     <div class="nav-section">Vue générale</div>
     <button class="nav-item active" onclick="showPanel('overview',this)"><span class="icon">📊</span> Tableau de bord</button>
-    <button class="nav-item" onclick="showPanel('activity',this)"><span class="icon">⚡</span> Activité en direct</button>
+    <button class="nav-item" onclick="showPanel('activity',this)"><span class="icon">⚡</span> Activité</button>
     <div class="nav-section">Comptes</div>
     <button class="nav-item" onclick="showPanel('pending',this)"><span class="icon">⏳</span> En attente<span class="nav-badge amber" id="badge-pending">0</span></button>
     <button class="nav-item" onclick="showPanel('doctors',this)"><span class="icon">🩺</span> Médecins</button>
@@ -248,18 +306,21 @@
     <button class="nav-item" onclick="showPanel('prescriptions',this)"><span class="icon">📋</span> Ordonnances</button>
     <button class="nav-item" onclick="showPanel('payments',this)"><span class="icon">💳</span> Paiements</button>
     <button class="nav-item" onclick="showPanel('fraud',this)"><span class="icon">🚨</span> Fraudes<span class="nav-badge" id="badge-fraud">0</span></button>
-    <button class="nav-item" onclick="showPanel('audit',this)"><span class="icon">📝</span> Journal d'audit</button>
-    <div class="nav-section">Contenu & Paramètres</div>
+    <button class="nav-item" onclick="showPanel('audit',this)"><span class="icon">📝</span> Journal</button>
+    <div class="nav-section">Contenu & Site</div>
     <button class="nav-item" onclick="showPanel('articles',this)"><span class="icon">📰</span> Articles & Blog</button>
     <button class="nav-item" onclick="showPanel('vitrine',this)"><span class="icon">🖼️</span> Vitrine & Hero</button>
-    <button class="nav-item" onclick="showPanel('plans',this)"><span class="icon">💳</span> Plans & Tarifs</button>
+    <button class="nav-item" onclick="showPanel('plans',this)"><span class="icon">💳</span> Offres & Tarifs</button>
+    <button class="nav-item" onclick="showPanel('textes',this)"><span class="icon">✍️</span> Textes du site</button>
+    <button class="nav-item" onclick="showPanel('reseaux',this)"><span class="icon">📲</span> Réseaux sociaux</button>
+    <div class="nav-section">Paramètres</div>
     <button class="nav-item" onclick="showPanel('config',this)"><span class="icon">⚙️</span> Configuration</button>
     <button class="nav-item" onclick="showPanel('credits',this)"><span class="icon">💎</span> Crédits</button>
   </nav>
   <div class="sidebar-footer">
     <div class="admin-info">
       <div class="admin-avatar">👑</div>
-      <div><div class="admin-name" id="admin-name">Admin Bolamu</div><div class="admin-role">Superadmin</div></div>
+      <div><div class="admin-name-txt" id="admin-name">Admin</div><div class="admin-role-txt">Superadmin</div></div>
       <span class="logout-link" onclick="logout()">↩</span>
     </div>
   </div>
@@ -268,7 +329,7 @@
 <div class="main">
   <div class="topbar">
     <div style="display:flex;align-items:center;">
-      <button class="mobile-sidebar-toggle" id="hamburger" onclick="toggleSidebar()">☰</button>
+      <button class="mobile-sidebar-toggle" onclick="toggleSidebar()">☰</button>
       <div class="topbar-title" id="panel-title">Tableau de bord</div>
     </div>
     <div class="topbar-right">
@@ -279,21 +340,21 @@
   </div>
   <div class="content">
 
+    <!-- ══ OVERVIEW ══ -->
     <div class="panel active" id="panel-overview">
       <div class="kpi-grid">
-        <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">Chargement...</div></div>
-        <div class="kpi-card green"><div class="kpi-icon">🩺</div><div class="kpi-value" id="kpi-doctors">—</div><div class="kpi-label">Médecins actifs</div><div class="kpi-trend" id="kpi-doctors-trend">Chargement...</div></div>
-        <div class="kpi-card amber"><div class="kpi-icon">📅</div><div class="kpi-value" id="kpi-rdv">—</div><div class="kpi-label">RDV total</div><div class="kpi-trend" id="kpi-rdv-trend">Chargement...</div></div>
-        <div class="kpi-card violet"><div class="kpi-icon">💊</div><div class="kpi-value" id="kpi-pharma">—</div><div class="kpi-label">Pharmacies actives</div><div class="kpi-trend">Partenaires vérifiés</div></div>
-        <div class="kpi-card green"><div class="kpi-icon">💰</div><div class="kpi-value" id="kpi-rev-today">—</div><div class="kpi-label">Revenus aujourd'hui</div><div class="kpi-trend" id="kpi-rev-month">— ce mois</div></div>
-        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpi-presc">—</div><div class="kpi-label">Ordonnances</div><div class="kpi-trend">Total émises</div></div>
-        <div class="kpi-card amber"><div class="kpi-icon">⏳</div><div class="kpi-value" id="kpi-pending">—</div><div class="kpi-label">En attente</div><div class="kpi-trend">Dossiers à valider</div></div>
-        <div class="kpi-card red"><div class="kpi-icon">🚨</div><div class="kpi-value" id="kpi-fraud">—</div><div class="kpi-label">Fraudes haute</div><div class="kpi-trend" id="kpi-banned">— bannis</div></div>
+        <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">...</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">🩺</div><div class="kpi-value" id="kpi-doctors">—</div><div class="kpi-label">Médecins</div><div class="kpi-trend" id="kpi-doctors-trend">...</div></div>
+        <div class="kpi-card amber"><div class="kpi-icon">📅</div><div class="kpi-value" id="kpi-rdv">—</div><div class="kpi-label">RDV total</div><div class="kpi-trend" id="kpi-rdv-trend">...</div></div>
+        <div class="kpi-card violet"><div class="kpi-icon">💊</div><div class="kpi-value" id="kpi-pharma">—</div><div class="kpi-label">Pharmacies</div><div class="kpi-trend">Vérifiées</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">💰</div><div class="kpi-value" id="kpi-rev-today">—</div><div class="kpi-label">Revenus auj.</div><div class="kpi-trend" id="kpi-rev-month">—</div></div>
+        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpi-presc">—</div><div class="kpi-label">Ordonnances</div><div class="kpi-trend">Total</div></div>
+        <div class="kpi-card amber"><div class="kpi-icon">⏳</div><div class="kpi-value" id="kpi-pending">—</div><div class="kpi-label">En attente</div><div class="kpi-trend">À valider</div></div>
+        <div class="kpi-card red"><div class="kpi-icon">🚨</div><div class="kpi-value" id="kpi-fraud">—</div><div class="kpi-label">Fraudes HIGH</div><div class="kpi-trend" id="kpi-banned">—</div></div>
       </div>
       <div class="charts-row">
         <div class="chart-card">
-          <div class="chart-title">Inscriptions par rôle</div>
-          <div class="chart-sub">Répartition des comptes sur la plateforme</div>
+          <div class="chart-title">Inscriptions par rôle</div><div class="chart-sub">Répartition</div>
           <div class="donut-wrapper">
             <svg class="donut" viewBox="0 0 120 120">
               <circle cx="60" cy="60" r="45" fill="none" stroke="#22222f" stroke-width="18"/>
@@ -307,247 +368,158 @@
             <div class="donut-legend">
               <div class="legend-item"><div class="legend-dot" style="background:#2E86FF"></div><span class="legend-label">Patients</span><span class="legend-value" id="leg-patients">—</span></div>
               <div class="legend-item"><div class="legend-dot" style="background:#00C9A7"></div><span class="legend-label">Médecins</span><span class="legend-value" id="leg-doctors">—</span></div>
-              <div class="legend-item"><div class="legend-dot" style="background:#00A878"></div><span class="legend-label">Pharmacies</span><span class="legend-value" id="leg-pharmacies">—</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#00A878"></div><span class="legend-label">Pharma.</span><span class="legend-value" id="leg-pharmacies">—</span></div>
               <div class="legend-item"><div class="legend-dot" style="background:#7C3AED"></div><span class="legend-label">Labos</span><span class="legend-value" id="leg-labos">—</span></div>
             </div>
           </div>
         </div>
-        <div class="chart-card">
-          <div class="chart-title">RDV par statut</div>
-          <div class="chart-sub">Vue d'ensemble des consultations</div>
-          <div id="rdv-bar-chart"></div>
-        </div>
+        <div class="chart-card"><div class="chart-title">RDV par statut</div><div class="chart-sub">Consultations</div><div id="rdv-bar-chart"></div></div>
       </div>
       <div class="charts-row">
-        <div class="chart-card">
-          <div class="chart-title">Comptes en attente</div>
-          <div class="chart-sub">Dossiers soumis non encore vérifiés</div>
-          <div id="pending-mini-list"><div class="loading">Chargement...</div></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Derniers signaux fraude</div>
-          <div class="chart-sub">Activités suspectes haute sévérité</div>
-          <div id="fraud-mini-list"><div class="loading">Chargement...</div></div>
-        </div>
+        <div class="chart-card"><div class="chart-title">En attente</div><div class="chart-sub">Dossiers non vérifiés</div><div id="pending-mini-list"><div class="loading">Chargement...</div></div></div>
+        <div class="chart-card"><div class="chart-title">Fraudes HIGH</div><div class="chart-sub">Activités suspectes</div><div id="fraud-mini-list"><div class="loading">Chargement...</div></div></div>
       </div>
     </div>
 
+    <!-- ══ ACTIVITY ══ -->
     <div class="panel" id="panel-activity">
-      <div class="stat-row">
-        <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="act-rdv-today">—</div><div class="stat-mini-lbl">RDV aujourd'hui</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">💊</div><div><div class="stat-mini-val" id="act-prescriptions">—</div><div class="stat-mini-lbl">Ordonnances</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">🆕</div><div><div class="stat-mini-val" id="act-new-users">—</div><div class="stat-mini-lbl">Nouveaux inscrits</div></div></div>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Journal d'activité récent</span><span class="table-count" id="activity-count">—</span></div>
-        <div id="activity-feed" style="padding:0 20px;max-height:500px;overflow-y:auto;"><div class="loading">Chargement...</div></div>
-      </div>
+      <div class="stat-row"><div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="act-rdv-today">—</div><div class="stat-mini-lbl">RDV auj.</div></div></div><div class="stat-mini"><div class="stat-mini-icon">💊</div><div><div class="stat-mini-val" id="act-prescriptions">—</div><div class="stat-mini-lbl">Ordonnances</div></div></div><div class="stat-mini"><div class="stat-mini-icon">🆕</div><div><div class="stat-mini-val" id="act-new-users">—</div><div class="stat-mini-lbl">Nouveaux</div></div></div></div>
+      <div class="table-card"><div class="table-header"><span class="table-title">Journal d'activité</span><span class="table-count" id="activity-count">—</span></div><div id="activity-feed" style="padding:0 12px;max-height:500px;overflow-y:auto;"><div class="loading">Chargement...</div></div></div>
     </div>
 
-    <div class="panel" id="panel-pending">
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Comptes en attente de validation</span><span class="table-count" id="pending-count">—</span></div>
-        <div id="pending-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ PENDING ══ -->
+    <div class="panel" id="panel-pending"><div class="table-card"><div class="table-header"><span class="table-title">En attente de validation</span><span class="table-count" id="pending-count">—</span></div><div id="pending-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-doctors">
-      <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher par nom, téléphone, spécialité..." oninput="filterTable('doctors-table',this.value)">
-        <select class="filter-select" onchange="loadDoctors(this.value)"><option value="">Tous les statuts</option><option value="verified">Vérifiés</option><option value="pending">En attente</option><option value="suspended">Suspendus</option></select>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Médecins</span><span class="table-count" id="doctors-count">—</span></div>
-        <div id="doctors-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ DOCTORS ══ -->
+    <div class="panel" id="panel-doctors"><div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher..." oninput="filterTable('doctors-table',this.value)"><select class="filter-select" onchange="loadDoctors(this.value)"><option value="">Tous</option><option value="verified">Vérifiés</option><option value="pending">En attente</option><option value="suspended">Suspendus</option></select></div><div class="table-card"><div class="table-header"><span class="table-title">Médecins</span><span class="table-count" id="doctors-count">—</span></div><div id="doctors-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-pharmacies">
-      <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher une pharmacie..." oninput="filterTable('pharmacies-table',this.value)">
-        <select class="filter-select" onchange="loadPharmacies(this.value)"><option value="">Toutes</option><option value="verified">Vérifiées</option><option value="pending">En attente</option><option value="suspended">Suspendues</option></select>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Pharmacies</span><span class="table-count" id="pharmacies-count">—</span></div>
-        <div id="pharmacies-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ PHARMACIES ══ -->
+    <div class="panel" id="panel-pharmacies"><div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher..." oninput="filterTable('pharmacies-table',this.value)"><select class="filter-select" onchange="loadPharmacies(this.value)"><option value="">Toutes</option><option value="verified">Vérifiées</option><option value="pending">En attente</option><option value="suspended">Suspendues</option></select></div><div class="table-card"><div class="table-header"><span class="table-title">Pharmacies</span><span class="table-count" id="pharmacies-count">—</span></div><div id="pharmacies-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-laboratories">
-      <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher un laboratoire..." oninput="filterTable('laboratories-table',this.value)"></div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Laboratoires</span><span class="table-count" id="laboratories-count">—</span></div>
-        <div id="laboratories-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ LABORATORIES ══ -->
+    <div class="panel" id="panel-laboratories"><div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher..." oninput="filterTable('laboratories-table',this.value)"></div><div class="table-card"><div class="table-header"><span class="table-title">Laboratoires</span><span class="table-count" id="laboratories-count">—</span></div><div id="laboratories-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-patients">
-      <div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher un patient..." oninput="filterTable('patients-table',this.value)"></div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Patients</span><span class="table-count" id="patients-count">—</span></div>
-        <div id="patients-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ PATIENTS ══ -->
+    <div class="panel" id="panel-patients"><div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher..." oninput="filterTable('patients-table',this.value)"></div><div class="table-card"><div class="table-header"><span class="table-title">Patients</span><span class="table-count" id="patients-count">—</span></div><div id="patients-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-appointments">
-      <div class="stat-row">
-        <div class="stat-mini"><div class="stat-mini-icon">✅</div><div><div class="stat-mini-val" id="appt-done">—</div><div class="stat-mini-lbl">Terminés</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="appt-confirmed">—</div><div class="stat-mini-lbl">Confirmés</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">📊</div><div><div class="stat-mini-val" id="appt-total">—</div><div class="stat-mini-lbl">Total</div></div></div>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Tous les rendez-vous</span><span class="table-count" id="appt-count">—</span></div>
-        <div id="appointments-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ APPOINTMENTS ══ -->
+    <div class="panel" id="panel-appointments"><div class="stat-row"><div class="stat-mini"><div class="stat-mini-icon">✅</div><div><div class="stat-mini-val" id="appt-done">—</div><div class="stat-mini-lbl">Terminés</div></div></div><div class="stat-mini"><div class="stat-mini-icon">📅</div><div><div class="stat-mini-val" id="appt-confirmed">—</div><div class="stat-mini-lbl">Confirmés</div></div></div><div class="stat-mini"><div class="stat-mini-icon">📊</div><div><div class="stat-mini-val" id="appt-total">—</div><div class="stat-mini-lbl">Total</div></div></div></div><div class="table-card"><div class="table-header"><span class="table-title">Rendez-vous</span><span class="table-count" id="appt-count">—</span></div><div id="appointments-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-prescriptions">
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Ordonnances numériques</span><span class="table-count" id="pres-count">—</span></div>
-        <div id="prescriptions-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ PRESCRIPTIONS ══ -->
+    <div class="panel" id="panel-prescriptions"><div class="table-card"><div class="table-header"><span class="table-title">Ordonnances</span><span class="table-count" id="pres-count">—</span></div><div id="prescriptions-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-payments">
-      <div class="stat-row">
-        <div class="stat-mini"><div class="stat-mini-icon">💰</div><div><div class="stat-mini-val" id="pay-total-rev">—</div><div class="stat-mini-lbl">Total encaissé (FCFA)</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">✅</div><div><div class="stat-mini-val" id="pay-total-count">—</div><div class="stat-mini-lbl">Transactions réussies</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">📱</div><div><div class="stat-mini-val" id="pay-momo">—</div><div class="stat-mini-lbl">Via Mobile Money</div></div></div>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Paiements</span><span class="table-count" id="pay-count">—</span></div>
-        <div id="payments-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ PAYMENTS ══ -->
+    <div class="panel" id="panel-payments"><div class="stat-row"><div class="stat-mini"><div class="stat-mini-icon">💰</div><div><div class="stat-mini-val" id="pay-total-rev">—</div><div class="stat-mini-lbl">Total FCFA</div></div></div><div class="stat-mini"><div class="stat-mini-icon">✅</div><div><div class="stat-mini-val" id="pay-total-count">—</div><div class="stat-mini-lbl">Transactions</div></div></div><div class="stat-mini"><div class="stat-mini-icon">📱</div><div><div class="stat-mini-val" id="pay-momo">—</div><div class="stat-mini-lbl">MoMo</div></div></div></div><div class="table-card"><div class="table-header"><span class="table-title">Paiements</span><span class="table-count" id="pay-count">—</span></div><div id="payments-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-fraud">
-      <div class="stat-row">
-        <div class="stat-mini"><div class="stat-mini-icon">🔴</div><div><div class="stat-mini-val" id="fraud-high">—</div><div class="stat-mini-lbl">Sévérité haute</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">🟡</div><div><div class="stat-mini-val" id="fraud-medium">—</div><div class="stat-mini-lbl">Sévérité moyenne</div></div></div>
-        <div class="stat-mini"><div class="stat-mini-icon">🟢</div><div><div class="stat-mini-val" id="fraud-low">—</div><div class="stat-mini-lbl">Sévérité basse</div></div></div>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Signaux de fraude détectés</span><span class="table-count" id="fraud-count">—</span></div>
-        <div id="fraud-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ FRAUD ══ -->
+    <div class="panel" id="panel-fraud"><div class="stat-row"><div class="stat-mini"><div class="stat-mini-icon">🔴</div><div><div class="stat-mini-val" id="fraud-high">—</div><div class="stat-mini-lbl">Haute</div></div></div><div class="stat-mini"><div class="stat-mini-icon">🟡</div><div><div class="stat-mini-val" id="fraud-medium">—</div><div class="stat-mini-lbl">Moyenne</div></div></div><div class="stat-mini"><div class="stat-mini-icon">🟢</div><div><div class="stat-mini-val" id="fraud-low">—</div><div class="stat-mini-lbl">Basse</div></div></div></div><div class="table-card"><div class="table-header"><span class="table-title">Signaux fraude</span><span class="table-count" id="fraud-count">—</span></div><div id="fraud-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <div class="panel" id="panel-audit">
-      <div class="search-bar">
-        <input class="search-input" type="text" placeholder="🔍 Rechercher dans le journal..." oninput="filterTable('audit-table',this.value)">
-        <select class="filter-select" onchange="loadAudit(this.value)">
-          <option value="">Tous les événements</option>
-          <option value="doctor.verified">Validation médecin</option>
-          <option value="pharmacie.verified">Validation pharmacie</option>
-          <option value="account.banned">Bannissements</option>
-          <option value="account.unbanned">Réanimations</option>
-          <option value="credits.granted">Attribution crédits</option>
-          <option value="config.updated">Modifications config</option>
-        </select>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Journal d'audit complet</span><span class="table-count" id="audit-count">—</span></div>
-        <div id="audit-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
+    <!-- ══ AUDIT ══ -->
+    <div class="panel" id="panel-audit"><div class="search-bar"><input class="search-input" type="text" placeholder="🔍 Rechercher..." oninput="filterTable('audit-table',this.value)"><select class="filter-select" onchange="loadAudit(this.value)"><option value="">Tous</option><option value="doctor.verified">Validation médecin</option><option value="account.banned">Bannissements</option><option value="credits.granted">Crédits</option><option value="article.create">Articles</option><option value="content.update">Contenu site</option></select></div><div class="table-card"><div class="table-header"><span class="table-title">Journal d'audit</span><span class="table-count" id="audit-count">—</span></div><div id="audit-list"><div class="loading">Chargement...</div></div></div></div>
 
-    <!-- ══ ARTICLES & BLOG ══ -->
+    <!-- ══ ARTICLES ══ -->
     <div class="panel" id="panel-articles">
-      <div class="table-card" style="margin-bottom:24px;">
-        <div class="table-header">
-          <div>
-            <div class="table-title">📰 Articles & Blog Bolamu</div>
-            <div class="table-count" id="articles-count">Chargement...</div>
-          </div>
-          <button class="btn-validate" style="padding:10px 20px;font-size:13px;" onclick="openArticleForm()">✏️ Nouvel article</button>
-        </div>
-        <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn-view" id="art-filter-tous" onclick="loadArticlesAdmin('tous',this)" style="font-weight:700;">Tous</button>
-          <button class="btn-view" id="art-filter-paludisme" onclick="loadArticlesAdmin('paludisme',this)">🦟 Paludisme</button>
-          <button class="btn-view" id="art-filter-grossesse" onclick="loadArticlesAdmin('grossesse',this)">🤱 Grossesse</button>
-          <button class="btn-view" id="art-filter-nutrition" onclick="loadArticlesAdmin('nutrition',this)">🥗 Nutrition</button>
-          <button class="btn-view" id="art-filter-prevention" onclick="loadArticlesAdmin('prevention',this)">🛡️ Prévention</button>
-        </div>
-        <div style="padding:20px 24px;">
-          <div class="articles-admin-grid" id="articles-admin-grid"><div class="loading">Chargement des articles...</div></div>
-        </div>
+      <div class="art-stats-bar">
+        <div class="art-stat"><div class="art-stat-icon">📰</div><div><div class="art-stat-val" id="art-stat-total">—</div><div class="art-stat-lbl">Total</div></div></div>
+        <div class="art-stat"><div class="art-stat-icon">🟢</div><div><div class="art-stat-val" id="art-stat-pub">—</div><div class="art-stat-lbl">Publiés</div></div></div>
+        <div class="art-stat"><div class="art-stat-icon">⚫</div><div><div class="art-stat-val" id="art-stat-draft">—</div><div class="art-stat-lbl">Brouillons</div></div></div>
+        <div class="art-stat"><div class="art-stat-icon">⭐</div><div><div class="art-stat-val" id="art-stat-une">—</div><div class="art-stat-lbl">À la une</div></div></div>
       </div>
-      <div style="background:var(--noir2);border:1px solid var(--border);border-radius:16px;padding:20px 24px;">
-        <div style="font-size:13px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📖 Guide d'utilisation</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-          <div style="background:var(--noir3);border-radius:12px;padding:16px;"><div style="font-size:20px;margin-bottom:8px;">✏️</div><div style="font-size:13px;font-weight:700;margin-bottom:4px;">Créer un article</div><div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Cliquez sur "Nouvel article", remplissez le titre, le résumé, le contenu et choisissez une catégorie.</div></div>
-          <div style="background:var(--noir3);border-radius:12px;padding:16px;"><div style="font-size:20px;margin-bottom:8px;">🖼️</div><div style="font-size:13px;font-weight:700;margin-bottom:4px;">Ajouter une photo</div><div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Collez l'URL d'une image depuis Unsplash.com ou Pexels.com. L'aperçu s'affiche automatiquement.</div></div>
-          <div style="background:var(--noir3);border-radius:12px;padding:16px;"><div style="font-size:20px;margin-bottom:8px;">👁️</div><div style="font-size:13px;font-weight:700;margin-bottom:4px;">Publier / Dépublier</div><div style="font-size:12px;color:var(--texte-doux);line-height:1.6;">Le bouton vert/rouge sur chaque article permet de le mettre en ligne ou de le retirer sans le supprimer.</div></div>
-        </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:7px;">
+        <div><div style="font-size:14px;font-weight:700;">Articles & Blog</div><div style="font-size:9px;color:var(--texte-doux);">Affichés sur la page d'accueil</div></div>
+        <button onclick="openArticleModal()" style="padding:8px 16px;background:var(--grad-blue);color:white;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✏️ Nouvel article</button>
       </div>
+      <div class="art-filters" id="art-filters-bar"><button class="art-filter-btn active" onclick="filterArticles('tous',this)">Tous</button></div>
+      <div class="articles-grid" id="articles-grid"><div class="loading">Chargement...</div></div>
     </div>
 
-    <div class="panel" id="panel-config">
-      <div class="config-grid" id="config-grid"><div class="loading">Chargement...</div></div>
-    </div>
-
-    <div class="panel" id="panel-credits">
-      <div class="credits-summary">
-        <div class="credit-stat"><div class="credit-stat-val" id="cr-total-accounts">—</div><div class="credit-stat-lbl">Comptes crédits</div></div>
-        <div class="credit-stat"><div class="credit-stat-val" id="cr-total-balance">—</div><div class="credit-stat-lbl">Crédits en circulation</div></div>
-        <div class="credit-stat"><div class="credit-stat-val" id="cr-total-earned">—</div><div class="credit-stat-lbl">Total distribués</div></div>
-        <div class="credit-stat"><div class="credit-stat-val" id="cr-total-spent">—</div><div class="credit-stat-lbl">Total dépensés</div></div>
-      </div>
-      <div class="table-card">
-        <div class="table-header"><span class="table-title">Comptes crédits</span><button class="btn-validate" onclick="openGrantCredit()">💎 Attribuer des crédits</button></div>
-        <div id="credits-list"><div class="loading">Chargement...</div></div>
-      </div>
-    </div>
-
-    <!-- ══ VITRINE & HERO ══ -->
+    <!-- ══ VITRINE ══ -->
     <div class="panel" id="panel-vitrine">
-      <div style="margin-bottom:20px;"><div style="font-size:18px;font-weight:700;margin-bottom:4px;">🖼️ Vitrine & Hero</div><div style="font-size:12px;color:var(--texte-doux);">Modifiez le médecin en avant-plan et les 4 cartes acteurs de la page d'accueil</div></div>
-      <div class="config-card" style="margin-bottom:20px;">
+      <div style="margin-bottom:14px;"><div style="font-size:14px;font-weight:700;margin-bottom:2px;">🖼️ Vitrine & Hero</div><div style="font-size:9px;color:var(--texte-doux);">Photo du médecin en avant-plan + 4 cartes acteurs de la page d'accueil</div></div>
+      <!-- HERO -->
+      <div class="vitrine-card">
         <div class="config-section-title">🏥 Photo Hero — Médecin en avant-plan</div>
-        <div class="modal-field"><label>Nom du médecin</label><input class="modal-input" id="hero-name" placeholder="Dr. Jean Moukala"></div>
-        <div class="modal-field"><label>Spécialité / Sous-titre</label><input class="modal-input" id="hero-subtitle" placeholder="Médecin généraliste · Disponible maintenant"></div>
-        <div class="modal-field">
-          <label>Photo</label>
-          <input type="file" id="hero-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleVitrineUpload(this,'hero-image-url','hero-img-preview')">
-          <button type="button" onclick="document.getElementById('hero-file-input').click()" style="padding:10px 18px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.3);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:10px;">📁 Choisir depuis mon ordinateur</button>
-          <input class="modal-input" id="hero-image-url" placeholder="https://..." oninput="vitPreview('hero-img-preview',this.value)" style="margin-bottom:8px;">
-          <img id="hero-img-preview" src="" style="display:none;width:100%;height:180px;object-fit:cover;border-radius:10px;margin-top:8px;">
+        <div class="modal-2col">
+          <div class="modal-field"><label>Nom du médecin</label><input class="modal-input" id="hero-name" placeholder="Dr. Jean Moukala"></div>
+          <div class="modal-field"><label>Sous-titre</label><input class="modal-input" id="hero-subtitle" placeholder="Disponible maintenant"></div>
         </div>
-        <button class="btn-confirm blue" style="max-width:200px;padding:11px;" onclick="saveVitrineBlock('hero')">💾 Enregistrer Hero</button>
+        <div class="modal-field">
+          <label>Photo (URL ou upload)</label>
+          <input type="file" id="hero-file-input" accept="image/*" style="display:none" onchange="handleVitrineUpload(this,'hero-image-url','hero-img-preview')">
+          <div style="display:flex;gap:6px;margin-bottom:5px;">
+            <button type="button" onclick="document.getElementById('hero-file-input').click()" style="padding:6px 10px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.3);border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;">📁 Upload</button>
+            <input class="modal-input" id="hero-image-url" placeholder="https://..." oninput="vitPreview('hero-img-preview',this.value)" style="flex:1;">
+          </div>
+          <img id="hero-img-preview" class="vitrine-img-preview">
+        </div>
+        <button class="btn-confirm blue" style="max-width:160px;padding:8px;" onclick="saveVitrineBlock('hero')">💾 Enregistrer Hero</button>
       </div>
+      <!-- 4 ACTOR CARDS -->
       <div class="config-grid" id="vitrine-cards-grid"><div class="loading">Chargement...</div></div>
     </div>
 
-    <!-- ══ PLANS & TARIFS ══ -->
+    <!-- ══ PLANS / OFFRES ══ -->
     <div class="panel" id="panel-plans">
-      <div style="margin-bottom:20px;"><div style="font-size:18px;font-weight:700;margin-bottom:4px;">💳 Plans & Tarifs</div><div style="font-size:12px;color:var(--texte-doux);">Modifiez les 3 offres affichées sur la page d'accueil. Prix, nom, badge Recommandé, couleur, fonctionnalités — tout est éditable.</div></div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" id="plans-grid"><div class="loading">Chargement...</div></div>
-      <div style="margin-top:16px;background:rgba(46,134,255,0.08);border:1px solid rgba(46,134,255,0.2);border-radius:12px;padding:16px;">
-        <div style="font-size:12px;font-weight:700;color:var(--bleu);margin-bottom:6px;">💡 Conseils</div>
-        <div style="font-size:12px;color:var(--texte-doux);line-height:1.8;">• Un seul plan peut avoir le badge "Recommandé" — décochez les autres quand vous en cochez un.<br>• Les fonctionnalités : une par ligne dans la zone de texte.<br>• La couleur s'affiche sur le bouton et l'accent du plan.</div>
+      <div style="margin-bottom:14px;"><div style="font-size:14px;font-weight:700;margin-bottom:2px;">💳 Offres & Tarifs</div><div style="font-size:9px;color:var(--texte-doux);">Modifiez les 3 formules affichées sur la page d'accueil. Tout est mis à jour en temps réel.</div></div>
+      <div class="plans-edit-grid" id="plans-grid"><div class="loading">Chargement...</div></div>
+      <div style="margin-top:10px;background:rgba(46,134,255,0.08);border:1px solid rgba(46,134,255,0.2);border-radius:8px;padding:9px 11px;">
+        <div style="font-size:9px;font-weight:700;color:var(--bleu);margin-bottom:2px;">💡 Conseils</div>
+        <div style="font-size:9px;color:var(--texte-doux);line-height:1.7;">• Un seul plan peut avoir le badge "Recommandé".<br>• Fonctionnalités : une par ligne dans la zone de texte.<br>• Cochez "En avant" pour mettre un plan en valeur sur le site.</div>
       </div>
+    </div>
+
+    <!-- ══ TEXTES DU SITE ══ -->
+    <div class="panel" id="panel-textes">
+      <div style="margin-bottom:14px;"><div style="font-size:14px;font-weight:700;margin-bottom:2px;">✍️ Textes du site</div><div style="font-size:9px;color:var(--texte-doux);">Modifiez les textes principaux de la page d'accueil (hero, stats, footer…)</div></div>
+      <div id="textes-grid"><div class="loading">Chargement...</div></div>
+    </div>
+
+    <!-- ══ RÉSEAUX SOCIAUX ══ -->
+    <div class="panel" id="panel-reseaux">
+      <div style="margin-bottom:14px;"><div style="font-size:14px;font-weight:700;margin-bottom:2px;">📲 Réseaux sociaux</div><div style="font-size:9px;color:var(--texte-doux);">Liens affichés dans le footer du site. Laissez vide pour masquer l'icône.</div></div>
+      <div id="reseaux-grid" class="reseaux-grid"><div class="loading">Chargement...</div></div>
+      <div style="margin-top:14px;"><button onclick="saveReseaux()" style="padding:10px 20px;background:var(--grad-blue);color:white;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">💾 Enregistrer tous les liens</button></div>
+    </div>
+
+    <!-- ══ CONFIG ══ -->
+    <div class="panel" id="panel-config"><div class="config-grid" id="config-grid"><div class="loading">Chargement...</div></div></div>
+
+    <!-- ══ CREDITS ══ -->
+    <div class="panel" id="panel-credits">
+      <div class="credits-summary">
+        <div class="credit-stat"><div class="credit-stat-val" id="cr-total-accounts">—</div><div class="credit-stat-lbl">Comptes</div></div>
+        <div class="credit-stat"><div class="credit-stat-val" id="cr-total-balance">—</div><div class="credit-stat-lbl">En circulation</div></div>
+        <div class="credit-stat"><div class="credit-stat-val" id="cr-total-earned">—</div><div class="credit-stat-lbl">Distribués</div></div>
+        <div class="credit-stat"><div class="credit-stat-val" id="cr-total-spent">—</div><div class="credit-stat-lbl">Dépensés</div></div>
+      </div>
+      <div class="table-card"><div class="table-header"><span class="table-title">Comptes crédits</span><button class="btn-validate" onclick="openGrantCredit()">💎 Attribuer</button></div><div id="credits-list"><div class="loading">Chargement...</div></div></div>
     </div>
 
   </div>
 </div>
 
-<div class="modal-overlay" id="modal"><div class="modal" id="modal-inner"><div id="modal-body"></div></div></div>
-<div class="modal-overlay" id="modal-article"><div class="modal modal-large" style="max-height:90vh;overflow-y:auto;"><div id="modal-article-body"></div></div></div>
+<!-- MODALS -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal"><div id="modal-body"></div></div></div>
+<div class="modal-overlay" id="modal-article" onclick="if(event.target===this)closeArticleModal()"><div class="modal modal-lg"><div id="modal-article-body"></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
-const API = '/api/v1';
-const token = localStorage.getItem('bolamu_token');
-const phone = localStorage.getItem('bolamu_phone');
-const role  = localStorage.getItem('bolamu_role');
-if (!token || role !== 'admin') window.location.href = '/login.html';
-document.getElementById('admin-name').textContent = phone || 'Admin Bolamu';
+const API='/api/v1';
+const token=localStorage.getItem('bolamu_token');
+const phone=localStorage.getItem('bolamu_phone');
+const role=localStorage.getItem('bolamu_role');
+if(!token||role!=='admin'){localStorage.clear();window.location.replace('/admin/login.html');}
+(async function verifyToken(){
+  try{const res=await fetch('/api/v1/auth/me',{headers:{'Authorization':'Bearer '+token}});const data=await res.json();if(!res.ok||data.role!=='admin'){localStorage.clear();window.location.replace('/admin/login.html');}}
+  catch(e){localStorage.clear();window.location.replace('/admin/login.html');}
+})();
+document.getElementById('admin-name').textContent=phone||'Admin';
 
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
-document.querySelectorAll('.nav-item').forEach(btn=>{btn.addEventListener('click',()=>{if(window.innerWidth<=900)closeSidebar();});});
+document.querySelectorAll('.nav-item').forEach(btn=>btn.addEventListener('click',()=>{if(window.innerWidth<=800)closeSidebar();}));
 
-const panelTitles={overview:'Tableau de bord',activity:'Activité en direct',pending:'Comptes en attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Signaux fraude',audit:"Journal d'audit",articles:'Articles & Blog',vitrine:'Vitrine & Hero',plans:'Plans & Tarifs',config:'Configuration',credits:'Crédits'};
+const panelTitles={overview:'Tableau de bord',activity:'Activité',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",articles:'Articles & Blog',vitrine:'Vitrine & Hero',plans:'Offres & Tarifs',textes:'Textes du site',reseaux:'Réseaux sociaux',config:'Configuration',credits:'Crédits'};
 
 function showPanel(name,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -558,7 +530,7 @@ function showPanel(name,btn){
   loadPanel(name);
 }
 function loadPanel(name){
-  const fn={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:()=>loadPharmacies(),laboratories:loadLaboratories,patients:loadPatients,appointments:loadAppointments,prescriptions:loadPrescriptions,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),articles:()=>loadArticlesAdmin('tous'),vitrine:loadVitrine,plans:loadPlans,config:loadConfig,credits:loadCredits};
+  const fn={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:()=>loadPharmacies(),laboratories:loadLaboratories,patients:loadPatients,appointments:loadAppointments,prescriptions:loadPrescriptions,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),articles:loadArticles,vitrine:loadVitrine,plans:loadPlans,textes:loadTextes,reseaux:loadReseaux,config:loadConfig,credits:loadCredits};
   if(fn[name])fn[name]();
 }
 
@@ -566,330 +538,648 @@ async function api(path,opts={}){
   const res=await fetch(`${API}${path}`,{headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},...opts});
   return res.json();
 }
-
 function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 function fmtShort(d){if(!d)return'—';return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});}
 function fmtNum(n){if(n===null||n===undefined)return'—';return Number(n).toLocaleString('fr-FR');}
-
 function badge(s){
-  const m={verified:'badge-verified ✅ Vérifié',pending:'badge-pending ⏳ En attente',suspended:'badge-suspended 🚫 Suspendu',banned:'badge-banned 🔒 Banni',termine:'badge-verified ✅ Terminé',confirme:'badge-pending 📅 Confirmé',active:'badge-verified ✅ Actif',high:'badge-high 🔴 HIGH',medium:'badge-medium 🟡 MEDIUM',low:'badge-low 🟢 LOW',success:'badge-verified ✅ Succès',failed:'badge-suspended ❌ Échoué'};
+  const m={verified:'badge-verified ✅ Vérifié',pending:'badge-pending ⏳ Attente',suspended:'badge-suspended 🚫 Suspendu',banned:'badge-banned 🔒 Banni',termine:'badge-verified ✅ Terminé',confirme:'badge-pending 📅 Confirmé',active:'badge-verified ✅ Actif',high:'badge-high 🔴 HIGH',medium:'badge-medium 🟡 MED',low:'badge-low 🟢 LOW',success:'badge-verified ✅ OK',failed:'badge-suspended ❌ Échoué'};
   const v=m[s]||`badge-pending ${s}`;const[cls,...label]=v.split(' ');
   return`<span class="badge ${cls}">${label.join(' ')}</span>`;
 }
-
 function showToast(msg,type='success'){
   const t=document.getElementById('toast');t.className=`toast show ${type}`;t.innerHTML=(type==='success'?'✅ ':'❌ ')+msg;
   setTimeout(()=>t.className='toast',3500);
 }
 function filterTable(id,q){q=q.toLowerCase();document.querySelectorAll(`#${id} tbody tr`).forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');}
+function showModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function logout(){localStorage.clear();window.location.replace('/admin/login.html');}
+function refreshAll(){loadPanel(document.querySelector('.nav-item.active')?.textContent?.trim()||'overview');}
 
-// ══ ARTICLES ══
-const CAT_LABELS={paludisme:'🦟 Paludisme',grossesse:'🤱 Grossesse',nutrition:'🥗 Nutrition',prevention:'🛡️ Prévention'};
-const CAT_BG={paludisme:'rgba(0,200,167,0.08)',grossesse:'rgba(255,107,157,0.08)',nutrition:'rgba(255,165,2,0.08)',prevention:'rgba(46,134,255,0.08)'};
-const CAT_EMOJI={paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️'};
+// ════════════════════════════════════════════
+// OVERVIEW
+// ════════════════════════════════════════════
+async function loadOverview(){
+  try{
+    const data=await api('/admin/dashboard');
+    if(!data.success)return;
+    const s=data.stats;
+    document.getElementById('kpi-patients').textContent=fmtNum(s.patients);
+    document.getElementById('kpi-doctors').textContent=fmtNum(s.doctors);
+    document.getElementById('kpi-rdv').textContent=fmtNum(s.appointments_total);
+    document.getElementById('kpi-pharma').textContent=fmtNum(s.pharmacies);
+    document.getElementById('kpi-rev-today').textContent=(s.revenue_today||0)+' FCFA';
+    document.getElementById('kpi-rev-month').textContent='Ce mois: '+(s.revenue_month||0)+' FCFA';
+    document.getElementById('kpi-presc').textContent=fmtNum(s.prescriptions);
+    document.getElementById('kpi-pending').textContent=fmtNum(s.pending);
+    document.getElementById('kpi-fraud').textContent=fmtNum(s.fraud_high);
+    document.getElementById('kpi-banned').textContent=fmtNum(s.banned)+' bannis';
+    document.getElementById('badge-pending').textContent=s.pending||0;
+    document.getElementById('badge-fraud').textContent=s.fraud_high||0;
+    // donut
+    const total=(s.patients||0)+(s.doctors||0)+(s.pharmacies||0)+(s.labos||0);
+    document.getElementById('donut-total').textContent=total;
+    document.getElementById('leg-patients').textContent=s.patients||0;
+    document.getElementById('leg-doctors').textContent=s.doctors||0;
+    document.getElementById('leg-pharmacies').textContent=s.pharmacies||0;
+    document.getElementById('leg-labos').textContent=s.labos||0;
+    if(total>0){
+      const circ=283;
+      const pp=(s.patients||0)/total*circ; const dp=(s.doctors||0)/total*circ;
+      const phP=(s.pharmacies||0)/total*circ; const lp=(s.labos||0)/total*circ;
+      let off=71;
+      document.getElementById('donut-patient').setAttribute('stroke-dasharray',`${pp} ${circ-pp}`);
+      document.getElementById('donut-patient').setAttribute('stroke-dashoffset',off);
+      off-=pp;
+      document.getElementById('donut-doctor').setAttribute('stroke-dasharray',`${dp} ${circ-dp}`);
+      document.getElementById('donut-doctor').setAttribute('stroke-dashoffset',off);
+      off-=dp;
+      document.getElementById('donut-pharma').setAttribute('stroke-dasharray',`${phP} ${circ-phP}`);
+      document.getElementById('donut-pharma').setAttribute('stroke-dashoffset',off);
+      off-=phP;
+      document.getElementById('donut-labo').setAttribute('stroke-dasharray',`${lp} ${circ-lp}`);
+      document.getElementById('donut-labo').setAttribute('stroke-dashoffset',off);
+    }
+    // pending mini
+    const pList=document.getElementById('pending-mini-list');
+    if(data.pending_users&&data.pending_users.length){
+      pList.innerHTML='<div class="feed-list">'+data.pending_users.slice(0,5).map(u=>`<div class="feed-item"><div class="feed-dot" style="background:var(--amber)"></div><div><div class="feed-action"><span class="feed-actor">${u.phone}</span> — ${u.role}</div><div class="feed-time">${fmtShort(u.created_at)}</div></div></div>`).join('')+'</div>';
+    }else pList.innerHTML='<div class="empty"><div class="empty-icon">✅</div><p>Aucun en attente</p></div>';
+    const fList=document.getElementById('fraud-mini-list');
+    if(data.fraud_alerts&&data.fraud_alerts.length){
+      fList.innerHTML='<div class="feed-list">'+data.fraud_alerts.slice(0,5).map(f=>`<div class="feed-item"><div class="feed-dot" style="background:var(--rouge)"></div><div><div class="feed-action"><span class="feed-actor">${f.phone}</span> — score ${f.fraud_score}</div><div class="feed-time">${fmtShort(f.created_at)}</div></div></div>`).join('')+'</div>';
+    }else fList.innerHTML='<div class="empty"><div class="empty-icon">🟢</div><p>Aucune fraude HIGH</p></div>';
+  }catch(e){console.error(e);}
+}
 
-async function loadArticlesAdmin(filter='tous',btn=null){
-  document.querySelectorAll('[id^="art-filter-"]').forEach(b=>{b.style.background='rgba(46,134,255,0.1)';b.style.color='var(--bleu)';b.style.fontWeight='600';});
-  const target=btn||document.getElementById('art-filter-tous');
-  if(target){target.style.background='var(--bleu)';target.style.color='white';target.style.fontWeight='700';}
-  const grid=document.getElementById('articles-admin-grid');
+// ════════════════════════════════════════════
+// ACTIVITY
+// ════════════════════════════════════════════
+async function loadActivity(){
+  try{
+    const data=await api('/admin/activity');
+    if(!data.success)return;
+    document.getElementById('act-rdv-today').textContent=data.rdv_today||0;
+    document.getElementById('act-prescriptions').textContent=data.prescriptions_today||0;
+    document.getElementById('act-new-users').textContent=data.new_users_today||0;
+    document.getElementById('activity-count').textContent=(data.logs||[]).length+' entrées';
+    const feed=document.getElementById('activity-feed');
+    if(!data.logs||!data.logs.length){feed.innerHTML='<div class="empty"><div class="empty-icon">📭</div><p>Aucune activité</p></div>';return;}
+    const colors={appointment:'var(--bleu)',prescription:'var(--vert)',payment:'var(--amber)',fraud:'var(--rouge)'};
+    feed.innerHTML='<div class="feed-list">'+data.logs.map(l=>`<div class="feed-item"><div class="feed-dot" style="background:${colors[l.type]||'var(--texte-doux)'}"></div><div><div class="feed-action">${l.description}</div><div class="feed-time">${fmtDate(l.created_at)}</div></div></div>`).join('')+'</div>';
+  }catch(e){document.getElementById('activity-feed').innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// PENDING
+// ════════════════════════════════════════════
+async function loadPending(){
+  const el=document.getElementById('pending-list');
+  try{
+    const data=await api('/admin/pending-users');
+    const users=data.users||[];
+    document.getElementById('pending-count').textContent=users.length+' dossiers';
+    if(!users.length){el.innerHTML='<div class="empty"><div class="empty-icon">✅</div><p>Aucun dossier en attente</p></div>';return;}
+    el.innerHTML=`<table id="pending-table"><thead><tr><th>Téléphone</th><th>Rôle</th><th>Nom</th><th>Date</th><th>Actions</th></tr></thead><tbody>${users.map(u=>`<tr><td class="td-phone">${u.phone}</td><td>${badge(u.role||'pending')}</td><td>${u.full_name||u.business_name||'—'}</td><td>${fmtShort(u.created_at)}</td><td class="actions"><button class="btn-validate" onclick="validateUser('${u.phone}')">✅ Valider</button><button class="btn-reject" onclick="rejectUser('${u.phone}')">❌ Rejeter</button><button class="btn-view" onclick="viewUser('${u.phone}')">👁 Voir</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// DOCTORS
+// ════════════════════════════════════════════
+async function loadDoctors(status=''){
+  const el=document.getElementById('doctors-list');
+  try{
+    const data=await api('/admin/doctors'+(status?`?status=${status}`:''));
+    const docs=data.doctors||[];
+    document.getElementById('doctors-count').textContent=docs.length+' médecins';
+    if(!docs.length){el.innerHTML='<div class="empty"><div class="empty-icon">🩺</div><p>Aucun médecin</p></div>';return;}
+    el.innerHTML=`<table id="doctors-table"><thead><tr><th>Téléphone</th><th>Nom</th><th>Spécialité</th><th>Statut</th><th>Score fraude</th><th>Actions</th></tr></thead><tbody>${docs.map(d=>`<tr><td class="td-phone">${d.phone}</td><td>${d.full_name||'—'}</td><td>${d.specialty||'—'}</td><td>${badge(d.status||'pending')}</td><td>${d.fraud_score||0}/100</td><td class="actions">${d.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${d.phone}')">✅</button>`:''}${d.status!=='suspended'?`<button class="btn-suspend" onclick="suspendUser('${d.phone}')">🚫</button>`:''}${!d.is_banned?`<button class="btn-ban" onclick="banUser('${d.phone}')">🔒</button>`:`<button class="btn-unban" onclick="unbanUser('${d.phone}')">🔓</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${d.phone}')">💎</button><button class="btn-view" onclick="viewUser('${d.phone}')">👁</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// PHARMACIES
+// ════════════════════════════════════════════
+async function loadPharmacies(status=''){
+  const el=document.getElementById('pharmacies-list');
+  try{
+    const data=await api('/admin/pharmacies'+(status?`?status=${status}`:''));
+    const rows=data.pharmacies||[];
+    document.getElementById('pharmacies-count').textContent=rows.length+' pharmacies';
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>';return;}
+    el.innerHTML=`<table id="pharmacies-table"><thead><tr><th>Téléphone</th><th>Nom</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td class="td-phone">${p.phone}</td><td>${p.business_name||p.full_name||'—'}</td><td>${badge(p.status||'pending')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${p.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${p.phone}')">✅</button>`:''}${!p.is_banned?`<button class="btn-ban" onclick="banUser('${p.phone}')">🔒</button>`:`<button class="btn-unban" onclick="unbanUser('${p.phone}')">🔓</button>`}<button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// LABORATORIES
+// ════════════════════════════════════════════
+async function loadLaboratories(){
+  const el=document.getElementById('laboratories-list');
+  try{
+    const data=await api('/admin/laboratories');
+    const rows=data.laboratories||[];
+    document.getElementById('laboratories-count').textContent=rows.length+' laboratoires';
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">🔬</div><p>Aucun laboratoire</p></div>';return;}
+    el.innerHTML=`<table id="laboratories-table"><thead><tr><th>Téléphone</th><th>Nom</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(l=>`<tr><td class="td-phone">${l.phone}</td><td>${l.business_name||l.full_name||'—'}</td><td>${badge(l.status||'pending')}</td><td>${fmtShort(l.created_at)}</td><td class="actions">${l.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${l.phone}')">✅</button>`:''}${!l.is_banned?`<button class="btn-ban" onclick="banUser('${l.phone}')">🔒</button>`:`<button class="btn-unban" onclick="unbanUser('${l.phone}')">🔓</button>`}<button class="btn-view" onclick="viewUser('${l.phone}')">👁</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// PATIENTS
+// ════════════════════════════════════════════
+async function loadPatients(){
+  const el=document.getElementById('patients-list');
+  try{
+    const data=await api('/admin/patients');
+    const rows=data.patients||[];
+    document.getElementById('patients-count').textContent=rows.length+' patients';
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">👤</div><p>Aucun patient</p></div>';return;}
+    el.innerHTML=`<table id="patients-table"><thead><tr><th>Téléphone</th><th>Nom</th><th>Âge/Sexe</th><th>Statut</th><th>Inscrit</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td class="td-phone">${p.phone}</td><td>${p.full_name||'—'}</td><td>${p.age||'—'} / ${p.sexe||'—'}</td><td>${badge(p.is_banned?'banned':'active')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${!p.is_banned?`<button class="btn-ban" onclick="banUser('${p.phone}')">🔒</button>`:`<button class="btn-unban" onclick="unbanUser('${p.phone}')">🔓</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${p.phone}')">💎</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// APPOINTMENTS
+// ════════════════════════════════════════════
+async function loadAppointments(){
+  const el=document.getElementById('appointments-list');
+  try{
+    const data=await api('/admin/appointments');
+    const rows=data.appointments||[];
+    document.getElementById('appt-count').textContent=rows.length+' RDV';
+    const done=rows.filter(r=>r.status==='termine').length;
+    const conf=rows.filter(r=>r.status==='confirme').length;
+    document.getElementById('appt-done').textContent=done;
+    document.getElementById('appt-confirmed').textContent=conf;
+    document.getElementById('appt-total').textContent=rows.length;
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">📅</div><p>Aucun RDV</p></div>';return;}
+    el.innerHTML=`<table id="appointments-table"><thead><tr><th>Code</th><th>Patient</th><th>Médecin</th><th>Date</th><th>Statut</th><th>Fraude</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="td-code">${r.session_code||'—'}</td><td class="td-phone">${r.patient_phone||'—'}</td><td class="td-phone">${r.doctor_phone||'—'}</td><td>${fmtShort(r.appointment_date)}</td><td>${badge(r.status)}</td><td>${badge(r.fraud_level||'low')}</td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// PRESCRIPTIONS
+// ════════════════════════════════════════════
+async function loadPrescriptions(){
+  const el=document.getElementById('prescriptions-list');
+  try{
+    const data=await api('/admin/prescriptions');
+    const rows=data.prescriptions||[];
+    document.getElementById('pres-count').textContent=rows.length+' ordonnances';
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>Aucune ordonnance</p></div>';return;}
+    el.innerHTML=`<table><thead><tr><th>ID</th><th>Médecin</th><th>Patient</th><th>Médicaments</th><th>Date</th></tr></thead><tbody>${rows.map(p=>`<tr><td class="td-code">#${p.id}</td><td class="td-phone">${p.doctor_phone||'—'}</td><td class="td-phone">${p.patient_phone||'—'}</td><td style="font-size:9px;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${p.medications||'—'}</td><td>${fmtShort(p.created_at)}</td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// PAYMENTS
+// ════════════════════════════════════════════
+async function loadPayments(){
+  const el=document.getElementById('payments-list');
+  try{
+    const data=await api('/admin/payments');
+    const rows=data.payments||[];
+    document.getElementById('pay-count').textContent=rows.length+' paiements';
+    const total=rows.filter(r=>r.status==='success').reduce((s,r)=>s+(Number(r.amount)||0),0);
+    const momo=rows.filter(r=>r.provider==='mtn_momo').length;
+    document.getElementById('pay-total-rev').textContent=fmtNum(total)+' FCFA';
+    document.getElementById('pay-total-count').textContent=rows.filter(r=>r.status==='success').length;
+    document.getElementById('pay-momo').textContent=momo;
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">💳</div><p>Aucun paiement</p></div>';return;}
+    el.innerHTML=`<table><thead><tr><th>Téléphone</th><th>Montant</th><th>Type</th><th>Statut</th><th>Date</th></tr></thead><tbody>${rows.map(p=>`<tr><td class="td-phone">${p.phone||'—'}</td><td style="font-weight:700;">${fmtNum(p.amount)} FCFA</td><td>${p.payment_type||p.provider||'—'}</td><td>${badge(p.status)}</td><td>${fmtShort(p.created_at)}</td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// FRAUD
+// ════════════════════════════════════════════
+async function loadFraud(){
+  const el=document.getElementById('fraud-list');
+  try{
+    const data=await api('/admin/fraud');
+    const rows=data.fraud||[];
+    document.getElementById('fraud-count').textContent=rows.length+' signaux';
+    document.getElementById('fraud-high').textContent=rows.filter(r=>r.fraud_level==='high').length;
+    document.getElementById('fraud-medium').textContent=rows.filter(r=>r.fraud_level==='medium').length;
+    document.getElementById('fraud-low').textContent=rows.filter(r=>r.fraud_level==='low').length;
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">🟢</div><p>Aucun signal fraude</p></div>';return;}
+    el.innerHTML=`<table><thead><tr><th>Téléphone</th><th>Niveau</th><th>Score</th><th>Raison</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(f=>`<tr><td class="td-phone">${f.phone||f.doctor_phone||'—'}</td><td>${badge(f.fraud_level||'low')}</td><td style="font-weight:700">${f.fraud_score||0}/100</td><td style="font-size:9px;max-width:180px;overflow:hidden;">${f.fraud_reason||'—'}</td><td>${fmtShort(f.created_at)}</td><td class="actions"><button class="btn-ban" onclick="banUser('${f.phone||f.doctor_phone}')">🔒</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// AUDIT
+// ════════════════════════════════════════════
+async function loadAudit(eventType=''){
+  const el=document.getElementById('audit-list');
+  try{
+    const data=await api('/admin/audit'+(eventType?`?event_type=${eventType}`:''));
+    const rows=data.logs||[];
+    document.getElementById('audit-count').textContent=rows.length+' entrées';
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">📝</div><p>Aucune entrée</p></div>';return;}
+    el.innerHTML=`<table id="audit-table"><thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-weight:700;font-size:9px;color:var(--bleu)">${r.event_type}</td><td class="td-phone">${r.actor_phone||'—'}</td><td>${r.target_table||'—'}</td><td>${r.target_id||'—'}</td><td>${fmtDate(r.created_at)}</td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+
+// ════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════
+async function loadConfig(){
+  const el=document.getElementById('config-grid');
+  try{
+    const data=await api('/admin/config');
+    const cfg=data.config||[];
+    if(!cfg.length){el.innerHTML='<div class="empty">Aucune config</div>';return;}
+    const groups={};
+    cfg.forEach(c=>{const g=c.category||'Général';if(!groups[g])groups[g]=[];groups[g].push(c);});
+    el.innerHTML=Object.entries(groups).map(([grp,items])=>`<div class="config-card"><div class="config-section-title">${grp}</div>${items.map(c=>`<div class="config-item"><div><div class="config-key">${c.config_key}</div>${c.description?`<div class="config-desc">${c.description}</div>`:''}</div><div class="config-val" onclick="editConfig('${c.config_key}','${c.config_value}')">${c.config_value}</div></div>`).join('')}</div>`).join('');
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+function editConfig(key,val){
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">⚙️ Modifier</div><div class="modal-sub"><code>${key}</code></div><div class="modal-field"><label>Valeur</label><input class="modal-input" id="cfg-val" value="${val}"></div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm blue" onclick="saveConfig('${key}')">💾 Enregistrer</button></div>`;
+  showModal();
+}
+async function saveConfig(key){
+  const val=document.getElementById('cfg-val').value;
+  try{const data=await api('/admin/config',{method:'PUT',body:JSON.stringify({key,value:val})});if(data.success){closeModal();showToast('Config mise à jour');loadConfig();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
+}
+
+// ════════════════════════════════════════════
+// CREDITS
+// ════════════════════════════════════════════
+async function loadCredits(){
+  const el=document.getElementById('credits-list');
+  try{
+    const data=await api('/admin/credits');
+    const rows=data.credits||[];
+    document.getElementById('cr-total-accounts').textContent=rows.length;
+    document.getElementById('cr-total-balance').textContent=rows.reduce((s,r)=>s+(Number(r.balance)||0),0);
+    document.getElementById('cr-total-earned').textContent=rows.reduce((s,r)=>s+(Number(r.total_earned)||0),0);
+    document.getElementById('cr-total-spent').textContent=rows.reduce((s,r)=>s+(Number(r.total_spent)||0),0);
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte crédit</p></div>';return;}
+    el.innerHTML=`<table><thead><tr><th>Téléphone</th><th>Solde</th><th>Gagné</th><th>Dépensé</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="td-phone">${r.phone}</td><td style="font-weight:700;color:var(--violet)">${r.balance||0} 💎</td><td>${r.total_earned||0}</td><td>${r.total_spent||0}</td><td><button class="btn-credit" onclick="openGrantCreditTo('${r.phone}')">💎 Attribuer</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+function openGrantCredit(){openGrantCreditTo('');}
+function openGrantCreditTo(phone){
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">💎 Attribuer des crédits</div><div class="modal-field"><label>Téléphone</label><input class="modal-input" id="cr-phone" value="${phone}" placeholder="+242..."></div><div class="modal-field"><label>Crédits à attribuer</label><input class="modal-input" id="cr-amount" type="number" placeholder="10" min="1"></div><div class="modal-field"><label>Raison</label><input class="modal-input" id="cr-reason" placeholder="Bonus fidélité"></div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm violet" onclick="grantCredit()">💎 Attribuer</button></div>`;
+  showModal();
+}
+async function grantCredit(){
+  const phone=document.getElementById('cr-phone').value;
+  const amount=parseInt(document.getElementById('cr-amount').value);
+  const reason=document.getElementById('cr-reason').value;
+  if(!phone||!amount)return showToast('Téléphone et montant requis','error');
+  try{const data=await api('/admin/credits/grant',{method:'POST',body:JSON.stringify({phone,amount,reason})});if(data.success){closeModal();showToast('💎 Crédits attribués !');loadCredits();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
+}
+
+// ════════════════════════════════════════════
+// USER ACTIONS
+// ════════════════════════════════════════════
+async function validateUser(phone){
+  if(!confirm(`Valider ${phone} ?`))return;
+  try{const data=await api('/admin/validate-user',{method:'POST',body:JSON.stringify({phone})});if(data.success){showToast('✅ Compte validé');refreshCurrentPanel();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
+}
+async function rejectUser(phone){
+  if(!confirm(`Rejeter ${phone} ?`))return;
+  try{const data=await api('/admin/reject-user',{method:'POST',body:JSON.stringify({phone})});if(data.success){showToast('Compte rejeté');refreshCurrentPanel();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
+}
+async function suspendUser(phone){
+  if(!confirm(`Suspendre ${phone} ?`))return;
+  try{const data=await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})});if(data.success){showToast('🚫 Suspendu');refreshCurrentPanel();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
+}
+async function banUser(phone){
+  if(!confirm(`Bannir définitivement ${phone} ?`))return;
+  try{const data=await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})});if(data.success){showToast('🔒 Banni');refreshCurrentPanel();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
+}
+async function unbanUser(phone){
+  if(!confirm(`Débannir ${phone} ?`))return;
+  try{const data=await api('/admin/unban-user',{method:'POST',body:JSON.stringify({phone})});if(data.success){showToast('🔓 Débanni');refreshCurrentPanel();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
+}
+function viewUser(phone){
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">👁 Profil</div><div class="loading" id="view-loading">Chargement...</div></div>`;
+  showModal();
+  api('/admin/user/'+encodeURIComponent(phone)).then(data=>{
+    if(!data.user){document.getElementById('view-loading').textContent='Introuvable';return;}
+    const u=data.user;
+    document.getElementById('modal-body').innerHTML=`<div class="modal-title">👁 ${u.full_name||u.business_name||u.phone}</div><div class="modal-info-grid">${Object.entries({Téléphone:u.phone,Rôle:u.role,Statut:u.status,Nom:u.full_name||u.business_name,Spécialité:u.specialty,Âge:u.age,Sexe:u.sexe,'Score fraude':u.fraud_score,'Banni':u.is_banned?'Oui':'Non',Inscrit:fmtDate(u.created_at)}).map(([k,v])=>`<div class="modal-info-item"><label>${k}</label><span>${v||'—'}</span></div>`).join('')}</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;
+  });
+}
+function refreshCurrentPanel(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
+
+// ════════════════════════════════════════════
+// ARTICLES
+// ════════════════════════════════════════════
+const CAT_INFO={paludisme:{label:'🦟 Paludisme',cls:'cat-paludisme'},grossesse:{label:'🤱 Grossesse',cls:'cat-grossesse'},nutrition:{label:'🥗 Nutrition',cls:'cat-nutrition'},prevention:{label:'🛡️ Prévention',cls:'cat-prevention'},sante:{label:'❤️ Santé',cls:'cat-sante'},seniors:{label:'👴 Seniors',cls:'cat-seniors'},contraception:{label:'🩺 Contraception',cls:'cat-prevention'},hygiene:{label:'🧼 Hygiène',cls:'cat-prevention'}};
+let allArticles=[];
+
+async function loadArticles(){
+  const grid=document.getElementById('articles-grid');
   grid.innerHTML='<div class="loading">Chargement...</div>';
   try{
-    const url=filter==='tous'?'/articles/admin/all':`/articles?category=${filter}&limit=50`;
-    const data=await api(url);
-    const items=data.articles||[];
-    document.getElementById('articles-count').textContent=`${items.length} article${items.length>1?'s':''}`;
-    if(!items.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📰</div><p>Aucun article.<br>Cliquez sur <strong>Nouvel article</strong> pour commencer.</p></div>`;return;}
-    grid.innerHTML=items.map(a=>`
-      <div class="article-admin-card">
-        ${a.image_url?`<img class="article-admin-thumb" src="${a.image_url}" alt="${a.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="article-admin-thumb-placeholder" style="display:none;background:${CAT_BG[a.category]||'var(--noir3)'};">${a.emoji||CAT_EMOJI[a.category]||'📄'}</div>`:`<div class="article-admin-thumb-placeholder" style="background:${CAT_BG[a.category]||'var(--noir3)'};">${a.emoji||CAT_EMOJI[a.category]||'📄'}</div>`}
-        <div class="article-admin-body">
-          <span class="article-admin-cat cat-${a.category}">${CAT_LABELS[a.category]||a.category}</span>
-          ${!a.is_published?'<span class="badge badge-suspended" style="margin-left:6px;font-size:10px;">⚫ Brouillon</span>':''}
-          ${a.is_featured?'<span class="badge badge-verified" style="margin-left:6px;font-size:10px;">⭐ À la une</span>':''}
-          <div class="article-admin-title">${a.title}</div>
-          <div class="article-admin-meta">✍️ ${a.author||'Dr. Bolamu'} · ⏱ ${a.read_time||'5 min'} · 📅 ${fmtShort(a.created_at)}</div>
-          <div class="article-admin-actions">
-            <button class="btn-edit" onclick='openArticleForm(${JSON.stringify(a)})'>✏️ Modifier</button>
-            <button class="btn-toggle-pub" style="background:${a.is_published?'rgba(255,71,87,0.1)':'rgba(0,200,167,0.1)'};color:${a.is_published?'var(--rouge)':'var(--vert)'};border-color:${a.is_published?'rgba(255,71,87,0.3)':'rgba(0,200,167,0.3)'};" onclick="togglePublish(${a.id},${a.is_published})">${a.is_published?'⚫ Dépublier':'🟢 Publier'}</button>
-            <button class="btn-delete" onclick="confirmDelete(${a.id},'${a.title.replace(/'/g,"\\'")}')">🗑️</button>
-          </div>
-        </div>
-      </div>`).join('');
-  }catch(e){grid.innerHTML=`<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p></div>`;}
+    const data=await api('/articles/admin/all');
+    allArticles=data.articles||[];
+    document.getElementById('art-stat-total').textContent=allArticles.length;
+    document.getElementById('art-stat-pub').textContent=allArticles.filter(a=>a.is_published).length;
+    document.getElementById('art-stat-draft').textContent=allArticles.filter(a=>!a.is_published).length;
+    document.getElementById('art-stat-une').textContent=allArticles.filter(a=>a.is_featured).length;
+    const cats=[...new Set(allArticles.map(a=>a.category).filter(Boolean))];
+    const catEmojis={paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️',sante:'❤️',seniors:'👴',contraception:'🩺',hygiene:'🧼'};
+    const bar=document.getElementById('art-filters-bar');
+    if(bar)bar.innerHTML=`<button class="art-filter-btn active" onclick="filterArticles('tous',this)">Tous</button>`+cats.map(c=>`<button class="art-filter-btn" onclick="filterArticles('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
+    renderArticles(allArticles);
+  }catch(e){grid.innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><p>Erreur chargement</p></div>';}
 }
-
-function openArticleForm(article=null){
-  const isEdit=!!article;
-  document.getElementById('modal-article-body').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div class="modal-title">${isEdit?'✏️ Modifier l\'article':'✏️ Nouvel article'}</div>
-      <button onclick="closeArticleModal()" style="background:var(--noir3);border:1px solid var(--border);color:var(--texte-doux);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:18px;">✕</button>
-    </div>
-    <div class="modal-field"><label>Titre *</label><input class="modal-input" id="art-title" placeholder="Ex: Comment prévenir le paludisme..." value="${isEdit?(article.title||''):''}"></div>
-    <div class="modal-field"><label>Catégorie *</label>
-      <select class="modal-select" id="art-category">
-        <option value="paludisme" ${isEdit&&article.category==='paludisme'?'selected':''}>🦟 Paludisme</option>
-        <option value="grossesse" ${isEdit&&article.category==='grossesse'?'selected':''}>🤱 Suivi grossesse</option>
-        <option value="nutrition" ${isEdit&&article.category==='nutrition'?'selected':''}>🥗 Nutrition</option>
-        <option value="prevention" ${isEdit&&article.category==='prevention'?'selected':''}>🛡️ Prévention</option>
-      </select>
-    </div>
-    <div class="modal-field"><label>Résumé (affiché sur la carte) *</label><textarea class="modal-textarea" id="art-excerpt" style="min-height:80px;" placeholder="1-2 phrases...">${isEdit?(article.excerpt||''):''}</textarea></div>
-    <div class="modal-field">
-      <label>URL de l'image (optionnel)</label>
-      <input class="modal-input" id="art-image" placeholder="https://images.unsplash.com/photo-..." value="${isEdit?(article.image_url||''):''}" oninput="previewImage(this.value)">
-      <div style="font-size:11px;color:var(--texte-doux);margin-top:6px;">💡 Photos gratuites sur <a href="https://unsplash.com" target="_blank" style="color:var(--bleu)">unsplash.com</a></div>
-      <img id="art-img-preview" class="img-preview" src="" alt="Aperçu">
-      <div id="art-img-placeholder" class="img-preview-placeholder" style="${isEdit&&article.image_url?'display:none;':''}">${isEdit?(article.emoji||'📄'):'📄'}</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div class="modal-field"><label>Emoji (si pas de photo)</label><input class="modal-input" id="art-emoji" placeholder="🦟" value="${isEdit?(article.emoji||''):''}" maxlength="4"></div>
-      <div class="modal-field"><label>Temps de lecture</label><input class="modal-input" id="art-readtime" placeholder="5 min" value="${isEdit?(article.read_time||'5 min'):'5 min'}"></div>
-    </div>
-    <div class="modal-field"><label>Auteur</label><input class="modal-input" id="art-author" placeholder="Dr. Bolamu" value="${isEdit?(article.author||'Dr. Bolamu'):'Dr. Bolamu'}"></div>
-    <div class="modal-field"><label>Contenu complet * <span style="color:var(--texte-doux);font-size:10px;font-weight:400;">(HTML : &lt;p&gt;, &lt;h4&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;)</span></label>
-      <textarea class="modal-textarea" id="art-content" style="min-height:200px;" placeholder="<p>Votre contenu...</p>">${isEdit?(article.content||''):''}</textarea>
-    </div>
-    <div style="display:flex;gap:24px;margin-bottom:16px;">
-      <div class="toggle-switch"><label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Publié</label><input type="checkbox" id="art-published" ${isEdit?(article.is_published!==false?'checked':''):'checked'}></div>
-      <div class="toggle-switch"><label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">⭐ À la une</label><input type="checkbox" id="art-featured" ${isEdit&&article.is_featured?'checked':''}></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel-modal" onclick="closeArticleModal()">Annuler</button>
-      <button class="btn-confirm blue" onclick="saveArticle(${isEdit?article.id:'null'})">${isEdit?'💾 Enregistrer':'✅ Publier l\'article'}</button>
-    </div>`;
-  if(isEdit&&article.image_url)previewImage(article.image_url);
-  document.getElementById('modal-article').classList.add('open');
+function filterArticles(cat,btn){
+  document.querySelectorAll('.art-filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderArticles(cat==='tous'?allArticles:allArticles.filter(a=>a.category===cat));
 }
-
-function previewImage(url){
-  const img=document.getElementById('art-img-preview');const ph=document.getElementById('art-img-placeholder');if(!img||!ph)return;
-  if(url&&url.startsWith('http')){img.src=url;img.style.display='block';ph.style.display='none';img.onerror=()=>{img.style.display='none';ph.style.display='flex';};}
-  else{img.style.display='none';ph.style.display='flex';}
+function renderArticles(items){
+  const grid=document.getElementById('articles-grid');
+  if(!items.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📰</div><p>Aucun article.</p></div>';return;}
+  grid.innerHTML=items.map(a=>{
+    const cat=CAT_INFO[a.category]||{label:a.category||'Général',cls:'cat-prevention'};
+    const thumb=a.image_url?`<img class="art-thumb" src="${a.image_url}" alt="" onerror="this.style.display='none'"><div class="art-thumb-ph" style="display:none">${a.emoji||'📄'}</div>`:`<div class="art-thumb-ph">${a.emoji||'📄'}</div>`;
+    const pubBtn=a.is_published?`<button class="btn-art-pub" style="background:rgba(255,71,87,0.1);color:var(--rouge);border-color:rgba(255,71,87,0.25);" onclick="togglePub(${a.id},true)">⚫ Dépublier</button>`:`<button class="btn-art-pub" style="background:rgba(0,200,167,0.1);color:var(--vert);border-color:rgba(0,200,167,0.25);" onclick="togglePub(${a.id},false)">🟢 Publier</button>`;
+    return`<div class="art-card">${thumb}<div class="art-body"><div class="art-tags"><span class="art-cat ${cat.cls}">${cat.label}</span>${a.is_published?'<span class="art-status-badge art-status-pub">● Publié</span>':'<span class="art-status-badge art-status-draft">● Brouillon</span>'}${a.is_featured?'<span class="art-status-badge art-status-une">⭐</span>':''}</div><div class="art-title">${a.title}</div><div class="art-excerpt">${a.excerpt||''}</div><div class="art-meta"><span>✍️ ${a.author||'Dr. Bolamu'}</span><span>⏱ ${a.read_time||'5 min'}</span></div><div class="art-actions"><button class="btn-art-edit" onclick='openArticleModal(${JSON.stringify(a).replace(/'/g,"&#39;")})'>✏️ Éditer</button>${pubBtn}<button class="btn-art-del" onclick="confirmDeleteArticle(${a.id},'${a.title.replace(/'/g,"\\'").replace(/"/g,'\\"')}')">🗑️</button></div></div></div>`;
+  }).join('');
 }
-
-async function saveArticle(id){
-  const title=document.getElementById('art-title').value.trim();
-  const excerpt=document.getElementById('art-excerpt').value.trim();
-  const content=document.getElementById('art-content').value.trim();
-  const category=document.getElementById('art-category').value;
-  if(!title||!excerpt||!content){showToast('Titre, résumé et contenu sont obligatoires','error');return;}
-  const body={title,excerpt,content,category,image_url:document.getElementById('art-image').value.trim()||null,emoji:document.getElementById('art-emoji').value.trim()||'📄',author:document.getElementById('art-author').value.trim()||'Dr. Bolamu',read_time:document.getElementById('art-readtime').value.trim()||'5 min',is_published:document.getElementById('art-published').checked,is_featured:document.getElementById('art-featured').checked};
-  try{
-    const data=id?await api(`/articles/${id}`,{method:'PUT',body:JSON.stringify(body)}):await api('/articles',{method:'POST',body:JSON.stringify(body)});
-    if(data.success){showToast(id?'Article modifié ✅':'Article publié ✅');closeArticleModal();loadArticlesAdmin('tous');}
-    else showToast(data.message||'Erreur','error');
-  }catch(e){showToast('Erreur de connexion','error');}
+async function togglePub(id,cur){
+  try{const data=await api('/articles/'+id,{method:'PUT',body:JSON.stringify({is_published:!cur})});if(data.success){showToast(cur?'Dépublié':'🟢 Publié !');await loadArticles();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
 }
-
-async function togglePublish(id,currentlyPublished){
-  const data=await api(`/articles/${id}`,{method:'PUT',body:JSON.stringify({is_published:!currentlyPublished})});
-  if(data.success){showToast(currentlyPublished?'Article dépublié':'Article publié ✅');loadArticlesAdmin('tous');}
-  else showToast(data.message||'Erreur','error');
-}
-
-function confirmDelete(id,title){
-  document.getElementById('modal-body').innerHTML=`<div class="modal-title">🗑️ Supprimer l'article</div><div class="modal-sub">Voulez-vous supprimer <strong>"${title}"</strong> ? Action irréversible.</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer</button></div>`;
+function confirmDeleteArticle(id,title){
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">🗑️ Supprimer</div><div class="modal-sub">Supprimer <strong>"${title}"</strong> ? Irréversible.</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer</button></div>`;
   showModal();
 }
 async function deleteArticle(id){
-  closeModal();const data=await api(`/articles/${id}`,{method:'DELETE'});
-  if(data.success){showToast('Article supprimé');loadArticlesAdmin('tous');}else showToast(data.message||'Erreur','error');
+  closeModal();
+  try{const data=await api('/articles/'+id,{method:'DELETE'});if(data.success){showToast('🗑️ Supprimé');await loadArticles();}else showToast(data.message||'Erreur','error');}
+  catch(e){showToast('Erreur','error');}
+}
+function openArticleModal(a=null){
+  const isNew=!a;
+  document.getElementById('modal-article-body').innerHTML=`
+    <div class="modal-title">${isNew?'✏️ Nouvel article':'✏️ Modifier l\'article'}</div>
+    <div class="modal-2col">
+      <div class="modal-field"><label>Titre *</label><input class="modal-input" id="art-title" value="${a?.title||''}" placeholder="Titre de l'article"></div>
+      <div class="modal-field"><label>Auteur</label><input class="modal-input" id="art-author" value="${a?.author||'Dr. Bolamu'}"></div>
+    </div>
+    <div class="modal-2col">
+      <div class="modal-field"><label>Catégorie</label><select class="modal-select" id="art-category"><option value="prevention" ${a?.category==='prevention'?'selected':''}>🛡️ Prévention</option><option value="paludisme" ${a?.category==='paludisme'?'selected':''}>🦟 Paludisme</option><option value="grossesse" ${a?.category==='grossesse'?'selected':''}>🤱 Grossesse</option><option value="nutrition" ${a?.category==='nutrition'?'selected':''}>🥗 Nutrition</option><option value="sante" ${a?.category==='sante'?'selected':''}>❤️ Santé</option><option value="seniors" ${a?.category==='seniors'?'selected':''}>👴 Seniors</option><option value="contraception" ${a?.category==='contraception'?'selected':''}>🩺 Contraception</option><option value="hygiene" ${a?.category==='hygiene'?'selected':''}>🧼 Hygiène</option></select></div>
+      <div class="modal-field"><label>Temps de lecture</label><input class="modal-input" id="art-readtime" value="${a?.read_time||'5 min'}" placeholder="5 min"></div>
+    </div>
+    <div class="modal-2col">
+      <div class="modal-field"><label>Emoji</label><input class="modal-input" id="art-emoji" value="${a?.emoji||'📄'}" placeholder="📄"></div>
+      <div class="modal-field"><label>Image URL</label><input class="modal-input" id="art-image" value="${a?.image_url||''}" placeholder="https://..." oninput="previewArtImg(this.value)"></div>
+    </div>
+    <div class="img-preview-wrap" id="art-img-preview-wrap"><img id="art-img-preview" style="width:100%;height:120px;object-fit:cover;"></div>
+    <div class="modal-field"><label>Extrait (affiché sur la carte)</label><textarea class="modal-textarea" id="art-excerpt" rows="2" placeholder="Résumé court...">${a?.excerpt||''}</textarea></div>
+    <div class="modal-field">
+      <label>Contenu complet (HTML accepté)</label>
+      <div class="rt-toolbar">
+        <button class="rt-btn" onclick="artFmt('bold')"><b>G</b></button>
+        <button class="rt-btn" onclick="artFmt('h4')">H4</button>
+        <button class="rt-btn" onclick="artFmt('ul')">• Liste</button>
+        <button class="rt-btn" onclick="artFmt('highlight')">💚 Info</button>
+        <button class="rt-btn" onclick="artFmt('warning')">⚠️ Warn</button>
+      </div>
+      <textarea class="rt-editor" id="art-content" placeholder="Contenu complet de l'article...">${a?.content||''}</textarea>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-item"><input type="checkbox" id="art-published" ${a?.is_published?'checked':''}><label for="art-published">🟢 Publier</label></div>
+      <div class="toggle-item"><input type="checkbox" id="art-featured" ${a?.is_featured?'checked':''}><label for="art-featured">⭐ À la une</label></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeArticleModal()">Annuler</button>
+      <button class="btn-confirm blue" onclick="saveArticle(${a?.id||'null'})">${isNew?'✏️ Créer':'💾 Enregistrer'}</button>
+    </div>`;
+  if(a?.image_url){document.getElementById('art-img-preview-wrap').classList.add('show');document.getElementById('art-img-preview').src=a.image_url;}
+  document.getElementById('modal-article').classList.add('open');
+}
+function previewArtImg(url){
+  const w=document.getElementById('art-img-preview-wrap');const i=document.getElementById('art-img-preview');
+  if(url){w.classList.add('show');i.src=url;}else w.classList.remove('show');
+}
+function artFmt(type){
+  const ta=document.getElementById('art-content');
+  const sel=ta.value.substring(ta.selectionStart,ta.selectionEnd)||'Texte';
+  const m={bold:`<strong>${sel}</strong>`,h4:`<h4>${sel}</h4>`,ul:`<ul><li>${sel}</li></ul>`,highlight:`<div class="highlight">${sel}</div>`,warning:`<div class="warning">${sel}</div>`};
+  const start=ta.selectionStart;ta.setRangeText(m[type]||sel,start,ta.selectionEnd,'end');
 }
 function closeArticleModal(){document.getElementById('modal-article').classList.remove('open');}
-document.getElementById('modal-article').addEventListener('click',function(e){if(e.target===this)closeArticleModal();});
-
-// ══ TOUTES LES AUTRES FONCTIONS ══
-async function loadOverview(){
+async function saveArticle(id){
+  const title=document.getElementById('art-title').value.trim();
+  if(!title)return showToast('Titre requis','error');
+  const body={title,excerpt:document.getElementById('art-excerpt').value,content:document.getElementById('art-content').value,category:document.getElementById('art-category').value,author:document.getElementById('art-author').value,read_time:document.getElementById('art-readtime').value,emoji:document.getElementById('art-emoji').value,image_url:document.getElementById('art-image').value,is_published:document.getElementById('art-published').checked,is_featured:document.getElementById('art-featured').checked};
   try{
-    const[stats,pendingData,fraudData,rdvData]=await Promise.all([api('/admin/stats'),api('/admin/pending'),api('/admin/fraud'),api('/admin/appointments')]);
-    if(stats.success){
-      const s=stats.data;
-      document.getElementById('kpi-patients').textContent=fmtNum(s.users.patients);document.getElementById('kpi-doctors').textContent=fmtNum(s.users.doctors);document.getElementById('kpi-rdv').textContent=fmtNum(s.activity.appointments_total);document.getElementById('kpi-pharma').textContent=fmtNum(s.users.pharmacies);document.getElementById('kpi-rev-today').textContent=fmtNum(s.revenue.today)+' FCFA';document.getElementById('kpi-rev-month').textContent=fmtNum(s.revenue.month)+' FCFA ce mois';document.getElementById('kpi-presc').textContent=fmtNum(s.activity.prescriptions);document.getElementById('kpi-pending').textContent=fmtNum(s.pending.total);document.getElementById('kpi-fraud').textContent=fmtNum(s.fraud.high_severity);document.getElementById('kpi-banned').textContent=`${s.users.banned||0} bannis`;document.getElementById('kpi-patients-trend').textContent=`${s.users.active_subscriptions||0} abonnés actifs`;document.getElementById('kpi-doctors-trend').textContent=`${s.pending.doctors} en attente`;document.getElementById('kpi-rdv-trend').textContent=`${s.activity.appointments_today} aujourd'hui`;document.getElementById('badge-pending').textContent=s.pending.total;document.getElementById('badge-fraud').textContent=s.fraud.high_severity;
-      const total=s.users.patients+s.users.doctors+s.users.pharmacies+s.users.laboratories;
-      if(total>0){const C=283;const pPat=(s.users.patients/total)*C,pDoc=(s.users.doctors/total)*C,pPha=(s.users.pharmacies/total)*C,pLab=(s.users.laboratories/total)*C;let off=71;[['donut-patient',pPat],['donut-doctor',pDoc],['donut-pharma',pPha],['donut-labo',pLab]].forEach(([id,v])=>{const el=document.getElementById(id);if(el){el.setAttribute('stroke-dasharray',`${v} ${C}`);el.setAttribute('stroke-dashoffset',off);off-=v;}});document.getElementById('donut-total').textContent=total;}
-      document.getElementById('leg-patients').textContent=s.users.patients;document.getElementById('leg-doctors').textContent=s.users.doctors;document.getElementById('leg-pharmacies').textContent=s.users.pharmacies;document.getElementById('leg-labos').textContent=s.users.laboratories;
-    }
-    if(rdvData.data){const items=rdvData.data;const confirmed=items.filter(a=>a.status==='confirme').length;const done=items.filter(a=>a.status==='termine').length;const other=items.length-confirmed-done;const maxV=Math.max(confirmed,done,other,1);document.getElementById('rdv-bar-chart').innerHTML=`<div class="bar-chart">${[['Confirmés',confirmed,'#2E86FF'],['Terminés',done,'#00C9A7'],['Autres',other,'#7C3AED']].map(([l,v,c])=>`<div class="bar" style="background:${c};height:${Math.max((v/maxV)*100,4)}%;opacity:0.85;"><span class="bar-value">${v}</span><span class="bar-label">${l}</span></div>`).join('')}</div>`;}
-    if(pendingData.data){const all=pendingData.data;const el=document.getElementById('pending-mini-list');if(!all.length){el.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><p>Aucun dossier en attente</p></div>`;}else el.innerHTML=all.slice(0,4).map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><div><div style="font-size:13px;font-weight:700;">${p.name||p.phone}</div><div style="font-size:11px;color:var(--texte-doux);">${p.type} — Score ${p.trust_score||0}/100</div></div><div style="display:flex;gap:5px;"><button class="btn-validate" onclick="openValidate('${p.type}','${p.id}','${p.name||p.phone}')">✅</button><button class="btn-reject" onclick="openReject('${p.type}','${p.id}','${p.name||p.phone}')">❌</button></div></div>`).join('');}
-    if(fraudData.data){const highs=fraudData.data.filter(f=>f.severity==='high').slice(0,4);const el=document.getElementById('fraud-mini-list');if(!highs.length)el.innerHTML=`<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal haute sévérité</p></div>`;else el.innerHTML=highs.map(f=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><div><div style="font-size:13px;font-weight:700;color:var(--rouge);">${f.signal_type}</div><div style="font-size:11px;color:var(--texte-doux);">${f.actor_phone} — ${fmtShort(f.created_at)}</div></div><span class="badge badge-high">HIGH</span></div>`).join('');}
-  }catch(e){console.error('overview',e);}
+    const data=id?await api('/articles/'+id,{method:'PUT',body:JSON.stringify(body)}):await api('/articles',{method:'POST',body:JSON.stringify(body)});
+    if(data.success){closeArticleModal();showToast(id?'💾 Article mis à jour':'✅ Article créé !');await loadArticles();}else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur','error');}
 }
 
-async function loadActivity(){const data=await api('/admin/audit?limit=50');const items=data.data||[];const today=new Date().toDateString();document.getElementById('activity-count').textContent=`${items.length} événements`;document.getElementById('act-rdv-today').textContent=items.filter(i=>i.event_type==='appointment_validated'&&new Date(i.created_at).toDateString()===today).length;document.getElementById('act-prescriptions').textContent=items.filter(i=>i.event_type?.includes('prescription')).length;document.getElementById('act-new-users').textContent=items.filter(i=>i.event_type?.includes('.registered')&&new Date(i.created_at).toDateString()===today).length;const colors={'doctor.registered':'#00C9A7','pharmacie.registered':'#00A878','patient.registered':'#2E86FF','appointment_validated':'#ffa502','prescription_delivered':'#7C3AED','account.banned':'#ff4757','credits.granted':'#7C3AED','config.updated':'#ff6b9d'};document.getElementById('activity-feed').innerHTML=`<div class="feed-list">${items.map(i=>`<div class="feed-item"><div class="feed-dot" style="background:${colors[i.event_type]||'#8888aa'}"></div><div><div class="feed-action"><span class="feed-actor">${i.actor_phone}</span> — ${i.event_type?.replace(/_/g,' ')||'—'}</div><div class="feed-time">${fmtDate(i.created_at)}</div></div></div>`).join('')}</div>`;}
-
-async function loadPending(){const data=await api('/admin/pending');const all=data.data||[];document.getElementById('pending-count').textContent=`${all.length} dossiers`;if(!all.length){document.getElementById('pending-list').innerHTML=`<div class="empty"><div class="empty-icon">✅</div><p>Aucun compte en attente</p></div>`;return;}document.getElementById('pending-list').innerHTML=`<table id="pending-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Type</th><th>Score</th><th>Document</th><th>Date</th><th>Actions</th></tr></thead><tbody>${all.map(p=>`<tr><td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td><td><span class="badge badge-${p.type}">${p.type}</span></td><td><span style="font-weight:700;color:${(p.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${p.trust_score||0}/100</span><div class="score-bar"><div class="score-fill" style="width:${p.trust_score||0}%"></div></div></td><td>${p.document_url?`<a href="${p.document_url}" target="_blank" class="doc-link">📄 Voir</a>`:'—'}</td><td style="color:var(--texte-doux)">${fmtShort(p.created_at)}</td><td><div class="actions"><button class="btn-validate" onclick="openValidate('${p.type}','${p.id}','${(p.name||p.phone).replace(/'/g,'')}')">✅ Valider</button><button class="btn-reject" onclick="openReject('${p.type}','${p.id}','${(p.name||p.phone).replace(/'/g,'')}')">❌ Rejeter</button><button class="btn-view" onclick="openProfile('${p.phone}')">👁 Fiche</button></div></td></tr>`).join('')}</tbody></table>`;}
-
-async function loadDoctors(status=''){const data=await api(`/admin/doctors${status?`?status=${status}`:''}`);const items=data.data||[];document.getElementById('doctors-count').textContent=`${items.length} médecins`;document.getElementById('doctors-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">🩺</div><p>Aucun médecin</p></div>`:`<table id="doctors-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Spécialité</th><th>Code</th><th>Score</th><th>Statut</th><th>MoMo</th><th>Actions</th></tr></thead><tbody>${items.map(d=>`<tr><td><strong>${d.full_name||'—'}</strong></td><td class="td-phone">${d.phone}</td><td style="color:var(--texte-doux);font-size:12px">${d.specialty||'—'}</td><td class="td-code">${d.member_code||'—'}</td><td><span style="font-weight:700;color:${(d.trust_score||0)>=80?'var(--vert)':'var(--amber)'}">${d.trust_score||0}/100</span></td><td>${badge(d.status)}</td><td style="font-size:11px;color:var(--texte-doux)">${d.momo_number||'—'}</td><td><div class="actions">${d.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('doctor','${d.id}','verified','')">✅</button>`:''} ${d.status!=='suspended'?`<button class="btn-suspend" onclick="openSuspend('doctor','${d.id}','${(d.full_name||d.phone).replace(/'/g,'')}')">🚫</button>`:`<button class="btn-validate" onclick="changeStatus('doctor','${d.id}','verified','')">↩</button>`}<button class="btn-view" onclick="openProfile('${d.phone}')">👁</button><button class="btn-ban" onclick="openBan('${d.phone}','${(d.full_name||d.phone).replace(/'/g,'')}')">🔒</button></div></td></tr>`).join('')}</tbody></table>`;}
-
-async function loadPharmacies(status=''){const data=await api(`/admin/pharmacies${status?`?status=${status}`:''}`);const items=data.data||[];document.getElementById('pharmacies-count').textContent=`${items.length} pharmacies`;document.getElementById('pharmacies-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>`:`<table id="pharmacies-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Responsable</th><th>Code</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${items.map(p=>`<tr><td><strong>${p.name||'—'}</strong></td><td class="td-phone">${p.phone}</td><td style="font-size:12px;color:var(--texte-doux)">${p.responsible_name||'—'}</td><td class="td-code">${p.member_code||'—'}</td><td>${badge(p.status)}</td><td><div class="actions">${p.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('pharmacie','${p.id}','verified','')">✅</button>`:''}<button class="btn-view" onclick="openProfile('${p.phone}')">👁</button><button class="btn-ban" onclick="openBan('${p.phone}','${p.name.replace(/'/g,'')}')">🔒</button></div></td></tr>`).join('')}</tbody></table>`;}
-
-async function loadLaboratories(){const data=await api('/admin/laboratories');const items=data.data||[];document.getElementById('laboratories-count').textContent=`${items.length} laboratoires`;document.getElementById('laboratories-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">🔬</div><p>Aucun laboratoire</p></div>`:`<table id="laboratories-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>Directeur</th><th>Code</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${items.map(l=>`<tr><td><strong>${l.name||'—'}</strong></td><td class="td-phone">${l.phone}</td><td style="font-size:12px;color:var(--texte-doux)">${l.director_name||'—'}</td><td class="td-code">${l.member_code||'—'}</td><td>${badge(l.status)}</td><td><div class="actions">${l.status!=='verified'?`<button class="btn-validate" onclick="changeStatus('laboratoire','${l.id}','verified','')">✅</button>`:''}<button class="btn-view" onclick="openProfile('${l.phone}')">👁</button><button class="btn-ban" onclick="openBan('${l.phone}','${l.name.replace(/'/g,'')}')">🔒</button></div></td></tr>`).join('')}</tbody></table>`;}
-
-async function loadPatients(){const data=await api('/admin/users?role=patient&page=1');const items=data.data||[];document.getElementById('patients-count').textContent=`${items.length} patients`;document.getElementById('patients-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">👤</div><p>Aucun patient</p></div>`:`<table id="patients-table"><thead><tr><th>Nom</th><th>Téléphone</th><th>ID Bolamu</th><th>Abonnement</th><th>Crédits</th><th>Statut</th><th>Inscrit le</th><th>Actions</th></tr></thead><tbody>${items.map(p=>`<tr><td><strong>${p.full_name||'—'}</strong></td><td class="td-phone">${p.phone}</td><td class="td-code">${p.bolamu_id||'—'}</td><td>${p.statut_abonnement?badge(p.statut_abonnement):'—'}</td><td style="color:var(--violet);font-weight:700">${p.credits_balance||0} 💎</td><td>${p.banned?badge('banned'):p.is_active?`<span class="badge badge-verified">✅ Actif</span>`:`<span class="badge badge-suspended">🚫 Inactif</span>`}</td><td style="color:var(--texte-doux);font-size:12px">${fmtShort(p.created_at)}</td><td><div class="actions"><button class="btn-view" onclick="openProfile('${p.phone}')">👁</button>${p.banned?`<button class="btn-unban" onclick="unbanUser('${p.phone}')">↩</button>`:`<button class="btn-ban" onclick="openBan('${p.phone}','${(p.full_name||p.phone).replace(/'/g,'')}')">🔒</button>`}<button class="btn-credit" onclick="openGrantCredit('${p.phone}')">💎</button></div></td></tr>`).join('')}</tbody></table>`;}
-
-async function loadAppointments(){const data=await api('/admin/appointments');const items=data.data||[];const done=items.filter(a=>a.status==='termine').length;const confirmed=items.filter(a=>a.status==='confirme').length;document.getElementById('appt-total').textContent=items.length;document.getElementById('appt-done').textContent=done;document.getElementById('appt-confirmed').textContent=confirmed;document.getElementById('appt-count').textContent=`${items.length} RDV`;document.getElementById('appointments-list').innerHTML=!items.length?`<div class="empty"><p>Aucun rendez-vous</p></div>`:`<table><thead><tr><th>Patient</th><th>Médecin</th><th>Date</th><th>Heure</th><th>Code session</th><th>Statut</th></tr></thead><tbody>${items.slice(0,200).map(a=>`<tr><td class="td-phone">${a.patient_phone}</td><td style="font-size:12px">${a.doctor_name||`ID ${a.doctor_id}`}</td><td style="font-size:12px">${fmtShort(a.appointment_date)}</td><td style="font-size:12px;color:var(--texte-doux)">${(a.appointment_time||'—').substring(0,5)}</td><td class="td-code">${a.session_code||'—'}</td><td>${badge(a.status)}</td></tr>`).join('')}</tbody></table>`;}
-
-async function loadPrescriptions(){const data=await api('/admin/prescriptions');const items=data.data||[];document.getElementById('pres-count').textContent=`${items.length} ordonnances`;document.getElementById('prescriptions-list').innerHTML=!items.length?`<div class="empty"><p>Aucune ordonnance</p></div>`:`<table><thead><tr><th>Patient</th><th>Médecin</th><th>Code</th><th>Statut</th><th>Pharmacie</th><th>Date</th></tr></thead><tbody>${items.slice(0,200).map(p=>`<tr><td class="td-phone">${p.patient_phone}</td><td style="font-size:12px">${p.doctor_name||p.doctor_phone}</td><td class="td-code">${p.session_code||'—'}</td><td>${badge(p.status==='livre'?'verified':p.status==='active'?'pending':p.status)}</td><td style="font-size:11px;color:var(--texte-doux)">${p.pharmacie_phone||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtShort(p.created_at)}</td></tr>`).join('')}</tbody></table>`;}
-
-async function loadPayments(){const data=await api('/admin/payments');const items=data.data||[];document.getElementById('pay-total-rev').textContent=fmtNum(data.total_revenue)+' FCFA';document.getElementById('pay-total-count').textContent=fmtNum(data.total_count);document.getElementById('pay-momo').textContent=items.filter(p=>p.operator==='mtn'||p.operator==='airtel').length;document.getElementById('pay-count').textContent=`${items.length} transactions`;document.getElementById('payments-list').innerHTML=!items.length?`<div class="empty"><p>Aucun paiement</p></div>`:`<table><thead><tr><th>Patient</th><th>Montant (FCFA)</th><th>Opérateur</th><th>Plan</th><th>Statut</th><th>Date</th></tr></thead><tbody>${items.map(p=>`<tr><td><span style="font-weight:600">${p.patient_name||p.patient_phone}</span></td><td style="font-weight:700;color:var(--vert)">${fmtNum(p.amount_fcfa)}</td><td style="text-transform:uppercase;font-size:12px">${p.operator||'—'}</td><td style="font-size:12px">${p.plan||'—'}</td><td>${badge(p.status)}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtDate(p.created_at)}</td></tr>`).join('')}</tbody></table>`;}
-
-async function loadFraud(){const data=await api('/admin/fraud');const items=data.data||[];document.getElementById('fraud-count').textContent=`${items.length} signaux`;document.getElementById('fraud-high').textContent=items.filter(f=>f.severity==='high').length;document.getElementById('fraud-medium').textContent=items.filter(f=>f.severity==='medium').length;document.getElementById('fraud-low').textContent=items.filter(f=>f.severity==='low').length;document.getElementById('fraud-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">🛡️</div><p>Aucun signal détecté</p></div>`:`<table><thead><tr><th>Type</th><th>Acteur</th><th>Sévérité</th><th>Date</th><th>Action</th></tr></thead><tbody>${items.map(f=>`<tr><td style="font-weight:700;font-size:12px">${f.signal_type?.replace(/_/g,' ')}</td><td class="td-phone">${f.actor_phone}</td><td>${badge(f.severity)}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtShort(f.created_at)}</td><td><div class="actions"><button class="btn-ban" onclick="suspendFraud(${f.id})">🔒 Bannir</button><button class="btn-view" onclick="openProfile('${f.actor_phone}')">👁</button></div></td></tr>`).join('')}</tbody></table>`;}
-
-async function loadAudit(filter=''){const data=await api(`/admin/audit${filter?`?event_type=${filter}`:''}`);const items=data.data||[];document.getElementById('audit-count').textContent=`${items.length} entrées`;document.getElementById('audit-list').innerHTML=!items.length?`<div class="empty"><p>Journal vide</p></div>`:`<table id="audit-table"><thead><tr><th>Événement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead><tbody>${items.map(a=>`<tr><td style="font-weight:600;font-size:12px">${a.event_type||'—'}</td><td class="td-phone">${a.actor_phone||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${a.target_table||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${a.target_id||'—'}</td><td style="font-size:12px;color:var(--texte-doux)">${fmtDate(a.created_at)}</td></tr>`).join('')}</tbody></table>`;}
-
-async function loadConfig(){const data=await api('/admin/config');const items=data.data||[];const groups={'Abonnements patients':items.filter(i=>['price_essentiel','price_standard','price_premium'].includes(i.key)),'Rémunération médecins':items.filter(i=>i.key.startsWith('doctor_fee')),'Phase commerciale':items.filter(i=>['active_phase','doctor_patient_ratio','breakeven_subscribers','subscription_duration_days'].includes(i.key)),'Système de crédits':items.filter(i=>i.key.startsWith('credit'))};document.getElementById('config-grid').innerHTML=Object.entries(groups).map(([title,cfgs])=>`<div class="config-card"><div class="config-section-title">${title}</div>${cfgs.map(c=>`<div class="config-item"><div><div class="config-key">${c.key}</div><div class="config-desc">${c.description||''}</div></div><div class="config-val" onclick="openEditConfig('${c.key}','${c.value}','${(c.description||'').replace(/'/g,'')}')"> ${c.value}${['price_essentiel','price_standard','price_premium','doctor_fee_bootstrap','doctor_fee_growth','doctor_fee_maturity'].includes(c.key)?' FCFA':''}</div></div>`).join('')}</div>`).join('');}
-
-async function loadCredits(){const data=await api('/admin/credits');const items=data.data||[];const totalBal=items.reduce((s,c)=>s+(c.balance||0),0);const totalEarned=items.reduce((s,c)=>s+(c.total_earned||0),0);const totalSpent=items.reduce((s,c)=>s+(c.total_spent||0),0);document.getElementById('cr-total-accounts').textContent=items.length;document.getElementById('cr-total-balance').textContent=fmtNum(totalBal);document.getElementById('cr-total-earned').textContent=fmtNum(totalEarned);document.getElementById('cr-total-spent').textContent=fmtNum(totalSpent);document.getElementById('credits-list').innerHTML=!items.length?`<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte crédits</p></div>`:`<table><thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Solde</th><th>Total gagné</th><th>Total dépensé</th><th>Actions</th></tr></thead><tbody>${items.map(c=>`<tr><td><strong>${c.display_name||'—'}</strong></td><td class="td-phone">${c.phone}</td><td><span class="badge badge-${c.role}">${c.role}</span></td><td style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--violet)">${fmtNum(c.balance)} 💎</td><td style="color:var(--vert);font-weight:700">+${fmtNum(c.total_earned)}</td><td style="color:var(--rouge);font-weight:700">-${fmtNum(c.total_spent)}</td><td><button class="btn-credit" onclick="openGrantCredit('${c.phone}')">💎 Attribuer</button></td></tr>`).join('')}</tbody></table>`;}
-
-function openValidate(type,id,name){modal(`✅ Valider le compte`,`Voulez-vous valider et activer le compte de <strong>${name}</strong> ?`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm green" onclick="doValidate('${type}','${id}','approved')">✅ Confirmer</button>`);}
-function openReject(type,id,name){modal(`❌ Rejeter le dossier`,`Le dossier de <strong>${name}</strong> sera rejeté.`,`<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-reason" placeholder="Ex : Document illisible..."></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="doValidate('${type}','${id}','rejected',document.getElementById('m-reason').value)">❌ Confirmer</button>`);}
-function openSuspend(entity,id,name){modal(`🚫 Suspendre`,`Suspendre le compte de <strong>${name}</strong>.`,`<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-reason" placeholder="Motif..."></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="changeStatus('${entity}','${id}','suspended',document.getElementById('m-reason').value)">🚫 Suspendre</button>`);}
-function openBan(phone,name){modal(`🔒 Bannir`,`Le compte de <strong>${name}</strong> (${phone}) sera banni.`,`<div class="modal-field"><label>Motif</label><input class="modal-input" id="m-ban-reason" placeholder="Ex : Activité frauduleuse..."></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="banUser('${phone}',document.getElementById('m-ban-reason').value)">🔒 Bannir</button>`);}
-function openEditConfig(key,value,desc){modal(`⚙️ Modifier`,`Paramètre : <strong>${key}</strong>`,`<div class="modal-field"><label>Nouvelle valeur</label><input class="modal-input" id="m-config-val" value="${value}"></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm blue" onclick="saveConfig('${key}',document.getElementById('m-config-val').value)">💾 Enregistrer</button>`);}
-function openGrantCredit(prePhone=''){modal(`💎 Attribuer des crédits`,`Attribution manuelle.`,`<div class="modal-field"><label>Téléphone</label><input class="modal-input" id="m-cr-phone" value="${prePhone}" placeholder="+242..."></div><div class="modal-field"><label>Montant</label><input class="modal-input" id="m-cr-amount" type="number" placeholder="500"></div><div class="modal-field"><label>Motif</label><input class="modal-input" id="m-cr-reason" placeholder="Bonus fidélité..."></div>`,`<button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm violet" onclick="grantCredit()">💎 Attribuer</button>`);}
-
-async function doValidate(type,id,action,reason=''){closeModal();const act=action==='approved'?'approve':'reject';const data=await api('/admin/validate',{method:'PATCH',body:JSON.stringify({id:parseInt(id),type,action:act,reason})});if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');}
-async function changeStatus(entity,id,status,reason=''){closeModal();const endpoints={doctor:`/admin/doctors/${id}/status`,pharmacie:`/admin/pharmacies/${id}/status`,laboratoire:`/admin/laboratories/${id}/status`};const data=await api(endpoints[entity],{method:'PATCH',body:JSON.stringify({status,reason})});if(data.success){showToast(`Statut → ${status}`);refreshAll();}else showToast(data.message,'error');}
-async function banUser(phone,reason){closeModal();const data=await api(`/admin/users/${encodeURIComponent(phone)}/ban`,{method:'PATCH',body:JSON.stringify({reason})});if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');}
-async function unbanUser(phone){const data=await api(`/admin/users/${encodeURIComponent(phone)}/unban`,{method:'PATCH',body:'{}'});if(data.success){showToast(data.message);refreshAll();}else showToast(data.message,'error');}
-async function suspendFraud(id){if(!confirm('Bannir ce compte pour fraude ?'))return;const data=await api(`/admin/fraud/${id}/suspend`,{method:'PATCH',body:'{}'});if(data.success){showToast(data.message);loadFraud();}else showToast(data.message,'error');}
-async function saveConfig(key,value){closeModal();const data=await api(`/admin/config/${key}`,{method:'PATCH',body:JSON.stringify({value})});if(data.success){showToast(data.message);loadConfig();}else showToast(data.message,'error');}
-async function grantCredit(){const phone=document.getElementById('m-cr-phone').value.trim();const amount=document.getElementById('m-cr-amount').value.trim();const reason=document.getElementById('m-cr-reason').value.trim();if(!phone||!amount||!reason){showToast('Tous les champs sont requis','error');return;}closeModal();const data=await api('/admin/credits/grant',{method:'POST',body:JSON.stringify({phone,amount:parseInt(amount),reason})});if(data.success){showToast(data.message);loadCredits();}else showToast(data.message,'error');}
-
-async function openProfile(phone){showModal();document.getElementById('modal-body').innerHTML=`<div class="modal-title">👁 Fiche</div><div class="loading">Chargement...</div>`;const data=await api(`/admin/users/${encodeURIComponent(phone)}/profile`);if(!data.success){document.getElementById('modal-body').innerHTML=`<div class="modal-title">Erreur</div><p style="color:var(--rouge)">${data.message}</p><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;return;}const{user:u,pro_profile:pp}=data.data;document.getElementById('modal-body').innerHTML=`<div class="modal-title">${u.full_name||u.phone}</div><div class="modal-section"><div class="modal-section-title">Informations compte</div><div class="modal-info-grid"><div class="modal-info-item"><label>Téléphone</label><span>${u.phone}</span></div><div class="modal-info-item"><label>Rôle</label><span>${u.role}</span></div><div class="modal-info-item"><label>Statut</label><span>${u.banned?'🔒 Banni':u.is_active?'✅ Actif':'🚫 Inactif'}</span></div><div class="modal-info-item"><label>Crédits</label><span style="color:var(--violet)">${u.credits_balance||0} 💎</span></div><div class="modal-info-item"><label>Inscrit le</label><span>${fmtShort(u.created_at)}</span></div></div></div>${pp?`<div class="modal-section"><div class="modal-section-title">Profil professionnel</div><div class="modal-info-grid"><div class="modal-info-item"><label>Statut</label><span>${badge(pp.status)}</span></div><div class="modal-info-item"><label>Score</label><span>${pp.trust_score||0}/100</span></div><div class="modal-info-item"><label>Code</label><span style="color:var(--bleu)">${pp.member_code||'—'}</span></div></div>${pp.document_url?`<div style="margin-top:12px;"><a href="${pp.document_url}" target="_blank" class="doc-link">📄 Voir le document →</a></div>`:''}</div>`:''}<div class="modal-actions">${u.banned?`<button class="btn-confirm green" onclick="unbanUser('${u.phone}');closeModal()">↩ Réanimer</button>`:`<button class="btn-confirm red" onclick="closeModal();openBan('${u.phone}','${(u.full_name||u.phone).replace(/'/g,'')}')">🔒 Bannir</button>`}<button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;}
-
-function modal(title,sub,body='',actions=''){document.getElementById('modal-body').innerHTML=`<div class="modal-title">${title}</div><div class="modal-sub">${sub}</div>${body}<div class="modal-actions">${actions}</div>`;showModal();}
-function showModal(){document.getElementById('modal').classList.add('open');}
-function closeModal(){document.getElementById('modal').classList.remove('open');}
-document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-
-function refreshAll(){const active=document.querySelector('.nav-item.active');const m=active?.onclick?.toString().match(/'(\w+)'/);if(m)loadPanel(m[1]);else loadOverview();}
-function logout(){localStorage.clear();window.location.href='/admin/login.html';}
-
-// ══ VITRINE & HERO ═══════════════════════════════════════════
-const VITRINE_DEFAULTS={
-  hero:{name:'Médecin partenaire Bolamu',subtitle:'Disponible maintenant',image_url:'docteur_optimized.jpg'},
-  block_patients:{tag:'Patients',title:'Votre santé protégée',desc:'Accès illimité · Dossier médical sécurisé · Partenaires bien-être',image_url:'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80'},
-  block_medecins:{tag:'Médecins',title:'Votre dignité retrouvée',desc:'Payés à la prestation · Revenus réguliers sur MoMo · Indépendance totale',image_url:'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80'},
-  block_pharmacies:{tag:'Pharmacies',title:'Des clients qualifiés',desc:'Ordonnances numériques sécurisées · Visibilité plateforme · Zéro coût',image_url:'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&q=80'},
-  block_laboratoires:{tag:'Laboratoires',title:"Intégrez l'écosystème",desc:'Résultats numériques sécurisés · Traçabilité totale · Partenariat certifié',image_url:'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80'}
-};
-
+// ════════════════════════════════════════════
+// VITRINE
+// ════════════════════════════════════════════
+let vitrineBlocks={};
 async function loadVitrine(){
-  let vitrineData={};
-  try{const res=await fetch('/api/v1/articles/content-blocks',{headers:{'Authorization':'Bearer '+token}});const data=await res.json();vitrineData=data.blocks||{};}catch(e){}
-  const hero=vitrineData.hero||VITRINE_DEFAULTS.hero;
-  document.getElementById('hero-name').value=hero.name||'';
-  document.getElementById('hero-subtitle').value=hero.subtitle||'';
-  document.getElementById('hero-image-url').value=hero.image_url||'';
-  if(hero.image_url)vitPreview('hero-img-preview',hero.image_url);
-  const cards=['block_patients','block_medecins','block_pharmacies','block_laboratoires'];
-  const icons={block_patients:'👤',block_medecins:'🩺',block_pharmacies:'💊',block_laboratoires:'🔬'};
-  document.getElementById('vitrine-cards-grid').innerHTML=cards.map(key=>{
-    const d=vitrineData[key]||VITRINE_DEFAULTS[key]||{};
-    return`<div class="config-card">
-      <div class="config-section-title">${icons[key]} Carte ${d.tag||key}</div>
-      <div class="modal-field"><label>Tag</label><input class="modal-input" id="${key}-tag" value="${d.tag||''}" placeholder="Patients"></div>
-      <div class="modal-field"><label>Titre</label><input class="modal-input" id="${key}-title" value="${d.title||''}" placeholder="Votre santé protégée"></div>
-      <div class="modal-field"><label>Description</label><input class="modal-input" id="${key}-desc" value="${d.desc||''}" placeholder="Courte description..."></div>
-      <div class="modal-field">
-        <label>Photo</label>
-        <input type="file" id="${key}-file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleVitrineUpload(this,'${key}-img-url','${key}-preview-img')">
-        <button type="button" onclick="document.getElementById('${key}-file').click()" style="padding:8px 14px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.3);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:8px;">📁 Choisir</button>
-        <input class="modal-input" id="${key}-img-url" value="${d.image_url||''}" placeholder="https://..." oninput="vitPreview('${key}-preview-img',this.value)" style="margin-bottom:6px;">
-        <img id="${key}-preview-img" src="${d.image_url||''}" style="display:${d.image_url?'block':'none'};width:100%;height:140px;object-fit:cover;border-radius:10px;margin-top:6px;">
-      </div>
-      <button class="btn-confirm blue" style="max-width:180px;padding:10px;" onclick="saveVitrineBlock('${key}')">💾 Enregistrer</button>
-    </div>`;
-  }).join('');
-}
-
-function vitPreview(imgId,url){const img=document.getElementById(imgId);if(!img)return;if(url&&url.length>3){img.src=url;img.style.display='block';}else img.style.display='none';}
-
-async function handleVitrineUpload(input,urlInputId,imgId){
-  const file=input.files[0];if(!file)return;
-  const formData=new FormData();formData.append('image',file);
-  const urlInput=document.getElementById(urlInputId);
-  if(urlInput)urlInput.value='⏳ Upload en cours...';
   try{
-    const res=await fetch('/api/v1/articles/upload-image',{method:'POST',headers:{'Authorization':'Bearer '+token},body:formData});
-    const data=await res.json();
-    if(!data.success)throw new Error(data.message);
-    if(urlInput)urlInput.value=data.image_url;
-    vitPreview(imgId,data.image_url);
-    showToast('Image uploadée ✅');
-  }catch(e){if(urlInput)urlInput.value='';showToast('Erreur upload : '+e.message,'error');}
-}
-
-async function saveVitrineBlock(key){
-  let body={};
-  if(key==='hero'){body={name:document.getElementById('hero-name').value.trim(),subtitle:document.getElementById('hero-subtitle').value.trim(),image_url:document.getElementById('hero-image-url').value.trim()};}
-  else{body={tag:document.getElementById(`${key}-tag`).value.trim(),title:document.getElementById(`${key}-title`).value.trim(),desc:document.getElementById(`${key}-desc`).value.trim(),image_url:document.getElementById(`${key}-img-url`).value.trim()};}
-  try{
-    const res=await fetch(`/api/v1/articles/content-blocks/${key}`,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();
-    if(data.success)showToast('✅ Sauvegardé — visible sur le site !');else showToast(data.message||'Erreur','error');
-  }catch(e){showToast('Erreur de connexion','error');}
-}
-
-// ══ PLANS & TARIFS ════════════════════════════════════════════
-async function loadPlans(){
-  const grid=document.getElementById('plans-grid');
-  grid.innerHTML='<div class="loading">Chargement...</div>';
-  try{
-    const res=await fetch('/api/v1/articles/plans',{headers:{'Authorization':'Bearer '+token}});
-    const data=await res.json();
-    const plans=data.plans||{};
-    const keys=['essentiel','standard','premium'];
-    const icons={essentiel:'🌱',standard:'⭐',premium:'👑'};
-    grid.innerHTML=keys.map(key=>{
-      const p=plans[key]||{};
-      const features=Array.isArray(p.features)?p.features.join('\n'):(p.features||'');
+    const data=await api('/articles/admin/content-blocks');
+    vitrineBlocks=data.blocks||{};
+    // Hero
+    const h=vitrineBlocks.hero||{};
+    document.getElementById('hero-name').value=h.name||'';
+    document.getElementById('hero-subtitle').value=h.subtitle||'';
+    document.getElementById('hero-image-url').value=h.image_url||'';
+    if(h.image_url)vitPreview('hero-img-preview',h.image_url);
+    // 4 acteurs
+    const ACTORS=[{key:'block_patients',label:'👤 Patients'},{key:'block_medecins',label:'🩺 Médecins'},{key:'block_pharmacies',label:'💊 Pharmacies'},{key:'block_laboratoires',label:'🔬 Laboratoires'}];
+    const grid=document.getElementById('vitrine-cards-grid');
+    grid.innerHTML=ACTORS.map(({key,label})=>{
+      const b=vitrineBlocks[key]||{};
       return`<div class="config-card">
-        <div class="config-section-title">${icons[key]} Plan ${key.charAt(0).toUpperCase()+key.slice(1)}</div>
-        <div class="modal-field"><label>Nom du plan</label><input class="modal-input" id="plan-${key}-name" value="${p.name||key}" placeholder="Standard"></div>
-        <div class="modal-field"><label>Prix (FCFA)</label><input class="modal-input" type="number" id="plan-${key}-price" value="${p.price||0}" placeholder="2500"></div>
-        <div class="modal-field"><label>Période</label><input class="modal-input" id="plan-${key}-period" value="${p.period||'/ mois'}" placeholder="/ mois"></div>
-        <div class="modal-field"><label>Couleur accent</label><input class="modal-input" id="plan-${key}-color" value="${p.color||'#2E86FF'}" type="color" style="height:44px;padding:4px 8px;cursor:pointer;"></div>
-        <div class="modal-field"><label>Badge (vide = aucun)</label><input class="modal-input" id="plan-${key}-badge" value="${p.badge||''}" placeholder="Recommandé"></div>
+        <div class="config-section-title">${label}</div>
+        <div class="modal-field"><label>Tag affiché</label><input class="modal-input" id="${key}-tag" value="${b.tag||''}"></div>
+        <div class="modal-field"><label>Titre</label><input class="modal-input" id="${key}-title" value="${b.title||''}"></div>
+        <div class="modal-field"><label>Description</label><input class="modal-input" id="${key}-desc" value="${b.desc||''}"></div>
         <div class="modal-field">
-          <label>Fonctionnalités <span style="color:var(--texte-doux);font-weight:400;">(une par ligne)</span></label>
-          <textarea class="modal-textarea" id="plan-${key}-features" style="min-height:140px;">${features}</textarea>
+          <label>Image</label>
+          <input type="file" id="${key}-file" accept="image/*" style="display:none" onchange="handleVitrineUpload(this,'${key}-img','${key}-preview')">
+          <div style="display:flex;gap:5px;margin-bottom:4px;">
+            <button type="button" onclick="document.getElementById('${key}-file').click()" style="padding:5px 9px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.3);border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;">📁 Upload</button>
+            <input class="modal-input" id="${key}-img" value="${b.image_url||''}" placeholder="https://..." oninput="vitPreview('${key}-preview',this.value)" style="flex:1;">
+          </div>
+          <img id="${key}-preview" class="vitrine-img-preview" ${b.image_url?`src="${b.image_url}" style="display:block"`:''}> 
         </div>
-        <div class="toggle-switch" style="margin-bottom:16px;">
-          <label style="font-size:12px;color:var(--texte-doux);font-weight:700;text-transform:uppercase;letter-spacing:1px;">⭐ Recommandé</label>
-          <input type="checkbox" id="plan-${key}-recommended" ${p.recommended?'checked':''}>
-        </div>
-        <button class="btn-confirm blue" style="padding:11px;" onclick="savePlan('${key}')">💾 Enregistrer ce plan</button>
+        <button class="btn-confirm blue" style="max-width:150px;padding:7px;font-size:10px;" onclick="saveVitrineBlock('${key}')">💾 Enregistrer</button>
       </div>`;
     }).join('');
-  }catch(e){grid.innerHTML='<div class="empty"><p>Erreur de chargement</p></div>';}
+  }catch(e){console.error(e);}
+}
+function vitPreview(id,url){
+  const img=document.getElementById(id);if(!img)return;
+  if(url){img.src=url;img.style.display='block';}else img.style.display='none';
+}
+async function handleVitrineUpload(input,urlId,previewId){
+  const file=input.files[0];if(!file)return;
+  const fd=new FormData();fd.append('image',file);
+  try{
+    const res=await fetch('/api/v1/articles/admin/upload-vitrine',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+    const data=await res.json();
+    if(data.success){document.getElementById(urlId).value=data.url;vitPreview(previewId,data.url);showToast('📸 Image uploadée');}
+    else showToast(data.message||'Erreur upload','error');
+  }catch(e){showToast('Erreur upload','error');}
+}
+async function saveVitrineBlock(key){
+  let content={};
+  if(key==='hero'){
+    content={name:document.getElementById('hero-name').value,subtitle:document.getElementById('hero-subtitle').value,image_url:document.getElementById('hero-image-url').value};
+  }else{
+    content={tag:document.getElementById(key+'-tag').value,title:document.getElementById(key+'-title').value,desc:document.getElementById(key+'-desc').value,image_url:document.getElementById(key+'-img').value};
+  }
+  try{
+    const data=await api('/articles/admin/content-blocks/'+key,{method:'PUT',body:JSON.stringify({content})});
+    if(data.success)showToast('💾 Sauvegardé !');else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur','error');}
 }
 
+// ════════════════════════════════════════════
+// PLANS / OFFRES
+// ════════════════════════════════════════════
+async function loadPlans(){
+  const grid=document.getElementById('plans-grid');
+  try{
+    const data=await api('/articles/admin/content-blocks');
+    const blocks=data.blocks||{};
+    const PLANS=[{key:'plan_essentiel',label:'Essentiel'},{key:'plan_standard',label:'Standard'},{key:'plan_premium',label:'Premium'}];
+    grid.innerHTML=PLANS.map(({key,label})=>{
+      const p=blocks[key]||{name:label,price:0,period:'FCFA / mois',annual:'',badge:'',color:'#2E86FF',featured:false,features:''};
+      return`<div class="plan-edit-card">
+        <div class="plan-edit-title" style="color:${p.color||'#2E86FF'}">💳 ${p.name||label}</div>
+        <div class="modal-field"><label>Nom du plan</label><input class="modal-input" id="${key}-name" value="${p.name||label}"></div>
+        <div class="modal-2col">
+          <div class="modal-field"><label>Prix (FCFA/mois)</label><input class="modal-input" id="${key}-price" type="number" value="${p.price||0}"></div>
+          <div class="modal-field"><label>Période</label><input class="modal-input" id="${key}-period" value="${p.period||'FCFA / mois'}"></div>
+        </div>
+        <div class="modal-field"><label>Texte annuel</label><input class="modal-input" id="${key}-annual" value="${p.annual||''}" placeholder="30 000 FCFA / an"></div>
+        <div class="modal-field"><label>Badge (ex: ⭐ Recommandé — laisser vide si aucun)</label><input class="modal-input" id="${key}-badge" value="${p.badge||''}" placeholder="⭐ Recommandé"></div>
+        <div class="modal-field"><label>Couleur du plan (hex)</label><input class="modal-input" id="${key}-color" value="${p.color||'#2E86FF'}" placeholder="#2E86FF" type="color" style="height:36px;cursor:pointer;"></div>
+        <div class="modal-field">
+          <label>Fonctionnalités (une par ligne)</label>
+          <textarea class="modal-textarea" id="${key}-features" rows="6" placeholder="Accès illimité&#10;Dossier médical&#10;...">${(p.features||'').split('\\n').join('\n')}</textarea>
+        </div>
+        <div class="toggle-row" style="margin-bottom:10px;">
+          <div class="toggle-item"><input type="checkbox" id="${key}-featured" ${p.featured?'checked':''}><label for="${key}-featured">🌟 En avant (featured)</label></div>
+        </div>
+        <button class="btn-confirm blue" style="padding:8px;" onclick="savePlan('${key}')">💾 Enregistrer</button>
+      </div>`;
+    }).join('');
+  }catch(e){grid.innerHTML='<div class="empty">Erreur</div>';}
+}
 async function savePlan(key){
-  const featuresRaw=document.getElementById(`plan-${key}-features`).value;
-  const features=featuresRaw.split('\n').map(f=>f.trim()).filter(f=>f.length>0);
-  const body={
-    name:document.getElementById(`plan-${key}-name`).value.trim(),
-    price:parseInt(document.getElementById(`plan-${key}-price`).value)||0,
-    period:document.getElementById(`plan-${key}-period`).value.trim()||'/ mois',
-    color:document.getElementById(`plan-${key}-color`).value.trim()||'#2E86FF',
-    badge:document.getElementById(`plan-${key}-badge`).value.trim(),
-    features,
-    recommended:document.getElementById(`plan-${key}-recommended`).checked
+  const content={
+    name:document.getElementById(key+'-name').value,
+    price:parseInt(document.getElementById(key+'-price').value)||0,
+    period:document.getElementById(key+'-period').value,
+    annual:document.getElementById(key+'-annual').value,
+    badge:document.getElementById(key+'-badge').value,
+    color:document.getElementById(key+'-color').value,
+    featured:document.getElementById(key+'-featured').checked,
+    features:document.getElementById(key+'-features').value
   };
   try{
-    const res=await fetch(`/api/v1/articles/plans/${key}`,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();
-    if(data.success)showToast(`✅ Plan ${key} sauvegardé — visible sur le site !`);else showToast(data.message||'Erreur','error');
-  }catch(e){showToast('Erreur de connexion','error');}
+    const data=await api('/articles/admin/content-blocks/'+key,{method:'PUT',body:JSON.stringify({content})});
+    if(data.success)showToast('💾 Plan sauvegardé !');else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur','error');}
 }
-// ─────────────────────────────────────────────────────────────
 
+// ════════════════════════════════════════════
+// TEXTES DU SITE
+// ════════════════════════════════════════════
+const TEXTES_CONFIG=[
+  {key:'texte_hero_badge',label:'Badge Hero (ex: Plateforme active à Brazzaville)'},
+  {key:'texte_hero_titre',label:'Titre principal Hero'},
+  {key:'texte_hero_sous',label:'Sous-titre Hero',textarea:true},
+  {key:'texte_hero_cta1',label:'Bouton CTA 1 (primaire)'},
+  {key:'texte_hero_cta2',label:'Bouton CTA 2 (secondaire)'},
+  {key:'texte_stat1_nb',label:'Stats — Chiffre 1'},
+  {key:'texte_stat1_lbl',label:'Stats — Libellé 1'},
+  {key:'texte_stat2_nb',label:'Stats — Chiffre 2'},
+  {key:'texte_stat2_lbl',label:'Stats — Libellé 2'},
+  {key:'texte_stat3_nb',label:'Stats — Chiffre 3'},
+  {key:'texte_stat3_lbl',label:'Stats — Libellé 3'},
+  {key:'texte_stat4_nb',label:'Stats — Chiffre 4'},
+  {key:'texte_stat4_lbl',label:'Stats — Libellé 4'},
+  {key:'texte_plans_titre',label:'Section Plans — Titre'},
+  {key:'texte_plans_sous',label:'Section Plans — Sous-titre',textarea:true},
+  {key:'texte_footer_desc',label:'Footer — Description Bolamu',textarea:true},
+  {key:'texte_footer_copy',label:'Footer — Copyright'}
+];
+async function loadTextes(){
+  const el=document.getElementById('textes-grid');
+  try{
+    const data=await api('/articles/admin/content-blocks');
+    const blocks=data.blocks||{};
+    el.innerHTML='<div class="textes-grid">'+TEXTES_CONFIG.map(t=>{
+      const val=(blocks[t.key]||{}).value||'';
+      const input=t.textarea
+        ?`<textarea class="texte-block-input" id="txt-${t.key}" rows="3">${val}</textarea>`
+        :`<input class="texte-block-input" id="txt-${t.key}" value="${val.replace(/"/g,'&quot;')}">`;
+      return`<div class="texte-block"><div class="texte-block-title">${t.label}</div>${input}<button class="save-block-btn" onclick="saveTexte('${t.key}')">💾 Enregistrer</button></div>`;
+    }).join('')+'</div>';
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+async function saveTexte(key){
+  const el=document.getElementById('txt-'+key);
+  if(!el)return;
+  const val=el.value;
+  try{
+    const data=await api('/articles/admin/content-blocks/'+key,{method:'PUT',body:JSON.stringify({content:{value:val}})});
+    if(data.success)showToast('💾 Texte sauvegardé !');else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur','error');}
+}
+
+// ════════════════════════════════════════════
+// RÉSEAUX SOCIAUX
+// ════════════════════════════════════════════
+const RESEAUX_CONFIG=[
+  {key:'whatsapp',icon:'💬',label:'WhatsApp',placeholder:'https://wa.me/242...'},
+  {key:'instagram',icon:'📸',label:'Instagram',placeholder:'https://instagram.com/bolamu'},
+  {key:'facebook',icon:'📘',label:'Facebook',placeholder:'https://facebook.com/bolamu'},
+  {key:'tiktok',icon:'🎵',label:'TikTok',placeholder:'https://tiktok.com/@bolamu'},
+  {key:'youtube',icon:'▶️',label:'YouTube',placeholder:'https://youtube.com/@bolamu'},
+  {key:'linkedin',icon:'💼',label:'LinkedIn',placeholder:'https://linkedin.com/company/bolamu'},
+  {key:'twitter',icon:'🐦',label:'Twitter / X',placeholder:'https://x.com/bolamu'}
+];
+async function loadReseaux(){
+  const el=document.getElementById('reseaux-grid');
+  try{
+    const data=await api('/articles/admin/content-blocks');
+    const r=(data.blocks||{}).reseaux_sociaux||{};
+    el.innerHTML=RESEAUX_CONFIG.map(rs=>`<div class="reseau-block"><div class="reseau-icon">${rs.icon}</div><div style="flex:1"><div class="reseau-name">${rs.label}</div><input class="reseau-input" id="rs-${rs.key}" value="${r[rs.key]||''}" placeholder="${rs.placeholder}"></div></div>`).join('');
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+async function saveReseaux(){
+  const content={};
+  RESEAUX_CONFIG.forEach(rs=>{const el=document.getElementById('rs-'+rs.key);if(el)content[rs.key]=el.value.trim();});
+  try{
+    const data=await api('/articles/admin/content-blocks/reseaux_sociaux',{method:'PUT',body:JSON.stringify({content})});
+    if(data.success)showToast('💾 Liens sauvegardés !');else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur','error');}
+}
+
+// ── INIT
 loadOverview();
-setInterval(loadOverview,60000);
 </script>
 </body>
 </html>
