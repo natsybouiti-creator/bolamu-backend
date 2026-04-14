@@ -20,12 +20,6 @@ function adminOnly(req, res, next) {
   next();
 }
 
-// ── UPLOAD IMAGE ──────────────────────────────────────────────
-// Utilisé pour les articles ET pour la vitrine/hero
-// Limite : 20MB — gestion d'erreur intégrée dans uploadMiddleware
-router.post('/upload-image', authMiddleware, adminOnly, uploadMiddleware, uploadImage);
-
-// ── CONTENT BLOCKS (Vitrine & Hero) ──────────────────────────
 async function ensureVitrineTable() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS vitrine_blocks (
@@ -37,11 +31,14 @@ async function ensureVitrineTable() {
   `);
 }
 
-// GET public — index.html charge les blocs vitrine
+// ── UPLOAD IMAGE ─────────────────────────────────────────────
+router.post('/upload-image', authMiddleware, adminOnly, uploadMiddleware, uploadImage);
+
+// ── CONTENT BLOCKS — Vitrine & Hero ──────────────────────────
 router.get('/content-blocks', async (req, res) => {
   try {
     await ensureVitrineTable();
-    const result = await pool.query(`SELECT block_key, block_value FROM vitrine_blocks`);
+    const result = await pool.query(`SELECT block_key, block_value FROM vitrine_blocks WHERE block_key NOT LIKE 'plan_%'`);
     const blocks = {};
     result.rows.forEach(row => {
       try { blocks[row.block_key] = JSON.parse(row.block_value); }
@@ -54,16 +51,14 @@ router.get('/content-blocks', async (req, res) => {
   }
 });
 
-// PUT admin — sauvegarder un bloc vitrine
 router.put('/content-blocks/:key', authMiddleware, adminOnly, async (req, res) => {
   const { key } = req.params;
   const value = JSON.stringify(req.body);
   try {
     await ensureVitrineTable();
     await pool.query(
-      `INSERT INTO vitrine_blocks (block_key, block_value, updated_at)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (block_key) DO UPDATE SET block_value = $2, updated_at = NOW()`,
+      `INSERT INTO vitrine_blocks (block_key, block_value, updated_at) VALUES ($1,$2,NOW())
+       ON CONFLICT (block_key) DO UPDATE SET block_value=$2, updated_at=NOW()`,
       [key, value]
     );
     return res.json({ success: true, message: 'Bloc sauvegardé' });
@@ -73,12 +68,51 @@ router.put('/content-blocks/:key', authMiddleware, adminOnly, async (req, res) =
   }
 });
 
-// ── ROUTES PUBLIQUES ─────────────────────────────────────────
+// ── PLANS & TARIFS ───────────────────────────────────────────
+const DEFAULT_PLANS = {
+  essentiel: { name:'Essentiel', price:1000, period:'/ mois', badge:'', color:'#2E86FF', features:['Accès aux médecins généralistes','3 consultations/mois','Ordonnances numériques','Dossier médical sécurisé'], recommended:false },
+  standard:  { name:'Standard',  price:2500, period:'/ mois', badge:'Recommandé', color:'#00C9A7', features:['Accès médecins spécialistes','Consultations illimitées','Ordonnances + pharmacies partenaires','Suivi grossesse inclus','Résultats labo en ligne'], recommended:true },
+  premium:   { name:'Premium',   price:5000, period:'/ mois', badge:'', color:'#7C3AED', features:['Tout Standard inclus','Médecin référent dédié','Priorité immédiate 24h/7j','Famille incluse (4 membres)','Bilan de santé annuel'], recommended:false }
+};
+
+router.get('/plans', async (req, res) => {
+  try {
+    await ensureVitrineTable();
+    const result = await pool.query(`SELECT block_key, block_value FROM vitrine_blocks WHERE block_key LIKE 'plan_%'`);
+    const plans = { ...DEFAULT_PLANS };
+    result.rows.forEach(row => {
+      const key = row.block_key.replace('plan_', '');
+      try { plans[key] = JSON.parse(row.block_value); }
+      catch(e) {}
+    });
+    return res.json({ success: true, plans });
+  } catch (err) {
+    console.error('[plans GET]', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+router.put('/plans/:key', authMiddleware, adminOnly, async (req, res) => {
+  const { key } = req.params;
+  const value = JSON.stringify(req.body);
+  try {
+    await ensureVitrineTable();
+    await pool.query(
+      `INSERT INTO vitrine_blocks (block_key, block_value, updated_at) VALUES ($1,$2,NOW())
+       ON CONFLICT (block_key) DO UPDATE SET block_value=$2, updated_at=NOW()`,
+      [`plan_${key}`, value]
+    );
+    return res.json({ success: true, message: 'Plan sauvegardé' });
+  } catch (err) {
+    console.error('[plans PUT]', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// ── ROUTES ARTICLES ───────────────────────────────────────────
 router.get('/', getArticles);
 router.get('/admin/all', authMiddleware, adminOnly, getAllArticlesAdmin);
 router.get('/:id', getArticleById);
-
-// ── ROUTES ADMIN ─────────────────────────────────────────────
 router.post('/',      authMiddleware, adminOnly, createArticle);
 router.put('/:id',    authMiddleware, adminOnly, updateArticle);
 router.delete('/:id', authMiddleware, adminOnly, deleteArticle);
