@@ -9,10 +9,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ── Multer : stockage en mémoire (pas sur disque) ─────────────
+// ── Multer : stockage en mémoire ──────────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB max
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) {
@@ -25,6 +25,16 @@ const upload = multer({
 
 const uploadMiddleware = upload.single('image');
 
+// ── Normalise une catégorie libre ────────────────────────────
+function normalizeCategory(cat) {
+  if (!cat) return 'prevention';
+  return cat.toLowerCase().trim()
+    .replace(/[àáâ]/g, 'a').replace(/[éèêë]/g, 'e')
+    .replace(/[îï]/g, 'i').replace(/[ôö]/g, 'o')
+    .replace(/[ùûü]/g, 'u').replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+}
+
 // ============================================================
 // UPLOAD IMAGE — POST /api/v1/articles/upload-image
 // ============================================================
@@ -34,7 +44,6 @@ async function uploadImage(req, res) {
       return res.status(400).json({ success: false, message: 'Aucun fichier reçu.' });
     }
 
-    // Upload vers Cloudinary via stream (pas besoin de multer-storage-cloudinary)
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
@@ -73,7 +82,7 @@ async function getArticles(req, res) {
     let query = `SELECT * FROM articles WHERE is_published = true`;
     const params = [];
     if (category && category !== 'tous') {
-      params.push(category);
+      params.push(normalizeCategory(category));
       query += ` AND category = $${params.length}`;
     }
     query += ` ORDER BY is_featured DESC, created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
@@ -82,7 +91,7 @@ async function getArticles(req, res) {
     const countQuery = category && category !== 'tous'
       ? `SELECT COUNT(*) FROM articles WHERE is_published = true AND category = $1`
       : `SELECT COUNT(*) FROM articles WHERE is_published = true`;
-    const countParams = category && category !== 'tous' ? [category] : [];
+    const countParams = category && category !== 'tous' ? [normalizeCategory(category)] : [];
     const countResult = await pool.query(countQuery, countParams);
     return res.json({ success: true, articles: result.rows, total: parseInt(countResult.rows[0].count) });
   } catch (err) {
@@ -112,18 +121,19 @@ async function getArticleById(req, res) {
 }
 
 // ============================================================
-// 3. CRÉER UN ARTICLE (admin)
+// 3. CRÉER UN ARTICLE (admin) — catégorie libre
 // ============================================================
 async function createArticle(req, res) {
   const { title, excerpt, content, category, image_url, emoji, author, read_time, is_published, is_featured } = req.body;
   if (!title || !excerpt || !content || !category) {
     return res.status(400).json({ success: false, message: 'Titre, résumé, contenu et catégorie sont obligatoires.' });
   }
+  const cat = normalizeCategory(category);
   try {
     const result = await pool.query(
       `INSERT INTO articles (title, excerpt, content, category, image_url, emoji, author, read_time, is_published, is_featured, created_at, updated_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NOW(),NOW()) RETURNING *`,
-      [title, excerpt, content, category, image_url||null, emoji||'📄', author||'Dr. Bolamu', read_time||'5 min', is_published!==false, is_featured||false]
+      [title, excerpt, content, cat, image_url||null, emoji||'📄', author||'Dr. Bolamu', read_time||'5 min', is_published!==false, is_featured||false]
     );
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.create',$1,'articles',$2,$3)`,
@@ -141,7 +151,8 @@ async function createArticle(req, res) {
 // ============================================================
 async function updateArticle(req, res) {
   const { id } = req.params;
-  const { title, excerpt, content, category, image_url, emoji, author, read_time, is_published, is_featured } = req.body;
+  let { title, excerpt, content, category, image_url, emoji, author, read_time, is_published, is_featured } = req.body;
+  if (category) category = normalizeCategory(category);
   try {
     const result = await pool.query(
       `UPDATE articles SET
@@ -173,8 +184,6 @@ async function deleteArticle(req, res) {
     const article = await pool.query(`SELECT image_url FROM articles WHERE id = $1`, [id]);
     const result = await pool.query(`DELETE FROM articles WHERE id=$1 RETURNING id,title`, [id]);
     if (!result.rows.length) return res.status(404).json({ success: false, message: 'Article introuvable' });
-
-    // Supprimer l'image sur Cloudinary si elle vient de Cloudinary
     if (article.rows[0]?.image_url?.includes('cloudinary')) {
       try {
         const parts = article.rows[0].image_url.split('/');
@@ -182,7 +191,6 @@ async function deleteArticle(req, res) {
         await cloudinary.uploader.destroy(`bolamu/articles/${filename}`);
       } catch(e) { /* pas bloquant */ }
     }
-
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.delete',$1,'articles',$2,$3)`,
       [req.user.phone, id, JSON.stringify({ title: result.rows[0].title })]

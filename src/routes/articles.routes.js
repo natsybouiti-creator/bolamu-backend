@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
+const pool = require('../config/db');
 const {
   uploadMiddleware,
   uploadImage,
@@ -22,70 +23,61 @@ function adminOnly(req, res, next) {
 // ── UPLOAD IMAGE ─────────────────────────────────────────────
 router.post('/upload-image', authMiddleware, adminOnly, uploadMiddleware, uploadImage);
 
-// ── CONTENT BLOCKS (vitrine + hero) — PUBLIC ─────────────────
-// GET /api/v1/articles/content-blocks
+// ── CONTENT BLOCKS (Vitrine & Hero) ──────────────────────────
+// Stockage dans une table dédiée créée à la volée si besoin
+async function ensureVitrineTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vitrine_blocks (
+      id SERIAL PRIMARY KEY,
+      block_key VARCHAR(100) UNIQUE NOT NULL,
+      block_value TEXT NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+}
+
+// GET public — index.html charge les blocs vitrine
 router.get('/content-blocks', async (req, res) => {
-  const pool = require('../config/db');
   try {
-    const result = await pool.query(
-      `SELECT key, value FROM platform_config WHERE key LIKE 'vitrine_%' ORDER BY key`
-    );
+    await ensureVitrineTable();
+    const result = await pool.query(`SELECT block_key, block_value FROM vitrine_blocks`);
     const blocks = {};
-    for (const row of result.rows) {
-      const blockKey = row.key.replace('vitrine_', '');
-      try { blocks[blockKey] = JSON.parse(row.value); }
-      catch(e) { blocks[blockKey] = row.value; }
-    }
-    res.json({ success: true, blocks });
-  } catch(err) {
+    result.rows.forEach(row => {
+      try { blocks[row.block_key] = JSON.parse(row.block_value); }
+      catch(e) { blocks[row.block_key] = row.block_value; }
+    });
+    return res.json({ success: true, blocks });
+  } catch (err) {
     console.error('[content-blocks GET]', err.message);
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
+    return res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
 
-// ── CONTENT BLOCKS — ADMIN SEULEMENT ─────────────────────────
-// PUT /api/v1/articles/content-blocks/:key
+// PUT admin — sauvegarder un bloc vitrine
 router.put('/content-blocks/:key', authMiddleware, adminOnly, async (req, res) => {
-  const pool = require('../config/db');
   const { key } = req.params;
-  const body = req.body;
-
-  // Clés autorisées
-  const allowed = ['hero', 'block_patients', 'block_medecins', 'block_pharmacies', 'block_laboratoires'];
-  if (!allowed.includes(key)) {
-    return res.status(400).json({ success: false, message: `Clé "${key}" non autorisée.` });
-  }
-
+  const value = JSON.stringify(req.body);
   try {
-    const configKey = `vitrine_${key}`;
-    const value = JSON.stringify(body);
+    await ensureVitrineTable();
     await pool.query(
-      `INSERT INTO platform_config (key, value, updated_at)
+      `INSERT INTO vitrine_blocks (block_key, block_value, updated_at)
        VALUES ($1, $2, NOW())
-       ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()`,
-      [configKey, value]
+       ON CONFLICT (block_key) DO UPDATE SET block_value = $2, updated_at = NOW()`,
+      [key, value]
     );
-
-    // Log audit
-    await pool.query(
-      `INSERT INTO audit_log (event_type, actor_phone, target_table, payload)
-       VALUES ('vitrine.updated', $1, 'platform_config', $2)`,
-      [req.user.phone, JSON.stringify({ key })]
-    ).catch(() => {});
-
-    res.json({ success: true, message: `Bloc "${key}" sauvegardé ✅` });
-  } catch(err) {
+    return res.json({ success: true, message: 'Bloc sauvegardé' });
+  } catch (err) {
     console.error('[content-blocks PUT]', err.message);
-    res.status(500).json({ success: false, message: 'Erreur serveur : ' + err.message });
+    return res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
 
-// ── ROUTES PUBLIQUES ARTICLES ─────────────────────────────────
+// ── ROUTES PUBLIQUES ─────────────────────────────────────────
 router.get('/', getArticles);
 router.get('/admin/all', authMiddleware, adminOnly, getAllArticlesAdmin);
 router.get('/:id', getArticleById);
 
-// ── ROUTES ADMIN ARTICLES ─────────────────────────────────────
+// ── ROUTES ADMIN ─────────────────────────────────────────────
 router.post('/',      authMiddleware, adminOnly, createArticle);
 router.put('/:id',    authMiddleware, adminOnly, updateArticle);
 router.delete('/:id', authMiddleware, adminOnly, deleteArticle);
