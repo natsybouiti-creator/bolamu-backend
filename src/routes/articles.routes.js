@@ -20,11 +20,12 @@ function adminOnly(req, res, next) {
   next();
 }
 
-// ── UPLOAD IMAGE ─────────────────────────────────────────────
+// ── UPLOAD IMAGE ──────────────────────────────────────────────
+// Utilisé pour les articles ET pour la vitrine/hero
+// Limite : 20MB — gestion d'erreur intégrée dans uploadMiddleware
 router.post('/upload-image', authMiddleware, adminOnly, uploadMiddleware, uploadImage);
 
 // ── CONTENT BLOCKS (Vitrine & Hero) ──────────────────────────
-// Stockage dans une table dédiée créée à la volée si besoin
 async function ensureVitrineTable() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS vitrine_blocks (

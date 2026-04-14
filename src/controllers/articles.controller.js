@@ -9,10 +9,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ── Multer : stockage en mémoire ──────────────────────────────
+// ── Multer : stockage en mémoire, limite 20MB ─────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB max
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) {
@@ -23,7 +23,23 @@ const upload = multer({
   },
 });
 
-const uploadMiddleware = upload.single('image');
+const uploadMiddleware = (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({
+          success: false,
+          message: 'Fichier trop volumineux. Maximum autorisé : 20MB.'
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: err.message || 'Erreur lors du traitement du fichier.'
+      });
+    }
+    next();
+  });
+};
 
 // ── Normalise une catégorie libre ────────────────────────────
 function normalizeCategory(cat) {
@@ -37,6 +53,7 @@ function normalizeCategory(cat) {
 
 // ============================================================
 // UPLOAD IMAGE — POST /api/v1/articles/upload-image
+// Utilisé aussi bien pour les articles que pour la vitrine/hero
 // ============================================================
 async function uploadImage(req, res) {
   try {
@@ -49,7 +66,7 @@ async function uploadImage(req, res) {
         {
           folder: 'bolamu/articles',
           transformation: [
-            { width: 1200, height: 630, crop: 'fill', quality: 'auto' }
+            { width: 1200, height: 630, crop: 'fill', quality: 'auto:good' }
           ],
           resource_type: 'image',
         },
