@@ -1009,64 +1009,69 @@ async function grantCredit() {
 async function viewUser(phone) {
   if (!phone) return;
   
-  // Nettoyage : on garde juste les chiffres
+  // On nettoie pour n'avoir que les chiffres (ex: 242069855663)
   const pureDigits = phone.replace(/\D/g, '');
   
   showModal();
   const container = document.getElementById('modal-body');
-  container.innerHTML = '<div style="padding:40px; text-align:center;">⌛ Diagnostic de connexion...</div>';
+  container.innerHTML = '<div style="padding:40px; text-align:center;">⌛ Ouverture du dossier patient...</div>';
 
-  // ON TESTE TOUTES LES POSSIBILITÉS RÉELLES
-  const tryPaths = [
-    `/users/${pureDigits}/profile`,           // Route standard
-    `/admin/users/${pureDigits}/profile`,     // Route avec admin forcé
-    `/users/+${pureDigits}/profile`,          // Avec le + forcé
-    `/profile/${pureDigits}`                  // Route inversée
-  ];
-
-  let res = null;
-  for (const path of tryPaths) {
-    try {
-      console.log("🛠️ Essai sur :", path);
-      const response = await api(path);
-      // Si la réponse contient l'utilisateur ou des données valides
-      if (response && (response.user || response.data?.user)) {
-        res = response;
-        break; 
-      }
-    } catch (e) {
-      console.warn("❌ Échec sur : " + path);
+  try {
+    // FORCE la route admin : si api() ajoute /api/v1/admin, 
+    // alors on demande /users/NUMERO/profile pour obtenir /api/v1/admin/users/NUMERO/profile
+    const res = await api(`/users/${pureDigits}/profile`);
+    
+    // Si res est vide ou erreur, on tente avec le "+" juste au cas où
+    let data = res?.data || res;
+    
+    if (!data || (!data.user && !res.user)) {
+       const res2 = await api(`/users/%2B${pureDigits}/profile`);
+       data = res2?.data || res2;
     }
-  }
 
-  if (res) {
-    const data = res.data || res;
-    const u = data.user;
+    const u = data.user || data;
+
     container.innerHTML = `
       <div style="padding:15px; font-family:sans-serif;">
-        <h2 style="margin:0; color:#0A2463;">${u.full_name || u.phone}</h2>
-        <hr style="border:1px solid #F4F8FF; margin:15px 0;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div style="background:#F4F8FF; padding:10px; border-radius:8px;">
-            <small>SOLDE</small><br><b>${u.credits_balance || 0} 💎</b>
+        <div style="display:flex; justify-content:space-between; align-items:start; border-bottom:2px solid #F4F8FF; padding-bottom:10px; margin-bottom:15px;">
+          <div>
+            <h2 style="margin:0; color:#0A2463; font-size:20px;">${u.full_name || 'Patient'}</h2>
+            <code style="font-size:12px; color:#5A6E8C;">ID: ${u.phone}</code>
           </div>
-          <div style="background:#F4F8FF; padding:10px; border-radius:8px;">
-            <small>STATUT</small><br><b style="color:#00C9A7;">ACTIF</b>
+          <span style="background:#00C9A7; color:white; padding:4px 10px; border-radius:15px; font-size:11px; font-weight:bold;">DOSSIER ACTIF</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+          <div style="background:#F4F8FF; padding:12px; border-radius:10px;">
+            <small style="color:#5A6E8C; font-weight:bold;">SOLDE ACTUEL</small><br>
+            <b style="font-size:18px; color:#2E86FF;">${u.credits_balance || 0} 💎</b>
+          </div>
+          <div style="background:#F4F8FF; padding:12px; border-radius:10px;">
+            <small style="color:#5A6E8C; font-weight:bold;">RÔLE</small><br>
+            <b style="font-size:18px; color:#0A2463;">PATIENT</b>
           </div>
         </div>
-        <div style="margin-top:20px;">
-           <p>📅 RDV : ${data.appointments?.length || 0}</p>
-           <p>💊 Ordonnances : ${data.prescriptions?.length || 0}</p>
+
+        <div style="background:white; border:1px solid #E6F0FF; border-radius:12px; padding:15px;">
+          <h3 style="font-size:14px; margin-top:0; color:#0A2463; border-bottom:1px solid #E6F0FF; padding-bottom:5px;">Historique</h3>
+          <ul style="list-style:none; padding:0; margin:0; font-size:13px;">
+            <li style="padding:5px 0;">📅 Rendez-vous : <b>${data.appointments?.length || 0}</b></li>
+            <li style="padding:5px 0;">💊 Ordonnances : <b>${data.prescriptions?.length || 0}</b></li>
+            <li style="padding:5px 0;">💳 Paiements : <b>${data.payments?.length || 0}</b></li>
+          </ul>
         </div>
-        <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:10px; background:#0A2463; color:white; border:none; border-radius:5px; cursor:pointer;">Fermer</button>
+
+        <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:12px; background:#0A2463; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Fermer le dossier</button>
       </div>`;
-  } else {
+
+  } catch (e) {
+    console.error("Erreur fatale:", e);
     container.innerHTML = `
-      <div style="text-align:center; padding:40px;">
-        <p style="color:#FF4D4D; font-weight:bold;">Erreur 404 persistante</p>
-        <p style="font-size:12px; color:gray;">Le serveur ne trouve pas le profil pour ${pureDigits}.</p>
-        <p style="font-size:10px; color:silver;">Vérifie tes logs Render (onglet Logs) pour voir l'URL reçue.</p>
-        <button onclick="closeModal()" style="margin-top:15px;">Retour</button>
+      <div style="text-align:center; padding:30px;">
+        <div style="font-size:40px; margin-bottom:10px;">❌</div>
+        <b style="color:#FF4D4D;">Erreur de chargement</b><br>
+        <p style="font-size:12px; color:gray;">Le serveur refuse l'accès au profil ${pureDigits}.</p>
+        <button onclick="closeModal()" style="margin-top:10px; padding:8px 15px; cursor:pointer;">Réessayer</button>
       </div>`;
   }
 }
