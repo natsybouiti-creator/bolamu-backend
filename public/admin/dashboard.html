@@ -1008,19 +1008,68 @@ async function grantCredit() {
 
 async function viewUser(phone) {
   showModal();
-  document.getElementById('modal-body').innerHTML = 'Chargement...';
+  const container = document.getElementById('modal-body');
+  container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du profil...</div>';
+
   try {
+    // On encode le téléphone pour gérer le "+" du numéro dans l'URL
     const res = await api('/admin/user/' + encodeURIComponent(phone));
-    const u = res.data || res.user;
-    document.getElementById('modal-body').innerHTML = `
-      <div class="modal-title">Profil: ${u.phone}</div>
-      <div class="modal-info-grid">
-        <div><label>Nom:</label> <span>${u.full_name || u.business_name || '—'}</span></div>
-        <div><label>Role:</label> <span>${u.role}</span></div>
-        <div><label>Statut:</label> <span>${u.status}</span></div>
+    
+    // On récupère l'utilisateur peu importe où il est caché dans la réponse
+    const u = res.data || res.user || res;
+
+    if (!u || (!u.phone && !u.full_name && !u.business_name)) {
+      throw new Error("Données utilisateur introuvables");
+    }
+
+    container.innerHTML = `
+      <div class="modal-title" style="margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:10px;">
+        👁 Profil : ${u.phone || phone}
       </div>
-      <div class="modal-actions"><button onclick="closeModal()">Fermer</button></div>`;
-  } catch (e) { document.getElementById('modal-body').innerHTML = 'Erreur'; }
+      
+      <div class="modal-info-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <div class="modal-info-item">
+          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Nom / Enseigne</label>
+          <span style="font-weight:600;">${u.full_name || u.business_name || u.name || '—'}</span>
+        </div>
+        
+        <div class="modal-info-item">
+          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Rôle</label>
+          <span class="badge-role">${u.role || 'N/A'}</span>
+        </div>
+
+        <div class="modal-info-item">
+          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Statut</label>
+          <span>${badge(u.status || 'pending')}</span>
+        </div>
+
+        <div class="modal-info-item">
+          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Solde Fidélité</label>
+          <span style="color:var(--violet); font-weight:700;">${u.balance || 0} 💎</span>
+        </div>
+
+        <div class="modal-info-item">
+          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Inscription</label>
+          <span style="font-size:13px;">${u.created_at ? fmtDate(u.created_at) : 'Date inconnue'}</span>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:30px; display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn-secondary" onclick="closeModal()" style="padding:8px 15px; cursor:pointer;">Fermer</button>
+        ${u.status === 'pending' ? `<button class="btn-validate" onclick="validateUser('${u.phone}')" style="background:var(--vert); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">✓ Valider le compte</button>` : ''}
+      </div>
+    `;
+  } catch (e) {
+    console.error("Détail de l'erreur profil:", e);
+    container.innerHTML = `
+      <div style="text-align:center; padding:20px;">
+        <div style="font-size:40px; margin-bottom:10px;">⚠️</div>
+        <p>Impossible de charger ce profil.</p>
+        <p style="font-size:11px; color:red;">${e.message}</p>
+        <button onclick="closeModal()" style="margin-top:15px;">Retour</button>
+      </div>
+    `;
+  }
 }
 /* ══════════════════════════════════════════════
    USER ACTIONS
