@@ -757,113 +757,52 @@ function refreshCurrentPanel() { loadPanel(document.querySelector('.panel.active
    OVERVIEW — avec retry Render intégré
 ══════════════════════════════════════════════ */
 async function loadOverview() {
-  // Reset KPI en mode chargement
-  ['kpi-patients','kpi-doctors','kpi-rdv','kpi-pharma','kpi-rev-today','kpi-presc','kpi-pending','kpi-fraud'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.textContent = '···'; el.classList.add('kpi-loading'); }
-  });
-
-  // Bannière chargement initiale
-  const b = document.getElementById('server-banner');
-  if (b) {
-    b.className = 'server-banner loading show';
-    b.innerHTML = `<div class="spinner"></div><div><strong>Connexion au serveur Bolamu...</strong><div style="font-size:9px;opacity:0.8;margin-top:2px;">Le backend Render peut prendre jusqu'à 60s à démarrer. Patientez svp.</div></div>`;
-  }
-  setServerConnecting();
-
-  try {
-    // api() gère les retries automatiquement
-const data = await api('/admin/stats');
-    // ── Accepte plusieurs formats de réponse backend ──
-    // Format A : { success: true, stats: { patients: X, ... } }
-    // Format B : { success: true, data: { patients: X, ... } }
-    // Format C : { success: true, data: { stats: { ... } } }
-    const s = data.stats
-           || data.data?.stats
-           || data.data
-           || {};
-
-    // ── Mise à jour des KPI ──
-    setKPI('kpi-patients',  fmtNum(s.patients));
-    setKPI('kpi-doctors',   fmtNum(s.doctors));
-    setKPI('kpi-rdv',       fmtNum(s.appointments_total ?? s.appointments ?? s.rdv_total));
-    setKPI('kpi-pharma',    fmtNum(s.pharmacies));
-    setKPI('kpi-rev-today', (Number(s.revenue_today) || 0).toLocaleString('fr-FR') + ' F');
-    setKPI('kpi-presc',     fmtNum(s.prescriptions));
-    setKPI('kpi-pending',   fmtNum(s.pending));
-    setKPI('kpi-fraud',     fmtNum(s.fraud_high));
-
-    document.getElementById('kpi-rev-month').textContent = 'Ce mois: ' + (Number(s.revenue_month) || 0).toLocaleString('fr-FR') + ' FCFA';
-    document.getElementById('kpi-banned').textContent    = fmtNum(s.banned) + ' bannis';
-    document.getElementById('badge-pending').textContent = s.pending || 0;
-    document.getElementById('badge-fraud').textContent   = s.fraud_high || 0;
-
-    // ── Donut ──
-    const total = (s.patients || 0) + (s.doctors || 0) + (s.pharmacies || 0) + (s.labos || 0);
-    document.getElementById('donut-total').textContent = total;
-    document.getElementById('leg-patients').textContent   = s.patients   || 0;
-    document.getElementById('leg-doctors').textContent    = s.doctors    || 0;
-    document.getElementById('leg-pharmacies').textContent = s.pharmacies || 0;
-    document.getElementById('leg-labos').textContent      = s.labos      || 0;
-
-    if (total > 0) {
-      const circ = 283;
-      const pp  = (s.patients   || 0) / total * circ;
-      const dp  = (s.doctors    || 0) / total * circ;
-      const phP = (s.pharmacies || 0) / total * circ;
-      const lp  = (s.labos      || 0) / total * circ;
-      let off = 71;
-      const setD = (id, val) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.setAttribute('stroke-dasharray', `${val} ${circ - val}`);
-        el.setAttribute('stroke-dashoffset', off);
-        off -= val;
-      };
-      setD('donut-patient', pp);
-      setD('donut-doctor',  dp);
-      setD('donut-pharma',  phP);
-      setD('donut-labo',    lp);
-    }
-
-    // ── Mini-listes ──
-    const pList = document.getElementById('pending-mini-list');
-    const pendingUsers = data.pending_users || [];
-    if (pendingUsers.length) {
-      pList.innerHTML = '<div class="feed-list">' + pendingUsers.slice(0, 5).map(u =>
-        `<div class="feed-item"><div class="feed-dot" style="background:var(--amber)"></div><div><div class="feed-action"><span class="feed-actor">${u.phone}</span> — ${u.role || '—'}</div><div class="feed-time">${fmtShort(u.created_at)}</div></div></div>`
-      ).join('') + '</div>';
-    } else {
-      pList.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Aucun en attente</p></div>';
-    }
-
-    const fList = document.getElementById('fraud-mini-list');
-    const fraudAlerts = data.fraud_alerts || [];
-    if (fraudAlerts.length) {
-      fList.innerHTML = '<div class="feed-list">' + fraudAlerts.slice(0, 5).map(f =>
-        `<div class="feed-item"><div class="feed-dot" style="background:var(--rouge)"></div><div><div class="feed-action"><span class="feed-actor">${f.phone || f.doctor_phone || '—'}</span> — score ${f.fraud_score || 0}</div><div class="feed-time">${fmtShort(f.created_at)}</div></div></div>`
-      ).join('') + '</div>';
-    } else {
-      fList.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div><p>Aucune fraude HIGH</p></div>';
-    }
-
-    // ── Succès ──
-    hideBanner();
-    setServerOnline();
-
-  } catch (e) {
-    console.error('loadOverview error:', e);
-
-    // Reset KPI à 0 (pas ERR) — pour ne pas alarmer inutilement
+    // 1. Reset visuel
     ['kpi-patients','kpi-doctors','kpi-rdv','kpi-pharma','kpi-rev-today','kpi-presc','kpi-pending','kpi-fraud'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.textContent = '0'; el.classList.remove('kpi-loading'); }
+        const el = document.getElementById(id);
+        if (el) { el.textContent = '···'; el.classList.add('kpi-loading'); }
     });
 
-    // Message d'erreur clair avec bouton retry
-    showBannerError('Impossible de joindre le serveur après plusieurs tentatives.');
-  }
-}
+    try {
+        const res = await api('/admin/stats');
+        console.log("Données reçues:", res);
+
+        // On cible l'objet 'data' renvoyé par ton backend Neon
+        const s = res.data || {};
+
+        // 2. Mise à jour des chiffres (Mapping précis)
+        const u = s.users || {};
+        const r = s.revenue || {};
+        const a = s.activity || {};
+        const p = s.pending || {};
+        const f = s.fraud || {};
+
+        setKPI('kpi-patients',  fmtNum(u.patients));
+        setKPI('kpi-doctors',   fmtNum(u.doctors));
+        setKPI('kpi-pharma',    fmtNum(u.pharmacies));
+        setKPI('kpi-rev-today', (Number(r.today) || 0).toLocaleString('fr-FR') + ' F');
+        setKPI('kpi-rdv',       fmtNum(a.appointments_total));
+        setKPI('kpi-presc',     fmtNum(a.prescriptions_total));
+        setKPI('kpi-pending',   fmtNum(p.total));
+        setKPI('kpi-fraud',     fmtNum(f.high_severity));
+
+        // Mise à jour des badges et textes secondaires
+        if(document.getElementById('kpi-rev-month')) {
+            document.getElementById('kpi-rev-month').textContent = 'Ce mois: ' + (Number(r.month) || 0).toLocaleString('fr-FR') + ' FCFA';
+        }
+        if(document.getElementById('badge-pending')) document.getElementById('badge-pending').textContent = p.total || 0;
+
+        // 3. Mise à jour du Donut (Total des utilisateurs)
+        const total = (u.patients || 0) + (u.doctors || 0) + (u.pharmacies || 0) + (u.laboratories || 0);
+        const donutTotalEl = document.getElementById('donut-total');
+        if (donutTotalEl) donutTotalEl.textContent = total;
+
+        setServerOnline();
+    } catch (err) {
+        console.error("Erreur dashboard:", err);
+        setServerOffline();
+    }
+} // <--- Vérifie bien que cette accolade est là !
 
 /* ══════════════════════════════════════════════
    ACTIVITY
