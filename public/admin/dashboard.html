@@ -891,7 +891,7 @@ async function loadActivity() {
 async function loadPending() {
   const el = document.getElementById('pending-list');
   try {
-    const data = await api('/admin/pending-users');
+    const data = await api('/admin/pending');
     const users = data.users || [];
     document.getElementById('pending-count').textContent = users.length + ' dossiers';
     if (!users.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Aucun dossier en attente</p></div>'; return; }
