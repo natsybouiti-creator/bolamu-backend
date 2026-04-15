@@ -1007,24 +1007,28 @@ async function grantCredit() {
 }
 
 async function viewUser(phone) {
+  if (!phone) return;
+  
+  // NETTOYAGE CRUCIAL : On enlève les espaces du numéro avant l'envoi
+  const cleanPhone = phone.trim().replace(/\s+/g, '');
+  
   showModal();
   const container = document.getElementById('modal-body');
   container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du profil...</div>';
 
   try {
-    // On encode le téléphone pour gérer le "+" du numéro dans l'URL
-    const res = await api('/admin/user/' + encodeURIComponent(phone));
+    // On utilise le numéro nettoyé et encodé
+    const res = await api('/admin/user/' + encodeURIComponent(cleanPhone));
     
-    // On récupère l'utilisateur peu importe où il est caché dans la réponse
     const u = res.data || res.user || res;
 
-    if (!u || (!u.phone && !u.full_name && !u.business_name)) {
-      throw new Error("Données utilisateur introuvables");
+    if (!u || (!u.phone && !u.full_name)) {
+      throw new Error("Utilisateur non trouvé dans la base");
     }
 
     container.innerHTML = `
       <div class="modal-title" style="margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:10px;">
-        👁 Profil : ${u.phone || phone}
+        👁 Profil : ${u.phone}
       </div>
       
       <div class="modal-info-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
@@ -1047,25 +1051,16 @@ async function viewUser(phone) {
           <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Solde Fidélité</label>
           <span style="color:var(--violet); font-weight:700;">${u.balance || 0} 💎</span>
         </div>
-
-        <div class="modal-info-item">
-          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Inscription</label>
-          <span style="font-size:13px;">${u.created_at ? fmtDate(u.created_at) : 'Date inconnue'}</span>
-        </div>
       </div>
 
       <div class="modal-actions" style="margin-top:30px; display:flex; gap:10px; justify-content:flex-end;">
-        <button class="btn-secondary" onclick="closeModal()" style="padding:8px 15px; cursor:pointer;">Fermer</button>
-        ${u.status === 'pending' ? `<button class="btn-validate" onclick="validateUser('${u.phone}')" style="background:var(--vert); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">✓ Valider le compte</button>` : ''}
+        <button class="btn-secondary" onclick="closeModal()">Fermer</button>
       </div>
     `;
   } catch (e) {
-    console.error("Détail de l'erreur profil:", e);
     container.innerHTML = `
       <div style="text-align:center; padding:20px;">
-        <div style="font-size:40px; margin-bottom:10px;">⚠️</div>
-        <p>Impossible de charger ce profil.</p>
-        <p style="font-size:11px; color:red;">${e.message}</p>
+        <p>Impossible de trouver le profil pour <b>${cleanPhone}</b></p>
         <button onclick="closeModal()" style="margin-top:15px;">Retour</button>
       </div>
     `;
