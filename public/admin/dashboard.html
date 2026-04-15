@@ -854,15 +854,23 @@ async function loadDoctors(status = '') {
   } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-// 4. PHARMACIES
+// 4. PHARMACIES (Version corrigée pour l'affichage des noms)
 async function loadPharmacies() {
   const el = document.getElementById('pharmacies-list');
   try {
     const res = await api('/admin/pharmacies');
     const rows = res.data || [];
     document.getElementById('pharmacies-count').textContent = rows.length + ' pharmacies';
-    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Nom</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td>${p.phone}</td><td>${p.business_name || '—'}</td><td>${badge(p.status)}</td><td class="actions"><button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td></tr>`
+    
+    if (!rows.length) { el.innerHTML = '<div class="empty">Aucune pharmacie</div>'; return; }
+    
+    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Nom / Enseigne</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
+      `<tr>
+        <td>${p.phone}</td>
+        <td style="font-weight:600;">${p.business_name || p.full_name || p.name || 'Nom non renseigné'}</td>
+        <td>${badge(p.status)}</td>
+        <td class="actions"><button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td>
+      </tr>`
     ).join('')}</tbody></table>`;
   } catch (e) { el.innerHTML = 'Erreur'; }
 }
