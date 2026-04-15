@@ -497,6 +497,29 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 <div class="toast" id="toast"></div>
 
 <script>
+// --- CORRECTIF FORCE ---
+const API = 'https://bolamu-backend.onrender.com/api/v1';
+async function api(path, options = {}) {
+    const url = path.startsWith('http') ? path : API + path;
+    const res = await fetch(url, {
+        ...options,
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        }
+    });
+    if (!res.ok) throw new Error('Erreur API');
+    return res.json();
+}
+// On lance le chargement dès que possible
+setTimeout(() => {
+    if(typeof token !== 'undefined' && token) {
+        loadOverview(); loadArticles(); loadReseaux(); loadHero();
+    }
+}, 1000);
+// -----------------------
+
 const API = 'https://bolamu-backend.onrender.com/api/v1';
 const token = localStorage.getItem('bolamu_token');
 const phone = localStorage.getItem('bolamu_phone');
@@ -504,7 +527,7 @@ const role = localStorage.getItem('bolamu_role');
 if(!token || role !== 'admin'){ localStorage.clear(); window.location.replace('/admin/login.html'); }
 (async function verifyToken(){
   try {
-    const res = await fetch(API + '/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+    const res = await fetch('/api/v1/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
     const data = await res.json();
     if(!res.ok || data.role !== 'admin') throw new Error();
   } catch(e) { localStorage.clear(); window.location.replace('/admin/login.html'); }
