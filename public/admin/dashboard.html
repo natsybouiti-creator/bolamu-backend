@@ -1009,31 +1009,37 @@ async function grantCredit() {
 async function viewUser(phone) {
   if (!phone) return;
   
-  // 1. On prépare les deux versions du numéro
   const clean = phone.trim().replace(/\s+/g, '');
-  const withPlus = clean.startsWith('+') ? clean : '+' + clean;
   const noPlus = clean.replace('+', '');
+  const withPlus = clean.startsWith('+') ? clean : '+' + clean;
   
   showModal();
   const container = document.getElementById('modal-body');
-  container.innerHTML = '<div style="padding:40px; text-align:center; color:#5A6E8C;">⌛ Extraction du dossier...</div>';
+  container.innerHTML = '<div style="padding:40px; text-align:center;">⌛ Scan des routes serveurs...</div>';
 
-  // 2. On liste toutes les combinaisons possibles
+  // ON TESTE TOUTES LES VARIANTES POSSIBLES
   const tryPaths = [
-    `/users/${encodeURIComponent(withPlus)}/profile`, // +242... (Encodé)
-    `/users/${noPlus}/profile`,                      // 242... (Sans plus)
-    `/admin/users/${noPlus}/profile`                 // Format Admin
+    `/users/${noPlus}/profile`,               // Version 1: Standard sans +
+    `/users/${encodeURIComponent(withPlus)}/profile`, // Version 2: Standard avec +
+    `/admin/users/${noPlus}/profile`,         // Version 3: Admin sans +
+    `/profile/${noPlus}`                      // Version 4: Route alternative
   ];
 
   let res = null;
+  let finalPath = "";
+
   for (const path of tryPaths) {
     try {
+      console.log("🔍 Test du chemin :", path);
       const response = await api(path);
       if (response && (response.data?.user || response.user)) {
         res = response;
+        finalPath = path;
         break; 
       }
-    } catch (e) { console.log("Échec sur : " + path); }
+    } catch (e) {
+      // On ignore l'erreur et on passe au test suivant
+    }
   }
 
   if (res) {
@@ -1043,38 +1049,34 @@ async function viewUser(phone) {
       <div style="padding:10px; font-family:sans-serif;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #F4F8FF; padding-bottom:15px;">
           <div>
-            <div style="font-size:10px; color:#5A6E8C; font-weight:700; text-transform:uppercase;">Dossier Patient</div>
-            <div style="font-size:22px; color:#0A2463; font-weight:bold;">${u.full_name || u.phone}</div>
+            <div style="font-size:10px; color:#5A6E8C; font-weight:700;">DOSSIER PATIENT</div>
+            <div style="font-size:22px; color:#0A2463; font-weight:bold;">${u.full_name || 'Utilisateur'}</div>
           </div>
-          <span style="background:#E6FBF7; color:#00C9A7; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:800;">ACTIF ✅</span>
+          <span style="background:#E6FBF7; color:#00C9A7; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:800;">OK</span>
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
-          <div style="background:#F4F8FF; padding:15px; border-radius:12px; border:1px solid #E6F0FF;">
-            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700;">CONTACT</label>
-            <b style="font-size:15px; color:#0A2463;">${u.phone}</b>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+          <div style="background:#F4F8FF; padding:15px; border-radius:12px;">
+            <label style="color:#5A6E8C; font-size:10px; font-weight:700;">TÉLÉPHONE</label><br><b>${u.phone}</b>
           </div>
-          <div style="background:#F4F8FF; padding:15px; border-radius:12px; border:1px solid #E6F0FF;">
-            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700;">SOLDE</label>
-            <b style="font-size:18px; color:#2E86FF;">${u.credits_balance || 0} 💎</b>
+          <div style="background:#F4F8FF; padding:15px; border-radius:12px;">
+            <label style="color:#5A6E8C; font-size:10px; font-weight:700;">SOLDE</label><br><b style="color:#2E86FF;">${u.credits_balance || 0} 💎</b>
           </div>
         </div>
-        <div style="background:#FFF; border:2px solid #F4F8FF; border-radius:16px; padding:20px; text-align:center; display:flex; justify-content:space-around;">
-          <div><b style="font-size:20px; color:#0A2463;">${data.appointments?.length || 0}</b><br><small style="font-size:10px;">RDV</small></div>
-          <div><b style="font-size:20px; color:#0A2463;">${data.prescriptions?.length || 0}</b><br><small style="font-size:10px;">ORD.</small></div>
-          <div><b style="font-size:20px; color:#0A2463;">${data.payments?.length || 0}</b><br><small style="font-size:10px;">PAY.</small></div>
+        <div style="margin-top:20px; padding:15px; background:#FFF; border:1px solid #EEE; border-radius:10px; display:flex; justify-content:space-around; text-align:center;">
+          <div><b>${data.appointments?.length || 0}</b><br><small>RDV</small></div>
+          <div><b>${data.prescriptions?.length || 0}</b><br><small>ORD.</small></div>
         </div>
-        <button onclick="closeModal()" style="margin-top:25px; width:100%; padding:12px; background:#0A2463; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Fermer</button>
+        <button onclick="closeModal()" style="margin-top:20px; width:100%; padding:12px; background:#0A2463; color:white; border:none; border-radius:10px; cursor:pointer;">Fermer</button>
       </div>`;
   } else {
     container.innerHTML = `
       <div style="text-align:center; padding:40px;">
-        <p style="color:#FF4D4D; font-weight:bold;">👤 Dossier Introuvable</p>
-        <p style="color:#5A6E8C; font-size:11px;">Le serveur ne trouve aucune fiche pour ${withPlus}.</p>
+        <p style="color:#FF4D4D; font-weight:bold;">❌ Dossier Introuvable</p>
+        <p style="font-size:11px; color:gray;">Aucune route n'a répondu pour ${noPlus}.</p>
         <button onclick="closeModal()" style="margin-top:15px;">Retour</button>
       </div>`;
   }
 }
-
 /* ══════════════════════════════════════════════
    USER ACTIONS
 ══════════════════════════════════════════════ */
