@@ -1009,97 +1009,71 @@ async function grantCredit() {
 async function viewUser(phone) {
   if (!phone) return;
   
-  const phoneWithPlus = phone.trim().startsWith('+') ? phone.trim() : '+' + phone.trim();
-  const phoneSimple = phoneWithPlus.replace('+', '');
+  // 1. Nettoyage : on garde le format exact (ex: +242069855663)
+  const cleanPhone = phone.trim().replace(/\s+/g, '');
   
   showModal();
   const container = document.getElementById('modal-body');
   container.innerHTML = '<div style="padding:40px; text-align:center; font-size:16px; color:#5A6E8C;">⌛ Extraction du dossier médical...</div>';
 
-  const tryPaths = [
-    `/users/${encodeURIComponent(phoneWithPlus)}/profile`,
-    `/users/${phoneSimple}/profile`,
-    `/admin/users/${phoneSimple}/profile`
-  ];
-
-  let res = null;
-  for (const path of tryPaths) {
-    try {
-      const response = await api(path);
-      if (response && (response.data?.user || response.user)) {
-        res = response;
-        break; 
-      }
-    } catch (e) {}
-  }
-
-  if (res) {
+  try {
+    // 2. L'URL EXACTE : ton backend attend /users/:phone/profile
+    // Note : api() rajoute déjà /api/v1/admin, donc on met juste /users/...
+    const res = await api('/users/' + encodeURIComponent(cleanPhone) + '/profile');
+    
+    // On vérifie si on a bien reçu les données
     const data = res.data || res;
     const u = data.user;
-    
-    // Badge de statut stylisé
-    const statusBadge = u.is_active 
-      ? '<span style="background:#E6FBF7; color:#00C9A7; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:800;">VÉRIFIÉ ✅</span>'
-      : '<span style="background:#FFF4E5; color:#FFB020; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:800;">EN ATTENTE ⏳</span>';
 
+    if (!u) throw new Error("Utilisateur non trouvé");
+
+    // 3. AFFICHAGE PRO (Bolamu Style)
     container.innerHTML = `
-      <div style="padding:10px; font-family:'Plus Jakarta Sans', sans-serif;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; border-bottom:2px solid #F4F8FF; padding-bottom:15px;">
+      <div style="padding:10px; font-family:sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #F4F8FF; padding-bottom:15px;">
           <div>
-            <div style="font-size:11px; color:#5A6E8C; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Fiche Utilisateur</div>
-            <div style="font-family:'Fraunces', serif; font-size:24px; color:#0A2463; margin-top:4px;">${u.full_name || 'Utilisateur Bolamu'}</div>
+            <div style="font-size:10px; color:#5A6E8C; font-weight:700; text-transform:uppercase;">Dossier Patient</div>
+            <div style="font-size:22px; color:#0A2463; font-weight:bold; margin-top:4px;">${u.full_name || u.phone}</div>
           </div>
-          ${statusBadge}
+          <span style="background:#E6FBF7; color:#00C9A7; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:800;">ACTIF ✅</span>
         </div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:25px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
           <div style="background:#F4F8FF; padding:15px; border-radius:12px; border:1px solid #E6F0FF;">
-            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Contact Direct</label>
+            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Contact</label>
             <b style="font-size:15px; color:#0A2463;">${u.phone}</b>
           </div>
           <div style="background:#F4F8FF; padding:15px; border-radius:12px; border:1px solid #E6F0FF;">
-            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Rôle</label>
-            <b style="font-size:15px; color:#0A2463; text-transform:capitalize;">${u.role}</b>
-          </div>
-          <div style="background:#F4F8FF; padding:15px; border-radius:12px; border:1px solid #E6F0FF;">
-            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Solde Actuel</label>
+            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Solde</label>
             <b style="font-size:18px; color:#2E86FF;">${u.credits_balance || 0} 💎</b>
-          </div>
-          <div style="background:#F4F8FF; padding:15px; border-radius:12px; border:1px solid #E6F0FF;">
-            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Localisation</label>
-            <b style="font-size:15px; color:#0A2463;">${u.city || 'Congo'}</b>
           </div>
         </div>
 
-        <div style="background:#FFF; border:2px solid #F4F8FF; border-radius:16px; padding:20px;">
-          <h4 style="margin:0 0 15px 0; color:#0A2463; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">📈 Activité Santé</h4>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="text-align:center; flex:1;">
-              <div style="font-size:22px; font-weight:800; color:#0A2463;">${data.appointments?.length || 0}</div>
-              <div style="font-size:10px; color:#5A6E8C; font-weight:600;">RDV</div>
-            </div>
-            <div style="width:1px; height:30px; background:#E6F0FF;"></div>
-            <div style="text-align:center; flex:1;">
-              <div style="font-size:22px; font-weight:800; color:#0A2463;">${data.prescriptions?.length || 0}</div>
-              <div style="font-size:10px; color:#5A6E8C; font-weight:600;">ORDONNANCES</div>
-            </div>
-            <div style="width:1px; height:30px; background:#E6F0FF;"></div>
-            <div style="text-align:center; flex:1;">
-              <div style="font-size:22px; font-weight:800; color:#0A2463;">${data.payments?.length || 0}</div>
-              <div style="font-size:10px; color:#5A6E8C; font-weight:600;">PAIEMENTS</div>
-            </div>
-          </div>
+        <div style="background:#FFF; border:2px solid #F4F8FF; border-radius:16px; padding:20px; text-align:center; display:flex; justify-content:space-around;">
+          <div><b style="font-size:20px; color:#0A2463;">${data.appointments?.length || 0}</b><br><small style="font-size:10px; color:#5A6E8C;">RDV</small></div>
+          <div style="width:1px; background:#F4F8FF;"></div>
+          <div><b style="font-size:20px; color:#0A2463;">${data.prescriptions?.length || 0}</b><br><small style="font-size:10px; color:#5A6E8C;">ORD.</small></div>
+          <div style="width:1px; background:#F4F8FF;"></div>
+          <div><b style="font-size:20px; color:#0A2463;">${data.payments?.length || 0}</b><br><small style="font-size:10px; color:#5A6E8C;">PAY.</small></div>
         </div>
 
         <div style="margin-top:25px; text-align:right;">
-          <button onclick="closeModal()" style="padding:12px 25px; border-radius:10px; cursor:pointer; font-weight:700; border:none; background:#0A2463; color:#FFF; font-size:13px; box-shadow: 0 4px 12px rgba(10,36,99,0.2);">
+          <button onclick="closeModal()" style="padding:12px 25px; border-radius:10px; cursor:pointer; font-weight:700; border:none; background:#0A2463; color:#FFF; font-size:13px; width:100%;">
             Fermer le dossier
           </button>
         </div>
       </div>
     `;
-  } else {
-    container.innerHTML = `<div style="padding:40px; text-align:center; color:#FF4D4D;">❌ Impossible de charger ce profil.</div>`;
+
+  } catch (e) {
+    console.error("Erreur de chargement:", e);
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px;">
+        <div style="font-size:40px; margin-bottom:10px;">👤🚫</div>
+        <p style="color:#FF4D4D; font-weight:bold; font-size:16px;">Dossier Introuvable (404)</p>
+        <p style="color:#5A6E8C; font-size:12px;">Vérifie que la route est bien active sur Render.</p>
+        <button onclick="closeModal()" style="margin-top:20px; background:#F4F8FF; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; color:#0A2463; font-weight:600;">Fermer</button>
+      </div>`;
   }
 }
 
