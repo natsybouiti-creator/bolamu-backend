@@ -51,7 +51,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .kpi-value{font-family:'Fraunces',serif;font-size:26px;font-weight:900;line-height:1;margin-bottom:2px;}
 .kpi-label{font-size:9px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
 .kpi-trend{font-size:9px;font-weight:600;color:var(--texte-doux);}
-.kpi-loading{opacity:0.4;font-size:11px;}
+.kpi-loading{opacity:0.4;font-size:22px;animation:shimmer 1.5s infinite;}
+@keyframes shimmer{0%,100%{opacity:0.4;}50%{opacity:0.8;}}
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .chart-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:16px;}
 .chart-title{font-size:12px;font-weight:700;color:var(--texte);margin-bottom:2px;}
@@ -209,8 +210,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .texte-block-input:focus{border-color:var(--bleu);}
 .save-block-btn{margin-top:7px;padding:5px 12px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.25);border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
 .save-block-btn:hover{background:var(--bleu);color:white;}
-
-/* ── Réseaux sociaux avec vrais logos SVG ── */
 .reseaux-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .reseau-block{background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;}
 .reseau-logo{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
@@ -225,19 +224,28 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .reseau-name{font-size:10px;font-weight:700;color:var(--texte);margin-bottom:4px;}
 .reseau-input{flex:1;background:var(--noir3);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
 .reseau-input:focus{border-color:var(--bleu);}
-
 .vitrine-card{background:var(--noir2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:10px;}
 .vitrine-img-preview{display:none;width:100%;height:110px;object-fit:cover;border-radius:6px;margin-top:5px;}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:11px;font-weight:600;display:none;z-index:9999;box-shadow:0 20px 40px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;}
 .toast.show{display:flex;align-items:center;gap:6px;}
 .toast.success{border-color:rgba(0,200,167,0.3);color:var(--vert);}
 .toast.error{border-color:rgba(255,71,87,0.3);color:var(--rouge);}
+.toast.info{border-color:rgba(46,134,255,0.3);color:var(--bleu);}
 @keyframes slideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 .empty{text-align:center;padding:32px;color:var(--texte-doux);}
 .empty-icon{font-size:28px;margin-bottom:8px;}
 .loading{text-align:center;padding:28px;color:var(--texte-doux);font-size:11px;}
-.kpi-error{background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:11px;color:var(--rouge);display:none;}
-.kpi-error.show{display:flex;align-items:center;gap:8px;}
+
+/* ── Bannière d'état serveur ── */
+.server-banner{border-radius:10px;padding:11px 16px;margin-bottom:12px;font-size:11px;font-weight:500;display:none;align-items:center;gap:10px;line-height:1.5;}
+.server-banner.show{display:flex;}
+.server-banner.loading{background:rgba(46,134,255,0.08);border:1px solid rgba(46,134,255,0.2);color:var(--bleu);}
+.server-banner.error{background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--rouge);}
+.server-banner.warn{background:rgba(255,165,2,0.08);border:1px solid rgba(255,165,2,0.2);color:var(--amber);}
+.spinner{width:14px;height:14px;border:2px solid rgba(46,134,255,0.3);border-top-color:var(--bleu);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.retry-btn{margin-left:auto;padding:4px 10px;background:rgba(255,71,87,0.15);color:var(--rouge);border:1px solid rgba(255,71,87,0.3);border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
+
 .mobile-sidebar-toggle{display:none;align-items:center;justify-content:center;width:30px;height:30px;background:var(--noir3);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--texte);margin-right:7px;flex-shrink:0;}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
 .sidebar-overlay.open{display:block;}
@@ -298,8 +306,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="topbar-title" id="panel-title">Tableau de bord</div>
     </div>
     <div class="topbar-right">
-      <div class="status-dot"></div>
-      <span class="status-label">Bolamu en ligne</span>
+      <div class="status-dot" id="server-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber);"></div>
+      <span class="status-label" id="server-label">Connexion...</span>
       <button class="refresh-btn" onclick="refreshAll()">↻ Actualiser</button>
     </div>
   </div>
@@ -307,16 +315,25 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
     <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
-      <div class="kpi-error" id="kpi-error-msg">⚠️ Impossible de contacter le serveur. Vérifiez la connexion.</div>
+
+      <!-- Bannière d'état serveur (remplace l'ancien kpi-error) -->
+      <div class="server-banner loading show" id="server-banner">
+        <div class="spinner" id="banner-spinner"></div>
+        <div>
+          <strong>Connexion au serveur Bolamu...</strong>
+          <div style="font-size:9px;opacity:0.8;margin-top:2px;">Le backend Render peut mettre jusqu'à 60s à démarrer après inactivité. Patientez svp.</div>
+        </div>
+      </div>
+
       <div class="kpi-grid">
-        <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value kpi-loading" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">Chargement...</div></div>
-        <div class="kpi-card green"><div class="kpi-icon">👨‍⚕️</div><div class="kpi-value kpi-loading" id="kpi-doctors">—</div><div class="kpi-label">Medecins</div><div class="kpi-trend" id="kpi-doctors-trend">Chargement...</div></div>
-        <div class="kpi-card amber"><div class="kpi-icon">📅</div><div class="kpi-value kpi-loading" id="kpi-rdv">—</div><div class="kpi-label">RDV total</div><div class="kpi-trend" id="kpi-rdv-trend">Chargement...</div></div>
-        <div class="kpi-card violet"><div class="kpi-icon">💊</div><div class="kpi-value kpi-loading" id="kpi-pharma">—</div><div class="kpi-label">Pharmacies</div><div class="kpi-trend">Verifiees</div></div>
-        <div class="kpi-card green"><div class="kpi-icon">💰</div><div class="kpi-value kpi-loading" id="kpi-rev-today">—</div><div class="kpi-label">Revenus auj.</div><div class="kpi-trend" id="kpi-rev-month">—</div></div>
-        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value kpi-loading" id="kpi-presc">—</div><div class="kpi-label">Ordonnances</div><div class="kpi-trend">Total</div></div>
-        <div class="kpi-card amber"><div class="kpi-icon">⏳</div><div class="kpi-value kpi-loading" id="kpi-pending">—</div><div class="kpi-label">En attente</div><div class="kpi-trend">a valider</div></div>
-        <div class="kpi-card red"><div class="kpi-icon">🚨</div><div class="kpi-value kpi-loading" id="kpi-fraud">—</div><div class="kpi-label">Fraudes HIGH</div><div class="kpi-trend" id="kpi-banned">—</div></div>
+        <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value kpi-loading" id="kpi-patients">···</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">Chargement...</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">👨‍⚕️</div><div class="kpi-value kpi-loading" id="kpi-doctors">···</div><div class="kpi-label">Medecins</div><div class="kpi-trend" id="kpi-doctors-trend">Chargement...</div></div>
+        <div class="kpi-card amber"><div class="kpi-icon">📅</div><div class="kpi-value kpi-loading" id="kpi-rdv">···</div><div class="kpi-label">RDV total</div><div class="kpi-trend" id="kpi-rdv-trend">Chargement...</div></div>
+        <div class="kpi-card violet"><div class="kpi-icon">💊</div><div class="kpi-value kpi-loading" id="kpi-pharma">···</div><div class="kpi-label">Pharmacies</div><div class="kpi-trend">Verifiees</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">💰</div><div class="kpi-value kpi-loading" id="kpi-rev-today">···</div><div class="kpi-label">Revenus auj.</div><div class="kpi-trend" id="kpi-rev-month">—</div></div>
+        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value kpi-loading" id="kpi-presc">···</div><div class="kpi-label">Ordonnances</div><div class="kpi-trend">Total</div></div>
+        <div class="kpi-card amber"><div class="kpi-icon">⏳</div><div class="kpi-value kpi-loading" id="kpi-pending">···</div><div class="kpi-label">En attente</div><div class="kpi-trend">a valider</div></div>
+        <div class="kpi-card red"><div class="kpi-icon">🚨</div><div class="kpi-value kpi-loading" id="kpi-fraud">···</div><div class="kpi-label">Fraudes HIGH</div><div class="kpi-trend" id="kpi-banned">—</div></div>
       </div>
       <div class="charts-row">
         <div class="chart-card">
@@ -468,7 +485,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
     <!-- PLANS / OFFRES -->
     <div class="panel" id="panel-plans">
-      <div style="margin-bottom:14px;"><div style="font-size:14px;font-weight:700;margin-bottom:2px;">💰 Offres & Tarifs</div><div style="font-size:9px;color:var(--texte-doux);">Modifiez les 3 formules affichees sur la page d'accueil. Tout est mis a jour en temps reel.</div></div>
+      <div style="margin-bottom:14px;"><div style="font-size:14px;font-weight:700;margin-bottom:2px;">💰 Offres & Tarifs</div><div style="font-size:9px;color:var(--texte-doux);">Modifiez les 3 formules affichees sur la page d'accueil.</div></div>
       <div class="plans-edit-grid" id="plans-grid"><div class="loading">Chargement...</div></div>
       <div style="margin-top:10px;background:rgba(46,134,255,0.08);border:1px solid rgba(46,134,255,0.2);border-radius:8px;padding:9px 11px;">
         <div style="font-size:9px;font-weight:700;color:var(--bleu);margin-bottom:2px;">💡 Conseils</div>
@@ -513,58 +530,169 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
 <script>
 /* ══════════════════════════════════════════════
-   SVG LOGOS RÉSEAUX SOCIAUX (inline, vrais logos)
+   SVG LOGOS RÉSEAUX SOCIAUX
 ══════════════════════════════════════════════ */
 const RESEAUX_SVG = {
-  whatsapp: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`,
-  instagram: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
-  facebook: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
-  tiktok: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>`,
-  youtube: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
-  linkedin: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>`,
-  twitter: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`
+  whatsapp:`<svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`,
+  instagram:`<svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
+  facebook:`<svg viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
+  tiktok:`<svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>`,
+  youtube:`<svg viewBox="0 0 24 24" fill="white"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+  linkedin:`<svg viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>`,
+  twitter:`<svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`
 };
 
 /* ══════════════════════════════════════════════
-   INIT & AUTH
+   CONFIG & AUTH
 ══════════════════════════════════════════════ */
 const API = 'https://bolamu-backend.onrender.com/api/v1';
 const token = localStorage.getItem('bolamu_token');
 const phone = localStorage.getItem('bolamu_phone');
-const role = localStorage.getItem('bolamu_role');
-if(!token || role !== 'admin'){ localStorage.clear(); window.location.replace('/admin/login.html'); }
+const role  = localStorage.getItem('bolamu_role');
 
-(async function verifyToken(){
+if (!token || role !== 'admin') {
+  localStorage.clear();
+  window.location.replace('/admin/login.html');
+}
+
+(async function verifyToken() {
   try {
-    const res = await fetch(API + '/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+    const res = await fetchWithTimeout(API + '/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    }, 20000);
     const data = await res.json();
-    if(!res.ok || data.role !== 'admin') throw new Error();
-  } catch(e) { localStorage.clear(); window.location.replace('/admin/login.html'); }
+    if (!res.ok || data.role !== 'admin') throw new Error();
+    setServerOnline();
+  } catch (e) {
+    // Ne pas déconnecter sur erreur réseau (Render cold start)
+    // Juste logguer, l'appel dashboard se chargera de la récupération
+    console.warn('verifyToken: serveur pas encore réveillé, on continue...');
+  }
 })();
+
 document.getElementById('admin-name').textContent = phone || 'Admin';
 
-function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('open'); }
-function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
-document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => { if(window.innerWidth <= 800) closeSidebar(); }));
+/* ══════════════════════════════════════════════
+   HELPERS RÉSEAU — Retry automatique pour Render
+══════════════════════════════════════════════ */
+
+/** fetch avec timeout */
+function fetchWithTimeout(url, opts = {}, ms = 20000) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal })
+    .finally(() => clearTimeout(tid));
+}
+
+/**
+ * api() — wrapper avec retry automatique (3 tentatives, 8s entre chaque)
+ * Gère : timeout, 502/503 (Render boot), CORS silence
+ */
+async function api(path, opts = {}, retries = 3, delay = 8000) {
+  const url = `${API}${path}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    ...(opts.headers || {})
+  };
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetchWithTimeout(url, { ...opts, headers }, 20000);
+
+      // Render renvoie 502/503 pendant le cold start → on réessaie
+      if ((res.status === 502 || res.status === 503) && attempt < retries) {
+        setBannerWaiting(attempt, retries);
+        await sleep(delay);
+        continue;
+      }
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const json = await res.json();
+      return json;
+
+    } catch (err) {
+      const isTimeout = err.name === 'AbortError';
+      const isNetwork = err instanceof TypeError; // net::ERR_*
+
+      if ((isTimeout || isNetwork) && attempt < retries) {
+        setBannerWaiting(attempt, retries);
+        await sleep(delay);
+        continue;
+      }
+      throw err; // dernière tentative échouée → on propage
+    }
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ── Indicateurs visuels serveur ── */
+function setServerOnline() {
+  const dot = document.getElementById('server-dot');
+  const lbl = document.getElementById('server-label');
+  if (dot) { dot.style.background = 'var(--vert)'; dot.style.boxShadow = '0 0 6px var(--vert)'; }
+  if (lbl) lbl.textContent = 'Bolamu en ligne';
+}
+function setServerOffline() {
+  const dot = document.getElementById('server-dot');
+  const lbl = document.getElementById('server-label');
+  if (dot) { dot.style.background = 'var(--rouge)'; dot.style.boxShadow = '0 0 6px var(--rouge)'; }
+  if (lbl) lbl.textContent = 'Serveur hors ligne';
+}
+function setServerConnecting() {
+  const dot = document.getElementById('server-dot');
+  const lbl = document.getElementById('server-label');
+  if (dot) { dot.style.background = 'var(--amber)'; dot.style.boxShadow = '0 0 6px var(--amber)'; }
+  if (lbl) lbl.textContent = 'Connexion...';
+}
+
+function setBannerWaiting(attempt, max) {
+  const b = document.getElementById('server-banner');
+  if (!b) return;
+  b.className = 'server-banner loading show';
+  b.innerHTML = `<div class="spinner"></div><div><strong>Réveil du serveur en cours... (tentative ${attempt}/${max})</strong><div style="font-size:9px;opacity:0.8;margin-top:2px;">Render démarre en ~30-60s après inactivité. Ne fermez pas la page.</div></div>`;
+  setServerConnecting();
+}
+function hideBanner() {
+  const b = document.getElementById('server-banner');
+  if (b) b.className = 'server-banner';
+}
+function showBannerError(msg) {
+  const b = document.getElementById('server-banner');
+  if (!b) return;
+  b.className = 'server-banner error show';
+  b.innerHTML = `<span>⚠️</span><div><strong>${msg}</strong><div style="font-size:9px;opacity:0.8;margin-top:2px;">Vérifiez que le backend Render est déployé et actif.</div></div><button class="retry-btn" onclick="loadOverview()">↻ Réessayer</button>`;
+  setServerOffline();
+}
+
+/* ══════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════ */
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('open'); }
+function closeSidebar()  { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => { if (window.innerWidth <= 800) closeSidebar(); }));
 
 const panelTitles = {
-  overview:'Tableau de bord', activity:'Activite', pending:'En attente', doctors:'Medecins',
-  pharmacies:'Pharmacies', laboratories:'Laboratoires', patients:'Patients',
-  appointments:'Rendez-vous', prescriptions:'Ordonnances', payments:'Paiements',
-  fraud:'Fraudes', audit:"Journal d'audit", articles:'Articles & Blog',
-  vitrine:'Vitrine & Hero', plans:'Offres & Tarifs', textes:'Textes du site',
-  reseaux:'Reseaux sociaux', config:'Configuration', credits:'Credits'
+  overview:'Tableau de bord', activity:'Activite', pending:'En attente',
+  doctors:'Medecins', pharmacies:'Pharmacies', laboratories:'Laboratoires',
+  patients:'Patients', appointments:'Rendez-vous', prescriptions:'Ordonnances',
+  payments:'Paiements', fraud:'Fraudes', audit:"Journal d'audit",
+  articles:'Articles & Blog', vitrine:'Vitrine & Hero', plans:'Offres & Tarifs',
+  textes:'Textes du site', reseaux:'Reseaux sociaux', config:'Configuration', credits:'Credits'
 };
 
-function showPanel(name, btn){
+function showPanel(name, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
-  if(btn) btn.classList.add('active');
+  if (btn) btn.classList.add('active');
   document.getElementById('panel-title').textContent = panelTitles[name] || name;
   loadPanel(name);
 }
-function loadPanel(name){
+
+function loadPanel(name) {
   const fn = {
     overview: loadOverview, activity: loadActivity, pending: loadPending,
     doctors: () => loadDoctors(), pharmacies: () => loadPharmacies(),
@@ -574,461 +702,538 @@ function loadPanel(name){
     articles: loadArticles, vitrine: loadVitrine, plans: loadPlans,
     textes: loadTextes, reseaux: loadReseaux, config: loadConfig, credits: loadCredits
   };
-  if(fn[name]) fn[name]();
+  if (fn[name]) fn[name]();
 }
 
-async function api(path, opts = {}){
-  const res = await fetch(`${API}${path}`, {
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    ...opts
-  });
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+/* ══════════════════════════════════════════════
+   UTILITAIRES
+══════════════════════════════════════════════ */
+function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function fmtShort(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }
+function fmtNum(n)   { if (n === null || n === undefined || isNaN(Number(n))) return '0'; return Number(n).toLocaleString('fr-FR'); }
+
+function setKPI(id, val, fallback = '0') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = (val !== null && val !== undefined && val !== '') ? val : fallback;
+  el.classList.remove('kpi-loading');
 }
-function fmtDate(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
-function fmtShort(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }
-function fmtNum(n){ if(n===null||n===undefined||isNaN(Number(n))) return '0'; return Number(n).toLocaleString('fr-FR'); }
-function setKPI(id, val, fallback='0'){ const el=document.getElementById(id); if(!el) return; el.textContent = (val!==null && val!==undefined && val!=='') ? val : fallback; el.classList.remove('kpi-loading'); }
-function badge(s){
+
+function badge(s) {
   const m = {
-    verified: 'badge-verified ✓ Verifie', pending: 'badge-pending ⏳ Attente',
-    suspended: 'badge-suspended 🚫 Suspendu', banned: 'badge-banned 🚫 Banni',
-    termine: 'badge-verified ✓ Termine', confirme: 'badge-pending 📅 Confirme',
-    active: 'badge-active ✓ Actif', high: 'badge-high 🔴 HIGH',
-    medium: 'badge-medium 🟡 MED', low: 'badge-low 🟢 LOW',
-    success: 'badge-verified ✓ OK', failed: 'badge-suspended ✗ Echoue'
+    verified:'badge-verified ✓ Verifie', pending:'badge-pending ⏳ Attente',
+    suspended:'badge-suspended 🚫 Suspendu', banned:'badge-banned 🚫 Banni',
+    termine:'badge-verified ✓ Termine', confirme:'badge-pending 📅 Confirme',
+    active:'badge-active ✓ Actif', high:'badge-high 🔴 HIGH',
+    medium:'badge-medium 🟡 MED', low:'badge-low 🟢 LOW',
+    success:'badge-verified ✓ OK', failed:'badge-suspended ✗ Echoue'
   };
-  const v = m[s] || ('badge-pending ' + (s||'—'));
+  const v = m[s] || ('badge-pending ' + (s || '—'));
   const [cls, ...label] = v.split(' ');
   return `<span class="badge ${cls}">${label.join(' ')}</span>`;
 }
-function showToast(msg, type = 'success'){
+
+function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
   t.className = `toast show ${type}`;
-  t.innerHTML = (type === 'success' ? '✓ ' : '✗ ') + msg;
+  t.innerHTML = (type === 'success' ? '✓ ' : type === 'error' ? '✗ ' : 'ℹ ') + msg;
   setTimeout(() => t.className = 'toast', 3500);
 }
-function filterTable(id, q){ q = q.toLowerCase(); document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'); }
-function showModal(){ document.getElementById('modal').classList.add('open'); }
-function closeModal(){ document.getElementById('modal').classList.remove('open'); }
-function logout(){ localStorage.clear(); window.location.replace('/admin/login.html'); }
-function refreshAll(){ loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-','')); }
 
-/* ════════ OVERVIEW ════════ */
-async function loadOverview(){
-  const errEl = document.getElementById('kpi-error-msg');
-  errEl.classList.remove('show');
-  // Reset tous les KPI en état "chargement"
+function filterTable(id, q) {
+  q = q.toLowerCase();
+  document.querySelectorAll(`#${id} tbody tr`).forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function showModal()  { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function logout()     { localStorage.clear(); window.location.replace('/admin/login.html'); }
+function refreshAll() { loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-', '')); }
+function refreshCurrentPanel() { loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-', '')); }
+
+/* ══════════════════════════════════════════════
+   OVERVIEW — avec retry Render intégré
+══════════════════════════════════════════════ */
+async function loadOverview() {
+  // Reset KPI en mode chargement
   ['kpi-patients','kpi-doctors','kpi-rdv','kpi-pharma','kpi-rev-today','kpi-presc','kpi-pending','kpi-fraud'].forEach(id => {
     const el = document.getElementById(id);
-    if(el){ el.textContent='…'; el.classList.add('kpi-loading'); }
+    if (el) { el.textContent = '···'; el.classList.add('kpi-loading'); }
   });
-  try{
+
+  // Bannière chargement initiale
+  const b = document.getElementById('server-banner');
+  if (b) {
+    b.className = 'server-banner loading show';
+    b.innerHTML = `<div class="spinner"></div><div><strong>Connexion au serveur Bolamu...</strong><div style="font-size:9px;opacity:0.8;margin-top:2px;">Le backend Render peut prendre jusqu'à 60s à démarrer. Patientez svp.</div></div>`;
+  }
+  setServerConnecting();
+
+  try {
+    // api() gère les retries automatiquement
     const data = await api('/admin/dashboard');
-    if(!data || !data.success){
-      errEl.textContent = '⚠️ Le serveur a répondu mais sans données valides. Vérifiez l\'endpoint /admin/dashboard.';
-      errEl.classList.add('show');
-      return;
-    }
-    const s = data.stats || {};
-    setKPI('kpi-patients', fmtNum(s.patients));
-    setKPI('kpi-doctors', fmtNum(s.doctors));
-    setKPI('kpi-rdv', fmtNum(s.appointments_total));
-    setKPI('kpi-pharma', fmtNum(s.pharmacies));
-    setKPI('kpi-rev-today', (s.revenue_today||0).toLocaleString('fr-FR') + ' F');
-    setKPI('kpi-presc', fmtNum(s.prescriptions));
-    setKPI('kpi-pending', fmtNum(s.pending));
-    setKPI('kpi-fraud', fmtNum(s.fraud_high));
-    document.getElementById('kpi-rev-month').textContent = 'Ce mois: ' + ((s.revenue_month||0).toLocaleString('fr-FR')) + ' FCFA';
-    document.getElementById('kpi-banned').textContent = fmtNum(s.banned) + ' bannis';
+
+    // ── Accepte plusieurs formats de réponse backend ──
+    // Format A : { success: true, stats: { patients: X, ... } }
+    // Format B : { success: true, data: { patients: X, ... } }
+    // Format C : { success: true, data: { stats: { ... } } }
+    const s = data.stats
+           || data.data?.stats
+           || data.data
+           || {};
+
+    // ── Mise à jour des KPI ──
+    setKPI('kpi-patients',  fmtNum(s.patients));
+    setKPI('kpi-doctors',   fmtNum(s.doctors));
+    setKPI('kpi-rdv',       fmtNum(s.appointments_total ?? s.appointments ?? s.rdv_total));
+    setKPI('kpi-pharma',    fmtNum(s.pharmacies));
+    setKPI('kpi-rev-today', (Number(s.revenue_today) || 0).toLocaleString('fr-FR') + ' F');
+    setKPI('kpi-presc',     fmtNum(s.prescriptions));
+    setKPI('kpi-pending',   fmtNum(s.pending));
+    setKPI('kpi-fraud',     fmtNum(s.fraud_high));
+
+    document.getElementById('kpi-rev-month').textContent = 'Ce mois: ' + (Number(s.revenue_month) || 0).toLocaleString('fr-FR') + ' FCFA';
+    document.getElementById('kpi-banned').textContent    = fmtNum(s.banned) + ' bannis';
     document.getElementById('badge-pending').textContent = s.pending || 0;
-    document.getElementById('badge-fraud').textContent = s.fraud_high || 0;
+    document.getElementById('badge-fraud').textContent   = s.fraud_high || 0;
 
-    // Donut
-    const total = (s.patients||0) + (s.doctors||0) + (s.pharmacies||0) + (s.labos||0);
+    // ── Donut ──
+    const total = (s.patients || 0) + (s.doctors || 0) + (s.pharmacies || 0) + (s.labos || 0);
     document.getElementById('donut-total').textContent = total;
-    document.getElementById('leg-patients').textContent = s.patients||0;
-    document.getElementById('leg-doctors').textContent = s.doctors||0;
-    document.getElementById('leg-pharmacies').textContent = s.pharmacies||0;
-    document.getElementById('leg-labos').textContent = s.labos||0;
-    if(total > 0){
+    document.getElementById('leg-patients').textContent   = s.patients   || 0;
+    document.getElementById('leg-doctors').textContent    = s.doctors    || 0;
+    document.getElementById('leg-pharmacies').textContent = s.pharmacies || 0;
+    document.getElementById('leg-labos').textContent      = s.labos      || 0;
+
+    if (total > 0) {
       const circ = 283;
-      const pp = (s.patients||0)/total*circ;
-      const dp = (s.doctors||0)/total*circ;
-      const phP = (s.pharmacies||0)/total*circ;
-      const lp = (s.labos||0)/total*circ;
+      const pp  = (s.patients   || 0) / total * circ;
+      const dp  = (s.doctors    || 0) / total * circ;
+      const phP = (s.pharmacies || 0) / total * circ;
+      const lp  = (s.labos      || 0) / total * circ;
       let off = 71;
-      const d1 = document.getElementById('donut-patient');
-      d1.setAttribute('stroke-dasharray', `${pp} ${circ-pp}`);
-      d1.setAttribute('stroke-dashoffset', off); off -= pp;
-      const d2 = document.getElementById('donut-doctor');
-      d2.setAttribute('stroke-dasharray', `${dp} ${circ-dp}`);
-      d2.setAttribute('stroke-dashoffset', off); off -= dp;
-      const d3 = document.getElementById('donut-pharma');
-      d3.setAttribute('stroke-dasharray', `${phP} ${circ-phP}`);
-      d3.setAttribute('stroke-dashoffset', off); off -= phP;
-      const d4 = document.getElementById('donut-labo');
-      d4.setAttribute('stroke-dasharray', `${lp} ${circ-lp}`);
-      d4.setAttribute('stroke-dashoffset', off);
+      const setD = (id, val) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('stroke-dasharray', `${val} ${circ - val}`);
+        el.setAttribute('stroke-dashoffset', off);
+        off -= val;
+      };
+      setD('donut-patient', pp);
+      setD('donut-doctor',  dp);
+      setD('donut-pharma',  phP);
+      setD('donut-labo',    lp);
     }
 
-    // Mini listes
+    // ── Mini-listes ──
     const pList = document.getElementById('pending-mini-list');
-    if(data.pending_users && data.pending_users.length){
-      pList.innerHTML = '<div class="feed-list">' + data.pending_users.slice(0,5).map(u =>
-        `<div class="feed-item"><div class="feed-dot" style="background:var(--amber)"></div><div><div class="feed-action"><span class="feed-actor">${u.phone}</span> — ${u.role||'—'}</div><div class="feed-time">${fmtShort(u.created_at)}</div></div></div>`
+    const pendingUsers = data.pending_users || [];
+    if (pendingUsers.length) {
+      pList.innerHTML = '<div class="feed-list">' + pendingUsers.slice(0, 5).map(u =>
+        `<div class="feed-item"><div class="feed-dot" style="background:var(--amber)"></div><div><div class="feed-action"><span class="feed-actor">${u.phone}</span> — ${u.role || '—'}</div><div class="feed-time">${fmtShort(u.created_at)}</div></div></div>`
       ).join('') + '</div>';
-    } else { pList.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Aucun en attente</p></div>'; }
+    } else {
+      pList.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Aucun en attente</p></div>';
+    }
 
     const fList = document.getElementById('fraud-mini-list');
-    if(data.fraud_alerts && data.fraud_alerts.length){
-      fList.innerHTML = '<div class="feed-list">' + data.fraud_alerts.slice(0,5).map(f =>
-        `<div class="feed-item"><div class="feed-dot" style="background:var(--rouge)"></div><div><div class="feed-action"><span class="feed-actor">${f.phone||f.doctor_phone||'—'}</span> — score ${f.fraud_score||0}</div><div class="feed-time">${fmtShort(f.created_at)}</div></div></div>`
+    const fraudAlerts = data.fraud_alerts || [];
+    if (fraudAlerts.length) {
+      fList.innerHTML = '<div class="feed-list">' + fraudAlerts.slice(0, 5).map(f =>
+        `<div class="feed-item"><div class="feed-dot" style="background:var(--rouge)"></div><div><div class="feed-action"><span class="feed-actor">${f.phone || f.doctor_phone || '—'}</span> — score ${f.fraud_score || 0}</div><div class="feed-time">${fmtShort(f.created_at)}</div></div></div>`
       ).join('') + '</div>';
-    } else { fList.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div><p>Aucune fraude HIGH</p></div>'; }
+    } else {
+      fList.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div><p>Aucune fraude HIGH</p></div>';
+    }
 
-  } catch(e){
+    // ── Succès ──
+    hideBanner();
+    setServerOnline();
+
+  } catch (e) {
     console.error('loadOverview error:', e);
-    errEl.textContent = '⚠️ Impossible de joindre le serveur Bolamu. Vérifiez que le backend est démarré sur Render.';
-    errEl.classList.add('show');
+
+    // Reset KPI à 0 (pas ERR) — pour ne pas alarmer inutilement
     ['kpi-patients','kpi-doctors','kpi-rdv','kpi-pharma','kpi-rev-today','kpi-presc','kpi-pending','kpi-fraud'].forEach(id => {
-      const el = document.getElementById(id); if(el){ el.textContent='ERR'; el.classList.remove('kpi-loading'); }
+      const el = document.getElementById(id);
+      if (el) { el.textContent = '0'; el.classList.remove('kpi-loading'); }
     });
+
+    // Message d'erreur clair avec bouton retry
+    showBannerError('Impossible de joindre le serveur après plusieurs tentatives.');
   }
 }
 
-/* ════════ ACTIVITY ════════ */
-async function loadActivity(){
-  try{
+/* ══════════════════════════════════════════════
+   ACTIVITY
+══════════════════════════════════════════════ */
+async function loadActivity() {
+  try {
     const data = await api('/admin/activity');
-    if(!data.success) return;
-    document.getElementById('act-rdv-today').textContent = data.rdv_today || 0;
+    if (!data.success) return;
+    document.getElementById('act-rdv-today').textContent    = data.rdv_today          || 0;
     document.getElementById('act-prescriptions').textContent = data.prescriptions_today || 0;
-    document.getElementById('act-new-users').textContent = data.new_users_today || 0;
-    document.getElementById('activity-count').textContent = (data.logs||[]).length + ' entrees';
+    document.getElementById('act-new-users').textContent    = data.new_users_today     || 0;
+    document.getElementById('activity-count').textContent   = (data.logs || []).length + ' entrees';
     const feed = document.getElementById('activity-feed');
-    if(!data.logs || !data.logs.length){ feed.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>Aucune activite</p></div>'; return; }
-    const colors = {appointment:'var(--bleu)', prescription:'var(--vert)', payment:'var(--amber)', fraud:'var(--rouge)'};
+    if (!data.logs || !data.logs.length) { feed.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>Aucune activite</p></div>'; return; }
+    const colors = { appointment:'var(--bleu)', prescription:'var(--vert)', payment:'var(--amber)', fraud:'var(--rouge)' };
     feed.innerHTML = '<div class="feed-list">' + data.logs.map(l =>
-      `<div class="feed-item"><div class="feed-dot" style="background:${colors[l.type]||'var(--texte-doux)'}"></div><div><div class="feed-action">${l.description}</div><div class="feed-time">${fmtDate(l.created_at)}</div></div></div>`
+      `<div class="feed-item"><div class="feed-dot" style="background:${colors[l.type] || 'var(--texte-doux)'}"></div><div><div class="feed-action">${l.description}</div><div class="feed-time">${fmtDate(l.created_at)}</div></div></div>`
     ).join('') + '</div>';
-  } catch(e){ document.getElementById('activity-feed').innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { document.getElementById('activity-feed').innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ PENDING ════════ */
-async function loadPending(){
+/* ══════════════════════════════════════════════
+   PENDING
+══════════════════════════════════════════════ */
+async function loadPending() {
   const el = document.getElementById('pending-list');
-  try{
+  try {
     const data = await api('/admin/pending-users');
     const users = data.users || [];
     document.getElementById('pending-count').textContent = users.length + ' dossiers';
-    if(!users.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Aucun dossier en attente</p></div>'; return; }
+    if (!users.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Aucun dossier en attente</p></div>'; return; }
     el.innerHTML = `<table id="pending-table"><thead><tr><th>Telephone</th><th>Role</th><th>Nom</th><th>Date</th><th>Actions</th></tr></thead><tbody>${users.map(u =>
-      `<tr><td class="td-phone">${u.phone}</td><td>${badge(u.role||'pending')}</td><td>${u.full_name||u.business_name||'—'}</td><td>${fmtShort(u.created_at)}</td><td class="actions"><button class="btn-validate" onclick="validateUser('${u.phone}')">✓ Valider</button><button class="btn-reject" onclick="rejectUser('${u.phone}')">✗ Rejeter</button><button class="btn-view" onclick="viewUser('${u.phone}')">👁 Voir</button></td></tr>`
+      `<tr><td class="td-phone">${u.phone}</td><td>${badge(u.role || 'pending')}</td><td>${u.full_name || u.business_name || '—'}</td><td>${fmtShort(u.created_at)}</td><td class="actions"><button class="btn-validate" onclick="validateUser('${u.phone}')">✓ Valider</button><button class="btn-reject" onclick="rejectUser('${u.phone}')">✗ Rejeter</button><button class="btn-view" onclick="viewUser('${u.phone}')">👁 Voir</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ DOCTORS ════════ */
-async function loadDoctors(status = ''){
+/* ══════════════════════════════════════════════
+   DOCTORS
+══════════════════════════════════════════════ */
+async function loadDoctors(status = '') {
   const el = document.getElementById('doctors-list');
-  try{
+  try {
     const data = await api('/admin/doctors' + (status ? `?status=${status}` : ''));
     const docs = data.doctors || [];
     document.getElementById('doctors-count').textContent = docs.length + ' medecins';
-    if(!docs.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">👨‍⚕️</div><p>Aucun medecin</p></div>'; return; }
+    if (!docs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👨‍⚕️</div><p>Aucun medecin</p></div>'; return; }
     el.innerHTML = `<table id="doctors-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Specialite</th><th>Statut</th><th>Score fraude</th><th>Actions</th></tr></thead><tbody>${docs.map(d =>
-      `<tr><td class="td-phone">${d.phone}</td><td>${d.full_name||'—'}</td><td>${d.specialty||'—'}</td><td>${badge(d.status||'pending')}</td><td>${d.fraud_score||0}/100</td><td class="actions">${d.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${d.phone}')">✓</button>`:''}${d.status!=='suspended'?`<button class="btn-suspend" onclick="suspendUser('${d.phone}')">🚫</button>`:''}${!d.is_banned?`<button class="btn-ban" onclick="banUser('${d.phone}')">🔴</button>`:`<button class="btn-unban" onclick="unbanUser('${d.phone}')">🟢</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${d.phone}')">💎</button><button class="btn-view" onclick="viewUser('${d.phone}')">👁</button></td></tr>`
+      `<tr><td class="td-phone">${d.phone}</td><td>${d.full_name || '—'}</td><td>${d.specialty || '—'}</td><td>${badge(d.status || 'pending')}</td><td>${d.fraud_score || 0}/100</td><td class="actions">${d.status !== 'verified' ? `<button class="btn-validate" onclick="validateUser('${d.phone}')">✓</button>` : ''}${d.status !== 'suspended' ? `<button class="btn-suspend" onclick="suspendUser('${d.phone}')">🚫</button>` : ''}${!d.is_banned ? `<button class="btn-ban" onclick="banUser('${d.phone}')">🔴</button>` : `<button class="btn-unban" onclick="unbanUser('${d.phone}')">🟢</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${d.phone}')">💎</button><button class="btn-view" onclick="viewUser('${d.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ PHARMACIES ════════ */
-async function loadPharmacies(status = ''){
+/* ══════════════════════════════════════════════
+   PHARMACIES
+══════════════════════════════════════════════ */
+async function loadPharmacies(status = '') {
   const el = document.getElementById('pharmacies-list');
-  try{
+  try {
     const data = await api('/admin/pharmacies' + (status ? `?status=${status}` : ''));
     const rows = data.pharmacies || [];
     document.getElementById('pharmacies-count').textContent = rows.length + ' pharmacies';
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>'; return; }
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>'; return; }
     el.innerHTML = `<table id="pharmacies-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td class="td-phone">${p.phone}</td><td>${p.business_name||p.full_name||'—'}</td><td>${badge(p.status||'pending')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${p.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${p.phone}')">✓</button>`:''}${!p.is_banned?`<button class="btn-ban" onclick="banUser('${p.phone}')">🔴</button>`:`<button class="btn-unban" onclick="unbanUser('${p.phone}')">🟢</button>`}<button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td></tr>`
+      `<tr><td class="td-phone">${p.phone}</td><td>${p.business_name || p.full_name || '—'}</td><td>${badge(p.status || 'pending')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${p.status !== 'verified' ? `<button class="btn-validate" onclick="validateUser('${p.phone}')">✓</button>` : ''}${!p.is_banned ? `<button class="btn-ban" onclick="banUser('${p.phone}')">🔴</button>` : `<button class="btn-unban" onclick="unbanUser('${p.phone}')">🟢</button>`}<button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ LABORATORIES ════════ */
-async function loadLaboratories(){
+/* ══════════════════════════════════════════════
+   LABORATORIES
+══════════════════════════════════════════════ */
+async function loadLaboratories() {
   const el = document.getElementById('laboratories-list');
-  try{
+  try {
     const data = await api('/admin/laboratories');
     const rows = data.laboratories || [];
     document.getElementById('laboratories-count').textContent = rows.length + ' laboratoires';
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">🔬</div><p>Aucun laboratoire</p></div>'; return; }
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔬</div><p>Aucun laboratoire</p></div>'; return; }
     el.innerHTML = `<table id="laboratories-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(l =>
-      `<tr><td class="td-phone">${l.phone}</td><td>${l.business_name||l.full_name||'—'}</td><td>${badge(l.status||'pending')}</td><td>${fmtShort(l.created_at)}</td><td class="actions">${l.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${l.phone}')">✓</button>`:''}${!l.is_banned?`<button class="btn-ban" onclick="banUser('${l.phone}')">🔴</button>`:`<button class="btn-unban" onclick="unbanUser('${l.phone}')">🟢</button>`}<button class="btn-view" onclick="viewUser('${l.phone}')">👁</button></td></tr>`
+      `<tr><td class="td-phone">${l.phone}</td><td>${l.business_name || l.full_name || '—'}</td><td>${badge(l.status || 'pending')}</td><td>${fmtShort(l.created_at)}</td><td class="actions">${l.status !== 'verified' ? `<button class="btn-validate" onclick="validateUser('${l.phone}')">✓</button>` : ''}${!l.is_banned ? `<button class="btn-ban" onclick="banUser('${l.phone}')">🔴</button>` : `<button class="btn-unban" onclick="unbanUser('${l.phone}')">🟢</button>`}<button class="btn-view" onclick="viewUser('${l.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ PATIENTS ════════ */
-async function loadPatients(){
+/* ══════════════════════════════════════════════
+   PATIENTS
+══════════════════════════════════════════════ */
+async function loadPatients() {
   const el = document.getElementById('patients-list');
-  try{
+  try {
     const data = await api('/admin/patients');
     const rows = data.patients || [];
     document.getElementById('patients-count').textContent = rows.length + ' patients';
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Aucun patient</p></div>'; return; }
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Aucun patient</p></div>'; return; }
     el.innerHTML = `<table id="patients-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Age/Sexe</th><th>Statut</th><th>Inscrit</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td class="td-phone">${p.phone}</td><td>${p.full_name||'—'}</td><td>${p.age||'—'} / ${p.sexe||'—'}</td><td>${badge(p.is_banned?'banned':'active')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${!p.is_banned?`<button class="btn-ban" onclick="banUser('${p.phone}')">🔴</button>`:`<button class="btn-unban" onclick="unbanUser('${p.phone}')">🟢</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${p.phone}')">💎</button></td></tr>`
+      `<tr><td class="td-phone">${p.phone}</td><td>${p.full_name || '—'}</td><td>${p.age || '—'} / ${p.sexe || '—'}</td><td>${badge(p.is_banned ? 'banned' : 'active')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${!p.is_banned ? `<button class="btn-ban" onclick="banUser('${p.phone}')">🔴</button>` : `<button class="btn-unban" onclick="unbanUser('${p.phone}')">🟢</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${p.phone}')">💎</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ APPOINTMENTS ════════ */
-async function loadAppointments(){
+/* ══════════════════════════════════════════════
+   APPOINTMENTS
+══════════════════════════════════════════════ */
+async function loadAppointments() {
   const el = document.getElementById('appointments-list');
-  try{
+  try {
     const data = await api('/admin/appointments');
     const rows = data.appointments || [];
-    document.getElementById('appt-count').textContent = rows.length + ' RDV';
-    document.getElementById('appt-done').textContent = rows.filter(r => r.status === 'termine').length;
+    document.getElementById('appt-count').textContent     = rows.length + ' RDV';
+    document.getElementById('appt-done').textContent      = rows.filter(r => r.status === 'termine').length;
     document.getElementById('appt-confirmed').textContent = rows.filter(r => r.status === 'confirme').length;
-    document.getElementById('appt-total').textContent = rows.length;
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>Aucun RDV</p></div>'; return; }
+    document.getElementById('appt-total').textContent     = rows.length;
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>Aucun RDV</p></div>'; return; }
     el.innerHTML = `<table><thead><tr><th>Code</th><th>Patient</th><th>Medecin</th><th>Date</th><th>Statut</th><th>Fraude</th></tr></thead><tbody>${rows.map(r =>
-      `<tr><td class="td-code">${r.session_code||'—'}</td><td class="td-phone">${r.patient_phone||'—'}</td><td class="td-phone">${r.doctor_phone||'—'}</td><td>${fmtShort(r.appointment_date)}</td><td>${badge(r.status)}</td><td>${badge(r.fraud_level||'low')}</td></tr>`
+      `<tr><td class="td-code">${r.session_code || '—'}</td><td class="td-phone">${r.patient_phone || '—'}</td><td class="td-phone">${r.doctor_phone || '—'}</td><td>${fmtShort(r.appointment_date)}</td><td>${badge(r.status)}</td><td>${badge(r.fraud_level || 'low')}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ PRESCRIPTIONS ════════ */
-async function loadPrescriptions(){
+/* ══════════════════════════════════════════════
+   PRESCRIPTIONS
+══════════════════════════════════════════════ */
+async function loadPrescriptions() {
   const el = document.getElementById('prescriptions-list');
-  try{
+  try {
     const data = await api('/admin/prescriptions');
     const rows = data.prescriptions || [];
     document.getElementById('pres-count').textContent = rows.length + ' ordonnances';
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Aucune ordonnance</p></div>'; return; }
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Aucune ordonnance</p></div>'; return; }
     el.innerHTML = `<table><thead><tr><th>ID</th><th>Medecin</th><th>Patient</th><th>Medicaments</th><th>Date</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td class="td-code">#${p.id}</td><td class="td-phone">${p.doctor_phone||'—'}</td><td class="td-phone">${p.patient_phone||'—'}</td><td style="font-size:9px;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${p.medications||'—'}</td><td>${fmtShort(p.created_at)}</td></tr>`
+      `<tr><td class="td-code">#${p.id}</td><td class="td-phone">${p.doctor_phone || '—'}</td><td class="td-phone">${p.patient_phone || '—'}</td><td style="font-size:9px;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${p.medications || '—'}</td><td>${fmtShort(p.created_at)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ PAYMENTS ════════ */
-async function loadPayments(){
+/* ══════════════════════════════════════════════
+   PAYMENTS
+══════════════════════════════════════════════ */
+async function loadPayments() {
   const el = document.getElementById('payments-list');
-  try{
+  try {
     const data = await api('/admin/payments');
     const rows = data.payments || [];
     document.getElementById('pay-count').textContent = rows.length + ' paiements';
-    const total = rows.filter(r => r.status === 'success').reduce((s,r) => s + (Number(r.amount)||0), 0);
-    const momo = rows.filter(r => r.provider === 'mtn_momo').length;
-    document.getElementById('pay-total-rev').textContent = fmtNum(total) + ' FCFA';
+    const total = rows.filter(r => r.status === 'success').reduce((s, r) => s + (Number(r.amount) || 0), 0);
+    const momo  = rows.filter(r => r.provider === 'mtn_momo').length;
+    document.getElementById('pay-total-rev').textContent   = fmtNum(total) + ' FCFA';
     document.getElementById('pay-total-count').textContent = rows.filter(r => r.status === 'success').length;
-    document.getElementById('pay-momo').textContent = momo;
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><p>Aucun paiement</p></div>'; return; }
+    document.getElementById('pay-momo').textContent        = momo;
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><p>Aucun paiement</p></div>'; return; }
     el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Montant</th><th>Type</th><th>Statut</th><th>Date</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td class="td-phone">${p.phone||'—'}</td><td style="font-weight:700;">${fmtNum(p.amount)} FCFA</td><td>${p.payment_type||p.provider||'—'}</td><td>${badge(p.status)}</td><td>${fmtShort(p.created_at)}</td></tr>`
+      `<tr><td class="td-phone">${p.phone || '—'}</td><td style="font-weight:700;">${fmtNum(p.amount)} FCFA</td><td>${p.payment_type || p.provider || '—'}</td><td>${badge(p.status)}</td><td>${fmtShort(p.created_at)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ FRAUD ════════ */
-async function loadFraud(){
+/* ══════════════════════════════════════════════
+   FRAUD
+══════════════════════════════════════════════ */
+async function loadFraud() {
   const el = document.getElementById('fraud-list');
-  try{
+  try {
     const data = await api('/admin/fraud');
     const rows = data.fraud || [];
-    document.getElementById('fraud-count').textContent = rows.length + ' signaux';
-    document.getElementById('fraud-high').textContent = rows.filter(r => r.fraud_level === 'high').length;
+    document.getElementById('fraud-count').textContent  = rows.length + ' signaux';
+    document.getElementById('fraud-high').textContent   = rows.filter(r => r.fraud_level === 'high').length;
     document.getElementById('fraud-medium').textContent = rows.filter(r => r.fraud_level === 'medium').length;
-    document.getElementById('fraud-low').textContent = rows.filter(r => r.fraud_level === 'low').length;
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div><p>Aucun signal fraude</p></div>'; return; }
+    document.getElementById('fraud-low').textContent    = rows.filter(r => r.fraud_level === 'low').length;
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div><p>Aucun signal fraude</p></div>'; return; }
     el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Niveau</th><th>Score</th><th>Raison</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(f =>
-      `<tr><td class="td-phone">${f.phone||f.doctor_phone||'—'}</td><td>${badge(f.fraud_level||'low')}</td><td style="font-weight:700">${f.fraud_score||0}/100</td><td style="font-size:9px;max-width:180px;overflow:hidden;">${f.fraud_reason||'—'}</td><td>${fmtShort(f.created_at)}</td><td class="actions"><button class="btn-ban" onclick="banUser('${f.phone||f.doctor_phone}')">🔴 Bannir</button></td></tr>`
+      `<tr><td class="td-phone">${f.phone || f.doctor_phone || '—'}</td><td>${badge(f.fraud_level || 'low')}</td><td style="font-weight:700">${f.fraud_score || 0}/100</td><td style="font-size:9px;max-width:180px;overflow:hidden;">${f.fraud_reason || '—'}</td><td>${fmtShort(f.created_at)}</td><td class="actions"><button class="btn-ban" onclick="banUser('${f.phone || f.doctor_phone}')">🔴 Bannir</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ AUDIT ════════ */
-async function loadAudit(eventType = ''){
+/* ══════════════════════════════════════════════
+   AUDIT
+══════════════════════════════════════════════ */
+async function loadAudit(eventType = '') {
   const el = document.getElementById('audit-list');
-  try{
+  try {
     const data = await api('/admin/audit' + (eventType ? `?event_type=${eventType}` : ''));
     const rows = data.logs || [];
     document.getElementById('audit-count').textContent = rows.length + ' entrees';
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>Aucune entree</p></div>'; return; }
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>Aucune entree</p></div>'; return; }
     el.innerHTML = `<table id="audit-table"><thead><tr><th>Evenement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead><tbody>${rows.map(r =>
-      `<tr><td style="font-weight:700;font-size:9px;color:var(--bleu)">${r.event_type}</td><td class="td-phone">${r.actor_phone||'—'}</td><td>${r.target_table||'—'}</td><td>${r.target_id||'—'}</td><td>${fmtDate(r.created_at)}</td></tr>`
+      `<tr><td style="font-weight:700;font-size:9px;color:var(--bleu)">${r.event_type}</td><td class="td-phone">${r.actor_phone || '—'}</td><td>${r.target_table || '—'}</td><td>${r.target_id || '—'}</td><td>${fmtDate(r.created_at)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ CONFIG ════════ */
-async function loadConfig(){
+/* ══════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════ */
+async function loadConfig() {
   const el = document.getElementById('config-grid');
-  try{
+  try {
     const data = await api('/admin/config');
     const cfg = data.config || [];
-    if(!cfg.length){ el.innerHTML = '<div class="empty">Aucune config</div>'; return; }
+    if (!cfg.length) { el.innerHTML = '<div class="empty">Aucune config</div>'; return; }
     const groups = {};
-    cfg.forEach(c => { const g = c.category || 'General'; if(!groups[g]) groups[g] = []; groups[g].push(c); });
+    cfg.forEach(c => { const g = c.category || 'General'; if (!groups[g]) groups[g] = []; groups[g].push(c); });
     el.innerHTML = Object.entries(groups).map(([grp, items]) =>
       `<div class="config-card"><div class="config-section-title">${grp}</div>${items.map(c =>
-        `<div class="config-item"><div><div class="config-key">${c.config_key}</div>${c.description?`<div class="config-desc">${c.description}</div>`:''}</div><div class="config-val" onclick="editConfig('${c.config_key}','${c.config_value}')">${c.config_value}</div></div>`
+        `<div class="config-item"><div><div class="config-key">${c.config_key}</div>${c.description ? `<div class="config-desc">${c.description}</div>` : ''}</div><div class="config-val" onclick="editConfig('${c.config_key}','${c.config_value}')">${c.config_value}</div></div>`
       ).join('')}</div>`
     ).join('');
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
-function editConfig(key, val){
+
+function editConfig(key, val) {
   document.getElementById('modal-body').innerHTML = `<div class="modal-title">⚙️ Modifier</div><div class="modal-sub"><code>${key}</code></div><div class="modal-field"><label>Valeur</label><input class="modal-input" id="cfg-val" value="${val}"></div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm blue" onclick="saveConfig('${key}')">💾 Enregistrer</button></div>`;
   showModal();
 }
-async function saveConfig(key){
+
+async function saveConfig(key) {
   const val = document.getElementById('cfg-val').value;
-  try{
-    const data = await api('/admin/config', {method:'PUT', body:JSON.stringify({key, value:val})});
-    if(data.success){ closeModal(); showToast('Config mise a jour'); loadConfig(); }
-    else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+  try {
+    const data = await api('/admin/config', { method: 'PUT', body: JSON.stringify({ key, value: val }) });
+    if (data.success) { closeModal(); showToast('Config mise a jour'); loadConfig(); }
+    else showToast(data.message || 'Erreur', 'error');
+  } catch (e) { showToast('Erreur', 'error'); }
 }
 
-/* ════════ CREDITS ════════ */
-async function loadCredits(){
+/* ══════════════════════════════════════════════
+   CREDITS
+══════════════════════════════════════════════ */
+async function loadCredits() {
   const el = document.getElementById('credits-list');
-  try{
+  try {
     const data = await api('/admin/credits');
     const rows = data.credits || [];
     document.getElementById('cr-total-accounts').textContent = rows.length;
-    document.getElementById('cr-total-balance').textContent = rows.reduce((s,r) => s+(Number(r.balance)||0), 0);
-    document.getElementById('cr-total-earned').textContent = rows.reduce((s,r) => s+(Number(r.total_earned)||0), 0);
-    document.getElementById('cr-total-spent').textContent = rows.reduce((s,r) => s+(Number(r.total_spent)||0), 0);
-    if(!rows.length){ el.innerHTML = '<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte credit</p></div>'; return; }
+    document.getElementById('cr-total-balance').textContent  = rows.reduce((s, r) => s + (Number(r.balance)      || 0), 0);
+    document.getElementById('cr-total-earned').textContent   = rows.reduce((s, r) => s + (Number(r.total_earned) || 0), 0);
+    document.getElementById('cr-total-spent').textContent    = rows.reduce((s, r) => s + (Number(r.total_spent)  || 0), 0);
+    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte credit</p></div>'; return; }
     el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Solde</th><th>Gagne</th><th>Depense</th><th>Actions</th></tr></thead><tbody>${rows.map(r =>
-      `<tr><td class="td-phone">${r.phone}</td><td style="font-weight:700;color:var(--violet)">${r.balance||0} 💎</td><td>${r.total_earned||0}</td><td>${r.total_spent||0}</td><td><button class="btn-credit" onclick="openGrantCreditTo('${r.phone}')">💎 Attribuer</button></td></tr>`
+      `<tr><td class="td-phone">${r.phone}</td><td style="font-weight:700;color:var(--violet)">${r.balance || 0} 💎</td><td>${r.total_earned || 0}</td><td>${r.total_spent || 0}</td><td><button class="btn-credit" onclick="openGrantCreditTo('${r.phone}')">💎 Attribuer</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
-function openGrantCredit(){ openGrantCreditTo(''); }
-function openGrantCreditTo(phone){
+
+function openGrantCredit()        { openGrantCreditTo(''); }
+function openGrantCreditTo(phone) {
   document.getElementById('modal-body').innerHTML = `<div class="modal-title">💎 Attribuer des credits</div><div class="modal-field"><label>Telephone</label><input class="modal-input" id="cr-phone" value="${phone}" placeholder="+242..."></div><div class="modal-field"><label>Credits a attribuer</label><input class="modal-input" id="cr-amount" type="number" placeholder="10" min="1"></div><div class="modal-field"><label>Raison</label><input class="modal-input" id="cr-reason" placeholder="Bonus fidelite"></div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm violet" onclick="grantCredit()">💎 Attribuer</button></div>`;
   showModal();
 }
-async function grantCredit(){
-  const phone = document.getElementById('cr-phone').value;
+
+async function grantCredit() {
+  const phone  = document.getElementById('cr-phone').value;
   const amount = parseInt(document.getElementById('cr-amount').value);
   const reason = document.getElementById('cr-reason').value;
-  if(!phone || !amount) return showToast('Telephone et montant requis','error');
-  try{
-    const data = await api('/admin/credits/grant', {method:'POST', body:JSON.stringify({phone, amount, reason})});
-    if(data.success){ closeModal(); showToast('💎 Credits attribues !'); loadCredits(); }
-    else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+  if (!phone || !amount) return showToast('Telephone et montant requis', 'error');
+  try {
+    const data = await api('/admin/credits/grant', { method: 'POST', body: JSON.stringify({ phone, amount, reason }) });
+    if (data.success) { closeModal(); showToast('💎 Credits attribues !'); loadCredits(); }
+    else showToast(data.message || 'Erreur', 'error');
+  } catch (e) { showToast('Erreur', 'error'); }
 }
 
-/* ════════ USER ACTIONS ════════ */
-async function validateUser(phone){
-  if(!confirm(`Valider ${phone} ?`)) return;
-  try{ const data = await api('/admin/validate-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('✓ Compte valide');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
+/* ══════════════════════════════════════════════
+   USER ACTIONS
+══════════════════════════════════════════════ */
+async function validateUser(phone) {
+  if (!confirm(`Valider ${phone} ?`)) return;
+  try { const d = await api('/admin/validate-user', { method:'POST', body:JSON.stringify({phone}) }); d.success ? (showToast('✓ Compte valide'), refreshCurrentPanel()) : showToast(d.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
-async function rejectUser(phone){
-  if(!confirm(`Rejeter ${phone} ?`)) return;
-  try{ const data = await api('/admin/reject-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('Compte rejete');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
+async function rejectUser(phone) {
+  if (!confirm(`Rejeter ${phone} ?`)) return;
+  try { const d = await api('/admin/reject-user', { method:'POST', body:JSON.stringify({phone}) }); d.success ? (showToast('Compte rejete'), refreshCurrentPanel()) : showToast(d.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
-async function suspendUser(phone){
-  if(!confirm(`Suspendre ${phone} ?`)) return;
-  try{ const data = await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🚫 Suspendu');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
+async function suspendUser(phone) {
+  if (!confirm(`Suspendre ${phone} ?`)) return;
+  try { const d = await api('/admin/suspend-user', { method:'POST', body:JSON.stringify({phone}) }); d.success ? (showToast('🚫 Suspendu'), refreshCurrentPanel()) : showToast(d.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
-async function banUser(phone){
-  if(!confirm(`Bannir définitivement ${phone} ?`)) return;
-  try{ const data = await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🔴 Banni');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
+async function banUser(phone) {
+  if (!confirm(`Bannir définitivement ${phone} ?`)) return;
+  try { const d = await api('/admin/ban-user', { method:'POST', body:JSON.stringify({phone}) }); d.success ? (showToast('🔴 Banni'), refreshCurrentPanel()) : showToast(d.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
-async function unbanUser(phone){
-  if(!confirm(`Débannir ${phone} ?`)) return;
-  try{ const data = await api('/admin/unban-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🟢 Debanni');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
+async function unbanUser(phone) {
+  if (!confirm(`Débannir ${phone} ?`)) return;
+  try { const d = await api('/admin/unban-user', { method:'POST', body:JSON.stringify({phone}) }); d.success ? (showToast('🟢 Debanni'), refreshCurrentPanel()) : showToast(d.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
-function viewUser(phone){
+
+function viewUser(phone) {
   document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 Profil</div><div class="loading" id="view-loading">Chargement...</div>`;
   showModal();
   api('/admin/user/' + encodeURIComponent(phone)).then(data => {
-    if(!data.user){ document.getElementById('view-loading').textContent = 'Introuvable'; return; }
+    if (!data.user) { document.getElementById('view-loading').textContent = 'Introuvable'; return; }
     const u = data.user;
-    document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 ${u.full_name||u.business_name||u.phone}</div><div class="modal-info-grid">${Object.entries({Telephone:u.phone,Role:u.role,Statut:u.status,Nom:u.full_name||u.business_name,Specialite:u.specialty,Age:u.age,Sexe:u.sexe,'Score fraude':u.fraud_score,'Banni':u.is_banned?'Oui':'Non',Inscrit:fmtDate(u.created_at)}).map(([k,v]) => `<div class="modal-info-item"><label>${k}</label><span>${v||'—'}</span></div>`).join('')}</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;
+    document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 ${u.full_name || u.business_name || u.phone}</div><div class="modal-info-grid">${Object.entries({Telephone:u.phone,Role:u.role,Statut:u.status,Nom:u.full_name||u.business_name,Specialite:u.specialty,Age:u.age,Sexe:u.sexe,'Score fraude':u.fraud_score,'Banni':u.is_banned?'Oui':'Non',Inscrit:fmtDate(u.created_at)}).map(([k,v]) => `<div class="modal-info-item"><label>${k}</label><span>${v||'—'}</span></div>`).join('')}</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;
   }).catch(() => { document.getElementById('view-loading').textContent = 'Erreur de chargement'; });
 }
-function refreshCurrentPanel(){ loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-','')); }
 
-/* ════════ ARTICLES ════════ */
+/* ══════════════════════════════════════════════
+   ARTICLES
+══════════════════════════════════════════════ */
 const CAT_INFO = {
-  paludisme:{label:'🦟 Paludisme',cls:'cat-paludisme'},
-  grossesse:{label:'🤱 Grossesse',cls:'cat-grossesse'},
-  nutrition:{label:'🥗 Nutrition',cls:'cat-nutrition'},
-  prevention:{label:'🛡️ Prevention',cls:'cat-prevention'},
-  sante:{label:'❤️ Sante',cls:'cat-sante'},
-  seniors:{label:'👴 Seniors',cls:'cat-seniors'},
-  contraception:{label:'🩺 Contraception',cls:'cat-prevention'},
-  hygiene:{label:'🧼 Hygiene',cls:'cat-prevention'}
+  paludisme:{label:'🦟 Paludisme',cls:'cat-paludisme'}, grossesse:{label:'🤱 Grossesse',cls:'cat-grossesse'},
+  nutrition:{label:'🥗 Nutrition',cls:'cat-nutrition'}, prevention:{label:'🛡️ Prevention',cls:'cat-prevention'},
+  sante:{label:'❤️ Sante',cls:'cat-sante'}, seniors:{label:'👴 Seniors',cls:'cat-seniors'},
+  contraception:{label:'🩺 Contraception',cls:'cat-prevention'}, hygiene:{label:'🧼 Hygiene',cls:'cat-prevention'}
 };
 let allArticles = [];
 
-async function loadArticles(){
+async function loadArticles() {
   const grid = document.getElementById('articles-grid');
   grid.innerHTML = '<div class="loading">Chargement...</div>';
-  try{
+  try {
     const data = await api('/articles/admin/all');
     allArticles = data.articles || [];
     document.getElementById('art-stat-total').textContent = allArticles.length;
-    document.getElementById('art-stat-pub').textContent = allArticles.filter(a => a.is_published).length;
+    document.getElementById('art-stat-pub').textContent   = allArticles.filter(a => a.is_published).length;
     document.getElementById('art-stat-draft').textContent = allArticles.filter(a => !a.is_published).length;
-    document.getElementById('art-stat-une').textContent = allArticles.filter(a => a.is_featured).length;
+    document.getElementById('art-stat-une').textContent   = allArticles.filter(a => a.is_featured).length;
     const cats = [...new Set(allArticles.map(a => a.category).filter(Boolean))];
     const catEmojis = {paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️',sante:'❤️',seniors:'👴',contraception:'🩺',hygiene:'🧼'};
     const bar = document.getElementById('art-filters-bar');
-    if(bar) bar.innerHTML = `<button class="art-filter-btn active" onclick="filterArticlesAdmin('tous',this)">Tous</button>` + cats.map(c => `<button class="art-filter-btn" onclick="filterArticlesAdmin('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
+    if (bar) bar.innerHTML = `<button class="art-filter-btn active" onclick="filterArticlesAdmin('tous',this)">Tous</button>` + cats.map(c => `<button class="art-filter-btn" onclick="filterArticlesAdmin('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
     renderArticlesAdmin(allArticles);
-  } catch(e){ grid.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Erreur chargement</p></div>'; }
+  } catch (e) { grid.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Erreur chargement</p></div>'; }
 }
-function filterArticlesAdmin(cat, btn){
+
+function filterArticlesAdmin(cat, btn) {
   document.querySelectorAll('.art-filter-btn').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+  if (btn) btn.classList.add('active');
   renderArticlesAdmin(cat === 'tous' ? allArticles : allArticles.filter(a => a.category === cat));
 }
-function renderArticlesAdmin(items){
+
+function renderArticlesAdmin(items) {
   const grid = document.getElementById('articles-grid');
-  if(!items.length){ grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📰</div><p>Aucun article.</p></div>'; return; }
+  if (!items.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📰</div><p>Aucun article.</p></div>'; return; }
   grid.innerHTML = items.map(a => {
-    const cat = CAT_INFO[a.category] || {label: a.category||'General', cls:'cat-prevention'};
+    const cat   = CAT_INFO[a.category] || { label: a.category || 'General', cls: 'cat-prevention' };
     const thumb = a.image_url
       ? `<img class="art-thumb" src="${a.image_url}" alt="" onerror="this.style.display='none'">`
-      : `<div class="art-thumb-ph">${a.emoji||'📄'}</div>`;
+      : `<div class="art-thumb-ph">${a.emoji || '📄'}</div>`;
     const pubBtn = a.is_published
       ? `<button class="btn-art-pub" style="background:rgba(255,71,87,0.1);color:var(--rouge);border-color:rgba(255,71,87,0.25);" onclick="togglePub(${a.id},true)">🚫 Depublier</button>`
       : `<button class="btn-art-pub" style="background:rgba(0,200,167,0.1);color:var(--vert);border-color:rgba(0,200,167,0.25);" onclick="togglePub(${a.id},false)">🟢 Publier</button>`;
     return `<div class="art-card">${thumb}<div class="art-body"><div class="art-tags"><span class="art-cat ${cat.cls}">${cat.label}</span>${a.is_published?'<span class="art-status-badge art-status-pub">● Publie</span>':'<span class="art-status-badge art-status-draft">● Brouillon</span>'}${a.is_featured?'<span class="art-status-badge" style="background:rgba(255,165,2,0.15);color:var(--amber);">⭐</span>':''}</div><div class="art-title">${a.title}</div><div class="art-excerpt">${a.excerpt||''}</div><div class="art-meta"><span>✍️ ${a.author||'Dr. Bolamu'}</span><span>⏱ ${a.read_time||'5 min'}</span></div><div class="art-actions"><button class="btn-art-edit" onclick='openArticleModal(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(a))}")))'>✏️ Editer</button>${pubBtn}<button class="btn-art-del" onclick="confirmDeleteArticle(${a.id},'${(a.title||'').replace(/'/g,"\\'").replace(/"/g,"'")}')">🗑️</button></div></div></div>`;
   }).join('');
 }
-async function togglePub(id, cur){
-  try{
-    const data = await api('/articles/' + id, {method:'PUT', body:JSON.stringify({is_published: !cur})});
-    if(data.success){ showToast(cur ? 'Depublie' : '🟢 Publie !'); await loadArticles(); }
-    else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+
+async function togglePub(id, cur) {
+  try {
+    const data = await api('/articles/' + id, { method: 'PUT', body: JSON.stringify({ is_published: !cur }) });
+    if (data.success) { showToast(cur ? 'Depublie' : '🟢 Publie !'); await loadArticles(); }
+    else showToast(data.message || 'Erreur', 'error');
+  } catch (e) { showToast('Erreur', 'error'); }
 }
-function confirmDeleteArticle(id, title){
+
+function confirmDeleteArticle(id, title) {
   document.getElementById('modal-body').innerHTML = `<div class="modal-title">🗑️ Supprimer</div><div class="modal-sub">Supprimer <strong>"${title}"</strong> ? Irreversible.</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer</button></div>`;
   showModal();
 }
-async function deleteArticle(id){
+
+async function deleteArticle(id) {
   closeModal();
-  try{
-    const data = await api('/articles/' + id, {method:'DELETE'});
-    if(data.success){ showToast('🗑️ Supprime'); await loadArticles(); }
-    else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+  try {
+    const data = await api('/articles/' + id, { method: 'DELETE' });
+    if (data.success) { showToast('🗑️ Supprime'); await loadArticles(); }
+    else showToast(data.message || 'Erreur', 'error');
+  } catch (e) { showToast('Erreur', 'error'); }
 }
-function openArticleModal(a = null){
+
+function openArticleModal(a = null) {
   const isNew = !a;
   document.getElementById('modal-article-body').innerHTML = `
     <div class="modal-title">${isNew ? '✏️ Nouvel article' : '✏️ Modifier l\'article'}</div>
@@ -1040,13 +1245,13 @@ function openArticleModal(a = null){
       <div class="modal-field"><label>Categorie</label>
         <select class="modal-select" id="art-category">
           <option value="prevention" ${a?.category==='prevention'?'selected':''}>🛡️ Prevention</option>
-          <option value="paludisme" ${a?.category==='paludisme'?'selected':''}>🦟 Paludisme</option>
-          <option value="grossesse" ${a?.category==='grossesse'?'selected':''}>🤱 Grossesse</option>
-          <option value="nutrition" ${a?.category==='nutrition'?'selected':''}>🥗 Nutrition</option>
-          <option value="sante" ${a?.category==='sante'?'selected':''}>❤️ Sante</option>
-          <option value="seniors" ${a?.category==='seniors'?'selected':''}>👴 Seniors</option>
+          <option value="paludisme"  ${a?.category==='paludisme'?'selected':''}>🦟 Paludisme</option>
+          <option value="grossesse"  ${a?.category==='grossesse'?'selected':''}>🤱 Grossesse</option>
+          <option value="nutrition"  ${a?.category==='nutrition'?'selected':''}>🥗 Nutrition</option>
+          <option value="sante"      ${a?.category==='sante'?'selected':''}>❤️ Sante</option>
+          <option value="seniors"    ${a?.category==='seniors'?'selected':''}>👴 Seniors</option>
           <option value="contraception" ${a?.category==='contraception'?'selected':''}>🩺 Contraception</option>
-          <option value="hygiene" ${a?.category==='hygiene'?'selected':''}>🧼 Hygiene</option>
+          <option value="hygiene"    ${a?.category==='hygiene'?'selected':''}>🧼 Hygiene</option>
         </select>
       </div>
       <div class="modal-field"><label>Temps de lecture</label><input class="modal-input" id="art-readtime" value="${a?.read_time||'5 min'}" placeholder="5 min"></div>
@@ -1076,28 +1281,27 @@ function openArticleModal(a = null){
       <button class="btn-cancel-modal" onclick="closeArticleModal()">Annuler</button>
       <button class="btn-confirm blue" onclick="saveArticle(${a?.id||'null'})">${isNew ? '✓ Creer' : '💾 Enregistrer'}</button>
     </div>`;
-  if(a?.image_url){ document.getElementById('art-img-preview-wrap').classList.add('show'); document.getElementById('art-img-preview').src = a.image_url; }
+  if (a?.image_url) { document.getElementById('art-img-preview-wrap').classList.add('show'); document.getElementById('art-img-preview').src = a.image_url; }
   document.getElementById('modal-article').classList.add('open');
 }
-function previewArtImg(url){
+
+function previewArtImg(url) {
   const w = document.getElementById('art-img-preview-wrap'), i = document.getElementById('art-img-preview');
-  if(url){ w.classList.add('show'); i.src = url; } else w.classList.remove('show');
+  if (url) { w.classList.add('show'); i.src = url; } else w.classList.remove('show');
 }
-function artFmt(type){
-  const ta = document.getElementById('art-content');
+
+function artFmt(type) {
+  const ta  = document.getElementById('art-content');
   const sel = ta.value.substring(ta.selectionStart, ta.selectionEnd) || 'Texte';
-  const m = {
-    bold:`<strong>${sel}</strong>`, h4:`<h4>${sel}</h4>`,
-    ul:`<ul><li>${sel}</li></ul>`,
-    highlight:`<div class="highlight">${sel}</div>`,
-    warning:`<div class="warning">${sel}</div>`
-  };
-  const start = ta.selectionStart; ta.setRangeText(m[type]||sel, start, ta.selectionEnd, 'end');
+  const m   = { bold:`<strong>${sel}</strong>`, h4:`<h4>${sel}</h4>`, ul:`<ul><li>${sel}</li></ul>`, highlight:`<div class="highlight">${sel}</div>`, warning:`<div class="warning">${sel}</div>` };
+  ta.setRangeText(m[type] || sel, ta.selectionStart, ta.selectionEnd, 'end');
 }
-function closeArticleModal(){ document.getElementById('modal-article').classList.remove('open'); }
-async function saveArticle(id){
+
+function closeArticleModal() { document.getElementById('modal-article').classList.remove('open'); }
+
+async function saveArticle(id) {
   const title = document.getElementById('art-title').value.trim();
-  if(!title) return showToast('Titre requis','error');
+  if (!title) return showToast('Titre requis', 'error');
   const body = {
     title, excerpt:document.getElementById('art-excerpt').value,
     content:document.getElementById('art-content').value,
@@ -1109,28 +1313,32 @@ async function saveArticle(id){
     is_published:document.getElementById('art-published').checked,
     is_featured:document.getElementById('art-featured').checked
   };
-  try{
-    const data = id ? await api('/articles/'+id,{method:'PUT',body:JSON.stringify(body)}) : await api('/articles',{method:'POST',body:JSON.stringify(body)});
-    if(data.success){ closeArticleModal(); showToast(id ? '💾 Article mis a jour' : '✓ Article cree !'); await loadArticles(); }
-    else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+  try {
+    const data = id ? await api('/articles/'+id, { method:'PUT', body:JSON.stringify(body) }) : await api('/articles', { method:'POST', body:JSON.stringify(body) });
+    if (data.success) { closeArticleModal(); showToast(id ? '💾 Article mis a jour' : '✓ Article cree !'); await loadArticles(); }
+    else showToast(data.message || 'Erreur', 'error');
+  } catch (e) { showToast('Erreur', 'error'); }
 }
 
-/* ════════ VITRINE ════════ */
+/* ══════════════════════════════════════════════
+   VITRINE
+══════════════════════════════════════════════ */
 let vitrineBlocks = {};
-async function loadVitrine(){
-  try{
+
+async function loadVitrine() {
+  try {
     const data = await api('/articles/admin/content-blocks');
     vitrineBlocks = data.blocks || {};
     const h = vitrineBlocks.hero || {};
-    document.getElementById('hero-name').value = h.name || '';
-    document.getElementById('hero-subtitle').value = h.subtitle || '';
+    document.getElementById('hero-name').value      = h.name      || '';
+    document.getElementById('hero-subtitle').value  = h.subtitle  || '';
     document.getElementById('hero-image-url').value = h.image_url || '';
-    if(h.image_url) vitPreview('hero-img-preview', h.image_url);
+    if (h.image_url) vitPreview('hero-img-preview', h.image_url);
+
     const ACTORS = [
-      {key:'block_patients', label:'👤 Patients'},
-      {key:'block_medecins', label:'👨‍⚕️ Medecins'},
-      {key:'block_pharmacies', label:'💊 Pharmacies'},
+      {key:'block_patients',     label:'👤 Patients'},
+      {key:'block_medecins',     label:'👨‍⚕️ Medecins'},
+      {key:'block_pharmacies',   label:'💊 Pharmacies'},
       {key:'block_laboratoires', label:'🔬 Laboratoires'}
     ];
     const grid = document.getElementById('vitrine-cards-grid');
@@ -1153,58 +1361,50 @@ async function loadVitrine(){
         <button class="btn-confirm blue" style="max-width:150px;padding:7px;font-size:10px;" onclick="saveVitrineBlock('${key}')">💾 Enregistrer</button>
       </div>`;
     }).join('');
-  } catch(e){ console.error(e); }
-}
-function vitPreview(id, url){
-  const img = document.getElementById(id); if(!img) return;
-  if(url){ img.src = url; img.style.display = 'block'; } else img.style.display = 'none';
-}
-async function handleVitrineUpload(input, urlId, previewId){
-  const file = input.files[0]; if(!file) return;
-  const fd = new FormData(); fd.append('image', file);
-  try{
-    const res = await fetch('/api/v1/articles/admin/upload-vitrine', {method:'POST', headers:{'Authorization':'Bearer '+token}, body:fd});
-    const data = await res.json();
-    if(data.success){ document.getElementById(urlId).value = data.url; vitPreview(previewId, data.url); showToast('📸 Image uploadee'); }
-    else showToast(data.message||'Erreur upload','error');
-  } catch(e){ showToast('Erreur upload','error'); }
-}
-async function saveVitrineBlock(key){
-  let content = {};
-  if(key === 'hero'){
-    content = {
-      name: document.getElementById('hero-name').value,
-      subtitle: document.getElementById('hero-subtitle').value,
-      image_url: document.getElementById('hero-image-url').value
-    };
-  } else {
-    content = {
-      tag: document.getElementById(key+'-tag').value,
-      title: document.getElementById(key+'-title').value,
-      desc: document.getElementById(key+'-desc').value,
-      image_url: document.getElementById(key+'-img').value
-    };
-  }
-  try{
-    const data = await api('/articles/admin/content-blocks/' + key, {method:'PUT', body:JSON.stringify({content})});
-    if(data.success) showToast('💾 Sauvegarde !'); else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+  } catch (e) { console.error(e); }
 }
 
-/* ════════ PLANS / OFFRES ════════ */
-async function loadPlans(){
+function vitPreview(id, url) {
+  const img = document.getElementById(id); if (!img) return;
+  if (url) { img.src = url; img.style.display = 'block'; } else img.style.display = 'none';
+}
+
+async function handleVitrineUpload(input, urlId, previewId) {
+  const file = input.files[0]; if (!file) return;
+  const fd = new FormData(); fd.append('image', file);
+  try {
+    const res = await fetch('/api/v1/articles/admin/upload-vitrine', { method:'POST', headers:{'Authorization':'Bearer '+token}, body:fd });
+    const data = await res.json();
+    if (data.success) { document.getElementById(urlId).value = data.url; vitPreview(previewId, data.url); showToast('📸 Image uploadee'); }
+    else showToast(data.message || 'Erreur upload', 'error');
+  } catch (e) { showToast('Erreur upload', 'error'); }
+}
+
+async function saveVitrineBlock(key) {
+  let content = {};
+  if (key === 'hero') {
+    content = { name:document.getElementById('hero-name').value, subtitle:document.getElementById('hero-subtitle').value, image_url:document.getElementById('hero-image-url').value };
+  } else {
+    content = { tag:document.getElementById(key+'-tag').value, title:document.getElementById(key+'-title').value, desc:document.getElementById(key+'-desc').value, image_url:document.getElementById(key+'-img').value };
+  }
+  try {
+    const data = await api('/articles/admin/content-blocks/' + key, { method:'PUT', body:JSON.stringify({content}) });
+    if (data.success) showToast('💾 Sauvegarde !'); else showToast(data.message || 'Erreur', 'error');
+  } catch (e) { showToast('Erreur', 'error'); }
+}
+
+/* ══════════════════════════════════════════════
+   PLANS / OFFRES
+══════════════════════════════════════════════ */
+async function loadPlans() {
   const grid = document.getElementById('plans-grid');
-  try{
+  try {
     const data = await api('/articles/admin/content-blocks');
     const blocks = data.blocks || {};
-    const PLANS = [
-      {key:'plan_essentiel', label:'Essentiel'},
-      {key:'plan_standard', label:'Standard'},
-      {key:'plan_premium', label:'Premium'}
-    ];
+    const PLANS = [{key:'plan_essentiel',label:'Essentiel'},{key:'plan_standard',label:'Standard'},{key:'plan_premium',label:'Premium'}];
     grid.innerHTML = PLANS.map(({key, label}) => {
       const p = blocks[key] || {name:label, price:0, period:'FCFA / mois', annual:'', badge:'', color:'#2E86FF', featured:false, features:''};
-      const featuresVal = (p.features||'').split('\\n').join('\n');
+      const featuresVal = (p.features || '').split('\\n').join('\n');
       return `<div class="plan-edit-card">
         <div class="plan-edit-title" style="color:${p.color||'#2E86FF'}">💰 ${p.name||label}</div>
         <div class="modal-field"><label>Nom du plan</label><input class="modal-input" id="${key}-name" value="${p.name||label}"></div>
@@ -1213,81 +1413,83 @@ async function loadPlans(){
           <div class="modal-field"><label>Periode</label><input class="modal-input" id="${key}-period" value="${p.period||'FCFA / mois'}"></div>
         </div>
         <div class="modal-field"><label>Texte annuel</label><input class="modal-input" id="${key}-annual" value="${p.annual||''}" placeholder="30 000 FCFA / an"></div>
-        <div class="modal-field"><label>Badge (ex: ⭐ Recommande — vide si aucun)</label><input class="modal-input" id="${key}-badge" value="${p.badge||''}" placeholder="⭐ Recommande"></div>
-        <div class="modal-field"><label>Couleur du plan</label><input class="modal-input" id="${key}-color" value="${p.color||'#2E86FF'}" type="color" style="height:36px;cursor:pointer;"></div>
-        <div class="modal-field">
-          <label>Fonctionnalites (une par ligne)</label>
-          <textarea class="modal-textarea" id="${key}-features" rows="6" placeholder="Acces illimite&#10;Dossier medical&#10;...">${featuresVal}</textarea>
-        </div>
-        <div class="toggle-row" style="margin-bottom:10px;">
-          <div class="toggle-item"><input type="checkbox" id="${key}-featured" ${p.featured?'checked':''}><label for="${key}-featured">🌟 En avant (featured)</label></div>
-        </div>
+        <div class="modal-field"><label>Badge (ex: ⭐ Recommande)</label><input class="modal-input" id="${key}-badge" value="${p.badge||''}" placeholder="⭐ Recommande"></div>
+        <div class="modal-field"><label>Couleur</label><input class="modal-input" id="${key}-color" value="${p.color||'#2E86FF'}" type="color" style="height:36px;cursor:pointer;"></div>
+        <div class="modal-field"><label>Fonctionnalites (une par ligne)</label><textarea class="modal-textarea" id="${key}-features" rows="6">${featuresVal}</textarea></div>
+        <div class="toggle-row" style="margin-bottom:10px;"><div class="toggle-item"><input type="checkbox" id="${key}-featured" ${p.featured?'checked':''}><label for="${key}-featured">🌟 En avant</label></div></div>
         <button class="btn-confirm blue" style="padding:8px;" onclick="savePlan('${key}')">💾 Enregistrer</button>
       </div>`;
     }).join('');
-  } catch(e){ grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
-}
-async function savePlan(key){
-  const content = {
-    name: document.getElementById(key+'-name').value,
-    price: parseInt(document.getElementById(key+'-price').value) || 0,
-    period: document.getElementById(key+'-period').value,
-    annual: document.getElementById(key+'-annual').value,
-    badge: document.getElementById(key+'-badge').value,
-    color: document.getElementById(key+'-color').value,
-    featured: document.getElementById(key+'-featured').checked,
-    features: document.getElementById(key+'-features').value
-  };
-  try{
-    const data = await api('/articles/admin/content-blocks/' + key, {method:'PUT', body:JSON.stringify({content})});
-    if(data.success) showToast('💾 Plan sauvegarde !'); else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+  } catch (e) { grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ TEXTES DU SITE ════════ */
+async function savePlan(key) {
+  const content = {
+    name:document.getElementById(key+'-name').value,
+    price:parseInt(document.getElementById(key+'-price').value)||0,
+    period:document.getElementById(key+'-period').value,
+    annual:document.getElementById(key+'-annual').value,
+    badge:document.getElementById(key+'-badge').value,
+    color:document.getElementById(key+'-color').value,
+    featured:document.getElementById(key+'-featured').checked,
+    features:document.getElementById(key+'-features').value
+  };
+  try {
+    const data = await api('/articles/admin/content-blocks/'+key, { method:'PUT', body:JSON.stringify({content}) });
+    if (data.success) showToast('💾 Plan sauvegarde !'); else showToast(data.message||'Erreur','error');
+  } catch (e) { showToast('Erreur','error'); }
+}
+
+/* ══════════════════════════════════════════════
+   TEXTES DU SITE
+══════════════════════════════════════════════ */
 const TEXTES_CONFIG = [
-  {key:'texte_hero_badge', label:'Badge Hero (ex: Plateforme active a Brazzaville)'},
-  {key:'texte_hero_titre', label:'Titre principal Hero'},
-  {key:'texte_hero_sous', label:'Sous-titre Hero', textarea:true},
-  {key:'texte_hero_cta1', label:'Bouton CTA 1 (primaire)'},
-  {key:'texte_hero_cta2', label:'Bouton CTA 2 (secondaire)'},
-  {key:'texte_stat1_nb', label:'Stats — Chiffre 1'},
-  {key:'texte_stat1_lbl', label:'Stats — Libelle 1'},
-  {key:'texte_stat2_nb', label:'Stats — Chiffre 2'},
-  {key:'texte_stat2_lbl', label:'Stats — Libelle 2'},
-  {key:'texte_stat3_nb', label:'Stats — Chiffre 3'},
-  {key:'texte_stat3_lbl', label:'Stats — Libelle 3'},
-  {key:'texte_stat4_nb', label:'Stats — Chiffre 4'},
-  {key:'texte_stat4_lbl', label:'Stats — Libelle 4'},
+  {key:'texte_hero_badge',  label:'Badge Hero'},
+  {key:'texte_hero_titre',  label:'Titre principal Hero'},
+  {key:'texte_hero_sous',   label:'Sous-titre Hero', textarea:true},
+  {key:'texte_hero_cta1',   label:'Bouton CTA 1'},
+  {key:'texte_hero_cta2',   label:'Bouton CTA 2'},
+  {key:'texte_stat1_nb',    label:'Stats — Chiffre 1'},
+  {key:'texte_stat1_lbl',   label:'Stats — Libelle 1'},
+  {key:'texte_stat2_nb',    label:'Stats — Chiffre 2'},
+  {key:'texte_stat2_lbl',   label:'Stats — Libelle 2'},
+  {key:'texte_stat3_nb',    label:'Stats — Chiffre 3'},
+  {key:'texte_stat3_lbl',   label:'Stats — Libelle 3'},
+  {key:'texte_stat4_nb',    label:'Stats — Chiffre 4'},
+  {key:'texte_stat4_lbl',   label:'Stats — Libelle 4'},
   {key:'texte_plans_titre', label:'Section Plans — Titre'},
-  {key:'texte_plans_sous', label:'Section Plans — Sous-titre', textarea:true},
-  {key:'texte_footer_desc', label:'Footer — Description Bolamu', textarea:true},
+  {key:'texte_plans_sous',  label:'Section Plans — Sous-titre', textarea:true},
+  {key:'texte_footer_desc', label:'Footer — Description', textarea:true},
   {key:'texte_footer_copy', label:'Footer — Copyright'}
 ];
-async function loadTextes(){
+
+async function loadTextes() {
   const el = document.getElementById('textes-grid');
-  try{
+  try {
     const data = await api('/articles/admin/content-blocks');
     const blocks = data.blocks || {};
     el.innerHTML = '<div class="textes-grid">' + TEXTES_CONFIG.map(t => {
-      const val = (blocks[t.key]||{}).value || '';
+      const val     = (blocks[t.key] || {}).value || '';
       const safeVal = val.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const input = t.textarea
+      const input   = t.textarea
         ? `<textarea class="texte-block-input" id="txt-${t.key}" rows="3">${safeVal}</textarea>`
         : `<input class="texte-block-input" id="txt-${t.key}" value="${safeVal}">`;
       return `<div class="texte-block"><div class="texte-block-title">${t.label}</div>${input}<button class="save-block-btn" onclick="saveTexte('${t.key}')">💾 Enregistrer</button></div>`;
     }).join('') + '</div>';
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
-}
-async function saveTexte(key){
-  const el = document.getElementById('txt-' + key); if(!el) return;
-  try{
-    const data = await api('/articles/admin/content-blocks/' + key, {method:'PUT', body:JSON.stringify({content:{value:el.value}})});
-    if(data.success) showToast('💾 Texte sauvegarde !'); else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ RÉSEAUX SOCIAUX — vrais logos SVG ════════ */
+async function saveTexte(key) {
+  const el = document.getElementById('txt-' + key); if (!el) return;
+  try {
+    const data = await api('/articles/admin/content-blocks/'+key, { method:'PUT', body:JSON.stringify({content:{value:el.value}}) });
+    if (data.success) showToast('💾 Texte sauvegarde !'); else showToast(data.message||'Erreur','error');
+  } catch (e) { showToast('Erreur','error'); }
+}
+
+/* ══════════════════════════════════════════════
+   RÉSEAUX SOCIAUX
+══════════════════════════════════════════════ */
 const RESEAUX_CONFIG = [
   {key:'whatsapp',  cls:'whatsapp',  label:'WhatsApp',    placeholder:'https://wa.me/242...'},
   {key:'instagram', cls:'instagram', label:'Instagram',   placeholder:'https://instagram.com/bolamu.cg'},
@@ -1297,32 +1499,33 @@ const RESEAUX_CONFIG = [
   {key:'linkedin',  cls:'linkedin',  label:'LinkedIn',    placeholder:'https://linkedin.com/company/bolamu'},
   {key:'twitter',   cls:'twitter',   label:'X (Twitter)', placeholder:'https://x.com/bolamu'}
 ];
-async function loadReseaux(){
+
+async function loadReseaux() {
   const el = document.getElementById('reseaux-grid');
-  try{
+  try {
     const data = await api('/articles/admin/content-blocks');
-    const r = (data.blocks||{}).reseaux_sociaux || {};
+    const r = (data.blocks || {}).reseaux_sociaux || {};
     el.innerHTML = RESEAUX_CONFIG.map(rs =>
       `<div class="reseau-block">
         <div class="reseau-logo ${rs.cls}">${RESEAUX_SVG[rs.key]||''}</div>
-        <div style="flex:1">
-          <div class="reseau-name">${rs.label}</div>
-          <input class="reseau-input" id="rs-${rs.key}" value="${r[rs.key]||''}" placeholder="${rs.placeholder}">
-        </div>
+        <div style="flex:1"><div class="reseau-name">${rs.label}</div><input class="reseau-input" id="rs-${rs.key}" value="${r[rs.key]||''}" placeholder="${rs.placeholder}"></div>
       </div>`
     ).join('');
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
-}
-async function saveReseaux(){
-  const content = {};
-  RESEAUX_CONFIG.forEach(rs => { const el = document.getElementById('rs-' + rs.key); if(el) content[rs.key] = el.value.trim(); });
-  try{
-    const data = await api('/articles/admin/content-blocks/reseaux_sociaux', {method:'PUT', body:JSON.stringify({content})});
-    if(data.success) showToast('💾 Liens sauvegardes !'); else showToast(data.message||'Erreur','error');
-  } catch(e){ showToast('Erreur','error'); }
+  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
-/* ════════ INIT ════════ */
+async function saveReseaux() {
+  const content = {};
+  RESEAUX_CONFIG.forEach(rs => { const el = document.getElementById('rs-' + rs.key); if (el) content[rs.key] = el.value.trim(); });
+  try {
+    const data = await api('/articles/admin/content-blocks/reseaux_sociaux', { method:'PUT', body:JSON.stringify({content}) });
+    if (data.success) showToast('💾 Liens sauvegardes !'); else showToast(data.message||'Erreur','error');
+  } catch (e) { showToast('Erreur','error'); }
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
 loadOverview();
 </script>
 </body>
