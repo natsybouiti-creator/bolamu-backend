@@ -805,266 +805,215 @@ async function loadOverview() {
 } // <--- Vérifie bien que cette accolade est là !
 
 /* ══════════════════════════════════════════════
-   ACTIVITY
+   BOLAMU ADMIN - FULL SYNC (13 MODULES)
 ══════════════════════════════════════════════ */
+
+// 1. ACTIVITY
 async function loadActivity() {
+  const feed = document.getElementById('activity-feed');
   try {
-    const data = await api('/admin/activity');
-    if (!data.success) return;
-    document.getElementById('act-rdv-today').textContent    = data.rdv_today          || 0;
-    document.getElementById('act-prescriptions').textContent = data.prescriptions_today || 0;
-    document.getElementById('act-new-users').textContent    = data.new_users_today     || 0;
-    document.getElementById('activity-count').textContent   = (data.logs || []).length + ' entrees';
-    const feed = document.getElementById('activity-feed');
-    if (!data.logs || !data.logs.length) { feed.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>Aucune activite</p></div>'; return; }
+    const res = await api('/admin/stats');
+    const s = res.data || {};
+    const logs = s.logs || [];
+    if(document.getElementById('act-rdv-today')) document.getElementById('act-rdv-today').textContent = s.activity?.appointments_today || 0;
+    if(document.getElementById('act-prescriptions')) document.getElementById('act-prescriptions').textContent = s.activity?.prescriptions_today || 0;
+    if(document.getElementById('act-new-users')) document.getElementById('act-new-users').textContent = s.users?.new_today || 0;
+    if(document.getElementById('activity-count')) document.getElementById('activity-count').textContent = logs.length + ' entrees';
+    if (!logs.length) { feed.innerHTML = '<div class="empty">Aucune activite</div>'; return; }
     const colors = { appointment:'var(--bleu)', prescription:'var(--vert)', payment:'var(--amber)', fraud:'var(--rouge)' };
-    feed.innerHTML = '<div class="feed-list">' + data.logs.map(l =>
+    feed.innerHTML = '<div class="feed-list">' + logs.map(l =>
       `<div class="feed-item"><div class="feed-dot" style="background:${colors[l.type] || 'var(--texte-doux)'}"></div><div><div class="feed-action">${l.description}</div><div class="feed-time">${fmtDate(l.created_at)}</div></div></div>`
     ).join('') + '</div>';
-  } catch (e) { document.getElementById('activity-feed').innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { feed.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   PENDING
-══════════════════════════════════════════════ */
+// 2. PENDING
 async function loadPending() {
   const el = document.getElementById('pending-list');
   try {
-    const data = await api('/admin/pending');
-    const users = data.users || [];
+    const res = await api('/admin/pending');
+    const users = res.data || [];
     document.getElementById('pending-count').textContent = users.length + ' dossiers';
-    if (!users.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Aucun dossier en attente</p></div>'; return; }
-    el.innerHTML = `<table id="pending-table"><thead><tr><th>Telephone</th><th>Role</th><th>Nom</th><th>Date</th><th>Actions</th></tr></thead><tbody>${users.map(u =>
-      `<tr><td class="td-phone">${u.phone}</td><td>${badge(u.role || 'pending')}</td><td>${u.full_name || u.business_name || '—'}</td><td>${fmtShort(u.created_at)}</td><td class="actions"><button class="btn-validate" onclick="validateUser('${u.phone}')">✓ Valider</button><button class="btn-reject" onclick="rejectUser('${u.phone}')">✗ Rejeter</button><button class="btn-view" onclick="viewUser('${u.phone}')">👁 Voir</button></td></tr>`
+    if (!users.length) { el.innerHTML = '<div class="empty">Aucun dossier</div>'; return; }
+    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Role</th><th>Nom</th><th>Actions</th></tr></thead><tbody>${users.map(u =>
+      `<tr><td>${u.phone}</td><td>${badge(u.role)}</td><td>${u.full_name || u.business_name || '—'}</td><td class="actions"><button class="btn-validate" onclick="validateUser('${u.phone}')">✓</button><button class="btn-view" onclick="viewUser('${u.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   DOCTORS
-══════════════════════════════════════════════ */
+// 3. DOCTORS
 async function loadDoctors(status = '') {
   const el = document.getElementById('doctors-list');
   try {
-    const data = await api('/admin/doctors' + (status ? `?status=${status}` : ''));
-    const docs = data.doctors || [];
+    const res = await api('/admin/doctors' + (status ? `?status=${status}` : ''));
+    const docs = res.data || [];
     document.getElementById('doctors-count').textContent = docs.length + ' medecins';
-    if (!docs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👨‍⚕️</div><p>Aucun medecin</p></div>'; return; }
-    el.innerHTML = `<table id="doctors-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Specialite</th><th>Statut</th><th>Score fraude</th><th>Actions</th></tr></thead><tbody>${docs.map(d =>
-      `<tr><td class="td-phone">${d.phone}</td><td>${d.full_name || '—'}</td><td>${d.specialty || '—'}</td><td>${badge(d.status || 'pending')}</td><td>${d.fraud_score || 0}/100</td><td class="actions">${d.status !== 'verified' ? `<button class="btn-validate" onclick="validateUser('${d.phone}')">✓</button>` : ''}${d.status !== 'suspended' ? `<button class="btn-suspend" onclick="suspendUser('${d.phone}')">🚫</button>` : ''}${!d.is_banned ? `<button class="btn-ban" onclick="banUser('${d.phone}')">🔴</button>` : `<button class="btn-unban" onclick="unbanUser('${d.phone}')">🟢</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${d.phone}')">💎</button><button class="btn-view" onclick="viewUser('${d.phone}')">👁</button></td></tr>`
+    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Nom</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${docs.map(d =>
+      `<tr><td>${d.phone}</td><td>${d.full_name || '—'}</td><td>${badge(d.status)}</td><td class="actions"><button class="btn-credit" onclick="openGrantCreditTo('${d.phone}')">💎</button><button class="btn-view" onclick="viewUser('${d.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   PHARMACIES
-══════════════════════════════════════════════ */
-async function loadPharmacies(status = '') {
+// 4. PHARMACIES
+async function loadPharmacies() {
   const el = document.getElementById('pharmacies-list');
   try {
-    const data = await api('/admin/pharmacies' + (status ? `?status=${status}` : ''));
-    const rows = data.pharmacies || [];
+    const res = await api('/admin/pharmacies');
+    const rows = res.data || [];
     document.getElementById('pharmacies-count').textContent = rows.length + ' pharmacies';
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">💊</div><p>Aucune pharmacie</p></div>'; return; }
-    el.innerHTML = `<table id="pharmacies-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td class="td-phone">${p.phone}</td><td>${p.business_name || p.full_name || '—'}</td><td>${badge(p.status || 'pending')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${p.status !== 'verified' ? `<button class="btn-validate" onclick="validateUser('${p.phone}')">✓</button>` : ''}${!p.is_banned ? `<button class="btn-ban" onclick="banUser('${p.phone}')">🔴</button>` : `<button class="btn-unban" onclick="unbanUser('${p.phone}')">🟢</button>`}<button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td></tr>`
+    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Nom</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
+      `<tr><td>${p.phone}</td><td>${p.business_name || '—'}</td><td>${badge(p.status)}</td><td class="actions"><button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   LABORATORIES
-══════════════════════════════════════════════ */
+// 5. LABORATOIRES
 async function loadLaboratories() {
   const el = document.getElementById('laboratories-list');
   try {
-    const data = await api('/admin/laboratories');
-    const rows = data.laboratories || [];
-    document.getElementById('laboratories-count').textContent = rows.length + ' laboratoires';
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔬</div><p>Aucun laboratoire</p></div>'; return; }
-    el.innerHTML = `<table id="laboratories-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(l =>
-      `<tr><td class="td-phone">${l.phone}</td><td>${l.business_name || l.full_name || '—'}</td><td>${badge(l.status || 'pending')}</td><td>${fmtShort(l.created_at)}</td><td class="actions">${l.status !== 'verified' ? `<button class="btn-validate" onclick="validateUser('${l.phone}')">✓</button>` : ''}${!l.is_banned ? `<button class="btn-ban" onclick="banUser('${l.phone}')">🔴</button>` : `<button class="btn-unban" onclick="unbanUser('${l.phone}')">🟢</button>`}<button class="btn-view" onclick="viewUser('${l.phone}')">👁</button></td></tr>`
+    const res = await api('/admin/laboratories');
+    const rows = res.data || [];
+    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Nom</th><th>Actions</th></tr></thead><tbody>${rows.map(l =>
+      `<tr><td>${l.phone}</td><td>${l.business_name || '—'}</td><td class="actions"><button class="btn-view" onclick="viewUser('${l.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   PATIENTS
-══════════════════════════════════════════════ */
+// 6. PATIENTS
 async function loadPatients() {
   const el = document.getElementById('patients-list');
   try {
-    const data = await api('/admin/patients');
-    const rows = data.patients || [];
-    document.getElementById('patients-count').textContent = rows.length + ' patients';
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Aucun patient</p></div>'; return; }
-    el.innerHTML = `<table id="patients-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Age/Sexe</th><th>Statut</th><th>Inscrit</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td class="td-phone">${p.phone}</td><td>${p.full_name || '—'}</td><td>${p.age || '—'} / ${p.sexe || '—'}</td><td>${badge(p.is_banned ? 'banned' : 'active')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${!p.is_banned ? `<button class="btn-ban" onclick="banUser('${p.phone}')">🔴</button>` : `<button class="btn-unban" onclick="unbanUser('${p.phone}')">🟢</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${p.phone}')">💎</button></td></tr>`
+    const res = await api('/admin/users?role=patient');
+    const list = res.data || [];
+    el.innerHTML = `<table><thead><tr><th>Nom</th><th>Tel</th><th>Actions</th></tr></thead><tbody>${list.map(p =>
+      `<tr><td>${p.full_name || '—'}</td><td>${p.phone}</td><td class="actions"><button class="btn-credit" onclick="openGrantCreditTo('${p.phone}')">💎</button><button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   APPOINTMENTS
-══════════════════════════════════════════════ */
+// 7. APPOINTMENTS (RDV)
 async function loadAppointments() {
   const el = document.getElementById('appointments-list');
   try {
-    const data = await api('/admin/appointments');
-    const rows = data.appointments || [];
-    document.getElementById('appt-count').textContent     = rows.length + ' RDV';
-    document.getElementById('appt-done').textContent      = rows.filter(r => r.status === 'termine').length;
-    document.getElementById('appt-confirmed').textContent = rows.filter(r => r.status === 'confirme').length;
-    document.getElementById('appt-total').textContent     = rows.length;
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>Aucun RDV</p></div>'; return; }
-    el.innerHTML = `<table><thead><tr><th>Code</th><th>Patient</th><th>Medecin</th><th>Date</th><th>Statut</th><th>Fraude</th></tr></thead><tbody>${rows.map(r =>
-      `<tr><td class="td-code">${r.session_code || '—'}</td><td class="td-phone">${r.patient_phone || '—'}</td><td class="td-phone">${r.doctor_phone || '—'}</td><td>${fmtShort(r.appointment_date)}</td><td>${badge(r.status)}</td><td>${badge(r.fraud_level || 'low')}</td></tr>`
+    const res = await api('/admin/appointments');
+    const rows = res.data || [];
+    el.innerHTML = `<table><thead><tr><th>Code</th><th>Patient</th><th>Medecin</th><th>Statut</th></tr></thead><tbody>${rows.map(r =>
+      `<tr><td>${r.session_code || '—'}</td><td>${r.patient_phone}</td><td>${r.doctor_phone}</td><td>${badge(r.status)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   PRESCRIPTIONS
-══════════════════════════════════════════════ */
+// 8. PRESCRIPTIONS (Ordonnances)
 async function loadPrescriptions() {
   const el = document.getElementById('prescriptions-list');
   try {
-    const data = await api('/admin/prescriptions');
-    const rows = data.prescriptions || [];
-    document.getElementById('pres-count').textContent = rows.length + ' ordonnances';
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Aucune ordonnance</p></div>'; return; }
-    el.innerHTML = `<table><thead><tr><th>ID</th><th>Medecin</th><th>Patient</th><th>Medicaments</th><th>Date</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td class="td-code">#${p.id}</td><td class="td-phone">${p.doctor_phone || '—'}</td><td class="td-phone">${p.patient_phone || '—'}</td><td style="font-size:9px;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${p.medications || '—'}</td><td>${fmtShort(p.created_at)}</td></tr>`
+    const res = await api('/admin/prescriptions');
+    const rows = res.data || [];
+    el.innerHTML = `<table><thead><tr><th>ID</th><th>Medecin</th><th>Patient</th><th>Date</th></tr></thead><tbody>${rows.map(p =>
+      `<tr><td>#${p.id}</td><td>${p.doctor_phone}</td><td>${p.patient_phone}</td><td>${fmtShort(p.created_at)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   PAYMENTS
-══════════════════════════════════════════════ */
+// 9. PAYMENTS
 async function loadPayments() {
   const el = document.getElementById('payments-list');
   try {
-    const data = await api('/admin/payments');
-    const rows = data.payments || [];
-    document.getElementById('pay-count').textContent = rows.length + ' paiements';
-    const total = rows.filter(r => r.status === 'success').reduce((s, r) => s + (Number(r.amount) || 0), 0);
-    const momo  = rows.filter(r => r.provider === 'mtn_momo').length;
-    document.getElementById('pay-total-rev').textContent   = fmtNum(total) + ' FCFA';
-    document.getElementById('pay-total-count').textContent = rows.filter(r => r.status === 'success').length;
-    document.getElementById('pay-momo').textContent        = momo;
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><p>Aucun paiement</p></div>'; return; }
-    el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Montant</th><th>Type</th><th>Statut</th><th>Date</th></tr></thead><tbody>${rows.map(p =>
-      `<tr><td class="td-phone">${p.phone || '—'}</td><td style="font-weight:700;">${fmtNum(p.amount)} FCFA</td><td>${p.payment_type || p.provider || '—'}</td><td>${badge(p.status)}</td><td>${fmtShort(p.created_at)}</td></tr>`
+    const res = await api('/admin/payments');
+    const rows = res.data || [];
+    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Montant</th><th>Statut</th></tr></thead><tbody>${rows.map(p =>
+      `<tr><td>${p.phone}</td><td>${p.amount} F</td><td>${badge(p.status)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   FRAUD
-══════════════════════════════════════════════ */
+// 10. FRAUD
 async function loadFraud() {
   const el = document.getElementById('fraud-list');
   try {
-    const data = await api('/admin/fraud');
-    const rows = data.fraud || [];
-    document.getElementById('fraud-count').textContent  = rows.length + ' signaux';
-    document.getElementById('fraud-high').textContent   = rows.filter(r => r.fraud_level === 'high').length;
-    document.getElementById('fraud-medium').textContent = rows.filter(r => r.fraud_level === 'medium').length;
-    document.getElementById('fraud-low').textContent    = rows.filter(r => r.fraud_level === 'low').length;
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div><p>Aucun signal fraude</p></div>'; return; }
-    el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Niveau</th><th>Score</th><th>Raison</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(f =>
-      `<tr><td class="td-phone">${f.phone || f.doctor_phone || '—'}</td><td>${badge(f.fraud_level || 'low')}</td><td style="font-weight:700">${f.fraud_score || 0}/100</td><td style="font-size:9px;max-width:180px;overflow:hidden;">${f.fraud_reason || '—'}</td><td>${fmtShort(f.created_at)}</td><td class="actions"><button class="btn-ban" onclick="banUser('${f.phone || f.doctor_phone}')">🔴 Bannir</button></td></tr>`
+    const res = await api('/admin/fraud');
+    const rows = res.data || [];
+    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Score</th><th>Raison</th><th>Action</th></tr></thead><tbody>${rows.map(f =>
+      `<tr><td>${f.phone}</td><td>${f.fraud_score}/100</td><td>${f.fraud_reason || '—'}</td><td><button class="btn-ban" onclick="banUser('${f.phone}')">🔴</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   AUDIT
-══════════════════════════════════════════════ */
-async function loadAudit(eventType = '') {
+// 11. AUDIT
+async function loadAudit() {
   const el = document.getElementById('audit-list');
   try {
-    const data = await api('/admin/audit' + (eventType ? `?event_type=${eventType}` : ''));
-    const rows = data.logs || [];
-    document.getElementById('audit-count').textContent = rows.length + ' entrees';
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>Aucune entree</p></div>'; return; }
-    el.innerHTML = `<table id="audit-table"><thead><tr><th>Evenement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead><tbody>${rows.map(r =>
-      `<tr><td style="font-weight:700;font-size:9px;color:var(--bleu)">${r.event_type}</td><td class="td-phone">${r.actor_phone || '—'}</td><td>${r.target_table || '—'}</td><td>${r.target_id || '—'}</td><td>${fmtDate(r.created_at)}</td></tr>`
+    const res = await api('/admin/audit');
+    const rows = res.data || [];
+    el.innerHTML = `<table><thead><tr><th>Evenement</th><th>Acteur</th><th>Date</th></tr></thead><tbody>${rows.map(r =>
+      `<tr><td>${r.event_type}</td><td>${r.actor_phone}</td><td>${fmtDate(r.created_at)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-/* ══════════════════════════════════════════════
-   CONFIG
-══════════════════════════════════════════════ */
+// 12. CONFIGURATION
 async function loadConfig() {
   const el = document.getElementById('config-grid');
   try {
-    const data = await api('/admin/config');
-    const cfg = data.config || [];
-    if (!cfg.length) { el.innerHTML = '<div class="empty">Aucune config</div>'; return; }
-    const groups = {};
-    cfg.forEach(c => { const g = c.category || 'General'; if (!groups[g]) groups[g] = []; groups[g].push(c); });
-    el.innerHTML = Object.entries(groups).map(([grp, items]) =>
-      `<div class="config-card"><div class="config-section-title">${grp}</div>${items.map(c =>
-        `<div class="config-item"><div><div class="config-key">${c.config_key}</div>${c.description ? `<div class="config-desc">${c.description}</div>` : ''}</div><div class="config-val" onclick="editConfig('${c.config_key}','${c.config_value}')">${c.config_value}</div></div>`
-      ).join('')}</div>`
-    ).join('');
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+    const res = await api('/admin/config');
+    const cfg = res.data || [];
+    el.innerHTML = cfg.map(c => `
+      <div class="config-card">
+        <div class="config-key">${c.config_key}</div>
+        <div class="config-val" onclick="editConfig('${c.config_key}','${c.config_value}')">${c.config_value}</div>
+      </div>`).join('');
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-function editConfig(key, val) {
-  document.getElementById('modal-body').innerHTML = `<div class="modal-title">⚙️ Modifier</div><div class="modal-sub"><code>${key}</code></div><div class="modal-field"><label>Valeur</label><input class="modal-input" id="cfg-val" value="${val}"></div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm blue" onclick="saveConfig('${key}')">💾 Enregistrer</button></div>`;
-  showModal();
-}
-
-async function saveConfig(key) {
-  const val = document.getElementById('cfg-val').value;
-  try {
-    const data = await api('/admin/config', { method: 'PUT', body: JSON.stringify({ key, value: val }) });
-    if (data.success) { closeModal(); showToast('Config mise a jour'); loadConfig(); }
-    else showToast(data.message || 'Erreur', 'error');
-  } catch (e) { showToast('Erreur', 'error'); }
-}
-
-/* ══════════════════════════════════════════════
-   CREDITS
-══════════════════════════════════════════════ */
+// 13. CREDITS (Diamants 💎)
 async function loadCredits() {
   const el = document.getElementById('credits-list');
   try {
-    const data = await api('/admin/credits');
-    const rows = data.credits || [];
+    const res = await api('/admin/credits');
+    const rows = res.data || [];
     document.getElementById('cr-total-accounts').textContent = rows.length;
-    document.getElementById('cr-total-balance').textContent  = rows.reduce((s, r) => s + (Number(r.balance)      || 0), 0);
-    document.getElementById('cr-total-earned').textContent   = rows.reduce((s, r) => s + (Number(r.total_earned) || 0), 0);
-    document.getElementById('cr-total-spent').textContent    = rows.reduce((s, r) => s + (Number(r.total_spent)  || 0), 0);
-    if (!rows.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">💎</div><p>Aucun compte credit</p></div>'; return; }
-    el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Solde</th><th>Gagne</th><th>Depense</th><th>Actions</th></tr></thead><tbody>${rows.map(r =>
-      `<tr><td class="td-phone">${r.phone}</td><td style="font-weight:700;color:var(--violet)">${r.balance || 0} 💎</td><td>${r.total_earned || 0}</td><td>${r.total_spent || 0}</td><td><button class="btn-credit" onclick="openGrantCreditTo('${r.phone}')">💎 Attribuer</button></td></tr>`
+    el.innerHTML = `<table><thead><tr><th>Tel</th><th>Solde</th><th>Action</th></tr></thead><tbody>${rows.map(r =>
+      `<tr><td>${r.phone}</td><td style="color:var(--violet); font-weight:700;">${r.balance || 0} 💎</td><td><button class="btn-credit" onclick="openGrantCreditTo('${r.phone}')">💎 Attribuer</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  } catch (e) { el.innerHTML = 'Erreur'; }
 }
 
-function openGrantCredit()        { openGrantCreditTo(''); }
+/* ══════════════════════════════════════════════
+   UTILS (MODALS & ACTIONS)
+══════════════════════════════════════════════ */
 function openGrantCreditTo(phone) {
-  document.getElementById('modal-body').innerHTML = `<div class="modal-title">💎 Attribuer des credits</div><div class="modal-field"><label>Telephone</label><input class="modal-input" id="cr-phone" value="${phone}" placeholder="+242..."></div><div class="modal-field"><label>Credits a attribuer</label><input class="modal-input" id="cr-amount" type="number" placeholder="10" min="1"></div><div class="modal-field"><label>Raison</label><input class="modal-input" id="cr-reason" placeholder="Bonus fidelite"></div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm violet" onclick="grantCredit()">💎 Attribuer</button></div>`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-title">💎 Credits pour ${phone}</div>
+    <input type="hidden" id="cr-phone" value="${phone}">
+    <div class="modal-field"><label>Montant</label><input class="modal-input" id="cr-amount" type="number" value="10"></div>
+    <div class="modal-actions"><button onclick="closeModal()">Annuler</button><button class="btn-confirm violet" onclick="grantCredit()">💎 Valider</button></div>`;
   showModal();
 }
 
 async function grantCredit() {
-  const phone  = document.getElementById('cr-phone').value;
-  const amount = parseInt(document.getElementById('cr-amount').value);
-  const reason = document.getElementById('cr-reason').value;
-  if (!phone || !amount) return showToast('Telephone et montant requis', 'error');
+  const body = { phone: document.getElementById('cr-phone').value, amount: parseInt(document.getElementById('cr-amount').value), reason: 'Admin Manual' };
   try {
-    const data = await api('/admin/credits/grant', { method: 'POST', body: JSON.stringify({ phone, amount, reason }) });
-    if (data.success) { closeModal(); showToast('💎 Credits attribues !'); loadCredits(); }
-    else showToast(data.message || 'Erreur', 'error');
+    const res = await api('/admin/credits/grant', { method: 'POST', body: JSON.stringify(body) });
+    if (res.success) { closeModal(); showToast('Diamants envoyés !'); refreshCurrentPanel(); }
   } catch (e) { showToast('Erreur', 'error'); }
 }
 
+async function viewUser(phone) {
+  showModal();
+  document.getElementById('modal-body').innerHTML = 'Chargement...';
+  try {
+    const res = await api('/admin/user/' + encodeURIComponent(phone));
+    const u = res.data || res.user;
+    document.getElementById('modal-body').innerHTML = `
+      <div class="modal-title">Profil: ${u.phone}</div>
+      <div class="modal-info-grid">
+        <div><label>Nom:</label> <span>${u.full_name || u.business_name || '—'}</span></div>
+        <div><label>Role:</label> <span>${u.role}</span></div>
+        <div><label>Statut:</label> <span>${u.status}</span></div>
+      </div>
+      <div class="modal-actions"><button onclick="closeModal()">Fermer</button></div>`;
+  } catch (e) { document.getElementById('modal-body').innerHTML = 'Erreur'; }
+}
 /* ══════════════════════════════════════════════
    USER ACTIONS
 ══════════════════════════════════════════════ */
