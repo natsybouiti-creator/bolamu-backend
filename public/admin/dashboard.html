@@ -1008,62 +1008,36 @@ async function grantCredit() {
 
 async function viewUser(phone) {
   if (!phone) return;
-  
-  // On crée deux versions : une avec +, une sans
-  const clean = phone.trim().replace(/\s+/g, '');
-  const digitsOnly = clean.replace(/\D/g, ''); // Garde seulement les chiffres (ex: 242066226116)
-  
+  const pureDigits = phone.replace(/\D/g, '');
   showModal();
   const container = document.getElementById('modal-body');
-  container.innerHTML = '<div style="padding:40px; text-align:center;">⌛ Synchronisation Neon DB...</div>';
+  container.innerHTML = '<div style="padding:40px; text-align:center;">⌛ Lecture Neon DB...</div>';
+
+  // ON TENTE LA ROUTE LA PLUS LOGIQUE SELON TES LOGS
+  const path = `/users/${pureDigits}/profile`;
+  console.log("🚀 Tentative sur : " + path);
 
   try {
-    // STRATÉGIE : On tente d'abord sans le "+", car c'est souvent ainsi que c'est indexé en DB
-    let res = await api(`/users/${digitsOnly}/profile`);
-    
-    // Si pas de réponse, on tente avec le "+" encodé
-    if (!res || (!res.user && !res.data)) {
-        res = await api(`/users/${encodeURIComponent('+' + digitsOnly)}/profile`);
-    }
-
+    const res = await api(path);
     const data = res.data || res;
-    const u = data.user;
+    const u = data.user || data;
 
-    if (!u) throw new Error("Not found");
+    if (!u || (!u.phone && !u.full_name)) {
+        throw new Error("Données incomplètes");
+    }
 
     container.innerHTML = `
       <div style="padding:15px; font-family:sans-serif;">
-        <div style="border-bottom:2px solid #F4F8FF; padding-bottom:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-          <h2 style="margin:0; color:#0A2463; font-size:20px;">${u.full_name || 'Patient Bolamu'}</h2>
-          <span style="background:#00C9A7; color:white; padding:4px 10px; border-radius:15px; font-size:10px;">VÉRIFIÉ</span>
+        <h2 style="color:#0A2463; margin-bottom:5px;">${u.full_name || 'Patient'}</h2>
+        <p style="color:gray; font-size:12px;">Numéro: ${u.phone}</p>
+        <div style="background:#F4F8FF; padding:15px; border-radius:10px; margin:15px 0;">
+           <b>Solde : ${u.credits_balance || 0} 💎</b>
         </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-          <div style="background:#F4F8FF; padding:12px; border-radius:10px;">
-            <small style="color:#5A6E8C;">SOLDE</small><br>
-            <b style="font-size:18px; color:#2E86FF;">${u.credits_balance || 0} 💎</b>
-          </div>
-          <div style="background:#F4F8FF; padding:12px; border-radius:10px;">
-            <small style="color:#5A6E8C;">TÉLÉPHONE</small><br>
-            <b style="font-size:14px;">${u.phone}</b>
-          </div>
-        </div>
-
-        <div style="background:white; border:1px solid #E6F0FF; border-radius:12px; padding:15px;">
-          <p style="margin:5px 0; font-size:13px;">📅 Rendez-vous : <b>${data.appointments?.length || 0}</b></p>
-          <p style="margin:5px 0; font-size:13px;">💊 Ordonnances : <b>${data.prescriptions?.length || 0}</b></p>
-        </div>
-
-        <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:12px; background:#0A2463; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Fermer</button>
+        <button onclick="closeModal()" style="width:100%; padding:10px; background:#0A2463; color:white; border:none; border-radius:5px; cursor:pointer;">Fermer</button>
       </div>`;
-
   } catch (e) {
-    container.innerHTML = `
-      <div style="text-align:center; padding:30px;">
-        <p style="color:#FF4D4D; font-weight:bold;">👤 Introuvable en base</p>
-        <p style="font-size:11px; color:gray;">Le serveur ne trouve pas le numéro : ${digitsOnly}</p>
-        <button onclick="closeModal()" style="margin-top:10px; cursor:pointer;">Fermer</button>
-      </div>`;
+    console.error("❌ Erreur API :", e);
+    container.innerHTML = `<div style="padding:30px; text-align:center;"><b style="color:red;">👤 Introuvable</b><br><small>Le serveur n'a pas renvoyé de profil pour ${pureDigits}</small></div>`;
   }
 }
 /* ══════════════════════════════════════════════
