@@ -1009,77 +1009,55 @@ async function grantCredit() {
 async function viewUser(phone) {
   if (!phone) return;
 
-  // Nettoyage pour éviter les 404 (on enlève les espaces)
+  // Nettoyage : on garde le + et les chiffres
   const cleanPhone = phone.trim().replace(/\s+/g, '');
   
   showModal();
   const container = document.getElementById('modal-body');
-  container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Extraction du dossier complet...</div>';
+  container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du dossier...</div>';
 
   try {
-    // On appelle la route complète validée dans ton backend
-    const res = await api(`/admin/users/${encodeURIComponent(cleanPhone)}/profile`);
-    const data = res.data; 
+    // CORRECTION ICI : Ajout du 's' à users et du '/profile' à la fin
+    const res = await api(`/users/${encodeURIComponent(cleanPhone)}/profile`);
+    
+    // Ton backend renvoie les infos dans res.data [cite: 164]
+    const data = res.data;
     const u = data.user;
 
     if (!u) throw new Error("Utilisateur introuvable");
 
-    // Construction de l'affichage complet
     container.innerHTML = `
-      <div class="modal-header-profile" style="border-bottom:2px solid var(--bleu); padding-bottom:15px; margin-bottom:20px;">
-        <h2 style="margin:0; color:var(--sombre);">📇 ${u.full_name || u.business_name || u.phone}</h2>
-        <span class="badge" style="background:var(--bleu-clair); color:var(--bleu);">${u.role.toUpperCase()}</span>
+      <div class="modal-title" style="margin-bottom:15px; border-bottom:2px solid #6200ee; padding-bottom:10px;">
+        📇 Profil complet de : ${u.full_name || u.phone}
       </div>
       
-      <div class="profile-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-        <div class="info-section">
-          <h4 style="font-size:12px; color:gray; text-transform:uppercase; margin-bottom:10px;">Informations Système</h4>
-          <p><b>Tel:</b> ${u.phone}</p>
-          <p><b>ID Bolamu:</b> ${u.bolamu_id || 'Non généré'}</p>
-          <p><b>Statut:</b> ${badge(u.status || (u.is_active ? 'verified' : 'pending'))}</p>
-          <p><b>Solde:</b> <span style="color:var(--violet); font-weight:bold;">${u.credits_balance || 0} 💎</span></p>
-        </div>
-
-        <div class="info-section">
-          <h4 style="font-size:12px; color:gray; text-transform:uppercase; margin-bottom:10px;">Détails Profil</h4>
-          <p><b>Sexe:</b> ${u.gender || '—'}</p>
-          <p><b>Ville:</b> ${u.city || '—'}</p>
-          <p><b>Abonnement:</b> ${u.statut_abonnement || 'Gratuit'}</p>
-          <p><b>Inscrit le:</b> ${fmtDate(u.created_at)}</p>
-        </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#f5f5f5; padding:15px; border-radius:8px;">
+        <div><label style="font-size:10px; color:gray;">TEL</label><br><b>${u.phone}</b></div>
+        <div><label style="font-size:10px; color:gray;">RÔLE</label><br><b>${u.role}</b></div>
+        <div><label style="font-size:10px; color:gray;">SOLDE</label><br><b style="color:#6200ee;">${u.credits_balance || 0} 💎</b></div>
+        <div><label style="font-size:10px; color:gray;">STATUT</label><br>${u.is_active ? '✅ Actif' : '🔒 Suspendu'}</div>
       </div>
 
-      <div class="history-section" style="margin-top:25px; padding-top:15px; border-top:1px solid #eee;">
-        <h4 style="font-size:12px; color:var(--bleu); text-transform:uppercase; margin-bottom:10px;">Résumé d'activité</h4>
-        <div style="display:flex; gap:10px;">
-           <div style="flex:1; background:#f0f7ff; padding:10px; border-radius:8px; text-align:center;">
-              <div style="font-size:18px; font-weight:bold;">${data.appointments?.length || 0}</div>
-              <div style="font-size:10px;">RDV</div>
-           </div>
-           <div style="flex:1; background:#f0fff4; padding:10px; border-radius:8px; text-align:center;">
-              <div style="font-size:18px; font-weight:bold;">${data.prescriptions?.length || 0}</div>
-              <div style="font-size:10px;">Ordonnances</div>
-           </div>
-           <div style="flex:1; background:#fff9f0; padding:10px; border-radius:8px; text-align:center;">
-              <div style="font-size:18px; font-weight:bold;">${data.payments?.length || 0}</div>
-              <div style="font-size:10px;">Paiements</div>
-           </div>
-        </div>
+      <div style="margin-top:20px;">
+        <h4 style="font-size:12px; color:#6200ee;">ACTIVITÉ RÉCENTE</h4>
+        <ul style="font-size:11px; padding-left:20px;">
+          <li>📅 ${data.appointments?.length || 0} Rendez-vous</li>
+          <li>💊 ${data.prescriptions?.length || 0} Ordonnances</li>
+          <li>💰 ${data.payments?.length || 0} Paiements</li>
+        </ul>
       </div>
 
-      <div class="modal-actions" style="margin-top:30px; display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn-secondary" onclick="closeModal()" style="padding:10px 20px;">Fermer</button>
-        ${u.role !== 'admin' ? `<button class="btn-danger" style="background:#ff4757; color:white; border:none; padding:10px 15px; border-radius:6px;" onclick="banUser('${u.phone}')">Bannir</button>` : ''}
+      <div class="modal-actions" style="margin-top:20px; text-align:right;">
+        <button class="btn-secondary" onclick="closeModal()">Fermer</button>
       </div>
     `;
   } catch (e) {
-    console.error("Erreur Profil:", e);
+    console.error("Détail Erreur:", e);
     container.innerHTML = `
-      <div style="text-align:center; padding:30px;">
-        <div style="font-size:40px;">📂</div>
-        <p style="margin-top:10px; font-weight:bold;">Dossier introuvable ou erreur serveur</p>
-        <p style="font-size:12px; color:gray;">Le serveur a répondu une erreur 404 pour ${cleanPhone}</p>
-        <button onclick="closeModal()" style="margin-top:20px;">Fermer</button>
+      <div style="text-align:center; padding:20px;">
+        <p style="color:red; font-weight:bold;">Erreur 404 : Route non trouvée</p>
+        <p style="font-size:11px; color:gray;">Le backend attend '/admin/users/:phone/profile'</p>
+        <button onclick="closeModal()" style="margin-top:10px;">Fermer</button>
       </div>`;
   }
 }
