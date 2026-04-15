@@ -1009,22 +1009,20 @@ async function grantCredit() {
 async function viewUser(phone) {
   if (!phone) return;
   
-  // On prépare le numéro propre sans espaces
-  const rawPhone = phone.trim().replace(/\s+/g, '');
-  // On s'assure d'avoir une version avec le + (ex: +242...)
-  const phoneWithPlus = rawPhone.startsWith('+') ? rawPhone : '+' + rawPhone;
-  // Et une version sans le +
-  const phoneSimple = rawPhone.replace('+', '');
+  // 1. On prépare les deux versions du numéro
+  const clean = phone.trim().replace(/\s+/g, '');
+  const withPlus = clean.startsWith('+') ? clean : '+' + clean;
+  const noPlus = clean.replace('+', '');
   
   showModal();
   const container = document.getElementById('modal-body');
-  container.innerHTML = '<div style="padding:40px; text-align:center; color:#5A6E8C;">⌛ Recherche du dossier médical...</div>';
+  container.innerHTML = '<div style="padding:40px; text-align:center; color:#5A6E8C;">⌛ Extraction du dossier...</div>';
 
-  // On va tester les 3 formats d'URL possibles
+  // 2. On liste toutes les combinaisons possibles
   const tryPaths = [
-    `/users/${encodeURIComponent(phoneWithPlus)}/profile`, // Avec le +
-    `/users/${phoneSimple}/profile`,                      // Sans le +
-    `/admin/users/${phoneSimple}/profile`                 // Avec prefixe admin
+    `/users/${encodeURIComponent(withPlus)}/profile`, // +242... (Encodé)
+    `/users/${noPlus}/profile`,                      // 242... (Sans plus)
+    `/admin/users/${noPlus}/profile`                 // Format Admin
   ];
 
   let res = null;
@@ -1035,53 +1033,44 @@ async function viewUser(phone) {
         res = response;
         break; 
       }
-    } catch (e) {
-      console.log("Tentative échouée sur : " + path);
-    }
+    } catch (e) { console.log("Échec sur : " + path); }
   }
 
   if (res) {
     const data = res.data || res;
     const u = data.user;
-    
     container.innerHTML = `
       <div style="padding:10px; font-family:sans-serif;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #F4F8FF; padding-bottom:15px;">
           <div>
             <div style="font-size:10px; color:#5A6E8C; font-weight:700; text-transform:uppercase;">Dossier Patient</div>
-            <div style="font-size:22px; color:#0A2463; font-weight:bold; margin-top:4px;">${u.full_name || u.phone}</div>
+            <div style="font-size:22px; color:#0A2463; font-weight:bold;">${u.full_name || u.phone}</div>
           </div>
           <span style="background:#E6FBF7; color:#00C9A7; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:800;">ACTIF ✅</span>
         </div>
-
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
           <div style="background:#F4F8FF; padding:15px; border-radius:12px; border:1px solid #E6F0FF;">
-            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Contact</label>
+            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700;">CONTACT</label>
             <b style="font-size:15px; color:#0A2463;">${u.phone}</b>
           </div>
           <div style="background:#F4F8FF; padding:15px; border-radius:12px; border:1px solid #E6F0FF;">
-            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:4px;">Solde</label>
+            <label style="display:block; color:#5A6E8C; font-size:10px; font-weight:700;">SOLDE</label>
             <b style="font-size:18px; color:#2E86FF;">${u.credits_balance || 0} 💎</b>
           </div>
         </div>
-
         <div style="background:#FFF; border:2px solid #F4F8FF; border-radius:16px; padding:20px; text-align:center; display:flex; justify-content:space-around;">
-          <div><b style="font-size:20px; color:#0A2463;">${data.appointments?.length || 0}</b><br><small style="font-size:10px; color:#5A6E8C;">RDV</small></div>
-          <div><b style="font-size:20px; color:#0A2463;">${data.prescriptions?.length || 0}</b><br><small style="font-size:10px; color:#5A6E8C;">ORD.</small></div>
-          <div><b style="font-size:20px; color:#0A2463;">${data.payments?.length || 0}</b><br><small style="font-size:10px; color:#5A6E8C;">PAY.</small></div>
+          <div><b style="font-size:20px; color:#0A2463;">${data.appointments?.length || 0}</b><br><small style="font-size:10px;">RDV</small></div>
+          <div><b style="font-size:20px; color:#0A2463;">${data.prescriptions?.length || 0}</b><br><small style="font-size:10px;">ORD.</small></div>
+          <div><b style="font-size:20px; color:#0A2463;">${data.payments?.length || 0}</b><br><small style="font-size:10px;">PAY.</small></div>
         </div>
-
-        <div style="margin-top:25px;">
-          <button onclick="closeModal()" style="padding:12px; border-radius:10px; cursor:pointer; font-weight:700; border:none; background:#0A2463; color:#FFF; width:100%;">Fermer le dossier</button>
-        </div>
-      </div>
-    `;
+        <button onclick="closeModal()" style="margin-top:25px; width:100%; padding:12px; background:#0A2463; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Fermer</button>
+      </div>`;
   } else {
     container.innerHTML = `
       <div style="text-align:center; padding:40px;">
-        <p style="color:#FF4D4D; font-weight:bold; font-size:16px;">👤 Dossier Introuvable</p>
-        <p style="color:#5A6E8C; font-size:11px;">Le numéro ${phoneSimple} n'existe pas ou la route est bloquée.</p>
-        <button onclick="closeModal()" style="margin-top:20px; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Retour</button>
+        <p style="color:#FF4D4D; font-weight:bold;">👤 Dossier Introuvable</p>
+        <p style="color:#5A6E8C; font-size:11px;">Le serveur ne trouve aucune fiche pour ${withPlus}.</p>
+        <button onclick="closeModal()" style="margin-top:15px;">Retour</button>
       </div>`;
   }
 }
