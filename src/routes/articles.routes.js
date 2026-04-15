@@ -1,7 +1,7 @@
 // routes/articles.routes.js
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
