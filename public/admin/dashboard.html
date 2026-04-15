@@ -51,6 +51,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .kpi-value{font-family:'Fraunces',serif;font-size:26px;font-weight:900;line-height:1;margin-bottom:2px;}
 .kpi-label{font-size:9px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
 .kpi-trend{font-size:9px;font-weight:600;color:var(--texte-doux);}
+.kpi-loading{opacity:0.4;font-size:11px;}
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .chart-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:16px;}
 .chart-title{font-size:12px;font-weight:700;color:var(--texte);margin-bottom:2px;}
@@ -151,7 +152,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .art-status-pub{background:rgba(0,200,167,0.15);color:var(--vert);}
 .art-status-draft{background:rgba(136,136,170,0.15);color:var(--texte-doux);}
 .art-title{font-size:11px;font-weight:700;color:var(--texte);line-height:1.4;margin-bottom:4px;}
-.art-excerpt{font-size:9px;color:var(--texte-doux);line-height:1.5;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.art-excerpt{font-size:9px;color:var(--texte-doux);line-height:1.5;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;}
 .art-meta{font-size:8px;color:var(--texte-doux);margin-bottom:7px;display:flex;gap:5px;flex-wrap:wrap;}
 .art-actions{display:flex;gap:3px;flex-wrap:wrap;}
 .btn-art-edit{padding:3px 8px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.25);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
@@ -208,12 +209,23 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .texte-block-input:focus{border-color:var(--bleu);}
 .save-block-btn{margin-top:7px;padding:5px 12px;background:rgba(46,134,255,0.12);color:var(--bleu);border:1px solid rgba(46,134,255,0.25);border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
 .save-block-btn:hover{background:var(--bleu);color:white;}
+
+/* ── Réseaux sociaux avec vrais logos SVG ── */
 .reseaux-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .reseau-block{background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;}
-.reseau-icon{font-size:22px;flex-shrink:0;}
+.reseau-logo{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.reseau-logo svg{width:20px;height:20px;}
+.reseau-logo.whatsapp{background:#25D366;}
+.reseau-logo.instagram{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);}
+.reseau-logo.facebook{background:#1877F2;}
+.reseau-logo.tiktok{background:#010101;}
+.reseau-logo.youtube{background:#FF0000;}
+.reseau-logo.linkedin{background:#0A66C2;}
+.reseau-logo.twitter{background:#000000;}
 .reseau-name{font-size:10px;font-weight:700;color:var(--texte);margin-bottom:4px;}
 .reseau-input{flex:1;background:var(--noir3);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
 .reseau-input:focus{border-color:var(--bleu);}
+
 .vitrine-card{background:var(--noir2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:10px;}
 .vitrine-img-preview{display:none;width:100%;height:110px;object-fit:cover;border-radius:6px;margin-top:5px;}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:11px;font-weight:600;display:none;z-index:9999;box-shadow:0 20px 40px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;}
@@ -224,6 +236,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .empty{text-align:center;padding:32px;color:var(--texte-doux);}
 .empty-icon{font-size:28px;margin-bottom:8px;}
 .loading{text-align:center;padding:28px;color:var(--texte-doux);font-size:11px;}
+.kpi-error{background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:11px;color:var(--rouge);display:none;}
+.kpi-error.show{display:flex;align-items:center;gap:8px;}
 .mobile-sidebar-toggle{display:none;align-items:center;justify-content:center;width:30px;height:30px;background:var(--noir3);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--texte);margin-right:7px;flex-shrink:0;}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
 .sidebar-overlay.open{display:block;}
@@ -293,15 +307,16 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
     <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
+      <div class="kpi-error" id="kpi-error-msg">⚠️ Impossible de contacter le serveur. Vérifiez la connexion.</div>
       <div class="kpi-grid">
-        <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">...</div></div>
-        <div class="kpi-card green"><div class="kpi-icon">👨‍⚕️</div><div class="kpi-value" id="kpi-doctors">—</div><div class="kpi-label">Medecins</div><div class="kpi-trend" id="kpi-doctors-trend">...</div></div>
-        <div class="kpi-card amber"><div class="kpi-icon">📅</div><div class="kpi-value" id="kpi-rdv">—</div><div class="kpi-label">RDV total</div><div class="kpi-trend" id="kpi-rdv-trend">...</div></div>
-        <div class="kpi-card violet"><div class="kpi-icon">💊</div><div class="kpi-value" id="kpi-pharma">—</div><div class="kpi-label">Pharmacies</div><div class="kpi-trend">Verifiees</div></div>
-        <div class="kpi-card green"><div class="kpi-icon">💰</div><div class="kpi-value" id="kpi-rev-today">—</div><div class="kpi-label">Revenus auj.</div><div class="kpi-trend" id="kpi-rev-month">—</div></div>
-        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpi-presc">—</div><div class="kpi-label">Ordonnances</div><div class="kpi-trend">Total</div></div>
-        <div class="kpi-card amber"><div class="kpi-icon">⏳</div><div class="kpi-value" id="kpi-pending">—</div><div class="kpi-label">En attente</div><div class="kpi-trend">a valider</div></div>
-        <div class="kpi-card red"><div class="kpi-icon">🚨</div><div class="kpi-value" id="kpi-fraud">—</div><div class="kpi-label">Fraudes HIGH</div><div class="kpi-trend" id="kpi-banned">—</div></div>
+        <div class="kpi-card blue"><div class="kpi-icon">👤</div><div class="kpi-value kpi-loading" id="kpi-patients">—</div><div class="kpi-label">Patients</div><div class="kpi-trend" id="kpi-patients-trend">Chargement...</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">👨‍⚕️</div><div class="kpi-value kpi-loading" id="kpi-doctors">—</div><div class="kpi-label">Medecins</div><div class="kpi-trend" id="kpi-doctors-trend">Chargement...</div></div>
+        <div class="kpi-card amber"><div class="kpi-icon">📅</div><div class="kpi-value kpi-loading" id="kpi-rdv">—</div><div class="kpi-label">RDV total</div><div class="kpi-trend" id="kpi-rdv-trend">Chargement...</div></div>
+        <div class="kpi-card violet"><div class="kpi-icon">💊</div><div class="kpi-value kpi-loading" id="kpi-pharma">—</div><div class="kpi-label">Pharmacies</div><div class="kpi-trend">Verifiees</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">💰</div><div class="kpi-value kpi-loading" id="kpi-rev-today">—</div><div class="kpi-label">Revenus auj.</div><div class="kpi-trend" id="kpi-rev-month">—</div></div>
+        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value kpi-loading" id="kpi-presc">—</div><div class="kpi-label">Ordonnances</div><div class="kpi-trend">Total</div></div>
+        <div class="kpi-card amber"><div class="kpi-icon">⏳</div><div class="kpi-value kpi-loading" id="kpi-pending">—</div><div class="kpi-label">En attente</div><div class="kpi-trend">a valider</div></div>
+        <div class="kpi-card red"><div class="kpi-icon">🚨</div><div class="kpi-value kpi-loading" id="kpi-fraud">—</div><div class="kpi-label">Fraudes HIGH</div><div class="kpi-trend" id="kpi-banned">—</div></div>
       </div>
       <div class="charts-row">
         <div class="chart-card">
@@ -497,37 +512,31 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 <div class="toast" id="toast"></div>
 
 <script>
-// --- CORRECTIF FORCE ---
-const API = 'https://bolamu-backend.onrender.com/api/v1';
-async function api(path, options = {}) {
-    const url = path.startsWith('http') ? path : API + path;
-    const res = await fetch(url, {
-        ...options,
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        }
-    });
-    if (!res.ok) throw new Error('Erreur API');
-    return res.json();
-}
-// On lance le chargement dès que possible
-setTimeout(() => {
-    if(typeof token !== 'undefined' && token) {
-        loadOverview(); loadArticles(); loadReseaux(); loadHero();
-    }
-}, 1000);
-// -----------------------
+/* ══════════════════════════════════════════════
+   SVG LOGOS RÉSEAUX SOCIAUX (inline, vrais logos)
+══════════════════════════════════════════════ */
+const RESEAUX_SVG = {
+  whatsapp: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`,
+  instagram: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
+  facebook: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
+  tiktok: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>`,
+  youtube: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+  linkedin: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>`,
+  twitter: `<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`
+};
 
+/* ══════════════════════════════════════════════
+   INIT & AUTH
+══════════════════════════════════════════════ */
 const API = 'https://bolamu-backend.onrender.com/api/v1';
 const token = localStorage.getItem('bolamu_token');
 const phone = localStorage.getItem('bolamu_phone');
 const role = localStorage.getItem('bolamu_role');
 if(!token || role !== 'admin'){ localStorage.clear(); window.location.replace('/admin/login.html'); }
+
 (async function verifyToken(){
   try {
-    const res = await fetch('/api/v1/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+    const res = await fetch(API + '/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
     const data = await res.json();
     if(!res.ok || data.role !== 'admin') throw new Error();
   } catch(e) { localStorage.clear(); window.location.replace('/admin/login.html'); }
@@ -573,11 +582,13 @@ async function api(path, opts = {}){
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
     ...opts
   });
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 function fmtDate(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
 function fmtShort(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }
-function fmtNum(n){ if(n===null||n===undefined) return '—'; return Number(n).toLocaleString('fr-FR'); }
+function fmtNum(n){ if(n===null||n===undefined||isNaN(Number(n))) return '0'; return Number(n).toLocaleString('fr-FR'); }
+function setKPI(id, val, fallback='0'){ const el=document.getElementById(id); if(!el) return; el.textContent = (val!==null && val!==undefined && val!=='') ? val : fallback; el.classList.remove('kpi-loading'); }
 function badge(s){
   const m = {
     verified: 'badge-verified ✓ Verifie', pending: 'badge-pending ⏳ Attente',
@@ -587,7 +598,7 @@ function badge(s){
     medium: 'badge-medium 🟡 MED', low: 'badge-low 🟢 LOW',
     success: 'badge-verified ✓ OK', failed: 'badge-suspended ✗ Echoue'
   };
-  const v = m[s] || ('badge-pending ' + s);
+  const v = m[s] || ('badge-pending ' + (s||'—'));
   const [cls, ...label] = v.split(' ');
   return `<span class="badge ${cls}">${label.join(' ')}</span>`;
 }
@@ -605,22 +616,35 @@ function refreshAll(){ loadPanel(document.querySelector('.panel.active')?.id?.re
 
 /* ════════ OVERVIEW ════════ */
 async function loadOverview(){
+  const errEl = document.getElementById('kpi-error-msg');
+  errEl.classList.remove('show');
+  // Reset tous les KPI en état "chargement"
+  ['kpi-patients','kpi-doctors','kpi-rdv','kpi-pharma','kpi-rev-today','kpi-presc','kpi-pending','kpi-fraud'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el){ el.textContent='…'; el.classList.add('kpi-loading'); }
+  });
   try{
     const data = await api('/admin/dashboard');
-    if(!data.success) return;
-    const s = data.stats;
-    document.getElementById('kpi-patients').textContent = fmtNum(s.patients);
-    document.getElementById('kpi-doctors').textContent = fmtNum(s.doctors);
-    document.getElementById('kpi-rdv').textContent = fmtNum(s.appointments_total);
-    document.getElementById('kpi-pharma').textContent = fmtNum(s.pharmacies);
-    document.getElementById('kpi-rev-today').textContent = (s.revenue_today||0) + ' FCFA';
-    document.getElementById('kpi-rev-month').textContent = 'Ce mois: ' + (s.revenue_month||0) + ' FCFA';
-    document.getElementById('kpi-presc').textContent = fmtNum(s.prescriptions);
-    document.getElementById('kpi-pending').textContent = fmtNum(s.pending);
-    document.getElementById('kpi-fraud').textContent = fmtNum(s.fraud_high);
+    if(!data || !data.success){
+      errEl.textContent = '⚠️ Le serveur a répondu mais sans données valides. Vérifiez l\'endpoint /admin/dashboard.';
+      errEl.classList.add('show');
+      return;
+    }
+    const s = data.stats || {};
+    setKPI('kpi-patients', fmtNum(s.patients));
+    setKPI('kpi-doctors', fmtNum(s.doctors));
+    setKPI('kpi-rdv', fmtNum(s.appointments_total));
+    setKPI('kpi-pharma', fmtNum(s.pharmacies));
+    setKPI('kpi-rev-today', (s.revenue_today||0).toLocaleString('fr-FR') + ' F');
+    setKPI('kpi-presc', fmtNum(s.prescriptions));
+    setKPI('kpi-pending', fmtNum(s.pending));
+    setKPI('kpi-fraud', fmtNum(s.fraud_high));
+    document.getElementById('kpi-rev-month').textContent = 'Ce mois: ' + ((s.revenue_month||0).toLocaleString('fr-FR')) + ' FCFA';
     document.getElementById('kpi-banned').textContent = fmtNum(s.banned) + ' bannis';
     document.getElementById('badge-pending').textContent = s.pending || 0;
     document.getElementById('badge-fraud').textContent = s.fraud_high || 0;
+
+    // Donut
     const total = (s.patients||0) + (s.doctors||0) + (s.pharmacies||0) + (s.labos||0);
     document.getElementById('donut-total').textContent = total;
     document.getElementById('leg-patients').textContent = s.patients||0;
@@ -629,31 +653,48 @@ async function loadOverview(){
     document.getElementById('leg-labos').textContent = s.labos||0;
     if(total > 0){
       const circ = 283;
-      const pp = (s.patients||0)/total*circ, dp = (s.doctors||0)/total*circ;
-      const phP = (s.pharmacies||0)/total*circ, lp = (s.labos||0)/total*circ;
+      const pp = (s.patients||0)/total*circ;
+      const dp = (s.doctors||0)/total*circ;
+      const phP = (s.pharmacies||0)/total*circ;
+      const lp = (s.labos||0)/total*circ;
       let off = 71;
-      document.getElementById('donut-patient').setAttribute('stroke-dasharray', `${pp} ${circ-pp}`);
-      document.getElementById('donut-patient').setAttribute('stroke-dashoffset', off); off -= pp;
-      document.getElementById('donut-doctor').setAttribute('stroke-dasharray', `${dp} ${circ-dp}`);
-      document.getElementById('donut-doctor').setAttribute('stroke-dashoffset', off); off -= dp;
-      document.getElementById('donut-pharma').setAttribute('stroke-dasharray', `${phP} ${circ-phP}`);
-      document.getElementById('donut-pharma').setAttribute('stroke-dashoffset', off); off -= phP;
-      document.getElementById('donut-labo').setAttribute('stroke-dasharray', `${lp} ${circ-lp}`);
-      document.getElementById('donut-labo').setAttribute('stroke-dashoffset', off);
+      const d1 = document.getElementById('donut-patient');
+      d1.setAttribute('stroke-dasharray', `${pp} ${circ-pp}`);
+      d1.setAttribute('stroke-dashoffset', off); off -= pp;
+      const d2 = document.getElementById('donut-doctor');
+      d2.setAttribute('stroke-dasharray', `${dp} ${circ-dp}`);
+      d2.setAttribute('stroke-dashoffset', off); off -= dp;
+      const d3 = document.getElementById('donut-pharma');
+      d3.setAttribute('stroke-dasharray', `${phP} ${circ-phP}`);
+      d3.setAttribute('stroke-dashoffset', off); off -= phP;
+      const d4 = document.getElementById('donut-labo');
+      d4.setAttribute('stroke-dasharray', `${lp} ${circ-lp}`);
+      d4.setAttribute('stroke-dashoffset', off);
     }
+
+    // Mini listes
     const pList = document.getElementById('pending-mini-list');
     if(data.pending_users && data.pending_users.length){
       pList.innerHTML = '<div class="feed-list">' + data.pending_users.slice(0,5).map(u =>
-        `<div class="feed-item"><div class="feed-dot" style="background:var(--amber)"></div><div><div class="feed-action"><span class="feed-actor">${u.phone}</span> — ${u.role}</div><div class="feed-time">${fmtShort(u.created_at)}</div></div></div>`
+        `<div class="feed-item"><div class="feed-dot" style="background:var(--amber)"></div><div><div class="feed-action"><span class="feed-actor">${u.phone}</span> — ${u.role||'—'}</div><div class="feed-time">${fmtShort(u.created_at)}</div></div></div>`
       ).join('') + '</div>';
     } else { pList.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Aucun en attente</p></div>'; }
+
     const fList = document.getElementById('fraud-mini-list');
     if(data.fraud_alerts && data.fraud_alerts.length){
       fList.innerHTML = '<div class="feed-list">' + data.fraud_alerts.slice(0,5).map(f =>
-        `<div class="feed-item"><div class="feed-dot" style="background:var(--rouge)"></div><div><div class="feed-action"><span class="feed-actor">${f.phone}</span> — score ${f.fraud_score}</div><div class="feed-time">${fmtShort(f.created_at)}</div></div></div>`
+        `<div class="feed-item"><div class="feed-dot" style="background:var(--rouge)"></div><div><div class="feed-action"><span class="feed-actor">${f.phone||f.doctor_phone||'—'}</span> — score ${f.fraud_score||0}</div><div class="feed-time">${fmtShort(f.created_at)}</div></div></div>`
       ).join('') + '</div>';
     } else { fList.innerHTML = '<div class="empty"><div class="empty-icon">🟢</div><p>Aucune fraude HIGH</p></div>'; }
-  } catch(e){ console.error(e); }
+
+  } catch(e){
+    console.error('loadOverview error:', e);
+    errEl.textContent = '⚠️ Impossible de joindre le serveur Bolamu. Vérifiez que le backend est démarré sur Render.';
+    errEl.classList.add('show');
+    ['kpi-patients','kpi-doctors','kpi-rdv','kpi-pharma','kpi-rev-today','kpi-presc','kpi-pending','kpi-fraud'].forEach(id => {
+      const el = document.getElementById(id); if(el){ el.textContent='ERR'; el.classList.remove('kpi-loading'); }
+    });
+  }
 }
 
 /* ════════ ACTIVITY ════════ */
@@ -671,7 +712,7 @@ async function loadActivity(){
     feed.innerHTML = '<div class="feed-list">' + data.logs.map(l =>
       `<div class="feed-item"><div class="feed-dot" style="background:${colors[l.type]||'var(--texte-doux)'}"></div><div><div class="feed-action">${l.description}</div><div class="feed-time">${fmtDate(l.created_at)}</div></div></div>`
     ).join('') + '</div>';
-  } catch(e){ document.getElementById('activity-feed').innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ document.getElementById('activity-feed').innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ PENDING ════════ */
@@ -685,7 +726,7 @@ async function loadPending(){
     el.innerHTML = `<table id="pending-table"><thead><tr><th>Telephone</th><th>Role</th><th>Nom</th><th>Date</th><th>Actions</th></tr></thead><tbody>${users.map(u =>
       `<tr><td class="td-phone">${u.phone}</td><td>${badge(u.role||'pending')}</td><td>${u.full_name||u.business_name||'—'}</td><td>${fmtShort(u.created_at)}</td><td class="actions"><button class="btn-validate" onclick="validateUser('${u.phone}')">✓ Valider</button><button class="btn-reject" onclick="rejectUser('${u.phone}')">✗ Rejeter</button><button class="btn-view" onclick="viewUser('${u.phone}')">👁 Voir</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ DOCTORS ════════ */
@@ -699,7 +740,7 @@ async function loadDoctors(status = ''){
     el.innerHTML = `<table id="doctors-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Specialite</th><th>Statut</th><th>Score fraude</th><th>Actions</th></tr></thead><tbody>${docs.map(d =>
       `<tr><td class="td-phone">${d.phone}</td><td>${d.full_name||'—'}</td><td>${d.specialty||'—'}</td><td>${badge(d.status||'pending')}</td><td>${d.fraud_score||0}/100</td><td class="actions">${d.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${d.phone}')">✓</button>`:''}${d.status!=='suspended'?`<button class="btn-suspend" onclick="suspendUser('${d.phone}')">🚫</button>`:''}${!d.is_banned?`<button class="btn-ban" onclick="banUser('${d.phone}')">🔴</button>`:`<button class="btn-unban" onclick="unbanUser('${d.phone}')">🟢</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${d.phone}')">💎</button><button class="btn-view" onclick="viewUser('${d.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ PHARMACIES ════════ */
@@ -713,7 +754,7 @@ async function loadPharmacies(status = ''){
     el.innerHTML = `<table id="pharmacies-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
       `<tr><td class="td-phone">${p.phone}</td><td>${p.business_name||p.full_name||'—'}</td><td>${badge(p.status||'pending')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${p.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${p.phone}')">✓</button>`:''}${!p.is_banned?`<button class="btn-ban" onclick="banUser('${p.phone}')">🔴</button>`:`<button class="btn-unban" onclick="unbanUser('${p.phone}')">🟢</button>`}<button class="btn-view" onclick="viewUser('${p.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ LABORATORIES ════════ */
@@ -727,7 +768,7 @@ async function loadLaboratories(){
     el.innerHTML = `<table id="laboratories-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(l =>
       `<tr><td class="td-phone">${l.phone}</td><td>${l.business_name||l.full_name||'—'}</td><td>${badge(l.status||'pending')}</td><td>${fmtShort(l.created_at)}</td><td class="actions">${l.status!=='verified'?`<button class="btn-validate" onclick="validateUser('${l.phone}')">✓</button>`:''}${!l.is_banned?`<button class="btn-ban" onclick="banUser('${l.phone}')">🔴</button>`:`<button class="btn-unban" onclick="unbanUser('${l.phone}')">🟢</button>`}<button class="btn-view" onclick="viewUser('${l.phone}')">👁</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ PATIENTS ════════ */
@@ -741,7 +782,7 @@ async function loadPatients(){
     el.innerHTML = `<table id="patients-table"><thead><tr><th>Telephone</th><th>Nom</th><th>Age/Sexe</th><th>Statut</th><th>Inscrit</th><th>Actions</th></tr></thead><tbody>${rows.map(p =>
       `<tr><td class="td-phone">${p.phone}</td><td>${p.full_name||'—'}</td><td>${p.age||'—'} / ${p.sexe||'—'}</td><td>${badge(p.is_banned?'banned':'active')}</td><td>${fmtShort(p.created_at)}</td><td class="actions">${!p.is_banned?`<button class="btn-ban" onclick="banUser('${p.phone}')">🔴</button>`:`<button class="btn-unban" onclick="unbanUser('${p.phone}')">🟢</button>`}<button class="btn-credit" onclick="openGrantCreditTo('${p.phone}')">💎</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ APPOINTMENTS ════════ */
@@ -758,7 +799,7 @@ async function loadAppointments(){
     el.innerHTML = `<table><thead><tr><th>Code</th><th>Patient</th><th>Medecin</th><th>Date</th><th>Statut</th><th>Fraude</th></tr></thead><tbody>${rows.map(r =>
       `<tr><td class="td-code">${r.session_code||'—'}</td><td class="td-phone">${r.patient_phone||'—'}</td><td class="td-phone">${r.doctor_phone||'—'}</td><td>${fmtShort(r.appointment_date)}</td><td>${badge(r.status)}</td><td>${badge(r.fraud_level||'low')}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ PRESCRIPTIONS ════════ */
@@ -772,7 +813,7 @@ async function loadPrescriptions(){
     el.innerHTML = `<table><thead><tr><th>ID</th><th>Medecin</th><th>Patient</th><th>Medicaments</th><th>Date</th></tr></thead><tbody>${rows.map(p =>
       `<tr><td class="td-code">#${p.id}</td><td class="td-phone">${p.doctor_phone||'—'}</td><td class="td-phone">${p.patient_phone||'—'}</td><td style="font-size:9px;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${p.medications||'—'}</td><td>${fmtShort(p.created_at)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ PAYMENTS ════════ */
@@ -791,7 +832,7 @@ async function loadPayments(){
     el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Montant</th><th>Type</th><th>Statut</th><th>Date</th></tr></thead><tbody>${rows.map(p =>
       `<tr><td class="td-phone">${p.phone||'—'}</td><td style="font-weight:700;">${fmtNum(p.amount)} FCFA</td><td>${p.payment_type||p.provider||'—'}</td><td>${badge(p.status)}</td><td>${fmtShort(p.created_at)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ FRAUD ════════ */
@@ -808,7 +849,7 @@ async function loadFraud(){
     el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Niveau</th><th>Score</th><th>Raison</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(f =>
       `<tr><td class="td-phone">${f.phone||f.doctor_phone||'—'}</td><td>${badge(f.fraud_level||'low')}</td><td style="font-weight:700">${f.fraud_score||0}/100</td><td style="font-size:9px;max-width:180px;overflow:hidden;">${f.fraud_reason||'—'}</td><td>${fmtShort(f.created_at)}</td><td class="actions"><button class="btn-ban" onclick="banUser('${f.phone||f.doctor_phone}')">🔴 Bannir</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ AUDIT ════════ */
@@ -822,7 +863,7 @@ async function loadAudit(eventType = ''){
     el.innerHTML = `<table id="audit-table"><thead><tr><th>Evenement</th><th>Acteur</th><th>Table</th><th>ID</th><th>Date</th></tr></thead><tbody>${rows.map(r =>
       `<tr><td style="font-weight:700;font-size:9px;color:var(--bleu)">${r.event_type}</td><td class="td-phone">${r.actor_phone||'—'}</td><td>${r.target_table||'—'}</td><td>${r.target_id||'—'}</td><td>${fmtDate(r.created_at)}</td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 
 /* ════════ CONFIG ════════ */
@@ -839,7 +880,7 @@ async function loadConfig(){
         `<div class="config-item"><div><div class="config-key">${c.config_key}</div>${c.description?`<div class="config-desc">${c.description}</div>`:''}</div><div class="config-val" onclick="editConfig('${c.config_key}','${c.config_value}')">${c.config_value}</div></div>`
       ).join('')}</div>`
     ).join('');
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 function editConfig(key, val){
   document.getElementById('modal-body').innerHTML = `<div class="modal-title">⚙️ Modifier</div><div class="modal-sub"><code>${key}</code></div><div class="modal-field"><label>Valeur</label><input class="modal-input" id="cfg-val" value="${val}"></div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm blue" onclick="saveConfig('${key}')">💾 Enregistrer</button></div>`;
@@ -868,7 +909,7 @@ async function loadCredits(){
     el.innerHTML = `<table><thead><tr><th>Telephone</th><th>Solde</th><th>Gagne</th><th>Depense</th><th>Actions</th></tr></thead><tbody>${rows.map(r =>
       `<tr><td class="td-phone">${r.phone}</td><td style="font-weight:700;color:var(--violet)">${r.balance||0} 💎</td><td>${r.total_earned||0}</td><td>${r.total_spent||0}</td><td><button class="btn-credit" onclick="openGrantCreditTo('${r.phone}')">💎 Attribuer</button></td></tr>`
     ).join('')}</tbody></table>`;
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 function openGrantCredit(){ openGrantCreditTo(''); }
 function openGrantCreditTo(phone){
@@ -890,23 +931,23 @@ async function grantCredit(){
 /* ════════ USER ACTIONS ════════ */
 async function validateUser(phone){
   if(!confirm(`Valider ${phone} ?`)) return;
-  try{ const data = await api('/admin/validate-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('✓ Compte valide');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur','error'); }
+  try{ const data = await api('/admin/validate-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('✓ Compte valide');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
 async function rejectUser(phone){
   if(!confirm(`Rejeter ${phone} ?`)) return;
-  try{ const data = await api('/admin/reject-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('Compte rejete');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur','error'); }
+  try{ const data = await api('/admin/reject-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('Compte rejete');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
 async function suspendUser(phone){
   if(!confirm(`Suspendre ${phone} ?`)) return;
-  try{ const data = await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🚫 Suspendu');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur','error'); }
+  try{ const data = await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🚫 Suspendu');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
 async function banUser(phone){
-  if(!confirm(`Bannir definitivement ${phone} ?`)) return;
-  try{ const data = await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🔴 Banni');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur','error'); }
+  if(!confirm(`Bannir définitivement ${phone} ?`)) return;
+  try{ const data = await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🔴 Banni');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
 async function unbanUser(phone){
-  if(!confirm(`Debannir ${phone} ?`)) return;
-  try{ const data = await api('/admin/unban-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🟢 Debanni');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur','error'); }
+  if(!confirm(`Débannir ${phone} ?`)) return;
+  try{ const data = await api('/admin/unban-user',{method:'POST',body:JSON.stringify({phone})}); if(data.success){showToast('🟢 Debanni');refreshCurrentPanel();}else showToast(data.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
 function viewUser(phone){
   document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 Profil</div><div class="loading" id="view-loading">Chargement...</div>`;
@@ -915,7 +956,7 @@ function viewUser(phone){
     if(!data.user){ document.getElementById('view-loading').textContent = 'Introuvable'; return; }
     const u = data.user;
     document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 ${u.full_name||u.business_name||u.phone}</div><div class="modal-info-grid">${Object.entries({Telephone:u.phone,Role:u.role,Statut:u.status,Nom:u.full_name||u.business_name,Specialite:u.specialty,Age:u.age,Sexe:u.sexe,'Score fraude':u.fraud_score,'Banni':u.is_banned?'Oui':'Non',Inscrit:fmtDate(u.created_at)}).map(([k,v]) => `<div class="modal-info-item"><label>${k}</label><span>${v||'—'}</span></div>`).join('')}</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;
-  });
+  }).catch(() => { document.getElementById('view-loading').textContent = 'Erreur de chargement'; });
 }
 function refreshCurrentPanel(){ loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-','')); }
 
@@ -965,7 +1006,6 @@ function renderArticlesAdmin(items){
     const pubBtn = a.is_published
       ? `<button class="btn-art-pub" style="background:rgba(255,71,87,0.1);color:var(--rouge);border-color:rgba(255,71,87,0.25);" onclick="togglePub(${a.id},true)">🚫 Depublier</button>`
       : `<button class="btn-art-pub" style="background:rgba(0,200,167,0.1);color:var(--vert);border-color:rgba(0,200,167,0.25);" onclick="togglePub(${a.id},false)">🟢 Publier</button>`;
-    const artJson = JSON.stringify(a).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
     return `<div class="art-card">${thumb}<div class="art-body"><div class="art-tags"><span class="art-cat ${cat.cls}">${cat.label}</span>${a.is_published?'<span class="art-status-badge art-status-pub">● Publie</span>':'<span class="art-status-badge art-status-draft">● Brouillon</span>'}${a.is_featured?'<span class="art-status-badge" style="background:rgba(255,165,2,0.15);color:var(--amber);">⭐</span>':''}</div><div class="art-title">${a.title}</div><div class="art-excerpt">${a.excerpt||''}</div><div class="art-meta"><span>✍️ ${a.author||'Dr. Bolamu'}</span><span>⏱ ${a.read_time||'5 min'}</span></div><div class="art-actions"><button class="btn-art-edit" onclick='openArticleModal(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(a))}")))'>✏️ Editer</button>${pubBtn}<button class="btn-art-del" onclick="confirmDeleteArticle(${a.id},'${(a.title||'').replace(/'/g,"\\'").replace(/"/g,"'")}')">🗑️</button></div></div></div>`;
   }).join('');
 }
@@ -1185,7 +1225,7 @@ async function loadPlans(){
         <button class="btn-confirm blue" style="padding:8px;" onclick="savePlan('${key}')">💾 Enregistrer</button>
       </div>`;
     }).join('');
-  } catch(e){ grid.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 async function savePlan(key){
   const content = {
@@ -1237,7 +1277,7 @@ async function loadTextes(){
         : `<input class="texte-block-input" id="txt-${t.key}" value="${safeVal}">`;
       return `<div class="texte-block"><div class="texte-block-title">${t.label}</div>${input}<button class="save-block-btn" onclick="saveTexte('${t.key}')">💾 Enregistrer</button></div>`;
     }).join('') + '</div>';
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 async function saveTexte(key){
   const el = document.getElementById('txt-' + key); if(!el) return;
@@ -1247,15 +1287,15 @@ async function saveTexte(key){
   } catch(e){ showToast('Erreur','error'); }
 }
 
-/* ════════ RESEAUX SOCIAUX ════════ */
+/* ════════ RÉSEAUX SOCIAUX — vrais logos SVG ════════ */
 const RESEAUX_CONFIG = [
-  {key:'whatsapp', icon:'💬', label:'WhatsApp', placeholder:'https://wa.me/242...'},
-  {key:'instagram', icon:'📸', label:'Instagram', placeholder:'https://instagram.com/bolamu'},
-  {key:'facebook', icon:'📘', label:'Facebook', placeholder:'https://facebook.com/bolamu'},
-  {key:'tiktok', icon:'🎵', label:'TikTok', placeholder:'https://tiktok.com/@bolamu'},
-  {key:'youtube', icon:'▶️', label:'YouTube', placeholder:'https://youtube.com/@bolamu'},
-  {key:'linkedin', icon:'💼', label:'LinkedIn', placeholder:'https://linkedin.com/company/bolamu'},
-  {key:'twitter', icon:'🐦', label:'Twitter / X', placeholder:'https://x.com/bolamu'}
+  {key:'whatsapp',  cls:'whatsapp',  label:'WhatsApp',    placeholder:'https://wa.me/242...'},
+  {key:'instagram', cls:'instagram', label:'Instagram',   placeholder:'https://instagram.com/bolamu.cg'},
+  {key:'facebook',  cls:'facebook',  label:'Facebook',    placeholder:'https://facebook.com/bolamu'},
+  {key:'tiktok',    cls:'tiktok',    label:'TikTok',      placeholder:'https://tiktok.com/@bolamu'},
+  {key:'youtube',   cls:'youtube',   label:'YouTube',     placeholder:'https://youtube.com/@bolamu'},
+  {key:'linkedin',  cls:'linkedin',  label:'LinkedIn',    placeholder:'https://linkedin.com/company/bolamu'},
+  {key:'twitter',   cls:'twitter',   label:'X (Twitter)', placeholder:'https://x.com/bolamu'}
 ];
 async function loadReseaux(){
   const el = document.getElementById('reseaux-grid');
@@ -1263,9 +1303,15 @@ async function loadReseaux(){
     const data = await api('/articles/admin/content-blocks');
     const r = (data.blocks||{}).reseaux_sociaux || {};
     el.innerHTML = RESEAUX_CONFIG.map(rs =>
-      `<div class="reseau-block"><div class="reseau-icon">${rs.icon}</div><div style="flex:1"><div class="reseau-name">${rs.label}</div><input class="reseau-input" id="rs-${rs.key}" value="${r[rs.key]||''}" placeholder="${rs.placeholder}"></div></div>`
+      `<div class="reseau-block">
+        <div class="reseau-logo ${rs.cls}">${RESEAUX_SVG[rs.key]||''}</div>
+        <div style="flex:1">
+          <div class="reseau-name">${rs.label}</div>
+          <input class="reseau-input" id="rs-${rs.key}" value="${r[rs.key]||''}" placeholder="${rs.placeholder}">
+        </div>
+      </div>`
     ).join('');
-  } catch(e){ el.innerHTML = '<div class="empty">Erreur</div>'; }
+  } catch(e){ el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
 }
 async function saveReseaux(){
   const content = {};
