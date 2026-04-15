@@ -1009,62 +1009,61 @@ async function grantCredit() {
 async function viewUser(phone) {
   if (!phone) return;
 
-  // 1. NETTOYAGE TOTAL : On ne garde que le '+' et les chiffres
-  // Ça transforme "+242 06 985 5663" en "+242069855663"
-  const cleanPhone = phone.trim().replace(/[^\d+]/g, '');
+  // Nettoyage pour correspondre au format de ta base Neon
+  const cleanPhone = phone.trim().replace(/\s+/g, '');
   
   showModal();
   const container = document.getElementById('modal-body');
-  container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du profil...</div>';
+  container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du dossier complet...</div>';
 
   try {
-    // 2. APPEL API : On utilise le numéro propre
-    const res = await api('/admin/user/' + encodeURIComponent(cleanPhone));
+    // CORRECTION ICI : Utilisation de la route exacte de ton fichier backend
+    const res = await api(`/admin/users/${encodeURIComponent(cleanPhone)}/profile`);
     
-    // On vérifie la structure de la réponse (ton serveur utilise res.data)
-    const u = res.data || res.user || res;
+    // Ton backend renvoie les infos dans res.data.user et res.data.pro_profile
+    const data = res.data;
+    const u = data.user;
+    const pro = data.pro_profile;
 
-    if (!u || (!u.phone && !u.full_name)) {
-      throw new Error("Utilisateur introuvable");
-    }
+    if (!u) throw new Error("Utilisateur introuvable");
 
     container.innerHTML = `
-      <div class="modal-title" style="margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:10px;">
-        👁 Profil : ${u.phone}
+      <div class="modal-title" style="margin-bottom:15px; border-bottom:2px solid var(--bleu); padding-bottom:10px;">
+        📇 Fiche de ${u.full_name || u.phone}
       </div>
       
-      <div class="modal-info-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-        <div class="modal-info-item">
-          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Nom / Enseigne</label>
-          <span style="font-weight:600;">${u.full_name || u.business_name || u.name || '—'}</span>
-        </div>
-        <div class="modal-info-item">
-          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Rôle</label>
-          <span class="badge-role" style="background:var(--bleu-clair); padding:2px 8px; border-radius:4px; font-size:12px;">${u.role || 'N/A'}</span>
-        </div>
-        <div class="modal-info-item">
-          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Statut</label>
-          <span>${badge(u.status || 'pending')}</span>
-        </div>
-        <div class="modal-info-item">
-          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Solde</label>
-          <span style="color:var(--violet); font-weight:700;">${u.balance || 0} 💎</span>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; background:#f9f9f9; padding:15px; border-radius:8px;">
+        <div><label style="font-size:10px; color:gray; text-transform:uppercase;">Téléphone</label><br><b>${u.phone}</b></div>
+        <div><label style="font-size:10px; color:gray; text-transform:uppercase;">Rôle</label><br><span class="badge-role">${u.role}</span></div>
+        <div><label style="font-size:10px; color:gray; text-transform:uppercase;">Statut</label><br>${badge(u.status || (u.is_active ? 'verified' : 'pending'))}</div>
+        <div><label style="font-size:10px; color:gray; text-transform:uppercase;">Crédits</label><br><b style="color:var(--violet)">${u.credits_balance || 0} 💎</b></div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h4 style="font-size:12px; margin-bottom:10px; color:var(--bleu);">Dernières Activités</h4>
+        <div style="max-height:150px; overflow-y:auto; font-size:11px; border:1px solid #eee; border-radius:5px;">
+           <table style="width:100%; border-collapse:collapse;">
+             <tr style="background:#eee;"><th style="padding:5px; text-align:left;">Type</th><th style="padding:5px; text-align:left;">Date</th></tr>
+             ${data.appointments.length ? `<tr><td style="padding:5px;">📅 ${data.appointments.length} RDV</td><td style="padding:5px;">Récent</td></tr>` : ''}
+             ${data.prescriptions.length ? `<tr><td style="padding:5px;">💊 ${data.prescriptions.length} Ordonnances</td><td style="padding:5px;">Récent</td></tr>` : ''}
+             ${data.payments.length ? `<tr><td style="padding:5px;">💰 ${data.payments.length} Paiements</td><td style="padding:5px;">Récent</td></tr>` : ''}
+           </table>
         </div>
       </div>
 
-      <div class="modal-actions" style="margin-top:30px; display:flex; justify-content:flex-end;">
-        <button class="btn-secondary" onclick="closeModal()" style="padding:8px 20px; cursor:pointer; border-radius:6px; border:1px solid #ccc;">Fermer</button>
+      <div class="modal-actions" style="margin-top:25px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:10px; color:gray;">ID: ${u.bolamu_id || 'N/A'}</span>
+        <button class="btn-secondary" onclick="closeModal()" style="padding:8px 20px; cursor:pointer;">Fermer</button>
       </div>
     `;
   } catch (e) {
-    console.error("Erreur détaillée:", e);
+    console.error("Erreur Profil:", e);
     container.innerHTML = `
       <div style="text-align:center; padding:20px;">
-        <p style="color:var(--rouge); font-weight:bold;">Impossible de charger le profil</p>
-        <p style="font-size:12px;">Le numéro <b>${cleanPhone}</b> n'existe pas ou l'URL est incorrecte.</p>
-        <button onclick="closeModal()" style="margin-top:15px;">Retour</button>
-      </div>
-    `;
+        <p style="color:var(--rouge);">Impossible de charger la fiche.</p>
+        <p style="font-size:11px;">Vérifiez que le numéro <b>${cleanPhone}</b> existe bien.</p>
+        <button onclick="closeModal()" style="margin-top:10px;">Retour</button>
+      </div>`;
   }
 }
 /* ══════════════════════════════════════════════
