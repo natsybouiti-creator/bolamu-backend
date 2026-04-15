@@ -1008,36 +1008,47 @@ async function grantCredit() {
 
 async function viewUser(phone) {
   if (!phone) return;
-  const pureDigits = phone.replace(/\D/g, '');
+  
+  // On nettoie tout : espaces, parenthèses, etc.
+  const clean = phone.trim().replace(/[\s\(\)\-]/g, '');
+  
   showModal();
   const container = document.getElementById('modal-body');
-  container.innerHTML = '<div style="padding:40px; text-align:center;">⌛ Lecture Neon DB...</div>';
-
-  // ON TENTE LA ROUTE LA PLUS LOGIQUE SELON TES LOGS
-  const path = `/users/${pureDigits}/profile`;
-  console.log("🚀 Tentative sur : " + path);
+  container.innerHTML = '<div style="padding:40px; text-align:center;">🔍 Recherche du dossier...</div>';
 
   try {
-    const res = await api(path);
+    // On encode le numéro (très important pour le signe +)
+    const encodedPhone = encodeURIComponent(clean);
+    const res = await api(`/users/${encodedPhone}/profile`);
+    
     const data = res.data || res;
     const u = data.user || data;
 
-    if (!u || (!u.phone && !u.full_name)) {
-        throw new Error("Données incomplètes");
-    }
+    if (!u || !u.phone) throw new Error("Incomplet");
 
     container.innerHTML = `
       <div style="padding:15px; font-family:sans-serif;">
-        <h2 style="color:#0A2463; margin-bottom:5px;">${u.full_name || 'Patient'}</h2>
-        <p style="color:gray; font-size:12px;">Numéro: ${u.phone}</p>
-        <div style="background:#F4F8FF; padding:15px; border-radius:10px; margin:15px 0;">
-           <b>Solde : ${u.credits_balance || 0} 💎</b>
+        <div style="border-bottom:2px solid #F4F8FF; padding-bottom:10px; margin-bottom:15px;">
+          <h2 style="margin:0; color:#0A2463;">${u.full_name || 'Patient'}</h2>
+          <small style="color:#5A6E8C;">${u.phone}</small>
         </div>
-        <button onclick="closeModal()" style="width:100%; padding:10px; background:#0A2463; color:white; border:none; border-radius:5px; cursor:pointer;">Fermer</button>
+        <div style="background:#F4F8FF; padding:15px; border-radius:10px; margin-bottom:15px;">
+          <small>SOLDE</small><br><b style="font-size:18px; color:#2E86FF;">${u.credits_balance || 0} 💎</b>
+        </div>
+        <div style="font-size:13px;">
+          <p>📅 RDV : <b>${data.appointments?.length || 0}</b></p>
+          <p>💊 Ordonnances : <b>${data.prescriptions?.length || 0}</b></p>
+        </div>
+        <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:12px; background:#0A2463; color:white; border:none; border-radius:8px; cursor:pointer;">Fermer</button>
       </div>`;
+
   } catch (e) {
-    console.error("❌ Erreur API :", e);
-    container.innerHTML = `<div style="padding:30px; text-align:center;"><b style="color:red;">👤 Introuvable</b><br><small>Le serveur n'a pas renvoyé de profil pour ${pureDigits}</small></div>`;
+    container.innerHTML = `
+      <div style="text-align:center; padding:30px;">
+        <b style="color:#FF4D4D;">👤 Dossier Introuvable</b><br>
+        <p style="font-size:11px; color:gray; margin-top:10px;">Le serveur ne trouve pas : ${clean}</p>
+        <button onclick="closeModal()" style="margin-top:10px;">Retour</button>
+      </div>`;
   }
 }
 /* ══════════════════════════════════════════════
