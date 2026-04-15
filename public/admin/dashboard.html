@@ -1008,8 +1008,8 @@ async function grantCredit() {
 
 async function viewUser(phone) {
   if (!phone) return;
-
-  // Nettoyage : on garde le + et les chiffres
+  
+  // 1. Nettoyage du numéro
   const cleanPhone = phone.trim().replace(/\s+/g, '');
   
   showModal();
@@ -1017,45 +1017,39 @@ async function viewUser(phone) {
   container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du dossier...</div>';
 
   try {
-console.log("URL envoyée :", `/admin/users/${encodeURIComponent(cleanPhone)}/profile`);
-    const res = await api(`/users/${cleanPhone.replace('+', '')}/profile`);    
-    // Ton backend renvoie les infos dans res.data [cite: 164]
-    const data = res.data;
+    // 2. L'URL EXACTE (On enlève /admin car ton wrapper api() le met sûrement déjà)
+    // On met bien 'users' avec un S et on finit par '/profile'
+    const res = await api('/users/' + encodeURIComponent(cleanPhone) + '/profile');
+    
+    const data = res.data || res;
     const u = data.user;
 
-    if (!u) throw new Error("Utilisateur introuvable");
+    if (!u) throw new Error("Introuvable");
 
     container.innerHTML = `
-      <div class="modal-title" style="margin-bottom:15px; border-bottom:2px solid #6200ee; padding-bottom:10px;">
-        📇 Profil complet de : ${u.full_name || u.phone}
+      <div class="modal-title" style="margin-bottom:15px; border-bottom:2px solid var(--bleu); padding-bottom:10px;">
+        👁 ${u.full_name || u.phone}
       </div>
-      
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#f5f5f5; padding:15px; border-radius:8px;">
-        <div><label style="font-size:10px; color:gray;">TEL</label><br><b>${u.phone}</b></div>
-        <div><label style="font-size:10px; color:gray;">RÔLE</label><br><b>${u.role}</b></div>
-        <div><label style="font-size:10px; color:gray;">SOLDE</label><br><b style="color:#6200ee;">${u.credits_balance || 0} 💎</b></div>
-        <div><label style="font-size:10px; color:gray;">STATUT</label><br>${u.is_active ? '✅ Actif' : '🔒 Suspendu'}</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#f9f9f9; padding:15px; border-radius:8px;">
+        <div><label style="color:gray; font-size:10px;">TEL</label><br><b>${u.phone}</b></div>
+        <div><label style="color:gray; font-size:10px;">RÔLE</label><br><b>${u.role}</b></div>
+        <div><label style="color:gray; font-size:10px;">SOLDE</label><br><b style="color:var(--violet);">${u.credits_balance || 0} 💎</b></div>
+        <div><label style="color:gray; font-size:10px;">STATUT</label><br>${u.is_active ? '✅ Actif' : '⏳ En attente'}</div>
       </div>
-
-      <div style="margin-top:20px;">
-        <h4 style="font-size:12px; color:#6200ee;">ACTIVITÉ RÉCENTE</h4>
-        <ul style="font-size:11px; padding-left:20px;">
-          <li>📅 ${data.appointments?.length || 0} Rendez-vous</li>
-          <li>💊 ${data.prescriptions?.length || 0} Ordonnances</li>
-          <li>💰 ${data.payments?.length || 0} Paiements</li>
-        </ul>
+      <div style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;">
+        <h4 style="font-size:12px; color:var(--bleu);">HISTORIQUE</h4>
+        <p style="font-size:11px;">📅 ${data.appointments?.length || 0} RDV | 💊 ${data.prescriptions?.length || 0} Ordonnances</p>
       </div>
-
       <div class="modal-actions" style="margin-top:20px; text-align:right;">
         <button class="btn-secondary" onclick="closeModal()">Fermer</button>
-      </div>
-    `;
+      </div>`;
+
   } catch (e) {
-    console.error("Détail Erreur:", e);
+    console.error("Erreur 404 sur :", e);
     container.innerHTML = `
       <div style="text-align:center; padding:20px;">
-        <p style="color:red; font-weight:bold;">Erreur 404 : Route non trouvée</p>
-        <p style="font-size:11px; color:gray;">Le backend attend '/admin/users/:phone/profile'</p>
+        <p style="color:red; font-weight:bold;">Dossier Introuvable (404)</p>
+        <p style="font-size:10px; color:gray;">Tentative : /users/${cleanPhone}/profile</p>
         <button onclick="closeModal()" style="margin-top:10px;">Fermer</button>
       </div>`;
   }
