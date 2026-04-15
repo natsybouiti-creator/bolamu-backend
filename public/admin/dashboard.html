@@ -1017,9 +1017,8 @@ async function viewUser(phone) {
   container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du dossier...</div>';
 
   try {
-    // CORRECTION ICI : Ajout du 's' à users et du '/profile' à la fin
-    const res = await api(`/users/${encodeURIComponent(cleanPhone)}/profile`);
-    
+console.log("URL envoyée :", `/admin/users/${encodeURIComponent(cleanPhone)}/profile`);
+    const res = await api(`/users/${cleanPhone.replace('+', '')}/profile`);    
     // Ton backend renvoie les infos dans res.data [cite: 164]
     const data = res.data;
     const u = data.user;
@@ -1085,15 +1084,6 @@ async function unbanUser(phone) {
   try { const d = await api('/admin/unban-user', { method:'POST', body:JSON.stringify({phone}) }); d.success ? (showToast('🟢 Debanni'), refreshCurrentPanel()) : showToast(d.message||'Erreur','error'); } catch(e){ showToast('Erreur reseau','error'); }
 }
 
-function viewUser(phone) {
-  document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 Profil</div><div class="loading" id="view-loading">Chargement...</div>`;
-  showModal();
-  api('/admin/user/' + encodeURIComponent(phone)).then(data => {
-    if (!data.user) { document.getElementById('view-loading').textContent = 'Introuvable'; return; }
-    const u = data.user;
-    document.getElementById('modal-body').innerHTML = `<div class="modal-title">👁 ${u.full_name || u.business_name || u.phone}</div><div class="modal-info-grid">${Object.entries({Telephone:u.phone,Role:u.role,Statut:u.status,Nom:u.full_name||u.business_name,Specialite:u.specialty,Age:u.age,Sexe:u.sexe,'Score fraude':u.fraud_score,'Banni':u.is_banned?'Oui':'Non',Inscrit:fmtDate(u.created_at)}).map(([k,v]) => `<div class="modal-info-item"><label>${k}</label><span>${v||'—'}</span></div>`).join('')}</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Fermer</button></div>`;
-  }).catch(() => { document.getElementById('view-loading').textContent = 'Erreur de chargement'; });
-}
 
 /* ══════════════════════════════════════════════
    ARTICLES
