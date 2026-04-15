@@ -773,8 +773,7 @@ async function loadOverview() {
 
   try {
     // api() gère les retries automatiquement
-    const data = await api('/admin/dashboard');
-
+const data = await api('/admin/stats');
     // ── Accepte plusieurs formats de réponse backend ──
     // Format A : { success: true, stats: { patients: X, ... } }
     // Format B : { success: true, data: { patients: X, ... } }
