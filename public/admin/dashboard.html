@@ -1008,22 +1008,24 @@ async function grantCredit() {
 
 async function viewUser(phone) {
   if (!phone) return;
-  
-  // NETTOYAGE CRUCIAL : On enlève les espaces du numéro avant l'envoi
-  const cleanPhone = phone.trim().replace(/\s+/g, '');
+
+  // 1. NETTOYAGE TOTAL : On ne garde que le '+' et les chiffres
+  // Ça transforme "+242 06 985 5663" en "+242069855663"
+  const cleanPhone = phone.trim().replace(/[^\d+]/g, '');
   
   showModal();
   const container = document.getElementById('modal-body');
   container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du profil...</div>';
 
   try {
-    // On utilise le numéro nettoyé et encodé
+    // 2. APPEL API : On utilise le numéro propre
     const res = await api('/admin/user/' + encodeURIComponent(cleanPhone));
     
+    // On vérifie la structure de la réponse (ton serveur utilise res.data)
     const u = res.data || res.user || res;
 
     if (!u || (!u.phone && !u.full_name)) {
-      throw new Error("Utilisateur non trouvé dans la base");
+      throw new Error("Utilisateur introuvable");
     }
 
     container.innerHTML = `
@@ -1036,31 +1038,30 @@ async function viewUser(phone) {
           <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Nom / Enseigne</label>
           <span style="font-weight:600;">${u.full_name || u.business_name || u.name || '—'}</span>
         </div>
-        
         <div class="modal-info-item">
           <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Rôle</label>
-          <span class="badge-role">${u.role || 'N/A'}</span>
+          <span class="badge-role" style="background:var(--bleu-clair); padding:2px 8px; border-radius:4px; font-size:12px;">${u.role || 'N/A'}</span>
         </div>
-
         <div class="modal-info-item">
           <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Statut</label>
           <span>${badge(u.status || 'pending')}</span>
         </div>
-
         <div class="modal-info-item">
-          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Solde Fidélité</label>
+          <label style="display:block; font-size:11px; color:var(--texte-doux); text-transform:uppercase;">Solde</label>
           <span style="color:var(--violet); font-weight:700;">${u.balance || 0} 💎</span>
         </div>
       </div>
 
-      <div class="modal-actions" style="margin-top:30px; display:flex; gap:10px; justify-content:flex-end;">
-        <button class="btn-secondary" onclick="closeModal()">Fermer</button>
+      <div class="modal-actions" style="margin-top:30px; display:flex; justify-content:flex-end;">
+        <button class="btn-secondary" onclick="closeModal()" style="padding:8px 20px; cursor:pointer; border-radius:6px; border:1px solid #ccc;">Fermer</button>
       </div>
     `;
   } catch (e) {
+    console.error("Erreur détaillée:", e);
     container.innerHTML = `
       <div style="text-align:center; padding:20px;">
-        <p>Impossible de trouver le profil pour <b>${cleanPhone}</b></p>
+        <p style="color:var(--rouge); font-weight:bold;">Impossible de charger le profil</p>
+        <p style="font-size:12px;">Le numéro <b>${cleanPhone}</b> n'existe pas ou l'URL est incorrecte.</p>
         <button onclick="closeModal()" style="margin-top:15px;">Retour</button>
       </div>
     `;
