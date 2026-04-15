@@ -117,15 +117,25 @@ app.use((err, req, res, next) => {
 // ============================================================
 // 8. LANCEMENT SERVEUR
 // ============================================================
+// Render utilise souvent le port 10000 par défaut, 
+// mais il faut impérativement utiliser process.env.PORT
 const PORT = process.env.PORT || 3005;
-app.listen(PORT, '0.0.0.0', async () => {
+
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Bolamu server running on port ${PORT}`);
+});
+
+// Gestion du timeout pour Render
+server.keepAliveTimeout = 120 * 1000; 
+server.headersTimeout = 125 * 1000;
+
+// Test de connexion DB après le lancement du serveur
+async function checkDB() {
     try {
-        // Test de connexion silencieux au démarrage
         await pool.query('SELECT 1');
         console.log('📡 Connecté à Neon DB');
     } catch (err) {
-        console.error('❌ Connexion Neon échouée');
-        console.error(err.message);
+        console.error('❌ Connexion Neon échouée:', err.message);
     }
-});
+}
+checkDB();
