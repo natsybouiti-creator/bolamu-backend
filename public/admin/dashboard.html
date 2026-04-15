@@ -1009,49 +1009,67 @@ async function grantCredit() {
 async function viewUser(phone) {
   if (!phone) return;
   
-  // 1. Nettoyage extrême : on ne garde QUE les chiffres
-  // On enlève les espaces ET le signe + pour éviter les bugs d'URL
-  const cleanPhone = phone.trim().replace(/\D/g, ''); 
+  // On prépare les deux formats de numéro pour être sûr
+  const phoneWithPlus = phone.trim().startsWith('+') ? phone.trim() : '+' + phone.trim();
+  const phoneSimple = phoneWithPlus.replace('+', '');
   
   showModal();
   const container = document.getElementById('modal-body');
   container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Recherche du dossier...</div>';
 
-  try {
-    // 2. On essaie de contacter le profil
-    // Note : on ajoute '242' si le numéro est court ou on laisse tel quel
-    const res = await api('/users/' + cleanPhone + '/profile');
-    
+  // Liste des chemins possibles que ton backend pourrait accepter
+  const tryPaths = [
+    `/users/${encodeURIComponent(phoneWithPlus)}/profile`,
+    `/users/${phoneSimple}/profile`,
+    `/admin/users/${phoneSimple}/profile`,
+    `/admin/users/${encodeURIComponent(phoneWithPlus)}/profile`
+  ];
+
+  let res = null;
+
+  // On teste les routes une par une
+  for (const path of tryPaths) {
+    try {
+      const response = await api(path);
+      // Si le serveur répond avec un utilisateur, on a trouvé la bonne route !
+      if (response && (response.data?.user || response.user)) {
+        res = response;
+        break; 
+      }
+    } catch (e) {
+      // Si ça échoue (404), on continue la boucle vers le chemin suivant
+      console.log("Échec sur : " + path);
+    }
+  }
+
+  if (res) {
     const data = res.data || res;
     const u = data.user;
-
-    if (!u) throw new Error("404");
-
     container.innerHTML = `
-      <div class="modal-title" style="margin-bottom:15px; border-bottom:2px solid var(--bleu); padding-bottom:10px;">
+      <div class="modal-title" style="margin-bottom:15px; border-bottom:2px solid #0A2463; padding-bottom:10px;">
         👁 Dossier : ${u.full_name || u.phone}
       </div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#f9f9f9; padding:15px; border-radius:8px;">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#f9f9f9; padding:15px; border-radius:8px; font-size:13px;">
         <div><label style="color:gray; font-size:10px;">TÉLÉPHONE</label><br><b>${u.phone}</b></div>
         <div><label style="color:gray; font-size:10px;">RÔLE</label><br><b>${u.role}</b></div>
-        <div><label style="color:gray; font-size:10px;">CRÉDITS</label><br><b style="color:var(--violet);">${u.credits_balance || 0} 💎</b></div>
-        <div><label style="color:gray; font-size:10px;">VILLE</label><br><b>${u.city || '—'}</b></div>
+        <div><label style="color:gray; font-size:10px;">SOLDE</label><br><b style="color:#2E86FF;">${u.credits_balance || 0} 💎</b></div>
+        <div><label style="color:gray; font-size:10px;">STATUT</label><br>${u.is_active ? '✅ Actif' : '⏳ En attente'}</div>
       </div>
       <div style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;">
-        <h4 style="font-size:12px;">ACTIVITÉ</h4>
-        <p style="font-size:11px;">📅 RDV : ${data.appointments?.length || 0} | 💊 Ord : ${data.prescriptions?.length || 0}</p>
+        <h4 style="font-size:12px; color:#0A2463;">RÉSUMÉ ACTIVITÉ</h4>
+        <p style="font-size:11px; color:#5A6E8C;">
+          📅 ${data.appointments?.length || 0} RDV | 💊 ${data.prescriptions?.length || 0} Ord. | 💰 ${data.payments?.length || 0} Pay.
+        </p>
       </div>
       <div class="modal-actions" style="margin-top:20px; text-align:right;">
-        <button class="btn-secondary" onclick="closeModal()">Fermer</button>
+        <button class="btn-secondary" onclick="closeModal()" style="padding:8px 20px; cursor:pointer;">Fermer</button>
       </div>`;
-
-  } catch (e) {
-    // 3. Si ça échoue encore, on affiche l'URL pour debugger
+  } else {
     container.innerHTML = `
-      <div style="text-align:center; padding:20px;">
-        <p style="color:red; font-weight:bold;">Dossier Introuvable (404)</p>
-        <p style="font-size:10px; color:gray;">Tentative sans caractères spéciaux :<br><b>/users/${cleanPhone}/profile</b></p>
-        <button onclick="closeModal()" style="margin-top:10px;">Fermer</button>
+      <div style="text-align:center; padding:30px;">
+        <p style="color:#ff4d4d; font-weight:bold;">Utilisateur introuvable (404)</p>
+        <p style="font-size:11px; color:gray;">Le serveur Render ne répond à aucune des routes de profil.</p>
+        <button onclick="closeModal()" style="margin-top:15px; border:none; background:#eee; padding:5px 15px; border-radius:4px; cursor:pointer;">Fermer</button>
       </div>`;
   }
 }
