@@ -1009,60 +1009,77 @@ async function grantCredit() {
 async function viewUser(phone) {
   if (!phone) return;
 
-  // Nettoyage pour correspondre au format de ta base Neon
+  // Nettoyage pour éviter les 404 (on enlève les espaces)
   const cleanPhone = phone.trim().replace(/\s+/g, '');
   
   showModal();
   const container = document.getElementById('modal-body');
-  container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Chargement du dossier complet...</div>';
+  container.innerHTML = '<div style="padding:20px; text-align:center;">⌛ Extraction du dossier complet...</div>';
 
   try {
-    // CORRECTION ICI : Utilisation de la route exacte de ton fichier backend
+    // On appelle la route complète validée dans ton backend
     const res = await api(`/admin/users/${encodeURIComponent(cleanPhone)}/profile`);
-    
-    // Ton backend renvoie les infos dans res.data.user et res.data.pro_profile
-    const data = res.data;
+    const data = res.data; 
     const u = data.user;
-    const pro = data.pro_profile;
 
     if (!u) throw new Error("Utilisateur introuvable");
 
+    // Construction de l'affichage complet
     container.innerHTML = `
-      <div class="modal-title" style="margin-bottom:15px; border-bottom:2px solid var(--bleu); padding-bottom:10px;">
-        📇 Fiche de ${u.full_name || u.phone}
+      <div class="modal-header-profile" style="border-bottom:2px solid var(--bleu); padding-bottom:15px; margin-bottom:20px;">
+        <h2 style="margin:0; color:var(--sombre);">📇 ${u.full_name || u.business_name || u.phone}</h2>
+        <span class="badge" style="background:var(--bleu-clair); color:var(--bleu);">${u.role.toUpperCase()}</span>
       </div>
       
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; background:#f9f9f9; padding:15px; border-radius:8px;">
-        <div><label style="font-size:10px; color:gray; text-transform:uppercase;">Téléphone</label><br><b>${u.phone}</b></div>
-        <div><label style="font-size:10px; color:gray; text-transform:uppercase;">Rôle</label><br><span class="badge-role">${u.role}</span></div>
-        <div><label style="font-size:10px; color:gray; text-transform:uppercase;">Statut</label><br>${badge(u.status || (u.is_active ? 'verified' : 'pending'))}</div>
-        <div><label style="font-size:10px; color:gray; text-transform:uppercase;">Crédits</label><br><b style="color:var(--violet)">${u.credits_balance || 0} 💎</b></div>
-      </div>
+      <div class="profile-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+        <div class="info-section">
+          <h4 style="font-size:12px; color:gray; text-transform:uppercase; margin-bottom:10px;">Informations Système</h4>
+          <p><b>Tel:</b> ${u.phone}</p>
+          <p><b>ID Bolamu:</b> ${u.bolamu_id || 'Non généré'}</p>
+          <p><b>Statut:</b> ${badge(u.status || (u.is_active ? 'verified' : 'pending'))}</p>
+          <p><b>Solde:</b> <span style="color:var(--violet); font-weight:bold;">${u.credits_balance || 0} 💎</span></p>
+        </div>
 
-      <div style="margin-top:20px;">
-        <h4 style="font-size:12px; margin-bottom:10px; color:var(--bleu);">Dernières Activités</h4>
-        <div style="max-height:150px; overflow-y:auto; font-size:11px; border:1px solid #eee; border-radius:5px;">
-           <table style="width:100%; border-collapse:collapse;">
-             <tr style="background:#eee;"><th style="padding:5px; text-align:left;">Type</th><th style="padding:5px; text-align:left;">Date</th></tr>
-             ${data.appointments.length ? `<tr><td style="padding:5px;">📅 ${data.appointments.length} RDV</td><td style="padding:5px;">Récent</td></tr>` : ''}
-             ${data.prescriptions.length ? `<tr><td style="padding:5px;">💊 ${data.prescriptions.length} Ordonnances</td><td style="padding:5px;">Récent</td></tr>` : ''}
-             ${data.payments.length ? `<tr><td style="padding:5px;">💰 ${data.payments.length} Paiements</td><td style="padding:5px;">Récent</td></tr>` : ''}
-           </table>
+        <div class="info-section">
+          <h4 style="font-size:12px; color:gray; text-transform:uppercase; margin-bottom:10px;">Détails Profil</h4>
+          <p><b>Sexe:</b> ${u.gender || '—'}</p>
+          <p><b>Ville:</b> ${u.city || '—'}</p>
+          <p><b>Abonnement:</b> ${u.statut_abonnement || 'Gratuit'}</p>
+          <p><b>Inscrit le:</b> ${fmtDate(u.created_at)}</p>
         </div>
       </div>
 
-      <div class="modal-actions" style="margin-top:25px; display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:10px; color:gray;">ID: ${u.bolamu_id || 'N/A'}</span>
-        <button class="btn-secondary" onclick="closeModal()" style="padding:8px 20px; cursor:pointer;">Fermer</button>
+      <div class="history-section" style="margin-top:25px; padding-top:15px; border-top:1px solid #eee;">
+        <h4 style="font-size:12px; color:var(--bleu); text-transform:uppercase; margin-bottom:10px;">Résumé d'activité</h4>
+        <div style="display:flex; gap:10px;">
+           <div style="flex:1; background:#f0f7ff; padding:10px; border-radius:8px; text-align:center;">
+              <div style="font-size:18px; font-weight:bold;">${data.appointments?.length || 0}</div>
+              <div style="font-size:10px;">RDV</div>
+           </div>
+           <div style="flex:1; background:#f0fff4; padding:10px; border-radius:8px; text-align:center;">
+              <div style="font-size:18px; font-weight:bold;">${data.prescriptions?.length || 0}</div>
+              <div style="font-size:10px;">Ordonnances</div>
+           </div>
+           <div style="flex:1; background:#fff9f0; padding:10px; border-radius:8px; text-align:center;">
+              <div style="font-size:18px; font-weight:bold;">${data.payments?.length || 0}</div>
+              <div style="font-size:10px;">Paiements</div>
+           </div>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:30px; display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn-secondary" onclick="closeModal()" style="padding:10px 20px;">Fermer</button>
+        ${u.role !== 'admin' ? `<button class="btn-danger" style="background:#ff4757; color:white; border:none; padding:10px 15px; border-radius:6px;" onclick="banUser('${u.phone}')">Bannir</button>` : ''}
       </div>
     `;
   } catch (e) {
     console.error("Erreur Profil:", e);
     container.innerHTML = `
-      <div style="text-align:center; padding:20px;">
-        <p style="color:var(--rouge);">Impossible de charger la fiche.</p>
-        <p style="font-size:11px;">Vérifiez que le numéro <b>${cleanPhone}</b> existe bien.</p>
-        <button onclick="closeModal()" style="margin-top:10px;">Retour</button>
+      <div style="text-align:center; padding:30px;">
+        <div style="font-size:40px;">📂</div>
+        <p style="margin-top:10px; font-weight:bold;">Dossier introuvable ou erreur serveur</p>
+        <p style="font-size:12px; color:gray;">Le serveur a répondu une erreur 404 pour ${cleanPhone}</p>
+        <button onclick="closeModal()" style="margin-top:20px;">Fermer</button>
       </div>`;
   }
 }
