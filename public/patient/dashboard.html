@@ -403,6 +403,7 @@
       <div class="qr-card">
         <div id="qrcode"></div>
         <p>QR code à scanner chez un partenaire Bolamu</p>
+        <span id="qr-countdown" style="font-size:11px;color:var(--vert);font-weight:600;"></span>
       </div>
     </div>
     <div class="stat-cards">
@@ -619,9 +620,46 @@ function handleRdv(doctorId, doctorName) {
     openPayment('essentiel');
   }
 }
-function initQR(){
-  document.getElementById('qrcode').innerHTML='';
-  new QRCode(document.getElementById('qrcode'),{text:memberCode,width:130,height:130,colorDark:'#0A2463',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+let qrRefreshTimer=null;
+
+async function initQR(){
+  const container=document.getElementById('qrcode');
+  container.innerHTML='<div style="width:130px;height:130px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--texte-doux);text-align:center;">Génération…</div>';
+  
+  try{
+    const token=localStorage.getItem('bolamu_token');
+    const res=await fetch(`${API}/qr/generate`,{
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const data=await res.json();
+
+    if(!data.success){
+      container.innerHTML='<div style="width:130px;height:130px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--rouge);text-align:center;">Abonnement requis</div>';
+      return;
+    }
+
+    container.innerHTML='';
+    new QRCode(container,{
+      text: data.data.token,
+      width:130,height:130,
+      colorDark:'#0A2463',colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.M
+    });
+
+    // Compte à rebours + auto-refresh
+    const ttl=data.data.ttl_seconds||60;
+    const expiresAt=new Date(data.data.expires_at).getTime();
+    if(qrRefreshTimer)clearInterval(qrRefreshTimer);
+    qrRefreshTimer=setInterval(()=>{
+      const remaining=Math.ceil((expiresAt-Date.now())/1000);
+      const label=document.getElementById('qr-countdown');
+      if(label)label.textContent=`Expire dans ${remaining}s`;
+      if(remaining<=0){clearInterval(qrRefreshTimer);initQR();}
+    },1000);
+
+  }catch(e){
+    container.innerHTML='<div style="width:130px;height:130px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--rouge);text-align:center;">Erreur réseau</div>';
+  }
 }
 
 /* ─ TABS ─ */
