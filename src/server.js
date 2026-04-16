@@ -53,7 +53,7 @@ const adminRoutes        = require('./routes/admin.routes');
 const creditsRoutes      = require('./routes/credits.routes');
 const momoRoutes         = require('./routes/momo.routes');
 const telemedicineRoutes = require('./routes/telemedicine.routes');
-
+const qrRoutes = require('./routes/qr.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -70,7 +70,7 @@ app.use('/api/v1/admin',         adminRoutes);
 app.use('/api/v1/articles',      require('./routes/articles.routes'));
 app.use('/api/v1/credits',       creditsRoutes);
 app.use('/api/v1/telemedicine',  telemedicineRoutes);
-
+app.use('/api/v1/qr', qrRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
