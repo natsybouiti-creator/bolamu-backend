@@ -1,5 +1,5 @@
 // ============================================================
-// BOLAMU — Contrôleur Patients
+// BOLAMU — Contrôleur Patients (Complet)
 // ============================================================
 const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
@@ -39,7 +39,7 @@ async function registerPatient(req, res) {
             ]
         );
 
-        // Audit log avec les bonnes colonnes
+        // Audit log
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('patient.registered', $1, 'users', $2, $3)`,
