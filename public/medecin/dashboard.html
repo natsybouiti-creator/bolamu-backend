@@ -336,8 +336,8 @@
 
 <script>
 const API='https://bolamu-backend.onrender.com/api/v1';
-const phone=localStorage.getItem('bolamu_phone');
-const token=localStorage.getItem('bolamu_token');
+const phone=localStorage.getItem('bolamu_medecin_phone');
+const token=localStorage.getItem('bolamu_medecin_token');
 if(!token||!phone){window.location.href='/login.html';}
 document.getElementById('topbar-phone').textContent=phone;
 
@@ -601,7 +601,7 @@ function closeJitsiAndValidate(){
 }
 
 function formatDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});}
-function logout(){localStorage.removeItem('bolamu_token');localStorage.removeItem('bolamu_phone');localStorage.removeItem('bolamu_role');window.location.href='/login.html';}
+function logout(){localStorage.removeItem('bolamu_medecin_token');localStorage.removeItem('bolamu_medecin_phone');localStorage.removeItem('bolamu_role');window.location.href='/login.html';}
 
 loadProfil();loadRdv();
 </script>

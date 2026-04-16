@@ -600,7 +600,7 @@
 
 <script>
 const API='https://bolamu-backend.onrender.com/api/v1';
-const phone=localStorage.getItem('bolamu_phone')||'+242060000001';
+const phone=localStorage.getItem('bolamu_patient_phone')||'+242060000001';
 let selectedDoctorId=null,selectedDoctorName='',selectedTime=null,selectedDate=null;
 const today=new Date().toISOString().split('T')[0];
 let hasActiveSubscription=false;
@@ -627,7 +627,7 @@ async function initQR(){
   container.innerHTML='<div style="width:130px;height:130px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--texte-doux);text-align:center;">Génération…</div>';
   
   try{
-    const token=localStorage.getItem('bolamu_token');
+    const token=localStorage.getItem('bolamu_patient_token');
     const res=await fetch(`${API}/qr/generate`,{
       headers:{'Authorization':`Bearer ${token}`}
     });
@@ -733,7 +733,7 @@ function renderPlanSelect(){
 }
 function selectPlan(plan){currentPlan=plan;renderPlanSelect();}
 async function initiatePayment(){
-  const token=localStorage.getItem('bolamu_token');
+  const token=localStorage.getItem('bolamu_patient_token');
   const p=PLANS[currentPlan];
   document.getElementById('payment-body').innerHTML=`<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:16px;">⏳</div><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">Envoi de la demande…</div><div style="font-size:14px;color:var(--texte-doux);">Connexion à MTN Mobile Money</div></div>`;
   try{
@@ -777,7 +777,7 @@ function startPaymentCheck(){
 async function checkPaymentNow(){if(paymentCheckInterval)clearInterval(paymentCheckInterval);await checkPaymentStatus();}
 async function checkPaymentStatus(){
   if(!currentReferenceId)return;
-  const token=localStorage.getItem('bolamu_token');
+  const token=localStorage.getItem('bolamu_patient_token');
   try{
     const res=await fetch(`${API}/payments/momo/status/${currentReferenceId}`,{headers:{'Authorization':`Bearer ${token}`}});
     const data=await res.json();
@@ -818,7 +818,7 @@ document.getElementById('modal-payment').addEventListener('click',function(e){if
 const catIcons={pharmacie:'💊',sport:'🏋️',nutrition:'🥗','bien-être':'🧘',optique:'👓',dentaire:'🦷'};
 async function loadCredits(){
   try{
-    const token=localStorage.getItem('bolamu_token');
+    const token=localStorage.getItem('bolamu_patient_token');
     const res=await fetch(`${API}/credits/balance`,{headers:{'Authorization':`Bearer ${token}`}});
     const data=await res.json();
     if(!data.success)return;
@@ -875,7 +875,7 @@ function updateDiscount(rate){const amount=parseInt(document.getElementById('spe
 async function confirmSpend(partnerId,partnerName){
   const amount=parseInt(document.getElementById('spend-amount').value);
   if(!amount||amount<=0)return;
-  const token=localStorage.getItem('bolamu_token');
+  const token=localStorage.getItem('bolamu_patient_token');
   try{
     const res=await fetch(`${API}/credits/spend`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({partner_id:partnerId,amount})});
     const data=await res.json();
@@ -931,7 +931,7 @@ async function confirmerRdv(){
   const btn=document.getElementById('btn-confirm-rdv');
   btn.disabled=true;btn.textContent='Confirmation…';
   try{
-    const token=localStorage.getItem('bolamu_token');
+    const token=localStorage.getItem('bolamu_patient_token');
     const res=await fetch(`${API}/appointments/book`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({patient_phone:phone,doctor_id:selectedDoctorId,date:selectedDate,time:selectedTime})});
     const data=await res.json();
     if(data.success){
@@ -946,7 +946,7 @@ async function confirmerRdv(){
 
 async function loadRdv(){
   try{
-    const token=localStorage.getItem('bolamu_token');
+    const token=localStorage.getItem('bolamu_patient_token');
     const res=await fetch(`${API}/appointments/patient/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
     const data=await res.json();
     const rdvs=data.appointments;
@@ -969,7 +969,7 @@ async function loadRdv(){
 
 async function loadProfil(){
   try{
-    const token=localStorage.getItem('bolamu_token');
+    const token=localStorage.getItem('bolamu_patient_token');
     const res=await fetch(`${API}/patients/profil?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
     const data=await res.json();
     const d=data.data||{};
@@ -988,7 +988,7 @@ async function loadProfil(){
 
 async function loadSubscription(){
   try{
-    const token=localStorage.getItem('bolamu_token');
+    const token=localStorage.getItem('bolamu_patient_token');
     const res=await fetch(`${API}/patients/subscription?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
     if(!res.ok)throw new Error();
     const{data:sub}=await res.json();
@@ -1060,7 +1060,7 @@ function renderPartners(){
 
 function showAlert(msg,type){document.getElementById('alert-box').innerHTML=`<div class="alert alert-${type}">⚠️ ${msg}</div>`;}
 
-function logout(){localStorage.removeItem('bolamu_token');localStorage.removeItem('bolamu_phone');window.location.href='/';}
+function logout(){localStorage.removeItem('bolamu_patient_token');localStorage.removeItem('bolamu_patient_phone');window.location.href='/';}
 function handleRdv(doctorId, doctorName) {
   if (hasActiveSubscription) prendreRdv(doctorId, doctorName);
   else openPayment('essentiel');

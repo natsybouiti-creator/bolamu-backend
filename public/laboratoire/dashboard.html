@@ -187,8 +187,8 @@
 </div>
 <script>
 const API = 'https://bolamu-backend.onrender.com/api/v1';
-const phone = localStorage.getItem('bolamu_phone');
-const token = localStorage.getItem('bolamu_token');
+const phone = localStorage.getItem('bolamu_laboratoire_phone');
+const token = localStorage.getItem('bolamu_laboratoire_token');
 if (!token || !phone) { window.location.href = '/login.html'; }
 document.getElementById('topbar-phone').textContent = phone;
 
@@ -258,8 +258,8 @@ function showTab(name, btn) {
 }
 
 function logout() {
-  localStorage.removeItem('bolamu_token');
-  localStorage.removeItem('bolamu_phone');
+  localStorage.removeItem('bolamu_laboratoire_token');
+  localStorage.removeItem('bolamu_laboratoire_phone');
   window.location.href = '/';
 }
 

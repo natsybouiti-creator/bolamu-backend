@@ -155,9 +155,10 @@ async function verifyOtp(){
     const res=await fetch('/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:currentPhone,otp})});
     const data=await res.json();
     if(res.ok&&data.success){
-      localStorage.setItem('bolamu_token',data.token);
-      localStorage.setItem('bolamu_phone',data.phone);
-      localStorage.setItem('bolamu_role',data.role);
+const role = data.role;
+      localStorage.setItem(`bolamu_${role}_token`, data.token);
+      localStorage.setItem(`bolamu_${role}_phone`, data.phone);
+      localStorage.setItem('bolamu_role', role);
       showMsg('🎉 Connexion réussie ! Redirection…','success');
       setTimeout(()=>{window.location.href=data.redirectUrl;},1500);
     }else{showMsg(data.message||'Code incorrect.','error');}
