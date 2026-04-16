@@ -2,6 +2,13 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
 
+// Rôles reconnus comme administrateurs
+const ADMIN_ROLES = ['admin', 'content_admin'];
+
+/**
+ * Middleware d'authentification JWT de base
+ * Vérifie la présence et la validité du token Bearer
+ */
 function authMiddleware(req, res, next) {
     const authHeader = req.headers['authorization'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -19,4 +26,32 @@ function authMiddleware(req, res, next) {
     }
 }
 
-module.exports = authMiddleware;
+/**
+ * Middleware de vérification admin (admin OPS + content_admin)
+ * À utiliser sur les routes /admin/* accessibles aux deux rôles
+ */
+const requireAdmin = (req, res, next) => {
+    if (!ADMIN_ROLES.includes(req.user?.role)) {
+        return res.status(403).json({
+            success: false,
+            message: 'Accès admin requis.'
+        });
+    }
+    next();
+};
+
+/**
+ * Middleware strictement OPS admin
+ * À utiliser sur les routes sensibles : validation médecin, bannissement, attribution crédits, etc.
+ */
+const requireOpsAdmin = (req, res, next) => {
+    if (req.user?.role !== 'admin') {
+        return res.status(403).json({
+            success: false,
+            message: 'Action réservée à l\'administrateur opérationnel.'
+        });
+    }
+    next();
+};
+
+module.exports = { authMiddleware, requireAdmin, requireOpsAdmin };
