@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bolamu — Espace Pharmacie</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
-  /* ═══════════════════════════════════════════════════════════════
-   PATCH RESPONSIVE — pharmacie/dashboard.html
-   Coller ce bloc juste avant la balise </style> existante
-   ═══════════════════════════════════════════════════════════════ */
+
 
 /* ── Tabs scrollables ────────────────────────────────────────── */
 .tabs-bar {
@@ -76,6 +73,51 @@
   .tab { font-size: 11px; padding: 12px 8px; }
   .pharma-code { font-size: 15px; }
   .code-input { font-size: 16px; }
+  /* ── Tabs scrollables ── */
+.tabs-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap;}
+.tabs-bar::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;}
+
+@media(max-width:1024px){
+  .top-grid{grid-template-columns:1fr;}
+  .top-grid>div:last-child{grid-template-columns:1fr 1fr 1fr 1fr;}
+  .profil-layout{grid-template-columns:1fr;}
+  .abonnement-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:768px){
+  .topbar{padding:0 16px;height:56px;}
+  .topbar-right{gap:6px;}
+  .phone-pill{display:none;}
+  .tabs-bar{padding:0 8px;top:56px;}
+  .tab{padding:14px 12px;font-size:12px;}
+  .main{padding:124px 16px 80px;}
+  .top-grid{grid-template-columns:1fr;gap:16px;}
+  .top-grid>div:last-child{grid-template-columns:1fr 1fr;gap:12px;}
+  .stat-card{padding:18px;}
+  .stat-value{font-size:26px;}
+  .pharma-card{padding:24px;border-radius:18px;}
+  .pharma-name{font-size:18px;}
+  .pharma-code{font-size:18px;letter-spacing:2px;}
+  .scanner-card{padding:24px;border-radius:18px;}
+  .code-input-group{flex-direction:column;gap:10px;}
+  .code-input{font-size:18px;letter-spacing:2px;}
+  .btn-scan{width:100%;padding:14px;}
+  .ordonnance-grid{grid-template-columns:1fr;gap:10px;}
+  .histo-card{flex-direction:column;align-items:flex-start;gap:10px;padding:16px;}
+  .histo-right{text-align:left;}
+  .histo-code{font-size:16px;}
+  .abonnement-grid{grid-template-columns:1fr;}
+  .profil-layout{grid-template-columns:1fr;}
+  .profil-card-main{padding:24px;}
+  .profil-details{gap:12px;}
+  .detail-row{font-size:13px;}
+}
+@media(max-width:480px){
+  .top-grid>div:last-child{grid-template-columns:1fr 1fr;}
+  .tab{font-size:11px;padding:12px 8px;}
+  .pharma-code{font-size:15px;}
+  .code-input{font-size:16px;}
+}
 }<style>
     :root{--bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;--bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#ffffff;--rouge:#e74c3c;--amber:#f39c12;--border:rgba(10,36,99,0.1);--emeraude:#00A878;--emeraude-clair:#E6F7F3;--grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);--grad-pharma:linear-gradient(135deg,#00A878,#00C9A7);--grad-premium:linear-gradient(135deg,#f0a500,#ff6b35);}
     *{margin:0;padding:0;box-sizing:border-box;}

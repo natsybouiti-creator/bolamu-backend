@@ -5,64 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bolamu — Espace Laboratoire</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
-  /* ═══════════════════════════════════════════════════════════════
-   PATCH RESPONSIVE — laboratoire/dashboard.html
-   Coller ce bloc juste avant la balise </style> existante
-   ═══════════════════════════════════════════════════════════════ */
 
-/* ── Tabs scrollables ────────────────────────────────────────── */
-.tabs-bar {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  flex-wrap: nowrap;
-}
-.tabs-bar::-webkit-scrollbar { display: none; }
-.tab { flex-shrink: 0; }
-
-/* ── Tablette (≤ 1024px) ─────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .top-grid { grid-template-columns: 1fr; }
-  .profil-layout { grid-template-columns: 1fr; }
-}
-
-/* ── Mobile (≤ 768px) ────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .topbar { padding: 0 16px; height: 56px; }
-  .topbar-right { gap: 6px; }
-  .phone-pill { display: none; }
-  .tabs-bar { padding: 0 8px; top: 56px; }
-  .tab { padding: 14px 14px; font-size: 12px; }
-  .main { padding: 124px 16px 80px; }
-
-  /* Top grid */
-  .top-grid { grid-template-columns: 1fr; gap: 16px; }
-  .top-grid > div:last-child { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .stat-card { padding: 18px; }
-  .stat-value { font-size: 26px; }
-
-  /* Carte labo */
-  .labo-card { padding: 24px; border-radius: 18px; }
-  .labo-name { font-size: 18px; }
-  .labo-code { font-size: 18px; letter-spacing: 2px; }
-
-  /* Bandeau attente */
-  .bandeau-attente { padding: 14px 16px; font-size: 13px; flex-direction: column; gap: 8px; }
-
-  /* Profil */
-  .profil-layout { grid-template-columns: 1fr; }
-  .profil-card-main { padding: 24px; }
-  .profil-details { gap: 12px; }
-  .detail-row { font-size: 13px; }
-  .detail-card { padding: 18px; }
-}
-
-/* ── Petit mobile (≤ 480px) ──────────────────────────────────── */
-@media (max-width: 480px) {
-  .top-grid > div:last-child { grid-template-columns: 1fr 1fr; }
-  .tab { font-size: 11px; padding: 12px 8px; }
-  .labo-code { font-size: 15px; }
-  .stat-value { font-size: 22px; }
 }<style>
     :root{--bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;--bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#ffffff;--rouge:#e74c3c;--amber:#f39c12;--border:rgba(10,36,99,0.1);--violet:#7C3AED;--violet-clair:#EDE9FE;--violet-moyen:#5B21B6;--grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);--grad-labo:linear-gradient(135deg,#5B21B6,#7C3AED);--grad-premium:linear-gradient(135deg,#f0a500,#ff6b35);}
     *{margin:0;padding:0;box-sizing:border-box;}
@@ -126,6 +69,42 @@
     .empty-icon{font-size:48px;margin-bottom:16px;}
     .loading{text-align:center;padding:48px;color:var(--texte-doux);}
     .bandeau-attente{background:#fef9ec;border:2px solid var(--amber);border-radius:16px;padding:18px 24px;display:flex;align-items:center;gap:14px;margin-bottom:24px;font-size:14px;color:#92400e;}
+    /* ── Tabs scrollables ── */
+.tabs-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap;}
+.tabs-bar::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;}
+
+@media(max-width:1024px){
+  .top-grid{grid-template-columns:1fr;}
+  .profil-layout{grid-template-columns:1fr;}
+}
+@media(max-width:768px){
+  .topbar{padding:0 16px;height:56px;}
+  .topbar-right{gap:6px;}
+  .phone-pill{display:none;}
+  .tabs-bar{padding:0 8px;top:56px;}
+  .tab{padding:14px 14px;font-size:12px;}
+  .main{padding:124px 16px 80px;}
+  .top-grid{grid-template-columns:1fr;gap:16px;}
+  .top-grid>div:last-child{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .stat-card{padding:18px;}
+  .stat-value{font-size:26px;}
+  .labo-card{padding:24px;border-radius:18px;}
+  .labo-name{font-size:18px;}
+  .labo-code{font-size:18px;letter-spacing:2px;}
+  .bandeau-attente{padding:14px 16px;font-size:13px;flex-direction:column;gap:8px;}
+  .profil-layout{grid-template-columns:1fr;}
+  .profil-card-main{padding:24px;}
+  .profil-details{gap:12px;}
+  .detail-row{font-size:13px;}
+  .detail-card{padding:18px;}
+}
+@media(max-width:480px){
+  .top-grid>div:last-child{grid-template-columns:1fr 1fr;}
+  .tab{font-size:11px;padding:12px 8px;}
+  .labo-code{font-size:15px;}
+  .stat-value{font-size:22px;}
+}
   </style>
 </head>
 <body>
