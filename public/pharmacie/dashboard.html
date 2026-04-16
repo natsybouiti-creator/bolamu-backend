@@ -171,6 +171,7 @@
   .code-input{font-size:16px;}
 }
   </style>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 <div class="topbar">
@@ -230,11 +231,31 @@
       <div id="ordonnance-result" class="ordonnance-result" style="display:none;"></div>
     </div>
   </div>
-  <div class="panel" id="panel-qr">
+<div class="panel" id="panel-qr">
     <div class="section-header"><h2 class="section-title-dash">Scanner QR Patient Bolamu</h2></div>
     <div class="scanner-card">
       <h3>📱 Tiers payant Bolamu</h3>
-      <p>Le patient vous montre son QR Code depuis son application Bolamu. Entrez le token ci-dessous pour vérifier son abonnement et afficher la remise applicable.</p>
+      <p>Pointez la caméra vers le QR Code du patient, ou entrez le token manuellement.</p>
+
+      <!-- Bouton caméra -->
+      <button class="btn-primary" id="btn-camera" onclick="toggleCamera()" style="margin-bottom:16px;">
+        📷 Scanner avec la caméra
+      </button>
+
+      <!-- Viewfinder caméra -->
+      <div id="camera-container" style="display:none;position:relative;margin-bottom:16px;">
+        <div id="qr-reader" style="width:100%;border-radius:16px;overflow:hidden;"></div>
+        <button onclick="stopCamera()" style="margin-top:10px;width:100%;padding:10px;background:#fde8e8;border:none;border-radius:10px;color:#991b1b;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+          ✕ Fermer la caméra
+        </button>
+      </div>
+
+      <!-- Saisie manuelle -->
+      <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:12px;color:var(--texte-doux);font-weight:600;">OU SAISIE MANUELLE</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
       <div class="code-input-group">
         <input class="code-input" type="text" id="qr-token-input" placeholder="Collez le token QR ici" style="font-size:13px;letter-spacing:1px;font-family:'Plus Jakarta Sans',sans-serif;">
         <button class="btn-scan" onclick="verifierQR()">🔍 Vérifier</button>
@@ -315,6 +336,42 @@ function generateCode(p) {
   let code = '';
   for (let i=0;i<8;i+=2){ const n=parseInt(digits.slice(i,i+2)); code+=chars[n%chars.length]; }
   return 'PHM-'+code.slice(0,4);
+}
+let html5QrCode = null;
+
+function toggleCamera() {
+  const container = document.getElementById('camera-container');
+  if (container.style.display === 'none') {
+    container.style.display = 'block';
+    document.getElementById('btn-camera').textContent = '⏳ Démarrage caméra…';
+    html5QrCode = new Html5Qrcode("qr-reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        stopCamera();
+        document.getElementById('qr-token-input').value = decodedText;
+        verifierQR();
+      },
+      () => {}
+    ).then(() => {
+      document.getElementById('btn-camera').textContent = '📷 Scanner avec la caméra';
+    }).catch(() => {
+      stopCamera();
+      alert('Impossible d\'accéder à la caméra. Vérifiez les permissions.');
+    });
+  } else {
+    stopCamera();
+  }
+}
+
+function stopCamera() {
+  if (html5QrCode) {
+    html5QrCode.stop().catch(() => {});
+    html5QrCode = null;
+  }
+  document.getElementById('camera-container').style.display = 'none';
+  document.getElementById('btn-camera').textContent = '📷 Scanner avec la caméra';
 }
 async function verifierQR() {
   const token_qr = document.getElementById('qr-token-input').value.trim();
