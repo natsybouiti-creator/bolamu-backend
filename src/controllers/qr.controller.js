@@ -30,7 +30,7 @@ const generateQRToken = async (req, res) => {
     // Invalider les anciens tokens non utilisés de cet abonné
     await pool.query(
       `UPDATE qr_tokens SET used_at = NOW() 
-       WHERE user_phone = $1 AND used_at IS NULL AND expires_at > NOW()`,
+       WHERE patient_phone = $1 AND used_at IS NULL AND expires_at > NOW()`,
       [phone]
     );
 
