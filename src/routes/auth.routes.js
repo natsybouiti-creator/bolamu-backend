@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const {
     requestOtp,
@@ -15,7 +16,7 @@ const {
 } = require('../controllers/auth.controller');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
-const ADMIN_ROLES = ['admin', 'content_admin']; // Autorise les deux rôles
+const ADMIN_ROLES = ['admin', 'content_admin'];
 
 // ─── OTP & LOGIN ──────────────────────────────────────────────────────────────
 router.post('/request-otp', requestOtp);
@@ -28,7 +29,7 @@ router.post('/register/doctor',      registerDoctor);
 router.post('/register/pharmacie',   registerPharmacie);
 router.post('/register/laboratoire', registerLaboratoire);
 
-// ─── LOGIN ADMIN SÉCURISÉ (CORRIGÉ) ───────────────────────────────────────────
+// ─── LOGIN ADMIN SÉCURISÉ ─────────────────────────────────────────────────────
 router.post('/admin-login', async (req, res) => {
     const { phone, password } = req.body;
 
@@ -37,7 +38,6 @@ router.post('/admin-login', async (req, res) => {
     }
 
     try {
-        // CORRECTION : On cherche l'utilisateur s'il a l'un des rôles ADMIN_ROLES
         const result = await pool.query(
             `SELECT id, phone, full_name, role, is_active, banned, admin_password 
              FROM users 
@@ -55,8 +55,18 @@ router.post('/admin-login', async (req, res) => {
             return res.status(403).json({ success: false, message: 'Compte désactivé ou banni.' });
         }
 
-        // Vérification du mot de passe
-        if (!user.admin_password || user.admin_password !== password) {
+        // Vérification bcrypt — compatible hash ET texte clair (rétrocompatible)
+        let passwordOk = false;
+        if (user.admin_password) {
+            const isHashed = user.admin_password.startsWith('$2b$') || user.admin_password.startsWith('$2a$');
+            if (isHashed) {
+                passwordOk = await bcrypt.compare(password, user.admin_password);
+            } else {
+                passwordOk = user.admin_password === password;
+            }
+        }
+
+        if (!passwordOk) {
             await pool.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) 
                  VALUES ('admin.login_failed', $1, 'users', $2, $3)`,
@@ -65,7 +75,7 @@ router.post('/admin-login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });
         }
 
-        // Génération du token avec le rôle dynamique (admin ou content_admin)
+        // Génération du token
         const token = jwt.sign(
             { id: user.id, phone: user.phone, role: user.role }, 
             JWT_SECRET, 
@@ -79,11 +89,10 @@ router.post('/admin-login', async (req, res) => {
             [phone, user.id, JSON.stringify({ role: user.role, timestamp: new Date().toISOString() })]
         ).catch(() => {});
 
-        // CORRECTION : Redirection dynamique selon le rôle
-        let redirectUrl = '/admin/dashboard.html'; // Par défaut
-        if (user.role === 'content_admin') {
-            redirectUrl = '/admin/content.html';
-        }
+        // Redirection selon le rôle
+        const redirectUrl = user.role === 'content_admin'
+            ? '/admin/content.html'
+            : '/admin/dashboard.html';
 
         return res.json({ 
             success: true, 
