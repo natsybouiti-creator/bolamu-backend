@@ -1,4 +1,4 @@
-const { pool } = require('../config/db');
+const pool = require('../config/db');
 const crypto = require('crypto');
 
 // Génère un QR Code token pour l'abonné connecté
