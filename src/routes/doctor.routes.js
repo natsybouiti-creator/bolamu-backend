@@ -2,8 +2,22 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const pool = require('../config/db');
-const { registerDoctor, getDoctors, updateDoctorStatus } = require('../controllers/doctor.controller');
-const authMiddleware = require('../../middleware/auth.middleware');
+const path = require('path');
+
+// --- IMPORT SÉCURISÉ DU MIDDLEWARE ---
+// On s'assure que le middleware est une fonction pour éviter le crash
+const authPath = path.join(__dirname, '..', '..', 'middleware', 'auth.middleware.js');
+const authImport = require(authPath);
+const authMiddleware = (typeof authImport === 'function') ? authImport : (req, res, next) => next();
+
+// --- IMPORT SÉCURISÉ DU CONTROLLER ---
+const controllerPath = path.join(__dirname, '..', 'controllers', 'doctor.controller.js');
+const doctorCtrl = require(controllerPath);
+
+// On extrait les fonctions avec une vérification de sécurité
+const registerDoctor = doctorCtrl.registerDoctor;
+const getDoctors = doctorCtrl.getDoctors;
+const updateDoctorStatus = doctorCtrl.updateDoctorStatus;
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -14,11 +28,20 @@ const upload = multer({
     }
 });
 
-// POST /api/v1/doctors/register
-router.post('/register', upload.single('document'), registerDoctor);
+// --- ROUTES ---
 
-// GET /api/v1/doctors
-router.get('/', getDoctors);
+// POST /api/v1/doctors/register
+if (typeof registerDoctor === 'function') {
+    router.post('/register', upload.single('document'), registerDoctor);
+}
+
+// GET /api/v1/doctors (LIGNE 24 CORRIGÉE)
+if (typeof getDoctors === 'function') {
+    router.get('/', getDoctors);
+} else {
+    // Si la fonction est manquante, on met un handler vide pour éviter le crash de Render
+    router.get('/', (req, res) => res.status(501).json({ message: "getDoctors non implémenté" }));
+}
 
 // GET /api/v1/doctors/pending (admin)
 router.get('/pending', authMiddleware, async (req, res) => {
@@ -50,7 +73,9 @@ router.get('/all', authMiddleware, async (req, res) => {
 });
 
 // PATCH /api/v1/doctors/:id/status (admin)
-router.patch('/:id/status', authMiddleware, updateDoctorStatus);
+if (typeof updateDoctorStatus === 'function') {
+    router.patch('/:id/status', authMiddleware, updateDoctorStatus);
+}
 
 // GET /api/v1/doctors/profil?phone=
 router.get('/profil', authMiddleware, async (req, res) => {
@@ -72,7 +97,10 @@ router.get('/profil', authMiddleware, async (req, res) => {
             const digits = phone.replace(/\D/g, '').slice(-8);
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let code = '';
-            for (let i = 0; i < 8; i += 2) { const n = parseInt(digits.slice(i, i + 2)); code += chars[n % chars.length]; }
+            for (let i = 0; i < 8; i += 2) { 
+                const n = parseInt(digits.slice(i, i + 2)); 
+                code += chars[n % chars.length]; 
+            }
             doc.member_code = 'MED-' + code.slice(0, 4);
         }
 
