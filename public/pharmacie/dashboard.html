@@ -187,6 +187,7 @@
 <div class="tabs-bar">
   <button class="tab active" onclick="showTab('accueil',this)">🏠 Tableau de bord</button>
   <button class="tab" onclick="showTab('scanner',this)">💊 Scanner ordonnance</button>
+<button class="tab" onclick="showTab('qr',this)">📱 Scanner QR Bolamu</button>
   <button class="tab" onclick="showTab('historique',this)">📋 Historique</button>
   <button class="tab" onclick="showTab('abonnement',this)">⭐ Abonnement Pro</button>
   <button class="tab" onclick="showTab('profil',this)">🏪 Mon profil</button>
@@ -227,6 +228,18 @@
         <button class="btn-scan" onclick="scanOrdonnance()">🔍 Vérifier</button>
       </div>
       <div id="ordonnance-result" class="ordonnance-result" style="display:none;"></div>
+    </div>
+  </div>
+  <div class="panel" id="panel-qr">
+    <div class="section-header"><h2 class="section-title-dash">Scanner QR Patient Bolamu</h2></div>
+    <div class="scanner-card">
+      <h3>📱 Tiers payant Bolamu</h3>
+      <p>Le patient vous montre son QR Code depuis son application Bolamu. Entrez le token ci-dessous pour vérifier son abonnement et afficher la remise applicable.</p>
+      <div class="code-input-group">
+        <input class="code-input" type="text" id="qr-token-input" placeholder="Collez le token QR ici" style="font-size:13px;letter-spacing:1px;font-family:'Plus Jakarta Sans',sans-serif;">
+        <button class="btn-scan" onclick="verifierQR()">🔍 Vérifier</button>
+      </div>
+      <div id="qr-result" style="display:none;"></div>
     </div>
   </div>
   <div class="panel" id="panel-historique">
@@ -303,7 +316,50 @@ function generateCode(p) {
   for (let i=0;i<8;i+=2){ const n=parseInt(digits.slice(i,i+2)); code+=chars[n%chars.length]; }
   return 'PHM-'+code.slice(0,4);
 }
-
+async function verifierQR() {
+  const token_qr = document.getElementById('qr-token-input').value.trim();
+  if (!token_qr) { alert('Veuillez entrer un token QR.'); return; }
+  const resultEl = document.getElementById('qr-result');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--texte-doux);">⏳ Vérification en cours...</div>';
+  try {
+    const res = await fetch(`${API}/qr/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ token: token_qr })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      resultEl.innerHTML = `<div class="ordonnance-result error" style="display:block;">
+        <div class="ordonnance-header"><div class="ordonnance-icon">❌</div>
+        <div><div class="ordonnance-title">QR invalide</div>
+        <div class="ordonnance-sub">${data.message}</div></div></div></div>`;
+      return;
+    }
+    const d = data.data;
+    const remise = d.convention.discount_rate;
+    const cap = d.consumption.monthly_cap_fcfa;
+    const consomme = d.consumption.this_month_fcfa;
+    const restant = cap - consomme;
+    resultEl.innerHTML = `<div class="ordonnance-result" style="display:block;">
+      <div class="ordonnance-header"><div class="ordonnance-icon">✅</div>
+      <div><div class="ordonnance-title">Patient vérifié — Abonnement actif</div>
+      <div class="ordonnance-sub">Abonnement valide jusqu'au ${new Date(d.patient.subscription_end).toLocaleDateString('fr-FR')}</div></div></div>
+      <div class="ordonnance-grid">
+        <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value">${d.patient.full_name || d.patient.phone}</div></div>
+        <div class="ord-field"><div class="ord-field-label">Plan</div><div class="ord-field-value" style="text-transform:capitalize;">${d.patient.plan}</div></div>
+        <div class="ord-field"><div class="ord-field-label">Remise applicable</div><div class="ord-field-value" style="color:var(--emeraude);font-size:22px;">${remise}%</div></div>
+        <div class="ord-field"><div class="ord-field-label">Plafond restant ce mois</div><div class="ord-field-value">${restant.toLocaleString()} FCFA</div></div>
+      </div>
+      <div class="instructions-box">💡 Appliquez une remise de <strong>${remise}%</strong> sur la facture du patient. Bolamu prend en charge cette remise via le tiers payant.</div>
+      <button class="btn-livrer" onclick="document.getElementById('qr-token-input').value='';document.getElementById('qr-result').style.display='none';">✅ Pris en compte — Scanner suivant</button>
+    </div>`;
+  } catch(e) {
+    resultEl.innerHTML = `<div class="ordonnance-result error" style="display:block;">
+      <div class="ordonnance-header"><div class="ordonnance-icon">⚠️</div>
+      <div><div class="ordonnance-title">Erreur de connexion</div></div></div></div>`;
+  }
+}
 async function loadProfil() {
   try {
     const res = await fetch(`${API}/pharmacies/profil?phone=${encodeURIComponent(phone)}`, {
