@@ -216,7 +216,7 @@
     @media(max-width:1024px){
       .dossier-grid,.profil-layout{grid-template-columns:1fr;}
       .hero-cards{grid-template-columns:1fr;}
-      .qr-card{display:none;}
+      .qr-card{display:flex;}
       .stat-cards{grid-template-columns:1fr 1fr;}
       .slots-grid{grid-template-columns:repeat(3,1fr);}
     }
@@ -240,7 +240,7 @@
 
       /* Grilles */
       .hero-cards{grid-template-columns:1fr;gap:16px;}
-      .qr-card{display:none;}
+      .qr-card{display:flex;}
       .stat-cards{grid-template-columns:1fr 1fr;gap:12px;}
       .stat-card{padding:18px;}
       .stat-value{font-size:26px;}
@@ -400,9 +400,9 @@
           <span class="membre-plan" id="card-plan">···</span>
         </div>
       </div>
-      <div class="qr-card">
-        <div id="qrcode"></div>
-        <p>QR code à scanner chez un partenaire Bolamu</p>
+      <div class="qr-card" style="text-align:center;padding:32px 20px;">
+        <div id="qrcode" style="display:flex;justify-content:center;"></div>
+        <p style="margin-top:12px;font-size:14px;">📱 Montrez ce QR à votre partenaire Bolamu</p>
         <span id="qr-countdown" style="font-size:11px;color:var(--vert);font-weight:600;"></span>
       </div>
     </div>
@@ -641,7 +641,7 @@ async function initQR(){
     container.innerHTML='';
     new QRCode(container,{
       text: data.data.token,
-      width:130,height:130,
+      width:200,height:200,
       colorDark:'#0A2463',colorLight:'#ffffff',
       correctLevel:QRCode.CorrectLevel.M
     });
