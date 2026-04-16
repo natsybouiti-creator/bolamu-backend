@@ -5,9 +5,7 @@ const generateQRToken = async (req, res) => {
   const { phone } = req.user;
   try {
     const subCheck = await pool.query(
-      `SELECT id FROM subscriptions 
-       WHERE patient_phone = $1 AND status = 'active' AND expires_at >= NOW()
-       LIMIT 1`,
+      `SELECT id FROM subscriptions WHERE patient_phone = $1 AND status = 'active' AND expires_at >= NOW() LIMIT 1`,
       [phone]
     );
     if (subCheck.rows.length === 0) {
@@ -18,8 +16,7 @@ const generateQRToken = async (req, res) => {
     );
     const ttlSeconds = parseInt(configRes.rows[0]?.config_value || '60');
     await pool.query(
-      `UPDATE qr_tokens SET used_at = NOW() 
-       WHERE user_phone = $1 AND used_at IS NULL AND expires_at > NOW()`,
+      `UPDATE qr_tokens SET used_at = NOW() WHERE user_phone = $1 AND used_at IS NULL AND expires_at > NOW()`,
       [phone]
     );
     const token = crypto.randomUUID();
@@ -29,8 +26,7 @@ const generateQRToken = async (req, res) => {
       [phone, token, expiresAt]
     );
     await pool.query(
-      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('QR_GENERATED', $1, 'qr_tokens', NULL, $2)`,
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_GENERATED', $1, 'qr_tokens', NULL, $2)`,
       [phone, JSON.stringify({ expires_at: expiresAt })]
     );
     return res.status(200).json({ success: true, data: { token, expires_at: expiresAt, ttl_seconds: ttlSeconds, phone } });
@@ -48,10 +44,7 @@ const verifyQRToken = async (req, res) => {
   }
   try {
     const tokenRes = await pool.query(
-      `SELECT qt.*, u.full_name, u.phone as patient_phone
-       FROM qr_tokens qt
-       JOIN users u ON u.phone = qt.user_phone
-       WHERE qt.token = $1`,
+      `SELECT qt.*, u.full_name, u.phone as patient_phone FROM qr_tokens qt JOIN users u ON u.phone = qt.user_phone WHERE qt.token = $1`,
       [token]
     );
     if (tokenRes.rows.length === 0) {
@@ -65,21 +58,14 @@ const verifyQRToken = async (req, res) => {
       return res.status(409).json({ success: false, message: 'QR Code déjà utilisé.' });
     }
     const subCheck = await pool.query(
-      `SELECT s.id, s.plan, s.expires_at,
-              pc.config_value as monthly_cap
-       FROM subscriptions s
-       LEFT JOIN platform_config pc ON pc.config_key = 'tiers_payant_monthly_cap'
-       WHERE s.patient_phone = $1 AND s.status = 'active' AND s.expires_at >= NOW()
-       LIMIT 1`,
+      `SELECT s.id, s.plan, s.expires_at, pc.config_value as monthly_cap FROM subscriptions s LEFT JOIN platform_config pc ON pc.config_key = 'tiers_payant_monthly_cap' WHERE s.patient_phone = $1 AND s.status = 'active' AND s.expires_at >= NOW() LIMIT 1`,
       [qrToken.user_phone]
     );
     if (subCheck.rows.length === 0) {
       return res.status(403).json({ success: false, message: 'Abonnement patient inactif ou expiré.' });
     }
     const convRes = await pool.query(
-      `SELECT discount_rate, monthly_cap_fcfa, partner_name
-       FROM partner_conventions
-       WHERE partner_phone = $1 AND status = 'actif'`,
+      `SELECT discount_rate, monthly_cap_fcfa, partner_name FROM partner_conventions WHERE partner_phone = $1 AND status = 'actif'`,
       [partnerPhone]
     );
     if (convRes.rows.length === 0) {
@@ -87,22 +73,14 @@ const verifyQRToken = async (req, res) => {
     }
     const convention = convRes.rows[0];
     const consumptionRes = await pool.query(
-      `SELECT COALESCE(SUM(bolamu_share_fcfa), 0) as total_consumed
-       FROM transactions_tiers_payant
-       WHERE patient_phone = $1
-         AND status IN ('validated', 'paid')
-         AND created_at >= date_trunc('month', NOW())`,
+      `SELECT COALESCE(SUM(bolamu_share_fcfa), 0) as total_consumed FROM transactions_tiers_payant WHERE patient_phone = $1 AND status IN ('validated', 'paid') AND created_at >= date_trunc('month', NOW())`,
       [qrToken.user_phone]
     );
     const totalConsumed = parseInt(consumptionRes.rows[0].total_consumed);
     const sub = subCheck.rows[0];
+    await pool.query(`UPDATE qr_tokens SET used_by = $1 WHERE token = $2`, [partnerPhone, token]);
     await pool.query(
-      `UPDATE qr_tokens SET used_by = $1 WHERE token = $2`,
-      [partnerPhone, token]
-    );
-    await pool.query(
-      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2)`,
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2)`,
       [partnerPhone, JSON.stringify({ patient_phone: qrToken.user_phone, token })]
     );
     return res.status(200).json({
@@ -121,4 +99,3 @@ const verifyQRToken = async (req, res) => {
 };
 
 module.exports = { generateQRToken, verifyQRToken };
-'@ | Set-Content src\controllers\qr.controller.js
