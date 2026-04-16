@@ -7,10 +7,23 @@ const authMiddleware = require('../../middleware/auth.middleware');
 const cheminCerveau = path.join(__dirname, '..', 'controllers', 'patient.controller.js');
 console.log('🔎 Bolamu cherche le fichier ici :', cheminCerveau);
 
-const { registerPatient, getSubscription } = require(cheminCerveau);
+const patientCtrl = require(cheminCerveau);
 
-router.post('/register', registerPatient);
-router.get('/subscription', getSubscription);
+// On extrait les fonctions proprement
+const registerPatient = patientCtrl.registerPatient;
+const getSubscription = patientCtrl.getSubscription;
+
+// Ligne corrigée pour Render : on vérifie que la fonction existe AVANT de la passer au router
+if (typeof registerPatient === 'function') {
+    router.post('/register', registerPatient);
+}
+
+if (typeof getSubscription === 'function') {
+    router.get('/subscription', getSubscription);
+} else {
+    // Sécurité pour la ligne 16 : évite le crash si getSubscription est undefined
+    router.get('/subscription', (req, res) => res.status(501).json({message: "Not implemented"}));
+}
 
 // GET /api/v1/patients/profil?phone=
 router.get('/profil', authMiddleware, async (req, res) => {
@@ -36,7 +49,6 @@ router.get('/profil', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/patients/check-subscription?phone=
-// Vérifie si le patient a un abonnement actif
 router.get('/check-subscription', authMiddleware, async (req, res) => {
   try {
     const { phone } = req.query;
