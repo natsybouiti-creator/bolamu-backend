@@ -10,7 +10,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var(--texte);min-height:100vh;display:flex;}
 
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 .sidebar{width:200px;height:100vh;background:var(--noir2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;}
 .sidebar-logo{padding:8px 10px 6px;border-bottom:1px solid var(--border);}
 .logo-row{display:flex;align-items:center;gap:7px;margin-bottom:2px;}
@@ -18,8 +18,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .logo-name .t{color:var(--vert);}
 .content-badge{background:rgba(159,122,234,0.15);border:1px solid rgba(159,122,234,0.35);color:var(--content-accent);padding:1px 6px;border-radius:50px;font-size:8px;font-weight:700;letter-spacing:1px;display:inline-block;}
 .sidebar-nav{flex:1;padding:3px 4px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--noir4) transparent;}
-.sidebar-nav::-webkit-scrollbar{width:2px;}
-.sidebar-nav::-webkit-scrollbar-thumb{background:var(--noir4);border-radius:2px;}
 .nav-section{font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--texte-doux);padding:4px 6px 1px;margin-top:2px;}
 .nav-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;cursor:pointer;transition:all 0.15s;color:var(--texte-doux);font-size:10.5px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.2;}
 .nav-item:hover{background:var(--noir3);color:var(--texte);}
@@ -32,20 +30,34 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .admin-role-txt{font-size:8px;color:var(--content-accent);}
 .logout-link{font-size:10px;color:var(--rouge);cursor:pointer;margin-left:auto;font-weight:600;}
 
-/* ── MAIN ── */
+/* MAIN */
 .main{margin-left:200px;flex:1;min-height:100vh;}
 .topbar{height:52px;background:var(--noir2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:99;}
 .topbar-title{font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:var(--texte);}
 .topbar-right{display:flex;align-items:center;gap:10px;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--vert);box-shadow:0 0 6px var(--vert);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
-.status-label{font-size:11px;color:var(--texte-doux);}
+.status-indicator{display:flex;align-items:center;gap:7px;padding:5px 12px;background:var(--noir3);border:1px solid var(--border);border-radius:20px;font-size:10px;}
+.status-dot-el{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.status-dot-el.online{background:var(--vert);box-shadow:0 0 6px var(--vert);}
+.status-dot-el.connecting{background:var(--amber);animation:blinkDot 1.5s infinite;}
+.status-dot-el.offline{background:var(--rouge);}
+@keyframes blinkDot{0%,100%{opacity:1;}50%{opacity:.3;}}
 .refresh-btn{padding:5px 12px;background:var(--noir3);border:1px solid var(--border);border-radius:7px;color:var(--texte-doux);font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
 .refresh-btn:hover{border-color:var(--content-accent);color:var(--content-accent);}
 .content-area{padding:18px 22px;}
 .panel{display:none;}.panel.active{display:block;}
 
-/* ── ARTICLES ── */
+/* BOOT BANNER */
+.boot-banner{display:none;align-items:center;gap:12px;padding:13px 18px;border-radius:12px;margin-bottom:18px;font-size:12px;}
+.boot-banner.show{display:flex;}
+.boot-banner.loading{background:rgba(46,134,255,0.07);border:1px solid rgba(46,134,255,0.2);color:#6ba4ff;}
+.boot-banner.error{background:rgba(255,71,87,0.07);border:1px solid rgba(255,71,87,0.2);color:var(--rouge);}
+.boot-banner.success{background:rgba(0,201,167,0.07);border:1px solid rgba(0,201,167,0.2);color:var(--vert);}
+.boot-spin{width:16px;height:16px;border:2px solid rgba(46,134,255,0.2);border-top-color:#2E86FF;border-radius:50%;animation:spinEl .7s linear infinite;flex-shrink:0;}
+@keyframes spinEl{to{transform:rotate(360deg);}}
+.retry-link{margin-left:auto;padding:4px 12px;background:rgba(255,71,87,0.12);color:var(--rouge);border:1px solid rgba(255,71,87,0.25);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif;transition:background .2s;}
+.retry-link:hover{background:rgba(255,71,87,0.22);}
+
+/* ARTICLES */
 .art-stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px;}
 .art-stat{background:var(--noir3);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
 .art-stat-icon{font-size:20px;}
@@ -59,7 +71,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .art-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all 0.2s;}
 .art-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
 .art-thumb{width:100%;height:120px;object-fit:cover;display:block;}
-.art-thumb-ph{width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-size:38px;}
+.art-thumb-ph{width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-size:38px;background:var(--noir3);}
 .art-body{padding:10px 12px;}
 .art-tags{display:flex;gap:3px;margin-bottom:6px;flex-wrap:wrap;}
 .art-cat{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:14px;font-size:8px;font-weight:700;}
@@ -82,19 +94,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .btn-art-del{padding:3px 8px;background:rgba(255,71,87,0.1);color:var(--rouge);border:1px solid rgba(255,71,87,0.2);border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 .btn-art-del:hover{background:var(--rouge);color:white;}
 
-/* ── VITRINE ── */
+/* CONFIG GRIDS */
 .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .config-card{background:var(--noir2);border:1px solid var(--border);border-radius:11px;padding:14px;}
 .config-section-title{font-size:9px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
 .vitrine-card{background:var(--noir2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:10px;}
 .vitrine-img-preview{display:none;width:100%;height:110px;object-fit:cover;border-radius:6px;margin-top:5px;}
-
-/* ── PLANS ── */
 .plans-edit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .plan-edit-card{background:var(--noir2);border:1px solid var(--border);border-radius:12px;padding:16px;}
 .plan-edit-title{font-size:11px;font-weight:700;color:var(--texte);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
-
-/* ── TEXTES ── */
 .textes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .texte-block{background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:14px;}
 .texte-block-title{font-size:9px;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
@@ -102,8 +110,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .texte-block-input:focus{border-color:var(--content-accent);}
 .save-block-btn{margin-top:7px;padding:5px 12px;background:rgba(159,122,234,0.12);color:var(--content-accent);border:1px solid rgba(159,122,234,0.25);border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
 .save-block-btn:hover{background:var(--content-accent);color:white;}
-
-/* ── RÉSEAUX ── */
 .reseaux-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .reseau-block{background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;}
 .reseau-logo{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
@@ -113,7 +119,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .reseau-input{flex:1;background:var(--noir3);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;}
 .reseau-input:focus{border-color:var(--content-accent);}
 
-/* ── COMMUNS ── */
+/* MODALS */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--noir2);border:1px solid var(--border);border-radius:16px;padding:22px;max-width:440px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,0.6);max-height:90vh;overflow-y:auto;}
@@ -148,26 +154,26 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 .toggle-item{display:flex;align-items:center;gap:6px;}
 .toggle-item label{font-size:9px;color:var(--texte-doux);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer;}
 .toggle-item input[type=checkbox]{width:32px;height:17px;cursor:pointer;accent-color:var(--content-accent);}
+
+/* BANNIÈRE ÉDITEUR */
+.editor-banner{background:rgba(159,122,234,0.07);border:1px solid rgba(159,122,234,0.2);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;}
+.editor-banner-icon{font-size:28px;flex-shrink:0;}
+.editor-banner-title{font-family:'Fraunces',serif;font-size:14px;font-weight:900;color:var(--texte);margin-bottom:2px;}
+.editor-banner-sub{font-size:10px;color:var(--texte-doux);line-height:1.6;}
+
+/* TOAST */
 .toast{position:fixed;bottom:16px;right:16px;background:var(--noir2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:11px;font-weight:600;display:none;z-index:9999;box-shadow:0 20px 40px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;}
 .toast.show{display:flex;align-items:center;gap:6px;}
 .toast.success{border-color:rgba(0,200,167,0.3);color:var(--vert);}
 .toast.error{border-color:rgba(255,71,87,0.3);color:var(--rouge);}
 .toast.info{border-color:rgba(159,122,234,0.3);color:var(--content-accent);}
 @keyframes slideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.loading{text-align:center;padding:28px;color:var(--texte-doux);font-size:11px;}
+.loading-state{display:flex;align-items:center;gap:12px;padding:32px 20px;color:var(--texte-doux);font-size:11px;justify-content:center;}
+.loading-spin{width:16px;height:16px;border:2px solid rgba(159,122,234,0.2);border-top-color:var(--content-accent);border-radius:50%;animation:spinEl .7s linear infinite;flex-shrink:0;}
 .empty{text-align:center;padding:32px;color:var(--texte-doux);}
 .empty-icon{font-size:28px;margin-bottom:8px;}
 
-/* ── Bannière intro éditeur ── */
-.editor-banner{background:rgba(159,122,234,0.07);border:1px solid rgba(159,122,234,0.2);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;}
-.editor-banner-icon{font-size:28px;flex-shrink:0;}
-.editor-banner-title{font-family:'Fraunces',serif;font-size:14px;font-weight:900;color:var(--texte);margin-bottom:2px;}
-.editor-banner-sub{font-size:10px;color:var(--texte-doux);line-height:1.6;}
-
-/* ── Bouton retour dashboard ── */
-.back-link{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--noir3);border:1px solid var(--border);border-radius:7px;color:var(--texte-doux);font-size:10px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-decoration:none;transition:all 0.2s;}
-.back-link:hover{border-color:var(--rouge);color:var(--rouge);}
-
+/* MOBILE */
 .mobile-sidebar-toggle{display:none;align-items:center;justify-content:center;width:30px;height:30px;background:var(--noir3);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--texte);margin-right:7px;flex-shrink:0;}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
 .sidebar-overlay.open{display:block;}
@@ -178,6 +184,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 </style>
 </head>
 <body>
+
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
@@ -212,8 +219,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
       <div class="topbar-title" id="panel-title">Articles & Blog</div>
     </div>
     <div class="topbar-right">
-      <div class="status-dot" id="server-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber);"></div>
-      <span class="status-label" id="server-label">Connexion...</span>
+      <div class="status-indicator">
+        <div class="status-dot-el connecting" id="srv-dot-ed"></div>
+        <span id="srv-lbl-ed" style="color:var(--texte-doux)">Connexion...</span>
+      </div>
       <button class="refresh-btn" onclick="refreshAll()">↻ Actualiser</button>
     </div>
   </div>
@@ -222,6 +231,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 
     <!-- ARTICLES -->
     <div class="panel active" id="panel-articles">
+
+      <!-- Boot banner — visible pendant warm-up Render -->
+      <div class="boot-banner loading show" id="ed-boot-banner">
+        <div class="boot-spin"></div>
+        <div>
+          <strong>Connexion à Bolamu en cours...</strong>
+          <div style="font-size:10px;opacity:.65;margin-top:3px;">Le serveur Render peut mettre 30–60s à démarrer. Patientez, les articles se chargeront automatiquement.</div>
+        </div>
+      </div>
+
       <div class="editor-banner">
         <div class="editor-banner-icon">📰</div>
         <div><div class="editor-banner-title">Articles & Blog Bolamu</div><div class="editor-banner-sub">Créez et gérez les articles affichés sur la page d'accueil. Les articles publiés apparaissent immédiatement aux visiteurs.</div></div>
@@ -242,11 +261,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
       <div class="art-filters" id="art-filters-bar">
         <button class="art-filter-btn active" onclick="filterArticlesAdmin('tous',this)">Tous</button>
       </div>
-      <div class="articles-grid" id="articles-grid"><div class="loading">Chargement...</div></div>
+      <div class="articles-grid" id="articles-grid">
+        <div class="loading-state" style="grid-column:1/-1">
+          <div class="loading-spin"></div>
+          <span>Chargement des articles...</span>
+        </div>
+      </div>
     </div>
 
     <!-- VITRINE -->
     <div class="panel" id="panel-vitrine">
+      <div class="boot-banner loading" id="vitrine-boot-banner">
+        <div class="boot-spin"></div>
+        <div><strong>Chargement de la vitrine...</strong></div>
+      </div>
       <div class="editor-banner">
         <div class="editor-banner-icon">🖼️</div>
         <div><div class="editor-banner-title">Vitrine & Hero</div><div class="editor-banner-sub">Photo du médecin en avant-plan + 4 cartes acteurs de la page d'accueil.</div></div>
@@ -268,19 +296,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
         </div>
         <button class="btn-confirm violet" style="max-width:160px;padding:8px;" onclick="saveVitrineBlock('hero')">💾 Enregistrer Hero</button>
       </div>
-      <div class="config-grid" id="vitrine-cards-grid"><div class="loading">Chargement...</div></div>
+      <div class="config-grid" id="vitrine-cards-grid">
+        <div class="loading-state" style="grid-column:1/-1"><div class="loading-spin"></div><span>Chargement...</span></div>
+      </div>
     </div>
 
     <!-- PLANS -->
     <div class="panel" id="panel-plans">
       <div class="editor-banner">
         <div class="editor-banner-icon">💰</div>
-        <div><div class="editor-banner-title">Offres & Tarifs</div><div class="editor-banner-sub">Modifiez les 3 formules affichées sur la page d'accueil. Un seul plan peut avoir le badge "Recommandé".</div></div>
+        <div><div class="editor-banner-title">Offres & Tarifs</div><div class="editor-banner-sub">Modifiez les 3 formules affichées sur la page d'accueil.</div></div>
       </div>
-      <div class="plans-edit-grid" id="plans-grid"><div class="loading">Chargement...</div></div>
-      <div style="margin-top:10px;background:rgba(159,122,234,0.08);border:1px solid rgba(159,122,234,0.2);border-radius:8px;padding:9px 11px;">
-        <div style="font-size:9px;font-weight:700;color:var(--content-accent);margin-bottom:2px;">💡 Conseils</div>
-        <div style="font-size:9px;color:var(--texte-doux);line-height:1.7;">• Un seul plan peut avoir le badge "Recommandé".<br>• Fonctionnalités : une par ligne dans la zone de texte.<br>• Cochez "En avant" pour mettre un plan en valeur sur le site.</div>
+      <div class="plans-edit-grid" id="plans-grid">
+        <div class="loading-state" style="grid-column:1/-1"><div class="loading-spin"></div><span>Chargement...</span></div>
       </div>
     </div>
 
@@ -288,18 +316,22 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
     <div class="panel" id="panel-textes">
       <div class="editor-banner">
         <div class="editor-banner-icon">✏️</div>
-        <div><div class="editor-banner-title">Textes du site</div><div class="editor-banner-sub">Modifiez les textes principaux de la page d'accueil (hero, stats, footer...). Chaque bloc se sauvegarde indépendamment.</div></div>
+        <div><div class="editor-banner-title">Textes du site</div><div class="editor-banner-sub">Modifiez les textes principaux de la page d'accueil. Chaque bloc se sauvegarde indépendamment.</div></div>
       </div>
-      <div id="textes-grid"><div class="loading">Chargement...</div></div>
+      <div id="textes-grid">
+        <div class="loading-state"><div class="loading-spin"></div><span>Chargement...</span></div>
+      </div>
     </div>
 
     <!-- RÉSEAUX -->
     <div class="panel" id="panel-reseaux">
       <div class="editor-banner">
         <div class="editor-banner-icon">📲</div>
-        <div><div class="editor-banner-title">Réseaux sociaux</div><div class="editor-banner-sub">Liens affichés dans le footer du site. Laissez vide pour masquer l'icône.</div></div>
+        <div><div class="editor-banner-title">Réseaux sociaux</div><div class="editor-banner-sub">Liens affichés dans le footer. Laissez vide pour masquer l'icône.</div></div>
       </div>
-      <div id="reseaux-grid" class="reseaux-grid"><div class="loading">Chargement...</div></div>
+      <div id="reseaux-grid" class="reseaux-grid">
+        <div class="loading-state" style="grid-column:1/-1"><div class="loading-spin"></div><span>Chargement...</span></div>
+      </div>
       <div style="margin-top:14px;">
         <button onclick="saveReseaux()" style="padding:10px 20px;background:var(--grad-violet);color:white;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">💾 Enregistrer tous les liens</button>
       </div>
@@ -309,15 +341,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 </div>
 
 <!-- MODALS -->
-<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal"><div id="modal-body"></div></div></div>
-<div class="modal-overlay" id="modal-article" onclick="if(event.target===this)closeArticleModal()"><div class="modal modal-lg"><div id="modal-article-body"></div></div></div>
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal"><div id="modal-body"></div></div>
+</div>
+<div class="modal-overlay" id="modal-article" onclick="if(event.target===this)closeArticleModal()">
+  <div class="modal modal-lg"><div id="modal-article-body"></div></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
-/* ══════════════════════════════════════════════
-   SVG LOGOS RÉSEAUX SOCIAUX
-══════════════════════════════════════════════ */
-const RESEAUX_SVG = {
+/* ══════════════════════════════════════════
+   SVG LOGOS
+══════════════════════════════════════════ */
+const RESEAUX_SVG={
   whatsapp:`<svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`,
   instagram:`<svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
   facebook:`<svg viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
@@ -327,141 +363,166 @@ const RESEAUX_SVG = {
   twitter:`<svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`
 };
 
-/* ══════════════════════════════════════════════
+/* ══════════════════════════════════════════
    CONFIG & AUTH
-══════════════════════════════════════════════ */
+══════════════════════════════════════════ */
 const API   = 'https://bolamu-backend.onrender.com/api/v1';
 const token = localStorage.getItem('bolamu_token');
 const phone = localStorage.getItem('bolamu_phone');
 const role  = localStorage.getItem('bolamu_role');
 
-// Autoriser admin ET content_admin
-if (!token || (role !== 'admin' && role !== 'content_admin')) {
-  localStorage.clear();
-  window.location.replace('/admin/login.html');
+if(!token||(role!=='admin'&&role!=='content_admin')){localStorage.clear();window.location.replace('/admin/login.html');}
+document.getElementById('admin-name').textContent = phone||'Éditeur';
+
+/* ══════════════════════════════════════════
+   RÉSEAU — avec retry + bannière
+══════════════════════════════════════════ */
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function fetchTO(url,opts={},ms=25000){
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);
+  return fetch(url,{...opts,signal:c.signal}).finally(()=>clearTimeout(t));
 }
 
-document.getElementById('admin-name').textContent = phone || 'Éditeur';
-
-/* ══════════════════════════════════════════════
-   HELPERS RÉSEAU
-══════════════════════════════════════════════ */
-function fetchWithTimeout(url, opts = {}, ms = 20000) {
-  const ctrl = new AbortController();
-  const tid = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(tid));
-}
-
-async function api(path, opts = {}, retries = 3, delay = 8000) {
-  const url = `${API}${path}`;
-  const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', ...(opts.headers || {}) };
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const res = await fetchWithTimeout(url, { ...opts, headers }, 20000);
-      if ((res.status === 502 || res.status === 503) && attempt < retries) { await sleep(delay); continue; }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+async function api(path,opts={},tries=4,delay=10000){
+  const url=`${API}${path}`;
+  const hdrs={'Authorization':'Bearer '+token,'Content-Type':'application/json',...(opts.headers||{})};
+  for(let i=1;i<=tries;i++){
+    try{
+      if(i>1) setBootBanner('loading',`Tentative ${i}/${tries}... Le serveur Render est en cours de démarrage (~30-60s)`);
+      const res=await fetchTO(url,{...opts,headers:hdrs},25000);
+      if((res.status===502||res.status===503)&&i<tries){await sleep(delay);continue;}
+      if(!res.ok) throw new Error('HTTP '+res.status);
       return await res.json();
-    } catch (err) {
-      if ((err.name === 'AbortError' || err instanceof TypeError) && attempt < retries) { await sleep(delay); continue; }
-      throw err;
+    }catch(e){
+      const shouldRetry=(e.name==='AbortError'||e instanceof TypeError)&&i<tries;
+      if(shouldRetry){await sleep(delay);continue;}
+      throw e;
     }
   }
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-function setServerOnline() {
-  const dot = document.getElementById('server-dot'), lbl = document.getElementById('server-label');
-  if (dot) { dot.style.background = 'var(--vert)'; dot.style.boxShadow = '0 0 6px var(--vert)'; }
-  if (lbl) lbl.textContent = 'Bolamu en ligne';
+function setBootBanner(type, msg, showRetry=false){
+  const b=document.getElementById('ed-boot-banner');if(!b)return;
+  const dot=document.getElementById('srv-dot-ed'),lbl=document.getElementById('srv-lbl-ed');
+  b.className=`boot-banner ${type} show`;
+  if(type==='loading'){
+    b.innerHTML=`<div class="boot-spin"></div><div><strong>${msg||'Connexion au serveur...'}</strong><div style="font-size:10px;opacity:.65;margin-top:3px;">Le serveur Render démarre automatiquement, veuillez patienter.</div></div>`;
+    if(dot){dot.className='status-dot-el connecting';}if(lbl)lbl.textContent='Connexion...';
+  }else if(type==='success'){
+    b.innerHTML=`<span style="font-size:16px">✓</span><strong>Serveur connecté — articles chargés !</strong>`;
+    if(dot){dot.className='status-dot-el online';}if(lbl)lbl.textContent='En ligne';
+    setTimeout(()=>{b.className='boot-banner';},2500);
+  }else if(type==='error'){
+    b.innerHTML=`<span style="font-size:16px">⚠️</span><div><strong>${msg}</strong><div style="font-size:10px;opacity:.65;margin-top:3px;">Vérifiez votre connexion ou le statut du serveur Render.</div></div><button class="retry-link" onclick="loadArticles()">↻ Réessayer</button>`;
+    if(dot){dot.className='status-dot-el offline';}if(lbl)lbl.textContent='Hors ligne';
+  }
 }
+function hideBootBanner(){const b=document.getElementById('ed-boot-banner');if(b)b.className='boot-banner';}
 
-/* ══════════════════════════════════════════════
+/* ══════════════════════════════════════════
    NAVIGATION
-══════════════════════════════════════════════ */
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('open'); }
-function closeSidebar()  { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+══════════════════════════════════════════ */
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
 
-const panelTitles = { articles:'Articles & Blog', vitrine:'Vitrine & Hero', plans:'Offres & Tarifs', textes:'Textes du site', reseaux:'Réseaux sociaux' };
+const panelTitles={articles:'Articles & Blog',vitrine:'Vitrine & Hero',plans:'Offres & Tarifs',textes:'Textes du site',reseaux:'Réseaux sociaux'};
 
-function showPanel(name, btn) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  if (btn) btn.classList.add('active');
-  document.getElementById('panel-title').textContent = panelTitles[name] || name;
+function showPanel(name,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  document.getElementById('panel-title').textContent=panelTitles[name]||name;
   loadPanel(name);
 }
-
-function loadPanel(name) {
-  const fn = { articles: loadArticles, vitrine: loadVitrine, plans: loadPlans, textes: loadTextes, reseaux: loadReseaux };
-  if (fn[name]) fn[name]();
+function loadPanel(name){
+  const fn={articles:loadArticles,vitrine:loadVitrine,plans:loadPlans,textes:loadTextes,reseaux:loadReseaux};
+  if(fn[name])fn[name]();
 }
+function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
 
-/* ══════════════════════════════════════════════
-   UTILITAIRES
-══════════════════════════════════════════════ */
-function showToast(msg, type = 'success') {
-  const t = document.getElementById('toast');
-  t.className = `toast show ${type}`;
-  t.innerHTML = (type === 'success' ? '✓ ' : type === 'error' ? '✗ ' : 'ℹ ') + msg;
-  setTimeout(() => t.className = 'toast', 3500);
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.className=`toast show ${type}`;
+  t.innerHTML=(type==='success'?'✓ ':type==='error'?'✗ ':'ℹ ')+msg;
+  setTimeout(()=>t.className='toast',3500);
 }
-function showModal()  { document.getElementById('modal').classList.add('open'); }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
-function logout()     { localStorage.clear(); window.location.replace('/admin/login.html'); }
-function refreshAll() { loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-', '')); }
+function showModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function logout(){localStorage.clear();window.location.replace('/admin/login.html');}
 
-/* ══════════════════════════════════════════════
+function spinnerHTML(label=''){return `<div class="loading-state" style="${label?'':'grid-column:1/-1'}"><div class="loading-spin"></div><span>${label||'Chargement...'}</span></div>`;}
+
+/* ══════════════════════════════════════════
    ARTICLES
-══════════════════════════════════════════════ */
-const CAT_INFO = {
-  paludisme:{label:'🦟 Paludisme',cls:'cat-paludisme'}, grossesse:{label:'🤱 Grossesse',cls:'cat-grossesse'},
-  nutrition:{label:'🥗 Nutrition',cls:'cat-nutrition'}, prevention:{label:'🛡️ Prévention',cls:'cat-prevention'},
-  sante:{label:'❤️ Santé',cls:'cat-sante'}, seniors:{label:'👴 Seniors',cls:'cat-seniors'},
-  contraception:{label:'🩺 Contraception',cls:'cat-prevention'}, hygiene:{label:'🧼 Hygiène',cls:'cat-prevention'}
+══════════════════════════════════════════ */
+const CAT_INFO={
+  paludisme:{label:'🦟 Paludisme',cls:'cat-paludisme'},grossesse:{label:'🤱 Grossesse',cls:'cat-grossesse'},
+  nutrition:{label:'🥗 Nutrition',cls:'cat-nutrition'},prevention:{label:'🛡️ Prévention',cls:'cat-prevention'},
+  sante:{label:'❤️ Santé',cls:'cat-sante'},seniors:{label:'👴 Seniors',cls:'cat-seniors'},
+  contraception:{label:'🩺 Contraception',cls:'cat-prevention'},hygiene:{label:'🧼 Hygiène',cls:'cat-prevention'}
 };
-let allArticles = [];
+let allArticles=[];
 
-async function loadArticles() {
-  const grid = document.getElementById('articles-grid');
-  grid.innerHTML = '<div class="loading">Chargement...</div>';
-  try {
-    const data = await api('/articles/admin/all');
-    allArticles = data.articles || [];
-    document.getElementById('art-stat-total').textContent = allArticles.length;
-    document.getElementById('art-stat-pub').textContent   = allArticles.filter(a => a.is_published).length;
-    document.getElementById('art-stat-draft').textContent = allArticles.filter(a => !a.is_published).length;
-    document.getElementById('art-stat-une').textContent   = allArticles.filter(a => a.is_featured).length;
-    const cats = [...new Set(allArticles.map(a => a.category).filter(Boolean))];
-    const catEmojis = {paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️',sante:'❤️',seniors:'👴',contraception:'🩺',hygiene:'🧼'};
-    const bar = document.getElementById('art-filters-bar');
-    if (bar) bar.innerHTML = `<button class="art-filter-btn active" onclick="filterArticlesAdmin('tous',this)">Tous</button>` +
-      cats.map(c => `<button class="art-filter-btn" onclick="filterArticlesAdmin('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
+async function loadArticles(){
+  const grid=document.getElementById('articles-grid');
+  grid.innerHTML=spinnerHTML();
+  setBootBanner('loading','Chargement des articles...');
+  try{
+    const data=await api('/articles/admin/all');
+    allArticles=data.articles||[];
+    // Stats
+    document.getElementById('art-stat-total').textContent=allArticles.length;
+    document.getElementById('art-stat-pub').textContent=allArticles.filter(a=>a.is_published).length;
+    document.getElementById('art-stat-draft').textContent=allArticles.filter(a=>!a.is_published).length;
+    document.getElementById('art-stat-une').textContent=allArticles.filter(a=>a.is_featured).length;
+    // Filtres catégories
+    const cats=[...new Set(allArticles.map(a=>a.category).filter(Boolean))];
+    const catEmojis={paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️',sante:'❤️',seniors:'👴',contraception:'🩺',hygiene:'🧼'};
+    const bar=document.getElementById('art-filters-bar');
+    if(bar)bar.innerHTML=`<button class="art-filter-btn active" onclick="filterArticlesAdmin('tous',this)">Tous</button>`+
+      cats.map(c=>`<button class="art-filter-btn" onclick="filterArticlesAdmin('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
     renderArticlesAdmin(allArticles);
-    setServerOnline();
-  } catch (e) { grid.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Erreur chargement</p></div>'; }
+    setBootBanner('success');
+  }catch(e){
+    console.error('loadArticles error:',e);
+    setBootBanner('error','Impossible de charger les articles. Le serveur est peut-être encore en démarrage.');
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon">⚠️</div>
+      <p style="font-weight:600;margin-bottom:6px">Erreur de chargement</p>
+      <p style="font-size:10px;opacity:.7;margin-bottom:14px">Le serveur Render peut prendre 30–60s à démarrer.</p>
+      <button onclick="loadArticles()" style="padding:8px 18px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">↻ Réessayer</button>
+    </div>`;
+  }
 }
 
-function filterArticlesAdmin(cat, btn) {
-  document.querySelectorAll('.art-filter-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderArticlesAdmin(cat === 'tous' ? allArticles : allArticles.filter(a => a.category === cat));
+function filterArticlesAdmin(cat,btn){
+  document.querySelectorAll('.art-filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderArticlesAdmin(cat==='tous'?allArticles:allArticles.filter(a=>a.category===cat));
 }
 
-function renderArticlesAdmin(items) {
-  const grid = document.getElementById('articles-grid');
-  if (!items.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📰</div><p>Aucun article.</p></div>'; return; }
-  grid.innerHTML = items.map(a => {
-    const cat   = CAT_INFO[a.category] || { label: a.category || 'Général', cls: 'cat-prevention' };
-    const thumb = a.image_url
-      ? `<img class="art-thumb" src="${a.image_url}" alt="" onerror="this.style.display='none'">`
-      : `<div class="art-thumb-ph">${a.emoji || '📄'}</div>`;
-    const pubBtn = a.is_published
-      ? `<button class="btn-art-pub" style="background:rgba(255,71,87,0.1);color:var(--rouge);border-color:rgba(255,71,87,0.25);" onclick="togglePub(${a.id},true)">🚫 Dépublier</button>`
-      : `<button class="btn-art-pub" style="background:rgba(0,200,167,0.1);color:var(--vert);border-color:rgba(0,200,167,0.25);" onclick="togglePub(${a.id},false)">🟢 Publier</button>`;
+function renderArticlesAdmin(items){
+  const grid=document.getElementById('articles-grid');
+  if(!items.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📰</div><p>Aucun article.</p><p style="font-size:10px;margin-top:6px;opacity:.6">Créez votre premier article avec le bouton ci-dessus.</p></div>';return;}
+  grid.innerHTML=items.map(a=>{
+    const cat=CAT_INFO[a.category]||{label:a.category||'Général',cls:'cat-prevention'};
+    const thumb=a.image_url
+      ?`<img class="art-thumb" src="${a.image_url}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=art-thumb-ph>${a.emoji||'📄'}</div>'">`
+      :`<div class="art-thumb-ph">${a.emoji||'📄'}</div>`;
+    const pubBtn=a.is_published
+      ?`<button class="btn-art-pub" style="background:rgba(255,71,87,0.1);color:var(--rouge);border-color:rgba(255,71,87,0.25);" onclick="togglePub(${a.id},true)">🚫 Dépublier</button>`
+      :`<button class="btn-art-pub" style="background:rgba(0,200,167,0.1);color:var(--vert);border-color:rgba(0,200,167,0.25);" onclick="togglePub(${a.id},false)">🟢 Publier</button>`;
     return `<div class="art-card">${thumb}<div class="art-body">
-      <div class="art-tags"><span class="art-cat ${cat.cls}">${cat.label}</span>${a.is_published?'<span class="art-status-badge art-status-pub">● Publié</span>':'<span class="art-status-badge art-status-draft">● Brouillon</span>'}${a.is_featured?'<span class="art-status-badge" style="background:rgba(255,165,2,0.15);color:var(--amber);">⭐</span>':''}</div>
+      <div class="art-tags">
+        <span class="art-cat ${cat.cls}">${cat.label}</span>
+        ${a.is_published?'<span class="art-status-badge art-status-pub">● Publié</span>':'<span class="art-status-badge art-status-draft">● Brouillon</span>'}
+        ${a.is_featured?'<span class="art-status-badge" style="background:rgba(255,165,2,0.15);color:var(--amber);">⭐</span>':''}
+      </div>
       <div class="art-title">${a.title}</div>
       <div class="art-excerpt">${a.excerpt||''}</div>
       <div class="art-meta"><span>✍️ ${a.author||'Dr. Bolamu'}</span><span>⏱ ${a.read_time||'5 min'}</span></div>
@@ -474,32 +535,31 @@ function renderArticlesAdmin(items) {
   }).join('');
 }
 
-async function togglePub(id, cur) {
-  try {
-    const data = await api('/articles/' + id, { method: 'PUT', body: JSON.stringify({ is_published: !cur }) });
-    if (data.success) { showToast(cur ? 'Dépublié' : '🟢 Publié !'); await loadArticles(); }
-    else showToast(data.message || 'Erreur', 'error');
-  } catch (e) { showToast('Erreur', 'error'); }
+async function togglePub(id,cur){
+  try{
+    const data=await api('/articles/'+id,{method:'PUT',body:JSON.stringify({is_published:!cur})});
+    if(data.success){showToast(cur?'Dépublié':'🟢 Publié !');await loadArticles();}
+    else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur réseau','error');}
 }
 
-function confirmDeleteArticle(id, title) {
-  document.getElementById('modal-body').innerHTML = `<div class="modal-title">🗑️ Supprimer</div><div class="modal-sub">Supprimer <strong>"${title}"</strong> ? Action irréversible.</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer</button></div>`;
+function confirmDeleteArticle(id,title){
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">🗑️ Supprimer</div><div class="modal-sub">Supprimer <strong>"${title}"</strong> ? Action irréversible.</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer</button></div>`;
   showModal();
 }
-
-async function deleteArticle(id) {
+async function deleteArticle(id){
   closeModal();
-  try {
-    const data = await api('/articles/' + id, { method: 'DELETE' });
-    if (data.success) { showToast('🗑️ Supprimé'); await loadArticles(); }
-    else showToast(data.message || 'Erreur', 'error');
-  } catch (e) { showToast('Erreur', 'error'); }
+  try{
+    const data=await api('/articles/'+id,{method:'DELETE'});
+    if(data.success){showToast('🗑️ Supprimé');await loadArticles();}
+    else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur','error');}
 }
 
-function openArticleModal(a = null) {
-  const isNew = !a;
-  document.getElementById('modal-article-body').innerHTML = `
-    <div class="modal-title">${isNew ? '✏️ Nouvel article' : '✏️ Modifier l\'article'}</div>
+function openArticleModal(a=null){
+  const isNew=!a;
+  document.getElementById('modal-article-body').innerHTML=`
+    <div class="modal-title">${isNew?'✏️ Nouvel article':'✏️ Modifier l\'article'}</div>
     <div class="modal-2col">
       <div class="modal-field"><label>Titre *</label><input class="modal-input" id="art-title" value="${a?.title||''}" placeholder="Titre de l'article"></div>
       <div class="modal-field"><label>Auteur</label><input class="modal-input" id="art-author" value="${a?.author||'Dr. Bolamu'}"></div>
@@ -538,35 +598,32 @@ function openArticleModal(a = null) {
     </div>
     <div class="toggle-row">
       <div class="toggle-item"><input type="checkbox" id="art-published" ${a?.is_published?'checked':''}><label for="art-published">🟢 Publier</label></div>
-      <div class="toggle-item"><input type="checkbox" id="art-featured" ${a?.is_featured?'checked':''}><label for="art-featured">⭐ À la une</label></div>
+      <div class="toggle-item"><input type="checkbox" id="art-featured"  ${a?.is_featured?'checked':''}><label for="art-featured">⭐ À la une</label></div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeArticleModal()">Annuler</button>
-      <button class="btn-confirm violet" onclick="saveArticle(${a?.id||'null'})">${isNew ? '✓ Créer' : '💾 Enregistrer'}</button>
+      <button class="btn-confirm violet" onclick="saveArticle(${a?.id||'null'})">${isNew?'✓ Créer':'💾 Enregistrer'}</button>
     </div>`;
-  if (a?.image_url) { document.getElementById('art-img-preview-wrap').classList.add('show'); document.getElementById('art-img-preview').src = a.image_url; }
+  if(a?.image_url){document.getElementById('art-img-preview-wrap').classList.add('show');document.getElementById('art-img-preview').src=a.image_url;}
   document.getElementById('modal-article').classList.add('open');
 }
-
-function previewArtImg(url) {
-  const w = document.getElementById('art-img-preview-wrap'), i = document.getElementById('art-img-preview');
-  if (url) { w.classList.add('show'); i.src = url; } else w.classList.remove('show');
+function previewArtImg(url){
+  const w=document.getElementById('art-img-preview-wrap'),i=document.getElementById('art-img-preview');
+  if(url){w.classList.add('show');i.src=url;}else w.classList.remove('show');
 }
-
-function artFmt(type) {
-  const ta = document.getElementById('art-content');
-  const sel = ta.value.substring(ta.selectionStart, ta.selectionEnd) || 'Texte';
-  const m = { bold:`<strong>${sel}</strong>`, h4:`<h4>${sel}</h4>`, ul:`<ul><li>${sel}</li></ul>`, highlight:`<div class="highlight">${sel}</div>`, warning:`<div class="warning">${sel}</div>` };
-  ta.setRangeText(m[type] || sel, ta.selectionStart, ta.selectionEnd, 'end');
+function artFmt(type){
+  const ta=document.getElementById('art-content');
+  const sel=ta.value.substring(ta.selectionStart,ta.selectionEnd)||'Texte';
+  const m={bold:`<strong>${sel}</strong>`,h4:`<h4>${sel}</h4>`,ul:`<ul><li>${sel}</li></ul>`,highlight:`<div class="highlight">${sel}</div>`,warning:`<div class="warning">${sel}</div>`};
+  ta.setRangeText(m[type]||sel,ta.selectionStart,ta.selectionEnd,'end');
 }
+function closeArticleModal(){document.getElementById('modal-article').classList.remove('open');}
 
-function closeArticleModal() { document.getElementById('modal-article').classList.remove('open'); }
-
-async function saveArticle(id) {
-  const title = document.getElementById('art-title').value.trim();
-  if (!title) return showToast('Titre requis', 'error');
-  const body = {
-    title, excerpt:document.getElementById('art-excerpt').value,
+async function saveArticle(id){
+  const title=document.getElementById('art-title').value.trim();
+  if(!title)return showToast('Titre requis','error');
+  const body={
+    title,excerpt:document.getElementById('art-excerpt').value,
     content:document.getElementById('art-content').value,
     category:document.getElementById('art-category').value,
     author:document.getElementById('art-author').value,
@@ -576,34 +633,36 @@ async function saveArticle(id) {
     is_published:document.getElementById('art-published').checked,
     is_featured:document.getElementById('art-featured').checked
   };
-  try {
-    const data = id ? await api('/articles/'+id, { method:'PUT', body:JSON.stringify(body) }) : await api('/articles', { method:'POST', body:JSON.stringify(body) });
-    if (data.success) { closeArticleModal(); showToast(id ? '💾 Article mis à jour' : '✓ Article créé !'); await loadArticles(); }
-    else showToast(data.message || 'Erreur', 'error');
-  } catch (e) { showToast('Erreur', 'error'); }
+  try{
+    const data=id?await api('/articles/'+id,{method:'PUT',body:JSON.stringify(body)}):await api('/articles',{method:'POST',body:JSON.stringify(body)});
+    if(data.success){closeArticleModal();showToast(id?'💾 Article mis à jour':'✓ Article créé !');await loadArticles();}
+    else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur réseau','error');}
 }
 
-/* ══════════════════════════════════════════════
+/* ══════════════════════════════════════════
    VITRINE
-══════════════════════════════════════════════ */
-async function loadVitrine() {
-  try {
-    const data = await api('/articles/admin/content-blocks');
-    const blocks = data.blocks || {};
-    const h = blocks.hero || {};
-    document.getElementById('hero-name').value      = h.name      || '';
-    document.getElementById('hero-subtitle').value  = h.subtitle  || '';
-    document.getElementById('hero-image-url').value = h.image_url || '';
-    if (h.image_url) vitPreview('hero-img-preview', h.image_url);
-    const ACTORS = [
+══════════════════════════════════════════ */
+async function loadVitrine(){
+  const vitBanner=document.getElementById('vitrine-boot-banner');
+  if(vitBanner)vitBanner.className='boot-banner loading show';
+  try{
+    const data=await api('/articles/admin/content-blocks');
+    const blocks=data.blocks||{};
+    const h=blocks.hero||{};
+    document.getElementById('hero-name').value=h.name||'';
+    document.getElementById('hero-subtitle').value=h.subtitle||'';
+    document.getElementById('hero-image-url').value=h.image_url||'';
+    if(h.image_url)vitPreview('hero-img-preview',h.image_url);
+    const ACTORS=[
       {key:'block_patients',     label:'👤 Patients'},
       {key:'block_medecins',     label:'👨‍⚕️ Médecins'},
       {key:'block_pharmacies',   label:'💊 Pharmacies'},
       {key:'block_laboratoires', label:'🔬 Laboratoires'}
     ];
-    const grid = document.getElementById('vitrine-cards-grid');
-    grid.innerHTML = ACTORS.map(({key, label}) => {
-      const b = blocks[key] || {};
+    const grid=document.getElementById('vitrine-cards-grid');
+    grid.innerHTML=ACTORS.map(({key,label})=>{
+      const b=blocks[key]||{};
       return `<div class="config-card">
         <div class="config-section-title">${label}</div>
         <div class="modal-field"><label>Tag affiché</label><input class="modal-input" id="${key}-tag" value="${b.tag||''}"></div>
@@ -621,173 +680,128 @@ async function loadVitrine() {
         <button class="btn-confirm violet" style="max-width:150px;padding:7px;font-size:10px;" onclick="saveVitrineBlock('${key}')">💾 Enregistrer</button>
       </div>`;
     }).join('');
-    setServerOnline();
-  } catch (e) { console.error(e); }
-}
-
-function vitPreview(id, url) {
-  const img = document.getElementById(id); if (!img) return;
-  if (url) { img.src = url; img.style.display = 'block'; } else img.style.display = 'none';
-}
-
-async function handleVitrineUpload(input, urlId, previewId) {
-  const file = input.files[0]; if (!file) return;
-  const fd = new FormData(); fd.append('image', file);
-  try {
-    const res = await fetch('/api/v1/articles/admin/upload-vitrine', { method:'POST', headers:{'Authorization':'Bearer '+token}, body:fd });
-    const data = await res.json();
-    if (data.success) { document.getElementById(urlId).value = data.url; vitPreview(previewId, data.url); showToast('📸 Image uploadée'); }
-    else showToast(data.message || 'Erreur upload', 'error');
-  } catch (e) { showToast('Erreur upload', 'error'); }
-}
-
-async function saveVitrineBlock(key) {
-  let content = {};
-  if (key === 'hero') {
-    content = { name:document.getElementById('hero-name').value, subtitle:document.getElementById('hero-subtitle').value, image_url:document.getElementById('hero-image-url').value };
-  } else {
-    content = { tag:document.getElementById(key+'-tag').value, title:document.getElementById(key+'-title').value, desc:document.getElementById(key+'-desc').value, image_url:document.getElementById(key+'-img').value };
+    if(vitBanner)vitBanner.className='boot-banner';
+  }catch(e){
+    if(vitBanner){vitBanner.className='boot-banner error show';vitBanner.innerHTML=`<span>⚠️</span><div><strong>Erreur de chargement de la vitrine</strong></div><button class="retry-link" onclick="loadVitrine()">↻ Réessayer</button>`;}
   }
-  try {
-    const data = await api('/articles/admin/content-blocks/' + key, { method:'PUT', body:JSON.stringify({content}) });
-    if (data.success) showToast('💾 Sauvegardé !'); else showToast(data.message || 'Erreur', 'error');
-  } catch (e) { showToast('Erreur', 'error'); }
+}
+function vitPreview(id,url){const img=document.getElementById(id);if(!img)return;if(url){img.src=url;img.style.display='block';}else img.style.display='none';}
+async function handleVitrineUpload(input,urlId,previewId){
+  const file=input.files[0];if(!file)return;
+  const fd=new FormData();fd.append('image',file);
+  try{
+    const res=await fetch('/api/v1/articles/admin/upload-vitrine',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+    const data=await res.json();
+    if(data.success){document.getElementById(urlId).value=data.url;vitPreview(previewId,data.url);showToast('📸 Image uploadée');}
+    else showToast(data.message||'Erreur upload','error');
+  }catch(e){showToast('Erreur upload','error');}
+}
+async function saveVitrineBlock(key){
+  let content={};
+  if(key==='hero'){content={name:document.getElementById('hero-name').value,subtitle:document.getElementById('hero-subtitle').value,image_url:document.getElementById('hero-image-url').value};}
+  else{content={tag:document.getElementById(key+'-tag').value,title:document.getElementById(key+'-title').value,desc:document.getElementById(key+'-desc').value,image_url:document.getElementById(key+'-img').value};}
+  try{
+    const data=await api('/articles/admin/content-blocks/'+key,{method:'PUT',body:JSON.stringify({content})});
+    if(data.success)showToast('💾 Sauvegardé !');else showToast(data.message||'Erreur','error');
+  }catch(e){showToast('Erreur','error');}
 }
 
-/* ══════════════════════════════════════════════
-   PLANS / OFFRES
-══════════════════════════════════════════════ */
-async function loadPlans() {
-  const grid = document.getElementById('plans-grid');
-  try {
-    const data = await api('/articles/admin/content-blocks');
-    const blocks = data.blocks || {};
-    const PLANS = [{key:'plan_essentiel',label:'Essentiel'},{key:'plan_standard',label:'Standard'},{key:'plan_premium',label:'Premium'}];
-    grid.innerHTML = PLANS.map(({key, label}) => {
-      const p = blocks[key] || {name:label, price:0, period:'FCFA / mois', annual:'', badge:'', color:'#9f7aea', featured:false, features:''};
-      const featuresVal = (p.features || '').split('\\n').join('\n');
+/* ══════════════════════════════════════════
+   PLANS
+══════════════════════════════════════════ */
+async function loadPlans(){
+  const grid=document.getElementById('plans-grid');
+  grid.innerHTML=spinnerHTML();
+  try{
+    const data=await api('/articles/admin/content-blocks');
+    const blocks=data.blocks||{};
+    const PLANS=[{key:'plan_essentiel',label:'Essentiel'},{key:'plan_standard',label:'Standard'},{key:'plan_premium',label:'Premium'}];
+    grid.innerHTML=PLANS.map(({key,label})=>{
+      const p=blocks[key]||{name:label,price:0,period:'FCFA / mois',annual:'',badge:'',color:'#9f7aea',featured:false,features:''};
+      const featuresVal=(p.features||'').split('\\n').join('\n');
       return `<div class="plan-edit-card">
         <div class="plan-edit-title" style="color:${p.color||'#9f7aea'}">💰 ${p.name||label}</div>
-        <div class="modal-field"><label>Nom du plan</label><input class="modal-input" id="${key}-name" value="${p.name||label}"></div>
+        <div class="modal-field"><label>Nom</label><input class="modal-input" id="${key}-name" value="${p.name||label}"></div>
         <div class="modal-2col">
           <div class="modal-field"><label>Prix (FCFA/mois)</label><input class="modal-input" id="${key}-price" type="number" value="${p.price||0}"></div>
           <div class="modal-field"><label>Période</label><input class="modal-input" id="${key}-period" value="${p.period||'FCFA / mois'}"></div>
         </div>
         <div class="modal-field"><label>Texte annuel</label><input class="modal-input" id="${key}-annual" value="${p.annual||''}" placeholder="30 000 FCFA / an"></div>
-        <div class="modal-field"><label>Badge (ex: ⭐ Recommandé)</label><input class="modal-input" id="${key}-badge" value="${p.badge||''}" placeholder="⭐ Recommandé"></div>
+        <div class="modal-field"><label>Badge</label><input class="modal-input" id="${key}-badge" value="${p.badge||''}" placeholder="⭐ Recommandé"></div>
         <div class="modal-field"><label>Couleur</label><input class="modal-input" id="${key}-color" value="${p.color||'#9f7aea'}" type="color" style="height:36px;cursor:pointer;"></div>
         <div class="modal-field"><label>Fonctionnalités (une par ligne)</label><textarea class="modal-textarea" id="${key}-features" rows="6">${featuresVal}</textarea></div>
         <div class="toggle-row" style="margin-bottom:10px;"><div class="toggle-item"><input type="checkbox" id="${key}-featured" ${p.featured?'checked':''}><label for="${key}-featured">🌟 En avant</label></div></div>
         <button class="btn-confirm violet" style="padding:8px;" onclick="savePlan('${key}')">💾 Enregistrer</button>
       </div>`;
     }).join('');
-    setServerOnline();
-  } catch (e) { grid.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+  }catch(e){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p><button onclick="loadPlans()" style="margin-top:10px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
+}
+async function savePlan(key){
+  const content={name:document.getElementById(key+'-name').value,price:parseInt(document.getElementById(key+'-price').value)||0,period:document.getElementById(key+'-period').value,annual:document.getElementById(key+'-annual').value,badge:document.getElementById(key+'-badge').value,color:document.getElementById(key+'-color').value,featured:document.getElementById(key+'-featured').checked,features:document.getElementById(key+'-features').value};
+  try{const data=await api('/articles/admin/content-blocks/'+key,{method:'PUT',body:JSON.stringify({content})});if(data.success)showToast('💾 Plan sauvegardé !');else showToast(data.message||'Erreur','error');}catch(e){showToast('Erreur','error');}
 }
 
-async function savePlan(key) {
-  const content = {
-    name:document.getElementById(key+'-name').value,
-    price:parseInt(document.getElementById(key+'-price').value)||0,
-    period:document.getElementById(key+'-period').value,
-    annual:document.getElementById(key+'-annual').value,
-    badge:document.getElementById(key+'-badge').value,
-    color:document.getElementById(key+'-color').value,
-    featured:document.getElementById(key+'-featured').checked,
-    features:document.getElementById(key+'-features').value
-  };
-  try {
-    const data = await api('/articles/admin/content-blocks/'+key, { method:'PUT', body:JSON.stringify({content}) });
-    if (data.success) showToast('💾 Plan sauvegardé !'); else showToast(data.message||'Erreur','error');
-  } catch (e) { showToast('Erreur','error'); }
-}
-
-/* ══════════════════════════════════════════════
-   TEXTES DU SITE
-══════════════════════════════════════════════ */
-const TEXTES_CONFIG = [
-  {key:'texte_hero_badge',  label:'Badge Hero'},
-  {key:'texte_hero_titre',  label:'Titre principal Hero'},
-  {key:'texte_hero_sous',   label:'Sous-titre Hero', textarea:true},
-  {key:'texte_hero_cta1',   label:'Bouton CTA 1'},
-  {key:'texte_hero_cta2',   label:'Bouton CTA 2'},
-  {key:'texte_stat1_nb',    label:'Stats — Chiffre 1'},
-  {key:'texte_stat1_lbl',   label:'Stats — Libellé 1'},
-  {key:'texte_stat2_nb',    label:'Stats — Chiffre 2'},
-  {key:'texte_stat2_lbl',   label:'Stats — Libellé 2'},
-  {key:'texte_stat3_nb',    label:'Stats — Chiffre 3'},
-  {key:'texte_stat3_lbl',   label:'Stats — Libellé 3'},
-  {key:'texte_stat4_nb',    label:'Stats — Chiffre 4'},
-  {key:'texte_stat4_lbl',   label:'Stats — Libellé 4'},
-  {key:'texte_plans_titre', label:'Section Plans — Titre'},
-  {key:'texte_plans_sous',  label:'Section Plans — Sous-titre', textarea:true},
-  {key:'texte_footer_desc', label:'Footer — Description', textarea:true},
-  {key:'texte_footer_copy', label:'Footer — Copyright'}
+/* ══════════════════════════════════════════
+   TEXTES
+══════════════════════════════════════════ */
+const TEXTES_CONFIG=[
+  {key:'texte_hero_badge',label:'Badge Hero'},{key:'texte_hero_titre',label:'Titre principal Hero'},
+  {key:'texte_hero_sous',label:'Sous-titre Hero',textarea:true},{key:'texte_hero_cta1',label:'Bouton CTA 1'},
+  {key:'texte_hero_cta2',label:'Bouton CTA 2'},{key:'texte_stat1_nb',label:'Stats — Chiffre 1'},
+  {key:'texte_stat1_lbl',label:'Stats — Libellé 1'},{key:'texte_stat2_nb',label:'Stats — Chiffre 2'},
+  {key:'texte_stat2_lbl',label:'Stats — Libellé 2'},{key:'texte_stat3_nb',label:'Stats — Chiffre 3'},
+  {key:'texte_stat3_lbl',label:'Stats — Libellé 3'},{key:'texte_stat4_nb',label:'Stats — Chiffre 4'},
+  {key:'texte_stat4_lbl',label:'Stats — Libellé 4'},{key:'texte_plans_titre',label:'Section Plans — Titre'},
+  {key:'texte_plans_sous',label:'Section Plans — Sous-titre',textarea:true},
+  {key:'texte_footer_desc',label:'Footer — Description',textarea:true},{key:'texte_footer_copy',label:'Footer — Copyright'}
 ];
-
-async function loadTextes() {
-  const el = document.getElementById('textes-grid');
-  try {
-    const data = await api('/articles/admin/content-blocks');
-    const blocks = data.blocks || {};
-    el.innerHTML = '<div class="textes-grid">' + TEXTES_CONFIG.map(t => {
-      const val     = (blocks[t.key] || {}).value || '';
-      const safeVal = val.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const input   = t.textarea
-        ? `<textarea class="texte-block-input" id="txt-${t.key}" rows="3">${safeVal}</textarea>`
-        : `<input class="texte-block-input" id="txt-${t.key}" value="${safeVal}">`;
+async function loadTextes(){
+  const el=document.getElementById('textes-grid');el.innerHTML=spinnerHTML();
+  try{
+    const data=await api('/articles/admin/content-blocks');
+    const blocks=data.blocks||{};
+    el.innerHTML='<div class="textes-grid">'+TEXTES_CONFIG.map(t=>{
+      const val=(blocks[t.key]||{}).value||'';
+      const safeVal=val.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const input=t.textarea?`<textarea class="texte-block-input" id="txt-${t.key}" rows="3">${safeVal}</textarea>`:`<input class="texte-block-input" id="txt-${t.key}" value="${safeVal}">`;
       return `<div class="texte-block"><div class="texte-block-title">${t.label}</div>${input}<button class="save-block-btn" onclick="saveTexte('${t.key}')">💾 Enregistrer</button></div>`;
-    }).join('') + '</div>';
-    setServerOnline();
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+    }).join('')+'</div>';
+  }catch(e){el.innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p><button onclick="loadTextes()" style="margin-top:10px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
+}
+async function saveTexte(key){
+  const el=document.getElementById('txt-'+key);if(!el)return;
+  try{const data=await api('/articles/admin/content-blocks/'+key,{method:'PUT',body:JSON.stringify({content:{value:el.value}})});if(data.success)showToast('💾 Texte sauvegardé !');else showToast(data.message||'Erreur','error');}catch(e){showToast('Erreur','error');}
 }
 
-async function saveTexte(key) {
-  const el = document.getElementById('txt-' + key); if (!el) return;
-  try {
-    const data = await api('/articles/admin/content-blocks/'+key, { method:'PUT', body:JSON.stringify({content:{value:el.value}}) });
-    if (data.success) showToast('💾 Texte sauvegardé !'); else showToast(data.message||'Erreur','error');
-  } catch (e) { showToast('Erreur','error'); }
-}
-
-/* ══════════════════════════════════════════════
-   RÉSEAUX SOCIAUX
-══════════════════════════════════════════════ */
-const RESEAUX_CONFIG = [
-  {key:'whatsapp',  cls:'whatsapp',  label:'WhatsApp',    placeholder:'https://wa.me/242...'},
-  {key:'instagram', cls:'instagram', label:'Instagram',   placeholder:'https://instagram.com/bolamu.cg'},
-  {key:'facebook',  cls:'facebook',  label:'Facebook',    placeholder:'https://facebook.com/bolamu'},
-  {key:'tiktok',    cls:'tiktok',    label:'TikTok',      placeholder:'https://tiktok.com/@bolamu'},
-  {key:'youtube',   cls:'youtube',   label:'YouTube',     placeholder:'https://youtube.com/@bolamu'},
-  {key:'linkedin',  cls:'linkedin',  label:'LinkedIn',    placeholder:'https://linkedin.com/company/bolamu'},
-  {key:'twitter',   cls:'twitter',   label:'X (Twitter)', placeholder:'https://x.com/bolamu'}
+/* ══════════════════════════════════════════
+   RÉSEAUX
+══════════════════════════════════════════ */
+const RESEAUX_CONFIG=[
+  {key:'whatsapp',cls:'whatsapp',label:'WhatsApp',placeholder:'https://wa.me/242...'},
+  {key:'instagram',cls:'instagram',label:'Instagram',placeholder:'https://instagram.com/bolamu.cg'},
+  {key:'facebook',cls:'facebook',label:'Facebook',placeholder:'https://facebook.com/bolamu'},
+  {key:'tiktok',cls:'tiktok',label:'TikTok',placeholder:'https://tiktok.com/@bolamu'},
+  {key:'youtube',cls:'youtube',label:'YouTube',placeholder:'https://youtube.com/@bolamu'},
+  {key:'linkedin',cls:'linkedin',label:'LinkedIn',placeholder:'https://linkedin.com/company/bolamu'},
+  {key:'twitter',cls:'twitter',label:'X (Twitter)',placeholder:'https://x.com/bolamu'}
 ];
-
-async function loadReseaux() {
-  const el = document.getElementById('reseaux-grid');
-  try {
-    const data = await api('/articles/admin/content-blocks');
-    const r = (data.blocks || {}).reseaux_sociaux || {};
-    el.innerHTML = RESEAUX_CONFIG.map(rs =>
-      `<div class="reseau-block">
-        <div class="reseau-logo ${rs.cls}">${RESEAUX_SVG[rs.key]||''}</div>
-        <div style="flex:1"><div class="reseau-name">${rs.label}</div><input class="reseau-input" id="rs-${rs.key}" value="${r[rs.key]||''}" placeholder="${rs.placeholder}"></div>
-      </div>`
-    ).join('');
-    setServerOnline();
-  } catch (e) { el.innerHTML = '<div class="empty">Erreur de chargement</div>'; }
+async function loadReseaux(){
+  const el=document.getElementById('reseaux-grid');el.innerHTML=spinnerHTML();
+  try{
+    const data=await api('/articles/admin/content-blocks');
+    const r=(data.blocks||{}).reseaux_sociaux||{};
+    el.innerHTML=RESEAUX_CONFIG.map(rs=>`<div class="reseau-block"><div class="reseau-logo ${rs.cls}">${RESEAUX_SVG[rs.key]||''}</div><div style="flex:1"><div class="reseau-name">${rs.label}</div><input class="reseau-input" id="rs-${rs.key}" value="${r[rs.key]||''}" placeholder="${rs.placeholder}"></div></div>`).join('');
+  }catch(e){el.innerHTML='<div class="empty" style="grid-column:1/-1"><p>Erreur de chargement</p><button onclick="loadReseaux()" style="margin-top:8px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
+}
+async function saveReseaux(){
+  const content={};
+  RESEAUX_CONFIG.forEach(rs=>{const el=document.getElementById('rs-'+rs.key);if(el)content[rs.key]=el.value.trim();});
+  try{const data=await api('/articles/admin/content-blocks/reseaux_sociaux',{method:'PUT',body:JSON.stringify({content})});if(data.success)showToast('💾 Liens sauvegardés !');else showToast(data.message||'Erreur','error');}catch(e){showToast('Erreur','error');}
 }
 
-async function saveReseaux() {
-  const content = {};
-  RESEAUX_CONFIG.forEach(rs => { const el = document.getElementById('rs-' + rs.key); if (el) content[rs.key] = el.value.trim(); });
-  try {
-    const data = await api('/articles/admin/content-blocks/reseaux_sociaux', { method:'PUT', body:JSON.stringify({content}) });
-    if (data.success) showToast('💾 Liens sauvegardés !'); else showToast(data.message||'Erreur','error');
-  } catch (e) { showToast('Erreur','error'); }
-}
-
-/* ── INIT ── */
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
 loadArticles();
 </script>
 </body>
