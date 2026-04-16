@@ -854,7 +854,7 @@ async function viewUser(phone){
   if(!phone)return;
   const digits=phone.replace(/\D/g,'');
   const withPlus=phone.startsWith('+')?phone:'+'+digits;
-
+ 
   // Ouvre le modal grande taille avec loader
   document.getElementById('profile-modal-body').innerHTML=`
     <div style="text-align:center;padding:48px 24px;color:var(--muted)">
@@ -863,58 +863,47 @@ async function viewUser(phone){
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent)">${withPlus}</div>
     </div>`;
   openProfileModal();
-
-  // Essaie plusieurs formats de téléphone
+ 
+  // ── CORRECTION : on appelle /admin/users/:phone/profile ──────────────────
   let profileData = null;
   const attempts = [withPlus, digits, phone];
+ 
   for(const attempt of attempts){
     try{
-      const res = await api(`/users/${encodeURIComponent(attempt)}/profile`);
+      // Route correcte dans admin.routes.js
+      const res = await api(`/admin/users/${encodeURIComponent(attempt)}/profile`);
       const d = res?.data || res;
       if(d && (d.user || d.phone || d.full_name)){
         profileData = d;
         break;
       }
-    }catch(e){ /* try next */ }
+    }catch(e){ /* essaie le format suivant */ }
   }
-
-  // Essaie aussi l'endpoint admin
-  if(!profileData){
-    try{
-      const res = await api(`/admin/user/${encodeURIComponent(withPlus)}`);
-      const d = res?.data || res;
-      if(d && (d.user || d.phone)) profileData = d;
-    }catch(e){}
-  }
-
+ 
   if(!profileData){
     renderProfileNotFound(withPlus);
     return;
   }
-
+ 
   const u = profileData.user || profileData;
-  const appointments   = profileData.appointments   || [];
-  const prescriptions  = profileData.prescriptions  || [];
-  const payments       = profileData.payments        || [];
-  const documents      = profileData.documents       || [];
-  const creditHistory  = profileData.credit_history  || [];
-
-  // Rôle → emoji + couleur header
+  const appointments  = profileData.appointments   || [];
+  const prescriptions = profileData.prescriptions  || [];
+  const payments      = profileData.payments        || [];
+  const documents     = profileData.documents       || [];
+  const creditHistory = profileData.credit_history  || [];
+ 
   const roleInfo = {
-    doctor:    {emoji:'👨‍⚕️', color:'var(--green)',   label:'Médecin'},
-    patient:   {emoji:'👤',   color:'var(--accent)',  label:'Patient'},
-    pharmacy:  {emoji:'💊',   color:'var(--violet)',  label:'Pharmacie'},
-    laboratory:{emoji:'🔬',   color:'var(--amber)',   label:'Laboratoire'},
-    admin:     {emoji:'👑',   color:'var(--red)',     label:'Admin'},
+    doctor:     {emoji:'👨‍⚕️', color:'var(--green)',   label:'Médecin'},
+    patient:    {emoji:'👤',   color:'var(--accent)',  label:'Patient'},
+    pharmacie:  {emoji:'💊',   color:'var(--violet)',  label:'Pharmacie'},
+    laboratoire:{emoji:'🔬',   color:'var(--amber)',   label:'Laboratoire'},
+    admin:      {emoji:'👑',   color:'var(--red)',     label:'Admin'},
   };
   const ri = roleInfo[u.role] || {emoji:'👤', color:'var(--muted)', label:u.role||'—'};
-
-  // Score fraude si disponible
   const fraudScore = u.fraud_score;
   const fraudColor = fraudScore>=70?'var(--red)':fraudScore>=40?'var(--amber)':'var(--green)';
-
+ 
   const html = `
-    <!-- En-tête profil -->
     <div class="profile-header">
       <div class="profile-avatar" style="background:linear-gradient(135deg,${ri.color},var(--accent)40)">${ri.emoji}</div>
       <div style="flex:1;min-width:0">
@@ -932,56 +921,33 @@ async function viewUser(phone){
         ${fraudScore!=null?`<div style="margin-top:6px;font-size:9px;color:${fraudColor};font-family:'JetBrains Mono',monospace;font-weight:700">Score fraude: ${fraudScore}/100</div>`:''}
       </div>
     </div>
-
-    <!-- Onglets -->
+ 
     <div class="profile-tabs">
       <button class="profile-tab active" onclick="switchProfileTab('info',this)">📋 Infos</button>
       <button class="profile-tab" onclick="switchProfileTab('rdv',this)">📅 RDV (${appointments.length})</button>
-      <button class="profile-tab" onclick="switchProfileTab('docs',this)">📁 Documents (${documents.length})</button>
+      <button class="profile-tab" onclick="switchProfileTab('docs',this)">📁 Docs (${documents.length})</button>
       <button class="profile-tab" onclick="switchProfileTab('credits',this)">💎 Crédits</button>
       <button class="profile-tab" onclick="switchProfileTab('payments',this)">💳 Paiements (${payments.length})</button>
     </div>
-
+ 
     <!-- ONGLET INFOS -->
     <div class="profile-tab-panel active" id="ptab-info">
       <div class="info-grid">
-        <div class="info-block">
-          <div class="info-label">Crédits disponibles</div>
-          <div class="info-value big">${u.credits_balance||0} 💎</div>
-        </div>
-        <div class="info-block">
-          <div class="info-label">RDV au total</div>
-          <div class="info-value mono" style="font-size:18px;">${appointments.length}</div>
-        </div>
-        <div class="info-block">
-          <div class="info-label">Téléphone</div>
-          <div class="info-value mono">${u.phone||'—'}</div>
-        </div>
-        <div class="info-block">
-          <div class="info-label">Rôle</div>
-          <div class="info-value">${ri.emoji} ${ri.label}</div>
-        </div>
-        ${u.email?`<div class="info-block"><div class="info-label">Email</div><div class="info-value">${u.email}</div></div>`:''}
+        <div class="info-block"><div class="info-label">Crédits disponibles</div><div class="info-value big">${u.credits_balance||0} 💎</div></div>
+        <div class="info-block"><div class="info-label">RDV au total</div><div class="info-value mono" style="font-size:18px;">${appointments.length}</div></div>
+        <div class="info-block"><div class="info-label">Téléphone</div><div class="info-value mono">${u.phone||'—'}</div></div>
+        <div class="info-block"><div class="info-label">Rôle</div><div class="info-value">${ri.emoji} ${ri.label}</div></div>
         ${u.specialty?`<div class="info-block"><div class="info-label">Spécialité</div><div class="info-value">${u.specialty}</div></div>`:''}
-        ${u.license_number?`<div class="info-block"><div class="info-label">Numéro de licence</div><div class="info-value mono">${u.license_number}</div></div>`:''}
-        ${u.address?`<div class="info-block" style="grid-column:1/-1"><div class="info-label">Adresse</div><div class="info-value">${u.address}</div></div>`:''}
-        ${u.bio?`<div class="info-block" style="grid-column:1/-1"><div class="info-label">Bio / Description</div><div class="info-value" style="font-size:11px;font-weight:400;line-height:1.6">${u.bio}</div></div>`:''}
-        <div class="info-block">
-          <div class="info-label">Statut du compte</div>
-          <div class="info-value">${badge(u.status||'verified')}</div>
-        </div>
-        <div class="info-block">
-          <div class="info-label">Dernière mise à jour</div>
-          <div class="info-value" style="font-size:11px">${fd(u.updated_at||u.created_at)}</div>
-        </div>
+        ${u.registration_number?`<div class="info-block"><div class="info-label">N° d'ordre</div><div class="info-value mono">${u.registration_number}</div></div>`:''}
+        ${u.city?`<div class="info-block"><div class="info-label">Ville</div><div class="info-value">${u.city}</div></div>`:''}
+        ${u.neighborhood?`<div class="info-block"><div class="info-label">Quartier</div><div class="info-value">${u.neighborhood}</div></div>`:''}
+        <div class="info-block"><div class="info-label">Statut du compte</div><div class="info-value">${badge(u.status||'verified')}</div></div>
+        <div class="info-block"><div class="info-label">Inscrit le</div><div class="info-value" style="font-size:11px">${fd(u.created_at)}</div></div>
+        ${u.member_code?`<div class="info-block"><div class="info-label">Code membre</div><div class="info-value mono">${u.member_code}</div></div>`:''}
+        ${u.trust_score!=null?`<div class="info-block"><div class="info-label">Score de confiance</div><div class="info-value" style="color:var(--green)">${u.trust_score}/100</div></div>`:''}
       </div>
-
-      ${u.consultation_fee?`<div style="background:rgba(0,212,168,.06);border:1px solid rgba(0,212,168,.15);border-radius:9px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;margin-bottom:3px">Tarif de consultation</div><div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--green)">${fn(u.consultation_fee)} FCFA</div></div>
-        <div style="font-size:22px">💰</div>
-      </div>`:''}
     </div>
-
+ 
     <!-- ONGLET RDV -->
     <div class="profile-tab-panel" id="ptab-rdv">
       ${appointments.length?appointments.map(a=>`
@@ -991,13 +957,12 @@ async function viewUser(phone){
             ${badge(a.status)}
           </div>
           <div class="rdv-meta">
-            ${u.role==='doctor'?`👤 Patient: ${a.patient_phone||'—'}`:`👨‍⚕️ Médecin: ${a.doctor_phone||'—'}`}
-            &nbsp;·&nbsp; ${fd(a.created_at||a.scheduled_at)}
+            ${u.role==='doctor'?`👤 Patient: ${a.patient_phone||'—'}`:`👨‍⚕️ Médecin: ${a.doctor_phone||a.doctor_name||'—'}`}
+            &nbsp;·&nbsp; ${fd(a.appointment_date||a.created_at)}
           </div>
-          ${a.notes?`<div style="font-size:10px;color:var(--txt2);margin-top:4px;font-style:italic">${a.notes}</div>`:''}
         </div>`).join(''):'<div class="empty"><div class="empty-ico">📅</div><p>Aucun rendez-vous</p></div>'}
     </div>
-
+ 
     <!-- ONGLET DOCUMENTS -->
     <div class="profile-tab-panel" id="ptab-docs">
       ${documents.length?documents.map(d=>`
@@ -1011,13 +976,9 @@ async function viewUser(phone){
             ${d.url||d.file_url?`<a href="${d.url||d.file_url}" target="_blank" class="ab ab-blue" style="text-decoration:none;font-size:9px">👁 Voir</a>`:''}
           </div>
         </div>`).join(''):`
-        <div class="empty">
-          <div class="empty-ico">📁</div>
-          <p>Aucun document uploadé</p>
-          <p style="font-size:10px;margin-top:6px;opacity:.6">Les documents (ordonnances médicales, licences, photos ID) apparaissent ici.</p>
-        </div>`}
+        <div class="empty"><div class="empty-ico">📁</div><p>Aucun document uploadé</p></div>`}
       ${prescriptions.length?`
-        <div style="margin-top:14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Ordonnances (${prescriptions.length})</div>
+        <div style="margin-top:14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Ordonnances (${prescriptions.length})</div>
         ${prescriptions.slice(0,5).map(p=>`
           <div class="doc-item">
             <div>
@@ -1026,12 +987,12 @@ async function viewUser(phone){
             </div>
           </div>`).join('')}`:''}
     </div>
-
+ 
     <!-- ONGLET CREDITS -->
     <div class="profile-tab-panel" id="ptab-credits">
       <div class="info-grid" style="margin-bottom:14px">
         <div class="info-block"><div class="info-label">Solde actuel</div><div class="info-value big">${u.credits_balance||0} 💎</div></div>
-        <div class="info-block"><div class="info-label">Total reçus</div><div class="info-value mono" style="font-size:18px">${u.credits_earned||creditHistory.filter(c=>c.type==='credit').reduce((s,c)=>s+(c.amount||0),0)} 💎</div></div>
+        <div class="info-block"><div class="info-label">Total reçus</div><div class="info-value mono" style="font-size:18px">${creditHistory.filter(c=>(c.amount||0)>0).reduce((s,c)=>s+(c.amount||0),0)} 💎</div></div>
       </div>
       ${creditHistory.length?`
         <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Historique</div>
@@ -1044,7 +1005,7 @@ async function viewUser(phone){
             <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${(c.amount||0)>0?'var(--green)':'var(--red)'}">${(c.amount||0)>0?'+':''}${c.amount} 💎</span>
           </div>`).join('')}`:'<div class="empty"><p>Aucun historique de crédit</p></div>'}
     </div>
-
+ 
     <!-- ONGLET PAIEMENTS -->
     <div class="profile-tab-panel" id="ptab-payments">
       ${payments.length?payments.map(p=>`
@@ -1056,19 +1017,19 @@ async function viewUser(phone){
           ${badge(p.status)}
         </div>`).join(''):'<div class="empty"><div class="empty-ico">💳</div><p>Aucun paiement</p></div>'}
     </div>
-
+ 
     <!-- Actions bas de modal -->
     <div class="modal-acts" style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px">
       <button class="mbtn mbtn-cancel" onclick="closeProfileModal()">✕ Fermer</button>
       <button class="mbtn mbtn-violet" onclick="closeProfileModal();openGrantCreditTo('${u.phone||withPlus}')">💎 Crédits</button>
-      ${u.status==='pending'?`<button class="mbtn mbtn-green" onclick="validateUser('${u.phone||withPlus}');closeProfileModal()">✓ Valider</button>`:''}
-      ${u.status!=='suspended'&&u.status!=='banned'?`<button class="mbtn mbtn-amber" style="background:var(--amber);color:#080a0f" onclick="suspendUser('${u.phone||withPlus}');closeProfileModal()">⚠ Suspendre</button>`:''}
+      ${(u.status==='pending')?`<button class="mbtn mbtn-green" onclick="validateUser('${u.phone||withPlus}');closeProfileModal()">✓ Valider</button>`:''}
+      ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" style="background:var(--amber);color:#080a0f" onclick="suspendUser('${u.phone||withPlus}');closeProfileModal()">⚠ Suspendre</button>`:''}
       <button class="mbtn mbtn-red" onclick="banUser('${u.phone||withPlus}');closeProfileModal()">🚫 Bannir</button>
     </div>`;
-
+ 
   document.getElementById('profile-modal-body').innerHTML = html;
 }
-
+ 
 function renderProfileNotFound(phone){
   document.getElementById('profile-modal-body').innerHTML=`
     <div style="text-align:center;padding:48px 24px">
@@ -1076,13 +1037,13 @@ function renderProfileNotFound(phone){
       <div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:8px">Dossier introuvable</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px">${phone}</div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:24px;line-height:1.7">
-        Le profil de cet utilisateur n'est pas accessible.<br>
-        Il se peut que l'endpoint <code style="background:var(--raised);padding:2px 6px;border-radius:4px">/users/{phone}/profile</code> ne soit pas encore exposé par le backend.
+        Le profil de cet utilisateur n'est pas accessible via l'API.<br>
+        Vérifiez que le compte existe bien dans la base Neon.
       </div>
       <button class="mbtn mbtn-cancel" onclick="closeProfileModal()" style="max-width:140px">Retour</button>
     </div>`;
 }
-
+ 
 function switchProfileTab(name, btn){
   document.querySelectorAll('.profile-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.profile-tab-panel').forEach(p=>p.classList.remove('active'));
