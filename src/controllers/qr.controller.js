@@ -9,7 +9,7 @@ const generateQRToken = async (req, res) => {
     // Vérifier que l'abonné a un abonnement actif
     const subCheck = await pool.query(
       `SELECT id FROM subscriptions 
-       WHERE user_phone = $1 AND status = 'active' AND end_date >= NOW()
+       WHERE user_phone = $1 AND status = 'active' AND expires_at >= NOW()
        LIMIT 1`,
       [phone]
     );
@@ -114,7 +114,7 @@ const verifyQRToken = async (req, res) => {
               pc.config_value as monthly_cap
        FROM subscriptions s
        LEFT JOIN platform_config pc ON pc.config_key = 'tiers_payant_monthly_cap'
-       WHERE s.user_phone = $1 AND s.status = 'active' AND s.end_date >= NOW()
+       WHERE s.user_phone = $1 AND s.status = 'active' AND s.expires_at >= NOW()
        LIMIT 1`,
       [qrToken.user_phone]
     );
