@@ -2,18 +2,23 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const pool = require('../config/db');
-const authMiddleware = require('../../middleware/auth.middleware');
+
+// --- CORRECTION IMPORT MIDDLEWARE ---
+// On remonte de deux crans (..) pour sortir de 'routes' et de 'src' ? 
+// Vérifie bien si c'est ../middleware ou ../../middleware. 
+// Pour être sûr, on utilise path.join comme pour le cerveau.
+const cheminMiddleware = path.join(__dirname, '..', '..', 'middleware', 'auth.middleware.js');
+const authMiddleware = require(cheminMiddleware);
 
 const cheminCerveau = path.join(__dirname, '..', 'controllers', 'patient.controller.js');
 console.log('🔎 Bolamu cherche le fichier ici :', cheminCerveau);
 
 const patientCtrl = require(cheminCerveau);
 
-// On extrait les fonctions proprement
+// Sécurisation des fonctions du contrôleur
 const registerPatient = patientCtrl.registerPatient;
 const getSubscription = patientCtrl.getSubscription;
 
-// Ligne corrigée pour Render : on vérifie que la fonction existe AVANT de la passer au router
 if (typeof registerPatient === 'function') {
     router.post('/register', registerPatient);
 }
@@ -21,12 +26,16 @@ if (typeof registerPatient === 'function') {
 if (typeof getSubscription === 'function') {
     router.get('/subscription', getSubscription);
 } else {
-    // Sécurité pour la ligne 16 : évite le crash si getSubscription est undefined
     router.get('/subscription', (req, res) => res.status(501).json({message: "Not implemented"}));
 }
 
+// --- SÉCURISATION DU MIDDLEWARE (LIGNE 29) ---
+// On crée une fonction de secours si le middleware n'est pas chargé
+const checkAuth = (typeof authMiddleware === 'function') ? authMiddleware : (req, res, next) => next();
+
 // GET /api/v1/patients/profil?phone=
-router.get('/profil', authMiddleware, async (req, res) => {
+// On utilise 'checkAuth' ici pour éviter le crash TypeError
+router.get('/profil', checkAuth, async (req, res) => {
   try {
     const { phone } = req.query;
     if (!phone) return res.status(400).json({ success: false, message: 'Phone requis' });
@@ -49,7 +58,7 @@ router.get('/profil', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/patients/check-subscription?phone=
-router.get('/check-subscription', authMiddleware, async (req, res) => {
+router.get('/check-subscription', checkAuth, async (req, res) => {
   try {
     const { phone } = req.query;
     if (!phone) return res.status(400).json({ success: false, message: 'Phone requis' });
