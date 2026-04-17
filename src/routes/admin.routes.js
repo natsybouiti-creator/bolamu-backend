@@ -96,8 +96,8 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
                 }
             }
         });
-    } catch (err) {
-        console.error('[admin/stats]', err.message);
+    } catch (e) {
+        console.error('[admin/stats]', e.message);
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -124,7 +124,6 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
         const result = await pool.query(
             `SELECT phone, role, full_name, first_name, last_name, 
                     rccm_number, agrement_number, registration_number,
-                    document_url, rccm_url, agrement_url, registration_url,
                     created_at, is_active
              FROM users 
              WHERE is_active = false 
@@ -133,7 +132,7 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
             [PRO_ROLES]
         );
         ok(res, result.rows);
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -163,7 +162,7 @@ router.patch('/validate', authMiddleware, adminOnly, async (req, res) => {
             [`${row.role}.${action === 'approve' ? 'verified' : 'rejected'}`, phone, JSON.stringify({ reason: reason || null })]
         ).catch(() => {});
         res.json({ success: true, message: `Compte ${action === 'approve' ? 'validé ✅' : 'rejeté ❌'}.` });
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -191,7 +190,7 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
             [`${row.role}.verified`, phone, JSON.stringify({ action: 'approve' })]
         ).catch(() => {});
         res.json({ success: true, message: 'Compte validé avec succès.' });
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -227,7 +226,7 @@ router.get('/fraud', authMiddleware, adminOnly, async (req, res) => {
              ORDER BY fs.created_at DESC LIMIT 200`
         );
         ok(res, result.rows);
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -247,7 +246,7 @@ router.patch('/fraud/:id/suspend', authMiddleware, adminOnly, async (req, res) =
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.banned.fraud','admin','fraud_signals',$1,$2)`,
             [parseInt(id), JSON.stringify({ phone })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} suspendu pour fraude 🔒` });
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -286,7 +285,7 @@ router.get('/users', authMiddleware, adminOnly, async (req, res) => {
             params.slice(0, -2)
         );
         res.json({ success: true, data: result.rows, total: parseInt(countResult.rows[0].count) });
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -347,7 +346,7 @@ router.patch('/users/:phone/ban', authMiddleware, adminOnly, async (req, res) =>
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.banned','admin','users',$1,$2)`,
             [u.id, JSON.stringify({ reason, role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} banni 🔒`, data: u });
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -366,7 +365,7 @@ router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) 
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.unbanned','admin','users',$1,$2)`,
             [u.id, JSON.stringify({ role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} réactivé ✅`, data: u });
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });
@@ -387,7 +386,7 @@ router.patch('/users/:phone/toggle', authMiddleware, adminOnly, async (req, res)
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1,'admin','users',$2,$3)`,
             [u.is_active ? 'account.opened' : 'account.suspended', u.id, JSON.stringify({ phone, role: u.role })]).catch(() => {});
         res.json({ success: true, data: u, message: u.is_active ? 'Compte réactivé ✅' : 'Compte suspendu 🔒' });
-    } catch (err) {
+    } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
 });

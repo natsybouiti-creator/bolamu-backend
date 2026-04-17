@@ -26,7 +26,7 @@ app.use((req, res, next) => {
     
     // VÃ©rification de la prÃ©sence du Token JWT pour le Dashboard
     if (req.headers.authorization) {
-        console.log(`   -> Auth Header: PrÃ©sent`);
+        console.log(`   -> Auth Header: OK`);
     } else {
         console.log(`   -> Auth Header: MANQUANT`);
     }
@@ -160,6 +160,14 @@ const addValidatedAtColumn = async () => {
 const initializeApp = async () => {
     await createIndexes();
     await addValidatedAtColumn();
+    
+    // Log du schéma users pour debugging
+    try {
+        const { rows } = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'users' ORDER BY column_name`);
+        console.log('[SCHEMA users]', rows.map(r => r.column_name).join(', '));
+    } catch (e) {
+        console.warn('[SCHEMA] Erreur lors du log du schéma users:', e.message);
+    }
 };
 
 const server = app.listen(PORT, '0.0.0.0', async () => {
