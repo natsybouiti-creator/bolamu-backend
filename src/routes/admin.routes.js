@@ -168,8 +168,8 @@ router.patch('/validate', authMiddleware, adminOnly, async (req, res) => {
 // ─── VALIDER UN COMPTE UTILISATEUR (route attendue par le frontend)
 router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
     const { phone } = req.body;
-    if (!phone) {
-        return res.status(400).json({ success: false, message: 'Paramètres invalides.' });
+    if (!phone || !/^\+?[0-9]{8,15}$/.test(phone)) {
+        return err(res, 400, 'Numéro de téléphone invalide.');
     }
     try {
         const result = await pool.query(
@@ -578,7 +578,12 @@ router.get('/audit', authMiddleware, adminOnly, async (req, res) => {
 // ─── CRÉDITS : ATTRIBUTION MANUELLE ──────────────────────────────────────────
 router.post('/credits/grant', authMiddleware, adminOnly, async (req, res) => {
     const { phone, amount, reason } = req.body;
-    if (!phone || !amount || !reason) return res.status(400).json({ success: false, message: 'phone, amount, reason requis.' });
+    if (!phone || !amount || !reason) return err(res, 400, 'phone, amount, reason requis.');
+    
+    const creditAmount = parseInt(amount);
+    if (isNaN(creditAmount) || creditAmount <= 0 || creditAmount > 10_000_000) {
+        return err(res, 400, 'Montant invalide.');
+    }
     try {
         await pool.query(
             `INSERT INTO credits (phone, role, balance, total_earned, total_spent, consecutive_months)

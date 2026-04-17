@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
 
 const {
     requestOtp,
@@ -18,10 +19,27 @@ const {
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
 const ADMIN_ROLES = ['admin', 'content_admin'];
 
+// Rate limiting pour les routes sensibles
+const otpLimiter = rateLimit({
+  windowMs : 15 * 60 * 1000,
+  max       : 5,
+  message   : { success: false, message: 'Trop de tentatives OTP. Réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders  : false,
+});
+
+const loginLimiter = rateLimit({
+  windowMs : 60 * 60 * 1000,
+  max       : 20,
+  message   : { success: false, message: 'Trop de tentatives de connexion.' },
+  standardHeaders: true,
+  legacyHeaders  : false,
+});
+
 // ─── OTP & LOGIN ──────────────────────────────────────────────────────────────
-router.post('/request-otp', requestOtp);
-router.post('/verify-otp', verifyOtp);
-router.post('/login', login);
+router.post('/request-otp', otpLimiter, requestOtp);
+router.post('/verify-otp', otpLimiter, verifyOtp);
+router.post('/login', loginLimiter, login);
 
 // ─── REGISTER ─────────────────────────────────────────────────────────────────
 router.post('/register/patient',     registerPatient);
