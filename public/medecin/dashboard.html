@@ -375,7 +375,7 @@ async function loadProfil(){
     const name=d.full_name||'Dr. —';
     const spec=d.specialty||'Médecine générale';
     const code=d.member_code||generateMedCode(phone);
-    const statut=d.status||'pending';
+    const statut=d.is_active ? 'verified' : 'pending';
     document.getElementById('mc-name').textContent=name;
     document.getElementById('mc-specialty').textContent=spec;
     document.getElementById('mc-code').textContent=code;
@@ -389,7 +389,8 @@ async function loadProfil(){
     const statutHtml=statut==='verified'?'<span class="badge badge-actif">✅ Vérifié</span>':'<span class="badge badge-pending">⏳ En attente</span>';
     document.getElementById('s-statut').innerHTML=statutHtml;
     document.getElementById('d-statut').innerHTML=statutHtml;
-    if(statut!=='verified')document.getElementById('bandeau-attente').style.display='flex';
+    const banner = document.getElementById('bandeau-attente');
+if (banner) banner.style.display = d.is_active ? 'none' : 'block';
     if(d.available_hours)renderHoraires(d.available_hours);
   }catch(e){document.getElementById('mc-name').textContent='Dr. Médecin';document.getElementById('mc-code').textContent=generateMedCode(phone);}
 }

@@ -6,6 +6,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../../middleware/auth.middleware');
 const { sendBolamuSms } = require('../services/sms.service');
+const { ok, err } = require('../utils/apiResponse');
 
 function adminOnly(req, res, next) {
     if (req.user?.role !== 'admin') {
@@ -95,7 +96,7 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
         });
     } catch (err) {
         console.error('[admin/stats]', err.message);
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -103,16 +104,16 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
 router.get('/stats/patients', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'patient'`);
-        res.json({ success: true, count: parseInt(result.rows[0].count) });
-    } catch (e) { res.status(500).json({ success: false, count: 0 }); }
+        ok(res, { count: parseInt(result.rows[0].count) });
+    } catch (e) { err(res, 500, 'Erreur serveur.', { count: 0 }); }
 });
 
 // ─── STATS APPOINTMENTS ───────────────────────────────────────────────────────
 router.get('/stats/appointments', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await pool.query(`SELECT * FROM appointments ORDER BY created_at DESC LIMIT 500`);
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, data: [] }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.', []); }
 });
 
 // ─── COMPTES EN ATTENTE ───────────────────────────────────────────────────────
@@ -128,9 +129,9 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
              AND role IN ('doctor', 'pharmacie', 'laboratoire')
              ORDER BY created_at DESC`
         );
-        res.json({ success: true, data: result.rows });
+        ok(res, result.rows);
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -160,7 +161,7 @@ router.patch('/validate', authMiddleware, adminOnly, async (req, res) => {
         ).catch(() => {});
         res.json({ success: true, message: `Compte ${action === 'approve' ? 'validé ✅' : 'rejeté ❌'}.` });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -188,7 +189,7 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
         ).catch(() => {});
         res.json({ success: true, message: 'Compte validé avec succès.' });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -210,7 +211,7 @@ router.patch('/users/:phone/status', authMiddleware, adminOnly, async (req, res)
             [`${result.rows[0].role}.${status}`, phone, JSON.stringify({ reason })]
         ).catch(() => {});
         res.json({ success: true, data: result.rows[0] });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── SIGNAUX FRAUDE ───────────────────────────────────────────────────────────
@@ -222,9 +223,9 @@ router.get('/fraud', authMiddleware, adminOnly, async (req, res) => {
              LEFT JOIN users u ON u.phone = fs.actor_phone
              ORDER BY fs.created_at DESC LIMIT 200`
         );
-        res.json({ success: true, data: result.rows });
+        ok(res, result.rows);
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -244,7 +245,7 @@ router.patch('/fraud/:id/suspend', authMiddleware, adminOnly, async (req, res) =
             [parseInt(id), JSON.stringify({ phone })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} suspendu pour fraude 🔒` });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -283,7 +284,7 @@ router.get('/users', authMiddleware, adminOnly, async (req, res) => {
         );
         res.json({ success: true, data: result.rows, total: parseInt(countResult.rows[0].count) });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -321,7 +322,7 @@ router.get('/users/:phone/profile', authMiddleware, adminOnly, async (req, res) 
         });
     } catch (err) {
         console.error('[admin/profile]', err.message);
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -344,7 +345,7 @@ router.patch('/users/:phone/ban', authMiddleware, adminOnly, async (req, res) =>
             [u.id, JSON.stringify({ reason, role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} banni 🔒`, data: u });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -363,7 +364,7 @@ router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) 
             [u.id, JSON.stringify({ role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} réactivé ✅`, data: u });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -384,7 +385,7 @@ router.patch('/users/:phone/toggle', authMiddleware, adminOnly, async (req, res)
             [u.is_active ? 'account.opened' : 'account.suspended', u.id, JSON.stringify({ phone, role: u.role })]).catch(() => {});
         res.json({ success: true, data: u, message: u.is_active ? 'Compte réactivé ✅' : 'Compte suspendu 🔒' });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        err(res, 500, 'Erreur serveur.');
     }
 });
 
@@ -392,8 +393,8 @@ router.patch('/users/:phone/toggle', authMiddleware, adminOnly, async (req, res)
 router.get('/config', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await pool.query(`SELECT * FROM platform_config ORDER BY id`);
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 router.patch('/config/:key', authMiddleware, adminOnly, async (req, res) => {
@@ -409,7 +410,7 @@ router.patch('/config/:key', authMiddleware, adminOnly, async (req, res) => {
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('config.updated','admin','platform_config',NULL,$1)`,
             [JSON.stringify({ key, value })]).catch(() => {});
         res.json({ success: true, data: result.rows[0], message: `${key} mis à jour → ${value}` });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── ABONNEMENTS PROS (pharmacies/labos mise en avant) ───────────────────────
@@ -426,7 +427,7 @@ router.patch('/pros/:type/:id/abonnement', authMiddleware, adminOnly, async (req
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Introuvable.' });
         res.json({ success: true, data: result.rows[0], message: active ? 'Abonnement pro activé ✅' : 'Abonnement pro désactivé' });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── TOUS LES MÉDECINS ────────────────────────────────────────────────────────
@@ -452,8 +453,8 @@ router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
              ORDER BY created_at DESC`,
             params
         );
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── TOUTES LES PHARMACIES ────────────────────────────────────────────────────
@@ -479,8 +480,8 @@ router.get('/pharmacies', authMiddleware, adminOnly, async (req, res) => {
              ORDER BY created_at DESC`,
             params
         );
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── TOUS LES LABORATOIRES ────────────────────────────────────────────────────
@@ -506,8 +507,8 @@ router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
              ORDER BY created_at DESC`,
             params
         );
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── TOUS LES RDV ─────────────────────────────────────────────────────────────
@@ -519,8 +520,8 @@ router.get('/appointments', authMiddleware, adminOnly, async (req, res) => {
              LEFT JOIN doctors d ON d.id = a.doctor_id
              ORDER BY a.created_at DESC LIMIT 500`
         );
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── TOUTES LES PRESCRIPTIONS ─────────────────────────────────────────────────
@@ -532,8 +533,8 @@ router.get('/prescriptions', authMiddleware, adminOnly, async (req, res) => {
              LEFT JOIN doctors d ON d.phone = p.doctor_phone
              ORDER BY p.created_at DESC LIMIT 500`
         );
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── PAIEMENTS ────────────────────────────────────────────────────────────────
@@ -549,7 +550,7 @@ router.get('/payments', authMiddleware, adminOnly, async (req, res) => {
         );
         const total = await pool.query(`SELECT COUNT(*), COALESCE(SUM(amount_fcfa),0) as sum FROM payments WHERE status='success'`);
         res.json({ success: true, data: result.rows, total_count: parseInt(total.rows[0].count), total_revenue: parseFloat(total.rows[0].sum) });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── JOURNAL AUDIT ────────────────────────────────────────────────────────────
@@ -561,8 +562,8 @@ router.get('/audit', authMiddleware, adminOnly, async (req, res) => {
         if (event_type) { query += ` WHERE event_type = $1`; params.push(event_type); }
         query += ` ORDER BY created_at DESC LIMIT ${parseInt(limit)}`;
         const result = await pool.query(query, params);
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
 // ─── CRÉDITS : ATTRIBUTION MANUELLE ──────────────────────────────────────────
@@ -597,8 +598,8 @@ router.get('/credits', authMiddleware, adminOnly, async (req, res) => {
              LEFT JOIN laboratories l ON l.phone = c.phone
              ORDER BY c.balance DESC`
         );
-        res.json({ success: true, data: result.rows });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 // POST /admin/subscriptions/activate
 router.post('/subscriptions/activate', authMiddleware, adminOnly, async (req, res) => {

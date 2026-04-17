@@ -195,6 +195,9 @@
 </div>
 <div class="main">
   <div class="panel active" id="panel-accueil">
+    <div id="verification-banner" class="bandeau-attente" style="display:none;">
+      ⏳ <div><strong>Compte en cours de vérification</strong> — Votre inscription est en cours de validation. SMS sous 24h.</div>
+    </div>
     <div class="top-grid">
       <div class="pharma-card">
         <div class="pharma-card-header">
@@ -427,7 +430,7 @@ async function loadProfil() {
     const name = d.name || 'Pharmacie Partenaire';
     const city = d.city || 'Brazzaville';
     const code = d.member_code || generateCode(phone);
-    const statut = d.status || 'pending';
+    const statut = d.is_active ? 'verified' : 'pending';
     const neighborhood = d.neighborhood || '';
 
     document.getElementById('mc-name').textContent = name;
@@ -451,6 +454,9 @@ async function loadProfil() {
       : '<span class="badge badge-pending">⏳ En attente de vérification</span>';
     document.getElementById('d-statut').innerHTML = statutHtml;
     document.getElementById('s-statut').innerHTML = statutHtml;
+    
+    const banner = document.getElementById('verification-banner');
+    if (banner) banner.style.display = d.is_active ? 'none' : 'block';
   } catch(e) {
     const code = generateCode(phone);
     document.getElementById('mc-name').textContent = 'Pharmacie Partenaire';
