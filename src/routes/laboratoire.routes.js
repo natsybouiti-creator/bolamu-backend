@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const { registerLaboratoire, getLaboratoireProfile, updateLaboratoireStatus } = require('../controllers/laboratoire.controller');
-const authMiddleware = require('../../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 
 const upload = multer({
     storage: multer.memoryStorage(),

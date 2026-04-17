@@ -4,6 +4,7 @@
 
 const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
+const { normalizePhoneNumber } = require('../utils/phoneHelper');
 
 async function uploadToCloudinary(fileBuffer, folder) {
     const cloudinary = require('cloudinary').v2;
@@ -53,7 +54,10 @@ async function registerLaboratoire(req, res) {
     if (!phone || !name || !director_name || !rccm_number || !city) {
         return res.status(400).json({ success: false, message: 'Champs obligatoires : phone, name, director_name, rccm_number, city' });
     }
-    if (!/^\+242[0-9]{9}$/.test(phone)) {
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
+    if (!/^\+242[0-9]{9}$/.test(normalizedPhone)) {
         return res.status(400).json({ success: false, message: 'Numéro invalide. Format : +242XXXXXXXXX' });
     }
 
@@ -61,7 +65,7 @@ async function registerLaboratoire(req, res) {
     try {
         await client.query('BEGIN');
 
-        const existing = await client.query('SELECT id FROM laboratories WHERE phone = $1', [phone]);
+        const existing = await client.query('SELECT id FROM laboratories WHERE phone = $1', [normalizedPhone]);
         if (existing.rows.length > 0) {
             await client.query('ROLLBACK');
             return res.status(409).json({ success: false, message: 'Un laboratoire avec ce numéro existe déjà.' });
@@ -77,14 +81,14 @@ async function registerLaboratoire(req, res) {
             } catch (e) { console.error('[Cloudinary labo]', e.message); }
         }
 
-        const score = calculateTrustScore({ phone, name, rccm_number, agrement_number, city, document_url: documentUrl });
+        const score = calculateTrustScore({ phone: normalizedPhone, name, rccm_number, agrement_number, city, document_url: documentUrl });
         const autoStatus = score >= 80 ? 'verified' : 'pending';
-        const memberCode = generateLabCode(phone);
+        const memberCode = generateLabCode(normalizedPhone);
 
-        const existingUser = await client.query('SELECT id FROM users WHERE phone = $1', [phone]);
+        const existingUser = await client.query('SELECT id FROM users WHERE phone = $1', [normalizedPhone]);
         let userId;
         if (existingUser.rows.length === 0) {
-            const newUser = await client.query(`INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'laboratoire', TRUE) RETURNING id`, [phone, name]);
+            const newUser = await client.query(`INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'laboratoire', TRUE) RETURNING id`, [normalizedPhone, name]);
             userId = newUser.rows[0].id;
         } else {
             userId = existingUser.rows[0].id;
@@ -95,12 +99,12 @@ async function registerLaboratoire(req, res) {
             `INSERT INTO laboratories (phone, user_id, name, director_name, rccm_number, agrement_number, city, neighborhood, status, is_active, member_code, document_url, document_public_id, trust_score, momo_number)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,TRUE,$10,$11,$12,$13,$14)
              RETURNING id, phone, name, status, member_code, trust_score`,
-            [phone, userId, name, director_name, rccm_number, agrement_number || null, city, neighborhood || null, autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || phone]
+            [normalizedPhone, userId, name, director_name, rccm_number, agrement_number || null, city, neighborhood || null, autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || normalizedPhone]
         );
 
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('laboratoire.registered', $1, 'laboratories', $2, $3)`,
-            [phone, newLab.rows[0].id, JSON.stringify({ name, rccm_number, trust_score: score, auto_status: autoStatus })]
+            [normalizedPhone, newLab.rows[0].id, JSON.stringify({ name, rccm_number, trust_score: score, auto_status: autoStatus })]
         );
 
         await client.query('COMMIT');
@@ -109,7 +113,7 @@ async function registerLaboratoire(req, res) {
             const msg = autoStatus === 'verified'
                 ? `Bolamu : Bienvenue ${name} ! Laboratoire validé. Code : ${memberCode}. Connectez-vous sur bolamu-backend.onrender.com`
                 : `Bolamu : Inscription ${name} reçue (score: ${score}/100). Vérification sous 24h.`;
-            await sendBolamuSms(phone, msg);
+            await sendBolamuSms(normalizedPhone, msg);
         } catch (e) { console.log('⚠️ SMS non envoyé'); }
 
         return res.status(201).json({
@@ -130,10 +134,14 @@ async function registerLaboratoire(req, res) {
 async function getLaboratoireProfile(req, res) {
     const { phone } = req.query;
     if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
+    
     try {
         const result = await pool.query(
             `SELECT id, name, phone, director_name, rccm_number, agrement_number, city, neighborhood, status, member_code, trust_score, momo_number, created_at FROM laboratories WHERE phone = $1`,
-            [phone]
+            [normalizedPhone]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Laboratoire introuvable.' });
         return res.json({ success: true, data: result.rows[0] });

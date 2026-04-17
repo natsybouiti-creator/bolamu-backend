@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const { generateOtp, simulateSendOtp } = require('../utils/otp');
 const { hashText } = require('../utils/hash');
+const { normalizePhoneNumber } = require('../utils/phoneHelper');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
@@ -12,8 +13,11 @@ const JWT_EXPIRES = '7d';
 async function requestOtp(req, res) {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ success: false, message: "Numéro requis" });
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
 
-    const adminCheck = await pool.query(`SELECT role FROM users WHERE phone = $1`, [phone]).catch(() => ({ rows: [] }));
+    const adminCheck = await pool.query(`SELECT role FROM users WHERE phone = $1`, [normalizedPhone]).catch(() => ({ rows: [] }));
     if (adminCheck.rows[0]?.role === 'admin') {
         return res.status(403).json({ success: false, message: "Accès non autorisé. Utilisez le portail administrateur.", redirectUrl: "/admin/login.html" });
     }
@@ -26,9 +30,9 @@ async function requestOtp(req, res) {
         await pool.query(
             `INSERT INTO otp_codes (phone, hashed_otp, expires_at, attempts) VALUES ($1, $2, $3, 0)
              ON CONFLICT (phone) DO UPDATE SET hashed_otp = $2, expires_at = $3, attempts = 0`,
-            [phone, hashedOtp, expiresAt]
+            [normalizedPhone, hashedOtp, expiresAt]
         );
-        simulateSendOtp(phone, otpCode);
+        simulateSendOtp(normalizedPhone, otpCode);
         return res.status(200).json({ success: true, message: "OTP envoyé" });
     } catch (err) {
         console.error(err);
@@ -42,9 +46,12 @@ async function requestOtp(req, res) {
 async function verifyOtp(req, res) {
     const { phone, otp } = req.body;
     if (!phone || !otp) return res.status(400).json({ success: false, message: "Téléphone et OTP requis" });
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
 
     try {
-        const result = await pool.query(`SELECT * FROM otp_codes WHERE phone = $1`, [phone]);
+        const result = await pool.query(`SELECT * FROM otp_codes WHERE phone = $1`, [normalizedPhone]);
         if (result.rows.length === 0) return res.status(404).json({ success: false, message: "Aucun OTP trouvé" });
 
         const record = result.rows[0];
@@ -53,11 +60,11 @@ async function verifyOtp(req, res) {
 
         const hashedInput = hashText(otp);
         if (hashedInput !== record.hashed_otp) {
-            await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [phone]);
+            await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [normalizedPhone]);
             return res.status(401).json({ success: false, message: "Code incorrect" });
         }
 
-        await pool.query(`DELETE FROM otp_codes WHERE phone = $1`, [phone]);
+        await pool.query(`DELETE FROM otp_codes WHERE phone = $1`, [normalizedPhone]);
         return res.status(200).json({ success: true, message: "OTP validé" });
     } catch (err) {
         console.error(err);
@@ -73,10 +80,13 @@ async function verifyOtp(req, res) {
 async function login(req, res) {
     const { phone, otp, prenom, nom, sexe, age } = req.body;
     if (!phone || !otp) return res.status(400).json({ success: false, message: "Téléphone et OTP requis" });
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
 
     try {
         // ── Vérification OTP ──
-        const otpResult = await pool.query(`SELECT * FROM otp_codes WHERE phone = $1`, [phone]);
+        const otpResult = await pool.query(`SELECT * FROM otp_codes WHERE phone = $1`, [normalizedPhone]);
         if (otpResult.rows.length === 0) return res.status(404).json({ success: false, message: "OTP non trouvé. Veuillez redemander un code." });
 
         const record = otpResult.rows[0];
@@ -85,15 +95,15 @@ async function login(req, res) {
 
         const hashedInput = hashText(otp);
         if (hashedInput !== record.hashed_otp) {
-            await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [phone]);
+            await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [normalizedPhone]);
             return res.status(401).json({ success: false, message: "Code OTP incorrect." });
         }
 
         // OTP valide → on le supprime
-        await pool.query(`DELETE FROM otp_codes WHERE phone = $1`, [phone]);
+        await pool.query(`DELETE FROM otp_codes WHERE phone = $1`, [normalizedPhone]);
 
         // ── Chercher l'utilisateur ──
-        let userResult = await pool.query(`SELECT id, phone, role, full_name FROM users WHERE phone = $1`, [phone]);
+        let userResult = await pool.query(`SELECT id, phone, role, full_name FROM users WHERE phone = $1`, [normalizedPhone]);
 
         // ── Si inexistant et données patient fournies → création automatique ──
         if (userResult.rows.length === 0) {
@@ -116,7 +126,7 @@ async function login(req, res) {
                         true, NOW(),
                         true, 80, NOW()
                     ) RETURNING id, phone, role, full_name, member_code`,
-                    [phone, full_name, prenom, nom, sexe || null, age || null, member_code]
+                    [normalizedPhone, full_name, prenom, nom, sexe || null, age || null, member_code]
                 );
 
                 userResult = { rows: [insertResult.rows[0]] };
@@ -124,7 +134,7 @@ async function login(req, res) {
                 await pool.query(
                     `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
                      VALUES ('register.patient.auto', $1, 'users', $2, $3)`,
-                    [phone, insertResult.rows[0].id, JSON.stringify({ member_code, source: 'login_auto' })]
+                    [normalizedPhone, insertResult.rows[0].id, JSON.stringify({ member_code, source: 'login_auto' })]
                 ).catch(() => {});
 
             } else {
@@ -169,7 +179,7 @@ async function login(req, res) {
             message: "Connexion réussie",
             token,
             role: user.role,
-            phone: user.phone,
+            phone: normalizedPhone,
             redirectUrl
         });
 
@@ -188,9 +198,12 @@ async function registerPatient(req, res) {
     if (!phone || !first_name || !last_name) {
         return res.status(400).json({ success: false, message: "Prénom, nom et téléphone sont obligatoires." });
     }
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
 
     try {
-        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [phone]);
+        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
         if (existing.rows.length > 0) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
         }
@@ -212,7 +225,7 @@ async function registerPatient(req, res) {
                 $9, $10, NOW(),
                 true, 80, NOW()
              ) RETURNING id, phone, role, full_name, member_code`,
-            [phone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, member_code, cgu_accepted || false]
+            [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, member_code, cgu_accepted || false]
         );
 
         const user = insertResult.rows[0];
@@ -220,10 +233,10 @@ async function registerPatient(req, res) {
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3)`,
-            [phone, user.id, JSON.stringify({ member_code })]
+            [normalizedPhone, user.id, JSON.stringify({ member_code })]
         ).catch(() => {});
 
-        return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: user.phone, role: user.role, member_code: user.member_code });
+        return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: normalizedPhone, role: user.role, member_code: user.member_code });
     } catch (err) {
         console.error('[registerPatient]', err.message);
         return res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
@@ -244,9 +257,12 @@ async function registerDoctor(req, res) {
     if (!phone || !full_name || !specialty || !registration_number) {
         return res.status(400).json({ success: false, message: "Téléphone, nom, spécialité et numéro d'ordre sont obligatoires." });
     }
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
 
     try {
-        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [phone]);
+        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
         if (existing.rows.length > 0) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
         }
@@ -274,7 +290,7 @@ async function registerDoctor(req, res) {
                 $16, NOW()
              ) RETURNING id, phone, role, full_name, member_code`,
             [
-                phone, full_name, first_name || null, last_name || null,
+                normalizedPhone, full_name, first_name || null, last_name || null,
                 specialty, registration_number, order_country || 'Congo-Brazzaville',
                 country_of_residence || 'Congo-Brazzaville', consultation_languages || 'Français',
                 is_international || false, city || null, document_url || null,
@@ -287,13 +303,13 @@ async function registerDoctor(req, res) {
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.doctor', $1, 'users', $2, $3)`,
-            [phone, user.id, JSON.stringify({ member_code, is_active, score })]
+            [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
         ).catch(() => {});
 
         return res.status(201).json({
             success: true,
             message: is_active ? "Compte médecin activé" : "Compte créé — en attente de validation par l'équipe Bolamu",
-            token, phone: user.phone, role: user.role, member_code: user.member_code, is_active
+            token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
         console.error('[registerDoctor]', err.message);
@@ -310,9 +326,12 @@ async function registerPharmacie(req, res) {
     if (!phone || !name || !responsible_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom de la pharmacie et responsable sont obligatoires." });
     }
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
 
     try {
-        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [phone]);
+        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
         if (existing.rows.length > 0) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
         }
@@ -335,7 +354,7 @@ async function registerPharmacie(req, res) {
                 $8, $9, $10, NOW(),
                 $11, NOW()
              ) RETURNING id, phone, role, full_name, member_code`,
-            [phone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
+            [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
         );
 
         const user = insertResult.rows[0];
@@ -343,13 +362,13 @@ async function registerPharmacie(req, res) {
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.pharmacie', $1, 'users', $2, $3)`,
-            [phone, user.id, JSON.stringify({ member_code, is_active, score })]
+            [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
         ).catch(() => {});
 
         return res.status(201).json({
             success: true,
             message: is_active ? "Compte pharmacie activé" : "Compte créé — en attente de validation par l'équipe Bolamu",
-            token, phone: user.phone, role: user.role, member_code: user.member_code, is_active
+            token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
         console.error('[registerPharmacie]', err.message);
@@ -366,9 +385,12 @@ async function registerLaboratoire(req, res) {
     if (!phone || !name || !director_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom du laboratoire et directeur sont obligatoires." });
     }
+    
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhoneNumber(phone);
 
     try {
-        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [phone]);
+        const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
         if (existing.rows.length > 0) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
         }
@@ -391,7 +413,7 @@ async function registerLaboratoire(req, res) {
                 $8, $9, $10, NOW(),
                 $11, NOW()
              ) RETURNING id, phone, role, full_name, member_code`,
-            [phone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
+            [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
         );
 
         const user = insertResult.rows[0];
@@ -399,13 +421,13 @@ async function registerLaboratoire(req, res) {
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.laboratoire', $1, 'users', $2, $3)`,
-            [phone, user.id, JSON.stringify({ member_code, is_active, score })]
+            [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
         ).catch(() => {});
 
         return res.status(201).json({
             success: true,
             message: is_active ? "Compte laboratoire activé" : "Compte créé — en attente de validation par l'équipe Bolamu",
-            token, phone: user.phone, role: user.role, member_code: user.member_code, is_active
+            token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
         console.error('[registerLaboratoire]', err.message);
