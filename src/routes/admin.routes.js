@@ -27,14 +27,14 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
             bannedUsers, activeSubscriptions
         ] = await Promise.all([
             pool.query(`SELECT COUNT(*) FROM users WHERE role = 'patient'`),
-            pool.query(`SELECT COUNT(*) FROM doctors WHERE is_active = TRUE AND status = 'verified'`),
-            pool.query(`SELECT COUNT(*) FROM pharmacies WHERE is_active = TRUE AND status = 'verified'`),
-            pool.query(`SELECT COUNT(*) FROM laboratories WHERE is_active = TRUE AND status = 'verified'`),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'doctor' AND is_active = TRUE`),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'pharmacie' AND is_active = TRUE`),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'laboratoire' AND is_active = TRUE`),
             pool.query(`SELECT COUNT(*) FROM appointments`),
             pool.query(`SELECT COUNT(*) FROM prescriptions`),
-            pool.query(`SELECT COUNT(*) FROM doctors WHERE status = 'pending'`),
-            pool.query(`SELECT COUNT(*) FROM pharmacies WHERE status = 'pending'`),
-            pool.query(`SELECT COUNT(*) FROM laboratories WHERE status = 'pending'`),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'doctor' AND is_active = FALSE`),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'pharmacie' AND is_active = FALSE`),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'laboratoire' AND is_active = FALSE`),
             pool.query(`SELECT COUNT(*) FROM fraud_signals WHERE severity = 'high'`),
             pool.query(`SELECT COUNT(*) FROM fraud_signals`),
             pool.query(`SELECT COALESCE(SUM(amount_fcfa),0) as total FROM payments WHERE status='success' AND created_at >= CURRENT_DATE`),
@@ -118,24 +118,16 @@ router.get('/stats/appointments', authMiddleware, adminOnly, async (req, res) =>
 // ─── COMPTES EN ATTENTE ───────────────────────────────────────────────────────
 router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
     try {
-        const doctors = await pool.query(
-            `SELECT id, 'doctor' as type, full_name as name, phone, specialty as detail,
-                    city, trust_score, document_url, status, created_at
-             FROM doctors WHERE status = 'pending' ORDER BY created_at DESC`
+        const result = await pool.query(
+            `SELECT phone, role, full_name, first_name, last_name, 
+                    rccm_number, agrement_number, registration_number,
+                    created_at, is_active
+             FROM users 
+             WHERE is_active = false 
+             AND role IN ('doctor', 'pharmacie', 'laboratoire')
+             ORDER BY created_at DESC`
         );
-        const pharmacies = await pool.query(
-            `SELECT id, 'pharmacie' as type, name, phone, rccm_number as detail,
-                    city, trust_score, document_url, status, created_at
-             FROM pharmacies WHERE status = 'pending' ORDER BY created_at DESC`
-        );
-        const labs = await pool.query(
-            `SELECT id, 'laboratoire' as type, name as business_name, phone, rccm_number as detail,
-                    city, trust_score, document_url, status, created_at
-             FROM laboratories WHERE status = 'pending' ORDER BY created_at DESC`
-        );
-        const all = [...doctors.rows, ...pharmacies.rows, ...labs.rows]
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        res.json({ success: true, data: all });
+        res.json({ success: true, data: result.rows });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
@@ -143,21 +135,18 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── VALIDER / REJETER ────────────────────────────────────────────────────────
 router.patch('/validate', authMiddleware, adminOnly, async (req, res) => {
-    const { id, type, action, reason } = req.body;
-    if (!id || !type || !['approve', 'reject'].includes(action)) {
+    const { phone, action, reason } = req.body;
+    if (!phone || !['approve', 'reject'].includes(action)) {
         return res.status(400).json({ success: false, message: 'Paramètres invalides.' });
     }
-    const newStatus = action === 'approve' ? 'verified' : 'rejected';
-    const table = type === 'doctor' ? 'doctors' : type === 'pharmacie' ? 'pharmacies' : 'laboratories';
     try {
         const result = await pool.query(
-            `UPDATE ${table} SET status = $1, is_active = $2 WHERE id = $3 RETURNING *`,
-            [newStatus, action === 'approve', id]
+            `UPDATE users SET is_active = $1 WHERE phone = $2 RETURNING phone, role, full_name, first_name, last_name, rccm_number, agrement_number, registration_number, created_at, is_active`,
+            [action === 'approve', phone]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
         const row = result.rows[0];
-        const phone = row.phone;
-        const name = row.full_name || row.name;
+        const name = row.full_name || `${row.first_name || ''} ${row.last_name || ''}`.trim();
         try {
             const msg = action === 'approve'
                 ? `Bolamu : Félicitations ${name} ! Votre dossier a été validé. Connectez-vous sur bolamu-backend.onrender.com`
@@ -165,47 +154,32 @@ router.patch('/validate', authMiddleware, adminOnly, async (req, res) => {
             await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', $2, $3, $4)`,
-            [`${type}.${newStatus}`, table, parseInt(id), JSON.stringify({ reason: reason || null })]
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            [`${row.role}.${action === 'approve' ? 'verified' : 'rejected'}`, phone, JSON.stringify({ reason: reason || null })]
         ).catch(() => {});
-        res.json({ success: true, message: `Compte ${newStatus === 'verified' ? 'validé ✅' : 'rejeté ❌'}.`, status: newStatus });
+        res.json({ success: true, message: `Compte ${action === 'approve' ? 'validé ✅' : 'rejeté ❌'}.` });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
 });
 
-// ─── CHANGER STATUT MÉDECIN/PHARMACIE/LABO ────────────────────────────────────
-router.patch('/doctors/:id/status', authMiddleware, adminOnly, async (req, res) => {
-    const { id } = req.params;
+// ─── CHANGER STATUT UTILISATEUR ─────────────────────────────────────────────
+router.patch('/users/:phone/status', authMiddleware, adminOnly, async (req, res) => {
+    const { phone } = req.params;
     const { status, reason } = req.body;
     if (!['verified','rejected','suspended','pending'].includes(status)) {
         return res.status(400).json({ success: false, message: 'Statut invalide.' });
     }
     try {
-        const result = await pool.query(`UPDATE doctors SET status=$1, is_active=$2 WHERE id=$3 RETURNING *`, [status, status==='verified', id]);
+        const result = await pool.query(
+            `UPDATE users SET is_active=$1 WHERE phone=$2 RETURNING phone, role, full_name, first_name, last_name, rccm_number, agrement_number, registration_number, created_at, is_active`,
+            [status==='verified' || status==='pending', phone]
+        );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Introuvable.' });
-        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1,'admin','doctors',$2,$3)`,
-            [`doctor.${status}`, parseInt(id), JSON.stringify({ reason })]).catch(() => {});
-        res.json({ success: true, data: result.rows[0] });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
-});
-
-router.patch('/pharmacies/:id/status', authMiddleware, adminOnly, async (req, res) => {
-    const { id } = req.params;
-    const { status, reason } = req.body;
-    try {
-        const result = await pool.query(`UPDATE pharmacies SET status=$1, is_active=$2 WHERE id=$3 RETURNING *`, [status, status==='verified', id]);
-        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Introuvable.' });
-        res.json({ success: true, data: result.rows[0] });
-    } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
-});
-
-router.patch('/laboratories/:id/status', authMiddleware, adminOnly, async (req, res) => {
-    const { id } = req.params;
-    const { status, reason } = req.body;
-    try {
-        const result = await pool.query(`UPDATE laboratories SET status=$1, is_active=$2 WHERE id=$3 RETURNING *`, [status, status==='verified', id]);
-        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Introuvable.' });
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            [`${result.rows[0].role}.${status}`, phone, JSON.stringify({ reason })]
+        ).catch(() => {});
         res.json({ success: true, data: result.rows[0] });
     } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
 });
@@ -355,9 +329,6 @@ router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) 
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
         const u = result.rows[0];
-        await pool.query(`UPDATE doctors SET is_active=TRUE, status='verified' WHERE phone=$1 AND status='suspended'`, [phone]).catch(() => {});
-        await pool.query(`UPDATE pharmacies SET is_active=TRUE, status='verified' WHERE phone=$1 AND status='suspended'`, [phone]).catch(() => {});
-        await pool.query(`UPDATE laboratories SET is_active=TRUE, status='verified' WHERE phone=$1 AND status='suspended'`, [phone]).catch(() => {});
         try { await sendBolamuSms(phone, `Bolamu : Votre compte a été réactivé. Vous pouvez vous reconnecter sur bolamu-backend.onrender.com`); } catch(e) {}
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.unbanned','admin','users',$1,$2)`,
             [u.id, JSON.stringify({ role: u.role })]).catch(() => {});
