@@ -101,7 +101,7 @@
 <script>
   /* ── Vérification session existante ── */
   (async function checkExistingSession() {
-    const t = localStorage.getItem('bolamu_token');
+    const t = localStorage.getItem('bolamu_admin_token');
     const r = localStorage.getItem('bolamu_role');
     if (!t) return;
     if (r !== 'admin' && r !== 'content_admin') return;
@@ -165,8 +165,8 @@
 
       if (res.ok && data.success) {
         /* Stockage du token et du rôle */
-        localStorage.setItem('bolamu_token', data.token);
-        localStorage.setItem('bolamu_phone', data.phone);
+        localStorage.setItem('bolamu_admin_token', data.token);
+        localStorage.setItem('bolamu_admin_phone', data.phone);
         localStorage.setItem('bolamu_role',  data.role);
 
         /* Affichage de l'indicateur de rôle */
