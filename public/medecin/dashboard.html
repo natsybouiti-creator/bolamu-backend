@@ -391,6 +391,19 @@ async function loadProfil(){
     document.getElementById('d-statut').innerHTML=statutHtml;
     const banner = document.getElementById('bandeau-attente');
 if (banner) banner.style.display = d.is_active ? 'none' : 'block';
+
+// Message éphémère de validation
+if (d.is_active && d.validated_at) {
+  const diffH = (Date.now() - new Date(d.validated_at)) / 3600000;
+  if (diffH < 48) {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:20px;right:20px;background:#00C9A7;color:#fff;padding:14px 20px;border-radius:10px;font-weight:500;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15)';
+    t.textContent = '✓ Votre compte a été validé par l\'équipe Bolamu. Bienvenue !';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 6000);
+  }
+}
+
     if(d.available_hours)renderHoraires(d.available_hours);
   }catch(e){document.getElementById('mc-name').textContent='Dr. Médecin';document.getElementById('mc-code').textContent=generateMedCode(phone);}
 }

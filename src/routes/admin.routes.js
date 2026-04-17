@@ -433,6 +433,8 @@ router.patch('/pros/:type/:id/abonnement', authMiddleware, adminOnly, async (req
 // ─── TOUS LES MÉDECINS ────────────────────────────────────────────────────────
 router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
     const { status } = req.query;
+    const limit  = Math.min(parseInt(req.query.limit)  || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         let whereClause = "WHERE role = 'doctor'";
         let params = [];
@@ -450,8 +452,9 @@ router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
                     created_at, is_active, credits_balance
              FROM users 
              ${whereClause} 
-             ORDER BY created_at DESC`,
-            params
+             ORDER BY created_at DESC
+             LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+            [...params, limit, offset]
         );
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
@@ -460,6 +463,8 @@ router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
 // ─── TOUTES LES PHARMACIES ────────────────────────────────────────────────────
 router.get('/pharmacies', authMiddleware, adminOnly, async (req, res) => {
     const { status } = req.query;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         let whereClause = "WHERE role = 'pharmacie'";
         let params = [];
@@ -477,8 +482,9 @@ router.get('/pharmacies', authMiddleware, adminOnly, async (req, res) => {
                     created_at, is_active, credits_balance
              FROM users 
              ${whereClause} 
-             ORDER BY created_at DESC`,
-            params
+             ORDER BY created_at DESC
+             LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+            [...params, limit, offset]
         );
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
@@ -487,6 +493,8 @@ router.get('/pharmacies', authMiddleware, adminOnly, async (req, res) => {
 // ─── TOUS LES LABORATOIRES ────────────────────────────────────────────────────
 router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
     const { status } = req.query;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         let whereClause = "WHERE role = 'laboratoire'";
         let params = [];
@@ -504,8 +512,9 @@ router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
                     created_at, is_active, credits_balance
              FROM users 
              ${whereClause} 
-             ORDER BY created_at DESC`,
-            params
+             ORDER BY created_at DESC
+             LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+            [...params, limit, offset]
         );
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }

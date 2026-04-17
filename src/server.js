@@ -123,18 +123,55 @@ app.use((err, req, res, next) => {
 // ============================================================
 // 8. LANCEMENT SERVEUR
 // ============================================================
-// Render utilise souvent le port 10000 par dÃ©faut, 
-// mais il faut impÃ©rativement utiliser process.env.PORT
+// Render utilise souvent le port 10000 par défaut, 
+// mais il faut impérativement utiliser process.env.PORT
 const PORT = process.env.PORT || 3005;
 
-const server = app.listen(PORT, '0.0.0.0', () => {
+// ============================================================
+// 8. INDEX DE PERFORMANCE
+// ============================================================
+const createIndexes = async () => {
+    try {
+        await Promise.all([
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_users_role_active   ON users(role, is_active)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_users_phone_active  ON users(phone, is_active)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_users_created_at    ON users(created_at DESC)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_appointments_phone  ON appointments(patient_phone, doctor_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_appointments_date   ON appointments(appointment_date DESC)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_prescriptions_phone ON prescriptions(patient_phone, doctor_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_type      ON audit_log(event_type, created_at DESC)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_fraud_score         ON fraud_signals(fraud_score DESC, severity)`),
+        ]);
+        console.log('[INDEX] Tous les index de performance créés avec succès');
+    } catch (e) {
+        console.warn('[INDEX] Avertissement:', e.message);
+    }
+};
+
+const addValidatedAtColumn = async () => {
+    try {
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS validated_at TIMESTAMPTZ`);
+        console.log('[SCHEMA] Colonne validated_at ajoutée avec succès');
+    } catch (e) {
+        console.warn('[SCHEMA] Avertissement validated_at:', e.message);
+    }
+};
+
+const initializeApp = async () => {
+    await createIndexes();
+    await addValidatedAtColumn();
+};
+
+const server = app.listen(PORT, '0.0.0.0', async () => {
     console.log(`âœ… Bolamu server running on port ${PORT}`);
+    await initializeApp();
 });
 
 // Gestion du timeout pour Render
 server.keepAliveTimeout = 120 * 1000; 
 server.headersTimeout = 125 * 1000;
 
+// Test de connexion DB après le lancement du serveur
 // Test de connexion DB aprÃ¨s le lancement du serveur
 async function checkDB() {
     try {
