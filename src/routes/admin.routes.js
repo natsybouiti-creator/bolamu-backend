@@ -7,6 +7,7 @@ const pool = require('../config/db');
 const authMiddleware = require('../../middleware/auth.middleware');
 const { sendBolamuSms } = require('../services/sms.service');
 const { ok, err } = require('../utils/apiResponse');
+const { ROLES, PRO_ROLES } = require('../utils/constants');
 
 function adminOnly(req, res, next) {
     if (req.user?.role !== 'admin') {
@@ -33,9 +34,9 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
             pool.query(`SELECT COUNT(*) FROM users WHERE role = 'laboratoire' AND is_active = TRUE`),
             pool.query(`SELECT COUNT(*) FROM appointments`),
             pool.query(`SELECT COUNT(*) FROM prescriptions`),
-            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'doctor' AND is_active = FALSE`),
-            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'pharmacie' AND is_active = FALSE`),
-            pool.query(`SELECT COUNT(*) FROM users WHERE role = 'laboratoire' AND is_active = FALSE`),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = FALSE`, [ROLES.DOCTOR]),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = FALSE`, [ROLES.PHARMACIE]),
+            pool.query(`SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = FALSE`, [ROLES.LABORATOIRE]),
             pool.query(`SELECT COUNT(*) FROM fraud_signals WHERE severity = 'high'`),
             pool.query(`SELECT COUNT(*) FROM fraud_signals`),
             pool.query(`SELECT COALESCE(SUM(amount_fcfa),0) as total FROM payments WHERE status='success' AND created_at >= CURRENT_DATE`),
@@ -48,16 +49,17 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
             pool.query(`SELECT COUNT(*) FROM users WHERE role='patient' AND is_active = TRUE`)
         ]);
 
-        // DEBUG LOGS
-        console.log('[DEBUG] patients count:', patients.rows[0]?.count);
-        console.log('[DEBUG] doctors count:', doctors.rows[0]?.count);
-        console.log('[DEBUG] pharmacies count:', pharmacies.rows[0]?.count);
-        console.log('[DEBUG] laboratories count:', laboratories.rows[0]?.count);
-        console.log('[DEBUG] pendingDoctors count:', pendingDoctors.rows[0]?.count);
-        console.log('[DEBUG] pendingPharmacies count:', pendingPharmacies.rows[0]?.count);
-        console.log('[DEBUG] pendingLabs count:', pendingLabs.rows[0]?.count);
-        console.log('[DEBUG] revenueToday total:', revenueToday.rows[0]?.total);
-        console.log('[DEBUG] revenueMonth total:', revenueMonth.rows[0]?.total);
+        // Logger conditionnel (uniquement en développement)
+        const log = process.env.NODE_ENV !== 'production' ? console.log : () => {};
+        log('[DEBUG] patients count:', patients.rows[0]?.count);
+        log('[DEBUG] doctors count:', doctors.rows[0]?.count);
+        log('[DEBUG] pharmacies count:', pharmacies.rows[0]?.count);
+        log('[DEBUG] laboratories count:', laboratories.rows[0]?.count);
+        log('[DEBUG] pendingDoctors count:', pendingDoctors.rows[0]?.count);
+        log('[DEBUG] pendingPharmacies count:', pendingPharmacies.rows[0]?.count);
+        log('[DEBUG] pendingLabs count:', pendingLabs.rows[0]?.count);
+        log('[DEBUG] revenueToday total:', revenueToday.rows[0]?.total);
+        log('[DEBUG] revenueMonth total:', revenueMonth.rows[0]?.total);
 
         res.json({
             success: true,
@@ -126,8 +128,9 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
                     created_at, is_active
              FROM users 
              WHERE is_active = false 
-             AND role IN ('doctor', 'pharmacie', 'laboratoire')
-             ORDER BY created_at DESC`
+             AND role = ANY($1::text[])
+             ORDER BY created_at DESC`,
+            [PRO_ROLES]
         );
         ok(res, result.rows);
     } catch (err) {
