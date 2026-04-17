@@ -243,6 +243,10 @@ tr:hover td{background:rgba(255,255,255,.018);}
 .feed-txt{font-size:11px;font-weight:500;margin-bottom:2px;line-height:1.5;}
 .feed-time{font-size:9px;color:var(--muted);}
 
+/* DOCUMENTS */
+.doc-link{display:inline-block;padding:2px 6px;background:var(--accent);color:white;font-size:10px;border-radius:4px;text-decoration:none;margin-right:4px;}
+.doc-link:hover{background:var(--violet);color:white;}
+
 /* SECTION HDR */
 .section-hd{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
 .section-hd h2{font-weight:700;font-size:15px;letter-spacing:-0.3px;}
@@ -692,13 +696,21 @@ async function loadActivity(){
 /* -----------------------------------
    PENDING
 ----------------------------------- */
+function getDocumentsHtml(u){
+  const docs = [];
+  if(u.document_url) docs.push(`<a href="${u.document_url}" target="_blank" class="doc-link">Document</a>`);
+  if(u.rccm_url) docs.push(`<a href="${u.rccm_url}" target="_blank" class="doc-link">RCCM</a>`);
+  if(u.agrement_url) docs.push(`<a href="${u.agrement_url}" target="_blank" class="doc-link">Agrément</a>`);
+  if(u.registration_url) docs.push(`<a href="${u.registration_url}" target="_blank" class="doc-link">Registre</a>`);
+  return docs.length ? docs.join(' ') : '<span style="color:var(--muted)">Aucun</span>';
+}
 async function loadPending(){
   const el=document.getElementById('pending-list');
   try{
     const res=await api('/admin/pending');const rows=res.data||[];
     const cnt=document.getElementById('pending-count');if(cnt)cnt.textContent=rows.length+' dossiers';
     if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-ico">!</div><p>Aucun dossier En attente</p></div>';return;}
-    el.innerHTML=`<table id="pending-tbl"><thead><tr><th>Téléphone</th><th>Rôle</th><th>Nom</th><th>Inscrit le</th><th>Actions</th></tr></thead><tbody>${rows.map(u=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${u.phone}</td><td>${badge(u.role)}</td><td style="font-weight:500">${u.full_name||u.business_name||''}</td><td style="color:var(--muted)">${fs(u.created_at)}</td><td class="acts"><button class="ab ab-green" onclick="validateUser('${u.phone}')">? Valider</button><button class="ab ab-blue" onclick="viewUser('${u.phone}')">?? Profil</button><button class="ab ab-red" onclick="rejectUser('${u.phone}')">? Rejeter</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="pending-tbl"><thead><tr><th>Téléphone</th><th>Rôle</th><th>Nom</th><th>Inscrit le</th><th>Documents</th><th>Actions</th></tr></thead><tbody>${rows.map(u=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${u.phone}</td><td>${badge(u.role)}</td><td style="font-weight:500">${u.full_name||u.business_name||''}</td><td style="color:var(--muted)">${fs(u.created_at)}</td><td style="font-size:12px;">${getDocumentsHtml(u)}</td><td class="acts"><button class="ab ab-green" onclick="validateUser('${u.phone}')">Valider</button><button class="ab ab-blue" onclick="viewUser('${u.phone}')">Profil</button><button class="ab ab-red" onclick="rejectUser('${u.phone}')">Rejeter</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 

@@ -332,7 +332,7 @@ async function loadProfil() {
     const name = d.name || 'Laboratoire Partenaire';
     const city = d.city || 'Brazzaville';
     const code = d.member_code || generateCode(phone);
-    const statut = d.status || 'pending';
+    const statut = d.is_active ? 'verified' : 'pending';
     const neighborhood = d.neighborhood || '';
 
     document.getElementById('mc-name').textContent = name;
@@ -359,8 +359,29 @@ async function loadProfil() {
     document.getElementById('d-statut').innerHTML = statutHtml;
     document.getElementById('s-statut').innerHTML = statutHtml;
 
-    if (statut !== 'verified') {
+    // Message éphémère de validation
+    if (d.is_active && d.validated_at) {
+      const validatedDate = new Date(d.validated_at);
+      const now = new Date();
+      const hoursSinceValidation = (now - validatedDate) / (1000 * 60 * 60);
+      
+      if (hoursSinceValidation <= 24) {
+        // Afficher le message de validation pendant 24h
+        document.getElementById('bandeau-attente').innerHTML = '✅ <div><strong>Votre compte a été validé par l\'équipe Bolamu !</strong> Bienvenue sur la plateforme.</div>';
+        document.getElementById('bandeau-attente').style.display = 'flex';
+        document.getElementById('bandeau-attente').style.background = 'linear-gradient(135deg, #00C9A7, #E6FBF7)';
+        document.getElementById('bandeau-attente').style.color = 'white';
+        
+        // Masquer après 10 secondes
+        setTimeout(() => {
+          document.getElementById('bandeau-attente').style.display = 'none';
+        }, 10000);
+      }
+    } else if (!d.is_active) {
+      document.getElementById('bandeau-attente').innerHTML = '⏳ <div><strong>Compte en cours de vérification</strong> — Votre inscription est en cours de validation par l\'équipe Bolamu. Vous recevrez un SMS sous 24h.</div>';
       document.getElementById('bandeau-attente').style.display = 'flex';
+      document.getElementById('bandeau-attente').style.background = '';
+      document.getElementById('bandeau-attente').style.color = '';
     }
   } catch(e) {
     const code = generateCode(phone);

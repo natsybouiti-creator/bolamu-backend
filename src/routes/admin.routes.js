@@ -121,6 +121,7 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
         const result = await pool.query(
             `SELECT phone, role, full_name, first_name, last_name, 
                     rccm_number, agrement_number, registration_number,
+                    document_url, rccm_url, agrement_url, registration_url,
                     created_at, is_active
              FROM users 
              WHERE is_active = false 
@@ -171,8 +172,8 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
     }
     try {
         const result = await pool.query(
-            `UPDATE users SET is_active = $1 WHERE phone = $2 RETURNING phone, role, full_name, first_name, last_name, rccm_number, agrement_number, registration_number, created_at, is_active`,
-            [true, phone]
+            `UPDATE users SET is_active = $1, validated_at = $2 WHERE phone = $3 RETURNING phone, role, full_name, first_name, last_name, rccm_number, agrement_number, registration_number, created_at, is_active, validated_at`,
+            [true, 'NOW()', phone]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
         const row = result.rows[0];
@@ -435,10 +436,11 @@ router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
         let whereClause = "WHERE role = 'doctor'";
         let params = [];
         
-        if (status === 'verified' || status === 'active') {
-            whereClause += " AND is_active = true";
-        } else if (status === 'pending' || status === 'inactive') {
+        if (status === 'pending' || status === 'inactive') {
             whereClause += " AND is_active = false";
+        } else {
+            // Par défaut : afficher uniquement les comptes validés/actifs
+            whereClause += " AND is_active = true";
         }
         
         const result = await pool.query(
@@ -461,10 +463,11 @@ router.get('/pharmacies', authMiddleware, adminOnly, async (req, res) => {
         let whereClause = "WHERE role = 'pharmacie'";
         let params = [];
         
-        if (status === 'verified' || status === 'active') {
-            whereClause += " AND is_active = true";
-        } else if (status === 'pending' || status === 'inactive') {
+        if (status === 'pending' || status === 'inactive') {
             whereClause += " AND is_active = false";
+        } else {
+            // Par défaut : afficher uniquement les comptes validés/actifs
+            whereClause += " AND is_active = true";
         }
         
         const result = await pool.query(
@@ -487,10 +490,11 @@ router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
         let whereClause = "WHERE role = 'laboratoire'";
         let params = [];
         
-        if (status === 'verified' || status === 'active') {
-            whereClause += " AND is_active = true";
-        } else if (status === 'pending' || status === 'inactive') {
+        if (status === 'pending' || status === 'inactive') {
             whereClause += " AND is_active = false";
+        } else {
+            // Par défaut : afficher uniquement les comptes validés/actifs
+            whereClause += " AND is_active = true";
         }
         
         const result = await pool.query(
