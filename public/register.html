@@ -18,7 +18,8 @@
 
     /* ── TOPBAR ── */
     .topbar{padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);box-shadow:0 2px 20px rgba(10,36,99,0.06);}
-    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}    .logo-name{font-size:20px;font-weight:800;letter-spacing:-0.5px;color:var(--bleu);}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-name{font-size:20px;font-weight:800;letter-spacing:-0.5px;color:var(--bleu);}
     .logo-name .t{color:var(--vert);}
     .topbar-link{font-size:14px;color:var(--texte-doux);text-decoration:none;font-weight:600;white-space:nowrap;}
 
@@ -162,14 +163,15 @@
 const API = 'https://bolamu-backend.onrender.com/api/v1';
 
 const state = {
-  step:1,role:'',phone:'',fullPhone:'',countryCode:'+242',isInternational:false,
-  firstName:'',lastName:'',gender:'',age:'',city:'',neighborhood:'',
-  fullName:'',specialty:'',registrationNumber:'',orderCountry:'Congo-Brazzaville',
-  countryOfResidence:'Congo-Brazzaville',consultationLanguages:['Français'],
-  availableHours:{},documentUrl:'',
-  pharmacyName:'',responsibleName:'',rccmNumber:'',
-  labName:'',directorName:'',agrementNumber:'',
-  trustScore:30,cguAccepted:false
+  step:1, role:'', phone:'', fullPhone:'', countryCode:'+242', isInternational:false,
+  otpCode:'',  // ← OTP sauvegardé localement, envoyé avec le register
+  firstName:'', lastName:'', gender:'', age:'', city:'', neighborhood:'',
+  fullName:'', specialty:'', registrationNumber:'', orderCountry:'Congo-Brazzaville',
+  countryOfResidence:'Congo-Brazzaville', consultationLanguages:['Français'],
+  availableHours:{}, documentUrl:'',
+  pharmacyName:'', responsibleName:'', rccmNumber:'',
+  labName:'', directorName:'', agrementNumber:'',
+  trustScore:30, cguAccepted:false
 };
 
 const COUNTRIES=[
@@ -437,7 +439,7 @@ function renderStep3(){
     </div>`:''}
     <div style="display:flex;gap:10px;">
       <button class="btn-secondary" onclick="renderStep2()" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" onclick="verifyOTPAndNext()" style="flex:1;margin-top:0;" id="btn-verify">Vérifier →</button>
+      <button class="btn-primary" onclick="saveOTPAndNext()" style="flex:1;margin-top:0;" id="btn-verify">Vérifier →</button>
     </div>`;
 
   setTimeout(()=>document.getElementById('otp1')?.focus(),100);
@@ -482,19 +484,15 @@ async function uploadDoc(input){
   }catch(e){icon.textContent='❌';text.textContent='Erreur upload. Réessayez.';}
 }
 
-async function verifyOTPAndNext(){
+// ── CORRECTION PRINCIPALE : on sauvegarde l'OTP localement sans appeler /verify-otp
+// L'OTP sera envoyé directement avec /register pour éviter le double appel qui le supprime
+function saveOTPAndNext(){
   const code=[1,2,3,4,5,6].map(i=>document.getElementById('otp'+i)?.value||'').join('');
   if(code.length<6)return showAlert('Entrez les 6 chiffres du code.');
   if(state.role==='doctor'&&!state.specialty)return showAlert('Choisissez votre spécialité.');
   if(state.role==='doctor'&&!state.registrationNumber)return showAlert('Le numéro d\'ordre est obligatoire.');
-  const btn=document.getElementById('btn-verify');
-  btn.disabled=true;btn.textContent='Vérification…';
-  try{
-    const res=await fetch(`${API}/auth/verify-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:state.fullPhone,otp:code})});
-    const data=await res.json();
-    if(data.success){renderStep4();}
-    else{showAlert(data.message||'Code incorrect.');btn.disabled=false;btn.textContent='Vérifier →';}
-  }catch(e){showAlert('Erreur de connexion.');btn.disabled=false;btn.textContent='Vérifier →';}
+  state.otpCode = code;  // ← sauvegarde locale, pas d'appel API ici
+  renderStep4();
 }
 
 function renderStep4(){
@@ -518,20 +516,32 @@ function renderStep4(){
     </div>
     <div style="display:flex;gap:10px;">
       <button class="btn-secondary" onclick="renderStep3()" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" onclick="finalRegister()" style="flex:1;margin-top:0;" id="btn-register">✅ Créer mon compte Bolamu</button>
+      <button class="btn-primary" onclick="finalRegister()" style="flex:1;margin-top:0;" id="btn-register">Créer mon compte Bolamu</button>
     </div>`;
 }
 
 async function finalRegister(){
   if(!state.cguAccepted)return showAlert('Veuillez accepter les CGU pour continuer.');
+  if(!state.otpCode||state.otpCode.length<6)return showAlert('Code OTP manquant. Veuillez recommencer.');
   const btn=document.getElementById('btn-register');
   btn.disabled=true;btn.textContent='Création en cours…';
   try{
-    let payload={phone:state.fullPhone,role:state.role,cgu_accepted:true,trust_score:state.trustScore,document_url:state.documentUrl||null,city:state.city||null,neighborhood:state.neighborhood||null};
+    // ← L'OTP est inclus dans le payload pour que le backend vérifie ET crée en une seule opération
+    let payload={
+      phone:state.fullPhone,
+      otp:state.otpCode,
+      role:state.role,
+      cgu_accepted:true,
+      trust_score:state.trustScore,
+      document_url:state.documentUrl||null,
+      city:state.city||null,
+      neighborhood:state.neighborhood||null
+    };
     if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);}
     else if(state.role==='doctor'){payload.full_name=`Dr. ${state.firstName} ${state.lastName}`.trim();payload.specialty=state.specialty;payload.registration_number=state.registrationNumber;payload.order_country=state.orderCountry;payload.country_of_residence=state.countryOfResidence;payload.consultation_languages=state.consultationLanguages.join(', ');payload.is_international=state.isInternational;}
     else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;}
     else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;}
+
     const endpoint={patient:'/auth/register/patient',doctor:'/auth/register/doctor',pharmacie:'/auth/register/pharmacie',laboratoire:'/auth/register/laboratoire'}[state.role];
     const res=await fetch(`${API}${endpoint}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json();
@@ -542,8 +552,8 @@ async function finalRegister(){
       const redirects={patient:'/patient/dashboard.html',doctor:'/medecin/dashboard.html',pharmacie:'/pharmacie/dashboard.html',laboratoire:'/laboratoire/dashboard.html'};
       showAlert('Compte créé avec succès ! Redirection…','success');
       setTimeout(()=>{window.location.href=redirects[state.role];},1500);
-    }else{showAlert(data.message||'Erreur lors de la création du compte.');btn.disabled=false;btn.textContent='✅ Créer mon compte Bolamu';}
-  }catch(e){showAlert('Erreur de connexion au serveur.');btn.disabled=false;btn.textContent='✅ Créer mon compte Bolamu';}
+    }else{showAlert(data.message||'Erreur lors de la création du compte.');btn.disabled=false;btn.textContent='Créer mon compte Bolamu';}
+  }catch(e){showAlert('Erreur de connexion au serveur.');btn.disabled=false;btn.textContent='Créer mon compte Bolamu';}
 }
 
 renderStep1();
