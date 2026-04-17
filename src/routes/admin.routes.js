@@ -491,8 +491,7 @@ router.get('/prescriptions', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── PAIEMENTS ────────────────────────────────────────────────────────────────
 router.get('/payments', authMiddleware, adminOnly, async (req, res) => {
-    const { page = 1 } = req.query;
-    const limit = 100;
+    const { page = 1, limit = 100 } = req.query;
     const offset = (parseInt(page) - 1) * limit;
     try {
         const result = await pool.query(

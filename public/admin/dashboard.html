@@ -301,6 +301,8 @@ tr:hover td{background:rgba(255,255,255,.018);}
     <button class="nav-btn" onclick="go('payments',this)"><span class="ni"></span>Paiements</button>
     <button class="nav-btn" onclick="go('fraud',this)"><span class="ni"></span>Fraudes<span class="nav-badge" id="bdg-fraud">0</span></button>
     <button class="nav-btn" onclick="go('audit',this)"><span class="ni"></span>Journal d'audit</button>
+    <div class="nav-group">Ventes</div>
+    <button class="nav-btn" onclick="go('commands',this)"><span class="ni"></span>Commandes</button>
     <div class="nav-group">Paramètres</div>
     <button class="nav-btn" onclick="go('config',this)"><span class="ni"></span>Configuration</button>
     <button class="nav-btn" onclick="go('credits',this)"><span class="ni"></span>Crédits</button>
@@ -475,6 +477,26 @@ tr:hover td{background:rgba(255,255,255,.018);}
       <div class="cfg-grid" id="cfg-grid"><div class="loading">Chargement...</div></div>
     </div>
 
+    <!-- COMMANDS -->
+    <div class="panel" id="panel-commands">
+      <div class="section-hd"><div><h2>Commandes</h2><p>Gestion des commandes clients</p></div></div>
+      <div class="search-row">
+        <input class="search-inp" type="text" placeholder="?? Rechercher une commande..." oninput="filterTbl('commands-tbl',this.value)">
+        <select class="filter-sel" onchange="loadCommands(this.value)">
+          <option value="">Tous</option>
+          <option value="pending">En attente</option>
+          <option value="confirmed">Confirmées</option>
+          <option value="shipped">Expédiées</option>
+          <option value="delivered">Livrées</option>
+          <option value="cancelled">Annulées</option>
+        </select>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-head"><span class="tbl-title">Commandes</span><span class="tbl-count" id="commands-count"></span></div>
+        <div id="commands-list"><div class="loading">Chargement...</div></div>
+      </div>
+    </div>
+
     <!-- CREDITS -->
     <div class="panel" id="panel-credits">
       <div class="section-hd"><div><h2>Crédits</h2><p>Gestion des crédits utilisateurs</p></div></div>
@@ -562,7 +584,7 @@ function showBannerErr(msg){
 /* -----------------------------------
    NAVIGATION
 ----------------------------------- */
-const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits'};
+const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',commands:'Commandes'};
 
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
@@ -577,7 +599,7 @@ function go(name,btn){
   loadPanel(name);
 }
 function loadPanel(name){
-  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits};
+  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,commands:loadCommands};
   if(m[name])m[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
