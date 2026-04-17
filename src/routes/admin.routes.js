@@ -45,7 +45,7 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
             pool.query(`SELECT COUNT(*) FROM appointments WHERE status = 'termine'`),
             pool.query(`SELECT COUNT(*) FROM users WHERE banned = TRUE`),
             pool.query(`SELECT COUNT(*) FROM users WHERE role='patient' AND is_active = TRUE`)
-        ];
+        ]);
 
         // DEBUG LOGS
         console.log('[DEBUG] patients count:', patients.rows[0]?.count);
