@@ -432,12 +432,23 @@ router.patch('/pros/:type/:id/abonnement', authMiddleware, adminOnly, async (req
 router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
     const { status } = req.query;
     try {
-        const where = status ? `WHERE status = '${status}'` : '';
+        let whereClause = "WHERE role = 'doctor'";
+        let params = [];
+        
+        if (status === 'verified' || status === 'active') {
+            whereClause += " AND is_active = true";
+        } else if (status === 'pending' || status === 'inactive') {
+            whereClause += " AND is_active = false";
+        }
+        
         const result = await pool.query(
-            `SELECT id, full_name, phone, specialty, city, neighborhood, status, trust_score,
-                    member_code, document_url, total_consultations, is_active, momo_number,
-                    registration_number, created_at
-             FROM doctors ${where} ORDER BY created_at DESC`
+            `SELECT phone, role, full_name, first_name, last_name, 
+                    rccm_number, agrement_number, registration_number,
+                    created_at, is_active, credits_balance
+             FROM users 
+             ${whereClause} 
+             ORDER BY created_at DESC`,
+            params
         );
         res.json({ success: true, data: result.rows });
     } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
@@ -447,12 +458,23 @@ router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
 router.get('/pharmacies', authMiddleware, adminOnly, async (req, res) => {
     const { status } = req.query;
     try {
-        const where = status ? `WHERE status = '${status}'` : '';
+        let whereClause = "WHERE role = 'pharmacie'";
+        let params = [];
+        
+        if (status === 'verified' || status === 'active') {
+            whereClause += " AND is_active = true";
+        } else if (status === 'pending' || status === 'inactive') {
+            whereClause += " AND is_active = false";
+        }
+        
         const result = await pool.query(
-            `SELECT id, name, phone, city, rccm_number, responsible_name, status, trust_score,
-                    member_code, document_url, is_active, momo_number, abonnement_actif,
-                    abonnement_fin, created_at
-             FROM pharmacies ${where} ORDER BY created_at DESC`
+            `SELECT phone, role, full_name, first_name, last_name, 
+                    rccm_number, agrement_number, registration_number,
+                    created_at, is_active, credits_balance
+             FROM users 
+             ${whereClause} 
+             ORDER BY created_at DESC`,
+            params
         );
         res.json({ success: true, data: result.rows });
     } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
@@ -462,12 +484,23 @@ router.get('/pharmacies', authMiddleware, adminOnly, async (req, res) => {
 router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
     const { status } = req.query;
     try {
-        const where = status ? `WHERE status = '${status}'` : '';
+        let whereClause = "WHERE role = 'laboratoire'";
+        let params = [];
+        
+        if (status === 'verified' || status === 'active') {
+            whereClause += " AND is_active = true";
+        } else if (status === 'pending' || status === 'inactive') {
+            whereClause += " AND is_active = false";
+        }
+        
         const result = await pool.query(
-            `SELECT id, name as business_name, phone, city, rccm_number, director_name, status, trust_score,
-                    member_code, document_url, is_active, momo_number, abonnement_actif,
-                    abonnement_fin, created_at
-             FROM laboratories ${where} ORDER BY created_at DESC`
+            `SELECT phone, role, full_name, first_name, last_name, 
+                    rccm_number, agrement_number, registration_number,
+                    created_at, is_active, credits_balance
+             FROM users 
+             ${whereClause} 
+             ORDER BY created_at DESC`,
+            params
         );
         res.json({ success: true, data: result.rows });
     } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }

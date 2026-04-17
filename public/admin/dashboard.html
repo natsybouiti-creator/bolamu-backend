@@ -1072,11 +1072,41 @@ function switchProfileTab(name, btn){
 ----------------------------------- */
 async function validateUser(phone){
   if(!confirm(`Valider ${phone} ?`))return;
-  try{const d=await api('/admin/validate-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('? Compte validé'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{
+    const d=await api('/admin/validate-user',{method:'POST',body:JSON.stringify({phone})});
+    if(d.success){
+      toast('Compte validé avec succès ✅');
+      // Rafraîchir toutes les listes pertinentes
+      loadPending(); // Mettre à jour la liste des comptes en attente
+      loadDoctors(); // Mettre à jour la liste des médecins
+      loadPharmacies(); // Mettre à jour la liste des pharmacies
+      loadLabos(); // Mettre à jour la liste des laboratoires
+      loadOverview(); // Mettre à jour les statistiques
+    } else {
+      toast(d.message||'Erreur','err');
+    }
+  }catch(e){
+    toast('Erreur réseau','err');
+  }
 }
 async function rejectUser(phone){
   if(!confirm(`Rejeter ${phone} ?`))return;
-  try{const d=await api('/admin/reject-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('Rejeté'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{
+    const d=await api('/admin/reject-user',{method:'POST',body:JSON.stringify({phone})});
+    if(d.success){
+      toast('Compte rejeté ❌');
+      // Rafraîchir toutes les listes pertinentes
+      loadPending(); // Mettre à jour la liste des comptes en attente
+      loadDoctors(); // Mettre à jour la liste des médecins
+      loadPharmacies(); // Mettre à jour la liste des pharmacies
+      loadLabos(); // Mettre à jour la liste des laboratoires
+      loadOverview(); // Mettre à jour les statistiques
+    } else {
+      toast(d.message||'Erreur','err');
+    }
+  }catch(e){
+    toast('Erreur réseau','err');
+  }
 }
 async function suspendUser(phone){
   if(!confirm(`Suspendre ${phone} ?`))return;
