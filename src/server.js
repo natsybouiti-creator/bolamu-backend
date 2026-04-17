@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const pool = require('./config/db');
@@ -8,9 +8,9 @@ const app = express();
 // ============================================================
 // 1. MIDDLEWARES & CORS CONFIGURATION
 // ============================================================
-// Configuration CORS élargie pour autoriser les requêtes du Dashboard
+// Configuration CORS Ã©largie pour autoriser les requÃªtes du Dashboard
 app.use(cors({
-    origin: '*', // Autorise toutes les sources pour le debug (à restreindre plus tard)
+    origin: '*', // Autorise toutes les sources pour le debug (Ã  restreindre plus tard)
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: true
@@ -19,14 +19,14 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// LOGGER DE DEBUG : Affiche chaque requête dans les logs de Render
+// LOGGER DE DEBUG : Affiche chaque requÃªte dans les logs de Render
 app.use((req, res, next) => {
     const now = new Date().toISOString();
     console.log(`[${now}] ${req.method} ${req.url}`);
     
-    // Vérification de la présence du Token JWT pour le Dashboard
+    // VÃ©rification de la prÃ©sence du Token JWT pour le Dashboard
     if (req.headers.authorization) {
-        console.log(`   -> Auth Header: Présent`);
+        console.log(`   -> Auth Header: PrÃ©sent`);
     } else {
         console.log(`   -> Auth Header: MANQUANT`);
     }
@@ -36,7 +36,13 @@ app.use((req, res, next) => {
 });
 
 // Servir les fichiers statiques (images, css, js du dossier public)
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(express.static(path.join(process.cwd(), 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+  }
+}));
 
 // ============================================================
 // 2. IMPORT DES ROUTES
@@ -86,7 +92,7 @@ app.get('/api/v1/test', async (req, res) => {
         const result = await pool.query('SELECT NOW() as cloud_time');
         res.json({ 
             success: true, 
-            message: '🚀 Connecté au Cloud Neon', 
+            message: 'ðŸš€ ConnectÃ© au Cloud Neon', 
             time: result.rows[0].cloud_time 
         });
     } catch (err) {
@@ -117,25 +123,25 @@ app.use((err, req, res, next) => {
 // ============================================================
 // 8. LANCEMENT SERVEUR
 // ============================================================
-// Render utilise souvent le port 10000 par défaut, 
-// mais il faut impérativement utiliser process.env.PORT
+// Render utilise souvent le port 10000 par dÃ©faut, 
+// mais il faut impÃ©rativement utiliser process.env.PORT
 const PORT = process.env.PORT || 3005;
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Bolamu server running on port ${PORT}`);
+    console.log(`âœ… Bolamu server running on port ${PORT}`);
 });
 
 // Gestion du timeout pour Render
 server.keepAliveTimeout = 120 * 1000; 
 server.headersTimeout = 125 * 1000;
 
-// Test de connexion DB après le lancement du serveur
+// Test de connexion DB aprÃ¨s le lancement du serveur
 async function checkDB() {
     try {
         await pool.query('SELECT 1');
-        console.log('📡 Connecté à Neon DB');
+        console.log('ðŸ“¡ ConnectÃ© Ã  Neon DB');
     } catch (err) {
-        console.error('❌ Connexion Neon échouée:', err.message);
+        console.error('âŒ Connexion Neon Ã©chouÃ©e:', err.message);
     }
 }
 checkDB();
