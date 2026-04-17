@@ -44,41 +44,52 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
             pool.query(`SELECT COUNT(*) FROM appointments WHERE appointment_date >= DATE_TRUNC('month', CURRENT_DATE)`),
             pool.query(`SELECT COUNT(*) FROM appointments WHERE status = 'termine'`),
             pool.query(`SELECT COUNT(*) FROM users WHERE banned = TRUE`),
-            pool.query(`SELECT COUNT(*) FROM users WHERE role='patient' AND statut_abonnement = 'actif'`)
-        ]);
+            pool.query(`SELECT COUNT(*) FROM users WHERE role='patient' AND is_active = TRUE`)
+        ];
+
+        // DEBUG LOGS
+        console.log('[DEBUG] patients count:', patients.rows[0]?.count);
+        console.log('[DEBUG] doctors count:', doctors.rows[0]?.count);
+        console.log('[DEBUG] pharmacies count:', pharmacies.rows[0]?.count);
+        console.log('[DEBUG] laboratories count:', laboratories.rows[0]?.count);
+        console.log('[DEBUG] pendingDoctors count:', pendingDoctors.rows[0]?.count);
+        console.log('[DEBUG] pendingPharmacies count:', pendingPharmacies.rows[0]?.count);
+        console.log('[DEBUG] pendingLabs count:', pendingLabs.rows[0]?.count);
+        console.log('[DEBUG] revenueToday total:', revenueToday.rows[0]?.total);
+        console.log('[DEBUG] revenueMonth total:', revenueMonth.rows[0]?.total);
 
         res.json({
             success: true,
             data: {
                 users: {
-                    patients: parseInt(patients.rows[0].count),
-                    doctors: parseInt(doctors.rows[0].count),
-                    pharmacies: parseInt(pharmacies.rows[0].count),
-                    laboratories: parseInt(laboratories.rows[0].count),
-                    active_subscriptions: parseInt(activeSubscriptions.rows[0].count),
-                    banned: parseInt(bannedUsers.rows[0].count)
+                    patients: parseInt(patients.rows[0]?.count || 0),
+                    doctors: parseInt(doctors.rows[0]?.count || 0),
+                    pharmacies: parseInt(pharmacies.rows[0]?.count || 0),
+                    laboratories: parseInt(laboratories.rows[0]?.count || 0),
+                    active_subscriptions: parseInt(activeSubscriptions.rows[0]?.count || 0),
+                    banned: parseInt(bannedUsers.rows[0]?.count || 0)
                 },
                 activity: {
-                    appointments_total: parseInt(appointments.rows[0].count),
-                    appointments_today: parseInt(rdvToday.rows[0].count),
-                    appointments_month: parseInt(rdvMonth.rows[0].count),
-                    appointments_done: parseInt(rdvDone.rows[0].count),
-                    prescriptions: parseInt(prescriptions.rows[0].count)
+                    appointments_total: parseInt(appointments.rows[0]?.count || 0),
+                    appointments_today: parseInt(rdvToday.rows[0]?.count || 0),
+                    appointments_month: parseInt(rdvMonth.rows[0]?.count || 0),
+                    appointments_done: parseInt(rdvDone.rows[0]?.count || 0),
+                    prescriptions: parseInt(prescriptions.rows[0]?.count || 0)
                 },
                 pending: {
-                    doctors: parseInt(pendingDoctors.rows[0].count),
-                    pharmacies: parseInt(pendingPharmacies.rows[0].count),
-                    laboratories: parseInt(pendingLabs.rows[0].count),
-                    total: parseInt(pendingDoctors.rows[0].count) + parseInt(pendingPharmacies.rows[0].count) + parseInt(pendingLabs.rows[0].count)
+                    doctors: parseInt(pendingDoctors.rows[0]?.count || 0),
+                    pharmacies: parseInt(pendingPharmacies.rows[0]?.count || 0),
+                    laboratories: parseInt(pendingLabs.rows[0]?.count || 0),
+                    total: parseInt(pendingDoctors.rows[0]?.count || 0) + parseInt(pendingPharmacies.rows[0]?.count || 0) + parseInt(pendingLabs.rows[0]?.count || 0)
                 },
                 fraud: {
-                    high_severity: parseInt(fraudHigh.rows[0].count),
-                    total: parseInt(fraudTotal.rows[0].count)
+                    high_severity: parseInt(fraudHigh.rows[0]?.count || 0),
+                    total: parseInt(fraudTotal.rows[0]?.count || 0)
                 },
                 revenue: {
-                    today: parseFloat(revenueToday.rows[0].total),
-                    month: parseFloat(revenueMonth.rows[0].total),
-                    total: parseFloat(revenueTotal.rows[0].total)
+                    today: parseFloat(revenueToday.rows[0]?.total || 0),
+                    month: parseFloat(revenueMonth.rows[0]?.total || 0),
+                    total: parseFloat(revenueTotal.rows[0]?.total || 0)
                 }
             }
         });
