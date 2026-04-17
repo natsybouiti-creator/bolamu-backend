@@ -118,7 +118,7 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
              FROM pharmacies WHERE status = 'pending' ORDER BY created_at DESC`
         );
         const labs = await pool.query(
-            `SELECT id, 'laboratoire' as type, name, phone, rccm_number as detail,
+            `SELECT id, 'laboratoire' as type, name as business_name, phone, rccm_number as detail,
                     city, trust_score, document_url, status, created_at
              FROM laboratories WHERE status = 'pending' ORDER BY created_at DESC`
         );
@@ -454,7 +454,7 @@ router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
     try {
         const where = status ? `WHERE status = '${status}'` : '';
         const result = await pool.query(
-            `SELECT id, name, phone, city, rccm_number, director_name, status, trust_score,
+            `SELECT id, name as business_name, phone, city, rccm_number, director_name, status, trust_score,
                     member_code, document_url, is_active, momo_number, abonnement_actif,
                     abonnement_fin, created_at
              FROM laboratories ${where} ORDER BY created_at DESC`
