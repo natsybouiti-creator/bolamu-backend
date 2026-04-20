@@ -85,7 +85,9 @@ async function verifyOtp(req, res) {
 //    sont présentes, on crée le compte automatiquement.
 // ============================================================
 async function login(req, res) {
+    console.log('[LOGIN DEBUG] Début fonction login');
     const { phone, otp, prenom, nom, sexe, age } = req.body;
+    console.log('[LOGIN DEBUG] Reçu:', { phone, otp, hasPrenom: !!prenom, hasNom: !!nom });
     if (!phone || !otp) return res.status(400).json({ success: false, message: "Téléphone et OTP requis" });
     
     // Normalisation du numéro
@@ -96,28 +98,37 @@ async function login(req, res) {
     normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,8})$/, '$1$2');
     // Format local 0XXXXXXXX → +24269XXXXXXXX
     if (/^0\d{8}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
+    console.log('[LOGIN DEBUG] Phone normalisé:', normalizedPhone);
 
     try {
         // ── Vérification OTP ──
+        console.log('[LOGIN DEBUG] Requête OTP pour phone:', normalizedPhone);
         const otpResult = await pool.query(`SELECT * FROM otp_codes WHERE phone = $1`, [normalizedPhone]);
+        console.log('[LOGIN DEBUG] OTP trouvé:', otpResult.rows.length > 0);
         if (otpResult.rows.length === 0) return res.status(404).json({ success: false, message: "OTP non trouvé. Veuillez redemander un code." });
 
         const record = otpResult.rows[0];
+        console.log('[LOGIN DEBUG] Record OTP:', { phone: record.phone, expires: record.expires_at, attempts: record.attempts });
         if (new Date() > new Date(record.expires_at)) return res.status(400).json({ success: false, message: "OTP expiré. Veuillez redemander un code." });
         if (record.attempts >= 5) return res.status(403).json({ success: false, message: "Trop de tentatives. Veuillez redemander un code." });
 
         // Hash de l'OTP reçu pour comparaison
+        console.log('[LOGIN DEBUG] Hash OTP reçu');
         const otpHash = crypto.createHash('sha256').update(String(otp)).digest('hex');
+        console.log('[LOGIN DEBUG] Hash comparaison:', { received: otpHash, stored: record.hashed_otp.substring(0, 10) + '...' });
         if (otpHash !== record.hashed_otp) {
             await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [normalizedPhone]);
             return res.status(401).json({ success: false, message: "Code OTP incorrect." });
         }
+        console.log('[LOGIN DEBUG] OTP validé, suppression du code');
 
         // OTP valide → on le supprime
         await pool.query(`DELETE FROM otp_codes WHERE phone = $1`, [normalizedPhone]);
 
         // ── Chercher l'utilisateur ──
+        console.log('[LOGIN DEBUG] Recherche utilisateur pour phone:', normalizedPhone);
         let userResult = await pool.query(`SELECT id, phone, role, full_name FROM users WHERE phone = $1`, [normalizedPhone]);
+        console.log('[LOGIN DEBUG] Utilisateur trouvé:', userResult.rows.length > 0);
 
         // ── Si inexistant et données patient fournies → création automatique ──
         if (userResult.rows.length === 0) {

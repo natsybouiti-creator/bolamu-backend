@@ -93,9 +93,9 @@ async function inspectTables() {
             console.log(`  - ${col.column_name}: ${col.data_type} (nullable: ${col.is_nullable})`);
         });
         
-        // 6. Vérifier tables spécifiques (doctors, pharmacies, laboratories)
+        // 6. Vérifier tables spécifiques (doctors, pharmacies, laboratories, otp_codes)
         console.log('\n6. VERIFICATION TABLES SPÉCIFIQUES:');
-        const specificTables = ['doctors', 'pharmacies', 'laboratories'];
+        const specificTables = ['doctors', 'pharmacies', 'laboratories', 'otp_codes'];
         
         for (const tableName of specificTables) {
             try {
