@@ -3,6 +3,7 @@ const { generateOtp, simulateSendOtp } = require('../utils/otp');
 const { hashText } = require('../utils/hash');
 const { normalizePhone } = require('../utils/phone');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
 const JWT_EXPIRES = '7d';
@@ -15,7 +16,13 @@ async function requestOtp(req, res) {
     if (!phone) return res.status(400).json({ success: false, message: "Numéro requis" });
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhone(phone);
+    let normalizedPhone = (phone || '').trim().replace(/\s+/g,'');
+    // Supprime le 0 après l'indicatif +242
+    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8})$/, '$1$2');
+    // Supprime le 0 après tout autre indicatif africain
+    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,8})$/, '$1$2');
+    // Format local 0XXXXXXXX → +24269XXXXXXXX
+    if (/^0\d{8}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
 
     const adminCheck = await pool.query(`SELECT role FROM users WHERE phone = $1`, [normalizedPhone]).catch(() => ({ rows: [] }));
     if (adminCheck.rows[0]?.role === 'admin') {
@@ -82,7 +89,13 @@ async function login(req, res) {
     if (!phone || !otp) return res.status(400).json({ success: false, message: "Téléphone et OTP requis" });
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhone(phone);
+    let normalizedPhone = (phone || '').trim().replace(/\s+/g,'');
+    // Supprime le 0 après l'indicatif +242
+    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8})$/, '$1$2');
+    // Supprime le 0 après tout autre indicatif africain
+    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,8})$/, '$1$2');
+    // Format local 0XXXXXXXX → +24269XXXXXXXX
+    if (/^0\d{8}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
 
     try {
         // ── Vérification OTP ──
@@ -93,16 +106,9 @@ async function login(req, res) {
         if (new Date() > new Date(record.expires_at)) return res.status(400).json({ success: false, message: "OTP expiré. Veuillez redemander un code." });
         if (record.attempts >= 5) return res.status(403).json({ success: false, message: "Trop de tentatives. Veuillez redemander un code." });
 
-        // Debug log
-        console.log('[DEBUG LOGIN]', {
-          phoneReceived: phone,
-          otpReceived: otp,
-          otpStored: record.hashed_otp,
-          phoneStored: record.phone
-        });
-
-        const hashedInput = hashText(String(otp));
-        if (hashedInput !== record.hashed_otp) {
+        // Hash de l'OTP reçu pour comparaison
+        const otpHash = crypto.createHash('sha256').update(String(otp)).digest('hex');
+        if (otpHash !== record.hashed_otp) {
             await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [normalizedPhone]);
             return res.status(401).json({ success: false, message: "Code OTP incorrect." });
         }
