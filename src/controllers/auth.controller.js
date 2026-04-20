@@ -58,7 +58,7 @@ async function verifyOtp(req, res) {
         if (new Date() > new Date(record.expires_at)) return res.status(400).json({ success: false, message: "OTP expiré" });
         if (record.attempts >= 5) return res.status(403).json({ success: false, message: "Trop de tentatives" });
 
-        const hashedInput = hashText(otp);
+        const hashedInput = hashText(String(otp));
         if (hashedInput !== record.hashed_otp) {
             await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [normalizedPhone]);
             return res.status(401).json({ success: false, message: "Code incorrect" });
@@ -93,7 +93,15 @@ async function login(req, res) {
         if (new Date() > new Date(record.expires_at)) return res.status(400).json({ success: false, message: "OTP expiré. Veuillez redemander un code." });
         if (record.attempts >= 5) return res.status(403).json({ success: false, message: "Trop de tentatives. Veuillez redemander un code." });
 
-        const hashedInput = hashText(otp);
+        // Debug log
+        console.log('[DEBUG LOGIN]', {
+          phoneReceived: phone,
+          otpReceived: otp,
+          otpStored: record.hashed_otp,
+          phoneStored: record.phone
+        });
+
+        const hashedInput = hashText(String(otp));
         if (hashedInput !== record.hashed_otp) {
             await pool.query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = $1`, [normalizedPhone]);
             return res.status(401).json({ success: false, message: "Code OTP incorrect." });
