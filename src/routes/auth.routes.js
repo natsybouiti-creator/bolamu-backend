@@ -58,12 +58,12 @@ router.post('/admin-login', async (req, res) => {
 
     // Normalisation du numéro (inline, même logique que auth.controller.js)
     let normalizedPhone = (phone || '').trim().replace(/\s+/g, '');
-    // Supprime le 0 après l'indicatif +242
-    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8})$/, '$1$2');
+    // Supprime le 0 après l'indicatif +242 (8 ou 9 chiffres après)
+    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8,9})$/, '$1$2');
     // Supprime le 0 après tout autre indicatif africain
-    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,8})$/, '$1$2');
+    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,9})$/, '$1$2');
     // Format local 0XXXXXXXX → +24269XXXXXXXX
-    if (/^0\d{8}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
+    if (/^0\d{8,9}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
 
     try {
         const result = await pool.query(
