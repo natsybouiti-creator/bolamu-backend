@@ -4,6 +4,7 @@ const path = require('path');
 const pool = require('./config/db');
 const cors = require('cors');
 const app = express();
+app.set('trust proxy', 1);
 
 // ============================================================
 // 1. MIDDLEWARES & CORS CONFIGURATION
