@@ -859,7 +859,7 @@ async function loadCredits(){
   try{
     const res=await api('/admin/credits');const rows=res.data||[];
     kpi('cr-accounts',rows.length);
-    el.innerHTML=`<table><thead><tr><th>Téléphone</th><th>Solde</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${r.phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--violet)">${r.balance||0} ??</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${r.phone}')">?? Profil</button><button class="ab ab-violet" onclick="openGrantCreditTo('${r.phone}')">?? Attribuer</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table><thead><tr><th>Téléphone</th><th>Solde</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${r.phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--violet)">${r.balance||0} 💰</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${r.phone}')">👁 Profil</button><button class="ab ab-violet" onclick="openGrantCreditTo('${r.phone}')">💰 Attribuer</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 function openGrantCredit(){openGrantCreditTo('');}
@@ -920,11 +920,11 @@ async function viewUser(phone){
   const creditHistory = profileData.credit_history  || [];
  
   const roleInfo = {
-    doctor:     {emoji:'?????', color:'var(--green)',   label:'Médecin'},
-    patient:    {emoji:'??',   color:'var(--accent)',  label:'Patient'},
-    pharmacie:  {emoji:'??',   color:'var(--violet)',  label:'Pharmacie'},
-    laboratoire:{emoji:'??',   color:'var(--amber)',   label:'Laboratoire'},
-    admin:      {emoji:'??',   color:'var(--red)',     label:'Admin'},
+    doctor:     {emoji:'🩺', color:'var(--green)',   label:'Médecin'},
+    patient:    {emoji:'👤',   color:'var(--accent)',  label:'Patient'},
+    pharmacie:  {emoji:'💊',   color:'var(--violet)', label:'Pharmacie'},
+    laboratoire:{emoji:'🔬',   color:'var(--amber)',  label:'Laboratoire'},
+    admin:      {emoji:'⚙️',   color:'var(--red)',     label:'Admin'},
   };
   const ri = roleInfo[u.role] || {emoji:'??', color:'var(--muted)', label:u.role||''};
   const fraudScore = u.fraud_score;
@@ -950,17 +950,17 @@ async function viewUser(phone){
     </div>
  
     <div class="profile-tabs">
-      <button class="profile-tab active" onclick="switchProfileTab('info',this)">?? Infos</button>
-      <button class="profile-tab" onclick="switchProfileTab('rdv',this)">?? RDV (${appointments.length})</button>
-      <button class="profile-tab" onclick="switchProfileTab('docs',this)">?? Docs (${documents.length})</button>
-      <button class="profile-tab" onclick="switchProfileTab('credits',this)">?? Crédits</button>
-      <button class="profile-tab" onclick="switchProfileTab('payments',this)">?? Paiements (${payments.length})</button>
+      <button class="profile-tab active" onclick="switchProfileTab('info',this)">📋 Infos</button>
+      <button class="profile-tab" onclick="switchProfileTab('rdv',this)">📅 RDV (${appointments.length})</button>
+      <button class="profile-tab" onclick="switchProfileTab('docs',this)">📄 Docs (${documents.length})</button>
+      <button class="profile-tab" onclick="switchProfileTab('credits',this)">💰 Crédits</button>
+      <button class="profile-tab" onclick="switchProfileTab('payments',this)">💳 Paiements (${payments.length})</button>
     </div>
  
     <!-- ONGLET INFOS -->
     <div class="profile-tab-panel active" id="ptab-info">
       <div class="info-grid">
-        <div class="info-block"><div class="info-label">Crédits disponibles</div><div class="info-value big">${u.credits_balance||0} ??</div></div>
+        <div class="info-block"><div class="info-label">Crédits disponibles</div><div class="info-value big">${u.credits_balance||0} 💰</div></div>
         <div class="info-block"><div class="info-label">RDV au total</div><div class="info-value mono" style="font-size:18px;">${appointments.length}</div></div>
         <div class="info-block"><div class="info-label">Téléphone</div><div class="info-value mono">${u.phone||''}</div></div>
         <div class="info-block"><div class="info-label">Rôle</div><div class="info-value">${ri.emoji} ${ri.label}</div></div>
@@ -984,10 +984,10 @@ async function viewUser(phone){
             ${badge(a.status)}
           </div>
           <div class="rdv-meta">
-            ${u.role==='doctor'?`?? Patient: ${a.patient_phone||''}`:`????? Médecin: ${a.doctor_phone||a.doctor_name||''}`}
+            ${u.role==='doctor'?`👤 Patient: ${a.patient_phone||''}`:`🩺 Médecin: ${a.doctor_phone||a.doctor_name||''}`}
             &nbsp;·&nbsp; ${fd(a.appointment_date||a.created_at)}
           </div>
-        </div>`).join(''):'<div class="empty"><div class="empty-ico">??</div><p>Aucun rendez-vous</p></div>'}
+        </div>`).join(''):'<div class="empty"><div class="empty-ico">📅</div><p>Aucun rendez-vous</p></div>'}
     </div>
  
     <!-- ONGLET DOCUMENTS -->
@@ -1000,10 +1000,10 @@ async function viewUser(phone){
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             ${badge(d.status||'verified')}
-            ${d.url||d.file_url?`<a href="${d.url||d.file_url}" target="_blank" class="ab ab-blue" style="text-decoration:none;font-size:9px">?? Voir</a>`:''}
+            ${d.url||d.file_url?`<a href="${d.url||d.file_url}" target="_blank" class="ab ab-blue" style="text-decoration:none;font-size:9px">👁 Voir</a>`:''}
           </div>
         </div>`).join(''):`
-        <div class="empty"><div class="empty-ico">??</div><p>Aucun document uploadé</p></div>`}
+        <div class="empty"><div class="empty-ico">📄</div><p>Aucun document uploadé</p></div>`}
       ${prescriptions.length?`
         <div style="margin-top:14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Ordonnances (${prescriptions.length})</div>
         ${prescriptions.slice(0,5).map(p=>`
@@ -1018,8 +1018,8 @@ async function viewUser(phone){
     <!-- ONGLET CREDITS -->
     <div class="profile-tab-panel" id="ptab-credits">
       <div class="info-grid" style="margin-bottom:14px">
-        <div class="info-block"><div class="info-label">Solde actuel</div><div class="info-value big">${u.credits_balance||0} ??</div></div>
-        <div class="info-block"><div class="info-label">Total reçus</div><div class="info-value mono" style="font-size:18px">${creditHistory.filter(c=>(c.amount||0)>0).reduce((s,c)=>s+(c.amount||0),0)} ??</div></div>
+        <div class="info-block"><div class="info-label">Solde actuel</div><div class="info-value big">${u.credits_balance||0} 💰</div></div>
+        <div class="info-block"><div class="info-label">Total reçus</div><div class="info-value mono" style="font-size:18px">${creditHistory.filter(c=>(c.amount||0)>0).reduce((s,c)=>s+(c.amount||0),0)} 💰</div></div>
       </div>
       ${creditHistory.length?`
         <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Historique</div>
@@ -1029,7 +1029,7 @@ async function viewUser(phone){
               <div class="doc-name">${c.reason||c.description||'Crédit'}</div>
               <div class="doc-meta">${fd(c.created_at)}</div>
             </div>
-            <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${(c.amount||0)>0?'var(--green)':'var(--red)'}">${(c.amount||0)>0?'+':''}${c.amount} ??</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${(c.amount||0)>0?'var(--green)':'var(--red)'}">${(c.amount||0)>0?'+':''}${c.amount} 💰</span>
           </div>`).join('')}`:'<div class="empty"><p>Aucun historique de crédit</p></div>'}
     </div>
  
@@ -1042,16 +1042,16 @@ async function viewUser(phone){
             <div class="doc-meta">${p.reference||''} · ${fd(p.created_at)}</div>
           </div>
           ${badge(p.status)}
-        </div>`).join(''):'<div class="empty"><div class="empty-ico">??</div><p>Aucun paiement</p></div>'}
+        </div>`).join(''):'<div class="empty"><div class="empty-ico">💳</div><p>Aucun paiement</p></div>'}
     </div>
  
     <!-- Actions bas de modal -->
     <div class="modal-acts" style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px">
-      <button class="mbtn mbtn-cancel" onclick="closeProfileModal()">? Fermer</button>
-      <button class="mbtn mbtn-violet" onclick="closeProfileModal();openGrantCreditTo('${u.phone||withPlus}')">?? Crédits</button>
-      ${(u.status==='pending')?`<button class="mbtn mbtn-green" onclick="validateUser('${u.phone||withPlus}');closeProfileModal()">? Valider</button>`:''}
-      ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" style="background:var(--amber);color:#080a0f" onclick="suspendUser('${u.phone||withPlus}');closeProfileModal()">? Suspendre</button>`:''}
-      <button class="mbtn mbtn-red" onclick="banUser('${u.phone||withPlus}');closeProfileModal()">?? Bannir</button>
+      <button class="mbtn mbtn-cancel" onclick="closeProfileModal()">❌ Fermer</button>
+      <button class="mbtn mbtn-violet" onclick="closeProfileModal();openGrantCreditTo('${u.phone||withPlus}')">💰 Crédits</button>
+      ${(u.status==='pending')?`<button class="mbtn mbtn-green" onclick="validateUser('${u.phone||withPlus}');closeProfileModal()">✅ Valider</button>`:''}
+      ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" style="background:var(--amber);color:#080a0f" onclick="suspendUser('${u.phone||withPlus}');closeProfileModal()">⏸ Suspendre</button>`:''}
+      <button class="mbtn mbtn-red" onclick="banUser('${u.phone||withPlus}');closeProfileModal()">🚫 Bannir</button>
     </div>`;
  
   document.getElementById('profile-modal-body').innerHTML = html;
@@ -1060,7 +1060,7 @@ async function viewUser(phone){
 function renderProfileNotFound(phone){
   document.getElementById('profile-modal-body').innerHTML=`
     <div style="text-align:center;padding:48px 24px">
-      <div style="font-size:40px;margin-bottom:14px;opacity:.5">??</div>
+      <div style="font-size:40px;margin-bottom:14px;opacity:.5">🔍</div>
       <div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:8px">Dossier introuvable</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px">${phone}</div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:24px;line-height:1.7">
@@ -1122,11 +1122,11 @@ async function rejectUser(phone){
 }
 async function suspendUser(phone){
   if(!confirm(`Suspendre ${phone} ?`))return;
-  try{const d=await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('?? Suspendu'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{const d=await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('⏸ Suspendu'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 async function banUser(phone){
   if(!confirm(`Bannir définitivement ${phone} ?`))return;
-  try{const d=await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('?? Banni'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{const d=await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('🚫 Banni'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 
 /* -----------------------------------
@@ -1144,4 +1144,6 @@ async function banUser(phone){
 loadOverview();
 </script>
 </body>
+
+<p style="text-align:center; font-size:12px; color:#888; padding:16px;">Contact : <a href="mailto:contactbolamu@gmail.com">contactbolamu@gmail.com</a></p>
 </html>
