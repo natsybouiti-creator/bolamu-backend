@@ -5,6 +5,7 @@ const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const rateLimit = require('express-rate-limit');
+const { normalizePhone } = require('../utils/phone');
 
 const {
     requestOtp,
@@ -55,12 +56,15 @@ router.post('/admin-login', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Téléphone et mot de passe requis.' });
     }
 
+    // Normalisation du numéro
+    const normalizedPhone = normalizePhone(phone);
+
     try {
         const result = await pool.query(
             `SELECT id, phone, full_name, role, is_active, banned, admin_password 
              FROM users 
              WHERE phone = $1 AND role IN ('admin', 'content_admin')`,
-            [phone]
+            [normalizedPhone]
         );
 
         if (!result.rows.length) {
@@ -88,7 +92,7 @@ router.post('/admin-login', async (req, res) => {
             await pool.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) 
                  VALUES ('admin.login_failed', $1, 'users', $2, $3)`,
-                [phone, user.id, JSON.stringify({ reason: 'wrong_password' })]
+                [normalizedPhone, user.id, JSON.stringify({ reason: 'wrong_password' })]
             ).catch(() => {});
             return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });
         }
@@ -104,7 +108,7 @@ router.post('/admin-login', async (req, res) => {
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) 
              VALUES ('admin.login_success', $1, 'users', $2, $3)`,
-            [phone, user.id, JSON.stringify({ role: user.role, timestamp: new Date().toISOString() })]
+            [normalizedPhone, user.id, JSON.stringify({ role: user.role, timestamp: new Date().toISOString() })]
         ).catch(() => {});
 
         // Redirection selon le rôle

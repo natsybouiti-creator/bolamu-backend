@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 const { generateOtp, simulateSendOtp } = require('../utils/otp');
 const { hashText } = require('../utils/hash');
-const { normalizePhoneNumber } = require('../utils/phoneHelper');
+const { normalizePhone } = require('../utils/phone');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
@@ -15,7 +15,7 @@ async function requestOtp(req, res) {
     if (!phone) return res.status(400).json({ success: false, message: "Numéro requis" });
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
 
     const adminCheck = await pool.query(`SELECT role FROM users WHERE phone = $1`, [normalizedPhone]).catch(() => ({ rows: [] }));
     if (adminCheck.rows[0]?.role === 'admin') {
@@ -48,7 +48,7 @@ async function verifyOtp(req, res) {
     if (!phone || !otp) return res.status(400).json({ success: false, message: "Téléphone et OTP requis" });
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
 
     try {
         const result = await pool.query(`SELECT * FROM otp_codes WHERE phone = $1`, [normalizedPhone]);
@@ -82,7 +82,7 @@ async function login(req, res) {
     if (!phone || !otp) return res.status(400).json({ success: false, message: "Téléphone et OTP requis" });
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
 
     try {
         // ── Vérification OTP ──
@@ -208,7 +208,7 @@ async function registerPatient(req, res) {
     }
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
 
     try {
         const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
@@ -267,7 +267,7 @@ async function registerDoctor(req, res) {
     }
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
 
     try {
         const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
@@ -336,7 +336,7 @@ async function registerPharmacie(req, res) {
     }
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
 
     try {
         const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
@@ -395,7 +395,7 @@ async function registerLaboratoire(req, res) {
     }
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
 
     try {
         const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
