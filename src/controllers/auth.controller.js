@@ -18,11 +18,11 @@ async function requestOtp(req, res) {
     // Normalisation du numéro
     let normalizedPhone = (phone || '').trim().replace(/\s+/g,'');
     // Supprime le 0 après l'indicatif +242
-    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8})$/, '$1$2');
+    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8,9})$/, '$1$2');
     // Supprime le 0 après tout autre indicatif africain
-    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,8})$/, '$1$2');
+    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,9})$/, '$1$2');
     // Format local 0XXXXXXXX → +24269XXXXXXXX
-    if (/^0\d{8}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
+    if (/^0\d{8,9}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
 
     const adminCheck = await pool.query(`SELECT role FROM users WHERE phone = $1`, [normalizedPhone]).catch(() => ({ rows: [] }));
     if (adminCheck.rows[0]?.role === 'admin') {
@@ -91,11 +91,11 @@ async function login(req, res) {
     // Normalisation du numéro
     let normalizedPhone = (phone || '').trim().replace(/\s+/g,'');
     // Supprime le 0 après l'indicatif +242
-    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8})$/, '$1$2');
+    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8,9})$/, '$1$2');
     // Supprime le 0 après tout autre indicatif africain
-    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,8})$/, '$1$2');
+    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,9})$/, '$1$2');
     // Format local 0XXXXXXXX → +24269XXXXXXXX
-    if (/^0\d{8}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
+    if (/^0\d{8,9}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
 
     try {
         // ── Vérification OTP ──
@@ -448,3 +448,6 @@ async function registerLaboratoire(req, res) {
 }
 
 module.exports = { requestOtp, verifyOtp, login, registerPatient, registerDoctor, registerPharmacie, registerLaboratoire };
+
+
+
