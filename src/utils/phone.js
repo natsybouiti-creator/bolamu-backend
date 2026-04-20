@@ -14,14 +14,17 @@ function normalizePhone(phone) {
 
   // Déjà au bon format E.164 sans zéro parasite
   if (/^\+242\d{8,9}$/.test(p)) {
-    // Supprime le 0 après +242 si présent
+    // Supprime le 0 après +242 si présent (8 ou 9 chiffres)
+    p = p.replace(/^(\+242)0(\d{9})$/, '$1$2');
     p = p.replace(/^(\+242)0(\d{8})$/, '$1$2');
     return p;
   }
 
   // Format +242 avec zéro
-  if (/^\+2420\d{8}$/.test(p)) {
-    return p.replace(/^(\+242)0(\d{8})$/, '$1$2');
+  if (/^\+2420\d{8,9}$/.test(p)) {
+    p = p.replace(/^(\+242)0(\d{9})$/, '$1$2');
+    p = p.replace(/^(\+242)0(\d{8})$/, '$1$2');
+    return p;
   }
 
   // Format 242XXXXXXXX (sans +, sans 0)
