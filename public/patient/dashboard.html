@@ -207,6 +207,31 @@
     .empty-icon{font-size:48px;margin-bottom:16px;}
     .loading{text-align:center;padding:48px;color:var(--texte-doux);}
 
+    /* ── TIMELINE ── */
+    .timeline{display:flex;flex-direction:column;gap:20px;}
+    .timeline-item{position:relative;padding-left:32px;}
+    .timeline-item::before{content:'';position:absolute;left:7px;top:0;bottom:-20px;width:2px;background:var(--border);}
+    .timeline-item:last-child::before{bottom:0;}
+    .timeline-dot{position:absolute;left:0;top:6px;width:16px;height:16px;border-radius:50%;background:var(--bleu-vif);border:3px solid white;box-shadow:0 0 0 3px var(--bleu-pale);}
+    .timeline-card{background:white;border-radius:16px;padding:20px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(10,36,99,0.04);}
+    .timeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+    .timeline-date{font-size:13px;font-weight:600;color:var(--texte-doux);}
+    .timeline-doctor{font-size:15px;font-weight:700;color:var(--bleu);}
+    .timeline-specialty{font-size:12px;color:var(--texte-doux);margin-left:8px;}
+    .timeline-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--bleu-pale);}
+    .timeline-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+    .timeline-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;}
+    .timeline-content{font-size:14px;line-height:1.6;color:var(--texte);}
+    .timeline-motif{background:var(--bleu-pale);padding:12px;border-radius:10px;}
+    .timeline-diagnostic{background:var(--vert-clair);padding:12px;border-radius:10px;}
+    .timeline-traitement{background:var(--bleu-pale);padding:12px;border-radius:10px;}
+    .timeline-medications{display:flex;flex-direction:column;gap:8px;}
+    .timeline-med-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bleu-pale);border-radius:8px;font-size:14px;}
+    .timeline-lab-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--vert-clair);color:var(--vert);border-radius:50px;font-size:12px;font-weight:600;margin-top:8px;}
+    .timeline-pending{color:var(--texte-doux);font-style:italic;font-size:13px;padding:12px;background:var(--bleu-pale);border-radius:10px;}
+    .btn-timeline{padding:8px 16px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-left:8px;}
+    .btn-timeline:hover{opacity:0.9;}
+
     /* ── TABLE WRAPPER ── */
     .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 
@@ -470,6 +495,15 @@
           <div class="info-row"><span class="info-label">Maladies chroniques</span><span class="info-value">—</span></div>
           <p style="font-size:12px;color:var(--texte-doux);margin-top:12px;line-height:1.6;">Complétées par votre médecin lors de la première consultation.</p>
         </div>
+        <div class="info-card">
+          <h3>Code QR d'urgence</h3>
+          <p style="font-size:13px;color:var(--texte-doux);margin-bottom:12px;line-height:1.6;">En cas d'urgence, ce QR code permet au médecin d'accéder à vos informations vitales.</p>
+          <button class="btn-rdv" onclick="genererQRUrgence()">🔬 Générer mon QR d'urgence</button>
+        </div>
+        <div class="info-card">
+          <h3>Historique des accès</h3>
+          <div id="access-log-list"><div class="loading">Chargement…</div></div>
+        </div>
       </div>
       <div class="info-card">
         <h3>Historique des consultations</h3>
@@ -669,7 +703,7 @@ function showTab(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='medecins')loadDoctors();
-  if(name==='dossier')loadRdv();
+  if(name==='dossier')loadTimeline();
   if(name==='credits')loadCredits();
   if(name==='profil')loadProfil();
 }
@@ -679,7 +713,7 @@ function showTabMobile(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='medecins')loadDoctors();
-  if(name==='dossier')loadRdv();
+  if(name==='dossier')loadTimeline();
   if(name==='credits')loadCredits();
   if(name==='profil')loadProfil();
 }
@@ -951,10 +985,9 @@ async function loadRdv(){
     const data=await res.json();
     const rdvs=data.appointments;
     const container=document.getElementById('rdv-list-accueil');
-    const histo=document.getElementById('historique-list');
     if(!rdvs||!rdvs.length){
       const empty=`<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous.<br>Cliquez sur <strong>+ Nouveau RDV</strong> pour commencer.</p></div>`;
-      container.innerHTML=empty;histo.innerHTML=`<div class="empty-state"><div class="empty-icon">🏥</div><p>Votre historique apparaîtra après votre première consultation.</p></div>`;return;
+      container.innerHTML=empty;return;
     }
     const html=rdvs.map(r=>{
       const dateStr=new Date(r.appointment_date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
@@ -963,8 +996,119 @@ async function loadRdv(){
       return `<div class="rdv-card"><div class="rdv-left"><div class="rdv-icon">👨‍⚕️</div><div><div class="rdv-doctor">${r.doctor_name||'Médecin'}</div><div class="rdv-date">${dateStr} à ${timeStr}</div><div style="margin-top:6px">${badge}</div></div></div><div class="rdv-right"><div class="rdv-code">${r.session_code}</div><div class="rdv-code-label">Code session</div></div></div>`;
     }).join('');
     container.innerHTML=`<div class="rdv-list">${html}</div>`;
-    histo.innerHTML=`<div class="rdv-list">${html}</div>`;
   }catch(e){document.getElementById('rdv-list-accueil').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Impossible de charger les RDV.</p></div>`;}
+}
+
+async function loadTimeline(){
+  try{
+    const token=localStorage.getItem('bolamu_patient_token');
+    const res=await fetch(`${API}/reports/patient/${encodeURIComponent(phone)}/timeline`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    const histo=document.getElementById('historique-list');
+    if(!data.success||!data.data||!data.data.length){
+      histo.innerHTML=`<div class="empty-state"><div class="empty-icon">🏥</div><p>Votre historique apparaîtra après votre première consultation.</p></div>`;return;
+    }
+    const html=data.data.map(r=>{
+      const dateStr=new Date(r.appointment_date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+      const timeStr=(r.appointment_time||'').slice(0,5);
+      const hasReport=r.motif||r.diagnostic||r.traitement;
+      const hasPrescription=r.medications;
+      const hasLab=r.resultats;
+      let content='';
+      if(hasReport){
+        content+=`<div class="timeline-section"><div class="timeline-label">Motif</div><div class="timeline-content timeline-motif">${r.motif||'—'}</div></div>`;
+        content+=`<div class="timeline-section"><div class="timeline-label">Diagnostic</div><div class="timeline-content timeline-diagnostic">${r.diagnostic||'—'}</div></div>`;
+        content+=`<div class="timeline-section"><div class="timeline-label">Traitement</div><div class="timeline-content timeline-traitement">${r.traitement||'—'}</div></div>`;
+      }
+      if(hasPrescription){
+        const meds=r.medications.split('\n').filter(m=>m.trim());
+        content+=`<div class="timeline-section"><div class="timeline-label">Ordonnance 💊</div><div class="timeline-medications">${meds.map(m=>`<div class="timeline-med-item">${m}</div>`).join('')}</div></div>`;
+      }
+      if(hasLab){
+        content+=`<div class="timeline-section"><div class="timeline-label">Résultats labo</div><div class="timeline-lab-badge">🔬 Résultats disponibles <button class="btn-timeline" onclick="voirResultatLab('${r.resultats.replace(/'/g,"\\'").replace(/\n/g,"\\n")}','${r.fichier_url||''}')">Voir</button></div></div>`;
+      }
+      if(!hasReport){
+        content=`<div class="timeline-pending">⏳ Consultation en attente de compte rendu</div>`;
+      }
+      return `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-card"><div class="timeline-header"><div class="timeline-doctor">${r.doctor_name||'Médecin'}<span class="timeline-specialty">${r.specialty||''}</span></div><div class="timeline-date">${dateStr} à ${timeStr}</div></div>${content}</div></div>`;
+    }).join('');
+    histo.innerHTML=`<div class="timeline">${html}</div>`;
+  loadAccessLog();
+  }catch(e){document.getElementById('historique-list').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Impossible de charger l'historique.</p></div>`;}
+}
+
+async function loadAccessLog(){
+  try{
+    const token=localStorage.getItem('bolamu_patient_token');
+    const res=await fetch(`${API}/reports/access-log/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    const container=document.getElementById('access-log-list');
+    if(!data.success||!data.data||!data.data.length){
+      container.innerHTML=`<div style="font-size:13px;color:var(--texte-doux);padding:12px;">Aucun accès enregistré.</div>`;return;
+    }
+    const html=data.data.slice(0,10).map(log=>{
+      const dateStr=new Date(log.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      const roleLabel=log.accessed_by_role==='doctor'?'Médecin':log.accessed_by_role==='laboratoire'?'Laboratoire':log.accessed_by_role;
+      const typeLabel=log.access_type==='consultation_report'?'Compte rendu':log.access_type==='timeline'?'Timeline':log.access_type==='urgence_qr'?'QR urgence':log.access_type;
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--bleu-pale);font-size:13px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-weight:600;">${log.accessor_name||log.accessed_by_phone}</span><span style="color:var(--texte-doux);">${dateStr}</span></div><div style="color:var(--texte-doux);">${roleLabel} — ${typeLabel}</div></div>`;
+    }).join('');
+    container.innerHTML=html;
+  }catch(e){document.getElementById('access-log-list').innerHTML=`<div style="font-size:13px;color:var(--texte-doux);padding:12px;">Impossible de charger l'historique.</div>`;}
+}
+
+async function genererQRUrgence(){
+  try{
+    const token=localStorage.getItem('bolamu_patient_token');
+    const res=await fetch(`${API}/qr/emergency/generate`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    if(!data.success){alert('Erreur : '+data.message);return;}
+    const modal=document.createElement('div');
+    modal.className='modal-overlay open';
+    modal.id='modal-qr-urgence';
+    const expiresAt=new Date(data.data.expires_at).toLocaleString('fr-FR');
+    modal.innerHTML=`
+      <div class="modal" style="text-align:center;">
+        <h2>Code QR d'urgence</h2>
+        <div class="modal-subtitle">En cas d'urgence, ce QR code permet au médecin d'accéder à vos informations vitales</div>
+        <div id="qr-urgence-container" style="display:flex;justify-content:center;margin:20px 0;"></div>
+        <div style="font-size:12px;color:var(--texte-doux);margin-bottom:20px;">Le QR code expire dans 24h</div>
+        <div style="font-size:13px;color:var(--vert);font-weight:600;margin-bottom:24px;">Valide jusqu'au ${expiresAt}</div>
+        <button class="btn-confirm" onclick="fermerModalQRUrgence()">Fermer</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',function(e){if(e.target===modal)fermerModalQRUrgence();});
+    new QRCode(document.getElementById('qr-urgence-container'),{text:data.data.emergency_url,width:200,height:200});
+  }catch(e){alert('Erreur de connexion au serveur');}
+}
+
+function fermerModalQRUrgence(){
+  const modal=document.getElementById('modal-qr-urgence');
+  if(modal)modal.remove();
+}
+
+function voirResultatLab(resultats,fichierUrl){
+  const modal=document.createElement('div');
+  modal.className='modal-overlay open';
+  modal.id='modal-lab-resultats';
+  const resultatsText=resultats.replace(/\\n/g,'\n').replace(/\\'/g,"'");
+  let downloadBtn=fichierUrl?`<button class="btn-confirm" onclick="window.open('${fichierUrl}','_blank');fermerModalLabResultats();">📎 Télécharger le fichier</button>`:'';
+  modal.innerHTML=`
+    <div class="modal">
+      <h2>Résultats laboratoire</h2>
+      <div class="modal-subtitle">Résultats d'analyse</div>
+      <div style="background:var(--bleu-pale);padding:16px;border-radius:12px;margin-bottom:20px;max-height:300px;overflow-y:auto;white-space:pre-wrap;font-size:14px;line-height:1.6;">${resultatsText}</div>
+      <div class="modal-actions" style="display:flex;gap:12px;">
+        <button class="btn-cancel" onclick="fermerModalLabResultats()">Fermer</button>
+        ${downloadBtn}
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',function(e){if(e.target===modal)fermerModalLabResultats();});
+}
+
+function fermerModalLabResultats(){
+  const modal=document.getElementById('modal-lab-resultats');
+  if(modal)modal.remove();
 }
 
 async function loadProfil(){

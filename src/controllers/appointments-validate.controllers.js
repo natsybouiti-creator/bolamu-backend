@@ -46,6 +46,18 @@ async function validateAppointment(req, res) {
             return res.status(400).json({ success: false, message: 'Ce RDV est déjà validé.' });
         }
 
+        // Vérifier que le compte rendu a été soumis avant de valider le paiement
+        const reportCheck = await pool.query(
+            'SELECT id FROM consultation_reports WHERE appointment_id = $1',
+            [id]
+        );
+        if (reportCheck.rows.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Compte rendu obligatoire : veuillez remplir le compte rendu de consultation avant de valider le paiement.'
+            });
+        }
+
         const now = new Date();
         const rdvDateStr = appt.appointment_date || appt.date;
         const rdvTimeStr = appt.appointment_time || appt.time;

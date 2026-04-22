@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
 const generateQRToken = async (req, res) => {
   const { phone } = req.user;
@@ -98,4 +99,96 @@ const verifyQRToken = async (req, res) => {
   }
 };
 
-module.exports = { generateQRToken, verifyQRToken };
+// ─── GÉNÉRER QR CODE URGENCE PATIENT (patient authentifié) ─────────────────────
+async function generatePatientQR(req, res) {
+  const { phone } = req.user;
+  try {
+    const qrSecret = process.env.JWT_QR_SECRET || process.env.JWT_SECRET;
+    const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24h
+    const token = jwt.sign(
+      { patient_phone: phone, type: 'emergency_qr' },
+      qrSecret,
+      { expiresIn: '24h' }
+    );
+    const baseUrl = process.env.BASE_URL || 'https://bolamu.com';
+    const emergencyUrl = `${baseUrl}/urgence?token=${token}`;
+    return res.json({
+      success: true,
+      data: {
+        emergency_url: emergencyUrl,
+        expires_at: new Date(expiresAt).toISOString(),
+        expires_in_hours: 24
+      }
+    });
+  } catch (error) {
+    console.error('[generatePatientQR] Erreur :', error.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+}
+
+// ─── ACCÉDER DOSSIER URGENCE VIA QR (public, pas d'auth) ───────────────────
+async function accessEmergencyDossier(req, res) {
+  const { token } = req.query;
+  if (!token) {
+    return res.status(400).json({ success: false, message: 'Token manquant.' });
+  }
+  try {
+    const qrSecret = process.env.JWT_QR_SECRET || process.env.JWT_SECRET;
+    const decoded = jwt.verify(token, qrSecret);
+    if (decoded.type !== 'emergency_qr') {
+      return res.status(403).json({ success: false, message: 'Token invalide.' });
+    }
+    const patientPhone = decoded.patient_phone;
+    const userResult = await pool.query(
+      `SELECT full_name, phone, allergies, groupe_sanguin, traitement_en_cours FROM users WHERE phone = $1`,
+      [patientPhone]
+    );
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Patient introuvable.' });
+    }
+    const user = userResult.rows[0];
+    const doctorResult = await pool.query(
+      `SELECT d.full_name, d.specialty, d.phone 
+       FROM doctors d
+       INNER JOIN appointments a ON d.id = a.doctor_id
+       WHERE a.patient_phone = $1
+       ORDER BY a.appointment_date DESC
+       LIMIT 1`,
+      [patientPhone]
+    );
+    const treatingDoctor = doctorResult.rows.length > 0 ? doctorResult.rows[0] : null;
+    const logDossierAccess = require('./consultation-report.controller').logDossierAccess;
+    setImmediate(() => {
+      logDossierAccess(patientPhone, 'emergency_qr', 'emergency', 'urgence_qr', req.ip);
+    });
+    return res.json({
+      success: true,
+      data: {
+        patient: {
+          full_name: user.full_name,
+          phone: user.phone,
+          allergies: user.allergies || 'Non renseigné',
+          groupe_sanguin: user.groupe_sanguin || 'Non renseigné',
+          traitement_en_cours: user.traitement_en_cours || 'Non renseigné'
+        },
+        treating_doctor: treatingDoctor ? {
+          full_name: treatingDoctor.full_name,
+          specialty: treatingDoctor.specialty,
+          phone: treatingDoctor.phone
+        } : null,
+        token_expires_at: decoded.exp * 1000
+      }
+    });
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(410).json({ success: false, message: 'QR code expiré.' });
+    }
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(403).json({ success: false, message: 'Token invalide.' });
+    }
+    console.error('[accessEmergencyDossier] Erreur :', error.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+}
+
+module.exports = { generateQRToken, verifyQRToken, generatePatientQR, accessEmergencyDossier };

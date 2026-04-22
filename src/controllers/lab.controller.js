@@ -1,0 +1,204 @@
+const pool = require('../config/db');
+
+// ─── CRÉER UNE PRESCRIPTION LABO (médecin) ───────────────────────────────
+async function createLabPrescription(req, res) {
+    const { appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions } = req.body;
+    const doctorPhone = req.user?.phone;
+
+    if (!patient_phone || !doctor_phone || !examens) {
+        return res.status(400).json({
+            success: false,
+            message: 'Champs obligatoires manquants : patient_phone, doctor_phone, examens'
+        });
+    }
+
+    try {
+        // Vérifier que le médecin connecté est bien celui qui prescrit
+        if (doctorPhone !== doctor_phone) {
+            return res.status(403).json({ success: false, message: 'Accès refusé.' });
+        }
+
+        // Insérer la prescription labo
+        const result = await pool.query(
+            `INSERT INTO lab_prescriptions 
+                (appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING *`,
+            [appointment_id || null, patient_phone, doctor_phone, lab_phone || null, examens, instructions || null]
+        );
+
+        // Notification SMS au laboratoire (optionnel - à implémenter selon besoin)
+        console.log(`📋 Prescription labo créée pour patient ${patient_phone} par ${doctorPhone}`);
+
+        return res.status(201).json({
+            success: true,
+            message: 'Prescription labo créée avec succès.',
+            data: result.rows[0]
+        });
+
+    } catch (error) {
+        console.error('[createLabPrescription] Erreur :', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ─── DÉPOSER LES RÉSULTATS LABO (laborantin) ───────────────────────────────
+async function submitLabResults(req, res) {
+    const { lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url } = req.body;
+    const labPhone = req.user?.phone;
+
+    if (!lab_prescription_id || !patient_phone || !lab_phone || !doctor_phone || !resultats) {
+        return res.status(400).json({
+            success: false,
+            message: 'Champs obligatoires manquants : lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats'
+        });
+    }
+
+    try {
+        // Vérifier que le laborantin connecté est bien celui qui dépose les résultats
+        if (labPhone !== lab_phone) {
+            return res.status(403).json({ success: false, message: 'Accès refusé.' });
+        }
+
+        // Vérifier que la prescription existe et appartient à ce laboratoire
+        const prescCheck = await pool.query(
+            `SELECT * FROM lab_prescriptions WHERE id = $1 AND lab_phone = $2`,
+            [lab_prescription_id, lab_phone]
+        );
+
+        if (prescCheck.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Prescription introuvable ou non autorisée.' });
+        }
+
+        // Insérer les résultats
+        const result = await pool.query(
+            `INSERT INTO lab_results 
+                (lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING *`,
+            [lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url || null]
+        );
+
+        // Mettre à jour le statut de la prescription
+        await pool.query(
+            `UPDATE lab_prescriptions SET status = 'traite' WHERE id = $1`,
+            [lab_prescription_id]
+        );
+
+        console.log(`🔬 Résultats labo déposés pour patient ${patient_phone} par ${labPhone}`);
+
+        return res.status(201).json({
+            success: true,
+            message: 'Résultats déposés avec succès.',
+            data: result.rows[0]
+        });
+
+    } catch (error) {
+        console.error('[submitLabResults] Erreur :', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ─── RÉCUPÉRER LES RÉSULTATS LABO D'UN PATIENT (patient, médecin, laborantin) ───
+async function getLabResultsByPatient(req, res) {
+    const { phone } = req.params;
+    const userPhone = req.user?.phone;
+    const userRole = req.user?.role;
+
+    try {
+        // Contrôle d'accès strict
+        const isPatient = userPhone === phone;
+        const isAdmin = userRole === 'admin' || userRole === 'content_admin';
+        
+        // Si c'est un médecin, vérifier qu'il a déjà eu des RDV avec ce patient
+        let isTreatingDoctor = false;
+        if (!isPatient && !isAdmin) {
+            const doctorCheck = await pool.query(
+                `SELECT COUNT(*) FROM appointments 
+                 WHERE patient_phone = $1 AND doctor_id = (SELECT id FROM doctors WHERE phone = $2)`,
+                [phone, userPhone]
+            );
+            isTreatingDoctor = parseInt(doctorCheck.rows[0].count) > 0;
+        }
+
+        // Si c'est un laborantin, vérifier qu'il a traité des prescriptions pour ce patient
+        let isTreatingLab = false;
+        if (!isPatient && !isAdmin && !isTreatingDoctor) {
+            const labCheck = await pool.query(
+                `SELECT COUNT(*) FROM lab_results 
+                 WHERE patient_phone = $1 AND lab_phone = $2`,
+                [phone, userPhone]
+            );
+            isTreatingLab = parseInt(labCheck.rows[0].count) > 0;
+        }
+
+        if (!isPatient && !isAdmin && !isTreatingDoctor && !isTreatingLab) {
+            return res.status(403).json({ success: false, message: 'Accès refusé.' });
+        }
+
+        // Récupérer tous les résultats labo du patient
+        const result = await pool.query(
+            `SELECT 
+                lr.*,
+                lp.examens,
+                lp.instructions as prescription_instructions,
+                d.full_name as doctor_name,
+                d.specialty,
+                l.name as lab_name
+             FROM lab_results lr
+             LEFT JOIN lab_prescriptions lp ON lr.lab_prescription_id = lp.id
+             LEFT JOIN doctors d ON lr.doctor_phone = d.phone
+             LEFT JOIN laboratories l ON lr.lab_phone = l.phone
+             WHERE lr.patient_phone = $1
+             ORDER BY lr.created_at DESC`,
+            [phone]
+        );
+
+        return res.json({ success: true, data: result.rows });
+
+    } catch (error) {
+        console.error('[getLabResultsByPatient] Erreur :', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ─── RÉCUPÉRER LES PRESCRIPTIONS EN ATTENTE POUR UN LABO (laborantin uniquement) ─
+async function getLabResultsForLab(req, res) {
+    const labPhone = req.user?.phone;
+
+    try {
+        // Contrôle d'accès : uniquement le laborantin connecté peut voir ses propres prescriptions
+        if (!labPhone) {
+            return res.status(401).json({ success: false, message: 'Non authentifié.' });
+        }
+
+        // Récupérer toutes les prescriptions en attente pour ce laboratoire
+        const result = await pool.query(
+            `SELECT 
+                lp.*,
+                d.full_name as doctor_name,
+                d.specialty,
+                a.appointment_date,
+                a.appointment_time
+             FROM lab_prescriptions lp
+             LEFT JOIN doctors d ON lp.doctor_phone = d.phone
+             LEFT JOIN appointments a ON lp.appointment_id = a.id
+             WHERE lp.lab_phone = $1 AND lp.status = 'en_attente'
+             ORDER BY lp.created_at DESC`,
+            [labPhone]
+        );
+
+        return res.json({ success: true, data: result.rows });
+
+    } catch (error) {
+        console.error('[getLabResultsForLab] Erreur :', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+module.exports = {
+    createLabPrescription,
+    submitLabResults,
+    getLabResultsByPatient,
+    getLabResultsForLab
+};

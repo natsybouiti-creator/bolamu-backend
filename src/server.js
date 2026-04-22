@@ -61,6 +61,8 @@ const creditsRoutes      = require('./routes/credits.routes');
 const momoRoutes         = require('./routes/momo.routes');
 const telemedicineRoutes = require('./routes/telemedicine.routes');
 const qrRoutes = require('./routes/qr.routes');
+const reportRoutes       = require('./routes/consultation-report.routes');
+const labRoutes          = require('./routes/lab.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -78,6 +80,8 @@ app.use('/api/v1/articles',      require('./routes/articles.routes'));
 app.use('/api/v1/credits',       creditsRoutes);
 app.use('/api/v1/telemedicine',  telemedicineRoutes);
 app.use('/api/v1/qr', qrRoutes);
+app.use('/api/v1/reports',       reportRoutes);
+app.use('/api/v1/lab',           labRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================

@@ -77,6 +77,8 @@
     .btn-valider:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
     .btn-tele{padding:11px 20px;background:linear-gradient(135deg,#7C3AED,#2E86FF);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-tele:hover{opacity:0.9;transform:translateY(-1px);}
+    .btn-labo{padding:11px 20px;background:linear-gradient(135deg,#5B21B6,#7C3AED);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-labo:hover{opacity:0.9;transform:translateY(-1px);}
     .rdv-termine{opacity:0.6;}
     .empty-state{text-align:center;padding:60px 24px;color:var(--texte-doux);}
     .empty-icon{font-size:48px;margin-bottom:16px;}
@@ -458,8 +460,9 @@ function renderRdvList(rdvs,containerId){
       <div class="rdv-actions">
         ${peutValider?`
           <button class="btn-valider" onclick="ouvrirValidation('${r.id}','${r.patient_phone}','${r.session_code}','${dateRdv}','${heureRdv}')">✅ Valider</button>
-          <button class="btn-tele" onclick="demarrerTeleconsultation('${r.id}','${r.session_code}','${r.patient_phone}')">📹 Téléconsultation</button>`:''}
-        ${termine?'<span style="font-size:13px;color:#047857;font-weight:600;">✅ Consultation terminée</span>':''}
+          <button class="btn-tele" onclick="demarrerTeleconsultation('${r.id}','${r.session_code}','${r.patient_phone}')">📹 Téléconsultation</button>
+          <button class="btn-labo" onclick="ouvrirModalLabo('${r.id}','${r.patient_phone}')">🔬 Prescrire labo</button>`:''}
+        ${termine?`<button class="btn-labo" onclick="ouvrirModalLabo('${r.id}','${r.patient_phone}')">🔬 Prescrire labo</button>`:''}
       </div>
     </div>`;
   }).join('')}</div>`;
@@ -505,12 +508,66 @@ function verifierCode(){
   const code=['c1','c2','c3','c4'].map(id=>document.getElementById(id).value).join('');
   if(code.length<4)return;
   if(code!==currentRdv.sessionCode){document.getElementById('code-error').style.display='block';['c1','c2','c3','c4'].forEach(id=>{document.getElementById(id).style.borderColor='var(--rouge)';});return;}
-  afficherEtapeOrdonnance();
+  afficherEtapeCompteRendu();
+}
+
+function afficherEtapeCompteRendu(){
+  document.getElementById('modal-content').innerHTML=`
+    <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step active">2</div><div class="step-line"></div><div class="step pending">3</div></div>
+    <div class="modal-title">Compte rendu de consultation</div>
+    <div class="modal-sub">Code validé ✅ — Remplissez le compte rendu obligatoire avant de valider la consultation.</div>
+    <div class="form-group">
+      <label class="form-label">Motif de la consultation *</label>
+      <textarea class="form-textarea" id="cr-motif" placeholder="Raison de la consultation..." required></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observations cliniques *</label>
+      <textarea class="form-textarea" id="cr-observations" placeholder="Symptômes, signes cliniques..." required></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Diagnostic *</label>
+      <textarea class="form-textarea" id="cr-diagnostic" placeholder="Diagnostic principal..." required></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Traitement prescrit (optionnel)</label>
+      <textarea class="form-textarea" id="cr-traitement" placeholder="Médicaments, posologie..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prochaine étape (optionnel)</label>
+      <textarea class="form-textarea" id="cr-prochaine" placeholder="Suivi recommandé, examens complémentaires..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="afficherEtapeCode()">← Retour</button>
+      <button class="btn-primary" id="btn-cr-submit" onclick="soumettreCompteRendu()">Suivant → Ordonnance</button>
+    </div>`;
+}
+
+async function soumettreCompteRendu(){
+  const motif=document.getElementById('cr-motif').value.trim();
+  const observations=document.getElementById('cr-observations').value.trim();
+  const diagnostic=document.getElementById('cr-diagnostic').value.trim();
+  const traitement=document.getElementById('cr-traitement').value.trim();
+  const prochaine=document.getElementById('cr-prochaine').value.trim();
+  
+  if(!motif||!observations||!diagnostic){
+    alert('Veuillez remplir les champs obligatoires : motif, observations, diagnostic');
+    return;
+  }
+  
+  const btn=document.getElementById('btn-cr-submit');
+  btn.disabled=true;btn.textContent='Envoi en cours...';
+  
+  try{
+    const res=await fetch(`${API}/reports/submit`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,motif,observations,diagnostic,traitement,prochaine_etape:prochaine})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.message||'Erreur compte rendu');
+    afficherEtapeOrdonnance();
+  }catch(e){btn.disabled=false;btn.textContent='Suivant → Ordonnance';alert('Erreur : '+e.message);}
 }
 
 function afficherEtapeOrdonnance(){
   document.getElementById('modal-content').innerHTML=`
-    <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step active">2</div></div>
+    <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step done">✓</div><div class="step-line done"></div><div class="step active">3</div></div>
     <div class="modal-title">Rédiger l'ordonnance</div>
     <div class="modal-sub">Code validé ✅ — Rédigez l'ordonnance numérique pour ce patient.</div>
     <div class="modal-hint">💡 Listez un médicament par ligne. Ex :<br><em>Paracétamol 1000mg — 3x/jour pendant 5 jours</em></div>
@@ -523,7 +580,7 @@ function afficherEtapeOrdonnance(){
       <input class="form-input" id="ord-instructions" placeholder="Ex : Prendre après les repas…">
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="afficherEtapeCode()">← Retour</button>
+      <button class="btn-cancel" onclick="afficherEtapeCompteRendu()">← Retour</button>
       <button class="btn-primary" id="btn-confirmer" onclick="confirmerValidation()">✅ Valider et créer l'ordonnance</button>
     </div>`;
 }
@@ -536,7 +593,17 @@ async function confirmerValidation(){
   btn.disabled=true;btn.textContent='Validation en cours…';
   const dureeMinutes=Math.round((Date.now()-consultationStartTime)/60000);
   try{
-    await fetch(`${API}/appointments/${currentRdv.rdvId}/validate`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({session_code:currentRdv.sessionCode,consultation_duration_minutes:dureeMinutes})});
+    const resVal=await fetch(`${API}/appointments/${currentRdv.rdvId}/validate`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({session_code:currentRdv.sessionCode,consultation_duration_minutes:dureeMinutes})});
+    const dataVal=await resVal.json();
+    if(!resVal.ok){
+      if(dataVal.message&&dataVal.message.includes('Compte rendu obligatoire')){
+        btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';
+        alert('Erreur : '+dataVal.message+'\n\nLe compte rendu doit être soumis avant la validation.');
+        afficherEtapeCompteRendu();
+        return;
+      }
+      throw new Error(dataVal.message||'Erreur validation');
+    }
     const resPres=await fetch(`${API}/prescriptions/create`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,medications,instructions:instructions||null})});
     const dataPres=await resPres.json();
     if(!resPres.ok)throw new Error(dataPres.message||'Erreur ordonnance');
@@ -615,6 +682,54 @@ function closeJitsiAndValidate(){
 }
 
 function formatDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});}
+
+function ouvrirModalLabo(rdvId,patientPhone){
+  const modal=document.createElement('div');
+  modal.className='modal-overlay open';
+  modal.id='modal-labo';
+  modal.innerHTML=`
+    <div class="modal">
+      <div class="modal-title">Prescrire un examen labo</div>
+      <div class="modal-sub">Patient : ${patientPhone}</div>
+      <div class="form-group">
+        <label class="form-label">Examens demandés *</label>
+        <textarea class="form-textarea" id="labo-examens" placeholder="Ex : NFS, VS, CRP, Glycémie..." style="min-height:100px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instructions (optionnel)</label>
+        <input class="form-input" id="labo-instructions" placeholder="Ex : À jeun depuis 12h...">
+      </div>
+      <div class="modal-actions" style="display:flex;gap:12px;margin-top:24px;">
+        <button class="btn-cancel" onclick="fermerModalLabo()">Annuler</button>
+        <button class="btn-primary" id="btn-labo-envoyer" onclick="envoyerPrescriptionLabo('${rdvId}','${patientPhone}')">🔬 Envoyer</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',function(e){if(e.target===modal)fermerModalLabo();});
+}
+
+function fermerModalLabo(){
+  const modal=document.getElementById('modal-labo');
+  if(modal)modal.remove();
+}
+
+async function envoyerPrescriptionLabo(rdvId,patientPhone){
+  const examens=document.getElementById('labo-examens').value.trim();
+  const instructions=document.getElementById('labo-instructions').value.trim();
+  if(!examens){alert('Veuillez entrer les examens demandés.');return;}
+  
+  const btn=document.getElementById('btn-labo-envoyer');
+  btn.disabled=true;btn.textContent='Envoi en cours...';
+  
+  try{
+    const res=await fetch(`${API}/lab/prescribe`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:rdvId,patient_phone:patientPhone,doctor_phone:phone,examens,instructions:instructions||null})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.message||'Erreur prescription');
+    fermerModalLabo();
+    alert('✅ Prescription labo envoyée avec succès !');
+  }catch(e){btn.disabled=false;btn.textContent='🔬 Envoyer';alert('Erreur : '+e.message);}
+}
+
 function logout(){localStorage.removeItem('bolamu_medecin_token');localStorage.removeItem('bolamu_medecin_phone');localStorage.removeItem('bolamu_role');window.location.href='/login.html';}
 
 loadProfil();loadRdv();

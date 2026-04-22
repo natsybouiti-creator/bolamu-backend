@@ -49,6 +49,36 @@
     .badge-pending{background:#fef9ec;color:var(--amber);}
     .badge-traite{background:var(--violet-clair);color:var(--violet);}
     .badge-en-attente{background:#fef9ec;color:var(--amber);}
+    .rdv-list{display:flex;flex-direction:column;gap:12px;}
+    .rdv-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);transition:all 0.2s;}
+    .rdv-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+    .rdv-patient{display:flex;align-items:center;gap:14px;}
+    .rdv-avatar{width:46px;height:46px;border-radius:14px;background:var(--bleu-pale);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .rdv-name{font-size:16px;font-weight:700;margin-bottom:3px;}
+    .rdv-phone{font-size:13px;color:var(--texte-doux);}
+    .rdv-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+    .rdv-meta span{background:var(--bleu-pale);color:var(--texte-doux);padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;}
+    .rdv-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .btn-valider{padding:11px 24px;background:var(--grad-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-valider:hover{opacity:0.9;transform:translateY(-1px);}
+    .btn-valider:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+    .btn-primary{padding:11px 24px;background:var(--grad-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
+    .btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+    .btn-cancel{padding:11px 24px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;background:transparent;color:var(--texte-doux);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-cancel:hover{border-color:var(--violet);color:var(--violet);}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,36,99,0.5);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:white;border-radius:28px;padding:40px;max-width:520px;width:100%;box-shadow:0 40px 100px rgba(10,36,99,0.3);animation:modalIn 0.3s ease;max-height:90vh;overflow-y:auto;}
+    @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+    .modal-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:8px;}
+    .modal-sub{font-size:14px;color:var(--texte-doux);margin-bottom:28px;line-height:1.6;}
+    .form-group{margin-bottom:18px;}
+    .form-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;display:block;}
+    .form-textarea{width:100%;border:2px solid var(--border);border-radius:14px;padding:14px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;resize:vertical;min-height:100px;transition:border-color 0.2s;}
+    .form-textarea:focus{border-color:var(--violet);}
+    .form-input{width:100%;border:2px solid var(--border);border-radius:14px;padding:14px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
+    .form-input:focus{border-color:var(--violet);}
     .profil-layout{display:grid;grid-template-columns:320px 1fr;gap:24px;}
     .profil-card-main{background:var(--grad-labo);border-radius:24px;padding:36px;color:white;text-align:center;}
     .profil-avatar-big{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;border:3px solid rgba(255,255,255,0.3);}
@@ -149,7 +179,9 @@
         <div class="stat-card"><div class="stat-label">Score confiance</div><div class="stat-value" id="s-score" style="font-size:24px;">—</div><div class="stat-sub">Sur 100</div></div>
       </div>
     </div>
-    <div class="section-header"><h2 class="section-title-dash">Activité récente</h2></div>
+    <div class="section-header"><h2 class="section-title-dash">Prescriptions en attente</h2></div>
+    <div id="prescriptions-attente"><div class="loading">Chargement…</div></div>
+    <div class="section-header" style="margin-top:32px;"><h2 class="section-title-dash">Activité récente</h2></div>
     <div id="accueil-content"><div class="empty-state"><div class="empty-icon">🔬</div><p>Les analyses prescrites par les médecins partenaires apparaîtront ici.</p></div></div>
   </div>
   <div class="panel" id="panel-historique">
@@ -406,7 +438,109 @@ function logout() {
   window.location.href = '/';
 }
 
+async function loadPrescriptionsAttente() {
+  try {
+    const res = await fetch(`${API}/lab/pending`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const container = document.getElementById('prescriptions-attente');
+    
+    if (!data.success || !data.data || data.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Aucune prescription en attente.</p></div>';
+      return;
+    }
+    
+    container.innerHTML = `<div class="rdv-list">${data.data.map(p => `
+      <div class="rdv-card" style="border-left:4px solid var(--amber);">
+        <div class="rdv-card-top">
+          <div class="rdv-patient"><div class="rdv-avatar">👤</div><div>
+            <div class="rdv-name">${p.patient_phone}</div>
+            <div class="rdv-phone">Prescrit par : <strong>${p.doctor_name || p.doctor_phone}</strong></div>
+          </div></div>
+          <span class="badge badge-en-attente">⏳ En attente</span>
+        </div>
+        <div class="rdv-meta"><span>📅 ${new Date(p.created_at).toLocaleDateString('fr-FR')}</span></div>
+        <div style="margin-bottom:12px;font-size:14px;color:var(--texte-doux);"><strong>Examens demandés :</strong><br>${p.examens}</div>
+        ${p.instructions ? `<div style="margin-bottom:12px;font-size:13px;color:var(--texte-doux);"><em>Instructions : ${p.instructions}</em></div>` : ''}
+        <div class="rdv-actions">
+          <button class="btn-valider" onclick="ouvrirModalResultats(${p.id},'${p.patient_phone}','${p.doctor_phone}','${p.examens.replace(/'/g,"\\'")}')">🔬 Déposer les résultats</button>
+        </div>
+      </div>
+    `).join('')}</div>`;
+  } catch(e) {
+    document.getElementById('prescriptions-attente').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur de chargement.</p></div>';
+  }
+}
+
+let currentPrescription = null;
+
+function ouvrirModalResultats(id, patientPhone, doctorPhone, examens) {
+  currentPrescription = { id, patientPhone, doctorPhone, examens };
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay open';
+  modal.id = 'modal-resultats';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-title">Déposer les résultats</div>
+      <div class="modal-sub">Patient : ${patientPhone}<br>Examens : ${examens}</div>
+      <div class="form-group">
+        <label class="form-label">Résultats *</label>
+        <textarea class="form-textarea" id="res-resultats" placeholder="Entrez les résultats des analyses..." style="min-height:150px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fichier (optionnel)</label>
+        <input type="file" id="res-fichier" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+      </div>
+      <div class="modal-actions" style="display:flex;gap:12px;margin-top:24px;">
+        <button class="btn-cancel" onclick="fermerModalResultats()">Annuler</button>
+        <button class="btn-primary" id="btn-soumettre" onclick="soumettreResultats()">Soumettre</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(e) { if(e.target===modal)fermerModalResultats(); });
+}
+
+function fermerModalResultats() {
+  const modal = document.getElementById('modal-resultats');
+  if(modal) modal.remove();
+  currentPrescription = null;
+}
+
+async function soumettreResultats() {
+  const resultats = document.getElementById('res-resultats').value.trim();
+  if(!resultats) { alert('Veuillez entrer les résultats.'); return; }
+  
+  const btn = document.getElementById('btn-soumettre');
+  btn.disabled = true; btn.textContent = 'Envoi en cours...';
+  
+  try {
+    const res = await fetch(`${API}/lab/results/submit`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lab_prescription_id: currentPrescription.id,
+        patient_phone: currentPrescription.patientPhone,
+        lab_phone: phone,
+        doctor_phone: currentPrescription.doctorPhone,
+        resultats: resultats,
+        fichier_url: null
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.message || 'Erreur');
+    fermerModalResultats();
+    loadPrescriptionsAttente();
+    alert('✅ Résultats déposés avec succès !');
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Soumettre';
+    alert('Erreur : '+e.message);
+  }
+}
+
 loadProfil();
+loadPrescriptionsAttente();
 </script>
 </body>
 

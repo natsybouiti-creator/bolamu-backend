@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolamu — Dossier d'Urgence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:#ffffff;color:#0A2463;min-height:100vh;padding:20px;}
+    .container{max-width:600px;margin:0 auto;}
+    .header{text-align:center;margin-bottom:30px;}
+    .header h1{font-size:28px;font-weight:800;margin-bottom:8px;}
+    .header p{font-size:16px;color:#5A6E8C;}
+    .card{background:#F4F8FF;border-radius:20px;padding:24px;margin-bottom:20px;border:2px solid #E6F0FF;}
+    .card-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#5A6E8C;margin-bottom:16px;}
+    .info-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #E6F0FF;font-size:18px;}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{color:#5A6E8C;font-weight:500;}
+    .info-value{font-weight:700;color:#0A2463;}
+    .alert{background:#FDE8E8;border:2px solid #FCA5A5;border-radius:16px;padding:20px;margin-bottom:20px;}
+    .alert-title{font-size:18px;font-weight:700;color:#991B1B;margin-bottom:8px;}
+    .alert-text{font-size:16px;color:#991B1B;line-height:1.6;}
+    .error-container{text-align:center;padding:60px 20px;}
+    .error-icon{font-size:64px;margin-bottom:20px;}
+    .error-title{font-size:24px;font-weight:800;color:#991B1B;margin-bottom:12px;}
+    .error-text{font-size:16px;color:#991B1B;line-height:1.6;}
+    .validity{text-align:center;margin-top:30px;font-size:14px;color:#00C9A7;font-weight:600;}
+    .loading{text-align:center;padding:60px 20px;font-size:18px;color:#5A6E8C;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚨 Dossier d'Urgence</h1>
+      <p>Informations vitales du patient</p>
+    </div>
+    <div id="content">
+      <div class="loading">Chargement des données...</div>
+    </div>
+  </div>
+  <script>
+    const urlParams=new URLSearchParams(window.location.search);
+    const token=urlParams.get('token');
+    const content=document.getElementById('content');
+    
+    if(!token){
+      content.innerHTML=`
+        <div class="error-container">
+          <div class="error-icon">❌</div>
+          <div class="error-title">QR code invalide</div>
+          <div class="error-text">Veuillez scanner un QR code Bolamu valide.</div>
+        </div>`;
+    }else{
+      fetch(`/api/v1/qr/urgence?token=${token}`)
+        .then(res=>res.json())
+        .then(data=>{
+          if(!data.success){
+            if(data.message.includes('expiré')){
+              content.innerHTML=`
+                <div class="error-container">
+                  <div class="error-icon">⏰</div>
+                  <div class="error-title">QR code expiré</div>
+                  <div class="error-text">Veuillez demander un nouveau code au patient.</div>
+                </div>`;
+            }else{
+              content.innerHTML=`
+                <div class="error-container">
+                  <div class="error-icon">❌</div>
+                  <div class="error-title">QR code invalide</div>
+                  <div class="error-text">${data.message||'Veuillez scanner un QR code Bolamu valide.'}</div>
+                </div>`;
+            }
+            return;
+          }
+          const p=data.data.patient;
+          const doc=data.data.treating_doctor;
+          const expiresAt=new Date(data.data.token_expires_at).toLocaleString('fr-FR');
+          let allergyAlert='';
+          if(p.allergies&&p.allergies!=='Non renseigné'){
+            allergyAlert=`
+              <div class="alert">
+                <div class="alert-title">⚠️ ALLERGIES</div>
+                <div class="alert-text">${p.allergies}</div>
+              </div>`;
+          }
+          let doctorSection='';
+          if(doc){
+            doctorSection=`
+              <div class="card">
+                <div class="card-title">Médecin traitant</div>
+                <div class="info-row"><span class="info-label">Nom</span><span class="info-value">${doc.full_name}</span></div>
+                <div class="info-row"><span class="info-label">Spécialité</span><span class="info-value">${doc.specialty||'—'}</span></div>
+                <div class="info-row"><span class="info-label">Téléphone</span><span class="info-value">${doc.phone}</span></div>
+              </div>`;
+          }
+          content.innerHTML=`
+            ${allergyAlert}
+            <div class="card">
+              <div class="card-title">Patient</div>
+              <div class="info-row"><span class="info-label">Nom</span><span class="info-value">${p.full_name}</span></div>
+              <div class="info-row"><span class="info-label">Téléphone</span><span class="info-value">${p.phone}</span></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Informations médicales</div>
+              <div class="info-row"><span class="info-label">Groupe sanguin</span><span class="info-value">${p.groupe_sanguin}</span></div>
+              <div class="info-row"><span class="info-label">Traitement en cours</span><span class="info-value">${p.traitement_en_cours}</span></div>
+            </div>
+            ${doctorSection}
+            <div class="validity">✅ Données valides jusqu'au ${expiresAt}</div>
+          `;
+        })
+        .catch(err=>{
+          content.innerHTML=`
+            <div class="error-container">
+              <div class="error-icon">⚠️</div>
+              <div class="error-title">Erreur de chargement</div>
+              <div class="error-text">Impossible de charger les données. Veuillez réessayer.</div>
+            </div>`;
+        });
+    }
+  </script>
+</body>
+</html>
