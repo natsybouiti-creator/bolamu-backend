@@ -6,7 +6,8 @@ const {
     createLabPrescription,
     submitLabResults,
     getLabResultsByPatient,
-    getLabResultsForLab
+    getLabResultsForLab,
+    getLabPrescriptionByCode
 } = require('../controllers/lab.controller');
 
 // Middleware pour restreindre aux médecins
@@ -36,5 +37,8 @@ router.get('/results/patient/:phone', authMiddleware, getLabResultsByPatient);
 
 // Récupérer les prescriptions en attente pour ce laboratoire (réservé aux laborantins)
 router.get('/pending', authMiddleware, labOnly, getLabResultsForLab);
+
+// Récupérer une prescription par code (réservé aux laborantins)
+router.get('/prescription/:code', authMiddleware, labOnly, getLabPrescriptionByCode);
 
 module.exports = router;

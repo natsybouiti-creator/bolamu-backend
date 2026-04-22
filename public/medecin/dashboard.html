@@ -726,7 +726,8 @@ async function envoyerPrescriptionLabo(rdvId,patientPhone){
     const data=await res.json();
     if(!res.ok)throw new Error(data.message||'Erreur prescription');
     fermerModalLabo();
-    alert('✅ Prescription labo envoyée avec succès !');
+    const prescriptionCode=data.data?.prescription_code||'N/A';
+    alert(`✅ Prescription créée.\n\nCode à donner au patient : ${prescriptionCode}`);
   }catch(e){btn.disabled=false;btn.textContent='🔬 Envoyer';alert('Erreur : '+e.message);}
 }
 

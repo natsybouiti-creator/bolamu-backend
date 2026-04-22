@@ -180,6 +180,14 @@
       </div>
     </div>
     <div class="section-header"><h2 class="section-title-dash">Prescriptions en attente</h2></div>
+    <div style="background:white;border-radius:16px;padding:16px;border:1px solid var(--border);margin-bottom:20px;">
+      <div style="display:flex;gap:12px;align-items:center;">
+        <div style="flex:1;">
+          <input type="text" id="prescription-code-input" placeholder="Entrez le code de prescription du patient (ex: LAB-0001)" style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);">
+        </div>
+        <button onclick="searchPrescriptionByCode()" style="padding:12px 24px;background:var(--grad-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔍 Rechercher</button>
+      </div>
+    </div>
     <div id="prescriptions-attente"><div class="loading">Chargement…</div></div>
     <div class="section-header" style="margin-top:32px;"><h2 class="section-title-dash">Activité récente</h2></div>
     <div id="accueil-content"><div class="empty-state"><div class="empty-icon">🔬</div><p>Les analyses prescrites par les médecins partenaires apparaîtront ici.</p></div></div>
@@ -460,7 +468,10 @@ async function loadPrescriptionsAttente() {
           </div></div>
           <span class="badge badge-en-attente">⏳ En attente</span>
         </div>
-        <div class="rdv-meta"><span>📅 ${new Date(p.created_at).toLocaleDateString('fr-FR')}</span></div>
+        <div class="rdv-meta">
+          <span>📅 ${new Date(p.created_at).toLocaleDateString('fr-FR')}</span>
+          <span>🔑 Code: <strong style="font-family:'Fraunces',serif;color:var(--violet);letter-spacing:2px;">${p.prescription_code || '—'}</strong></span>
+        </div>
         <div style="margin-bottom:12px;font-size:14px;color:var(--texte-doux);"><strong>Examens demandés :</strong><br>${p.examens}</div>
         ${p.instructions ? `<div style="margin-bottom:12px;font-size:13px;color:var(--texte-doux);"><em>Instructions : ${p.instructions}</em></div>` : ''}
         <div class="rdv-actions">
@@ -470,6 +481,51 @@ async function loadPrescriptionsAttente() {
     `).join('')}</div>`;
   } catch(e) {
     document.getElementById('prescriptions-attente').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur de chargement.</p></div>';
+  }
+}
+
+async function searchPrescriptionByCode() {
+  const code = document.getElementById('prescription-code-input').value.trim();
+  if (!code) { alert('Veuillez entrer un code de prescription.'); return; }
+  
+  const container = document.getElementById('prescriptions-attente');
+  container.innerHTML = '<div class="loading">Recherche en cours…</div>';
+  
+  try {
+    const res = await fetch(`${API}/lab/prescription/${code}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    
+    if (!data.success) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><p>${data.message}</p></div>`;
+      return;
+    }
+    
+    const p = data.data;
+    container.innerHTML = `<div class="rdv-list">
+      <div class="rdv-card" style="border-left:4px solid var(--vert);">
+        <div class="rdv-card-top">
+          <div class="rdv-patient"><div class="rdv-avatar">👤</div><div>
+            <div class="rdv-name">${p.patient_phone}</div>
+            <div class="rdv-phone">Prescrit par : <strong>${p.doctor_name || p.doctor_phone}</strong></div>
+          </div></div>
+          <span class="badge badge-actif">✅ Trouvé</span>
+        </div>
+        <div class="rdv-meta">
+          <span>📅 ${new Date(p.created_at).toLocaleDateString('fr-FR')}</span>
+          <span>🔑 Code: <strong style="font-family:'Fraunces',serif;color:var(--violet);letter-spacing:2px;">${p.prescription_code || '—'}</strong></span>
+        </div>
+        <div style="margin-bottom:12px;font-size:14px;color:var(--texte-doux);"><strong>Examens demandés :</strong><br>${p.examens}</div>
+        ${p.instructions ? `<div style="margin-bottom:12px;font-size:13px;color:var(--texte-doux);"><em>Instructions : ${p.instructions}</em></div>` : ''}
+        <div class="rdv-actions">
+          <button class="btn-valider" onclick="ouvrirModalResultats(${p.id},'${p.patient_phone}','${p.doctor_phone}','${p.examens.replace(/'/g,"\\'")}')">🔬 Déposer les résultats</button>
+          <button class="btn-cancel" onclick="loadPrescriptionsAttente()">Afficher toutes</button>
+        </div>
+      </div>
+    </div>`;
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur de recherche.</p></div>';
   }
 }
 

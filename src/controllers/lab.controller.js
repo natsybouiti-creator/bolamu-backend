@@ -18,17 +18,20 @@ async function createLabPrescription(req, res) {
             return res.status(403).json({ success: false, message: 'Accès refusé.' });
         }
 
+        // Générer un code de prescription unique de 6 chiffres
+        const prescriptionCode = Math.floor(100000 + Math.random() * 900000).toString();
+
         // Insérer la prescription labo
         const result = await pool.query(
             `INSERT INTO lab_prescriptions 
-                (appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions)
-             VALUES ($1, $2, $3, $4, $5, $6)
+                (appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions, prescription_code)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [appointment_id || null, patient_phone, doctor_phone, lab_phone || null, examens, instructions || null]
+            [appointment_id || null, patient_phone, doctor_phone, lab_phone || null, examens, instructions || null, prescriptionCode]
         );
 
         // Notification SMS au laboratoire (optionnel - à implémenter selon besoin)
-        console.log(`📋 Prescription labo créée pour patient ${patient_phone} par ${doctorPhone}`);
+        console.log(`📋 Prescription labo créée pour patient ${patient_phone} par ${doctorPhone} - Code: ${prescriptionCode}`);
 
         return res.status(201).json({
             success: true,
@@ -167,12 +170,12 @@ async function getLabResultsForLab(req, res) {
     const labPhone = req.user?.phone;
 
     try {
-        // Contrôle d'accès : uniquement le laborantin connecté peut voir ses propres prescriptions
+        // Contrôle d'accès : uniquement le laborantin connecté peut voir les prescriptions
         if (!labPhone) {
             return res.status(401).json({ success: false, message: 'Non authentifié.' });
         }
 
-        // Récupérer toutes les prescriptions en attente pour ce laboratoire
+        // Récupérer TOUTES les prescriptions en attente (sans filtre par lab_phone)
         const result = await pool.query(
             `SELECT 
                 lp.*,
@@ -183,9 +186,8 @@ async function getLabResultsForLab(req, res) {
              FROM lab_prescriptions lp
              LEFT JOIN doctors d ON lp.doctor_phone = d.phone
              LEFT JOIN appointments a ON lp.appointment_id = a.id
-             WHERE lp.lab_phone = $1 AND lp.status = 'en_attente'
-             ORDER BY lp.created_at DESC`,
-            [labPhone]
+             WHERE lp.status = 'en_attente'
+             ORDER BY lp.created_at DESC`
         );
 
         return res.json({ success: true, data: result.rows });
@@ -196,9 +198,56 @@ async function getLabResultsForLab(req, res) {
     }
 }
 
+// ─── RÉCUPÉRER UNE PRESCRIPTION PAR CODE (laborantin authentifié) ─
+async function getLabPrescriptionByCode(req, res) {
+    const { code } = req.params;
+    const labPhone = req.user?.phone;
+
+    if (!labPhone) {
+        return res.status(401).json({ success: false, message: 'Non authentifié.' });
+    }
+
+    try {
+        // Récupérer la prescription par code
+        const result = await pool.query(
+            `SELECT 
+                lp.*,
+                d.full_name as doctor_name,
+                d.specialty,
+                a.appointment_date,
+                a.appointment_time
+             FROM lab_prescriptions lp
+             LEFT JOIN doctors d ON lp.doctor_phone = d.phone
+             LEFT JOIN appointments a ON lp.appointment_id = a.id
+             WHERE lp.prescription_code = $1`,
+            [code]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Prescription introuvable.' });
+        }
+
+        const prescription = result.rows[0];
+
+        // Logger l'accès dans dossier_access_log
+        await pool.query(
+            `INSERT INTO dossier_access_log (access_type, actor_phone, target_phone, prescription_id, accessed_at)
+             VALUES ('lab_code', $1, $2, $3, NOW())`,
+            [labPhone, prescription.patient_phone, prescription.id]
+        ).catch(() => {});
+
+        return res.json({ success: true, data: prescription });
+
+    } catch (error) {
+        console.error('[getLabPrescriptionByCode] Erreur :', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
 module.exports = {
     createLabPrescription,
     submitLabResults,
     getLabResultsByPatient,
-    getLabResultsForLab
+    getLabResultsForLab,
+    getLabPrescriptionByCode
 };
