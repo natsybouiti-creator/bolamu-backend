@@ -39,7 +39,7 @@ router.get('/slots/:doctor_id', async (req, res) => {
         const pris = prisResult.rows.map(r => r.appointment_time.slice(0,5));
         const libres = creneaux.filter(c => !pris.includes(c));
         
-        res.json({ success: true, slots: libres });
+        res.json({ success: true, slots: libres, pris: pris, jour: jour });
     } catch(err) {
         res.status(500).json({ error: err.message });
     }
