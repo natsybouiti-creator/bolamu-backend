@@ -202,6 +202,8 @@ async function getLabResultsForLab(req, res) {
 async function getLabPrescriptionByCode(req, res) {
     const { code } = req.params;
     const labPhone = req.user?.phone;
+    console.log('[DEBUG getLabPrescriptionByCode] code reçu:', code);
+    console.log('[DEBUG getLabPrescriptionByCode] labPhone:', labPhone);
 
     if (!labPhone) {
         return res.status(401).json({ success: false, message: 'Non authentifié.' });
@@ -222,6 +224,7 @@ async function getLabPrescriptionByCode(req, res) {
              WHERE lp.prescription_code = $1`,
             [code]
         );
+        console.log('[DEBUG getLabPrescriptionByCode] rows trouvées:', result.rows.length);
 
         if (!result.rows.length) {
             return res.status(404).json({ success: false, message: 'Prescription introuvable.' });
