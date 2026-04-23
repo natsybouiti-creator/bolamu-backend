@@ -572,17 +572,21 @@ async function soumettreResultats() {
   btn.disabled = true; btn.textContent = 'Envoi en cours...';
   
   try {
+    const formData = new FormData();
+    formData.append('lab_prescription_id', currentPrescription.id);
+    formData.append('patient_phone', currentPrescription.patientPhone);
+    formData.append('doctor_phone', currentPrescription.doctorPhone);
+    formData.append('resultats', resultats);
+    
+    const fichierInput = document.getElementById('res-fichier');
+    if (fichierInput.files[0]) {
+      formData.append('fichier', fichierInput.files[0]);
+    }
+
     const res = await fetch(`${API}/lab/results/submit`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        lab_prescription_id: currentPrescription.id,
-        patient_phone: currentPrescription.patientPhone,
-        lab_phone: phone,
-        doctor_phone: currentPrescription.doctorPhone,
-        resultats: resultats,
-        fichier_url: null
-      })
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.message || 'Erreur');

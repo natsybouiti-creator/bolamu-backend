@@ -7,7 +7,8 @@ const {
     submitLabResults,
     getLabResultsByPatient,
     getLabResultsForLab,
-    getLabPrescriptionByCode
+    getLabPrescriptionByCode,
+    upload
 } = require('../controllers/lab.controller');
 
 // Middleware pour restreindre aux médecins
@@ -30,7 +31,7 @@ const labOnly = (req, res, next) => {
 router.post('/prescribe', authMiddleware, doctorOnly, createLabPrescription);
 
 // Déposer les résultats labo (réservé aux laborantins)
-router.post('/results/submit', authMiddleware, labOnly, submitLabResults);
+router.post('/results/submit', authMiddleware, labOnly, upload.single('fichier'), submitLabResults);
 
 // Récupérer les résultats labo d'un patient (patient, médecin traitant, laborantin concerné)
 router.get('/results/patient/:phone', authMiddleware, getLabResultsByPatient);

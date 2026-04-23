@@ -1,4 +1,7 @@
 const pool = require('../config/db');
+const { uploadToCloudinary } = require('../utils/cloudinary');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 // ─── CRÉER UNE PRESCRIPTION LABO (médecin) ───────────────────────────────
 async function createLabPrescription(req, res) {
@@ -68,13 +71,26 @@ async function submitLabResults(req, res) {
             return res.status(404).json({ success: false, message: 'Prescription introuvable ou non autorisée.' });
         }
 
+        // Gestion de l'upload de fichier vers Cloudinary
+        let fichier_url = fichier_url || null;
+        let fichier_public_id = null;
+        if (req.file) {
+            const result = await uploadToCloudinary(
+                req.file.buffer,
+                'bolamu/lab_results',
+                { resource_type: 'auto' }
+            );
+            fichier_url = result.secure_url;
+            fichier_public_id = result.public_id;
+        }
+
         // Insérer les résultats
         const result = await pool.query(
             `INSERT INTO lab_results 
-                (lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url)
-             VALUES ($1, $2, $3, $4, $5, $6)
+                (lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url, fichier_public_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [lab_prescription_id, patient_phone, labPhone, doctor_phone, resultats, fichier_url || null]
+            [lab_prescription_id, patient_phone, labPhone, doctor_phone, resultats, fichier_url, fichier_public_id]
         );
 
         // Mettre à jour le statut de la prescription
@@ -255,5 +271,6 @@ module.exports = {
     submitLabResults,
     getLabResultsByPatient,
     getLabResultsForLab,
-    getLabPrescriptionByCode
+    getLabPrescriptionByCode,
+    upload
 };
