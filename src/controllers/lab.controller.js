@@ -50,23 +50,18 @@ async function submitLabResults(req, res) {
     const { lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url } = req.body;
     const labPhone = req.user?.phone;
 
-    if (!lab_prescription_id || !patient_phone || !lab_phone || !doctor_phone || !resultats) {
+    if (!lab_prescription_id || !patient_phone || !doctor_phone || !resultats) {
         return res.status(400).json({
             success: false,
-            message: 'Champs obligatoires manquants : lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats'
+            message: 'Champs obligatoires manquants : lab_prescription_id, patient_phone, doctor_phone, resultats'
         });
     }
 
     try {
-        // Vérifier que le laborantin connecté est bien celui qui dépose les résultats
-        if (labPhone !== lab_phone) {
-            return res.status(403).json({ success: false, message: 'Accès refusé.' });
-        }
-
-        // Vérifier que la prescription existe et appartient à ce laboratoire
+        // Vérifier que la prescription existe et est en attente
         const prescCheck = await pool.query(
-            `SELECT * FROM lab_prescriptions WHERE id = $1 AND lab_phone = $2`,
-            [lab_prescription_id, lab_phone]
+            `SELECT * FROM lab_prescriptions WHERE id = $1 AND status = 'en_attente'`,
+            [lab_prescription_id]
         );
 
         if (prescCheck.rows.length === 0) {
@@ -79,13 +74,19 @@ async function submitLabResults(req, res) {
                 (lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url)
              VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING *`,
-            [lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url || null]
+            [lab_prescription_id, patient_phone, labPhone, doctor_phone, resultats, fichier_url || null]
         );
 
         // Mettre à jour le statut de la prescription
         await pool.query(
             `UPDATE lab_prescriptions SET status = 'traite' WHERE id = $1`,
             [lab_prescription_id]
+        );
+
+        // Enregistrer quel labo a traité la prescription
+        await pool.query(
+            `UPDATE lab_prescriptions SET lab_phone = $1 WHERE id = $2`,
+            [labPhone, lab_prescription_id]
         );
 
         console.log(`🔬 Résultats labo déposés pour patient ${patient_phone} par ${labPhone}`);
