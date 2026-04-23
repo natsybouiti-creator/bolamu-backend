@@ -87,6 +87,13 @@ async function registerLaboratoire(req, res) {
             [normalizedPhone, userId, name, director_name, rccm_number, agrement_number || null, city, neighborhood || null, autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || normalizedPhone]
         );
 
+        if (documentUrl) {
+            await client.query(
+                `UPDATE users SET document_url = $1 WHERE phone = $2`,
+                [documentUrl, normalizedPhone]
+            );
+        }
+
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('laboratoire.registered', $1, 'laboratories', $2, $3)`,
             [normalizedPhone, newLab.rows[0].id, JSON.stringify({ name, rccm_number, trust_score: score, auto_status: autoStatus })]

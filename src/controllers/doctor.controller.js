@@ -96,6 +96,13 @@ async function registerDoctor(req, res) {
              autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || phone]
         );
 
+        if (documentUrl) {
+            await client.query(
+                `UPDATE users SET document_url = $1 WHERE phone = $2`,
+                [documentUrl, phone]
+            );
+        }
+
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('doctor.registered', $1, 'doctors', $2, $3)`,
             [phone, newDoctor.rows[0].id, JSON.stringify({ full_name, specialty, trust_score: score, auto_status: autoStatus })]

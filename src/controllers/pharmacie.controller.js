@@ -83,6 +83,13 @@ async function registerPharmacie(req, res) {
             [phone, userId, name, responsible_name, rccm_number, autorisation_number || null, city, neighborhood || null, autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || phone]
         );
 
+        if (documentUrl) {
+            await client.query(
+                `UPDATE users SET document_url = $1 WHERE phone = $2`,
+                [documentUrl, phone]
+            );
+        }
+
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('pharmacie.registered', $1, 'pharmacies', $2, $3)`,
             [phone, newPharma.rows[0].id, JSON.stringify({ name, rccm_number, trust_score: score, auto_status: autoStatus })]
