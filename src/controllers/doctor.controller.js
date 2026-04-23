@@ -176,4 +176,25 @@ async function updateDoctorStatus(req, res) {
     }
 }
 
-module.exports = { registerDoctor, getDoctors, updateDoctorStatus };
+async function getDoctorProfile(req, res) {
+    const { phone } = req.query;
+    if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
+    
+    try {
+        const result = await pool.query(
+            `SELECT d.id, d.phone, d.full_name, d.specialty, d.city, d.neighborhood,
+                    d.bio, d.availability_schedule, d.total_consultations, d.member_code,
+                    d.trust_score, d.status, d.is_active, d.document_url,
+                    d.momo_number, d.registration_number, d.validated_at, d.created_at
+             FROM doctors d
+             WHERE d.phone = $1`,
+            [phone]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Médecin introuvable.' });
+        return res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+module.exports = { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile };

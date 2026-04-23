@@ -115,7 +115,7 @@ async function login(req, res) {
         await pool.query(`DELETE FROM otp_codes WHERE phone = $1`, [normalizedPhone]);
 
         // ── Chercher l'utilisateur ──
-        let userResult = await pool.query(`SELECT id, phone, role, full_name FROM users WHERE phone = $1`, [normalizedPhone]);
+        let userResult = await pool.query(`SELECT id, phone, role, full_name, is_active, banned FROM users WHERE phone = $1`, [normalizedPhone]);
 
         // ── Si inexistant et données patient fournies → création automatique ──
         if (userResult.rows.length === 0) {
@@ -137,7 +137,7 @@ async function login(req, res) {
                         $5, $6, $7,
                         true, NOW(),
                         true, 80, NOW()
-                    ) RETURNING id, phone, role, full_name, member_code`,
+                    ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                     [normalizedPhone, full_name, prenom, nom, sexe || null, age || null, member_code]
                 );
 
@@ -171,7 +171,7 @@ async function login(req, res) {
 
         // ── Génération JWT ──
         const token = jwt.sign(
-            { id: user.id, phone: user.phone, role: user.role },
+            { id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES }
         );
@@ -236,12 +236,12 @@ async function registerPatient(req, res) {
                 $5, $6, $7, $8,
                 $9, $10, NOW(),
                 true, 80, NOW()
-             ) RETURNING id, phone, role, full_name, member_code`,
+             ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
             [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, member_code, cgu_accepted || false]
         );
 
         const user = insertResult.rows[0];
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3)`,
@@ -300,7 +300,7 @@ async function registerDoctor(req, res) {
                 $10, $11, $12,
                 $13, $14, $15, NOW(),
                 $16, NOW()
-             ) RETURNING id, phone, role, full_name, member_code`,
+             ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
             [
                 normalizedPhone, full_name, first_name || null, last_name || null,
                 specialty, registration_number, order_country || 'Congo-Brazzaville',
@@ -311,7 +311,7 @@ async function registerDoctor(req, res) {
         );
 
         const user = insertResult.rows[0];
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.doctor', $1, 'users', $2, $3)`,
@@ -365,12 +365,12 @@ async function registerPharmacie(req, res) {
                 $5, $6, $7,
                 $8, $9, $10, NOW(),
                 $11, NOW()
-             ) RETURNING id, phone, role, full_name, member_code`,
+             ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
             [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
         );
 
         const user = insertResult.rows[0];
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.pharmacie', $1, 'users', $2, $3)`,
@@ -424,12 +424,12 @@ async function registerLaboratoire(req, res) {
                 $6, $7,
                 $8, $9, $10, NOW(),
                 $11, NOW()
-             ) RETURNING id, phone, role, full_name, member_code`,
+             ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
             [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
         );
 
         const user = insertResult.rows[0];
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.laboratoire', $1, 'users', $2, $3)`,

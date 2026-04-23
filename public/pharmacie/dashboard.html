@@ -427,6 +427,11 @@ async function loadProfil() {
     });
     const data = await res.json();
     const d = data.data || {};
+    if (d.banned) {
+      localStorage.clear();
+      window.location.href = '/login.html?reason=banned';
+      return;
+    }
     const name = d.name || 'Pharmacie Partenaire';
     const city = d.city || 'Brazzaville';
     const code = d.member_code || generateCode(phone);

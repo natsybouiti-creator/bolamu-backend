@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const pool = require('../config/db');
-const { registerDoctor, getDoctors, updateDoctorStatus } = require('../controllers/doctor.controller');
+const { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile } = require('../controllers/doctor.controller');
 const authMiddleware = require('../../middleware/auth.middleware');
 
 const upload = multer({
@@ -24,14 +24,6 @@ router.get('/pending', authMiddleware, async (req, res) => {
 
 router.patch('/:id/status', authMiddleware, updateDoctorStatus);
 
-router.get('/profil', authMiddleware, async (req, res) => {
-    const { phone } = req.query;
-    try {
-        const result = await pool.query(`SELECT * FROM users WHERE phone = $1 AND role = 'doctor'`, [phone]);
-        res.json({ success: true, data: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Erreur serveur.' });
-    }
-});
+router.get('/profil', authMiddleware, getDoctorProfile);
 
 module.exports = router;

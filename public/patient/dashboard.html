@@ -1117,6 +1117,11 @@ async function loadProfil(){
     const res=await fetch(`${API}/patients/profil?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
     const data=await res.json();
     const d=data.data||{};
+    if (d.banned) {
+      localStorage.clear();
+      window.location.href = '/login.html?reason=banned';
+      return;
+    }
     const fullName=d.full_name||'—';
     const gender=d.gender==='M'?'Masculin':d.gender==='F'?'Féminin':'—';
     const city=d.city||'—';

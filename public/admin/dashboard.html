@@ -698,7 +698,7 @@ async function loadActivity(){
 ----------------------------------- */
 function getDocumentsHtml(u){
   const docs = [];
-  if(u.document_url) docs.push(`<a href="${u.document_url}" target="_blank" class="doc-link">Document</a>`);
+  if(u.doc_url||u.document_url) docs.push(`<a href="${u.doc_url||u.document_url}" target="_blank" class="doc-link">Document</a>`);
   if(u.rccm_url) docs.push(`<a href="${u.rccm_url}" target="_blank" class="doc-link">RCCM</a>`);
   if(u.agrement_url) docs.push(`<a href="${u.agrement_url}" target="_blank" class="doc-link">Agrément</a>`);
   if(u.registration_url) docs.push(`<a href="${u.registration_url}" target="_blank" class="doc-link">Registre</a>`);
@@ -759,7 +759,7 @@ async function loadPatients(){
   try{
     const res=await api('/admin/users?role=patient');const rows=res.data||[];
     const cnt=document.getElementById('patients-count');if(cnt)cnt.textContent=rows.length+' patients';
-    el.innerHTML=`<table id="patients-tbl"><thead><tr><th>Nom</th><th>Téléphone</th><th>Inscrit le</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td style="font-weight:500">${p.full_name||''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${p.phone}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.status||'verified')}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${p.phone}')">Profil</button><button class="ab ab-violet" onclick="openGrantCreditTo('${p.phone}')">Crédit</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="patients-tbl"><thead><tr><th>Nom</th><th>Téléphone</th><th>Inscrit le</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td style="font-weight:500">${p.full_name||''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${p.phone}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.is_active?'verified':'pending')}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${p.phone}')">Profil</button><button class="ab ab-violet" onclick="openGrantCreditTo('${p.phone}')">Crédit</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -774,7 +774,7 @@ async function loadAppts(){
     kpi('appt-done',rows.filter(r=>r.status==='termine').length);
     kpi('appt-conf',rows.filter(r=>r.status==='confirme').length);
     kpi('appt-total',rows.length);
-    el.innerHTML=`<table id="appt-tbl"><thead><tr><th>Code</th><th>Patient</th><th>Médecin</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${r.session_code||''}</td><td>${r.patient_phone}</td><td>${r.doctor_phone}</td><td style="color:var(--muted)">${fs(r.created_at)}</td><td>${badge(r.status)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${r.patient_phone}')">Voir</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="appt-tbl"><thead><tr><th>Code</th><th>Patient</th><th>Médecin</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${r.session_code||''}</td><td>${r.patient_phone}</td><td>${r.doctor_name||r.doctor_phone}</td><td style="color:var(--muted)">${fs(r.created_at)}</td><td>${badge(r.status)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${r.patient_phone}')">Voir</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -801,7 +801,7 @@ async function loadPayments(){
     const total=rows.filter(r=>r.status==='success').reduce((s,r)=>s+(Number(r.amount)||0),0);
     kpi('pay-rev',fn(total)+' F');kpi('pay-cnt',rows.filter(r=>r.status==='success').length);
     kpi('pay-momo',rows.filter(r=>(r.provider||'').toLowerCase().includes('momo')).length);
-    el.innerHTML=`<table id="pay-tbl"><thead><tr><th>Téléphone</th><th>Montant</th><th>Provider</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>{const phone = p.phone || p.patient_phone || p.user_phone || 'N/A'; return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fn(p.amount)} F</td><td style="color:var(--muted)">${p.provider||''}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.status)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${phone}')">Voir</button></td></tr>`;}).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="pay-tbl"><thead><tr><th>Téléphone</th><th>Montant</th><th>Provider</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>{const phone = p.patient_phone || 'N/A'; return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fn(p.amount)} F</td><td style="color:var(--muted)">${p.provider||''}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.status)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${phone}')">Voir</button></td></tr>`;}).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -816,7 +816,7 @@ async function loadFraud(){
     kpi('fr-high',rows.filter(r=>r.severity==='high'||r.fraud_score>=70).length);
     kpi('fr-med',rows.filter(r=>r.severity==='medium'||(r.fraud_score>=40&&r.fraud_score<70)).length);
     kpi('fr-low',rows.filter(r=>r.severity==='low'||r.fraud_score<40).length);
-    el.innerHTML=`<table id="fraud-tbl"><thead><tr><th>Téléphone</th><th>Score</th><th>Raison</th><th>Actions</th></tr></thead><tbody>${rows.map(f=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${f.phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${f.fraud_score>=70?'var(--red)':'var(--amber)'}">${f.fraud_score}/100</td><td style="color:var(--muted)">${f.fraud_reason||''}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${f.phone}')">Profil</button><button class="ab ab-red" onclick="banUser('${f.phone}')">Bannir</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="fraud-tbl"><thead><tr><th>Téléphone</th><th>Score</th><th>Raison</th><th>Actions</th></tr></thead><tbody>${rows.map(f=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${f.phone||f.actor_phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${f.fraud_score>=70?'var(--red)':'var(--amber)'}">${f.fraud_score}/100</td><td style="color:var(--muted)">${f.fraud_reason||''}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${f.phone||f.actor_phone}')">Profil</button><button class="ab ab-red" onclick="banUser('${f.phone||f.actor_phone}')">Bannir</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 

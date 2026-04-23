@@ -26,6 +26,8 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
             fraudHigh, fraudTotal,
             revenueToday, revenueMonth, revenueTotal,
             rdvToday, rdvMonth, rdvDone,
+            rdvConfirmed, rdvCancelled,
+            newToday, logs,
             bannedUsers, activeSubscriptions
         ] = await Promise.all([
             pool.query(`SELECT COUNT(*) FROM users WHERE role = 'patient'`),
@@ -45,6 +47,10 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
             pool.query(`SELECT COUNT(*) FROM appointments WHERE appointment_date = CURRENT_DATE`),
             pool.query(`SELECT COUNT(*) FROM appointments WHERE appointment_date >= DATE_TRUNC('month', CURRENT_DATE)`),
             pool.query(`SELECT COUNT(*) FROM appointments WHERE status = 'termine'`),
+            pool.query(`SELECT COUNT(*) FROM appointments WHERE status = 'confirme'`),
+            pool.query(`SELECT COUNT(*) FROM appointments WHERE status = 'annule'`),
+            pool.query(`SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURRENT_DATE`),
+            pool.query(`SELECT event_type, actor_phone, created_at FROM audit_log ORDER BY created_at DESC LIMIT 10`),
             pool.query(`SELECT COUNT(*) FROM users WHERE banned = TRUE`),
             pool.query(`SELECT COUNT(*) FROM users WHERE role='patient' AND is_active = TRUE`)
         ]);
@@ -70,15 +76,19 @@ router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
                     pharmacies: parseInt(pharmacies.rows[0]?.count || 0),
                     laboratories: parseInt(laboratories.rows[0]?.count || 0),
                     active_subscriptions: parseInt(activeSubscriptions.rows[0]?.count || 0),
-                    banned: parseInt(bannedUsers.rows[0]?.count || 0)
+                    banned: parseInt(bannedUsers.rows[0]?.count || 0),
+                    new_today: parseInt(newToday.rows[0]?.count || 0)
                 },
                 activity: {
                     appointments_total: parseInt(appointments.rows[0]?.count || 0),
                     appointments_today: parseInt(rdvToday.rows[0]?.count || 0),
                     appointments_month: parseInt(rdvMonth.rows[0]?.count || 0),
                     appointments_done: parseInt(rdvDone.rows[0]?.count || 0),
+                    appointments_confirmed: parseInt(rdvConfirmed.rows[0]?.count || 0),
+                    appointments_cancelled: parseInt(rdvCancelled.rows[0]?.count || 0),
                     prescriptions: parseInt(prescriptions.rows[0]?.count || 0)
                 },
+                logs: logs.rows,
                 pending: {
                     doctors: parseInt(pendingDoctors.rows[0]?.count || 0),
                     pharmacies: parseInt(pendingPharmacies.rows[0]?.count || 0),
@@ -122,13 +132,21 @@ router.get('/stats/appointments', authMiddleware, adminOnly, async (req, res) =>
 router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT phone, role, full_name, first_name, last_name, 
-                    rccm_number, agrement_number, registration_number,
-                    created_at, is_active
-             FROM users 
-             WHERE is_active = false 
-             AND role = ANY($1::text[])
-             ORDER BY created_at DESC`,
+            `SELECT u.phone, u.role, u.full_name, u.first_name, u.last_name,
+                    u.rccm_number, u.agrement_number, u.registration_number,
+                    u.created_at, u.is_active, u.document_url,
+                    COALESCE(d.specialty, '') as specialty,
+                    COALESCE(d.document_url, ph.document_url, l.document_url, u.document_url) as doc_url,
+                    COALESCE(d.status, ph.status, l.status, 'pending') as pro_status,
+                    COALESCE(d.member_code, ph.member_code, l.member_code) as member_code,
+                    COALESCE(ph.name, l.name) as business_name
+             FROM users u
+             LEFT JOIN doctors d ON d.phone = u.phone AND u.role = 'doctor'
+             LEFT JOIN pharmacies ph ON ph.phone = u.phone AND u.role = 'pharmacie'
+             LEFT JOIN laboratories l ON l.phone = u.phone AND u.role = 'laboratoire'
+             WHERE u.is_active = false
+             AND u.role = ANY($1::text[])
+             ORDER BY u.created_at DESC`,
             [PRO_ROLES]
         );
         ok(res, result.rows);
@@ -181,6 +199,16 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
         const row = result.rows[0];
         const name = row.full_name || `${row.first_name || ''} ${row.last_name || ''}`.trim();
+
+        // Update des tables spécifiques selon le rôle
+        if (row.role === 'doctor') {
+            await pool.query(`UPDATE doctors SET is_active = true, status = 'verified' WHERE phone = $1`, [phone]);
+        } else if (row.role === 'pharmacie') {
+            await pool.query(`UPDATE pharmacies SET is_active = true, status = 'verified', abonnement_actif = true, abonnement_fin = NOW() + INTERVAL '1 year' WHERE phone = $1`, [phone]);
+        } else if (row.role === 'laboratoire') {
+            await pool.query(`UPDATE laboratories SET is_active = true, status = 'verified', abonnement_actif = true, abonnement_fin = NOW() + INTERVAL '1 year' WHERE phone = $1`, [phone]);
+        }
+
         try {
             const msg = `Bolamu : Félicitations ${name} ! Votre dossier a été validé. Connectez-vous sur bolamu-backend.onrender.com`;
             await sendBolamuSms(phone, msg);
@@ -190,6 +218,120 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
             [`${row.role}.verified`, phone, JSON.stringify({ action: 'approve' })]
         ).catch(() => {});
         res.json({ success: true, message: 'Compte validé avec succès.' });
+    } catch (e) {
+        err(res, 500, 'Erreur serveur.');
+    }
+});
+
+// ─── REJETER UN COMPTE UTILISATEUR (route attendue par le frontend)
+router.post('/reject-user', authMiddleware, adminOnly, async (req, res) => {
+    const { phone, reason } = req.body;
+    if (!phone || !/^\+?[0-9]{8,15}$/.test(phone)) {
+        return err(res, 400, 'Numéro de téléphone invalide.');
+    }
+    try {
+        const result = await pool.query(
+            `UPDATE users SET is_active = false WHERE phone = $1 RETURNING phone, role, full_name, first_name, last_name`,
+            [phone]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
+        const row = result.rows[0];
+        const name = row.full_name || `${row.first_name || ''} ${row.last_name || ''}`.trim();
+
+        // Update des tables spécifiques selon le rôle
+        if (row.role === 'doctor') {
+            await pool.query(`UPDATE doctors SET is_active = false, status = 'rejected' WHERE phone = $1`, [phone]);
+        } else if (row.role === 'pharmacie') {
+            await pool.query(`UPDATE pharmacies SET is_active = false, status = 'rejected' WHERE phone = $1`, [phone]);
+        } else if (row.role === 'laboratoire') {
+            await pool.query(`UPDATE laboratories SET is_active = false, status = 'rejected' WHERE phone = $1`, [phone]);
+        }
+
+        try {
+            const msg = `Bolamu : Votre dossier n'a pas été validé. Motif : ${reason || 'Dossier incomplet'}. Contactez le support.`;
+            await sendBolamuSms(phone, msg);
+        } catch(e) {}
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            [`${row.role}.rejected`, phone, JSON.stringify({ reason: reason || null })]
+        ).catch(() => {});
+        res.json({ success: true, message: 'Compte rejeté avec succès.' });
+    } catch (e) {
+        err(res, 500, 'Erreur serveur.');
+    }
+});
+
+// ─── SUSPENDRE UN COMPTE UTILISATEUR (route attendue par le frontend)
+router.post('/suspend-user', authMiddleware, adminOnly, async (req, res) => {
+    const { phone, reason } = req.body;
+    if (!phone || !/^\+?[0-9]{8,15}$/.test(phone)) {
+        return err(res, 400, 'Numéro de téléphone invalide.');
+    }
+    try {
+        const result = await pool.query(
+            `UPDATE users SET banned = true, ban_reason = $1 WHERE phone = $2 RETURNING phone, role, full_name, first_name, last_name`,
+            [reason || 'Décision administrative', phone]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
+        const row = result.rows[0];
+        const name = row.full_name || `${row.first_name || ''} ${row.last_name || ''}`.trim();
+
+        // Update des tables spécifiques selon le rôle
+        if (row.role === 'doctor') {
+            await pool.query(`UPDATE doctors SET is_active = false, status = 'suspended' WHERE phone = $1`, [phone]);
+        } else if (row.role === 'pharmacie') {
+            await pool.query(`UPDATE pharmacies SET is_active = false, status = 'suspended' WHERE phone = $1`, [phone]);
+        } else if (row.role === 'laboratoire') {
+            await pool.query(`UPDATE laboratories SET is_active = false, status = 'suspended' WHERE phone = $1`, [phone]);
+        }
+
+        try {
+            const msg = `Bolamu : Votre compte a été suspendu. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`;
+            await sendBolamuSms(phone, msg);
+        } catch(e) {}
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            [`${row.role}.suspended`, phone, JSON.stringify({ reason })]
+        ).catch(() => {});
+        res.json({ success: true, message: 'Compte suspendu avec succès.' });
+    } catch (e) {
+        err(res, 500, 'Erreur serveur.');
+    }
+});
+
+// ─── BANNIR UN COMPTE UTILISATEUR (route attendue par le frontend)
+router.post('/ban-user', authMiddleware, adminOnly, async (req, res) => {
+    const { phone, reason } = req.body;
+    if (!phone || !/^\+?[0-9]{8,15}$/.test(phone)) {
+        return err(res, 400, 'Numéro de téléphone invalide.');
+    }
+    try {
+        const result = await pool.query(
+            `UPDATE users SET banned = true, is_active = false, ban_reason = $1, banned_at = NOW() WHERE phone = $2 RETURNING phone, role, full_name, first_name, last_name`,
+            [reason || 'Décision administrative', phone]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
+        const row = result.rows[0];
+        const name = row.full_name || `${row.first_name || ''} ${row.last_name || ''}`.trim();
+
+        // Update des tables spécifiques selon le rôle
+        if (row.role === 'doctor') {
+            await pool.query(`UPDATE doctors SET is_active = false, status = 'banned' WHERE phone = $1`, [phone]);
+        } else if (row.role === 'pharmacie') {
+            await pool.query(`UPDATE pharmacies SET is_active = false, status = 'banned' WHERE phone = $1`, [phone]);
+        } else if (row.role === 'laboratoire') {
+            await pool.query(`UPDATE laboratories SET is_active = false, status = 'banned' WHERE phone = $1`, [phone]);
+        }
+
+        try {
+            const msg = `Bolamu : Votre compte a été banni définitivement. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`;
+            await sendBolamuSms(phone, msg);
+        } catch(e) {}
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            [`${row.role}.banned`, phone, JSON.stringify({ reason })]
+        ).catch(() => {});
+        res.json({ success: true, message: 'Compte banni avec succès.' });
     } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
@@ -220,7 +362,7 @@ router.patch('/users/:phone/status', authMiddleware, adminOnly, async (req, res)
 router.get('/fraud', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT fs.*, u.full_name as actor_name, u.role as actor_role
+            `SELECT fs.*, fs.actor_phone as phone, u.full_name as actor_name, u.role as actor_role
              FROM fraud_signals fs
              LEFT JOIN users u ON u.phone = fs.actor_phone
              ORDER BY fs.created_at DESC LIMIT 200`
@@ -394,7 +536,7 @@ router.patch('/users/:phone/toggle', authMiddleware, adminOnly, async (req, res)
 // ─── PLATFORM CONFIG ──────────────────────────────────────────────────────────
 router.get('/config', authMiddleware, adminOnly, async (req, res) => {
     try {
-        const result = await pool.query(`SELECT * FROM platform_config ORDER BY id`);
+        const result = await pool.query(`SELECT id, key as config_key, value as config_value FROM platform_config ORDER BY id`);
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
@@ -405,12 +547,12 @@ router.patch('/config/:key', authMiddleware, adminOnly, async (req, res) => {
     if (!value) return res.status(400).json({ success: false, message: 'value requis.' });
     try {
         const result = await pool.query(
-            `UPDATE platform_config SET value=$1, updated_at=NOW() WHERE key=$2 RETURNING *`,
+            `UPDATE platform_config SET config_value=$1, updated_at=NOW() WHERE config_key=$2 RETURNING *`,
             [value, key]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Clé introuvable.' });
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('config.updated','admin','platform_config',NULL,$1)`,
-            [JSON.stringify({ key, value })]).catch(() => {});
+            [JSON.stringify({ config_key: key, config_value: value })]).catch(() => {});
         res.json({ success: true, data: result.rows[0], message: `${key} mis à jour → ${value}` });
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
@@ -438,23 +580,25 @@ router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
     const limit  = Math.min(parseInt(req.query.limit)  || 50, 100);
     const offset = parseInt(req.query.offset) || 0;
     try {
-        let whereClause = "WHERE role = 'doctor'";
+        let whereClause = "WHERE u.role = 'doctor'";
         let params = [];
-        
+
         if (status === 'pending' || status === 'inactive') {
-            whereClause += " AND is_active = false";
+            whereClause += " AND u.is_active = false";
         } else {
             // Par défaut : afficher uniquement les comptes validés/actifs
-            whereClause += " AND is_active = true";
+            whereClause += " AND u.is_active = true";
         }
-        
+
         const result = await pool.query(
-            `SELECT phone, role, full_name, first_name, last_name, 
-                    rccm_number, agrement_number, registration_number,
-                    created_at, is_active, credits_balance
-             FROM users 
-             ${whereClause} 
-             ORDER BY created_at DESC
+            `SELECT u.phone, u.role, u.full_name, u.first_name, u.last_name,
+                    u.created_at, u.is_active, u.credits_balance,
+                    d.specialty, d.document_url, d.status, d.member_code,
+                    d.city, d.neighborhood, d.trust_score
+             FROM users u
+             LEFT JOIN doctors d ON d.phone = u.phone
+             ${whereClause}
+             ORDER BY u.created_at DESC
              LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
             [...params, limit, offset]
         );
@@ -468,23 +612,26 @@ router.get('/pharmacies', authMiddleware, adminOnly, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
     const offset = parseInt(req.query.offset) || 0;
     try {
-        let whereClause = "WHERE role = 'pharmacie'";
+        let whereClause = "WHERE u.role = 'pharmacie'";
         let params = [];
-        
+
         if (status === 'pending' || status === 'inactive') {
-            whereClause += " AND is_active = false";
+            whereClause += " AND u.is_active = false";
         } else {
             // Par défaut : afficher uniquement les comptes validés/actifs
-            whereClause += " AND is_active = true";
+            whereClause += " AND u.is_active = true";
         }
-        
+
         const result = await pool.query(
-            `SELECT phone, role, full_name, first_name, last_name, 
-                    rccm_number, agrement_number, registration_number,
-                    created_at, is_active, credits_balance
-             FROM users 
-             ${whereClause} 
-             ORDER BY created_at DESC
+            `SELECT u.phone, u.role, u.full_name, u.first_name, u.last_name,
+                    u.created_at, u.is_active, u.credits_balance,
+                    ph.name as business_name, ph.document_url, ph.status,
+                    ph.member_code, ph.city, ph.neighborhood, ph.trust_score,
+                    ph.abonnement_actif, ph.abonnement_fin
+             FROM users u
+             LEFT JOIN pharmacies ph ON ph.phone = u.phone
+             ${whereClause}
+             ORDER BY u.created_at DESC
              LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
             [...params, limit, offset]
         );
@@ -498,23 +645,26 @@ router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
     const offset = parseInt(req.query.offset) || 0;
     try {
-        let whereClause = "WHERE role = 'laboratoire'";
+        let whereClause = "WHERE u.role = 'laboratoire'";
         let params = [];
-        
+
         if (status === 'pending' || status === 'inactive') {
-            whereClause += " AND is_active = false";
+            whereClause += " AND u.is_active = false";
         } else {
             // Par défaut : afficher uniquement les comptes validés/actifs
-            whereClause += " AND is_active = true";
+            whereClause += " AND u.is_active = true";
         }
-        
+
         const result = await pool.query(
-            `SELECT phone, role, full_name, first_name, last_name, 
-                    rccm_number, agrement_number, registration_number,
-                    created_at, is_active, credits_balance
-             FROM users 
-             ${whereClause} 
-             ORDER BY created_at DESC
+            `SELECT u.phone, u.role, u.full_name, u.first_name, u.last_name,
+                    u.created_at, u.is_active, u.credits_balance,
+                    l.name as business_name, l.document_url, l.status,
+                    l.member_code, l.city, l.neighborhood, l.trust_score,
+                    l.abonnement_actif, l.abonnement_fin
+             FROM users u
+             LEFT JOIN laboratories l ON l.phone = u.phone
+             ${whereClause}
+             ORDER BY u.created_at DESC
              LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
             [...params, limit, offset]
         );
@@ -526,7 +676,7 @@ router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
 router.get('/appointments', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT a.*, d.full_name as doctor_name, d.specialty
+            `SELECT a.*, d.full_name as doctor_name, d.specialty, d.phone as doctor_phone
              FROM appointments a
              LEFT JOIN doctors d ON d.id = a.doctor_id
              ORDER BY a.created_at DESC LIMIT 500`
@@ -554,7 +704,7 @@ router.get('/payments', authMiddleware, adminOnly, async (req, res) => {
     const offset = (parseInt(page) - 1) * limit;
     try {
         const result = await pool.query(
-            `SELECT p.*, u.full_name as patient_name
+            `SELECT p.*, p.patient_phone, u.full_name as patient_name
              FROM payments p LEFT JOIN users u ON u.phone = p.patient_phone
              ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`,
             [limit, offset]
