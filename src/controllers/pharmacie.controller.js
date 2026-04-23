@@ -69,7 +69,7 @@ async function registerPharmacie(req, res) {
         const existingUser = await client.query('SELECT id FROM users WHERE phone = $1', [phone]);
         let userId;
         if (existingUser.rows.length === 0) {
-            const newUser = await client.query(`INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'pharmacie', TRUE) RETURNING id`, [phone, name]);
+            const newUser = await client.query(`INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'pharmacie', FALSE) RETURNING id`, [phone, name]);
             userId = newUser.rows[0].id;
         } else {
             userId = existingUser.rows[0].id;
@@ -78,7 +78,7 @@ async function registerPharmacie(req, res) {
 
         const newPharma = await client.query(
             `INSERT INTO pharmacies (phone, user_id, name, responsible_name, rccm_number, autorisation_number, city, neighborhood, status, is_active, member_code, document_url, document_public_id, trust_score, momo_number)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,TRUE,$10,$11,$12,$13,$14)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14)
              RETURNING id, phone, name, status, member_code, trust_score`,
             [phone, userId, name, responsible_name, rccm_number, autorisation_number || null, city, neighborhood || null, autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || phone]
         );

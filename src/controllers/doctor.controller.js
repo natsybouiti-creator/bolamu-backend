@@ -76,7 +76,7 @@ async function registerDoctor(req, res) {
         let userId;
         if (existingUser.rows.length === 0) {
             const newUser = await client.query(
-                `INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'doctor', TRUE) RETURNING id`,
+                `INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'doctor', FALSE) RETURNING id`,
                 [phone, full_name]
             );
             userId = newUser.rows[0].id;
@@ -90,7 +90,7 @@ async function registerDoctor(req, res) {
                 (phone, user_id, full_name, specialty, registration_number,
                  city, neighborhood, bio, status, is_active, member_code,
                  document_url, document_public_id, trust_score, momo_number)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,TRUE,$10,$11,$12,$13,$14)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14)
              RETURNING id, phone, full_name, specialty, city, status, member_code, trust_score, created_at`,
             [phone, userId, full_name, specialty, registration_number, city, neighborhood || null, bio || null,
              autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || phone]

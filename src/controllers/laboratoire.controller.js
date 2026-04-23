@@ -73,7 +73,7 @@ async function registerLaboratoire(req, res) {
         const existingUser = await client.query('SELECT id FROM users WHERE phone = $1', [normalizedPhone]);
         let userId;
         if (existingUser.rows.length === 0) {
-            const newUser = await client.query(`INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'laboratoire', TRUE) RETURNING id`, [normalizedPhone, name]);
+            const newUser = await client.query(`INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'laboratoire', FALSE) RETURNING id`, [normalizedPhone, name]);
             userId = newUser.rows[0].id;
         } else {
             userId = existingUser.rows[0].id;
@@ -82,7 +82,7 @@ async function registerLaboratoire(req, res) {
 
         const newLab = await client.query(
             `INSERT INTO laboratories (phone, user_id, name, director_name, rccm_number, agrement_number, city, neighborhood, status, is_active, member_code, document_url, document_public_id, trust_score, momo_number)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,TRUE,$10,$11,$12,$13,$14)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14)
              RETURNING id, phone, name, status, member_code, trust_score`,
             [normalizedPhone, userId, name, director_name, rccm_number, agrement_number || null, city, neighborhood || null, autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || normalizedPhone]
         );
