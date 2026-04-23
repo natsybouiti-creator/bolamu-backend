@@ -50,7 +50,7 @@ async function createLabPrescription(req, res) {
 
 // ─── DÉPOSER LES RÉSULTATS LABO (laborantin) ───────────────────────────────
 async function submitLabResults(req, res) {
-    const { lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url } = req.body;
+    const { lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats } = req.body;
     const labPhone = req.user?.phone;
 
     if (!lab_prescription_id || !patient_phone || !doctor_phone || !resultats) {
@@ -72,7 +72,7 @@ async function submitLabResults(req, res) {
         }
 
         // Gestion de l'upload de fichier vers Cloudinary
-        let fichier_url = fichier_url || null;
+        let fichier_url = null;
         let fichier_public_id = null;
         if (req.file) {
             const result = await uploadToCloudinary(
