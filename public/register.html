@@ -478,7 +478,7 @@ async function uploadDoc(input){
   zone.className='upload-zone';icon.textContent='⏳';text.textContent='Upload en cours…';
   try{
     const formData=new FormData();formData.append('file',file);formData.append('upload_preset','bolamu_docs');
-    const res=await fetch('https://api.cloudinary.com/v1_1/bolamu/raw/upload',{method:'POST',body:formData});
+    const res=await fetch('https://api.cloudinary.com/v1_1/dpxefz80w/raw/upload',{method:'POST',body:formData});
     const data=await res.json();
     if(data.secure_url){state.documentUrl=data.secure_url;zone.className='upload-zone uploaded';icon.textContent='✅';text.textContent=file.name+' — Uploadé avec succès';calcScore();}
   }catch(e){icon.textContent='❌';text.textContent='Erreur upload. Réessayez.';}
