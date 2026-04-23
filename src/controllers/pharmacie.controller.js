@@ -124,7 +124,14 @@ async function getPharmacieProfile(req, res) {
     if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
     try {
         const result = await pool.query(
-            `SELECT id, name, phone, responsible_name, rccm_number, city, neighborhood, status, member_code, trust_score, momo_number, is_active, created_at FROM pharmacies WHERE phone = $1`,
+            `SELECT p.id, p.phone, p.name, p.responsible_name, p.rccm_number,
+                    p.city, p.neighborhood, p.status, p.member_code,
+                    p.trust_score, p.momo_number, p.is_active,
+                    p.document_url, p.abonnement_actif, p.abonnement_fin,
+                    p.created_at, u.validated_at
+             FROM pharmacies p
+             LEFT JOIN users u ON u.phone = p.phone
+             WHERE p.phone = $1`,
             [phone]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Pharmacie introuvable.' });

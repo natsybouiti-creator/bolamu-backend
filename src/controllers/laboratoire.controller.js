@@ -132,7 +132,14 @@ async function getLaboratoireProfile(req, res) {
     
     try {
         const result = await pool.query(
-            `SELECT id, name, phone, director_name, rccm_number, agrement_number, city, neighborhood, status, is_active, member_code, trust_score, momo_number, abonnement_actif, abonnement_fin, created_at FROM laboratories WHERE phone = $1`,
+            `SELECT l.id, l.phone, l.name, l.director_name, l.rccm_number,
+                    l.agrement_number, l.city, l.neighborhood, l.status,
+                    l.is_active, l.member_code, l.trust_score, l.momo_number,
+                    l.abonnement_actif, l.abonnement_fin, l.document_url,
+                    l.created_at, u.validated_at
+             FROM laboratories l
+             LEFT JOIN users u ON u.phone = l.phone
+             WHERE l.phone = $1`,
             [normalizedPhone]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Laboratoire introuvable.' });
