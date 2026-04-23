@@ -561,9 +561,22 @@ async function finalRegister(){
     const res=await fetch(`${API}${endpoint}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json();
     if(data.success){
-      if(data.token)localStorage.setItem('bolamu_token',data.token);
-      localStorage.setItem('bolamu_phone',state.fullPhone);
-      localStorage.setItem('bolamu_role',state.role);
+      if(data.token){
+        if(state.role === 'doctor'){
+          localStorage.setItem('bolamu_doctor_token', data.token);
+          localStorage.setItem('bolamu_doctor_phone', state.fullPhone);
+        } else if(state.role === 'pharmacie'){
+          localStorage.setItem('bolamu_pharmacie_token', data.token);
+          localStorage.setItem('bolamu_pharmacie_phone', state.fullPhone);
+        } else if(state.role === 'laboratoire'){
+          localStorage.setItem('bolamu_laboratoire_token', data.token);
+          localStorage.setItem('bolamu_laboratoire_phone', state.fullPhone);
+        } else {
+          localStorage.setItem('bolamu_token', data.token);
+          localStorage.setItem('bolamu_phone', state.fullPhone);
+        }
+      }
+      localStorage.setItem('bolamu_role', state.role);
       const redirects={patient:'/patient/dashboard.html',doctor:'/medecin/dashboard.html',pharmacie:'/pharmacie/dashboard.html',laboratoire:'/laboratoire/dashboard.html'};
       showAlert('Compte créé avec succès ! Redirection…','success');
       setTimeout(()=>{window.location.href=redirects[state.role];},1500);

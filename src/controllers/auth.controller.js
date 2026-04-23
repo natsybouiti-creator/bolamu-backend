@@ -283,34 +283,63 @@ async function registerDoctor(req, res) {
         const count = parseInt(countResult.rows[0].count) + 1;
         const member_code = `MED-${String(count).padStart(5, '0')}`;
         const score = trust_score || (registration_number ? 60 : 30);
-        const is_active = score >= 80;
+        const is_active = false;
+        const autoStatus = score >= 80 ? 'verified' : 'pending';
 
-        const insertResult = await pool.query(
-            `INSERT INTO users (
-                phone, role, full_name, first_name, last_name,
-                specialty, registration_number, order_country,
-                country_of_residence, consultation_languages,
-                is_international, city, document_url,
-                trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                is_active, created_at
-             ) VALUES (
-                $1, 'doctor', $2, $3, $4,
-                $5, $6, $7,
-                $8, $9,
-                $10, $11, $12,
-                $13, $14, $15, NOW(),
-                $16, NOW()
-             ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-            [
-                normalizedPhone, full_name, first_name || null, last_name || null,
-                specialty, registration_number, order_country || 'Congo-Brazzaville',
-                country_of_residence || 'Congo-Brazzaville', consultation_languages || 'Français',
-                is_international || false, city || null, document_url || null,
-                score, member_code, cgu_accepted || false, is_active
-            ]
-        );
+        let newUser;
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        const user = insertResult.rows[0];
+            newUser = await client.query(
+                `INSERT INTO users (
+                    phone, role, full_name, first_name, last_name,
+                    specialty, registration_number, order_country,
+                    country_of_residence, consultation_languages,
+                    is_international, city, document_url,
+                    trust_score, member_code, cgu_accepted, cgu_accepted_at,
+                    is_active, created_at
+                 ) VALUES (
+                    $1, 'doctor', $2, $3, $4,
+                    $5, $6, $7,
+                    $8, $9,
+                    $10, $11, $12,
+                    $13, $14, $15, NOW(),
+                    $16, NOW()
+                 ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
+                [
+                    normalizedPhone, full_name, first_name || null, last_name || null,
+                    specialty, registration_number, order_country || 'Congo-Brazzaville',
+                    country_of_residence || 'Congo-Brazzaville', consultation_languages || 'Français',
+                    is_international || false, city || null, document_url || null,
+                    score, member_code, cgu_accepted || false, is_active
+                ]
+            );
+
+            await client.query(
+                `INSERT INTO doctors (
+                    phone, user_id, full_name, specialty, registration_number,
+                    city, neighborhood, bio, status, is_active, member_code,
+                    document_url, document_public_id, trust_score, momo_number,
+                    country_of_residence, order_country, consultation_languages, is_international
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+                 ON CONFLICT (phone) DO NOTHING`,
+                [normalizedPhone, newUser.rows[0].id, full_name, specialty, registration_number,
+                 city, null, null, autoStatus, member_code,
+                 document_url || null, null, score, normalizedPhone,
+                 country_of_residence || null, order_country || null,
+                 consultation_languages || null, is_international || false]
+            );
+
+            await client.query('COMMIT');
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
+
+        const user = newUser.rows[0];
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         await pool.query(
@@ -320,7 +349,7 @@ async function registerDoctor(req, res) {
 
         return res.status(201).json({
             success: true,
-            message: is_active ? "Compte médecin activé" : "Compte créé — en attente de validation par l'équipe Bolamu",
+            message: "Compte créé — en attente de validation par l'équipe Bolamu",
             token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
@@ -352,24 +381,50 @@ async function registerPharmacie(req, res) {
         const count = parseInt(countResult.rows[0].count) + 1;
         const member_code = `PHM-${String(count).padStart(5, '0')}`;
         const score = trust_score || (rccm_number ? 65 : 30);
-        const is_active = score >= 80;
+        const is_active = false;
+        const autoStatus = score >= 80 ? 'verified' : 'pending';
 
-        const insertResult = await pool.query(
-            `INSERT INTO users (
-                phone, role, full_name, responsible_name, rccm_number,
-                city, neighborhood, document_url,
-                trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                is_active, created_at
-             ) VALUES (
-                $1, 'pharmacie', $2, $3, $4,
-                $5, $6, $7,
-                $8, $9, $10, NOW(),
-                $11, NOW()
-             ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-            [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
-        );
+        let newUser;
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        const user = insertResult.rows[0];
+            newUser = await client.query(
+                `INSERT INTO users (
+                    phone, role, full_name, responsible_name, rccm_number,
+                    city, neighborhood, document_url,
+                    trust_score, member_code, cgu_accepted, cgu_accepted_at,
+                    is_active, created_at
+                 ) VALUES (
+                    $1, 'pharmacie', $2, $3, $4,
+                    $5, $6, $7,
+                    $8, $9, $10, NOW(),
+                    $11, NOW()
+                 ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
+                [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
+            );
+
+            await client.query(
+                `INSERT INTO pharmacies (
+                    phone, user_id, name, responsible_name, rccm_number,
+                    city, neighborhood, status, is_active, member_code,
+                    document_url, trust_score, momo_number
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12)
+                 ON CONFLICT (phone) DO NOTHING`,
+                [normalizedPhone, newUser.rows[0].id, name, responsible_name || null, rccm_number || null,
+                 city || null, neighborhood || null, autoStatus, member_code,
+                 document_url || null, score, normalizedPhone]
+            );
+
+            await client.query('COMMIT');
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
+
+        const user = newUser.rows[0];
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         await pool.query(
@@ -379,7 +434,7 @@ async function registerPharmacie(req, res) {
 
         return res.status(201).json({
             success: true,
-            message: is_active ? "Compte pharmacie activé" : "Compte créé — en attente de validation par l'équipe Bolamu",
+            message: "Compte créé — en attente de validation par l'équipe Bolamu",
             token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
@@ -411,24 +466,50 @@ async function registerLaboratoire(req, res) {
         const count = parseInt(countResult.rows[0].count) + 1;
         const member_code = `LAB-${String(count).padStart(5, '0')}`;
         const score = trust_score || (agrement_number ? 65 : 30);
-        const is_active = score >= 80;
+        const is_active = false;
+        const autoStatus = score >= 80 ? 'verified' : 'pending';
 
-        const insertResult = await pool.query(
-            `INSERT INTO users (
-                phone, role, full_name, director_name, agrement_number, rccm_number,
-                city, document_url,
-                trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                is_active, created_at
-             ) VALUES (
-                $1, 'laboratoire', $2, $3, $4, $5,
-                $6, $7,
-                $8, $9, $10, NOW(),
-                $11, NOW()
-             ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-            [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
-        );
+        let newUser;
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        const user = insertResult.rows[0];
+            newUser = await client.query(
+                `INSERT INTO users (
+                    phone, role, full_name, director_name, agrement_number, rccm_number,
+                    city, document_url,
+                    trust_score, member_code, cgu_accepted, cgu_accepted_at,
+                    is_active, created_at
+                 ) VALUES (
+                    $1, 'laboratoire', $2, $3, $4, $5,
+                    $6, $7,
+                    $8, $9, $10, NOW(),
+                    $11, NOW()
+                 ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
+                [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
+            );
+
+            await client.query(
+                `INSERT INTO laboratories (
+                    phone, user_id, name, director_name, agrement_number, rccm_number,
+                    city, status, is_active, member_code,
+                    document_url, trust_score, momo_number
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12)
+                 ON CONFLICT (phone) DO NOTHING`,
+                [normalizedPhone, newUser.rows[0].id, name, director_name || null, agrement_number || null, rccm_number || null,
+                 city || null, autoStatus, member_code,
+                 document_url || null, score, normalizedPhone]
+            );
+
+            await client.query('COMMIT');
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
+
+        const user = newUser.rows[0];
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         await pool.query(
@@ -438,7 +519,7 @@ async function registerLaboratoire(req, res) {
 
         return res.status(201).json({
             success: true,
-            message: is_active ? "Compte laboratoire activé" : "Compte créé — en attente de validation par l'équipe Bolamu",
+            message: "Compte créé — en attente de validation par l'équipe Bolamu",
             token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
