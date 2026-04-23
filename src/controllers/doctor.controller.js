@@ -185,8 +185,10 @@ async function getDoctorProfile(req, res) {
             `SELECT d.id, d.phone, d.full_name, d.specialty, d.city, d.neighborhood,
                     d.bio, d.availability_schedule, d.total_consultations, d.member_code,
                     d.trust_score, d.status, d.is_active, d.document_url,
-                    d.momo_number, d.registration_number, d.validated_at, d.created_at
+                    d.momo_number, d.registration_number, d.created_at,
+                    u.validated_at
              FROM doctors d
+             LEFT JOIN users u ON u.phone = d.phone
              WHERE d.phone = $1`,
             [phone]
         );
