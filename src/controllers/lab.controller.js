@@ -230,11 +230,13 @@ async function getLabPrescriptionByCode(req, res) {
         const prescription = result.rows[0];
 
         // Logger l'accès dans dossier_access_log
-        await pool.query(
-            `INSERT INTO dossier_access_log (access_type, actor_phone, target_phone, prescription_id, accessed_at)
-             VALUES ('lab_code', $1, $2, $3, NOW())`,
-            [labPhone, prescription.patient_phone, prescription.id]
-        ).catch(() => {});
+        setImmediate(() => {
+            pool.query(
+                `INSERT INTO dossier_access_log (patient_phone, accessed_by_phone, accessed_by_role, access_type, created_at)
+                 VALUES ($1, $2, 'laboratoire', 'lab_code', NOW())`,
+                [prescription.patient_phone, labPhone]
+            ).catch(() => {});
+        });
 
         return res.json({ success: true, data: prescription });
 
