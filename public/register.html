@@ -477,11 +477,26 @@ async function uploadDoc(input){
   const text=document.getElementById('upload-text');
   zone.className='upload-zone';icon.textContent='⏳';text.textContent='Upload en cours…';
   try{
-    const formData=new FormData();formData.append('file',file);formData.append('upload_preset','bolamu_docs');
+    const formData=new FormData();
+    formData.append('file',file);
+    formData.append('upload_preset','bolamu_docs');
     const res=await fetch('https://api.cloudinary.com/v1_1/dpxefz80w/raw/upload',{method:'POST',body:formData});
     const data=await res.json();
-    if(data.secure_url){state.documentUrl=data.secure_url;zone.className='upload-zone uploaded';icon.textContent='✅';text.textContent=file.name+' — Uploadé avec succès';calcScore();}
-  }catch(e){icon.textContent='❌';text.textContent='Erreur upload. Réessayez.';}
+    console.log('[Cloudinary response]', JSON.stringify(data));
+    if(data.secure_url){
+        state.documentUrl=data.secure_url;
+        zone.className='upload-zone uploaded';
+        icon.textContent='✅';
+        text.textContent=file.name+' — Uploadé avec succès';
+        calcScore();
+    } else {
+        throw new Error(data.error?.message || 'secure_url manquant');
+    }
+}catch(e){
+    console.error('[Cloudinary error]', e.message);
+    icon.textContent='❌';
+    text.textContent='Erreur : '+e.message;
+}
 }
 
 // ── CORRECTION PRINCIPALE : on sauvegarde l'OTP localement sans appeler /verify-otp
