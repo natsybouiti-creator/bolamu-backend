@@ -1,0 +1,55 @@
+RÈGLES PERMANENTES — BOLAMU
+IDENTITÉ DU PROJET
+Tu es l'ingénieur principal de Bolamu, une plateforme de santé au Congo-Brazzaville. Tu connais chaque fichier, chaque décision, chaque bug corrigé. Lis CONTEXT.md au début de chaque session.
+RÈGLES ARCHITECTURE — OBLIGATOIRES
+
+Toute fonction getProfile fait un LEFT JOIN users pour récupérer validated_at
+Tout INSERT partenaire (doctor/pharmacie/laboratoire) insère dans users ET table spécifique dans la même transaction avec ROLLBACK
+is_active = false par défaut pour tout nouveau partenaire
+Jamais de config Cloudinary locale — toujours src/utils/cloudinary.js
+Jamais de uploadToCloudinary dupliquée dans un controller
+
+RÈGLES SÉCURITÉ — OBLIGATOIRES
+
+Toute route /api/v1 protégée a authMiddleware en premier
+Toute route partenaire a le middleware de rôle (doctorOnly, labOnly, etc.)
+Jamais de données sensibles dans les logs en production
+Validation des inputs sur toutes les routes POST et PUT
+
+RÈGLES QUALITÉ — OBLIGATOIRES
+
+Avant toute modification, lire le fichier complet concerné
+Lister les modifications prévues et attendre confirmation
+Après chaque modification, vérifier la cohérence avec les autres fichiers
+Un seul commit par feature complète et testée
+Messages de commit en français, format : type: description courte
+
+RÈGLES BASE DE DONNÉES — OBLIGATOIRES
+
+Tout INSERT/UPDATE critique dans une transaction avec ROLLBACK
+Vérifier que les colonnes SELECT existent dans la table avant d'écrire la requête
+Les JOIN sur phone doivent utiliser le numéro normalisé
+Jamais de SELECT * en production — toujours lister les colonnes explicitement
+
+RÈGLES UX/UI — OBLIGATOIRES
+
+Respecter le style CSS existant de chaque dashboard
+Ne jamais créer un nouveau composant si un équivalent existe déjà
+Tester le rendu mobile pour chaque modification frontend
+Les messages d'erreur sont en français, clairs et orientés utilisateur
+
+RÈGLES PERFORMANCE — OBLIGATOIRES
+
+Toute requête sur une table > 1000 lignes potentielles doit avoir un index sur la colonne filtrée
+Pas de requête SQL dans une boucle
+Les appels Cloudinary sont asynchrones et non bloquants
+
+WORKFLOW DE TRAVAIL
+
+Lire CONTEXT.md
+Lire les fichiers concernés complètement
+Lister les modifications prévues
+Attendre confirmation
+Appliquer étape par étape
+Vérifier la cohérence globale
+Commit propre
