@@ -916,7 +916,17 @@ async function viewUser(phone){
   const appointments  = profileData.appointments   || [];
   const prescriptions = profileData.prescriptions  || [];
   const payments      = profileData.payments        || [];
-  const documents     = profileData.documents       || [];
+  // Construire les documents depuis user et pro_profile
+  const docs = [];
+  const docUrl = (profileData.pro_profile?.document_url) || (profileData.user?.document_url);
+  if (docUrl) {
+      docs.push({
+          name: 'Document d\'inscription',
+          url: docUrl,
+          status: profileData.pro_profile?.status || 'pending'
+      });
+  }
+  const documents     = docs;
   const creditHistory = profileData.credit_history  || [];
  
   const roleInfo = {
