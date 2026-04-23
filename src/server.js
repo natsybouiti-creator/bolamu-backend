@@ -9,9 +9,21 @@ app.set('trust proxy', 1);
 // ============================================================
 // 1. MIDDLEWARES & CORS CONFIGURATION
 // ============================================================
-// Configuration CORS Ã©largie pour autoriser les requÃªtes du Dashboard
+const allowedOrigins = [
+    'https://bolamu-backend.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:10000'
+];
+
 app.use(cors({
-    origin: '*', // Autorise toutes les sources pour le debug (Ã  restreindre plus tard)
+    origin: function(origin, callback) {
+        // Autoriser les requêtes sans origin (Postman, mobile apps, curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Non autorisé par CORS'));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: true
