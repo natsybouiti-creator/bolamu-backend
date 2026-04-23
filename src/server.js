@@ -110,6 +110,11 @@ app.get('/api/v1/test', async (req, res) => {
     }
 });
 
+// Servir urgence.html pour la route /urgence (sans extension)
+app.get('/urgence', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'public', 'urgence.html'));
+});
+
 // ============================================================
 // 6. ROUTE 404
 // ============================================================
