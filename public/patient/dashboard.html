@@ -1258,25 +1258,53 @@ document.getElementById('dos-since').textContent=new Date().toLocaleDateString('
 initQR();loadSubscription();loadDoctors();renderPartners();loadRdv();loadProfil();
 
 function ouvrirJitsiPatient(rdvId, sessionCode) {
-  const roomName = `bolamu-${sessionCode}-${rdvId}`;
-  const phone = localStorage.getItem('bolamu_patient_phone') || localStorage.getItem('bolamu_phone') || '';
-  const displayName = encodeURIComponent('Patient ' + phone.slice(-4));
-  const jitsiUrl = `https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableModeratorIndicator=true&config.startAsModerator=true&userInfo.displayName=${displayName}`;
+  const roomName = `vpaas-magic-cookie-9ca467330cb64541aa516c38dfe2e159/bolamu-${sessionCode}-${rdvId}`;
+  const patientPhone = localStorage.getItem('bolamu_patient_phone') || localStorage.getItem('bolamu_phone') || '';
+  const displayName = 'Patient ' + patientPhone.slice(-4);
   document.getElementById('jitsi-session-label').textContent = `Consultation — Code ${sessionCode}`;
   document.getElementById('jitsi-code-display').textContent = `Code: ${sessionCode}`;
-  document.getElementById('jitsi-iframe').src = jitsiUrl;
   document.getElementById('modal-jitsi').style.display = 'flex';
   document.getElementById('jitsi-loading').style.display = 'flex';
-  setTimeout(() => {
-    const loading = document.getElementById('jitsi-loading');
-    if (loading) loading.style.display = 'none';
-  }, 4000);
+
+  const container = document.getElementById('jitsi-iframe');
+  container.src = '';
+  container.style.display = 'none';
+
+  let jaasDiv = document.getElementById('jaas-container');
+  if (!jaasDiv) {
+    jaasDiv = document.createElement('div');
+    jaasDiv.id = 'jaas-container';
+    jaasDiv.style.cssText = 'width:100%;height:100%;';
+    container.parentNode.insertBefore(jaasDiv, container);
+  }
+  jaasDiv.innerHTML = '';
+
+  if (!window.JitsiMeetExternalAPI) {
+    const script = document.createElement('script');
+    script.src = 'https://8x8.vc/vpaas-magic-cookie-9ca467330cb64541aa516c38dfe2e159/external_api.js';
+    script.onload = () => initJaasPatient(roomName, displayName, jaasDiv);
+    document.head.appendChild(script);
+  } else {
+    initJaasPatient(roomName, displayName, jaasDiv);
+  }
+}
+
+function initJaasPatient(roomName, displayName, container) {
+  document.getElementById('jitsi-loading').style.display = 'none';
+  window._jaasApi = new JitsiMeetExternalAPI('8x8.vc', {
+    roomName: roomName,
+    parentNode: container,
+    userInfo: { displayName: displayName }
+  });
 }
 
 function closeJitsi() {
   document.getElementById('modal-jitsi').style.display = 'none';
   document.getElementById('jitsi-iframe').src = '';
   document.getElementById('jitsi-loading').style.display = 'flex';
+  if (window._jaasApi) { window._jaasApi.dispose(); window._jaasApi = null; }
+  const jaasDiv = document.getElementById('jaas-container');
+  if (jaasDiv) jaasDiv.innerHTML = '';
 }
 </script>
 

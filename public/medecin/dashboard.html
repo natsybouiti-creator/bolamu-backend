@@ -690,25 +690,57 @@ async function demarrerTeleconsultation(rdvId,sessionCode,patientPhone){
   ouvrirJitsi(rdvId,sessionCode,'doctor');
 }
 
-function ouvrirJitsi(rdvId,sessionCode,role){
-  const roomName=`bolamu-${sessionCode}-${rdvId}`;
-  const displayName=encodeURIComponent(role==='doctor'?'Dr. Bolamu':phone);
-  const jitsiUrl = `https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableModeratorIndicator=true&config.startAsModerator=true&userInfo.displayName=${displayName}`;
-  document.getElementById('jitsi-session-label').textContent=`Consultation — Patient ${sessionCode}`;
-  document.getElementById('jitsi-code-display').textContent=`Code: ${sessionCode}`;
-  document.getElementById('jitsi-iframe').src=jitsiUrl;
-  document.getElementById('modal-jitsi').style.display='flex';
-  document.getElementById('jitsi-loading').style.display='flex';
-  document.getElementById('jitsi-post-actions').style.display='none';
-  setTimeout(()=>{const loading=document.getElementById('jitsi-loading');if(loading)loading.style.display='none';document.getElementById('jitsi-post-actions').style.display='flex';},4000);
+function ouvrirJitsi(rdvId, sessionCode, role) {
+  const roomName = `vpaas-magic-cookie-9ca467330cb64541aa516c38dfe2e159/bolamu-${sessionCode}-${rdvId}`;
+  const displayName = role === 'doctor' ? 'Dr. Bolamu' : phone;
+  document.getElementById('jitsi-session-label').textContent = `Consultation — Patient ${sessionCode}`;
+  document.getElementById('jitsi-code-display').textContent = `Code: ${sessionCode}`;
+  document.getElementById('modal-jitsi').style.display = 'flex';
+  document.getElementById('jitsi-loading').style.display = 'flex';
+  document.getElementById('jitsi-post-actions').style.display = 'none';
+
+  const container = document.getElementById('jitsi-iframe');
+  container.src = '';
+  container.style.display = 'none';
+
+  let jaasDiv = document.getElementById('jaas-container');
+  if (!jaasDiv) {
+    jaasDiv = document.createElement('div');
+    jaasDiv.id = 'jaas-container';
+    jaasDiv.style.cssText = 'width:100%;height:100%;';
+    container.parentNode.insertBefore(jaasDiv, container);
+  }
+  jaasDiv.innerHTML = '';
+
+  if (!window.JitsiMeetExternalAPI) {
+    const script = document.createElement('script');
+    script.src = 'https://8x8.vc/vpaas-magic-cookie-9ca467330cb64541aa516c38dfe2e159/external_api.js';
+    script.onload = () => initJaas(roomName, displayName, jaasDiv);
+    document.head.appendChild(script);
+  } else {
+    initJaas(roomName, displayName, jaasDiv);
+  }
 }
 
-function closeJitsi(){
-  document.getElementById('modal-jitsi').style.display='none';
-  document.getElementById('jitsi-iframe').src='';
-  document.getElementById('jitsi-loading').style.display='flex';
-  document.getElementById('jitsi-post-actions').style.display='none';
-  currentJitsiRdv=null;
+function initJaas(roomName, displayName, container) {
+  document.getElementById('jitsi-loading').style.display = 'none';
+  document.getElementById('jitsi-post-actions').style.display = 'flex';
+  window._jaasApi = new JitsiMeetExternalAPI('8x8.vc', {
+    roomName: roomName,
+    parentNode: container,
+    userInfo: { displayName: displayName }
+  });
+}
+
+function closeJitsi() {
+  document.getElementById('modal-jitsi').style.display = 'none';
+  document.getElementById('jitsi-iframe').src = '';
+  document.getElementById('jitsi-loading').style.display = 'flex';
+  document.getElementById('jitsi-post-actions').style.display = 'none';
+  if (window._jaasApi) { window._jaasApi.dispose(); window._jaasApi = null; }
+  const jaasDiv = document.getElementById('jaas-container');
+  if (jaasDiv) jaasDiv.innerHTML = '';
+  currentJitsiRdv = null;
 }
 
 function closeJitsiAndValidate(){
