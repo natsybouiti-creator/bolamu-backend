@@ -1,8 +1,10 @@
-﻿require('dotenv').config();
+﻿require('./instrument');
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const pool = require('./config/db');
 const cors = require('cors');
+const Sentry = require('@sentry/node');
 const app = express();
 app.set('trust proxy', 1);
 
@@ -135,7 +137,12 @@ app.use((req, res) => {
 });
 
 // ============================================================
-// 7. GESTION ERREUR GLOBALE
+// 7. SENTRY ERROR HANDLER
+// ============================================================
+Sentry.setupExpressErrorHandler(app);
+
+// ============================================================
+// 8. GESTION ERREUR GLOBALE
 // ============================================================
 app.use((err, req, res, next) => {
     console.error('[GLOBAL ERROR]', err);
