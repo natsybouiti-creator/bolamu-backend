@@ -79,7 +79,29 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
     }
 });
 
-// 4. Validation (Anti-fraude simplifié pour stabilité)
+// 4. RDV Patient
+router.get('/patient/:phone', authMiddleware, async (req, res) => {
+  try {
+    const { phone } = req.params;
+    const result = await pool.query(
+      `SELECT a.id, a.patient_phone, a.status, a.session_code,
+              a.appointment_date, a.appointment_time, a.created_at,
+              d.full_name as doctor_name, d.specialty as doctor_specialty,
+              d.phone as doctor_phone
+       FROM appointments a
+       LEFT JOIN doctors d ON d.id = a.doctor_id
+       WHERE a.patient_phone = $1
+       ORDER BY a.appointment_date DESC, a.appointment_time DESC`,
+      [phone]
+    );
+    return res.json({ success: true, appointments: result.rows });
+  } catch (error) {
+    console.error('[appointments/patient]', error.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// 5. Validation (Anti-fraude simplifié pour stabilité)
 router.post('/:id/validate', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { session_code } = req.body;
