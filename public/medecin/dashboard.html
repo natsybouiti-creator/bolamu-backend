@@ -693,7 +693,7 @@ async function demarrerTeleconsultation(rdvId,sessionCode,patientPhone){
 function ouvrirJitsi(rdvId,sessionCode,role){
   const roomName=`bolamu-${sessionCode}-${rdvId}`;
   const displayName=encodeURIComponent(role==='doctor'?'Dr. Bolamu':phone);
-  const jitsiUrl=`https://meet.jit.si/${roomName}#userInfo.displayName="${displayName}"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
+  const jitsiUrl = `https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableModeratorIndicator=true&config.startAsModerator=true&userInfo.displayName=${displayName}`;
   document.getElementById('jitsi-session-label').textContent=`Consultation — Patient ${sessionCode}`;
   document.getElementById('jitsi-code-display').textContent=`Code: ${sessionCode}`;
   document.getElementById('jitsi-iframe').src=jitsiUrl;

@@ -1261,7 +1261,7 @@ function ouvrirJitsiPatient(rdvId, sessionCode) {
   const roomName = `bolamu-${sessionCode}-${rdvId}`;
   const phone = localStorage.getItem('bolamu_patient_phone') || localStorage.getItem('bolamu_phone') || '';
   const displayName = encodeURIComponent('Patient ' + phone.slice(-4));
-  const jitsiUrl = `https://meet.jit.si/${roomName}#userInfo.displayName="${displayName}"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
+  const jitsiUrl = `https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableModeratorIndicator=true&config.startAsModerator=true&userInfo.displayName=${displayName}`;
   document.getElementById('jitsi-session-label').textContent = `Consultation — Code ${sessionCode}`;
   document.getElementById('jitsi-code-display').textContent = `Code: ${sessionCode}`;
   document.getElementById('jitsi-iframe').src = jitsiUrl;
