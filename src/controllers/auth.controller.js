@@ -16,13 +16,7 @@ async function requestOtp(req, res) {
     if (!phone) return res.status(400).json({ success: false, message: "Numéro requis" });
     
     // Normalisation du numéro
-    let normalizedPhone = (phone || '').trim().replace(/\s+/g,'');
-    // Supprime le 0 après l'indicatif +242
-    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8,9})$/, '$1$2');
-    // Supprime le 0 après tout autre indicatif africain
-    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,9})$/, '$1$2');
-    // Format local 0XXXXXXXX → +24269XXXXXXXX
-    if (/^0\d{8,9}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
+    const normalizedPhone = normalizePhone(phone);
 
     const adminCheck = await pool.query(`SELECT role FROM users WHERE phone = $1`, [normalizedPhone]).catch(() => ({ rows: [] }));
     if (adminCheck.rows[0]?.role === 'admin') {
@@ -89,13 +83,7 @@ async function login(req, res) {
     if (!phone || !otp) return res.status(400).json({ success: false, message: "Téléphone et OTP requis" });
     
     // Normalisation du numéro
-    let normalizedPhone = (phone || '').trim().replace(/\s+/g,'');
-    // Supprime le 0 après l'indicatif +242
-    normalizedPhone = normalizedPhone.replace(/^(\+242)0(\d{8,9})$/, '$1$2');
-    // Supprime le 0 après tout autre indicatif africain
-    normalizedPhone = normalizedPhone.replace(/^(\+\d{2,3})0(\d{7,9})$/, '$1$2');
-    // Format local 0XXXXXXXX → +24269XXXXXXXX
-    if (/^0\d{8,9}$/.test(normalizedPhone)) normalizedPhone = '+242' + normalizedPhone.slice(1);
+    const normalizedPhone = normalizePhone(phone);
 
     try {
         // ── Vérification OTP ──
