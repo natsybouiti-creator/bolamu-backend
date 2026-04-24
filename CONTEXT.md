@@ -55,6 +55,9 @@ Labo résultats (QR code scan → dépose résultats)
 Pharmacie délivrance (QR code scan → applique remise tiers payant)
 Timeline patient (historique RDV, prescriptions, résultats)
 QR code authentification (scan pour vérifier validité)
+Téléconsultation JaaS 8x8.vc — médecin et patient dans la même salle
+RDV patient visibles dans dashboard via GET /appointments/patient/:phone
+Sentry monitoring — toutes les erreurs backend capturées en temps réel
 
 RÈGLES ARCHITECTURALES ABSOLUES
 
@@ -65,6 +68,9 @@ is_active = false par défaut à l'inscription — validation admin obligatoire
 document_url synchronisé dans users ET table spécifique à l'inscription
 Cloudinary centralisé via src/utils/cloudinary.js — jamais de config locale
 localStorage keys : bolamu_doctor_token/phone, bolamu_pharmacie_token/phone, bolamu_laboratoire_token/phone
+Toute normalisation de numéro passe par normalizePhone() — jamais de regex inline
+Les numéros congolais sont au format +2420XXXXXXXX (12 chiffres avec le 0)
+instrument.js doit être dans src/ et chargé en première ligne de src/server.js
 
 COMPTES DE TEST
 
@@ -80,13 +86,20 @@ Double insertion users : registerDoctor/Pharmacie/Laboratoire inséraient dans u
 is_active basé sur trust_score : registerDoctor/Pharmacie/Laboratoire calculaient is_active = score >= 80, permettant activation automatique. Solution : is_active = false forcé pour tous les partenaires.
 Incohérence localStorage : register.html sauvegardait bolamu_token/bolamu_phone génériques, mais dashboards lisaient bolamu_doctor_token/phone spécifiques. Solution : register.html utilise maintenant les clés spécifiques par rôle.
 Missing validated_at column : getProfile ne récupérait pas validated_at depuis users. Solution : LEFT JOIN users ajouté dans toutes les requêtes getProfile.
+normalizePhone non utilisée dans requestOtp et login — remplacée par appel centralisé.
+Double format numéros congolais — migration complète vers +2420XXXXXXXX.
+Route GET /appointments/patient/:phone manquante — créée.
+Jitsi meet.jit.si bloqué par modérateur — migré vers JaaS 8x8.vc.
+instrument.js Sentry à la racine au lieu de src/ — déplacé dans src/.
 
-ÉTAT ACTUEL — CE QUI RESTE À FAIRE
+ÉTAT ACTUEL — SESSION 24 AVRIL 2026
 
-SMS réels Africa's Talking (actuellement en mock)
-BASE_URL sur Render (hardcodé localhost en dev)
-Sécurité CORS (origin: '*' à restreindre)
-Pages légales CGU/confidentialité
-Téléconsultation Jitsi
-Dashboard admin — tests complets
-Sentry monitoring
+✅ Sentry monitoring opérationnel
+✅ Téléconsultation JaaS fonctionnelle
+✅ SMS Africa's Talking configuré — activation Live en attente crédit
+✅ Normalisation numéros centralisée via normalizePhone()
+✅ RDV patient visibles dans dashboard
+
+Reste à faire :
+- Activation SMS Live (crédit Africa's Talking)
+- Tests complets MoMo
