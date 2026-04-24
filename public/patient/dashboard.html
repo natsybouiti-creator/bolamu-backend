@@ -1023,7 +1023,10 @@ async function loadRdv(){
       const dateStr=new Date(r.appointment_date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
       const timeStr=(r.appointment_time||'').slice(0,5);
       const badge=r.status==='confirme'?'<span class="badge badge-confirme">✅ Confirmé</span>':r.status==='termine'?'<span class="badge badge-termine">Terminé</span>':`<span class="badge badge-pending">${r.status}</span>`;
-      return `<div class="rdv-card"><div class="rdv-left"><div class="rdv-icon">👨‍⚕️</div><div><div class="rdv-doctor">${r.doctor_name||'Médecin'}</div><div class="rdv-date">${dateStr} à ${timeStr}</div><div style="margin-top:6px">${badge}</div></div></div><div class="rdv-right"><div class="rdv-code">${r.session_code}</div><div class="rdv-code-label">Code session</div></div></div>`;
+      const btnJitsi = (r.status === 'en_cours' || r.status === 'confirmé' || r.status === 'confirme')
+        ? `<button onclick="ouvrirJitsiPatient('${r.id}','${r.session_code}')" style="margin-top:10px;background:linear-gradient(135deg,#2E86FF,#00C9A7);color:white;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;">📹 Rejoindre la consultation</button>` 
+        : '';
+      return `<div class="rdv-card"><div class="rdv-left"><div class="rdv-icon">👨‍⚕️</div><div><div class="rdv-doctor">${r.doctor_name||'Médecin'}</div><div class="rdv-date">${dateStr} à ${timeStr}</div><div style="margin-top:6px">${badge}</div></div></div><div class="rdv-right"><div class="rdv-code">${r.session_code}</div><div class="rdv-code-label">Code session</div></div></div>${btnJitsi}`;
     }).join('');
     container.innerHTML=`<div class="rdv-list">${html}</div>`;
   }catch(e){document.getElementById('rdv-list-accueil').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Impossible de charger les RDV.</p></div>`;}
@@ -1253,6 +1256,50 @@ document.getElementById('profil-code').textContent=memberCode;
 document.getElementById('dos-phone').textContent=phone;
 document.getElementById('dos-since').textContent=new Date().toLocaleDateString('fr-FR');
 initQR();loadSubscription();loadDoctors();renderPartners();loadRdv();loadProfil();
+
+function ouvrirJitsiPatient(rdvId, sessionCode) {
+  const roomName = `bolamu-${sessionCode}-${rdvId}`;
+  const phone = localStorage.getItem('bolamu_patient_phone') || localStorage.getItem('bolamu_phone') || '';
+  const displayName = encodeURIComponent('Patient ' + phone.slice(-4));
+  const jitsiUrl = `https://meet.jit.si/${roomName}#userInfo.displayName="${displayName}"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
+  document.getElementById('jitsi-session-label').textContent = `Consultation — Code ${sessionCode}`;
+  document.getElementById('jitsi-code-display').textContent = `Code: ${sessionCode}`;
+  document.getElementById('jitsi-iframe').src = jitsiUrl;
+  document.getElementById('modal-jitsi').style.display = 'flex';
+  document.getElementById('jitsi-loading').style.display = 'flex';
+  setTimeout(() => {
+    const loading = document.getElementById('jitsi-loading');
+    if (loading) loading.style.display = 'none';
+  }, 4000);
+}
+
+function closeJitsi() {
+  document.getElementById('modal-jitsi').style.display = 'none';
+  document.getElementById('jitsi-iframe').src = '';
+  document.getElementById('jitsi-loading').style.display = 'flex';
+}
 </script>
+
+<div id="modal-jitsi" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.95);z-index:500;flex-direction:column;">
+  <div style="background:rgba(255,255,255,0.05);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#00C9A7;animation:pulse 2s infinite;"></div>
+      <span style="color:white;font-weight:700;font-size:15px;" id="jitsi-session-label">Consultation en cours</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div style="background:rgba(255,255,255,0.1);color:white;padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;" id="jitsi-code-display">Code: —</div>
+      <button onclick="closeJitsi()" style="background:rgba(231,76,60,0.8);color:white;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">✕ Fermer</button>
+    </div>
+  </div>
+  <div style="flex:1;position:relative;">
+    <iframe id="jitsi-iframe" style="width:100%;height:100%;border:none;" allow="camera; microphone; fullscreen; display-capture; autoplay"></iframe>
+    <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,36,99,0.9);color:white;">
+      <div style="font-size:56px;margin-bottom:16px;">📹</div>
+      <div style="font-size:24px;font-weight:900;margin-bottom:8px;">Connexion en cours…</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.7);">Votre médecin vous attend</div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
