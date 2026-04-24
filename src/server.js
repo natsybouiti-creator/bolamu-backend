@@ -130,14 +130,7 @@ app.get('/urgence', (req, res) => {
 });
 
 // ============================================================
-// 6. DEBUG SENTRY
-// ============================================================
-app.get('/debug-sentry', (req, res) => {
-    throw new Error('Test Sentry Bolamu — fonctionne !');
-});
-
-// ============================================================
-// 7. ROUTE 404
+// 6. ROUTE 404
 // ============================================================
 app.use((req, res) => {
     res.status(404).json({ success: false, message: 'Route introuvable' });
