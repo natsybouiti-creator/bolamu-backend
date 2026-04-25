@@ -166,10 +166,10 @@ health_records, ratings, cgu_pages, notifications
 - Auth OTP+JWT + mot de passe permanent pour tous les rôles
 - Inscription complète 4 rôles avec upload documents
 - Dashboard admin (validation, modal profil, carte identité patient)
-- Dashboard patient (RDV, profil, changement mot de passe)
-- Dashboard médecin (profil, changement mot de passe)
-- Dashboard pharmacie (profil, changement mot de passe)
-- Dashboard laboratoire (profil, changement mot de passe)
+- Dashboard patient (RDV, profil, changement mot de passe, carte intervenants Leaflet)
+- Dashboard médecin (profil, changement mot de passe, géolocalisation GPS)
+- Dashboard pharmacie (profil, changement mot de passe, géolocalisation GPS)
+- Dashboard laboratoire (profil, changement mot de passe, géolocalisation GPS)
 - Rotating QR code tiers payant
 - Appointment flow complet
 - Jitsi JaaS téléconsultation
@@ -177,36 +177,39 @@ health_records, ratings, cgu_pages, notifications
 - TrustScore auto-validation à 80+/100
 - Sentry monitoring
 - Admin dual-role (admin + content_admin)
-- CGU (public/cgu.html) + Confidentialité (public/confidentialite.html)
-- Page urgence (public/urgence.html) — accès dossier d'urgence via QR
-- Dossier médical / carnet santé — tables consultation_reports + dossier_access_log + routes consultation-report.routes.js
-- Timeline patient — GET /api/v1/consultation-reports/patient/:phone/timeline
-- Rapports de consultation médecin — POST /api/v1/consultation-reports/submit
-- Credits Bolamu — tables credits + credit_transactions + credit_partners
-- Articles / blog santé — table articles + content_blocks + routes articles.routes.js
-- Admin content editor — content.html (gestion articles, vitrine, plans, textes)
-- Prescriptions (flux complet backend + frontend médecin/pharmacie/patient/admin)
-- Flux labo→patient (routes complètes + interface laboratoire + timeline patient)
-- Système de notation patients — étoiles 1-5 + adjectifs + panel admin
+- CGU + Confidentialité + Page urgence
+- Dossier médical — consultation_reports + dossier_access_log + routes
+- Timeline patient + Rapports de consultation médecin
+- Credits Bolamu + Articles / blog santé + Admin content editor
+- Prescriptions flux complet + Flux labo→patient complet
+- Système de notation patients — ratings, étoiles + adjectifs + panel admin
+- MTN MoMo — backend + frontend, valeurs réelles XAF (sandbox)
+- Géolocalisation — GPS dans dashboards intervenants + carte Leaflet patient
+- index.html — inscription patient complète avec NIU + CNI Cloudinary
+- localStorage keys standardisées par rôle
 
 ### Partiel ⚠️
-- MTN MoMo ✅ — backend complet, frontend patient connecté, valeurs réelles (sandbox en attente activation production)
-- Africa's Talking (sandbox — OTPs dans logs Render, activation Live en attente crédit)
-- Partner conventions (table partner_conventions existe, flux non validé)
-- Transactions tiers payant (table transactions_tiers_payant existe, flux non validé)
+- Africa's Talking (sandbox — activation Live en attente crédit)
+- Partner conventions (table existe, flux non validé)
+- Transactions tiers payant (table existe, flux non validé)
 
 ### Absent ❌
 - Notifications push
-- Domaine custom (utilise .onrender.com)
+- Domaine custom — bolamu.co disponible, achat en attente
+- Airtel Money — en attente credentials API
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
 users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings
 
+## COLONNES GPS AJOUTÉES — 25 AVRIL 2026
+Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), longitude DECIMAL(10,7), address TEXT
+
 ## ROADMAP — ÉTAT RÉEL
 - Ph1 : Quick fixes ✅ TERMINÉ
 - Ph2 : CGU + confidentialité ✅ TERMINÉ
-- Ph3 : Dossier médical / carnet santé ✅ TERMINÉ
-- Ph4 : Tests + prescriptions + flux labo ✅ TERMINÉ
-- Ph5 : Star ratings + commentaires ✅ TERMINÉ
-- Ph6 : MTN MoMo frontend ✅ TERMINÉ — Africa's Talking Live en attente activation compte AT, Airtel Money en attente credentials
-- Ph7 : Production — domaine custom, optimisations finales (1 session)
+- Ph3 : Dossier médical ✅ TERMINÉ
+- Ph4 : Prescriptions + flux labo ✅ TERMINÉ
+- Ph5 : Ratings + commentaires ✅ TERMINÉ
+- Ph6 : MTN MoMo frontend ✅ TERMINÉ
+- Ph7 : Géolocalisation + carte patient ✅ TERMINÉ
+- Ph8 : Production — domaine custom, Africa's Talking Live, Airtel Money (en attente)
