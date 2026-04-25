@@ -161,6 +161,7 @@ health_records, ratings, cgu_pages, notifications
 - Admin : +242060000099
 
 ## ÉTAT ACTUEL — 25 AVRIL 2026
+
 ### Fonctionnel ✅
 - Auth OTP+JWT + mot de passe permanent pour tous les rôles
 - Inscription complète 4 rôles avec upload documents
@@ -176,25 +177,36 @@ health_records, ratings, cgu_pages, notifications
 - TrustScore auto-validation à 80+/100
 - Sentry monitoring
 - Admin dual-role (admin + content_admin)
+- CGU (public/cgu.html) + Confidentialité (public/confidentialite.html)
+- Page urgence (public/urgence.html) — accès dossier d'urgence via QR
+- Dossier médical / carnet santé — tables consultation_reports + dossier_access_log + routes consultation-report.routes.js
+- Timeline patient — GET /api/v1/consultation-reports/patient/:phone/timeline
+- Rapports de consultation médecin — POST /api/v1/consultation-reports/submit
+- Credits Bolamu — tables credits + credit_transactions + credit_partners
+- Articles / blog santé — table articles + content_blocks + routes articles.routes.js
+- Admin content editor — content.html (gestion articles, vitrine, plans, textes)
 
 ### Partiel ⚠️
-- Prescriptions (non testées en production)
+- Prescriptions (non testées end-to-end en production)
 - Flux labo→patient (non validé end-to-end)
 - MTN MoMo (route existe, non connectée au frontend)
 - Africa's Talking (sandbox — OTPs dans logs Render, activation Live en attente crédit)
+- Partner conventions (table partner_conventions existe, flux non validé)
+- Transactions tiers payant (table transactions_tiers_payant existe, flux non validé)
 
 ### Absent ❌
-- Carnet santé virtuel (pas de table, route, ni interface)
-- Ratings / notation
-- CGU pages
-- Email contact
-- Notifications
+- Ratings / notation (pas de table ratings)
+- Notifications push
+- Domaine custom (utilise .onrender.com)
 
-## ROADMAP 7 PHASES
-- Ph1 : Quick fixes ✅ TERMINÉ — tarif 2000 FCFA, email contact, fix pending is_active, fix emojis, member_code MAX, auth mot de passe permanent, carte identité patient
-- Ph2 : CGU + privacy pages (1 session)
-- Ph3 : Carnet santé virtuel (2-3 sessions) — tables, routes, 4 interfaces
-- Ph4 : Payment/carnet rule + admin compliance (1 session)
+## TABLES EXISTANTES — LISTE COMPLÈTE
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes
+
+## ROADMAP — ÉTAT RÉEL
+- Ph1 : Quick fixes ✅ TERMINÉ
+- Ph2 : CGU + confidentialité ✅ TERMINÉ
+- Ph3 : Dossier médical / carnet santé ✅ TERMINÉ
+- Ph4 : Tests + prescriptions + flux labo validation (1 session)
 - Ph5 : Star ratings + commentaires (1 session)
-- Ph6 : Tests + prescriptions + flux labo validation (1 session)
-- Ph7 : Production — Africa's Talking Live, MTN MoMo frontend, domaine custom (1 session)
+- Ph6 : MTN MoMo frontend + Africa's Talking Live (1 session)
+- Ph7 : Production — domaine custom, optimisations finales (1 session)
