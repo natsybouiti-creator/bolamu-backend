@@ -253,6 +253,16 @@
           <div class="detail-row"><span class="info-label">Score confiance</span><span class="info-value" id="d-score">—</span></div>
           <div class="detail-row"><span class="info-label">Membre depuis</span><span class="info-value" id="d-since">—</span></div>
         </div>
+        <div class="detail-card">
+          <h3>Sécurité & accès</h3>
+          <div class="detail-row"><span class="info-label">Connexion</span><span class="info-value">Mot de passe permanent</span></div>
+          <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">✅ AES-256</span></div>
+          <div style="margin-top:16px;" id="pwd-form-container">
+            <button onclick="document.getElementById('pwd-form-container').innerHTML=pwdFormHtml()" style="padding:12px 24px;background:var(--grad-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
+              🔑 Changer mon mot de passe
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -470,6 +480,41 @@ async function loadProfil() {
     document.getElementById('p-phone').textContent = phone;
     document.getElementById('d-phone').textContent = phone;
   }
+}
+
+function pwdFormHtml(){
+  return `<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+    <input id="pwd-old" type="password" placeholder="Ancien mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
+    <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
+    <input id="pwd-confirm" type="password" placeholder="Confirmer le nouveau mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
+    <div style="display:flex;gap:8px;">
+      <button onclick="submitChangePwd()" style="flex:1;padding:12px;background:var(--grad-labo);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
+      <button onclick="document.getElementById('pwd-form-container').innerHTML='<button onclick=\\'document.getElementById(\\'pwd-form-container\\').innerHTML=pwdFormHtml()\\'  style=\\'padding:12px 24px;background:var(--grad-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;\\'>🔑 Changer mon mot de passe</button>'" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;">Annuler</button>
+    </div>
+  </div>`;
+}
+
+async function submitChangePwd(){
+  const oldPwd = document.getElementById('pwd-old')?.value?.trim();
+  const newPwd = document.getElementById('pwd-new')?.value?.trim();
+  const confirmPwd = document.getElementById('pwd-confirm')?.value?.trim();
+  if (!oldPwd || !newPwd || !confirmPwd) return showToast('Remplissez tous les champs','error');
+  if (newPwd !== confirmPwd) return showToast('Les mots de passe ne correspondent pas','error');
+  if (newPwd.length < 6) return showToast('Minimum 6 caractères','error');
+  try {
+    const res = await fetch(`${API}/laboratories/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ phone, old_password: oldPwd, new_password: newPwd })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Mot de passe modifié ✅','success');
+      document.getElementById('pwd-form-container').innerHTML='<button onclick="document.getElementById(\'pwd-form-container\').innerHTML=pwdFormHtml()" style="padding:12px 24px;background:var(--grad-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+    } else {
+      showToast(data.message || 'Erreur','error');
+    }
+  } catch(e) { showToast('Erreur serveur','error'); }
 }
 
 function showTab(name, btn) {
