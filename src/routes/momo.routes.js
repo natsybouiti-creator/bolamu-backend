@@ -93,16 +93,18 @@ router.post('/request', verifyToken, async (req, res) => {
         const referenceId = crypto.randomUUID(); // ✅ UUID fiable
         const token = await getMoMoToken();
 
+        const momoPhone = phone.replace('+', '').replace(/^2420/, '242');
+
         const bodyData = JSON.stringify({
-            amount: "100",
-            currency: "EUR",
+            amount: String(amount),
+            currency: "XAF",
             externalId: referenceId,
             payer: {
                 partyIdType: "MSISDN",
-                partyId: "46733123450"
+                partyId: momoPhone
             },
-            payerMessage: "Abonnement Bolamu",
-            payeeNote: "Bolamu"
+            payerMessage: `Abonnement Bolamu - Plan ${plan}`,
+            payeeNote: "Bolamu Healthcare"
         });
 
         console.log('[MoMo] Envoi requesttopay avec ref:', referenceId);
