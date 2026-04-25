@@ -729,6 +729,7 @@ async function loadActivity(){
 function getDocumentsHtml(u){
   const docs = [];
   if(u.doc_url||u.document_url) docs.push(`<a href="${u.doc_url||u.document_url}" target="_blank" class="doc-link">📄 Document</a>`);
+  if(u.id_card_url) docs.push(`<a href="${u.id_card_url}" target="_blank" class="doc-link">🪪 Carte d'identité</a>`);
   if(u.rccm_url) docs.push(`<a href="${u.rccm_url}" target="_blank" class="doc-link">RCCM</a>`);
   if(u.agrement_url) docs.push(`<a href="${u.agrement_url}" target="_blank" class="doc-link">Agrément</a>`);
   if(u.registration_url) docs.push(`<a href="${u.registration_url}" target="_blank" class="doc-link">Registre</a>`);
@@ -954,6 +955,14 @@ async function viewUser(phone){
           name: 'Document d\'inscription',
           url: docUrl,
           status: profileData.pro_profile?.status || 'pending'
+      });
+  }
+  const idCardUrl = profileData.user?.id_card_url;
+  if (idCardUrl) {
+      docs.push({
+          name: 'Carte d\'identité',
+          url: idCardUrl,
+          status: 'pending'
       });
   }
   const documents     = docs;
