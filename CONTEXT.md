@@ -190,7 +190,7 @@ health_records, ratings, cgu_pages, notifications
 - Système de notation patients — étoiles 1-5 + adjectifs + panel admin
 
 ### Partiel ⚠️
-- MTN MoMo (route existe, non connectée au frontend)
+- MTN MoMo ✅ — backend complet, frontend patient connecté, valeurs réelles (sandbox en attente activation production)
 - Africa's Talking (sandbox — OTPs dans logs Render, activation Live en attente crédit)
 - Partner conventions (table partner_conventions existe, flux non validé)
 - Transactions tiers payant (table transactions_tiers_payant existe, flux non validé)
@@ -208,5 +208,5 @@ users, doctors, pharmacies, laboratories, appointments, prescriptions, payments,
 - Ph3 : Dossier médical / carnet santé ✅ TERMINÉ
 - Ph4 : Tests + prescriptions + flux labo ✅ TERMINÉ
 - Ph5 : Star ratings + commentaires ✅ TERMINÉ
-- Ph6 : MTN MoMo frontend + Africa's Talking Live (1 session)
+- Ph6 : MTN MoMo frontend ✅ TERMINÉ — Africa's Talking Live en attente activation compte AT, Airtel Money en attente credentials
 - Ph7 : Production — domaine custom, optimisations finales (1 session)
