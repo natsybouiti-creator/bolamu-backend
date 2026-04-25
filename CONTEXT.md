@@ -185,10 +185,10 @@ health_records, ratings, cgu_pages, notifications
 - Credits Bolamu — tables credits + credit_transactions + credit_partners
 - Articles / blog santé — table articles + content_blocks + routes articles.routes.js
 - Admin content editor — content.html (gestion articles, vitrine, plans, textes)
+- Prescriptions (flux complet backend + frontend médecin/pharmacie/patient/admin)
+- Flux labo→patient (routes complètes + interface laboratoire + timeline patient)
 
 ### Partiel ⚠️
-- Prescriptions (non testées end-to-end en production)
-- Flux labo→patient (non validé end-to-end)
 - MTN MoMo (route existe, non connectée au frontend)
 - Africa's Talking (sandbox — OTPs dans logs Render, activation Live en attente crédit)
 - Partner conventions (table partner_conventions existe, flux non validé)
@@ -206,7 +206,7 @@ users, doctors, pharmacies, laboratories, appointments, prescriptions, payments,
 - Ph1 : Quick fixes ✅ TERMINÉ
 - Ph2 : CGU + confidentialité ✅ TERMINÉ
 - Ph3 : Dossier médical / carnet santé ✅ TERMINÉ
-- Ph4 : Tests + prescriptions + flux labo validation (1 session)
+- Ph4 : Tests + prescriptions + flux labo ✅ TERMINÉ
 - Ph5 : Star ratings + commentaires (1 session)
 - Ph6 : MTN MoMo frontend + Africa's Talking Live (1 session)
 - Ph7 : Production — domaine custom, optimisations finales (1 session)
