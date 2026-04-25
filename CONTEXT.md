@@ -193,6 +193,7 @@ health_records, cgu_pages, notifications
 - Africa's Talking (sandbox — activation Live en attente crédit)
 - Partner conventions (table existe, flux non validé)
 - Transactions tiers payant (table existe, flux non validé)
+- Workflows agents Windsurf — 9 agents créés dans .windsurf/workflows/
 
 ### Absent ❌
 - Notifications push
@@ -214,3 +215,31 @@ Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), long
 - Ph6 : MTN MoMo frontend ✅ TERMINÉ
 - Ph7 : Géolocalisation + carte patient ✅ TERMINÉ
 - Ph8 : Production — domaine custom, Africa's Talking Live, Airtel Money (en attente)
+
+## WORKFLOWS AGENTS — ÉQUIPE DE DÉVELOPPEMENT
+Mis à jour : 25 avril 2026
+
+### Agents d'audit permanent
+- `/bugcheck` — Détection bugs, code mort, fetch cassés, INIT dashboards
+- `/securite` — Audit routes, JWT, inputs, données sensibles
+- `/database` — Audit SQL, transactions, index, cohérence schéma
+- `/performance` — Scalabilité, pagination, timeouts, Render
+- `/design` — Cohérence UI/UX, responsive, design system
+
+### Agents phase actuelle (flux partenaires + financiers)
+- `/partenaires` — Flux complet médecin/pharmacie/laboratoire
+- `/paiements` — MTN MoMo, Airtel Money, flux financiers
+- `/subscriptions` — Abonnements Essentiel/Standard/Premium
+- `/deployment` — Checklist pré-déploiement production
+
+### Règles d'utilisation des agents
+- Toujours lancer /bugcheck et /deployment avant un push important
+- Toujours lancer /partenaires avant de déclarer le flux partenaire terminé
+- Toujours lancer /paiements avant toute modification des routes financières
+- Les agents auditent D'ABORD, proposent ENSUITE, agissent APRÈS validation
+- Un problème à la fois — jamais de correction en masse
+
+### Deuxième vague à créer (roadmap)
+- `/notifications` — SMS Africa's Talking + notifications système
+- `/tests` — Génération tests automatisés flux critiques
+- `/api` — Cohérence endpoints backend ↔ appels frontend
