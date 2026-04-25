@@ -80,14 +80,22 @@
   <div class="card">
     <div id="msg" class="msg-box"></div>
 
-    <div class="step active" id="step-phone">
+    <div class="step active" id="step-login">
       <div class="step-title">Connexion</div>
-      <div class="step-sub">Entrez votre numéro de téléphone — vous recevrez un code de vérification par SMS.</div>
+      <div class="step-sub">Entrez votre numéro et votre mot de passe Bolamu.</div>
       <div class="field">
         <label>Numéro de téléphone</label>
         <input type="tel" id="phone-input" placeholder="+242 06 XXX XX XX" maxlength="15">
       </div>
-      <button class="btn-primary" onclick="requestOtp()" id="btn-otp">Recevoir mon code SMS →</button>
+      <div class="field">
+        <label>Mot de passe</label>
+        <div style="position:relative;">
+          <input type="password" id="password-input" placeholder="Votre mot de passe" maxlength="20">
+          <span onclick="togglePassword()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;" id="eye-icon">👁</span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()" id="btn-login">Se connecter →</button>
+      <div class="timer">Mot de passe oublié ? <span onclick="showForgot()">Recevoir un nouveau code par SMS</span></div>
       <div class="roles-info">
         <div class="role-pill">👤 Patients</div>
         <div class="role-pill">🩺 Médecins</div>
@@ -99,17 +107,15 @@
       </div>
     </div>
 
-    <div class="step" id="step-otp">
-      <div class="step-title">Code de vérification</div>
-      <div class="step-sub">Un code a été envoyé par SMS au numéro :</div>
-      <div class="phone-display" id="phone-display">—</div>
+    <div class="step" id="step-forgot">
+      <div class="step-title">Mot de passe oublié</div>
+      <div class="step-sub">Entrez votre numéro — vous recevrez un nouveau mot de passe par SMS.</div>
       <div class="field">
-        <label>Code reçu par SMS</label>
-        <input type="text" inputmode="numeric" class="otp-input" id="otp-input" placeholder="······" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'')">
+        <label>Numéro de téléphone</label>
+        <input type="tel" id="forgot-phone-input" placeholder="+242 06 XXX XX XX" maxlength="15">
       </div>
-      <button class="btn-primary" onclick="verifyOtp()" id="btn-verify">Confirmer et accéder →</button>
-      <div class="timer">Pas reçu ? <span onclick="requestOtp()">Renvoyer le code</span></div>
-      <button class="btn-back" onclick="goBack()">← Changer de numéro</button>
+      <button class="btn-primary" onclick="doForgotPassword()" id="btn-forgot">Recevoir mon mot de passe →</button>
+      <div class="timer"><span onclick="showLogin()">← Retour à la connexion</span></div>
     </div>
   </div>
 </div>
@@ -148,55 +154,82 @@
 </footer>
 
 <script>
-const API='';
-let currentPhone='';
-
 function showMsg(text,type){
   const el=document.getElementById('msg');
   el.textContent=text;el.className='msg-box '+type;el.style.display='block';
   setTimeout(()=>{el.style.display='none';},4000);
 }
-function goBack(){
-  document.getElementById('step-otp').classList.remove('active');
-  document.getElementById('step-phone').classList.add('active');
+
+function togglePassword() {
+  const input = document.getElementById('password-input');
+  const eye = document.getElementById('eye-icon');
+  if (input.type === 'password') { input.type = 'text'; eye.textContent = '🙈'; }
+  else { input.type = 'password'; eye.textContent = '👁'; }
 }
-async function requestOtp(){
-  const phone=document.getElementById('phone-input').value.trim();
-  if(!phone||phone.length<8){showMsg('Veuillez entrer un numéro valide.','error');return;}
-  currentPhone=phone;
-  const btn=document.getElementById('btn-otp');
-  btn.disabled=true;btn.textContent='Envoi en cours…';
-  try{
-    const res=await fetch('/api/v1/auth/request-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
-    const data=await res.json();
-    if(res.ok&&data.success){
-      document.getElementById('phone-display').textContent=phone;
-      document.getElementById('step-phone').classList.remove('active');
-      document.getElementById('step-otp').classList.add('active');
-      showMsg('Code envoyé par SMS !','success');
-      document.getElementById('otp-input').focus();
-    }else{showMsg(data.message||'Erreur envoi SMS.','error');}
-  }catch(e){showMsg('Erreur de connexion. Vérifiez internet.','error');}
-  btn.disabled=false;btn.textContent='Recevoir mon code SMS →';
+
+function showForgot() {
+  document.getElementById('step-login').classList.remove('active');
+  document.getElementById('step-forgot').classList.add('active');
 }
-async function verifyOtp(){
-  const otp=document.getElementById('otp-input').value.trim();
-  if(!otp||otp.length<4){showMsg('Entrez le code reçu par SMS.','error');return;}
-  const btn=document.getElementById('btn-verify');
-  btn.disabled=true;btn.textContent='Vérification…';
-  try{
-    const res=await fetch('/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:currentPhone,otp})});
-    const data=await res.json();
-    if(res.ok&&data.success){
-const role = data.role;
-      localStorage.setItem(`bolamu_${role}_token`, data.token);
-      localStorage.setItem(`bolamu_${role}_phone`, data.phone);
+
+function showLogin() {
+  document.getElementById('step-forgot').classList.remove('active');
+  document.getElementById('step-login').classList.add('active');
+}
+
+async function doLogin() {
+  const phone = document.getElementById('phone-input').value.trim();
+  const password = document.getElementById('password-input').value.trim();
+  if (!phone || phone.length < 8) { showMsg('Veuillez entrer un numéro valide.', 'error'); return; }
+  if (!password) { showMsg('Veuillez entrer votre mot de passe.', 'error'); return; }
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    const res = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, password })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      const role = data.role;
+      if (role === 'patient') {
+        localStorage.setItem('bolamu_patient_token', data.token);
+        localStorage.setItem('bolamu_patient_phone', data.phone);
+      } else {
+        localStorage.setItem(`bolamu_${role}_token`, data.token);
+        localStorage.setItem(`bolamu_${role}_phone`, data.phone);
+      }
       localStorage.setItem('bolamu_role', role);
-      showMsg('🎉 Connexion réussie ! Redirection…','success');
-      setTimeout(()=>{window.location.href=data.redirectUrl;},1500);
-    }else{showMsg(data.message||'Code incorrect.','error');}
-  }catch(e){showMsg('Erreur de connexion.','error');}
-  btn.disabled=false;btn.textContent='Confirmer et accéder →';
+      showMsg('🎉 Connexion réussie ! Redirection…', 'success');
+      setTimeout(() => { window.location.href = data.redirectUrl; }, 1500);
+    } else {
+      showMsg(data.message || 'Identifiants incorrects.', 'error');
+    }
+  } catch(e) { showMsg('Erreur de connexion. Vérifiez internet.', 'error'); }
+  btn.disabled = false; btn.textContent = 'Se connecter →';
+}
+
+async function doForgotPassword() {
+  const phone = document.getElementById('forgot-phone-input').value.trim();
+  if (!phone || phone.length < 8) { showMsg('Veuillez entrer un numéro valide.', 'error'); return; }
+  const btn = document.getElementById('btn-forgot');
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  try {
+    const res = await fetch('/api/v1/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showMsg('Nouveau mot de passe envoyé par SMS !', 'success');
+      setTimeout(() => showLogin(), 3000);
+    } else {
+      showMsg(data.message || 'Erreur.', 'error');
+    }
+  } catch(e) { showMsg('Erreur de connexion.', 'error'); }
+  btn.disabled = false; btn.textContent = 'Recevoir mon mot de passe →';
 }
 </script>
 </body>

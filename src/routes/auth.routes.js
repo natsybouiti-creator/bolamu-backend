@@ -11,6 +11,7 @@ const {
     requestOtp,
     verifyOtp,
     login,
+    forgotPassword,
     registerPatient,
     registerDoctor,
     registerPharmacie,
@@ -41,6 +42,7 @@ const loginLimiter = rateLimit({
 router.post('/request-otp', otpLimiter, requestOtp);
 router.post('/verify-otp', otpLimiter, verifyOtp);
 router.post('/login', loginLimiter, login);
+router.post('/forgot-password', otpLimiter, forgotPassword);
 
 // ─── REGISTER ─────────────────────────────────────────────────────────────────
 router.post('/register/patient',     registerPatient);

@@ -171,6 +171,7 @@ const state = {
   availableHours:{}, documentUrl:'',
   pharmacyName:'', responsibleName:'', rccmNumber:'',
   labName:'', directorName:'', agrementNumber:'',
+  niu: '', idCardUrl: '', idCardPublicId: '',
   trustScore:30, cguAccepted:false
 };
 
@@ -274,7 +275,21 @@ function renderStep2(){
         <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value"></div>
         <div class="form-group"><label class="form-label">Quartier</label>
         <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto…" value="${state.neighborhood}" oninput="state.neighborhood=this.value"></div>
-      </div>`;
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">NIU (optionnel)</label>
+        <input class="form-input" id="f-niu" type="text" placeholder="Numéro d'Identification Unique" value="${state.niu}" oninput="state.niu=this.value"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Carte d'identité <span class="required">*</span></label>
+        <div class="upload-zone" id="id-card-zone" onclick="document.getElementById('id-card-input').click()">
+          <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf" onchange="uploadIdCard(this)">
+          <div class="upload-icon" id="id-card-icon">🪪</div>
+          <div class="upload-text" id="id-card-text">Cliquez pour uploader votre carte d'identité<br><span style="font-size:11px;">CNI, passeport ou titre de séjour (PDF ou image)</span></div>
+        </div>
+      </div>
+  `;
+
   } else if(isDoctor){
     extraFields=`
       <div class="form-row">
@@ -343,6 +358,7 @@ function goStep3(){
     if(!state.firstName||!state.lastName)return showAlert('Prénom et nom sont obligatoires.');
     if(!state.gender)return showAlert('Veuillez indiquer votre sexe.');
     if(!state.age||state.age<1)return showAlert('Veuillez indiquer votre âge.');
+    if(!state.idCardUrl)return showAlert('Veuillez uploader votre carte d\'identité pour continuer.');
   }
   if(state.role==='doctor'&&(!state.firstName||!state.lastName))return showAlert('Prénom et nom sont obligatoires.');
   if(state.role==='pharmacie'&&!state.pharmacyName)return showAlert('Nom de la pharmacie obligatoire.');
@@ -499,6 +515,35 @@ async function uploadDoc(input){
 }
 }
 
+async function uploadIdCard(input){
+  const file=input.files[0];if(!file)return;
+  const zone=document.getElementById('id-card-zone');
+  const icon=document.getElementById('id-card-icon');
+  const text=document.getElementById('id-card-text');
+  zone.className='upload-zone';icon.textContent='⏳';text.textContent='Upload en cours…';
+  try{
+    const formData=new FormData();
+    formData.append('file',file);
+    formData.append('upload_preset','bolamu_docs');
+    const res=await fetch('https://api.cloudinary.com/v1_1/dpxefz80w/raw/upload',{method:'POST',body:formData});
+    const data=await res.json();
+    if(data.secure_url){
+      state.idCardUrl=data.secure_url;
+      state.idCardPublicId=data.public_id||'';
+      zone.className='upload-zone uploaded';
+      icon.textContent='✅';
+      text.textContent=file.name+' — Uploadé avec succès';
+    } else {
+      throw new Error(data.error?.message||'secure_url manquant');
+    }
+  }catch(e){
+    zone.className='upload-zone error';
+    icon.textContent='❌';
+    text.textContent='Erreur upload — réessayez';
+    console.error('[uploadIdCard]',e.message);
+  }
+}
+
 // ── CORRECTION PRINCIPALE : on sauvegarde l'OTP localement sans appeler /verify-otp
 // L'OTP sera envoyé directement avec /register pour éviter le double appel qui le supprime
 function saveOTPAndNext(){
@@ -552,7 +597,7 @@ async function finalRegister(){
       city:state.city||null,
       neighborhood:state.neighborhood||null
     };
-    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);}
+    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);payload.niu=state.niu||null;payload.id_card_url=state.idCardUrl;payload.id_card_public_id=state.idCardPublicId;}
     else if(state.role==='doctor'){payload.full_name=`Dr. ${state.firstName} ${state.lastName}`.trim();payload.specialty=state.specialty;payload.registration_number=state.registrationNumber;payload.order_country=state.orderCountry;payload.country_of_residence=state.countryOfResidence;payload.consultation_languages=state.consultationLanguages.join(', ');payload.is_international=state.isInternational;}
     else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;}
     else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;}
