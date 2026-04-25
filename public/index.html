@@ -470,6 +470,20 @@ footer{background:var(--bleu);color:white;padding:60px 40px;}
           <div class="form-field"><label>Sexe</label><select id="sexe"><option value="">Sélectionner</option><option value="M">Masculin</option><option value="F">Féminin</option></select></div>
           <div class="form-field"><label>Âge</label><input type="number" id="age" placeholder="25" min="1" max="120"></div>
         </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>NIU (optionnel)</label>
+            <input type="text" id="niu" placeholder="Numéro d'Identification Unique">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Carte d'identité <span style="color:#ef4444">*</span></label>
+          <div id="id-card-zone" onclick="document.getElementById('id-card-input').click()" style="border:2px dashed var(--border,#e2e8f0);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:var(--bg-card,#f8fafc);transition:all 0.2s;">
+            <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf" onchange="uploadIdCardIndex(this)">
+            <div id="id-card-icon" style="font-size:28px;margin-bottom:6px;">🪪</div>
+            <div id="id-card-text" style="font-size:13px;color:#64748b;">Cliquez pour uploader votre carte d'identité<br><span style="font-size:11px;">CNI, passeport ou titre de séjour (PDF ou image)</span></div>
+          </div>
+        </div>
       </div>
       <div class="form-field"><label>📱 Numéro Mobile Money</label><input type="tel" id="phoneInput" placeholder="+242 06 XXX XX XX"></div>
       <button class="btn-login" onclick="requestOtp()">Recevoir mon code →</button>
@@ -868,6 +882,41 @@ function showMessage(text, type){
   const msg = document.getElementById('message');
   msg.textContent = text; msg.className = 'message '+type; msg.style.display = 'block';
 }
+window.idCardUrlIndex = null;
+window.idCardPublicIdIndex = null;
+
+async function uploadIdCardIndex(input){
+  const file = input.files[0];
+  if(!file) return;
+  const zone = document.getElementById('id-card-zone');
+  const icon = document.getElementById('id-card-icon');
+  const text = document.getElementById('id-card-text');
+  icon.textContent = '⏳';
+  text.textContent = 'Upload en cours…';
+  zone.style.borderColor = '#94a3b8';
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'bolamu_docs');
+    const res = await fetch('https://api.cloudinary.com/v1_1/dpxefz80w/raw/upload', {method:'POST', body:formData});
+    const data = await res.json();
+    if(data.secure_url){
+      window.idCardUrlIndex = data.secure_url;
+      window.idCardPublicIdIndex = data.public_id || '';
+      zone.style.borderColor = '#00C9A7';
+      zone.style.background = '#f0fdf9';
+      icon.textContent = '✅';
+      text.textContent = file.name + ' — Uploadé avec succès';
+    } else {
+      throw new Error(data.error?.message || 'Erreur upload');
+    }
+  } catch(e) {
+    zone.style.borderColor = '#ef4444';
+    icon.textContent = '❌';
+    text.textContent = 'Erreur upload — réessayez';
+    console.error('[uploadIdCardIndex]', e.message);
+  }
+}
 async function requestOtp(){
   const phone = document.getElementById('phoneInput').value.trim();
   if(!phone) return showMessage('Veuillez entrer votre numéro','error');
@@ -879,6 +928,7 @@ async function requestOtp(){
     if(!prenom||!nom) return showMessage('Veuillez entrer votre prénom et nom','error');
     if(!sexe) return showMessage('Veuillez sélectionner votre sexe','error');
     if(!age||age<1) return showMessage('Veuillez entrer votre âge','error');
+    if(!window.idCardUrlIndex) return showMessage('Veuillez uploader votre carte d\'identité','error');
   }
   sessionStorage.setItem('bolamu_otp_phone', phone);
   try{
@@ -912,6 +962,9 @@ async function verifyOtp(){
     extraData.nom = document.getElementById('nom').value.trim();
     extraData.sexe = document.getElementById('sexe').value;
     extraData.age = parseInt(document.getElementById('age').value);
+    extraData.niu = document.getElementById('niu')?.value.trim() || null;
+    extraData.id_card_url = window.idCardUrlIndex;
+    extraData.id_card_public_id = window.idCardPublicIdIndex;
   }
   try{
     const res = await fetch('/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({phone,otp},extraData))});
