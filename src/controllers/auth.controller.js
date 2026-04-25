@@ -185,9 +185,9 @@ async function registerPatient(req, res) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
         }
 
-        const countResult = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'patient'`);
-        const count = parseInt(countResult.rows[0].count) + 1;
-        const member_code = `BLM-${String(count).padStart(5, '0')}`;
+        const maxResult = await pool.query(`SELECT MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)) FROM users WHERE role = 'patient' AND member_code IS NOT NULL`);
+        const nextNum = (maxResult.rows[0].max || 0) + 1;
+        const member_code = `BLM-${String(nextNum).padStart(5, '0')}`;
         const finalName = full_name || `${first_name} ${last_name}`.trim();
 
         const insertResult = await pool.query(
@@ -250,9 +250,9 @@ async function registerDoctor(req, res) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
         }
 
-        const countResult = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'doctor'`);
-        const count = parseInt(countResult.rows[0].count) + 1;
-        const member_code = `MED-${String(count).padStart(5, '0')}`;
+        const maxResult = await pool.query(`SELECT MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)) FROM users WHERE role = 'doctor' AND member_code IS NOT NULL`);
+        const nextNum = (maxResult.rows[0].max || 0) + 1;
+        const member_code = `MED-${String(nextNum).padStart(5, '0')}`;
         const score = trust_score || (registration_number ? 60 : 30);
         const is_active = false;
         const autoStatus = score >= 80 ? 'verified' : 'pending';
@@ -293,7 +293,7 @@ async function registerDoctor(req, res) {
                     city, neighborhood, bio, status, is_active, member_code,
                     document_url, document_public_id, trust_score, momo_number,
                     country_of_residence, order_country, consultation_languages, is_international
-                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, full_name, specialty, registration_number,
                  city, null, null, autoStatus, member_code,
@@ -354,9 +354,9 @@ async function registerPharmacie(req, res) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
         }
 
-        const countResult = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'pharmacie'`);
-        const count = parseInt(countResult.rows[0].count) + 1;
-        const member_code = `PHM-${String(count).padStart(5, '0')}`;
+        const maxResult = await pool.query(`SELECT MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)) FROM users WHERE role = 'pharmacie' AND member_code IS NOT NULL`);
+        const nextNum = (maxResult.rows[0].max || 0) + 1;
+        const member_code = `PHM-${String(nextNum).padStart(5, '0')}`;
         const score = trust_score || (rccm_number ? 65 : 30);
         const is_active = false;
         const autoStatus = score >= 80 ? 'verified' : 'pending';
@@ -445,9 +445,9 @@ async function registerLaboratoire(req, res) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
         }
 
-        const countResult = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'laboratoire'`);
-        const count = parseInt(countResult.rows[0].count) + 1;
-        const member_code = `LAB-${String(count).padStart(5, '0')}`;
+        const maxResult = await pool.query(`SELECT MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)) FROM users WHERE role = 'laboratoire' AND member_code IS NOT NULL`);
+        const nextNum = (maxResult.rows[0].max || 0) + 1;
+        const member_code = `LAB-${String(nextNum).padStart(5, '0')}`;
         const score = trust_score || (agrement_number ? 65 : 30);
         const is_active = false;
         const autoStatus = score >= 80 ? 'verified' : 'pending';
