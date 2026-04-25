@@ -234,7 +234,7 @@ async function registerDoctor(req, res) {
         phone, full_name, first_name, last_name,
         specialty, registration_number, order_country,
         country_of_residence, consultation_languages,
-        is_international, city, document_url, trust_score, cgu_accepted
+        is_international, city, document_url, document_public_id, trust_score, cgu_accepted
     } = req.body;
 
     if (!phone || !full_name || !specialty || !registration_number) {
@@ -297,7 +297,7 @@ async function registerDoctor(req, res) {
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, full_name, specialty, registration_number,
                  city, null, null, autoStatus, member_code,
-                 document_url || null, null, score, normalizedPhone,
+                 document_url || null, document_public_id || null, score, normalizedPhone,
                  country_of_residence || null, order_country || null,
                  consultation_languages || null, is_international || false]
             );
@@ -339,7 +339,7 @@ async function registerDoctor(req, res) {
 // 6. REGISTER PHARMACIE
 // ============================================================
 async function registerPharmacie(req, res) {
-    const { phone, name, responsible_name, rccm_number, city, neighborhood, document_url, trust_score, cgu_accepted } = req.body;
+    const { phone, name, responsible_name, rccm_number, city, neighborhood, document_url, document_public_id, trust_score, cgu_accepted } = req.body;
 
     if (!phone || !name || !responsible_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom de la pharmacie et responsable sont obligatoires." });
@@ -385,12 +385,12 @@ async function registerPharmacie(req, res) {
                 `INSERT INTO pharmacies (
                     phone, user_id, name, responsible_name, rccm_number,
                     city, neighborhood, status, is_active, member_code,
-                    document_url, trust_score, momo_number
-                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12)
+                    document_url, document_public_id, trust_score, momo_number
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12,$13)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, name, responsible_name || null, rccm_number || null,
                  city || null, neighborhood || null, autoStatus, member_code,
-                 document_url || null, score, normalizedPhone]
+                 document_url || null, document_public_id || null, score, normalizedPhone]
             );
 
             await client.query('COMMIT');
@@ -476,12 +476,12 @@ async function registerLaboratoire(req, res) {
                 `INSERT INTO laboratories (
                     phone, user_id, name, director_name, agrement_number, rccm_number,
                     city, status, is_active, member_code,
-                    document_url, trust_score, momo_number
-                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12)
+                    document_url, document_public_id, trust_score, momo_number
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12,$13)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, name, director_name || null, agrement_number || null, rccm_number || null,
                  city || null, autoStatus, member_code,
-                 document_url || null, score, normalizedPhone]
+                 document_url || null, document_public_id || null, score, normalizedPhone]
             );
 
             await client.query('COMMIT');

@@ -168,7 +168,7 @@ const state = {
   firstName:'', lastName:'', gender:'', age:'', city:'', neighborhood:'',
   fullName:'', specialty:'', registrationNumber:'', orderCountry:'Congo-Brazzaville',
   countryOfResidence:'Congo-Brazzaville', consultationLanguages:['Français'],
-  availableHours:{}, documentUrl:'',
+  availableHours:{}, documentUrl:'', documentPublicId:'',
   pharmacyName:'', responsibleName:'', rccmNumber:'',
   labName:'', directorName:'', agrementNumber:'',
   niu: '', idCardUrl: '', idCardPublicId: '',
@@ -501,6 +501,7 @@ async function uploadDoc(input){
     console.log('[Cloudinary response]', JSON.stringify(data));
     if(data.secure_url){
         state.documentUrl=data.secure_url;
+        state.documentPublicId=data.public_id||'';
         zone.className='upload-zone uploaded';
         icon.textContent='✅';
         text.textContent=file.name+' — Uploadé avec succès';
@@ -594,6 +595,7 @@ async function finalRegister(){
       cgu_accepted:true,
       trust_score:state.trustScore,
       document_url:state.documentUrl||null,
+      document_public_id:state.documentPublicId||null,
       city:state.city||null,
       neighborhood:state.neighborhood||null
     };
