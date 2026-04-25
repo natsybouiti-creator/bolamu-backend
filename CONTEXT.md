@@ -187,6 +187,7 @@ health_records, ratings, cgu_pages, notifications
 - Admin content editor — content.html (gestion articles, vitrine, plans, textes)
 - Prescriptions (flux complet backend + frontend médecin/pharmacie/patient/admin)
 - Flux labo→patient (routes complètes + interface laboratoire + timeline patient)
+- Système de notation patients — étoiles 1-5 + adjectifs + panel admin
 
 ### Partiel ⚠️
 - MTN MoMo (route existe, non connectée au frontend)
@@ -195,18 +196,17 @@ health_records, ratings, cgu_pages, notifications
 - Transactions tiers payant (table transactions_tiers_payant existe, flux non validé)
 
 ### Absent ❌
-- Ratings / notation (pas de table ratings)
 - Notifications push
 - Domaine custom (utilise .onrender.com)
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
-users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings
 
 ## ROADMAP — ÉTAT RÉEL
 - Ph1 : Quick fixes ✅ TERMINÉ
 - Ph2 : CGU + confidentialité ✅ TERMINÉ
 - Ph3 : Dossier médical / carnet santé ✅ TERMINÉ
 - Ph4 : Tests + prescriptions + flux labo ✅ TERMINÉ
-- Ph5 : Star ratings + commentaires (1 session)
+- Ph5 : Star ratings + commentaires ✅ TERMINÉ
 - Ph6 : MTN MoMo frontend + Africa's Talking Live (1 session)
 - Ph7 : Production — domaine custom, optimisations finales (1 session)
