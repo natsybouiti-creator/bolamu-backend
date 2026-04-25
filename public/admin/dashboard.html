@@ -308,6 +308,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
     <div class="nav-group">Paramètres</div>
     <button class="nav-btn" onclick="go('config',this)"><span class="ni"></span>Configuration</button>
     <button class="nav-btn" onclick="go('credits',this)"><span class="ni"></span>Crédits</button>
+    <button class="nav-btn" onclick="go('ratings',this)"><span class="ni"></span>⭐ Notations</button>
   </nav>
   <div class="sidebar-foot">
     <div class="user-row">
@@ -495,6 +496,21 @@ tr:hover td{background:rgba(255,255,255,.018);}
       </div>
     </div>
 
+    <!-- RATINGS -->
+    <div class="panel" id="panel-ratings">
+      <div class="section-hd"><div><h2>⭐ Notation des intervenants</h2><p>Évaluations patients et classement</p></div></div>
+      <div id="ratings-content">
+        <div style="margin-bottom:24px;">
+          <h3 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">Classement par note moyenne</h3>
+          <div id="ratings-classement"></div>
+        </div>
+        <div>
+          <h3 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">Évaluations récentes</h3>
+          <div id="ratings-recent"></div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 
 <footer style="
@@ -597,7 +613,7 @@ function showBannerErr(msg){
 /* -----------------------------------
    NAVIGATION
 ----------------------------------- */
-const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits'};
+const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations'};
 
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
@@ -612,7 +628,7 @@ function go(name,btn){
   loadPanel(name);
 }
 function loadPanel(name){
-  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits};
+  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings};
   if(m[name])m[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
@@ -903,6 +919,45 @@ async function grantCredit(){
   const phone=document.getElementById('cr-phone-inp').value.trim();
   const body={phone,amount:parseInt(document.getElementById('cr-amount').value),reason:document.getElementById('cr-reason').value};
   try{const d=await api('/admin/credits/grant',{method:'POST',body:JSON.stringify(body)});if(d.success){closeModal();toast('Crédits envoyés !');refreshPanel();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+}
+
+async function loadRatings() {
+  try {
+    const res = await api('/ratings/admin/all');
+    const classement = res.classement || [];
+    const recent = res.recent || [];
+
+    const roleEmoji = { doctor: '🩺', pharmacie: '💊', laboratoire: '🔬' };
+    const starsHtml = (n) => '⭐'.repeat(Math.round(n)) + ` (${n})`;
+
+    document.getElementById('ratings-classement').innerHTML = classement.length ? classement.map(r => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:24px;">${roleEmoji[r.intervenant_role]||'👤'}</span>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--text);">${r.full_name||r.intervenant_phone}</div>
+            <div style="font-size:12px;color:var(--muted);">${r.total_ratings} évaluation(s)</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;">${starsHtml(r.moyenne)}</div>
+          ${r.alertes > 0 ? `<div style="font-size:11px;color:#ef4444;font-weight:700;">⚠️ ${r.alertes} alerte(s)</div>` : ''}
+        </div>
+      </div>
+    `).join('') : '<div style="color:var(--muted);font-size:14px;">Aucune évaluation</div>';
+
+    document.getElementById('ratings-recent').innerHTML = recent.length ? recent.map(r => `
+      <div style="padding:10px 14px;background:var(--bg-card);border-radius:10px;margin-bottom:6px;border:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:13px;font-weight:600;color:var(--text);">${roleEmoji[r.intervenant_role]||'👤'} ${r.intervenant_name||r.intervenant_phone}</span>
+          <span style="font-size:13px;">${'⭐'.repeat(r.stars)}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);">Par ${r.patient_name||r.patient_phone} · ${new Date(r.created_at).toLocaleDateString('fr-FR')}</div>
+        ${r.adjectives?.length ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">${r.adjectives.map(a=>`<span style="padding:2px 8px;background:var(--bg);border-radius:10px;font-size:11px;color:var(--muted);border:1px solid var(--border);">${a}</span>`).join('')}</div>` : ''}
+      </div>
+    `).join('') : '<div style="color:var(--muted);font-size:14px;">Aucune évaluation récente</div>';
+
+  } catch(e) { console.error('[loadRatings]', e); }
 }
 
 /* -----------------------------------

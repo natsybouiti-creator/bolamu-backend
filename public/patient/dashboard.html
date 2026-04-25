@@ -1176,6 +1176,109 @@ async function loadProfil(){
   }catch(e){console.error('loadProfil error:',e);}
 }
 
+// SYSTÈME DE NOTATION
+let ratingQueue = [];
+let currentRating = null;
+let selectedStar = 0;
+let selectedAdjectives = [];
+let availableAdjectives = { positive: [], negative: [] };
+
+async function checkPendingRatings() {
+  try {
+    const token = localStorage.getItem('bolamu_patient_token');
+    const res = await fetch(`${API}/ratings/pending/${encodeURIComponent(phone)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.success && data.data.length > 0) {
+      ratingQueue = data.data;
+      availableAdjectives.positive = data.adjectives_positive || [];
+      availableAdjectives.negative = data.adjectives_negative || [];
+      showNextRating();
+    }
+  } catch(e) { console.error('[checkPendingRatings]', e); }
+}
+
+function showNextRating() {
+  if (ratingQueue.length === 0) {
+    document.getElementById('rating-modal').style.display = 'none';
+    return;
+  }
+  currentRating = ratingQueue.shift();
+  selectedStar = 0;
+  selectedAdjectives = [];
+
+  const emojis = { doctor: '🩺', pharmacie: '💊', laboratoire: '🔬' };
+  const labels = { consultation: 'Consultation médicale', delivrance: 'Délivrance pharmacie', labo: 'Résultats laboratoire' };
+
+  document.getElementById('rating-emoji').textContent = emojis[currentRating.intervenant_role] || '⭐';
+  document.getElementById('rating-title').textContent = labels[currentRating.action_type] || 'Évaluation';
+  document.getElementById('rating-subtitle').textContent = currentRating.intervenant_name || currentRating.intervenant_phone;
+
+  // Reset étoiles
+  document.querySelectorAll('.star-btn').forEach(s => s.style.opacity = '0.3');
+  document.getElementById('rating-adjectives').innerHTML = '';
+
+  document.getElementById('rating-modal').style.display = 'flex';
+}
+
+function selectStar(n) {
+  selectedStar = n;
+  document.querySelectorAll('.star-btn').forEach(s => {
+    s.style.opacity = parseInt(s.dataset.star) <= n ? '1' : '0.3';
+  });
+  // Afficher adjectifs selon note
+  const adjs = n >= 4 ? availableAdjectives.positive : availableAdjectives.negative;
+  const container = document.getElementById('rating-adjectives');
+  container.innerHTML = adjs.map(a =>
+    `<span onclick="toggleAdj('${a}',this)" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--bg-card);color:var(--text);transition:all 0.2s;">${a}</span>`
+  ).join('');
+  selectedAdjectives = [];
+}
+
+function toggleAdj(adj, el) {
+  if (selectedAdjectives.includes(adj)) {
+    selectedAdjectives = selectedAdjectives.filter(a => a !== adj);
+    el.style.background = 'var(--bg-card)';
+    el.style.borderColor = 'var(--border)';
+    el.style.color = 'var(--text)';
+  } else {
+    selectedAdjectives.push(adj);
+    el.style.background = 'var(--accent, #00C9A7)';
+    el.style.borderColor = 'var(--accent, #00C9A7)';
+    el.style.color = 'white';
+  }
+}
+
+async function submitRating() {
+  if (!selectedStar) return showToast('Sélectionnez une note','error');
+  try {
+    const token = localStorage.getItem('bolamu_patient_token');
+    const res = await fetch(`${API}/ratings/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        patient_phone: phone,
+        intervenant_phone: currentRating.intervenant_phone,
+        intervenant_role: currentRating.intervenant_role,
+        action_type: currentRating.action_type,
+        action_id: currentRating.id,
+        stars: selectedStar,
+        adjectives: selectedAdjectives
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Merci pour votre évaluation ✅','success');
+      showNextRating();
+    }
+  } catch(e) { showToast('Erreur serveur','error'); }
+}
+
+function skipRating() {
+  showNextRating();
+}
+
 function pwdFormHtml(){
   return `<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
     <input id="pwd-old" type="password" placeholder="Ancien mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
@@ -1301,7 +1404,7 @@ document.getElementById('profil-phone').textContent=phone;
 document.getElementById('profil-code').textContent=memberCode;
 document.getElementById('dos-phone').textContent=phone;
 document.getElementById('dos-since').textContent=new Date().toLocaleDateString('fr-FR');
-initQR();loadSubscription();loadDoctors();renderPartners();loadRdv();loadProfil();
+initQR();loadSubscription();loadDoctors();renderPartners();loadRdv();loadProfil();checkPendingRatings();
 
 function ouvrirJitsiPatient(rdvId, sessionCode) {
   const roomName = `vpaas-magic-cookie-9ca467330cb64541aa516c38dfe2e159/bolamu-${sessionCode}-${rdvId}`;
@@ -1371,6 +1474,29 @@ function closeJitsi() {
       <div style="font-size:56px;margin-bottom:16px;">📹</div>
       <div style="font-size:24px;font-weight:900;margin-bottom:8px;">Connexion en cours…</div>
       <div style="font-size:14px;color:rgba(255,255,255,0.7);">Votre médecin vous attend</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTATION -->
+<div id="rating-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--bg-card);border-radius:20px;padding:28px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:32px;margin-bottom:8px;" id="rating-emoji">⭐</div>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--text);" id="rating-title">Évaluez votre intervention</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px;" id="rating-subtitle">—</div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:8px;margin-bottom:20px;" id="rating-stars">
+      <span class="star-btn" data-star="1" onclick="selectStar(1)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="2" onclick="selectStar(2)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="3" onclick="selectStar(3)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="4" onclick="selectStar(4)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="5" onclick="selectStar(5)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+    </div>
+    <div id="rating-adjectives" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;min-height:40px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="skipRating()" style="flex:1;padding:12px;background:var(--bg-input,#f0f0f0);color:var(--muted);border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Passer</button>
+      <button onclick="submitRating()" style="flex:2;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Envoyer ⭐</button>
     </div>
   </div>
 </div>
