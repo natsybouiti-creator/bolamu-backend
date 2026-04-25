@@ -1,105 +1,200 @@
-BOLAMU — CONTEXTE PROJET
-VISION PRODUIT
+# BOLAMU — CONTEXTE PROJET
+Mis à jour : 25 avril 2026
+
+## VISION PRODUIT
 Plateforme de santé numérique au Congo-Brazzaville. Connecte patients, médecins, pharmacies et laboratoires. Developed by NBA Gestion SARLU.
-ARCHITECTURE TECHNIQUE
 
-Backend : Node.js + Express sur Render (bolamu-backend.onrender.com)
-Base de données : PostgreSQL Neon
-Stockage fichiers : Cloudinary (cloud_name: dpxefz80w)
-SMS : Africa's Talking
-Auth : JWT
+## ARCHITECTURE TECHNIQUE
+- Backend : Node.js + Express sur Render (bolamu-backend.onrender.com) — free plan, dort après inactivité, ping /api/v1/test avant démo
+- Base de données : PostgreSQL Neon (Frankfurt)
+- Stockage fichiers : Cloudinary (cloud_name: dpxefz80w)
+- SMS : Africa's Talking (sandbox — OTPs visibles dans logs Render, activation Live en attente crédit)
+- Auth : JWT
+- Monitoring : Sentry
+- Téléconsultation : JaaS 8x8.vc
+- Frontend : HTML/CSS/JS vanilla
+- Repo GitHub : natsybouiti-creator/bolamu-backend
 
-TABLES PRINCIPALES ET RÈGLES CRITIQUES
+## DESIGN SYSTEM
+- Fonts : Plus Jakarta Sans + Fraunces
+- Couleurs : navy #0A2463 + turquoise #00C9A7
 
-users (id, phone, role, full_name, is_active, validated_at, document_url, trust_score, member_code, banned, created_at)
-  - Table centrale pour tous les utilisateurs
-  - validated_at : horodatage de validation admin (TIMESTAMPTZ)
-  - is_active : état d'activation (boolean)
-  - document_url : URL Cloudinary du document justificatif
-  - trust_score : score de confiance (0-100)
-  - member_code : code membre unique par rôle
+## TABLES PRINCIPALES ET RÈGLES CRITIQUES
 
-doctors (id, phone, user_id, full_name, specialty, registration_number, city, neighborhood, status, is_active, member_code, document_url, trust_score, momo_number, created_at)
-  - is_active : vient TOUJOURS de cette table, jamais de users
-  - status : enum('pending', 'verified', 'suspended')
-  - JOIN users obligatoire pour récupérer validated_at
+### users
+Colonnes : id, phone, role, full_name, first_name, last_name, gender, age, city, neighborhood, is_active, validated_at, document_url, trust_score, member_code, banned, password_hash, id_card_url, id_card_public_id, niu, created_at
 
-pharmacies (id, phone, user_id, name, responsible_name, rccm_number, city, neighborhood, status, is_active, member_code, document_url, trust_score, momo_number, created_at)
-  - is_active : vient TOUJOURS de cette table, jamais de users
-  - status : enum('pending', 'verified', 'suspended')
-  - JOIN users obligatoire pour récupérer validated_at
+- Table centrale pour TOUS les utilisateurs sans exception
+- Identifiant universel : phone (jamais l'id numérique)
+- Roles : 'patient', 'doctor', 'pharmacie', 'laboratoire', 'admin', 'content_admin'
+- is_active : boolean (jamais un champ status string dans users)
+- password_hash : mot de passe bcrypt — tous les comptes en ont un depuis migration 25 avril 2026
+- id_card_url : carte d'identité patient (Cloudinary)
+- niu : Numéro d'Identification Unique (optionnel, patients)
+- Soft delete uniquement — jamais de DELETE
 
-laboratories (id, phone, user_id, name, director_name, agrement_number, rccm_number, city, neighborhood, status, is_active, member_code, document_url, trust_score, momo_number, created_at)
-  - is_active : vient TOUJOURS de cette table, jamais de users
-  - status : enum('pending', 'verified', 'suspended')
-  - JOIN users obligatoire pour récupérer validated_at
+### doctors
+Colonnes : id, phone, user_id, full_name, specialty, registration_number, city, neighborhood, status, is_active, member_code, document_url, trust_score, momo_number, created_at
+- is_active vient TOUJOURS de cette table, jamais de users
+- status : enum('pending', 'verified', 'suspended')
+- JOIN users obligatoire pour récupérer validated_at
 
-appointments (id, patient_phone, doctor_phone, appointment_date, status, created_at)
-  - status : enum('en_attente', 'confirme', 'termine', 'annule')
+### pharmacies
+Colonnes : id, phone, user_id, name, responsible_name, rccm_number, city, neighborhood, status, is_active, member_code, document_url, trust_score, momo_number, created_at
+- is_active vient TOUJOURS de cette table, jamais de users
+- status : enum('pending', 'verified', 'suspended')
 
-prescriptions (id, patient_phone, doctor_phone, status, created_at)
+### laboratories
+Colonnes : id, phone, user_id, name, director_name, agrement_number, rccm_number, city, neighborhood, status, is_active, member_code, document_url, trust_score, momo_number, created_at
+- is_active vient TOUJOURS de cette table, jamais de users
+- status : enum('pending', 'verified', 'suspended')
 
-audit_log (id, event_type, actor_phone, target_table, target_id, payload, created_at)
-  - journal des actions sensibles (validation, login, etc.)
+### appointments
+Colonnes : id, patient_phone, doctor_phone, appointment_date, status, created_at
+- status : enum('en_attente', 'confirme', 'termine', 'annule')
 
-FLUX VALIDÉS EN PRODUCTION
+### prescriptions
+Colonnes : id, patient_phone, doctor_phone, status, created_at
 
-Inscription patient (OTP → création compte users)
-Inscription médecin (OTP → INSERT users + doctors dans transaction → validation admin)
-Inscription pharmacie (OTP → INSERT users + pharmacies dans transaction → validation admin)
-Inscription laboratoire (OTP → INSERT users + laboratories dans transaction → validation admin)
-Validation admin (PATCH /api/v1/admin/validate-user → is_active=true + validated_at=NOW() dans users + table spécifique)
-Consultation médecin (création appointment → dashboard patient)
-Prescription médicale (création prescription → pharmacie/labo)
-Labo résultats (QR code scan → dépose résultats)
-Pharmacie délivrance (QR code scan → applique remise tiers payant)
-Timeline patient (historique RDV, prescriptions, résultats)
-QR code authentification (scan pour vérifier validité)
-Téléconsultation JaaS 8x8.vc — médecin et patient dans la même salle
-RDV patient visibles dans dashboard via GET /appointments/patient/:phone
-Sentry monitoring — toutes les erreurs backend capturées en temps réel
+### audit_log
+Colonnes : id, event_type, actor_phone, target_table, target_id, payload, created_at
+- Insert-only — jamais de UPDATE ou DELETE
 
-RÈGLES ARCHITECTURALES ABSOLUES
+### Autres tables existantes
+payments, subscriptions, credits, fraud_signals, platform_config, articles, qr_tokens
 
-is_active des partenaires vient TOUJOURS de la table spécifique (doctors/pharmacies/laboratories) — jamais de users
-validated_at se récupère TOUJOURS via LEFT JOIN users dans getProfile
-Toute inscription partenaire insère dans users ET table spécifique dans la même transaction
-is_active = false par défaut à l'inscription — validation admin obligatoire
-document_url synchronisé dans users ET table spécifique à l'inscription
-Cloudinary centralisé via src/utils/cloudinary.js — jamais de config locale
-localStorage keys : bolamu_doctor_token/phone, bolamu_pharmacie_token/phone, bolamu_laboratoire_token/phone
-Toute normalisation de numéro passe par normalizePhone() — jamais de regex inline
-Les numéros congolais sont au format +2420XXXXXXXX (12 chiffres avec le 0)
-instrument.js doit être dans src/ et chargé en première ligne de src/server.js
+### Tables manquantes (roadmap)
+health_records, ratings, cgu_pages, notifications
 
-COMPTES DE TEST
+## AUTHENTIFICATION — SYSTÈME ACTUEL (depuis 25 avril 2026)
+- Connexion : téléphone + mot de passe permanent (bcrypt) — plus d'OTP à chaque connexion
+- Inscription : OTP envoyé pour vérification du numéro, puis mot de passe généré automatiquement et envoyé par SMS
+- Mot de passe oublié : nouveau mot de passe généré et envoyé par SMS via POST /api/v1/auth/forgot-password
+- Changement de mot de passe : disponible depuis le profil pour tous les rôles
+  - Patient : POST /api/v1/patients/change-password
+  - Médecin : POST /api/v1/doctors/change-password
+  - Pharmacie : POST /api/v1/pharmacies/change-password
+  - Laboratoire : POST /api/v1/laboratories/change-password
+- Admin : auth séparée — rôles 'admin' et 'content_admin' acceptés, redirection vers dashboard.html ou content.html
 
-Patient : +24269735418
-Médecin : +24260000001 (Dr. Mbemba Jean)
-Pharmacie : +24266226116
-Laboratoire : +24268582563
-Admin : +242600000099
+## MEMBER CODES
+- Patients : BLM-XXXXX
+- Médecins : MED-XXXXX
+- Pharmacies : PHM-XXXXX
+- Laboratoires : LAB-XXXXX
+- Génération : MAX(numéro existant) + 1 — jamais COUNT (risque de doublons si trous dans séquence)
 
-BUGS CORRIGÉS — NE JAMAIS REPRODUIRE
+## INSCRIPTION PATIENTS
+- Champs obligatoires : téléphone, nom, prénom, genre, âge, ville, quartier, carte d'identité (upload Cloudinary)
+- Champ optionnel : NIU (Numéro d'Identification Unique)
+- is_active = true immédiatement après inscription (pas de validation admin requise)
 
-Double insertion users : registerDoctor/Pharmacie/Laboratoire inséraient dans users puis appelaient controllers spécifiques qui inséraient aussi dans users. Solution : suppression INSERT users dans auth.controller.js, laissé uniquement dans controllers spécifiques.
-is_active basé sur trust_score : registerDoctor/Pharmacie/Laboratoire calculaient is_active = score >= 80, permettant activation automatique. Solution : is_active = false forcé pour tous les partenaires.
-Incohérence localStorage : register.html sauvegardait bolamu_token/bolamu_phone génériques, mais dashboards lisaient bolamu_doctor_token/phone spécifiques. Solution : register.html utilise maintenant les clés spécifiques par rôle.
-Missing validated_at column : getProfile ne récupérait pas validated_at depuis users. Solution : LEFT JOIN users ajouté dans toutes les requêtes getProfile.
-normalizePhone non utilisée dans requestOtp et login — remplacée par appel centralisé.
-Double format numéros congolais — migration complète vers +2420XXXXXXXX.
-Route GET /appointments/patient/:phone manquante — créée.
-Jitsi meet.jit.si bloqué par modérateur — migré vers JaaS 8x8.vc.
-instrument.js Sentry à la racine au lieu de src/ — déplacé dans src/.
+## INSCRIPTION PARTENAIRES (médecin, pharmacie, laboratoire)
+- is_active = false par défaut — validation admin obligatoire
+- Documents uploadés sur Cloudinary
+- INSERT dans users ET table spécifique dans la même transaction
+- document_url synchronisé dans users ET table spécifique
 
-ÉTAT ACTUEL — SESSION 24 AVRIL 2026
+## LOCALSTORAGE KEYS
+- bolamu_patient_token / bolamu_patient_phone
+- bolamu_doctor_token / bolamu_doctor_phone
+- bolamu_pharmacie_token / bolamu_pharmacie_phone
+- bolamu_laboratoire_token / bolamu_laboratoire_phone
 
-✅ Sentry monitoring opérationnel
-✅ Téléconsultation JaaS fonctionnelle
-✅ SMS Africa's Talking configuré — activation Live en attente crédit
-✅ Normalisation numéros centralisée via normalizePhone()
-✅ RDV patient visibles dans dashboard
+## FLUX VALIDÉS EN PRODUCTION
+- Inscription patient (OTP vérification → mot de passe généré → SMS → compte actif)
+- Inscription partenaire (OTP → INSERT users + table spécifique → validation admin)
+- Connexion (téléphone + mot de passe → JWT)
+- Mot de passe oublié (SMS nouveau mot de passe)
+- Changement mot de passe depuis profil (tous les rôles)
+- Validation admin (PATCH /api/v1/admin/validate → is_active=true + validated_at)
+- Dashboard admin : comptes en attente, modal profil avec documents + carte d'identité patient
+- Consultation médecin (appointment → dashboard patient)
+- Prescription médicale (création → pharmacie/labo)
+- Résultats labo (QR code scan → dépôt résultats)
+- Pharmacie délivrance (QR code scan → remise tiers payant)
+- Timeline patient (RDV, prescriptions, résultats)
+- QR code authentification
+- Téléconsultation JaaS 8x8.vc
+- RDV patient : GET /api/v1/appointments/patient/:phone
+- Sentry monitoring
 
-Reste à faire :
-- Activation SMS Live (crédit Africa's Talking)
-- Tests complets MoMo
+## ADMIN — DEUX RÔLES
+- 'admin' : accès dashboard.html — gestion complète
+- 'content_admin' : accès content.html — gestion éditoriale articles
+- Middleware requireContentAdmin accepte les deux rôles
+- Colonne : role (VARCHAR), password_hash stocké dans admin_password, pas de colonne status
+
+## RÈGLES ARCHITECTURALES ABSOLUES — NE JAMAIS VIOLER
+1. Table users unique — jamais de tables séparées pour l'identité
+2. Identifiant universel : phone — jamais l'id numérique
+3. is_active des partenaires vient TOUJOURS de la table spécifique (doctors/pharmacies/laboratories)
+4. validated_at se récupère TOUJOURS via LEFT JOIN users
+5. is_active = false forcé à l'inscription pour tous les partenaires
+6. Cloudinary centralisé via src/utils/cloudinary.js — jamais de config locale
+7. Toute normalisation de numéro passe par normalizePhone() — jamais de regex inline
+8. Numéros congolais : format +2420XXXXXXXX (12 chiffres avec le 0)
+9. instrument.js Sentry dans src/ — chargé en première ligne de src/server.js
+10. audit_log : insert-only — colonnes event_type, actor_phone, target_table, target_id, payload
+11. Soft delete uniquement — jamais de DELETE sur users
+12. member_code généré avec MAX() + 1 — jamais COUNT()
+
+## BUGS CORRIGÉS — NE JAMAIS REPRODUIRE
+- Double insertion users à l'inscription partenaire — supprimé INSERT users dans auth.controller.js
+- is_active calculé sur trust_score — remplacé par is_active = false forcé
+- Incohérence localStorage keys — standardisé par rôle
+- validated_at manquant dans getProfile — LEFT JOIN users ajouté
+- normalizePhone non utilisée dans requestOtp/login — centralisée
+- Double format numéros congolais — migré vers +2420XXXXXXXX
+- Route GET /appointments/patient/:phone manquante — créée
+- Jitsi meet.jit.si bloqué — migré vers JaaS 8x8.vc
+- instrument.js Sentry mal placé — déplacé dans src/
+- member_code doublon (COUNT au lieu de MAX) — corrigé le 25 avril 2026
+- Dashboard admin panel En attente crashait (catch(err) variable shadowing) — corrigé
+- Badge is_active non mappé sur strings — corrigé
+
+## COMPTES DE TEST
+- Patient : +242069735418
+- Médecin : +242060000001 (Dr. Mbemba Jean)
+- Pharmacie : +242066226116
+- Laboratoire : +242068582563
+- Admin : +242060000099
+
+## ÉTAT ACTUEL — 25 AVRIL 2026
+### Fonctionnel ✅
+- Auth OTP+JWT + mot de passe permanent pour tous les rôles
+- Inscription complète 4 rôles avec upload documents
+- Dashboard admin (validation, modal profil, carte identité patient)
+- Dashboard patient (RDV, profil, changement mot de passe)
+- Dashboard médecin (profil, changement mot de passe)
+- Dashboard pharmacie (profil, changement mot de passe)
+- Dashboard laboratoire (profil, changement mot de passe)
+- Rotating QR code tiers payant
+- Appointment flow complet
+- Jitsi JaaS téléconsultation
+- Cloudinary upload documents
+- TrustScore auto-validation à 80+/100
+- Sentry monitoring
+- Admin dual-role (admin + content_admin)
+
+### Partiel ⚠️
+- Prescriptions (non testées en production)
+- Flux labo→patient (non validé end-to-end)
+- MTN MoMo (route existe, non connectée au frontend)
+- Africa's Talking (sandbox — OTPs dans logs Render, activation Live en attente crédit)
+
+### Absent ❌
+- Carnet santé virtuel (pas de table, route, ni interface)
+- Ratings / notation
+- CGU pages
+- Email contact
+- Notifications
+
+## ROADMAP 7 PHASES
+- Ph1 : Quick fixes ✅ TERMINÉ — tarif 2000 FCFA, email contact, fix pending is_active, fix emojis, member_code MAX, auth mot de passe permanent, carte identité patient
+- Ph2 : CGU + privacy pages (1 session)
+- Ph3 : Carnet santé virtuel (2-3 sessions) — tables, routes, 4 interfaces
+- Ph4 : Payment/carnet rule + admin compliance (1 session)
+- Ph5 : Star ratings + commentaires (1 session)
+- Ph6 : Tests + prescriptions + flux labo validation (1 session)
+- Ph7 : Production — Africa's Talking Live, MTN MoMo frontend, domaine custom (1 session)
