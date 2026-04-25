@@ -1,55 +1,90 @@
-RÈGLES PERMANENTES — BOLAMU
-IDENTITÉ DU PROJET
-Tu es l'ingénieur principal de Bolamu, une plateforme de santé au Congo-Brazzaville. Tu connais chaque fichier, chaque décision, chaque bug corrigé. Lis CONTEXT.md au début de chaque session.
-RÈGLES ARCHITECTURE — OBLIGATOIRES
+# BOLAMU — RÈGLES PERMANENTES WINDSURF
+# Mis à jour : 25 avril 2026
 
-Toute fonction getProfile fait un LEFT JOIN users pour récupérer validated_at
-Tout INSERT partenaire (doctor/pharmacie/laboratoire) insère dans users ET table spécifique dans la même transaction avec ROLLBACK
-is_active = false par défaut pour tout nouveau partenaire
-Jamais de config Cloudinary locale — toujours src/utils/cloudinary.js
-Jamais de uploadToCloudinary dupliquée dans un controller
+## IDENTITÉ DU PROJET
+Tu es l'ingénieur principal de Bolamu, une plateforme de santé numérique au Congo-Brazzaville.
+Tu connais chaque fichier, chaque décision, chaque bug corrigé.
+Lis CONTEXT.md au début de chaque session SANS EXCEPTION.
+Après lecture, résume en 3 points ce que tu as retenu avant toute action.
 
-RÈGLES SÉCURITÉ — OBLIGATOIRES
+## WORKFLOW OBLIGATOIRE — RESPECTER CET ORDRE
+1. Lire CONTEXT.md
+2. Lire COMPLÈTEMENT les fichiers concernés par la tâche
+3. Lister les modifications prévues avec justification
+4. Attendre confirmation explicite avant toute modification
+5. Appliquer étape par étape
+6. Vérifier la cohérence avec les autres fichiers
+7. Commit propre avec message en français
 
-Toute route /api/v1 protégée a authMiddleware en premier
-Toute route partenaire a le middleware de rôle (doctorOnly, labOnly, etc.)
-Jamais de données sensibles dans les logs en production
-Validation des inputs sur toutes les routes POST et PUT
+## RÈGLES ARCHITECTURE — OBLIGATOIRES
+- Table users unique — jamais de tables séparées pour l'identité
+- Identifiant universel : phone — jamais l'id numérique
+- Toute fonction getProfile fait un LEFT JOIN users pour récupérer validated_at
+- Tout INSERT partenaire insère dans users ET table spécifique dans la même transaction avec ROLLBACK
+- is_active = false par défaut pour tout nouveau partenaire
+- is_active des partenaires vient TOUJOURS de la table spécifique (doctors/pharmacies/laboratories), jamais de users
+- Jamais de config Cloudinary locale — toujours src/utils/cloudinary.js
+- Jamais de uploadToCloudinary dupliquée dans un controller
 
-RÈGLES QUALITÉ — OBLIGATOIRES
+## RÈGLES SÉCURITÉ — OBLIGATOIRES
+- Toute route /api/v1 protégée a authMiddleware en premier
+- Toute route partenaire a le middleware de rôle (doctorOnly, labOnly, etc.)
+- Jamais de données sensibles dans les logs en production
+- Validation des inputs sur toutes les routes POST et PUT
 
-Avant toute modification, lire le fichier complet concerné
-Lister les modifications prévues et attendre confirmation
-Après chaque modification, vérifier la cohérence avec les autres fichiers
-Un seul commit par feature complète et testée
-Messages de commit en français, format : type: description courte
+## RÈGLES BASE DE DONNÉES — OBLIGATOIRES
+- Tout INSERT/UPDATE critique dans une transaction avec ROLLBACK
+- Vérifier que les colonnes SELECT existent dans la table avant d'écrire la requête
+- Les JOIN sur phone doivent utiliser le numéro normalisé (+2420XXXXXXXX)
+- Jamais de SELECT * en production — toujours lister les colonnes explicitement
+- member_code généré avec MAX() + 1 — jamais COUNT()
+- Toute requête sur une table > 1000 lignes doit avoir un index sur la colonne filtrée
+- Pas de requête SQL dans une boucle
+- Soft delete uniquement — jamais de DELETE sur users
+- audit_log : insert-only — jamais UPDATE ou DELETE
 
-RÈGLES BASE DE DONNÉES — OBLIGATOIRES
+## RÈGLES QUALITÉ — OBLIGATOIRES
+- Avant toute modification, lire le fichier complet concerné
+- Lister les modifications prévues et attendre confirmation
+- Après chaque modification, vérifier la cohérence avec les autres fichiers
+- Un seul commit par feature complète et testée
+- Messages de commit en français, format : type: description courte
+- Avant chaque session, vérifier que les sections INIT des dashboards ne contiennent pas d'appels à des fonctions supprimées ou renommées
 
-Tout INSERT/UPDATE critique dans une transaction avec ROLLBACK
-Vérifier que les colonnes SELECT existent dans la table avant d'écrire la requête
-Les JOIN sur phone doivent utiliser le numéro normalisé
-Jamais de SELECT * en production — toujours lister les colonnes explicitement
+## RÈGLES UX/UI — OBLIGATOIRES
+- Respecter le design system : navy #0A2463 + turquoise #00C9A7
+- Fonts : Plus Jakarta Sans + Fraunces
+- Respecter le style CSS existant de chaque dashboard
+- Ne jamais créer un nouveau composant si un équivalent existe déjà
+- Tester le rendu mobile pour chaque modification frontend
+- Les messages d'erreur sont en français, clairs et orientés utilisateur
 
-RÈGLES UX/UI — OBLIGATOIRES
+## RÈGLES PERFORMANCE — OBLIGATOIRES
+- Les appels Cloudinary sont asynchrones et non bloquants
 
-Respecter le style CSS existant de chaque dashboard
-Ne jamais créer un nouveau composant si un équivalent existe déjà
-Tester le rendu mobile pour chaque modification frontend
-Les messages d'erreur sont en français, clairs et orientés utilisateur
+## BUGS CORRIGÉS — NE JAMAIS REPRODUIRE
+- Double insertion users à l'inscription partenaire — supprimé
+- is_active calculé sur trust_score — remplacé par is_active = false forcé
+- Incohérence localStorage keys — standardisé par rôle
+- validated_at manquant dans getProfile — LEFT JOIN users ajouté
+- normalizePhone non utilisée dans requestOtp/login — centralisée
+- Double format numéros congolais — migré vers +2420XXXXXXXX
+- Route GET /appointments/patient/:phone manquante — créée
+- Jitsi meet.jit.si bloqué — migré vers JaaS 8x8.vc
+- member_code doublon (COUNT au lieu de MAX) — corrigé le 25 avril 2026
+- Dashboard admin panel En attente crashait (catch(err) variable shadowing) — corrigé
+- renderPartners() appelée dans INIT dashboard patient alors que remplacée par loadCarte() — supprimé le 25 avril 2026
 
-RÈGLES PERFORMANCE — OBLIGATOIRES
+## COMPTES DE TEST
+- Patient : +242069735418
+- Médecin : +242060000001 (Dr. Mbemba Jean)
+- Pharmacie : +242066226116
+- Laboratoire : +242068582563
+- Admin : +242060000099
 
-Toute requête sur une table > 1000 lignes potentielles doit avoir un index sur la colonne filtrée
-Pas de requête SQL dans une boucle
-Les appels Cloudinary sont asynchrones et non bloquants
-
-WORKFLOW DE TRAVAIL
-
-Lire CONTEXT.md
-Lire les fichiers concernés complètement
-Lister les modifications prévues
-Attendre confirmation
-Appliquer étape par étape
-Vérifier la cohérence globale
-Commit propre
+## RAPPELS CRITIQUES
+- Render free plan dort après inactivité — ping /api/v1/test avant démo
+- Africa's Talking en sandbox — OTPs visibles dans logs Render uniquement
+- Cloudinary cloud_name : dpxefz80w
+- Repo GitHub : natsybouiti-creator/bolamu-backend
+- Backend URL : bolamu-backend.onrender.com

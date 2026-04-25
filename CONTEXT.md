@@ -64,7 +64,7 @@ Colonnes : id, event_type, actor_phone, target_table, target_id, payload, create
 payments, subscriptions, credits, fraud_signals, platform_config, articles, qr_tokens
 
 ### Tables manquantes (roadmap)
-health_records, ratings, cgu_pages, notifications
+health_records, cgu_pages, notifications
 
 ## AUTHENTIFICATION — SYSTÈME ACTUEL (depuis 25 avril 2026)
 - Connexion : téléphone + mot de passe permanent (bcrypt) — plus d'OTP à chaque connexion
@@ -152,6 +152,7 @@ health_records, ratings, cgu_pages, notifications
 - member_code doublon (COUNT au lieu de MAX) — corrigé le 25 avril 2026
 - Dashboard admin panel En attente crashait (catch(err) variable shadowing) — corrigé
 - Badge is_active non mappé sur strings — corrigé
+- renderPartners() appelée dans INIT dashboard patient alors que remplacée par loadCarte() — supprimé le 25 avril 2026
 
 ## COMPTES DE TEST
 - Patient : +242069735418
