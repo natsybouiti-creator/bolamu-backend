@@ -958,13 +958,33 @@ async function verifyOtp(){
   if(!phone) return showMessage('Session expirée, veuillez recommencer','error');
   const extraData = {};
   if(selectedType==='patient'){
-    extraData.prenom = document.getElementById('prenom').value.trim();
-    extraData.nom = document.getElementById('nom').value.trim();
-    extraData.sexe = document.getElementById('sexe').value;
-    extraData.age = parseInt(document.getElementById('age').value);
-    extraData.niu = document.getElementById('niu')?.value.trim() || null;
-    extraData.id_card_url = window.idCardUrlIndex;
-    extraData.id_card_public_id = window.idCardPublicIdIndex;
+    const patientPayload = {
+      phone: phone,
+      first_name: document.getElementById('prenom').value.trim(),
+      last_name: document.getElementById('nom').value.trim(),
+      gender: document.getElementById('sexe').value,
+      age: parseInt(document.getElementById('age').value),
+      niu: document.getElementById('niu')?.value.trim() || null,
+      id_card_url: window.idCardUrlIndex,
+      id_card_public_id: window.idCardPublicIdIndex,
+      cgu_accepted: true
+    };
+    const res = await fetch('/api/v1/auth/register/patient',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(patientPayload)
+    });
+    const data = await res.json();
+    if(data.success && data.token){
+      localStorage.setItem('bolamu_patient_token', data.token);
+      localStorage.setItem('bolamu_patient_phone', phone);
+      localStorage.setItem('bolamu_role', 'patient');
+      showMessage('Compte créé avec succès ! Redirection…', 'success');
+      setTimeout(()=>{ window.location.href='/patient/dashboard.html'; }, 1500);
+    } else {
+      showMessage(data.message || 'Erreur inscription', 'error');
+    }
+    return;
   }
   try{
     const res = await fetch('/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({phone,otp},extraData))});
