@@ -98,6 +98,7 @@ app.use('/api/v1/qr', qrRoutes);
 app.use('/api/v1/reports',       reportRoutes);
 app.use('/api/v1/lab',           labRoutes);
 app.use('/api/v1/ratings',       ratingsRoutes);
+app.use('/api/v1/map',           require('./routes/map.routes'));
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================

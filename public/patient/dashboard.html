@@ -6,6 +6,8 @@
   <title>Bolamu — Mon Espace Patient</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root{
       --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
@@ -517,24 +519,15 @@
 
   <!-- CARTE -->
   <div class="panel" id="panel-carte">
-    <div class="section-header"><h2 class="section-title-dash">Partenaires Bolamu</h2></div>
-    <div class="map-container">
-      <div class="map-header">
-        <h3>Carte des partenaires — Brazzaville</h3>
-        <div class="map-filters">
-          <button class="map-filter-btn active" onclick="filterMap('tous',this)">Tous</button>
-          <button class="map-filter-btn" onclick="filterMap('medecins',this)">👨‍⚕️ Médecins</button>
-          <button class="map-filter-btn" onclick="filterMap('pharmacies',this)">💊 Pharmacies</button>
-          <button class="map-filter-btn" onclick="filterMap('labos',this)">🔬 Labos</button>
-        </div>
-      </div>
-      <div class="map-placeholder">
-        <div class="map-placeholder-icon">🗺️</div>
-        <h3>Carte GPS — Bientôt disponible</h3>
-        <p>La carte interactive Google Maps sera activée au lancement officiel.</p>
-      </div>
-      <div class="partners-list" id="partners-list"></div>
+    <div class="section-header"><h2 class="section-title-dash">🗺️ Trouver un intervenant</h2></div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="filterMap('all')" id="filter-all" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--vert,#00C9A7);color:white;font-size:13px;cursor:pointer;font-weight:600;">Tous</button>
+      <button onclick="filterMap('doctor')" id="filter-doctor" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">🩺 Médecins</button>
+      <button onclick="filterMap('pharmacie')" id="filter-pharmacie" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">💊 Pharmacies</button>
+      <button onclick="filterMap('laboratoire')" id="filter-laboratoire" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">🔬 Labos</button>
     </div>
+    <div id="map-container" style="height:400px;border-radius:16px;overflow:hidden;border:1px solid var(--border);"></div>
+    <div id="map-list" style="margin-top:16px;"></div>
   </div>
 
   <!-- CRÉDITS -->
@@ -742,6 +735,7 @@ function showTab(name,btn){
   btn.classList.add('active');
   if(name==='medecins')loadDoctors();
   if(name==='dossier')loadTimeline();
+  if(name==='carte')loadCarte();
   if(name==='credits')loadCredits();
   if(name==='profil')loadProfil();
 }
@@ -752,6 +746,7 @@ function showTabMobile(name,btn){
   btn.classList.add('active');
   if(name==='medecins')loadDoctors();
   if(name==='dossier')loadTimeline();
+  if(name==='carte')loadCarte();
   if(name==='credits')loadCredits();
   if(name==='profil')loadProfil();
 }
@@ -1373,20 +1368,82 @@ async function loadDoctors(){
   }catch{document.getElementById('doctors-grid').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur.</p></div>`;}
 }
 
-const PARTNERS=[
-  {name:'Cabinet Dr. Mavoungou',type:'Médecin',icon:'👨‍⚕️',dist:'0.8 km'},
-  {name:'Pharmacie Centrale',type:'Pharmacie',icon:'💊',dist:'1.2 km'},
-  {name:'Labo BioAnalyse',type:'Laboratoire',icon:'🔬',dist:'2.0 km'},
-  {name:'Dr. Nkouka — Cardiologue',type:'Médecin',icon:'👩‍⚕️',dist:'2.4 km'},
-  {name:'Pharmacie du Plateau',type:'Pharmacie',icon:'💊',dist:'3.1 km'},
-];
-let activeFilter='tous';
-function filterMap(f,btn){activeFilter=f;document.querySelectorAll('.map-filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderPartners();}
-function renderPartners(){
-  const typeMap={medecins:'Médecin',pharmacies:'Pharmacie',labos:'Laboratoire'};
-  const filtered=activeFilter==='tous'?PARTNERS:PARTNERS.filter(p=>p.type===typeMap[activeFilter]);
-  document.getElementById('partners-list').innerHTML=filtered.map(p=>`
-    <div class="partner-item"><div class="partner-icon">${p.icon}</div><div class="partner-info"><div class="partner-name">${p.name}</div><div class="partner-type">${p.type}</div></div><div class="partner-dist">${p.dist}</div></div>`).join('');
+// CARTE INTERVENANTS
+let map = null;
+let allMarkers = [];
+let allIntervenants = [];
+
+async function loadCarte() {
+  if (!map) {
+    map = L.map('map-container').setView([-4.2634, 15.2429], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+  }
+  try {
+    const token = localStorage.getItem('bolamu_patient_token');
+    const res = await fetch(`${API}/map/intervenants`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      allIntervenants = data.data;
+      renderMapMarkers(allIntervenants);
+      renderMapList(allIntervenants);
+    }
+  } catch(e) { console.error('[loadCarte]', e); }
+}
+
+const iconColors = { doctor: '🩺', pharmacie: '💊', laboratoire: '🔬' };
+
+function renderMapMarkers(intervenants) {
+  allMarkers.forEach(m => map.removeLayer(m));
+  allMarkers = [];
+  intervenants.forEach(inv => {
+    const icon = L.divIcon({
+      html: `<div style="background:white;border:2px solid #00C9A7;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">${iconColors[inv.type]||'📍'}</div>`,
+      className: '',
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+    const marker = L.marker([inv.latitude, inv.longitude], { icon })
+      .addTo(map)
+      .bindPopup(`
+        <div style="font-family:sans-serif;min-width:160px;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">${inv.full_name}</div>
+          ${inv.specialty ? `<div style="font-size:12px;color:#64748b;margin-bottom:4px;">${inv.specialty}</div>` : ''}
+          ${inv.address ? `<div style="font-size:12px;margin-bottom:4px;">📍 ${inv.address}</div>` : ''}
+          <div style="font-size:12px;color:#00C9A7;font-weight:600;">📞 ${inv.phone}</div>
+        </div>
+      `);
+    allMarkers.push(marker);
+  });
+}
+
+function renderMapList(intervenants) {
+  const typeLabel = { doctor: 'Médecin', pharmacie: 'Pharmacie', laboratoire: 'Laboratoire' };
+  document.getElementById('map-list').innerHTML = intervenants.length ? intervenants.map(inv => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg-card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);">
+      <span style="font-size:24px;">${iconColors[inv.type]||'📍'}</span>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:14px;color:var(--text);">${inv.full_name}</div>
+        <div style="font-size:12px;color:var(--texte-doux);">${typeLabel[inv.type]||inv.type}${inv.specialty ? ' · ' + inv.specialty : ''}</div>
+        ${inv.address ? `<div style="font-size:12px;color:var(--texte-doux);">📍 ${inv.address}</div>` : ''}
+      </div>
+      <a href="tel:${inv.phone}" style="padding:8px 14px;background:var(--grad-btn);color:white;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;">📞 Appeler</a>
+    </div>
+  `).join('') : '<div style="color:var(--texte-doux);font-size:14px;text-align:center;padding:20px;">Aucun intervenant géolocalisé pour le moment</div>';
+}
+
+function filterMap(type) {
+  ['all','doctor','pharmacie','laboratoire'].forEach(t => {
+    const btn = document.getElementById('filter-'+t);
+    if(btn) btn.style.background = t === type ? 'var(--vert,#00C9A7)' : 'var(--bg-card)';
+    if(btn) btn.style.color = t === type ? 'white' : 'var(--text)';
+  });
+  const filtered = type === 'all' ? allIntervenants : allIntervenants.filter(i => i.type === type);
+  renderMapMarkers(filtered);
+  renderMapList(filtered);
 }
 
 function showAlert(msg,type){document.getElementById('alert-box').innerHTML=`<div class="alert alert-${type}">⚠️ ${msg}</div>`;}

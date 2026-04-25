@@ -341,6 +341,15 @@
             </button>
           </div>
         </div>
+        <div class="detail-card">
+          <h3>📍 Ma localisation</h3>
+          <div id="gps-status" style="font-size:13px;color:var(--texte-doux);margin-bottom:10px;">Non définie</div>
+          <input type="text" id="gps-address" placeholder="Adresse (ex: Avenue Foch, Brazzaville)" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--bg-input,#f8fafc);color:var(--text);margin-bottom:10px;box-sizing:border-box;">
+          <div style="display:flex;gap:8px;">
+            <button onclick="detectPosition()" style="flex:1;padding:10px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">📡 Détecter ma position</button>
+            <button onclick="savePosition()" style="flex:1;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -845,7 +854,81 @@ async function envoyerPrescriptionLabo(rdvId,patientPhone){
 
 function logout(){localStorage.removeItem('bolamu_medecin_token');localStorage.removeItem('bolamu_medecin_phone');localStorage.removeItem('bolamu_role');window.location.href='/login.html';}
 
-loadProfil();loadRdv();
+// GÉOLOCALISATION
+let currentLat = null, currentLng = null;
+
+async function loadPosition() {
+  try {
+    const role = localStorage.getItem('bolamu_role');
+    const phone = localStorage.getItem(`bolamu_${role}_phone`);
+    const token = localStorage.getItem(`bolamu_${role}_token`);
+    const res = await fetch(`${API}/auth/profile`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.user?.latitude) {
+      currentLat = data.user.latitude;
+      currentLng = data.user.longitude;
+      document.getElementById('gps-status').textContent = `✅ Position enregistrée${data.user.address ? ' — ' + data.user.address : ''}`;
+      document.getElementById('gps-status').style.color = '#00C9A7';
+      if (data.user.address) document.getElementById('gps-address').value = data.user.address;
+    }
+  } catch(e) { console.error('[loadPosition]', e); }
+}
+
+function detectPosition() {
+  const btn = document.querySelector('button[onclick="detectPosition()"]');
+  btn.textContent = '⏳ Détection…';
+  btn.disabled = true;
+  if (!navigator.geolocation) {
+    document.getElementById('gps-status').textContent = '❌ Géolocalisation non supportée';
+    btn.textContent = '📡 Détecter ma position';
+    btn.disabled = false;
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      currentLat = pos.coords.latitude;
+      currentLng = pos.coords.longitude;
+      document.getElementById('gps-status').textContent = `📍 Position détectée — Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
+      document.getElementById('gps-status').style.color = '#00C9A7';
+      btn.textContent = '📡 Détecter ma position';
+      btn.disabled = false;
+    },
+    (err) => {
+      document.getElementById('gps-status').textContent = '❌ Impossible de détecter — entrez l\'adresse manuellement';
+      document.getElementById('gps-status').style.color = '#ef4444';
+      btn.textContent = '📡 Détecter ma position';
+      btn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+async function savePosition() {
+  const role = localStorage.getItem('bolamu_role');
+  const phone = localStorage.getItem(`bolamu_${role}_phone`);
+  const token = localStorage.getItem(`bolamu_${role}_token`);
+  const address = document.getElementById('gps-address').value.trim();
+  if (!currentLat || !currentLng) {
+    alert('Détectez d\'abord votre position');
+    return;
+  }
+  try {
+    const res = await fetch(`${API}/map/position`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ phone, latitude: currentLat, longitude: currentLng, address })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('Position enregistrée ✅');
+      document.getElementById('gps-status').textContent = `✅ Position enregistrée${address ? ' — ' + address : ''}`;
+    }
+  } catch(e) { alert('Erreur serveur'); }
+}
+
+loadProfil();loadRdv();loadPosition();
 </script>
 </body>
 </html>
