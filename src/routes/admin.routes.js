@@ -155,36 +155,6 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
     }
 });
 
-// ─── VALIDER / REJETER ────────────────────────────────────────────────────────
-router.patch('/validate', authMiddleware, adminOnly, async (req, res) => {
-    const { phone, action, reason } = req.body;
-    if (!phone || !['approve', 'reject'].includes(action)) {
-        return res.status(400).json({ success: false, message: 'Paramètres invalides.' });
-    }
-    try {
-        const result = await pool.query(
-            `UPDATE users SET is_active = $1 WHERE phone = $2 RETURNING phone, role, full_name, first_name, last_name, rccm_number, agrement_number, registration_number, created_at, is_active`,
-            [action === 'approve', phone]
-        );
-        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
-        const row = result.rows[0];
-        const name = row.full_name || `${row.first_name || ''} ${row.last_name || ''}`.trim();
-        try {
-            const msg = action === 'approve'
-                ? `Bolamu : Félicitations ${name} ! Votre dossier a été validé. Connectez-vous sur bolamu-backend.onrender.com`
-                : `Bolamu : Votre dossier n'a pas été validé. Motif : ${reason || 'Dossier incomplet'}. Contactez le support.`;
-            await sendBolamuSms(phone, msg);
-        } catch(e) {}
-        await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
-            [`${row.role}.${action === 'approve' ? 'verified' : 'rejected'}`, phone, JSON.stringify({ reason: reason || null })]
-        ).catch(() => {});
-        res.json({ success: true, message: `Compte ${action === 'approve' ? 'validé ✅' : 'rejeté ❌'}.` });
-    } catch (e) {
-        err(res, 500, 'Erreur serveur.');
-    }
-});
-
 // ─── VALIDER UN COMPTE UTILISATEUR (route attendue par le frontend)
 router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
     const { phone } = req.body;
