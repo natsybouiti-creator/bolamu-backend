@@ -1,8 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { authMiddleware } = require('../middleware/auth.middleware');
-const { adminOnly } = require('../middleware/role.middleware');
+const authMiddleware = require('../../middleware/auth.middleware');
+
+function adminOnly(req, res, next) {
+    if (req.user?.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux administrateurs.' });
+    }
+    next();
+}
 
 // ─── CALCULER LES VERSEMENTS À FAIRE ─────────────────────────────────────────
 // GET /api/v1/payouts/preview
