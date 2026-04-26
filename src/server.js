@@ -78,6 +78,7 @@ const qrRoutes = require('./routes/qr.routes');
 const reportRoutes       = require('./routes/consultation-report.routes');
 const labRoutes          = require('./routes/lab.routes');
 const ratingsRoutes      = require('./routes/ratings.routes');
+const payoutsRoutes      = require('./routes/payouts.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -91,6 +92,7 @@ app.use('/api/v1/prescriptions', prescriptionRoutes);
 app.use('/api/v1/pharmacies',    pharmacieRoutes);
 app.use('/api/v1/laboratories',  laboratoireRoutes);
 app.use('/api/v1/admin',         adminRoutes);
+app.use('/api/v1/payouts',      payoutsRoutes);
 app.use('/api/v1/articles',      require('./routes/articles.routes'));
 app.use('/api/v1/credits',       creditsRoutes);
 app.use('/api/v1/telemedicine',  telemedicineRoutes);
