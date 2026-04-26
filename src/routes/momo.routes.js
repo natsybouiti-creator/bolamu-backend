@@ -51,27 +51,47 @@ async function getMoMoToken() {
 // ─── HELPER : traiter paiement réussi ─────────────────────────────────────────
 async function handlePaymentSuccess(phone, referenceId) {
     try {
-        const payRes = await db.query('SELECT * FROM payments WHERE reference = $1', [referenceId]);
+        const payRes = await db.query(
+            'SELECT * FROM payments WHERE reference = $1',
+            [referenceId]
+        );
         if (!payRes.rows.length) return;
-
         const payment = payRes.rows[0];
         if (payment.status === 'success') return;
 
+        // 1. Mettre à jour le statut du paiement
         await db.query(
             `UPDATE payments SET status = 'success', updated_at = NOW() WHERE reference = $1`,
             [referenceId]
         );
 
+        // 2. Désactiver les anciens abonnements actifs
         await db.query(
-            `UPDATE users SET 
-                statut_abonnement = 'actif',
-                date_fin_abonnement = NOW() + INTERVAL '30 days',
-                is_active = TRUE
-             WHERE phone = $1`,
+            `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
+             WHERE patient_phone = $1 AND is_active = TRUE`,
             [phone]
         );
 
-        console.log(`✅ Paiement confirmé pour ${phone}`);
+        // 3. Créer le nouvel abonnement dans subscriptions
+        await db.query(
+            `INSERT INTO subscriptions
+                (patient_phone, plan, amount_fcfa, status, started_at, expires_at, is_active, payment_reference)
+             VALUES ($1, $2, $3, 'active', NOW(), NOW() + INTERVAL '30 days', TRUE, $4)`,
+            [phone, payment.plan, payment.amount_fcfa, referenceId]
+        );
+
+        // 4. Audit log
+        await db.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('payment.success', $1, 'subscriptions', $2, $3)`,
+            [phone, referenceId, JSON.stringify({
+                plan: payment.plan,
+                amount_fcfa: payment.amount_fcfa,
+                operator: 'mtn'
+            })]
+        ).catch(() => {});
+
+        console.log(`✅ Abonnement ${payment.plan} activé pour ${phone}`);
     } catch(e) {
         console.error('handlePaymentSuccess error:', e.message);
     }
@@ -86,6 +106,22 @@ router.post('/request', verifyToken, async (req, res) => {
         const { amount, plan } = req.body;
         if (!amount || !plan) {
             return res.status(400).json({ success: false, message: 'Montant et plan requis.' });
+        }
+
+        // Validation du montant contre platform_config
+        const configRes = await db.query(
+            `SELECT config_value FROM platform_config WHERE config_key = $1`,
+            [`price_${plan}`]
+        );
+        if (!configRes.rows.length) {
+            return res.status(400).json({ success: false, message: 'Plan invalide.' });
+        }
+        const expectedAmount = parseInt(configRes.rows[0].config_value);
+        if (parseInt(amount) !== expectedAmount) {
+            return res.status(400).json({
+                success: false,
+                message: `Montant incorrect. Attendu : ${expectedAmount} FCFA.` 
+            });
         }
 
         console.log('[MoMo] Requête paiement pour:', phone, 'plan:', plan, 'montant:', amount);
