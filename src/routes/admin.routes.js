@@ -743,16 +743,23 @@ router.post('/subscriptions/activate', authMiddleware, adminOnly, async (req, re
     const adminCheck = await pool.query(`SELECT * FROM users WHERE phone = $1 AND role = 'admin'`, [req.user.phone]);
     if (!adminCheck.rows.length) return res.status(403).json({ success: false, message: 'Accès refusé' });
     const { phone, plan, billing = 'monthly', notes } = req.body;
-    const PLANS = { essentiel:{monthly:1000,annual:12000}, standard:{monthly:2500,annual:30000}, premium:{monthly:5000,annual:60000} };
-    if (!phone || !PLANS[plan]) return res.status(400).json({ success: false, message: 'phone et plan valide requis' });
-    const amount = billing === 'annual' ? PLANS[plan].annual : PLANS[plan].monthly;
+    // Récupérer les tarifs depuis platform_config
+    const configKey = billing === 'annual' ? `price_${plan}_annual` : `price_${plan}`;
+    const configRes = await db.query(
+        `SELECT config_value FROM platform_config WHERE config_key = $1`,
+        [configKey]
+    );
+    if (!configRes.rows.length) {
+        return res.status(400).json({ success: false, message: 'Plan invalide.' });
+    }
+    const amount = parseInt(configRes.rows[0].config_value);
     const startDate = new Date();
     const endDate = new Date();
     billing === 'annual' ? endDate.setFullYear(endDate.getFullYear()+1) : endDate.setMonth(endDate.getMonth()+1);
     await db.query(
-      `INSERT INTO subscriptions (phone, plan, status, amount_fcfa, started_at, expires_at, activated_by, notes)
+      `INSERT INTO subscriptions (patient_phone, plan, status, amount_fcfa, started_at, expires_at, activated_by, notes)
        VALUES ($1,$2,'active',$3,$4,$5,'admin',$6)
-       ON CONFLICT (phone) DO UPDATE SET plan=EXCLUDED.plan, status='active', amount_fcfa=EXCLUDED.amount_fcfa,
+       ON CONFLICT (patient_phone) DO UPDATE SET plan=EXCLUDED.plan, status='active', amount_fcfa=EXCLUDED.amount_fcfa,
        started_at=EXCLUDED.started_at, expires_at=EXCLUDED.expires_at, activated_by='admin', notes=EXCLUDED.notes, updated_at=NOW()`,
       [phone, plan, amount, startDate, endDate, notes||null]
     );
