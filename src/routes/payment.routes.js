@@ -19,7 +19,7 @@ router.post('/initiate', async (req, res) => {
         const result = await pool.query(
             `INSERT INTO payments 
              (patient_phone, amount_fcfa, payment_type, payment_method, status, reference, subscription_id, appointment_id)
-             VALUES ($1, $2, $3, 'simulation', 'en_attente', $4, $5, $6)
+             VALUES ($1, $2, $3, 'simulation', 'pending', $4, $5, $6)
              RETURNING *`,
             [patient_phone, amount_fcfa, payment_type, reference, subscription_id || null, appointment_id || null]
         );
@@ -53,13 +53,13 @@ router.post('/confirm/:reference', async (req, res) => {
 
         const payment = paymentResult.rows[0];
 
-        if (payment.status === 'confirme') {
+        if (payment.status === 'success') {
             return res.status(400).json({ success: false, message: "Ce paiement est déjà confirmé." });
         }
 
         // 2. Confirmer le paiement
         await pool.query(
-            `UPDATE payments SET status = 'confirme', updated_at = NOW() WHERE reference = $1`,
+            `UPDATE payments SET status = 'success', updated_at = NOW() WHERE reference = $1`,
             [reference]
         );
 
