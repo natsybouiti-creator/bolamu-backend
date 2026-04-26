@@ -153,6 +153,38 @@ health_records, cgu_pages, notifications
 - Dashboard admin panel En attente crashait (catch(err) variable shadowing) — corrigé
 - Badge is_active non mappé sur strings — corrigé
 - renderPartners() appelée dans INIT dashboard patient alors que remplacée par loadCarte() — supprimé le 25 avril 2026
+- PATCH /api/v1/admin/validate mettait is_active dans users au lieu de la table spécifique — supprimé 25 avril 2026, remplacé par POST /validate-user
+- document_public_id non récupéré à l'inscription partenaire — corrigé 25 avril 2026 (register.html + auth.controller.js)
+- handlePaymentSuccess mettait à jour users.statut_abonnement au lieu de créer dans subscriptions — corrigé 25 avril 2026
+- Montant paiement MoMo non validé contre platform_config — corrigé 25 avril 2026
+
+## TRAVAUX EN COURS — SUITE IMMÉDIATE
+Mis à jour : 25 avril 2026
+
+### Audit paiements — Corrections restantes (dans l'ordre)
+🔴 1. Unifier statuts payments — payment.routes.js utilise 'en_attente'/'confirme',
+        momo.routes.js utilise 'pending'/'success' — standardiser vers 'pending'/'success'/'failed'/'refunded'
+🔴 2. Montants hardcodés dans admin.routes.js ligne 746 — const PLANS hardcodé,
+        doit lire depuis platform_config
+🔴 3. Flux paiements médecins non implémenté — versement bimensuel via doctors.momo_number
+🟠 4. Colonne phone vs patient_phone dans admin.routes.js ligne 753 — risque d'erreur SQL
+🟠 5. Pas de validation montant frontend contre platform_config dans payment.routes.js
+
+### Audit subscriptions — À lancer après paiements
+- Lancer /subscriptions pour audit complet
+- Vérifier accès conditionnel aux fonctionnalités selon plan
+- Vérifier expiration et renouvellement
+
+### Flux partenaires — Partiels documentés
+- Conventions partenaires : table existe, flux création/modification à implémenter
+- Tiers payant : table existe, flux création/modification à implémenter
+
+### Infrastructure
+- DATABASE_URL Render mis à jour (reset mot de passe Neon 25 avril 2026)
+- Passer Render au plan payant avant lancement
+- Acheter domaine bolamu.co
+- Activer Africa's Talking Live (en attente paiement)
+- Airtel Money : en attente credentials API
 
 ## COMPTES DE TEST
 - Patient : +242069735418
@@ -184,10 +216,11 @@ health_records, cgu_pages, notifications
 - Credits Bolamu + Articles / blog santé + Admin content editor
 - Prescriptions flux complet + Flux labo→patient complet
 - Système de notation patients — ratings, étoiles + adjectifs + panel admin
-- MTN MoMo — backend + frontend, valeurs réelles XAF (sandbox)
+- MTN MoMo — flux paiement corrigé (handlePaymentSuccess crée maintenant dans subscriptions + audit_log + validation montant contre platform_config)
 - Géolocalisation — GPS dans dashboards intervenants + carte Leaflet patient
 - index.html — inscription patient complète avec NIU + CNI Cloudinary
 - localStorage keys standardisées par rôle
+- MCP Neon configuré dans Windsurf (mcp_config.json) — requêtes SQL directes depuis Cascade
 
 ### Partiel ⚠️
 - Africa's Talking (sandbox — activation Live en attente crédit)
