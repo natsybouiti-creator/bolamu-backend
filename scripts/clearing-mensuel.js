@@ -178,4 +178,9 @@ async function runClearing() {
 }
 
 // ─── EXÉCUTION ───────────────────────────────────────────────────────────────────
-runClearing();
+if (require.main === module) {
+    runClearing();
+}
+
+// ─── EXPORT POUR UTILISATION DANS LES ROUTES ─────────────────────────────────────
+module.exports = { runClearing };

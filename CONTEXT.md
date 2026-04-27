@@ -135,6 +135,11 @@ health_records, cgu_pages, notifications
 - RDV patient : GET /api/v1/appointments/patient/:phone
 - Sentry monitoring
 
+## FLUX IMPLÉMENTÉS — EN ATTENTE DE TEST
+- Virements bancaires individuels (patient → Bolamu) et B2B (entreprise → Bolamu)
+- Clearing mensuel partenaires automatique (calcul + versements MTN/Airtel)
+- Versements MTN MoMo Disbursement et Airtel Money vers partenaires avec détection opérateur
+
 ## ADMIN — DEUX RÔLES
 - 'admin' : accès dashboard.html — gestion complète
 - 'content_admin' : accès content.html — gestion éditoriale articles
@@ -182,7 +187,8 @@ Mis à jour : 27 avril 2026
 ✅ Migration 006 TERMINÉE — virements bancaires individuels (bank_transfer_requests) et B2B (company_contracts, company_employees)
 ✅ Migration 007 TERMINÉE — partner_zones et partner_payouts (clearing mensuel partenaires)
 ✅ Script clearing-mensuel.js créé — calcul automatique des versements mensuels partenaires
-🔄 Routes API clearing admin — EN COURS (validation, paiement, traçabilité)
+✅ Routes API clearing admin TERMINÉES — GET /pending, POST /run, PATCH /:id/pay, PATCH /:id/fail
+✅ Flux versements partenaires complet — MTN Disbursement + Airtel Money avec détection opérateur automatique
 
 ### Audit paiements — Corrections restantes (dans l'ordre)
 🔴 1. Unifier statuts payments — payment.routes.js utilise 'en_attente'/'confirme',

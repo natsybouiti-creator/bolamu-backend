@@ -81,6 +81,7 @@ const labRoutes          = require('./routes/lab.routes');
 const ratingsRoutes      = require('./routes/ratings.routes');
 const payoutsRoutes      = require('./routes/payouts.routes');
 const bankTransferRoutes = require('./routes/bank-transfer.routes');
+const clearingRoutes     = require('./routes/clearing.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -97,6 +98,7 @@ app.use('/api/v1/laboratories',  laboratoireRoutes);
 app.use('/api/v1/admin',         adminRoutes);
 app.use('/api/v1/payouts',      payoutsRoutes);
 app.use('/api/v1/bank-transfer', bankTransferRoutes);
+app.use('/api/v1/clearing',      clearingRoutes);
 app.use('/api/v1/articles',      require('./routes/articles.routes'));
 app.use('/api/v1/credits',       creditsRoutes);
 app.use('/api/v1/telemedicine',  telemedicineRoutes);
