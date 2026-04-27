@@ -73,12 +73,14 @@ const laboratoireRoutes  = require('./routes/laboratoire.routes');
 const adminRoutes        = require('./routes/admin.routes');
 const creditsRoutes      = require('./routes/credits.routes');
 const momoRoutes         = require('./routes/momo.routes');
+const airtelRoutes       = require('./routes/airtel.routes');
 const telemedicineRoutes = require('./routes/telemedicine.routes');
 const qrRoutes = require('./routes/qr.routes');
 const reportRoutes       = require('./routes/consultation-report.routes');
 const labRoutes          = require('./routes/lab.routes');
 const ratingsRoutes      = require('./routes/ratings.routes');
 const payoutsRoutes      = require('./routes/payouts.routes');
+const bankTransferRoutes = require('./routes/bank-transfer.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -88,11 +90,13 @@ app.use('/api/v1/doctors',       doctorRoutes);
 app.use('/api/v1/appointments',  appointmentRoutes);
 app.use('/api/v1/payments',      paymentRoutes);
 app.use('/api/v1/payments/momo', momoRoutes);
+app.use('/api/v1/payments/airtel', airtelRoutes);
 app.use('/api/v1/prescriptions', prescriptionRoutes);
 app.use('/api/v1/pharmacies',    pharmacieRoutes);
 app.use('/api/v1/laboratories',  laboratoireRoutes);
 app.use('/api/v1/admin',         adminRoutes);
 app.use('/api/v1/payouts',      payoutsRoutes);
+app.use('/api/v1/bank-transfer', bankTransferRoutes);
 app.use('/api/v1/articles',      require('./routes/articles.routes'));
 app.use('/api/v1/credits',       creditsRoutes);
 app.use('/api/v1/telemedicine',  telemedicineRoutes);

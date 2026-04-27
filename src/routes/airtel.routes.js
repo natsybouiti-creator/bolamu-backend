@@ -1,49 +1,46 @@
+// ============================================================
+// BOLAMU — Routes Airtel Money
+// ============================================================
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
+const authMiddleware = require('../../middleware/auth.middleware');
 
-// ─── Import middleware ────────────────────────────────────────────────────────
-let verifyToken;
-try {
-    const authMiddleware = require('../../middleware/auth.middleware');
-    verifyToken = authMiddleware.verifyToken || authMiddleware.authenticate || authMiddleware.default || authMiddleware;
-    if (typeof verifyToken !== 'function') throw new Error('verifyToken non trouvé');
-} catch(e) {
-    console.error('Auth middleware error:', e.message);
-    verifyToken = (req, res, next) => next();
-}
-
-// ─── CONFIG MOMO ─────────────────────────────────────────────────────────────
-const MOMO_BASE_URL = 'https://sandbox.momodeveloper.mtn.com';
-const SUBSCRIPTION_KEY = process.env.MOMO_SUBSCRIPTION_KEY;
-const API_USER = process.env.MOMO_API_USER;
-const API_KEY = process.env.MOMO_API_KEY;
+// ─── CONFIG AIRTEL ───────────────────────────────────────────────────────────
+const AIRTEL_BASE_URL = process.env.AIRTEL_BASE_URL || 'https://openapi.airtel.africa';
+const AIRTEL_CLIENT_ID = process.env.AIRTEL_CLIENT_ID;
+const AIRTEL_CLIENT_SECRET = process.env.AIRTEL_CLIENT_SECRET;
 
 // ─── HELPER : token OAuth2 ────────────────────────────────────────────────────
-async function getMoMoToken() {
-    const credentials = Buffer.from(`${API_USER}:${API_KEY}`).toString('base64');
+async function getAirtelToken() {
+    const credentials = Buffer.from(`${AIRTEL_CLIENT_ID}:${AIRTEL_CLIENT_SECRET}`).toString('base64');
 
-    console.log('[MoMo] Génération token...');
+    console.log('[Airtel] Génération token...');
 
-    const res = await fetch(`${MOMO_BASE_URL}/collection/token/`, {
+    const res = await fetch(`${AIRTEL_BASE_URL}/auth/oauth2/token`, {
         method: 'POST',
         headers: {
             'Authorization': `Basic ${credentials}`,
-            'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY
-        }
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            grant_type: 'client_credentials',
+            client_id: AIRTEL_CLIENT_ID,
+            client_secret: AIRTEL_CLIENT_SECRET
+        })
     });
 
     const text = await res.text();
 
     if (!res.ok) {
-        console.error('[MoMo] Token error:', res.status, text);
+        console.error('[Airtel] Token error:', res.status, text);
         throw new Error(`Token error ${res.status}`);
     }
 
     const data = JSON.parse(text);
 
-    console.log('[MoMo] Token généré ✅');
+    console.log('[Airtel] Token généré ✅');
 
     return data.access_token;
 }
@@ -87,18 +84,18 @@ async function handlePaymentSuccess(phone, referenceId) {
             [phone, referenceId, JSON.stringify({
                 plan: payment.plan,
                 amount_fcfa: payment.amount_fcfa,
-                operator: 'mtn'
+                operator: 'airtel'
             })]
         ).catch(() => {});
 
-        console.log(`✅ Abonnement ${payment.plan} activé pour ${phone}`);
+        console.log('[Airtel] ✅ Abonnement activé');
     } catch(e) {
         console.error('handlePaymentSuccess error:', e.message);
     }
 }
 
 // ─── POST /request ────────────────────────────────────────────────────────────
-router.post('/request', verifyToken, async (req, res) => {
+router.post('/request', authMiddleware, async (req, res) => {
     try {
         const phone = req.user?.phone;
         if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
@@ -124,59 +121,60 @@ router.post('/request', verifyToken, async (req, res) => {
             });
         }
 
-        console.log('[MoMo] Requête paiement initiée');
+        console.log('[Airtel] Requête paiement initiée');
 
-        const referenceId = crypto.randomUUID(); // ✅ UUID fiable
-        const token = await getMoMoToken();
+        const referenceId = crypto.randomUUID();
+        const token = await getAirtelToken();
 
-        const momoPhone = phone.replace('+', '').replace(/^2420/, '242');
+        const airtelPhone = phone.replace('+', '').replace(/^2420/, '242');
 
         const bodyData = JSON.stringify({
-            amount: String(amount),
-            currency: "XAF",
-            externalId: referenceId,
-            payer: {
-                partyIdType: "MSISDN",
-                partyId: momoPhone
+            reference: referenceId,
+            subscriber: {
+                country: 'CG',
+                currency: 'XAF',
+                msisdn: airtelPhone
             },
-            payerMessage: `Abonnement Bolamu - Plan ${plan}`,
-            payeeNote: "Bolamu Healthcare"
+            transaction: {
+                amount: String(amount),
+                country: 'CG',
+                currency: 'XAF',
+                id: referenceId
+            }
         });
 
-        console.log('[MoMo] Envoi requesttopay...');
+        console.log('[Airtel] Envoi paiement...');
 
-        const momoRes = await fetch(`${MOMO_BASE_URL}/collection/v1_0/requesttopay`, {
+        const airtelRes = await fetch(`${AIRTEL_BASE_URL}/merchant/v2/payments/`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'X-Reference-Id': referenceId,
-                'X-Target-Environment': 'sandbox',
-                'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY,
                 'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(bodyData) // ✅ FIX FINAL
+                'X-Country': 'CG',
+                'X-Currency': 'XAF'
             },
             body: bodyData
         });
 
-        const responseText = await momoRes.text();
+        const responseText = await airtelRes.text();
 
-        console.log('[MoMo] Réponse status:', momoRes.status);
+        console.log('[Airtel] Réponse status:', airtelRes.status);
 
-        if (momoRes.status !== 202) {
+        if (airtelRes.status !== 202) {
+            console.error('[Airtel] Erreur API:', airtelRes.status);
             return res.status(400).json({
                 success: false,
-                message: `Erreur MoMo (${momoRes.status})`,
-                details: responseText
+                message: 'Erreur lors de l\'initiation du paiement Airtel.'
             });
         }
 
         await db.query(
             `INSERT INTO payments (patient_phone, amount_fcfa, operator, plan, reference, status, created_at)
-             VALUES ($1, $2, 'mtn', $3, $4, 'pending', NOW())`,
+             VALUES ($1, $2, 'airtel', $3, $4, 'pending', NOW())`,
             [phone, amount, plan, referenceId]
         );
 
-        console.log('[MoMo] ✅ Paiement initié avec succès');
+        console.log('[Airtel] ✅ Paiement initié avec succès');
 
         res.json({
             success: true,
@@ -185,33 +183,33 @@ router.post('/request', verifyToken, async (req, res) => {
         });
 
     } catch(e) {
-        console.error('[MoMo] request error:', e.message);
+        console.error('[Airtel] request error:', e.message);
         res.status(500).json({ success: false, message: e.message });
     }
 });
 
 // ─── GET /status/:referenceId ─────────────────────────────────────────────────
-router.get('/status/:referenceId', verifyToken, async (req, res) => {
+router.get('/status/:referenceId', authMiddleware, async (req, res) => {
     try {
         const { referenceId } = req.params;
         const phone = req.user?.phone;
-        const token = await getMoMoToken();
+        const token = await getAirtelToken();
 
-        const momoRes = await fetch(`${MOMO_BASE_URL}/collection/v1_0/requesttopay/${referenceId}`, {
+        const airtelRes = await fetch(`${AIRTEL_BASE_URL}/standard/v1/payments/${referenceId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'X-Target-Environment': 'sandbox',
-                'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY
+                'X-Country': 'CG',
+                'X-Currency': 'XAF'
             }
         });
 
-        const data = await momoRes.json();
+        const data = await airtelRes.json();
 
-        console.log('[MoMo] Status:', data.status);
+        console.log('[Airtel] Status:', data.status?.response_code);
 
-        if (data.status === 'SUCCESSFUL') {
+        if (data.status?.response_code === 'DP00800001001') {
             await handlePaymentSuccess(phone, referenceId);
-        } else if (data.status === 'FAILED') {
+        } else if (data.status?.response_code === 'DP00800001000') {
             await db.query(
                 `UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = $1`,
                 [referenceId]
@@ -219,14 +217,14 @@ router.get('/status/:referenceId', verifyToken, async (req, res) => {
             await db.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
                  VALUES ('payment.failed', $1, 'payments', $2, $3)`,
-                [phone, referenceId, JSON.stringify({ operator: 'mtn' })]
+                [phone, referenceId, JSON.stringify({ operator: 'airtel' })]
             ).catch(() => {});
         }
 
-        res.json({ success: true, status: data.status });
+        res.json({ success: true, status: data.status?.response_code });
 
     } catch(e) {
-        console.error('[MoMo] status error:', e.message);
+        console.error('[Airtel] status error:', e.message);
         res.status(500).json({ success: false });
     }
 });
