@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 25 avril 2026
+Mis à jour : 27 avril 2026
 
 ## VISION PRODUIT
 Plateforme de santé numérique au Congo-Brazzaville. Connecte patients, médecins, pharmacies et laboratoires. Developed by NBA Gestion SARLU.
@@ -62,6 +62,20 @@ Colonnes : id, event_type, actor_phone, target_table, target_id, payload, create
 
 ### Autres tables existantes
 payments, subscriptions, credits, fraud_signals, platform_config, articles, qr_tokens
+
+### ENUMs PostgreSQL
+- doctor_status : {pending, verified, suspended}
+- subscription_plan : {essentiel, standard, premium}
+- subscription_status : {active, expired, suspended}
+- user_type_enum : {patient, medecin, pharmacie, laboratoire, entreprise, admin}
+- payment_status : {pending, success, failed, refunded, reconciling}
+- payment_method : {mtn_momo, airtel_money, bank_transfer, cash, simulation}
+- account_type : {mtn_momo, airtel_money, bank_account}
+- convention_status : {pending, actif, suspendu, resilie}
+- transaction_status : {pending, validated, paid, rejected, reconciling}
+- bank_transfer_status : {pending, reconciled, activated, rejected}
+- company_contract_status : {draft, signed, active, terminated}
+- company_employee_status : {pending, active, suspended}
 
 ### Tables manquantes (roadmap)
 health_records, cgu_pages, notifications
@@ -159,7 +173,12 @@ health_records, cgu_pages, notifications
 - Montant paiement MoMo non validé contre platform_config — corrigé 25 avril 2026
 
 ## TRAVAUX EN COURS — SUITE IMMÉDIATE
-Mis à jour : 25 avril 2026
+Mis à jour : 27 avril 2026
+
+### Migrations Base de Données — 27 AVRIL 2026
+✅ Migration 005 TERMINÉE — traçabilité comptable payments, partner_conventions, transactions_tiers_payant + table bolamu_accounts
+✅ Migration 006 TERMINÉE — virements bancaires individuels (bank_transfer_requests) et B2B (company_contracts, company_employees)
+🔄 Routes API virements bancaires — EN COURS (réconciliation automatique, validation manuelle, workflow B2B)
 
 ### Audit paiements — Corrections restantes (dans l'ordre)
 🔴 1. Unifier statuts payments — payment.routes.js utilise 'en_attente'/'confirme',
@@ -234,10 +253,27 @@ Mis à jour : 25 avril 2026
 - Airtel Money — en attente credentials API
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
-users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts, bolamu_accounts, bank_transfer_requests, company_contracts, company_employees
 
 ## COLONNES GPS AJOUTÉES — 25 AVRIL 2026
 Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), longitude DECIMAL(10,7), address TEXT
+
+## TABLES FINANCIÈRES — COLONNES AJOUTÉES — 27 AVRIL 2026
+
+### payments (Migration 005)
+Colonnes ajoutées : direction, payment_method_new, payment_type, subscription_id, appointment_id, source_account_id, source_account_type, source_account_reference, destination_account_id, destination_account_type, destination_account_reference, external_reference, notes, reconciled_at, reconciled_by
+
+### partner_conventions (Migration 005)
+Colonnes ajoutées : status_new, started_at, expires_at, payout_account_id, payout_account_type, payout_account_reference, partner_account_id, partner_account_type, partner_account_reference, contract_document_url, validated_by, validated_at
+
+### transactions_tiers_payant (Migration 005)
+Colonnes ajoutées : convention_id, status_new, source_account_id, source_account_type, source_account_reference, destination_account_id, destination_account_type, destination_account_reference, notes, reconciled_at, reconciled_by
+
+### Nouvelles tables (Migration 006)
+- bolamu_accounts : référentiel des comptes NBA Gestion SARLU (MTN MoMo, Airtel Money, comptes bancaires)
+- bank_transfer_requests : virements individuels patients (référence BOL-{phone}-{YYYYMMDD}-{random4})
+- company_contracts : contrats entreprises B2B (référence BOL-B2B-{company_code}-{YYYYMMDD})
+- company_employees : employés rattachés aux contrats entreprises
 
 ## ROADMAP — ÉTAT RÉEL
 - Ph1 : Quick fixes ✅ TERMINÉ
