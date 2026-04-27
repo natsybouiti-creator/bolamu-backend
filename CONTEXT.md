@@ -76,6 +76,8 @@ payments, subscriptions, credits, fraud_signals, platform_config, articles, qr_t
 - bank_transfer_status : {pending, reconciled, activated, rejected}
 - company_contract_status : {draft, signed, active, terminated}
 - company_employee_status : {pending, active, suspended}
+- partner_payout_status : {pending, paid, failed}
+- partner_zone_type : {doctor, pharmacie, laboratoire}
 
 ### Tables manquantes (roadmap)
 health_records, cgu_pages, notifications
@@ -178,7 +180,9 @@ Mis à jour : 27 avril 2026
 ### Migrations Base de Données — 27 AVRIL 2026
 ✅ Migration 005 TERMINÉE — traçabilité comptable payments, partner_conventions, transactions_tiers_payant + table bolamu_accounts
 ✅ Migration 006 TERMINÉE — virements bancaires individuels (bank_transfer_requests) et B2B (company_contracts, company_employees)
-🔄 Routes API virements bancaires — EN COURS (réconciliation automatique, validation manuelle, workflow B2B)
+✅ Migration 007 TERMINÉE — partner_zones et partner_payouts (clearing mensuel partenaires)
+✅ Script clearing-mensuel.js créé — calcul automatique des versements mensuels partenaires
+🔄 Routes API clearing admin — EN COURS (validation, paiement, traçabilité)
 
 ### Audit paiements — Corrections restantes (dans l'ordre)
 🔴 1. Unifier statuts payments — payment.routes.js utilise 'en_attente'/'confirme',
@@ -253,7 +257,7 @@ Mis à jour : 27 avril 2026
 - Airtel Money — en attente credentials API
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
-users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts, bolamu_accounts, bank_transfer_requests, company_contracts, company_employees
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts, bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts
 
 ## COLONNES GPS AJOUTÉES — 25 AVRIL 2026
 Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), longitude DECIMAL(10,7), address TEXT
