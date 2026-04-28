@@ -62,8 +62,23 @@ async function processPartnerZone(zone, period) {
             return { success: false, reason: 'no_members' };
         }
 
-        // 3. Calculer le montant
-        const amountFcfa = memberCount * zone.fee_per_adherent;
+        // 3. Calculer le montant depuis platform_config
+        // Règle : jamais de montant hardcodé, toujours depuis platform_config
+        // Le taux de répartition vient désormais de platform_config selon le type de partenaire
+        const configRes = await client.query(
+            `SELECT config_value FROM platform_config WHERE config_key = $1`,
+            ['price_essentiel']
+        );
+        const subscriptionPrice = parseInt(configRes.rows[0].config_value);
+
+        const rateKey = `partner_rate_${zone.partner_type}`;
+        const rateRes = await client.query(
+            `SELECT config_value FROM platform_config WHERE config_key = $1`,
+            [rateKey]
+        );
+        const partnerRate = parseFloat(rateRes.rows[0].config_value);
+
+        const amountFcfa = Math.round(memberCount * subscriptionPrice * partnerRate);
 
         // 4. Récupérer le momo_number du partenaire
         let momoNumber = null;

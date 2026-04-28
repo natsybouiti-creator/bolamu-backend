@@ -195,7 +195,7 @@ Mis à jour : 27 avril 2026
         momo.routes.js utilise 'pending'/'success' — standardiser vers 'pending'/'success'/'failed'/'refunded'
 🔴 2. Montants hardcodés dans admin.routes.js ligne 746 — const PLANS hardcodé,
         doit lire depuis platform_config
-🔴 3. Flux paiements médecins non implémenté — versement bimensuel via doctors.momo_number
+✅ Médecins couverts via forfait mensuel partner_payouts — même modèle que pharmacies et laboratoires
 🟠 4. Colonne phone vs patient_phone dans admin.routes.js ligne 753 — risque d'erreur SQL
 🟠 5. Pas de validation montant frontend contre platform_config dans payment.routes.js
 
@@ -263,7 +263,7 @@ Mis à jour : 27 avril 2026
 - Airtel Money — en attente credentials API
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
-users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts, bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts (obsolète — non utilisée), bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts
 
 ## COLONNES GPS AJOUTÉES — 25 AVRIL 2026
 Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), longitude DECIMAL(10,7), address TEXT
