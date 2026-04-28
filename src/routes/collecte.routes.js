@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../config/db');
 const { authenticate, requireAdmin } = require('../middleware/auth.middleware');
 const cloudinary = require('../utils/cloudinary');
 const PDFDocument = require('pdfkit');
