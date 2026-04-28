@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { authenticate, requireAdmin } = require('../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 const cloudinary = require('../utils/cloudinary');
 const PDFDocument = require('pdfkit');
 const { normalizePhone } = require('../utils/phone');
@@ -13,7 +13,7 @@ const { normalizePhone } = require('../utils/phone');
 // POST /api/v1/collecte/ovp/initier
 // L'adhérent saisit ses coordonnées bancaires
 // Le système génère le PDF OVP et le stocke sur Cloudinary
-router.post('/ovp/initier', authenticate, async (req, res) => {
+router.post('/ovp/initier', authMiddleware, async (req, res) => {
   try {
     const { nom_titulaire, numero_compte } = req.body;
     const phone = req.user.phone;
@@ -182,7 +182,7 @@ router.post('/ovp/initier', authenticate, async (req, res) => {
 
 // GET /api/v1/collecte/ovp/statut
 // Statut OVP de l'adhérent connecté
-router.get('/ovp/statut', authenticate, async (req, res) => {
+router.get('/ovp/statut', authMiddleware, async (req, res) => {
   try {
     const phone = req.user.phone;
     const result = await db.query(
@@ -207,7 +207,7 @@ router.get('/ovp/statut', authenticate, async (req, res) => {
 
 // POST /api/v1/collecte/momo/initier
 // Déclenche un paiement MoMo annuel
-router.post('/momo/initier', authenticate, async (req, res) => {
+router.post('/momo/initier', authMiddleware, async (req, res) => {
   try {
     const { plan } = req.body;
     const phone = req.user.phone;
@@ -263,7 +263,7 @@ router.post('/momo/initier', authenticate, async (req, res) => {
 
 // POST /api/v1/collecte/familial/ajouter
 // Ajouter un bénéficiaire familial
-router.post('/familial/ajouter', authenticate, async (req, res) => {
+router.post('/familial/ajouter', authMiddleware, async (req, res) => {
   try {
     const { beneficiaire_phone } = req.body;
     const payeur_phone = req.user.phone;
@@ -353,7 +353,7 @@ router.post('/familial/ajouter', authenticate, async (req, res) => {
 
 // DELETE /api/v1/collecte/familial/retirer/:beneficiaire_phone
 router.delete('/familial/retirer/:beneficiaire_phone', 
-  authenticate, async (req, res) => {
+  authMiddleware, async (req, res) => {
   try {
     const payeur_phone = req.user.phone;
     const benPhone = normalizePhone(req.params.beneficiaire_phone);
@@ -380,7 +380,7 @@ router.delete('/familial/retirer/:beneficiaire_phone',
 });
 
 // GET /api/v1/collecte/familial/mes-beneficiaires
-router.get('/familial/mes-beneficiaires', authenticate, async (req, res) => {
+router.get('/familial/mes-beneficiaires', authMiddleware, async (req, res) => {
   try {
     const phone = req.user.phone;
     const result = await db.query(
@@ -408,7 +408,7 @@ router.get('/familial/mes-beneficiaires', authenticate, async (req, res) => {
 // ================================================
 
 // POST /api/v1/collecte/sepa/initier
-router.post('/sepa/initier', authenticate, async (req, res) => {
+router.post('/sepa/initier', authMiddleware, async (req, res) => {
   try {
     const { frequence, beneficiaires_phones, plan } = req.body;
     const phone = req.user.phone;
@@ -512,7 +512,7 @@ router.post('/sepa/initier', authenticate, async (req, res) => {
 // ================================================
 
 // GET /api/v1/collecte/admin/dashboard
-router.get('/admin/dashboard', requireAdmin, async (req, res) => {
+router.get('/admin/dashboard', authMiddleware.requireAdmin, async (req, res) => {
   try {
     const [ovpPending, sepaPending, momoActifs, totalActifs] = 
       await Promise.all([
@@ -552,7 +552,7 @@ router.get('/admin/dashboard', requireAdmin, async (req, res) => {
 
 // PATCH /api/v1/collecte/admin/ovp/valider/:user_phone
 router.patch('/admin/ovp/valider/:user_phone', 
-  requireAdmin, async (req, res) => {
+  authMiddleware.requireAdmin, async (req, res) => {
   try {
     const { user_phone } = req.params;
     const admin_phone = req.user.phone;
@@ -609,7 +609,7 @@ router.patch('/admin/ovp/valider/:user_phone',
 
 // PATCH /api/v1/collecte/admin/sepa/valider/:user_phone
 router.patch('/admin/sepa/valider/:user_phone', 
-  requireAdmin, async (req, res) => {
+  authMiddleware.requireAdmin, async (req, res) => {
   try {
     const { user_phone } = req.params;
     const admin_phone = req.user.phone;
@@ -665,7 +665,7 @@ router.patch('/admin/sepa/valider/:user_phone',
 
 // GET /api/v1/collecte/admin/ovp/fichier-mensuel
 // Génère le fichier CSV pour remise à Ecobank Congo
-router.get('/admin/ovp/fichier-mensuel', requireAdmin, async (req, res) => {
+router.get('/admin/ovp/fichier-mensuel', authMiddleware.requireAdmin, async (req, res) => {
   try {
     const result = await db.query(
       `SELECT o.user_phone, o.nom_titulaire, o.numero_compte, 
