@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 27 avril 2026
+Mis à jour : 28 avril 2026
 
 ## VISION PRODUIT
 Plateforme de santé numérique au Congo-Brazzaville. Connecte patients, médecins, pharmacies et laboratoires. Developed by NBA Gestion SARLU.
@@ -159,6 +159,13 @@ health_records, cgu_pages, notifications
 10. audit_log : insert-only — colonnes event_type, actor_phone, target_table, target_id, payload
 11. Soft delete uniquement — jamais de DELETE sur users
 12. member_code généré avec MAX() + 1 — jamais COUNT()
+13. Taux répartition partenaires : TOUJOURS depuis platform_config 
+    (partner_rate_*) — jamais hardcodés
+14. Prix abonnements : TOUJOURS depuis platform_config (price_*) 
+    — jamais hardcodés  
+15. Calcul forfait partenaire : adherents × price_essentiel × partner_rate
+16. SMS : TOUJOURS via src/services/sms.service.js (sendBolamuSms) 
+    — jamais réinitialiser AfricasTalking directement
 
 ## BUGS CORRIGÉS — NE JAMAIS REPRODUIRE
 - Double insertion users à l'inscription partenaire — supprimé INSERT users dans auth.controller.js
@@ -180,40 +187,44 @@ health_records, cgu_pages, notifications
 - Montant paiement MoMo non validé contre platform_config — corrigé 25 avril 2026
 
 ## TRAVAUX EN COURS — SUITE IMMÉDIATE
-Mis à jour : 27 avril 2026
+Mis à jour : 28 avril 2026
 
-### Migrations Base de Données — 27 AVRIL 2026
-✅ Migration 005 TERMINÉE — traçabilité comptable payments, partner_conventions, transactions_tiers_payant + table bolamu_accounts
-✅ Migration 006 TERMINÉE — virements bancaires individuels (bank_transfer_requests) et B2B (company_contracts, company_employees)
-✅ Migration 007 TERMINÉE — partner_zones et partner_payouts (clearing mensuel partenaires)
-✅ Script clearing-mensuel.js créé — calcul automatique des versements mensuels partenaires
-✅ Routes API clearing admin TERMINÉES — GET /pending, POST /run, PATCH /:id/pay, PATCH /:id/fail
-✅ Flux versements partenaires complet — MTN Disbursement + Airtel Money avec détection opérateur automatique
+### Corrections appliquées — 28 avril 2026
+✅ Statuts payments — déjà unifiés (pending/success/failed)
+✅ Montants hardcodés — déjà corrigés dans admin.routes.js
+✅ Médecins couverts via forfait mensuel partner_payouts
+✅ phone vs patient_phone — pas de problème confirmé
+✅ Validation montant frontend — déjà en place dans payment.routes.js
+✅ Taux partenaires dynamiques depuis platform_config
+✅ Prix plans corrigés (Standard 5000→4000, annual 60000→48000)
+✅ Migration 008 — système collecte 4 canaux déployé
+✅ Routes /api/v1/collecte/* — 11 routes déployées
+✅ Job cron abonnements — démarré automatiquement au lancement serveur
 
-### Audit paiements — Corrections restantes (dans l'ordre)
-🔴 1. Unifier statuts payments — payment.routes.js utilise 'en_attente'/'confirme',
-        momo.routes.js utilise 'pending'/'success' — standardiser vers 'pending'/'success'/'failed'/'refunded'
-🔴 2. Montants hardcodés dans admin.routes.js ligne 746 — const PLANS hardcodé,
-        doit lire depuis platform_config
-✅ Médecins couverts via forfait mensuel partner_payouts — même modèle que pharmacies et laboratoires
-🟠 4. Colonne phone vs patient_phone dans admin.routes.js ligne 753 — risque d'erreur SQL
-🟠 5. Pas de validation montant frontend contre platform_config dans payment.routes.js
+### Infrastructure financière — Actions en attente
+🔴 Renseigner rib_france_qonto dans platform_config
+   (attente ouverture compte Qonto/Revolut Business France)
+🔴 Finaliser ouverture compte Ecobank Congo NBA Gestion SARLU
+� Négociation MTN Congo Entreprises — API Subscriptions + taux préférentiel
+   (document de négociation produit — Bolamu_MTN_Negociation.docx)
+🟠 Activer Airtel Money API — credentials attendus 29 avril 2026
+🟠 Activer Africa's Talking Live (en attente crédit)
+🟡 Tester routes /api/v1/collecte/* en sandbox
+🟡 Audit /subscriptions — vérifier accès conditionnel par plan
+🟡 Passer Render au plan payant avant lancement
+🟡 Acheter domaine bolamu.co
 
-### Audit subscriptions — À lancer après paiements
-- Lancer /subscriptions pour audit complet
-- Vérifier accès conditionnel aux fonctionnalités selon plan
-- Vérifier expiration et renouvellement
+### Modèle tarifaire — DÉFINITIF (ne plus modifier sans décision explicite)
+- Essentiel : 1 personne — 2 000 FCFA/mois — 24 000 FCFA/an
+- Standard : 2 personnes — 4 000 FCFA/mois — 48 000 FCFA/an  
+- Premium : 5 personnes — 10 000 FCFA/mois — 120 000 FCFA/an
+- Règle absolue : 2 000 FCFA par personne, toujours
 
-### Flux partenaires — Partiels documentés
-- Conventions partenaires : table existe, flux création/modification à implémenter
-- Tiers payant : table existe, flux création/modification à implémenter
-
-### Infrastructure
-- DATABASE_URL Render mis à jour (reset mot de passe Neon 25 avril 2026)
-- Passer Render au plan payant avant lancement
-- Acheter domaine bolamu.co
-- Activer Africa's Talking Live (en attente paiement)
-- Airtel Money : en attente credentials API
+### Système de collecte 4 canaux — DÉPLOYÉ
+- Canal 1 OVP Bancaire : bancarisés Congo — Ecobank Congo (en attente ouverture compte)
+- Canal 2 MoMo Annuel : non bancarisés — MTN MoMo actif + Airtel dès activation
+- Canal 3 Tiers Payant Familial : payeur bancaire, bénéficiaires illimités
+- Canal 4 SEPA Diaspora : congolais Europe — compte France NBA Gestion (en attente)
 
 ## COMPTES DE TEST
 - Patient : +242069735418
@@ -251,12 +262,28 @@ Mis à jour : 27 avril 2026
 - index.html — inscription patient complète avec NIU + CNI Cloudinary
 - localStorage keys standardisées par rôle
 - MCP Neon configuré dans Windsurf (mcp_config.json) — requêtes SQL directes depuis Cascade
+- Système de collecte 4 canaux — Migration 008 déployée
+  (tables ovp_documents, beneficiaires_familiaux, cron_logs)
+- Routes API collecte /api/v1/collecte/* — 11 routes (OVP, MoMo annuel, 
+  Familial, SEPA diaspora + routes admin)
+- Job cron abonnements — 02h00 Brazzaville (expiration MoMo annuel, 
+  rappels SMS J-30, suspension cascade bénéficiaires)
+- platform_config — modèle tarifaire définitif :
+  Essentiel 1 pers. 2000/24000, Standard 2 pers. 4000/48000, 
+  Premium 5 pers. 10000/120000 FCFA (mois/an)
+- platform_config — taux répartition partenaires :
+  clinique 30%, pharmacie 12.5%, laboratoire 7.5%, Bolamu 50%
 
 ### Partiel ⚠️
 - Africa's Talking (sandbox — activation Live en attente crédit)
 - Partner conventions (table existe, flux non validé)
 - Transactions tiers payant (table existe, flux non validé)
 - Workflows agents Windsurf — 9 agents créés dans .windsurf/workflows/
+- Compte MTN MoMo marchand — numéro actif depuis 28 avril 2026
+- Compte Airtel Money marchand — attendu 29 avril 2026
+- Compte Ecobank Congo NBA Gestion SARLU — en attente ouverture
+- Compte France Qonto/Revolut Business — en attente ouverture
+- rib_france_qonto dans platform_config — à renseigner dès ouverture compte
 
 ### Absent ❌
 - Notifications push
@@ -264,7 +291,7 @@ Mis à jour : 27 avril 2026
 - Airtel Money — en attente credentials API
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
-users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts (obsolète — non utilisée), bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts (obsolète — non utilisée), bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts, ovp_documents, beneficiaires_familiaux, cron_logs
 
 ## COLONNES GPS AJOUTÉES — 25 AVRIL 2026
 Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), longitude DECIMAL(10,7), address TEXT
@@ -323,3 +350,26 @@ Mis à jour : 25 avril 2026
 - `/notifications` — SMS Africa's Talking + notifications système
 - `/tests` — Génération tests automatisés flux critiques
 - `/api` — Cohérence endpoints backend ↔ appels frontend
+
+## ROUTES COLLECTE — /api/v1/collecte (Migration 008 — 28 avril 2026)
+
+### Canal 1 — OVP Bancaire
+- POST /ovp/initier — Génère PDF OVP pré-rempli + stocke Cloudinary
+- GET /ovp/statut — Statut OVP adhérent connecté
+
+### Canal 2 — MoMo Annuel  
+- POST /momo/initier — Initie paiement MoMo annuel (24000/48000/120000 FCFA)
+
+### Canal 3 — Tiers Payant Familial
+- POST /familial/ajouter — Ajoute bénéficiaire (bénéficiaires illimités)
+- DELETE /familial/retirer/:phone — Retire bénéficiaire
+- GET /familial/mes-beneficiaires — Liste bénéficiaires avec statut
+
+### Canal 4 — SEPA Diaspora
+- POST /sepa/initier — Crée dossier SEPA + retourne RIB France
+
+### Admin collecte (requireAdmin)
+- GET /admin/dashboard — Vue consolidée 4 canaux
+- PATCH /admin/ovp/valider/:phone — Valide OVP + active adhérent + bénéficiaires
+- PATCH /admin/sepa/valider/:phone — Valide SEPA + active adhérent + bénéficiaires
+- GET /admin/ovp/fichier-mensuel — Génère CSV Ecobank mensuel
