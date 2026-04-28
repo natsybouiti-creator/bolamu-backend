@@ -1,12 +1,6 @@
 const cron = require('node-cron');
 const db = require('../config/db');
-const AfricasTalking = require('africastalking');
-
-const at = AfricasTalking({
-  apiKey: process.env.AFRICASTALKING_API_KEY,
-  username: process.env.AFRICASTALKING_USERNAME
-});
-const sms = at.SMS;
+const { sendBolamuSms } = require('../services/sms.service');
 
 // Cron quotidien à 02h00 heure Brazzaville (UTC+1 = 01h00 UTC)
 const jobAbonnement = cron.schedule('0 1 * * *', async () => {
@@ -33,10 +27,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       try {
         const dateExp = new Date(row.expires_at)
           .toLocaleDateString('fr-FR');
-        await sms.send({
-          to: [row.patient_phone],
-          message: `Bonjour ${row.first_name}, votre abonnement Bolamu expire le ${dateExp}. Renouvelez pour 24 000 FCFA via MTN MoMo pour rester couvert. Bolamu - Votre santé, notre priorité.` 
-        });
+        await sendBolamuSms(row.patient_phone, `Bonjour ${row.first_name}, votre abonnement Bolamu expire le ${dateExp}. Renouvelez pour 24 000 FCFA via MTN MoMo pour rester couvert. Bolamu - Votre santé, notre priorité.`);
         nb_traites++;
         details.push(`SMS rappel envoyé : ${row.patient_phone}`);
       } catch (smsErr) {
@@ -81,10 +72,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
 
         // SMS notification
         try {
-          await sms.send({
-            to: [row.patient_phone],
-            message: `Bonjour ${row.first_name}, votre abonnement Bolamu a expiré. Renouvelez pour 24 000 FCFA via MTN MoMo pour retrouver l'accès à vos soins. Bolamu.` 
-          });
+          await sendBolamuSms(row.patient_phone, `Bonjour ${row.first_name}, votre abonnement Bolamu a expiré. Renouvelez pour 24 000 FCFA via MTN MoMo pour retrouver l'accès à vos soins. Bolamu.`);
         } catch (smsErr) {
           details.push(`Erreur SMS expiration ${row.patient_phone}`);
         }
