@@ -246,6 +246,7 @@ Mis à jour : 27 avril 2026
 - Prescriptions flux complet + Flux labo→patient complet
 - Système de notation patients — ratings, étoiles + adjectifs + panel admin
 - MTN MoMo — flux paiement corrigé (handlePaymentSuccess crée maintenant dans subscriptions + audit_log + validation montant contre platform_config)
+- Clearing mensuel partenaires — taux dynamiques depuis platform_config (partner_rate_clinique 30%, partner_rate_pharmacie 12.5%, partner_rate_laboratoire 7.5%)
 - Géolocalisation — GPS dans dashboards intervenants + carte Leaflet patient
 - index.html — inscription patient complète avec NIU + CNI Cloudinary
 - localStorage keys standardisées par rôle
