@@ -67,10 +67,10 @@ async function initiateTransaction(req, res) {
         // 5. INSERT dans transactions_tiers_payant
         const insertRes = await client.query(
             `INSERT INTO transactions_tiers_payant 
-                (partner_phone, patient_phone, convention_id, montant_total, montant_remise, montant_patient, status_new)
-             VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+                (partner_phone, patient_phone, convention_id, montant_total, montant_remise, montant_patient, discount_rate_used, status_new)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
              RETURNING id`,
-            [partnerPhone, patient_phone, convention.id, montant_total, montantRemise, montantPatient]
+            [partnerPhone, patient_phone, convention.id, montant_total, montantRemise, montantPatient, discountRate]
         );
 
         const transactionId = insertRes.rows[0].id;
