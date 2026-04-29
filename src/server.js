@@ -83,6 +83,8 @@ const payoutsRoutes      = require('./routes/payouts.routes');
 const bankTransferRoutes = require('./routes/bank-transfer.routes');
 const clearingRoutes     = require('./routes/clearing.routes');
 const collecteRoutes     = require('./routes/collecte.routes');
+const partnerConventionRoutes = require('./routes/partner-convention.routes');
+const tiersPayantRoutes  = require('./routes/tiers-payant.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -101,6 +103,9 @@ app.use('/api/v1/payouts',      payoutsRoutes);
 app.use('/api/v1/bank-transfer', bankTransferRoutes);
 app.use('/api/v1/clearing',      clearingRoutes);
 app.use('/api/v1/collecte',      collecteRoutes);
+app.use('/api/v1/admin/conventions', partnerConventionRoutes);
+app.use('/api/v1/tiers-payant',   tiersPayantRoutes);
+app.use('/api/v1/admin/tiers-payant', tiersPayantRoutes);
 app.use('/api/v1/articles',      require('./routes/articles.routes'));
 app.use('/api/v1/credits',       creditsRoutes);
 app.use('/api/v1/telemedicine',  telemedicineRoutes);
