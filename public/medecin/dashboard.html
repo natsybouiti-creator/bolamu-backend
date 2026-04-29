@@ -562,6 +562,7 @@ let consultationStartTime=null;
 
 function ouvrirValidation(rdvId,patientPhone,sessionCode,date,time){
   currentRdv={rdvId,patientPhone,sessionCode,date,time};
+  _currentPatientPhone = patientPhone;
   consultationStartTime=Date.now();
   fetch(`${API}/appointments/${rdvId}/open`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}}).catch(()=>{});
   afficherEtapeCode();
@@ -624,6 +625,64 @@ function afficherEtapeCompteRendu(){
     <div class="form-group">
       <label class="form-label">Prochaine étape (optionnel)</label>
       <textarea class="form-textarea" id="cr-prochaine" placeholder="Suivi recommandé, examens complémentaires..."></textarea>
+    </div>
+    <div class="form-group" style="background:var(--bleu-pale);padding:16px;border-radius:12px;border:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <label class="form-label" style="margin:0;">Constantes médicales du patient</label>
+        <button type="button" onclick="loadPatientConstantes()" style="background:var(--bleu-vif);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">🔄 Charger</button>
+      </div>
+      <div id="constantes-fields" style="display:none;flex-direction:column;gap:12px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Groupe sanguin</label>
+          <select id="edit-groupe-sanguin" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
+            <option value="">— Non renseigné —</option>
+            <option value="A+">A+</option><option value="A-">A-</option>
+            <option value="B+">B+</option><option value="B-">B-</option>
+            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+            <option value="O+">O+</option><option value="O-">O-</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Allergies</label>
+          <textarea id="edit-allergies" placeholder="Ex: Pénicilline, arachides..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;min-height:60px;resize:vertical;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Maladies chroniques</label>
+          <textarea id="edit-maladies" placeholder="Ex: Diabète type 2, hypertension..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;min-height:60px;resize:vertical;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Antécédents médicaux</label>
+          <textarea id="edit-antecedents" placeholder="Ex: Appendicectomie 2018..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;min-height:60px;resize:vertical;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Traitements en cours</label>
+          <textarea id="edit-traitements" placeholder="Ex: Metformine 500mg matin et soir..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;min-height:60px;resize:vertical;"></textarea>
+        </div>
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;">
+            <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Poids (kg)</label>
+            <input type="number" id="edit-poids" placeholder="Ex: 75" step="0.1" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Taille (cm)</label>
+            <input type="number" id="edit-taille" placeholder="Ex: 175" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Contact urgence — Nom</label>
+          <input type="text" id="edit-contact-nom" placeholder="Ex: Marie Bouiti" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Contact urgence — Téléphone</label>
+          <input type="tel" id="edit-contact-phone" placeholder="+242..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Lien de parenté</label>
+          <input type="text" id="edit-contact-lien" placeholder="Ex: Épouse, Père, Mère..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
+        </div>
+        <button type="button" onclick="savePatientConstantes()" style="background:var(--vert);color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600;">💾 Enregistrer les constantes</button>
+        <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;">⚠️ Ces informations seront visibles par le patient dans son dossier médical.</p>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="afficherEtapeCode()">← Retour</button>
@@ -926,6 +985,89 @@ async function savePosition() {
       document.getElementById('gps-status').textContent = `✅ Position enregistrée${address ? ' — ' + address : ''}`;
     }
   } catch(e) { alert('Erreur serveur'); }
+}
+
+// ─── CONSTANTES MÉDICALES PATIENT ───────────────────────────────────────
+let _currentPatientPhone = null;
+
+async function loadPatientConstantes() {
+  if (!_currentPatientPhone) {
+    alert('Numéro de téléphone du patient non disponible.');
+    return;
+  }
+  const token = localStorage.getItem('bolamu_doctor_token');
+  try {
+    const res = await fetch(`${API}/patients/constantes/${encodeURIComponent(_currentPatientPhone)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!data.success) {
+      alert('Erreur lors du chargement des constantes: ' + (data.message || 'Erreur inconnue'));
+      return;
+    }
+    const constantes = data.data;
+    document.getElementById('edit-groupe-sanguin').value = constantes.groupe_sanguin || '';
+    document.getElementById('edit-allergies').value = constantes.allergies || '';
+    document.getElementById('edit-maladies').value = constantes.maladies_chroniques || '';
+    document.getElementById('edit-antecedents').value = constantes.antecedents_medicaux || '';
+    document.getElementById('edit-traitements').value = constantes.traitements_en_cours || '';
+    document.getElementById('edit-poids').value = constantes.poids || '';
+    document.getElementById('edit-taille').value = constantes.taille || '';
+    document.getElementById('edit-contact-nom').value = constantes.contact_urgence_nom || '';
+    document.getElementById('edit-contact-phone').value = constantes.contact_urgence_phone || '';
+    document.getElementById('edit-contact-lien').value = constantes.contact_urgence_lien || '';
+    document.getElementById('constantes-fields').style.display = 'flex';
+  } catch(e) {
+    console.error('[loadPatientConstantes]', e);
+    alert('Erreur réseau.');
+  }
+}
+
+async function savePatientConstantes() {
+  if (!_currentPatientPhone) {
+    alert('Numéro de téléphone du patient non disponible.');
+    return;
+  }
+  const token = localStorage.getItem('bolamu_doctor_token');
+  const body = {
+    patient_phone: _currentPatientPhone
+  };
+  const gs = document.getElementById('edit-groupe-sanguin').value;
+  const al = document.getElementById('edit-allergies').value;
+  const ma = document.getElementById('edit-maladies').value;
+  const an = document.getElementById('edit-antecedents').value;
+  const tr = document.getElementById('edit-traitements').value;
+  const po = document.getElementById('edit-poids').value;
+  const ta = document.getElementById('edit-taille').value;
+  const cn = document.getElementById('edit-contact-nom').value;
+  const cp = document.getElementById('edit-contact-phone').value;
+  const cl = document.getElementById('edit-contact-lien').value;
+  if (gs) body.groupe_sanguin = gs;
+  if (al) body.allergies = al;
+  if (ma) body.maladies_chroniques = ma;
+  if (an) body.antecedents_medicaux = an;
+  if (tr) body.traitements_en_cours = tr;
+  if (po) body.poids = parseFloat(po);
+  if (ta) body.taille = parseInt(ta);
+  if (cn) body.contact_urgence_nom = cn;
+  if (cp) body.contact_urgence_phone = cp;
+  if (cl) body.contact_urgence_lien = cl;
+  try {
+    const res = await fetch(`${API}/doctors/constantes-patient`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ Constantes médicales enregistrées avec succès.');
+    } else {
+      alert('Erreur lors de la mise à jour: ' + (data.message || 'Erreur inconnue'));
+    }
+  } catch(e) {
+    console.error('[savePatientConstantes]', e);
+    alert('Erreur réseau.');
+  }
 }
 
 loadProfil();loadRdv();loadPosition();

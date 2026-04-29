@@ -85,12 +85,15 @@ const clearingRoutes     = require('./routes/clearing.routes');
 const collecteRoutes     = require('./routes/collecte.routes');
 const partnerConventionRoutes = require('./routes/partner-convention.routes');
 const tiersPayantRoutes  = require('./routes/tiers-payant.routes');
+const constantesMedicalesRoutes = require('./routes/constantes-medicales.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
 app.use('/api/v1/auth',          authRoutes);
 app.use('/api/v1/patients',      patientRoutes);
 app.use('/api/v1/doctors',       doctorRoutes);
+app.use('/api/v1/patients',      constantesMedicalesRoutes);
+app.use('/api/v1/doctors',       constantesMedicalesRoutes);
 app.use('/api/v1/appointments',  appointmentRoutes);
 app.use('/api/v1/payments',      paymentRoutes);
 app.use('/api/v1/payments/momo', momoRoutes);

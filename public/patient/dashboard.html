@@ -494,11 +494,19 @@
           <div class="info-row"><span class="info-label">Membre depuis</span><span class="info-value" id="dos-since">—</span></div>
         </div>
         <div class="info-card">
-          <h3>Constantes médicales</h3>
-          <div class="info-row"><span class="info-label">Groupe sanguin</span><span class="info-value">—</span></div>
-          <div class="info-row"><span class="info-label">Allergies</span><span class="info-value">—</span></div>
-          <div class="info-row"><span class="info-label">Maladies chroniques</span><span class="info-value">—</span></div>
-          <p style="font-size:12px;color:var(--texte-doux);margin-top:12px;line-height:1.6;">Complétées par votre médecin lors de la première consultation.</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">Constantes médicales</h3>
+            <button onclick="openEditConstantes()" style="background:var(--turquoise,#00C9A7);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">✏️ Modifier</button>
+          </div>
+          <div class="info-row"><span class="info-label">Groupe sanguin</span><span class="info-value" id="dos-groupe-sanguin">—</span></div>
+          <div class="info-row"><span class="info-label">Allergies</span><span class="info-value" id="dos-allergies">—</span></div>
+          <div class="info-row"><span class="info-label">Maladies chroniques</span><span class="info-value" id="dos-maladies">—</span></div>
+          <div class="info-row"><span class="info-label">Antécédents</span><span class="info-value" id="dos-antecedents">—</span></div>
+          <div class="info-row"><span class="info-label">Traitements en cours</span><span class="info-value" id="dos-traitements">—</span></div>
+          <div class="info-row"><span class="info-label">Poids</span><span class="info-value" id="dos-poids">—</span></div>
+          <div class="info-row"><span class="info-label">Taille</span><span class="info-value" id="dos-taille">—</span></div>
+          <div class="info-row"><span class="info-label">Contact urgence</span><span class="info-value" id="dos-contact-urgence">—</span></div>
+          <p style="font-size:11px;color:var(--texte-doux);margin-top:12px;" id="dos-constantes-source"></p>
         </div>
         <div class="info-card">
           <h3>Code QR d'urgence</h3>
@@ -734,7 +742,7 @@ function showTab(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='medecins')loadDoctors();
-  if(name==='dossier')loadTimeline();
+  if(name==='dossier'){loadTimeline();loadConstantes();}
   if(name==='carte')loadCarte();
   if(name==='credits')loadCredits();
   if(name==='profil')loadProfil();
@@ -745,7 +753,7 @@ function showTabMobile(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='medecins')loadDoctors();
-  if(name==='dossier')loadTimeline();
+  if(name==='dossier'){loadTimeline();loadConstantes();}
   if(name==='carte')loadCarte();
   if(name==='credits')loadCredits();
   if(name==='profil')loadProfil();
@@ -1512,6 +1520,101 @@ function closeJitsi() {
   const jaasDiv = document.getElementById('jaas-container');
   if (jaasDiv) jaasDiv.innerHTML = '';
 }
+
+// ─── CONSTANTES MÉDICALES ───────────────────────────────────────────────
+let _constantesData = {};
+
+async function loadConstantes() {
+    const phone = localStorage.getItem('bolamu_patient_phone');
+    if (!phone) return;
+    const token = localStorage.getItem('bolamu_patient_token');
+    try {
+        const res = await fetch(`/api/v1/patients/constantes/${encodeURIComponent(phone)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!data.success) return;
+        _constantesData = data.data;
+        document.getElementById('dos-groupe-sanguin').textContent = data.data.groupe_sanguin || '—';
+        document.getElementById('dos-allergies').textContent = data.data.allergies || '—';
+        document.getElementById('dos-maladies').textContent = data.data.maladies_chroniques || '—';
+        document.getElementById('dos-antecedents').textContent = data.data.antecedents_medicaux || '—';
+        document.getElementById('dos-traitements').textContent = data.data.traitements_en_cours || '—';
+        document.getElementById('dos-poids').textContent = data.data.poids ? `${data.data.poids} kg` : '—';
+        document.getElementById('dos-taille').textContent = data.data.taille ? `${data.data.taille} cm` : '—';
+        const contact = data.data.contact_urgence_nom
+            ? `${data.data.contact_urgence_nom} (${data.data.contact_urgence_lien || ''}) — ${data.data.contact_urgence_phone || ''}` 
+            : '—';
+        document.getElementById('dos-contact-urgence').textContent = contact;
+        if (data.data.constantes_updated_at) {
+            const src = data.data.constantes_remplies_par === 'medecin' ? 'Renseigné par votre médecin' : 'Renseigné par vous';
+            const date = new Date(data.data.constantes_updated_at).toLocaleDateString('fr-FR');
+            document.getElementById('dos-constantes-source').textContent = `${src} — ${date}`;
+        }
+    } catch (e) {
+        console.error('[loadConstantes]', e);
+    }
+}
+
+function openEditConstantes() {
+    document.getElementById('edit-groupe-sanguin').value = _constantesData.groupe_sanguin || '';
+    document.getElementById('edit-allergies').value = _constantesData.allergies || '';
+    document.getElementById('edit-maladies').value = _constantesData.maladies_chroniques || '';
+    document.getElementById('edit-antecedents').value = _constantesData.antecedents_medicaux || '';
+    document.getElementById('edit-traitements').value = _constantesData.traitements_en_cours || '';
+    document.getElementById('edit-poids').value = _constantesData.poids || '';
+    document.getElementById('edit-taille').value = _constantesData.taille || '';
+    document.getElementById('edit-contact-nom').value = _constantesData.contact_urgence_nom || '';
+    document.getElementById('edit-contact-phone').value = _constantesData.contact_urgence_phone || '';
+    document.getElementById('edit-contact-lien').value = _constantesData.contact_urgence_lien || '';
+    document.getElementById('modal-constantes').style.display = 'block';
+}
+
+function closeEditConstantes() {
+    document.getElementById('modal-constantes').style.display = 'none';
+}
+
+async function saveConstantes() {
+    const token = localStorage.getItem('bolamu_patient_token');
+    const body = {};
+    const gs = document.getElementById('edit-groupe-sanguin').value;
+    const al = document.getElementById('edit-allergies').value;
+    const ma = document.getElementById('edit-maladies').value;
+    const an = document.getElementById('edit-antecedents').value;
+    const tr = document.getElementById('edit-traitements').value;
+    const po = document.getElementById('edit-poids').value;
+    const ta = document.getElementById('edit-taille').value;
+    const cn = document.getElementById('edit-contact-nom').value;
+    const cp = document.getElementById('edit-contact-phone').value;
+    const cl = document.getElementById('edit-contact-lien').value;
+    if (gs) body.groupe_sanguin = gs;
+    if (al) body.allergies = al;
+    if (ma) body.maladies_chroniques = ma;
+    if (an) body.antecedents_medicaux = an;
+    if (tr) body.traitements_en_cours = tr;
+    if (po) body.poids = parseFloat(po);
+    if (ta) body.taille = parseInt(ta);
+    if (cn) body.contact_urgence_nom = cn;
+    if (cp) body.contact_urgence_phone = cp;
+    if (cl) body.contact_urgence_lien = cl;
+    try {
+        const res = await fetch('/api/v1/patients/constantes', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeEditConstantes();
+            await loadConstantes();
+        } else {
+            alert(data.message || 'Erreur lors de la mise à jour.');
+        }
+    } catch (e) {
+        console.error('[saveConstantes]', e);
+        alert('Erreur réseau.');
+    }
+}
 </script>
 
 <div id="modal-jitsi" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.95);z-index:500;flex-direction:column;">
@@ -1554,6 +1657,69 @@ function closeJitsi() {
     <div style="display:flex;gap:8px;">
       <button onclick="skipRating()" style="flex:1;padding:12px;background:var(--bg-input,#f0f0f0);color:var(--muted);border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Passer</button>
       <button onclick="submitRating()" style="flex:2;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Envoyer ⭐</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-constantes" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;overflow-y:auto;">
+  <div style="background:#fff;max-width:520px;margin:40px auto;border-radius:16px;padding:32px;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <h3 style="margin:0;color:#0A2463;">Mes constantes médicales</h3>
+      <button onclick="closeEditConstantes()" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#0A2463;">Groupe sanguin</label>
+        <select id="edit-groupe-sanguin" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;">
+          <option value="">— Non renseigné —</option>
+          <option value="A+">A+</option><option value="A-">A-</option>
+          <option value="B+">B+</option><option value="B-">B-</option>
+          <option value="AB+">AB+</option><option value="AB-">AB-</option>
+          <option value="O+">O+</option><option value="O-">O-</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#0A2463;">Allergies connues</label>
+        <textarea id="edit-allergies" placeholder="Ex: Pénicilline, arachides..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;min-height:70px;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#0A2463;">Maladies chroniques</label>
+        <textarea id="edit-maladies" placeholder="Ex: Diabète type 2, hypertension..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;min-height:70px;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#0A2463;">Antécédents médicaux</label>
+        <textarea id="edit-antecedents" placeholder="Ex: Appendicectomie 2018..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;min-height:70px;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#0A2463;">Traitements en cours</label>
+        <textarea id="edit-traitements" placeholder="Ex: Metformine 500mg matin et soir..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;min-height:70px;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;gap:16px;">
+        <div style="flex:1;">
+          <label style="font-size:13px;font-weight:600;color:#0A2463;">Poids (kg)</label>
+          <input type="number" id="edit-poids" placeholder="Ex: 75" step="0.1" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:13px;font-weight:600;color:#0A2463;">Taille (cm)</label>
+          <input type="number" id="edit-taille" placeholder="Ex: 175" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#0A2463;">Contact urgence — Nom</label>
+        <input type="text" id="edit-contact-nom" placeholder="Ex: Marie Bouiti" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;">
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#0A2463;">Contact urgence — Téléphone</label>
+        <input type="tel" id="edit-contact-phone" placeholder="+242..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;">
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#0A2463;">Lien de parenté</label>
+        <input type="text" id="edit-contact-lien" placeholder="Ex: Épouse, Père, Mère..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:4px;">
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:24px;justify-content:flex-end;">
+      <button onclick="closeEditConstantes()" style="padding:10px 20px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;">Annuler</button>
+      <button onclick="saveConstantes()" style="padding:10px 20px;background:#00C9A7;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Enregistrer</button>
     </div>
   </div>
 </div>
