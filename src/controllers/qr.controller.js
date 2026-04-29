@@ -66,7 +66,7 @@ const verifyQRToken = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Abonnement patient inactif ou expiré.' });
     }
     const convRes = await pool.query(
-      `SELECT discount_rate, monthly_cap_fcfa, partner_name FROM partner_conventions WHERE partner_phone = $1 AND status = 'actif'`,
+      `SELECT discount_rate, monthly_cap_fcfa, partner_name FROM partner_conventions WHERE partner_phone = $1 AND status_new = 'actif'`,
       [partnerPhone]
     );
     if (convRes.rows.length === 0) {
@@ -74,7 +74,7 @@ const verifyQRToken = async (req, res) => {
     }
     const convention = convRes.rows[0];
     const consumptionRes = await pool.query(
-      `SELECT COALESCE(SUM(bolamu_share_fcfa), 0) as total_consumed FROM transactions_tiers_payant WHERE patient_phone = $1 AND status IN ('validated', 'paid') AND created_at >= date_trunc('month', NOW())`,
+      `SELECT COALESCE(SUM(bolamu_share_fcfa), 0) as total_consumed FROM transactions_tiers_payant WHERE patient_phone = $1 AND status_new IN ('validated', 'paid') AND created_at >= date_trunc('month', NOW())`,
       [qrToken.user_phone]
     );
     const totalConsumed = parseInt(consumptionRes.rows[0].total_consumed);
