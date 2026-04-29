@@ -140,7 +140,7 @@ async function accessEmergencyDossier(req, res) {
     }
     const patientPhone = decoded.patient_phone;
     const userResult = await pool.query(
-      `SELECT full_name, phone, allergies, groupe_sanguin, traitement_en_cours FROM users WHERE phone = $1`,
+      `SELECT full_name, phone, allergies, groupe_sanguin, traitements_en_cours FROM users WHERE phone = $1`,
       [patientPhone]
     );
     if (userResult.rows.length === 0) {
@@ -169,7 +169,7 @@ async function accessEmergencyDossier(req, res) {
           phone: user.phone,
           allergies: user.allergies || 'Non renseigné',
           groupe_sanguin: user.groupe_sanguin || 'Non renseigné',
-          traitement_en_cours: user.traitement_en_cours || 'Non renseigné'
+          traitements_en_cours: user.traitements_en_cours || 'Non renseigné'
         },
         treating_doctor: treatingDoctor ? {
           full_name: treatingDoctor.full_name,
