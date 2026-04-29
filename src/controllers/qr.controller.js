@@ -74,7 +74,7 @@ const verifyQRToken = async (req, res) => {
     }
     const convention = convRes.rows[0];
     const consumptionRes = await pool.query(
-      `SELECT COALESCE(SUM(bolamu_share_fcfa), 0) as total_consumed FROM transactions_tiers_payant WHERE patient_phone = $1 AND status_new IN ('validated', 'paid') AND created_at >= date_trunc('month', NOW())`,
+      `SELECT COALESCE(SUM(montant_remise), 0) as total_consumed FROM transactions_tiers_payant WHERE patient_phone = $1 AND status_new IN ('validated', 'paid') AND created_at >= date_trunc('month', NOW())`,
       [qrToken.user_phone]
     );
     const totalConsumed = parseInt(consumptionRes.rows[0].total_consumed);
