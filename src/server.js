@@ -183,7 +183,7 @@ const createIndexes = async () => {
             pool.query(`CREATE INDEX IF NOT EXISTS idx_users_role_active   ON users(role, is_active)`),
             pool.query(`CREATE INDEX IF NOT EXISTS idx_users_phone_active  ON users(phone, is_active)`),
             pool.query(`CREATE INDEX IF NOT EXISTS idx_users_created_at    ON users(created_at DESC)`),
-            pool.query(`CREATE INDEX IF NOT EXISTS idx_appointments_phone  ON appointments(patient_phone, doctor_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_appointments_phone  ON appointments(patient_phone, doctor_id)`),
             pool.query(`CREATE INDEX IF NOT EXISTS idx_appointments_date   ON appointments(appointment_date DESC)`),
             pool.query(`CREATE INDEX IF NOT EXISTS idx_prescriptions_phone ON prescriptions(patient_phone, doctor_phone)`),
             pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_type      ON audit_log(event_type, created_at DESC)`),
@@ -195,18 +195,8 @@ const createIndexes = async () => {
     }
 };
 
-const addValidatedAtColumn = async () => {
-    try {
-        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS validated_at TIMESTAMPTZ`);
-        console.log('[SCHEMA] Colonne validated_at ajoutée avec succès');
-    } catch (e) {
-        console.warn('[SCHEMA] Avertissement validated_at:', e.message);
-    }
-};
-
 const initializeApp = async () => {
     await createIndexes();
-    await addValidatedAtColumn();
     
     // Log du schéma users pour debugging
     try {
