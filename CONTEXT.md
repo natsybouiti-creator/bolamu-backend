@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 28 avril 2026
+Mis à jour : 29 avril 2026
 
 ## VISION PRODUIT
 Plateforme de santé numérique au Congo-Brazzaville. Connecte patients, médecins, pharmacies et laboratoires. Developed by NBA Gestion SARLU.
@@ -31,6 +31,7 @@ Colonnes : id, phone, role, full_name, first_name, last_name, gender, age, city,
 - password_hash : mot de passe bcrypt — tous les comptes en ont un depuis migration 25 avril 2026
 - id_card_url : carte d'identité patient (Cloudinary)
 - niu : Numéro d'Identification Unique (optionnel, patients)
+- Constantes médicales (migration_014) : groupe_sanguin, allergies, maladies_chroniques, antecedents_medicaux, traitements_en_cours, poids, taille, contact_urgence_nom, contact_urgence_phone, contact_urgence_lien, constantes_remplies_par, constantes_updated_at
 - Soft delete uniquement — jamais de DELETE
 
 ### doctors
@@ -50,8 +51,8 @@ Colonnes : id, phone, user_id, name, director_name, agrement_number, rccm_number
 - status : enum('pending', 'verified', 'suspended')
 
 ### appointments
-Colonnes : id, patient_phone, doctor_phone, appointment_date, status, created_at
-- status : enum('en_attente', 'confirme', 'termine', 'annule')
+Colonnes : id, patient_phone, doctor_id, appointment_date, appointment_time, status, status_new, session_code, notes, created_at, updated_at, opened_at, validated_at, validation_delay_minutes, consultation_duration_minutes, doctor_lat, doctor_lng, report_submitted
+- doctor_id : référence à doctors.id (pas doctor_phone)
 
 ### prescriptions
 Colonnes : id, patient_phone, doctor_phone, status, created_at
@@ -60,8 +61,23 @@ Colonnes : id, patient_phone, doctor_phone, status, created_at
 Colonnes : id, event_type, actor_phone, target_table, target_id, payload, created_at
 - Insert-only — jamais de UPDATE ou DELETE
 
+### fraud_signals
+Colonnes : id, signal_type, severity, actor_phone, appointment_id, details, created_at, fraud_score
+- fraud_score : INTEGER 0-100 DEFAULT 0 (migration_013)
+
 ### Autres tables existantes
 payments, subscriptions, credits, fraud_signals, platform_config, articles, qr_tokens
+
+### platform_config — taux actuels
+- price_essentiel / price_annuel_essentiel : 2000 / 24000 FCFA
+- price_standard / price_annuel_standard : 4000 / 48000 FCFA
+- price_premium / price_annuel_premium : 10000 / 120000 FCFA
+- partner_rate_bolamu : 0.50
+- partner_rate_clinique : 0.30
+- partner_rate_pharmacie : 0.125
+- partner_rate_laboratoire : 0.075
+- discount_rate_pharmacie : 0.15 (réduction accordée aux adhérents)
+- discount_rate_laboratoire : 0.10 (réduction accordée aux adhérents)
 
 ### ENUMs PostgreSQL
 - doctor_status : {pending, verified, suspended}
@@ -77,10 +93,10 @@ payments, subscriptions, credits, fraud_signals, platform_config, articles, qr_t
 - company_contract_status : {draft, signed, active, terminated}
 - company_employee_status : {pending, active, suspended}
 - partner_payout_status : {pending, paid, failed}
-- partner_zone_type : {doctor, pharmacie, laboratoire}
+- partner_zone_type : {clinique, pharmacie, laboratoire}
 
 ### Tables manquantes (roadmap)
-health_records, cgu_pages, notifications
+notifications
 
 ## AUTHENTIFICATION — SYSTÈME ACTUEL (depuis 25 avril 2026)
 - Connexion : téléphone + mot de passe permanent (bcrypt) — plus d'OTP à chaque connexion
@@ -233,6 +249,12 @@ Mis à jour : 28 avril 2026
 - Laboratoire : +242068582563
 - Admin : +242060000099
 
+### Partenaires de test avec conventions actives
+- Pharmacie +242066226116 (mot de passe : WR383LMW) — convention active, discount 15%
+- Labo +242068582563 — convention active, discount 10%
+- Labo +242063125478 — convention active, discount 10%
+- partner_zones : Plateau/pharmacie, Plateau/labo, Brazzaville/labo
+
 ## ÉTAT ACTUEL — 25 AVRIL 2026
 
 ### Fonctionnel ✅
@@ -252,6 +274,7 @@ Mis à jour : 28 avril 2026
 - Admin dual-role (admin + content_admin)
 - CGU + Confidentialité + Page urgence
 - Dossier médical — consultation_reports + dossier_access_log + routes
+- Constantes médicales patient ✅ — API complète (get/update patient + update médecin) + dashboard patient modal d'édition + dashboard médecin intégré
 - Timeline patient + Rapports de consultation médecin
 - Credits Bolamu + Articles / blog santé + Admin content editor
 - Prescriptions flux complet + Flux labo→patient complet
@@ -276,8 +299,8 @@ Mis à jour : 28 avril 2026
 
 ### Partiel ⚠️
 - Africa's Talking (sandbox — activation Live en attente crédit)
-- Partner conventions (table existe, flux non validé)
-- Transactions tiers payant (table existe, flux non validé)
+- Partner conventions ✅ IMPLÉMENTÉ — src/controllers/partner-convention.controller.js — routes POST/GET/PATCH /api/v1/admin/conventions — 3 conventions actives en base
+- Transactions tiers payant ✅ IMPLÉMENTÉ ET TESTÉ EN PRODUCTION — src/controllers/tiers-payant.controller.js — routes /api/v1/tiers-payant et /api/v1/admin/tiers-payant — test validé : 10 000 FCFA → remise 1 500 FCFA → patient paie 8 500 FCFA
 - Workflows agents Windsurf — 9 agents créés dans .windsurf/workflows/
 - Compte MTN MoMo marchand — numéro actif depuis 28 avril 2026
 - Compte Airtel Money marchand — attendu 29 avril 2026
@@ -373,3 +396,25 @@ Mis à jour : 25 avril 2026
 - PATCH /admin/ovp/valider/:phone — Valide OVP + active adhérent + bénéficiaires
 - PATCH /admin/sepa/valider/:phone — Valide SEPA + active adhérent + bénéficiaires
 - GET /admin/ovp/fichier-mensuel — Génère CSV Ecobank mensuel
+
+## MIGRATIONS — SESSION 29 AVRIL 2026
+- migration_009 : ENUM partner_zone_type 'doctor'→'clinique' + colonne status_new dans qr.controller + bolamu_share_fcfa (ajouté puis supprimé)
+- migration_010 : suppression bolamu_share_fcfa de transactions_tiers_payant
+- migration_011 : ajout montant_total, montant_remise, montant_patient dans transactions_tiers_payant
+- migration_012 : nettoyage transactions_tiers_payant — suppression colonnes hors modèle Health Streaming (status, source_account_*, destination_account_*, paid_at, audit_ref) — table ramenée à 16 colonnes
+- migration_013 : ajout fraud_score INTEGER 0-100 DEFAULT 0 dans fraud_signals
+- migration_014 : ajout 12 colonnes constantes médicales dans users
+- migration_015 : suppression doublon traitement_en_cours (colonne officielle : traitements_en_cours)
+
+## MODÈLE HEALTH STREAMING — RÈGLE ABSOLUE
+- Bolamu verse un forfait mensuel aux partenaires (taux depuis platform_config × adhérents dans leur zone)
+- En échange : pharmacies et laboratoires accordent une réduction sur facture adhérents (discount_rate depuis platform_config)
+- AUCUN remboursement en temps réel — traçabilité pure uniquement
+- Les médecins/cliniques ne font PAS de tiers payant — couverts uniquement par le forfait mensuel
+
+## LOGS RENDER — ÉTAT PROPRE (29 avril 2026)
+- Index appointments : corrigé doctor_phone → doctor_id
+- Migration boot addValidatedAtColumn : supprimée de server.js
+- fraud_score : colonne créée en base (migration_013)
+- Fichiers temporaires racine : 27 fichiers supprimés (commit 6f98616)
+- Aucun avertissement au démarrage
