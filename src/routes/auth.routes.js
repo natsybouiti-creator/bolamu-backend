@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const { normalizePhone } = require('../utils/phone');
 const { strictLimiter } = require('../middleware/rateLimiter');
 
@@ -98,8 +99,6 @@ router.post('/admin-login', async (req, res) => {
         );
 
         // Refresh token (7 jours)
-        const crypto = require('crypto');
-        const bcrypt = require('bcrypt');
         const refreshToken = crypto.randomBytes(64).toString('hex');
         const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
