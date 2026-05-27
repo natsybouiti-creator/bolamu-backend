@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const { sendBolamuSms } = require('../services/sms.service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
-const ACCESS_TOKEN_EXPIRES = '15m';
+const ACCESS_TOKEN_EXPIRES = '7d';
 const REFRESH_TOKEN_EXPIRES = '7d';
 
 function generatePassword(length = 8) {
