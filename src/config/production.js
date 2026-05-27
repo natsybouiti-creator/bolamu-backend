@@ -19,6 +19,7 @@ const helmetConfig = helmet({
             frameSrc: ["'none'"]
         }
     },
+    scriptSrcAttr: false,
     hsts: {
         maxAge: 31536000,
         includeSubDomains: true,
