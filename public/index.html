@@ -415,7 +415,7 @@ footer{background:var(--bleu);color:white;padding:60px 40px;}
   <div class="section-tag">Santé & Prévention</div>
   <h2 class="section-title">Informez-vous,<br>protégez-vous</h2>
   <p class="section-subtitle">Le meilleur système de santé est celui où les gens ne tombent pas malades. Bolamu investit dans la prévention pour vous.</p>
-  <div class="articles-filters" id="articles-filters-bar"><button class="art-filter active" onclick="filterArticles('tous',this)">Tous les articles</button></div>
+  <div class="articles-filters" id="articles-filters-bar"><button class="art-filter active" id="art-filter-tous" data-action="filter-articles" data-category="tous">Tous les articles</button></div>
   <div class="articles-grid" id="articles-grid"></div>
   <div class="articles-cta"><button class="btn-articles-more" id="btn-show-more" style="display:none;">Voir tous les articles →</button></div>
 </section>
@@ -455,10 +455,10 @@ footer{background:var(--bleu);color:white;padding:60px 40px;}
     <h3>Connexion / Inscription</h3>
     <p>Patients, Médecins, Pharmacies, Laboratoires</p>
     <div class="user-types">
-      <button class="user-type-btn active" onclick="selectType('patient',this)"><span class="icon">👤</span>Patient</button>
-      <button class="user-type-btn" onclick="selectType('medecin',this)"><span class="icon">👨‍⚕️</span>Médecin</button>
-      <button class="user-type-btn" onclick="selectType('pharmacie',this)"><span class="icon">💊</span>Pharmacie</button>
-      <button class="user-type-btn" onclick="selectType('laboratoire',this)"><span class="icon">🔬</span>Laboratoire</button>
+      <button class="user-type-btn active" id="user-type-patient" data-action="select-type" data-type="patient"><span class="icon">👤</span>Patient</button>
+      <button class="user-type-btn" id="user-type-medecin" data-action="select-type" data-type="medecin"><span class="icon">👨‍⚕️</span>Médecin</button>
+      <button class="user-type-btn" id="user-type-pharmacie" data-action="select-type" data-type="pharmacie"><span class="icon">💊</span>Pharmacie</button>
+      <button class="user-type-btn" id="user-type-laboratoire" data-action="select-type" data-type="laboratoire"><span class="icon">🔬</span>Laboratoire</button>
     </div>
     <div id="step1">
       <div class="patient-fields show" id="patient-fields">
@@ -478,7 +478,7 @@ footer{background:var(--bleu);color:white;padding:60px 40px;}
         </div>
         <div class="form-field">
           <label>Carte d'identité <span style="color:#ef4444">*</span></label>
-          <div id="id-card-zone" onclick="document.getElementById('id-card-input').click()" style="border:2px dashed var(--border,#e2e8f0);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:var(--bg-card,#f8fafc);transition:all 0.2s;">
+          <div id="id-card-zone" data-action="trigger-click" data-target-id="id-card-input" style="border:2px dashed var(--border,#e2e8f0);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:var(--bg-card,#f8fafc);transition:all 0.2s;">
             <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf" data-ononchange="uploadIdCardIndex" data-self="true">
             <div id="id-card-icon" style="font-size:28px;margin-bottom:6px;">🪪</div>
             <div id="id-card-text" style="font-size:13px;color:#64748b;">Cliquez pour uploader votre carte d'identité<br><span style="font-size:11px;">CNI, passeport ou titre de séjour (PDF ou image)</span></div>
@@ -491,11 +491,11 @@ footer{background:var(--bleu);color:white;padding:60px 40px;}
     <div class="otp-section" id="step2">
       <label>🔑 Code reçu par SMS</label>
       <div class="otp-inputs">
-        <input type="number" maxlength="1" id="d1" oninput="moveNext(this,'d2')">
-        <input type="number" maxlength="1" id="d2" oninput="moveNext(this,'d3')">
-        <input type="number" maxlength="1" id="d3" oninput="moveNext(this,'d4')">
-        <input type="number" maxlength="1" id="d4" oninput="moveNext(this,'d5')">
-        <input type="number" maxlength="1" id="d5" oninput="moveNext(this,'d6')">
+        <input type="number" maxlength="1" id="d1" data-action="otp-next" data-next-id="d2">
+        <input type="number" maxlength="1" id="d2" data-action="otp-next" data-next-id="d3">
+        <input type="number" maxlength="1" id="d3" data-action="otp-next" data-next-id="d4">
+        <input type="number" maxlength="1" id="d4" data-action="otp-next" data-next-id="d5">
+        <input type="number" maxlength="1" id="d5" data-action="otp-next" data-next-id="d6">
         <input type="number" maxlength="1" id="d6" data-ononinput="verifyIfComplete">
       </div>
       <button class="btn-login" data-ononclick="verifyOtp">Confirmer ✓</button>
@@ -760,8 +760,8 @@ async function loadArticlesFromAPI(category){
     const bar = document.getElementById('articles-filters-bar');
     if(bar && cats.length){
       const catEmojis = {paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️',sante:'❤️',seniors:'👴',contraception:'🩺',hygiene:'🧼'};
-      bar.innerHTML = `<button class="art-filter active" onclick="filterArticles('tous',this)">Tous les articles</button>`
-        + cats.map(c=>`<button class="art-filter" onclick="filterArticles('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
+      bar.innerHTML = `<button class="art-filter active" data-action="filter-articles" data-category="tous">Tous les articles</button>`
+        + cats.map(c=>`<button class="art-filter" data-action="filter-articles" data-category="${c}">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
     }
     renderArticles(category||'tous', false);
   } catch(e){
@@ -1018,6 +1018,76 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 loadAllBlocks();
 loadArticlesFromAPI('tous');
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    var action = el.getAttribute('data-action');
+    if (action === 'filter-articles') { filterArticles(el.getAttribute('data-category'), el); return; }
+    if (action === 'select-type') { selectType(el.getAttribute('data-type'), el); return; }
+    if (action === 'trigger-click') {
+      var target = document.getElementById(el.getAttribute('data-target-id'));
+      if (target) target.click();
+      return;
+    }
+  });
+  document.addEventListener('input', function(e) {
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    if (el.getAttribute('data-action') === 'otp-next') moveNext(el, el.getAttribute('data-next-id'));
+  });
+});
+</script>
+
+<script>
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-onclick]');
+      if (!btn) return;
+      var fn = btn.getAttribute('data-onclick');
+      var arg = btn.getAttribute('data-arg');
+      if (typeof window[fn] === 'function') {
+        if (arg !== null) {
+          window[fn](arg);
+        } else {
+          window[fn]();
+        }
+      }
+    });
+
+    document.addEventListener('change', function(e) {
+      var el = e.target.closest('[data-onchange]');
+      if (!el) return;
+      var fn = el.getAttribute('data-onchange');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('input', function(e) {
+      var el = e.target.closest('[data-oninput]');
+      if (!el) return;
+      var fn = el.getAttribute('data-oninput');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('submit', function(e) {
+      var form = e.target.closest('[data-onsubmit]');
+      if (!form) return;
+      e.preventDefault();
+      var fn = form.getAttribute('data-onsubmit');
+      if (typeof window[fn] === 'function') window[fn](e);
+    });
+
+    // Attacher les data-on* directs aux éléments
+    document.querySelectorAll('[data-onclick]').forEach(function(el) {
+      if (el.tagName !== 'BUTTON' && el.tagName !== 'A') return;
+    });
+  });
+})();
+</script>
+
 
 <script>
 (function() {
