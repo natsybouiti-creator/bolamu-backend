@@ -105,6 +105,7 @@ const couponRoutes        = require('./routes/coupon.routes');
 const notificationRoutes  = require('./routes/notification.routes');
 const secretariatRoutes   = require('./routes/secretariat.routes');
 const preRdvRoutes        = require('./routes/preRdv.routes');
+const smartflowRoutes     = require('./routes/smartflow.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -144,6 +145,7 @@ app.use('/api/v1',              couponRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/secretariat',  secretariatRoutes);
 app.use('/api/v1/pre-rdv',       preRdvRoutes);
+app.use('/api/v1',              smartflowRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
