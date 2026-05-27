@@ -750,11 +750,12 @@ function toggleSB(){document.getElementById('sidebar').classList.toggle('open');
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{if(window.innerWidth<=760)closeSB();}));
 
-function go(name,btn){
+function go(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
-  if(btn)btn.classList.add('active');
+  const btn = document.getElementById('nav-'+name);
+  if(btn) btn.classList.add('active');
   document.getElementById('panel-title').textContent=TITLES[name]||name;
   loadPanel(name);
 }
@@ -1706,6 +1707,91 @@ loadOverview();
     document.querySelectorAll('[data-onclick]').forEach(function(el) {
       if (el.tagName !== 'BUTTON' && el.tagName !== 'A') return;
     });
+  });
+})();
+</script>
+
+<script>
+// Bloc autonome pour réattacher tous les handlers manquants
+(function() {
+  // Attacher les boutons nav avec data-panel
+  document.querySelectorAll('[data-panel]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const panel = this.getAttribute('data-panel');
+      go(panel);
+    });
+  });
+
+  // Attacher les inputs de recherche
+  const searchDoctors = document.getElementById('search-doctors');
+  if (searchDoctors) {
+    searchDoctors.addEventListener('input', function() {
+      filterTbl('doctors-tbl', this.value);
+    });
+  }
+
+  const searchPharma = document.getElementById('search-pharma');
+  if (searchPharma) {
+    searchPharma.addEventListener('input', function() {
+      filterTbl('pharma-tbl', this.value);
+    });
+  }
+
+  const searchLabo = document.getElementById('search-labo');
+  if (searchLabo) {
+    searchLabo.addEventListener('input', function() {
+      filterTbl('labo-tbl', this.value);
+    });
+  }
+
+  const searchPatients = document.getElementById('search-patients');
+  if (searchPatients) {
+    searchPatients.addEventListener('input', function() {
+      filterTbl('patients-tbl', this.value);
+    });
+  }
+
+  const searchAudit = document.getElementById('search-audit');
+  if (searchAudit) {
+    searchAudit.addEventListener('input', function() {
+      filterTbl('audit-tbl', this.value);
+    });
+  }
+
+  // Attacher les selects de filtre
+  const filterDoctors = document.getElementById('filter-doctors');
+  if (filterDoctors) {
+    filterDoctors.addEventListener('change', function() {
+      loadDoctors(this.value);
+    });
+  }
+
+  const filterAudit = document.getElementById('filter-audit');
+  if (filterAudit) {
+    filterAudit.addEventListener('change', function() {
+      loadAudit(this.value);
+    });
+  }
+
+  // Attacher les modals
+  const modal = document.getElementById('modal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+  }
+
+  const profileModal = document.getElementById('profile-modal');
+  if (profileModal) {
+    profileModal.addEventListener('click', function(e) {
+      if (e.target === this) closeProfileModal();
+    });
+  }
+
+  // Attacher le bouton retry avec data-action="load-overview"
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-action="load-overview"]');
+    if (btn) loadOverview();
   });
 })();
 </script>
