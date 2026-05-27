@@ -202,7 +202,7 @@
     </div>
     <div style="display:flex;gap:10px;align-items:center;">
       <div style="background:rgba(255,255,255,0.1);color:white;padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;" id="jitsi-code-display">Code: —</div>
-      <button onclick="closeJitsi()" style="background:rgba(231,76,60,0.8);color:white;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✕ Fermer</button>
+      <button id="btn-close-jitsi" style="background:rgba(231,76,60,0.8);color:white;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✕ Fermer</button>
     </div>
   </div>
   <div style="flex:1;position:relative;">
@@ -214,10 +214,10 @@
     </div>
   </div>
   <div id="jitsi-post-actions" style="display:none;background:rgba(255,255,255,0.05);padding:16px 24px;border-top:1px solid rgba(255,255,255,0.1);gap:12px;justify-content:center;flex-wrap:wrap;">
-    <button onclick="closeJitsiAndValidate()" style="padding:12px 28px;background:linear-gradient(135deg,#2E86FF,#00C9A7);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:48px;">
+    <button id="btn-jitsi-validate" style="padding:12px 28px;background:linear-gradient(135deg,#2E86FF,#00C9A7);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:48px;">
       ✅ Terminer et valider la consultation
     </button>
-    <button onclick="closeJitsi()" style="padding:12px 20px;background:transparent;color:rgba(255,255,255,0.7);border:2px solid rgba(255,255,255,0.2);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:48px;">
+    <button id="btn-jitsi-close" style="padding:12px 20px;background:transparent;color:rgba(255,255,255,0.7);border:2px solid rgba(255,255,255,0.2);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:48px;">
       Fermer sans valider
     </button>
   </div>
@@ -231,33 +231,33 @@
   <div class="topbar-right">
     <span class="role-pill">🩺 Médecin</span>
     <span class="phone-pill" id="topbar-phone">—</span>
-    <button class="logout-btn" onclick="logout()">Déconnexion</button>
+    <button class="logout-btn" id="btn-logout">Déconnexion</button>
   </div>
 </div>
 
 <div class="tabs-bar">
-  <button class="tab active" onclick="showTab('accueil',this)">🏠 Tableau de bord</button>
-  <button class="tab" onclick="showTab('rdv',this)">📅 Mes RDV</button>
-  <button class="tab" onclick="showTab('patients',this)">👥 Mes patients</button>
-  <button class="tab" onclick="showTab('telemedicine',this)">📹 Téléconsultation</button>
-  <button class="tab" onclick="showTab('profil',this)">👤 Mon profil</button>
+  <button class="tab active" id="tab-accueil" data-tab="accueil">🏠 Tableau de bord</button>
+  <button class="tab" id="tab-rdv" data-tab="rdv">📅 Mes RDV</button>
+  <button class="tab" id="tab-patients" data-tab="patients">👥 Mes patients</button>
+  <button class="tab" id="tab-telemedicine" data-tab="telemedicine">📹 Téléconsultation</button>
+  <button class="tab" id="tab-profil" data-tab="profil">👤 Mon profil</button>
 </div>
 
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <button class="bnav-item active" onclick="showTabMobile('accueil',this)">
+    <button class="bnav-item active" id="bnav-accueil" data-tab="accueil">
       <span class="bnav-icon">🏠</span><span class="bnav-label">Accueil</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('rdv',this)">
+    <button class="bnav-item" id="bnav-rdv" data-tab="rdv">
       <span class="bnav-icon">📅</span><span class="bnav-label">RDV</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('telemedicine',this)">
+    <button class="bnav-item" id="bnav-telemedicine" data-tab="telemedicine">
       <span class="bnav-icon">📹</span><span class="bnav-label">Vidéo</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('patients',this)">
+    <button class="bnav-item" id="bnav-patients" data-tab="patients">
       <span class="bnav-icon">👥</span><span class="bnav-label">Patients</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('profil',this)">
+    <button class="bnav-item" id="bnav-profil" data-tab="profil">
       <span class="bnav-icon">👤</span><span class="bnav-label">Profil</span>
     </button>
   </div>
@@ -336,7 +336,7 @@
           <div class="detail-row"><span class="info-label">Connexion</span><span class="info-value">Mot de passe permanent</span></div>
           <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">✅ AES-256</span></div>
           <div style="margin-top:16px;" id="pwd-form-container">
-            <button onclick="document.getElementById('pwd-form-container').innerHTML=pwdFormHtml()" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
+            <button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
               🔑 Changer mon mot de passe
             </button>
           </div>
@@ -346,8 +346,8 @@
           <div id="gps-status" style="font-size:13px;color:var(--texte-doux);margin-bottom:10px;">Non définie</div>
           <input type="text" id="gps-address" placeholder="Adresse (ex: Avenue Foch, Brazzaville)" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--bg-input,#f8fafc);color:var(--text);margin-bottom:10px;box-sizing:border-box;">
           <div style="display:flex;gap:8px;">
-            <button onclick="detectPosition()" style="flex:1;padding:10px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">📡 Détecter ma position</button>
-            <button onclick="savePosition()" style="flex:1;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
+            <button id="btn-detect-pos" style="flex:1;padding:10px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">📡 Détecter ma position</button>
+            <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
           </div>
         </div>
       </div>
@@ -470,8 +470,8 @@ function pwdFormHtml(){
     <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
     <input id="pwd-confirm" type="password" placeholder="Confirmer le nouveau mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
     <div style="display:flex;gap:8px;">
-      <button onclick="submitChangePwd()" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
-      <button onclick="document.getElementById('pwd-form-container').innerHTML='<button onclick=\\'document.getElementById(\\'pwd-form-container\\').innerHTML=pwdFormHtml()\\'  style=\\'padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;\\'>🔑 Changer mon mot de passe</button>'" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;">Annuler</button>
+      <button data-action="submit-pwd" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
+      <button data-action="cancel-pwd" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;">Annuler</button>
     </div>
   </div>`;
 }
@@ -492,7 +492,7 @@ async function submitChangePwd(){
     const data = await res.json();
     if (data.success) {
       showToast('Mot de passe modifié ✅','success');
-      document.getElementById('pwd-form-container').innerHTML='<button onclick="document.getElementById(\'pwd-form-container\').innerHTML=pwdFormHtml()" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
     } else {
       showToast(data.message || 'Erreur','error');
     }
@@ -548,10 +548,10 @@ function renderRdvList(rdvs,containerId){
       <div class="rdv-meta"><span>📅 <strong>${formatDate(dateRdv)}</strong></span><span>⏰ <strong>${heureRdv}</strong></span></div>
       <div class="rdv-actions">
         ${peutValider?`
-          <button class="btn-valider" onclick="ouvrirValidation('${r.id}','${r.patient_phone}','${r.session_code}','${dateRdv}','${heureRdv}')">✅ Valider</button>
-          <button class="btn-tele" onclick="demarrerTeleconsultation('${r.id}','${r.session_code}','${r.patient_phone}')">📹 Téléconsultation</button>
-          <button class="btn-labo" onclick="ouvrirModalLabo('${r.id}','${r.patient_phone}')">🔬 Prescrire labo</button>`:''}
-        ${termine?`<button class="btn-labo" onclick="ouvrirModalLabo('${r.id}','${r.patient_phone}')">🔬 Prescrire labo</button>`:''}
+          <button class="btn-valider" data-action="ouvrir-validation" data-id="${r.id}" data-patient="${r.patient_phone}" data-session="${r.session_code}" data-date="${dateRdv}" data-heure="${heureRdv}">✅ Valider</button>
+          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}">📹 Téléconsultation</button>
+          <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}">🔬 Prescrire labo</button>`:''}
+        ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}">🔬 Prescrire labo</button>`:''}
       </div>
     </div>`;
   }).join('')}</div>`;
@@ -577,22 +577,22 @@ function afficherEtapeCode(){
     <div class="modal-section">
       <span class="modal-label">Code session patient</span>
       <div class="code-boxes">
-        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c1" oninput="nextBox(this,'c2')" onkeydown="prevBox(event,this,null)">
-        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c2" oninput="nextBox(this,'c3')" onkeydown="prevBox(event,this,'c1')">
-        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c3" oninput="nextBox(this,'c4')" onkeydown="prevBox(event,this,'c2')">
-        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c4" oninput="nextBox(this,null)" onkeydown="prevBox(event,this,'c3')">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c1" data-next="c2" data-prev="">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c2" data-next="c3" data-prev="c1">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c3" data-next="c4" data-prev="c2">
+        <input class="code-box" type="text" inputmode="numeric" maxlength="1" id="c4" data-next="" data-prev="c3">
       </div>
       <div class="code-error" id="code-error">Code incorrect — vérifiez avec le patient.</div>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="fermerModal()">Annuler</button>
-      <button class="btn-primary" onclick="verifierCode()">Vérifier →</button>
+      <button class="btn-cancel" data-action="fermer-modal">Annuler</button>
+      <button class="btn-primary" data-action="verifier-code">Vérifier →</button>
     </div>`;
   setTimeout(()=>document.getElementById('c1').focus(),100);
 }
 
-function nextBox(el,nextId){el.value=el.value.replace(/\D/g,'');if(el.value&&nextId)document.getElementById(nextId).focus();}
-function prevBox(e,el,prevId){if(e.key==='Backspace'&&!el.value&&prevId)document.getElementById(prevId).focus();}
+function nextBox(el){el.value=el.value.replace(/\D/g,'');const nextId=el.dataset.next;if(el.value&&nextId)document.getElementById(nextId).focus();}
+function prevBox(e,el){if(e.key==='Backspace'&&!el.value){const prevId=el.dataset.prev;if(prevId)document.getElementById(prevId).focus();}}
 
 function verifierCode(){
   const code=['c1','c2','c3','c4'].map(id=>document.getElementById(id).value).join('');
@@ -629,7 +629,7 @@ function afficherEtapeCompteRendu(){
     <div class="form-group" style="background:var(--bleu-pale);padding:16px;border-radius:12px;border:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <label class="form-label" style="margin:0;">Constantes médicales du patient</label>
-        <button type="button" onclick="loadPatientConstantes()" style="background:var(--bleu-vif);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">🔄 Charger</button>
+        <button type="button" data-action="load-constantes" style="background:var(--bleu-vif);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">🔄 Charger</button>
       </div>
       <div id="constantes-fields" style="display:none;flex-direction:column;gap:12px;">
         <div>
@@ -680,13 +680,13 @@ function afficherEtapeCompteRendu(){
           <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Lien de parenté</label>
           <input type="text" id="edit-contact-lien" placeholder="Ex: Épouse, Père, Mère..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
         </div>
-        <button type="button" onclick="savePatientConstantes()" style="background:var(--vert);color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600;">💾 Enregistrer les constantes</button>
+        <button type="button" data-action="save-constantes" style="background:var(--vert);color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600;">💾 Enregistrer les constantes</button>
         <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;">⚠️ Ces informations seront visibles par le patient dans son dossier médical.</p>
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="afficherEtapeCode()">← Retour</button>
-      <button class="btn-primary" id="btn-cr-submit" onclick="soumettreCompteRendu()">Suivant → Ordonnance</button>
+      <button class="btn-cancel" data-action="retour-code">← Retour</button>
+      <button class="btn-primary" id="btn-cr-submit" data-action="soumettre-cr">Suivant → Ordonnance</button>
     </div>`;
 }
 
@@ -728,8 +728,8 @@ function afficherEtapeOrdonnance(){
       <input class="form-input" id="ord-instructions" placeholder="Ex : Prendre après les repas…">
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="afficherEtapeCompteRendu()">← Retour</button>
-      <button class="btn-primary" id="btn-confirmer" onclick="confirmerValidation()">✅ Valider et créer l'ordonnance</button>
+      <button class="btn-cancel" data-action="retour-cr">← Retour</button>
+      <button class="btn-primary" id="btn-confirmer" data-action="confirmer-validation">✅ Valider et créer l'ordonnance</button>
     </div>`;
 }
 
@@ -760,7 +760,7 @@ async function confirmerValidation(){
         <div class="success-icon">✅</div>
         <div class="success-title">Consultation validée !</div>
         <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Fraunces',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong></div>
-        <button class="btn-primary" onclick="fermerModal();loadRdv()">Fermer</button>
+        <button class="btn-primary" data-action="fermer-modal-load">Fermer</button>
       </div>`;
   }catch(e){btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
 }
@@ -790,7 +790,7 @@ async function loadTeleRdv(){
         </div>
         <div class="rdv-meta"><span>📅 <strong>${formatDate(dateRdv)}</strong></span><span>⏰ <strong>${heureRdv}</strong></span></div>
         <div class="rdv-actions">
-          <button class="btn-tele" onclick="demarrerTeleconsultation('${r.id}','${r.session_code}','${r.patient_phone}')">📹 ${isEnCours?'Reprendre la session':'Démarrer la téléconsultation'}</button>
+          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}">📹 ${isEnCours?'Reprendre la session':'Démarrer la téléconsultation'}</button>
         </div>
       </div>`;
     }).join('')}</div>`;
@@ -880,8 +880,8 @@ function ouvrirModalLabo(rdvId,patientPhone){
         <input class="form-input" id="labo-instructions" placeholder="Ex : À jeun depuis 12h...">
       </div>
       <div class="modal-actions" style="display:flex;gap:12px;margin-top:24px;">
-        <button class="btn-cancel" onclick="fermerModalLabo()">Annuler</button>
-        <button class="btn-primary" id="btn-labo-envoyer" onclick="envoyerPrescriptionLabo('${rdvId}','${patientPhone}')">🔬 Envoyer</button>
+        <button class="btn-cancel" data-action="fermer-modal-labo">Annuler</button>
+        <button class="btn-primary" id="btn-labo-envoyer" data-action="envoyer-labo" data-id="${rdvId}" data-patient="${patientPhone}">🔬 Envoyer</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -936,7 +936,7 @@ async function loadPosition() {
 }
 
 function detectPosition() {
-  const btn = document.querySelector('button[onclick="detectPosition()"]');
+  const btn = document.getElementById('btn-detect-pos');
   btn.textContent = '⏳ Détection…';
   btn.disabled = true;
   if (!navigator.geolocation) {
@@ -1071,6 +1071,77 @@ async function savePatientConstantes() {
 }
 
 loadProfil();loadRdv();loadPosition();
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Logout
+  document.getElementById('btn-logout').addEventListener('click', logout);
+
+  // Tabs desktop
+  document.getElementById('tab-accueil').addEventListener('click', () => showTab('accueil', document.getElementById('tab-accueil')));
+  document.getElementById('tab-rdv').addEventListener('click', () => showTab('rdv', document.getElementById('tab-rdv')));
+  document.getElementById('tab-patients').addEventListener('click', () => showTab('patients', document.getElementById('tab-patients')));
+  document.getElementById('tab-telemedicine').addEventListener('click', () => showTab('telemedicine', document.getElementById('tab-telemedicine')));
+  document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
+
+  // Tabs mobile
+  document.getElementById('bnav-accueil').addEventListener('click', () => showTabMobile('accueil', document.getElementById('bnav-accueil')));
+  document.getElementById('bnav-rdv').addEventListener('click', () => showTabMobile('rdv', document.getElementById('bnav-rdv')));
+  document.getElementById('bnav-telemedicine').addEventListener('click', () => showTabMobile('telemedicine', document.getElementById('bnav-telemedicine')));
+  document.getElementById('bnav-patients').addEventListener('click', () => showTabMobile('patients', document.getElementById('bnav-patients')));
+  document.getElementById('bnav-profil').addEventListener('click', () => showTabMobile('profil', document.getElementById('bnav-profil')));
+
+  // Jitsi buttons
+  document.getElementById('btn-close-jitsi').addEventListener('click', closeJitsi);
+  document.getElementById('btn-jitsi-validate').addEventListener('click', closeJitsiAndValidate);
+  document.getElementById('btn-jitsi-close').addEventListener('click', closeJitsi);
+
+  // Profil
+  document.getElementById('btn-change-pwd').addEventListener('click', () => {
+    document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
+  });
+  document.getElementById('btn-detect-pos').addEventListener('click', detectPosition);
+  document.getElementById('btn-save-pos').addEventListener('click', savePosition);
+
+  // Code boxes input handlers
+  document.querySelectorAll('.code-box').forEach(box => {
+    box.addEventListener('input', function() { nextBox(this); });
+    box.addEventListener('keydown', function(e) { prevBox(e, this); });
+  });
+
+  // Délégation d'événements pour éléments dynamiques
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    const patient = btn.dataset.patient;
+    const session = btn.dataset.session;
+    const date = btn.dataset.date;
+    const heure = btn.dataset.heure;
+
+    if (action === 'submit-pwd') submitChangePwd();
+    if (action === 'cancel-pwd') {
+      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      document.getElementById('btn-change-pwd').addEventListener('click', () => {
+        document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
+      });
+    }
+    if (action === 'ouvrir-validation') ouvrirValidation(id, patient, session, date, heure);
+    if (action === 'demarrer-tele') demarrerTeleconsultation(id, session, patient);
+    if (action === 'ouvrir-labo') ouvrirModalLabo(id, patient);
+    if (action === 'fermer-modal') fermerModal();
+    if (action === 'verifier-code') verifierCode();
+    if (action === 'load-constantes') loadPatientConstantes();
+    if (action === 'save-constantes') savePatientConstantes();
+    if (action === 'retour-code') afficherEtapeCode();
+    if (action === 'soumettre-cr') soumettreCompteRendu();
+    if (action === 'retour-cr') afficherEtapeCompteRendu();
+    if (action === 'confirmer-validation') confirmerValidation();
+    if (action === 'fermer-modal-load') { fermerModal(); loadRdv(); }
+    if (action === 'fermer-modal-labo') fermerModalLabo();
+    if (action === 'envoyer-labo') envoyerPrescriptionLabo(id, patient);
+  });
+});
 </script>
 </body>
 </html>
