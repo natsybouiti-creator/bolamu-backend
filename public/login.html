@@ -91,11 +91,11 @@
         <label>Mot de passe</label>
         <div style="position:relative;">
           <input type="password" id="password-input" placeholder="Votre mot de passe" maxlength="20">
-          <span onclick="togglePassword()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;" id="eye-icon">👁</span>
+          <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;" id="eye-icon">👁</span>
         </div>
       </div>
-      <button class="btn-primary" onclick="doLogin()" id="btn-login">Se connecter →</button>
-      <div class="timer">Mot de passe oublié ? <span onclick="showForgot()">Recevoir un nouveau code par SMS</span></div>
+      <button class="btn-primary" id="btn-login">Se connecter →</button>
+      <div class="timer">Mot de passe oublié ? <span id="forgot-link">Recevoir un nouveau code par SMS</span></div>
       <div class="roles-info">
         <div class="role-pill">👤 Patients</div>
         <div class="role-pill">🩺 Médecins</div>
@@ -114,8 +114,8 @@
         <label>Numéro de téléphone</label>
         <input type="tel" id="forgot-phone-input" placeholder="+242 06 XXX XX XX" maxlength="15">
       </div>
-      <button class="btn-primary" onclick="doForgotPassword()" id="btn-forgot">Recevoir mon mot de passe →</button>
-      <div class="timer"><span onclick="showLogin()">← Retour à la connexion</span></div>
+      <button class="btn-primary" id="btn-forgot">Recevoir mon mot de passe →</button>
+      <div class="timer"><span id="back-login-link">← Retour à la connexion</span></div>
     </div>
   </div>
 </div>
@@ -231,6 +231,14 @@ async function doForgotPassword() {
   } catch(e) { showMsg('Erreur de connexion.', 'error'); }
   btn.disabled = false; btn.textContent = 'Recevoir mon mot de passe →';
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('eye-icon').addEventListener('click', togglePassword);
+  document.getElementById('btn-login').addEventListener('click', doLogin);
+  document.getElementById('forgot-link').addEventListener('click', showForgot);
+  document.getElementById('btn-forgot').addEventListener('click', doForgotPassword);
+  document.getElementById('back-login-link').addEventListener('click', showLogin);
+});
 </script>
 </body>
 </html>
