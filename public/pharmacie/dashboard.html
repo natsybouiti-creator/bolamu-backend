@@ -186,16 +186,16 @@
   <div class="topbar-right">
     <span class="type-pill">💊 Pharmacie</span>
     <span class="phone-pill" id="topbar-phone"></span>
-    <button class="logout-btn" onclick="logout()">Déconnexion</button>
+    <button class="logout-btn" id="btn-logout">Déconnexion</button>
   </div>
 </div>
 <div class="tabs-bar">
-  <button class="tab active" onclick="showTab('accueil',this)">🏠 Tableau de bord</button>
-  <button class="tab" onclick="showTab('scanner',this)">💊 Scanner ordonnance</button>
-<button class="tab" onclick="showTab('qr',this)">📱 Scanner QR Bolamu</button>
-  <button class="tab" onclick="showTab('historique',this)">📋 Historique</button>
-  <button class="tab" onclick="showTab('abonnement',this)">⭐ Abonnement Pro</button>
-  <button class="tab" onclick="showTab('profil',this)">🏪 Mon profil</button>
+  <button class="tab active" id="tab-accueil" data-tab="accueil">🏠 Tableau de bord</button>
+  <button class="tab" id="tab-scanner" data-tab="scanner">💊 Scanner ordonnance</button>
+<button class="tab" id="tab-qr" data-tab="qr">📱 Scanner QR Bolamu</button>
+  <button class="tab" id="tab-historique" data-tab="historique">📋 Historique</button>
+  <button class="tab" id="tab-abonnement" data-tab="abonnement">⭐ Abonnement Pro</button>
+  <button class="tab" id="tab-profil" data-tab="profil">🏪 Mon profil</button>
 </div>
 <div class="main">
   <div class="panel active" id="panel-accueil">
@@ -222,7 +222,7 @@
     </div>
     <div class="section-header">
       <h2 class="section-title-dash">Dernières ordonnances</h2>
-      <button class="btn-scan" onclick="showTab('scanner',document.querySelectorAll('.tab')[1])">+ Scanner une ordonnance</button>
+      <button class="btn-scan" id="btn-scan-ordonnance">+ Scanner une ordonnance</button>
     </div>
     <div id="accueil-histo"><div class="loading">Chargement...</div></div>
   </div>
@@ -232,8 +232,8 @@
       <h3>💊 Validation d'ordonnance</h3>
       <p>Le patient vous présente son <strong>code de session</strong>. Entrez le code ci-dessous pour afficher l'ordonnance numérique et valider la délivrance.</p>
       <div class="code-input-group">
-        <input class="code-input" type="text" id="code-session" placeholder="Code session patient" maxlength="10" oninput="this.value=this.value.toUpperCase()">
-        <button class="btn-scan" onclick="scanOrdonnance()">🔍 Vérifier</button>
+        <input class="code-input" type="text" id="code-session" placeholder="Code session patient" maxlength="10">
+        <button class="btn-scan" id="btn-scan-verifier">🔍 Vérifier</button>
       </div>
       <div id="ordonnance-result" class="ordonnance-result" style="display:none;"></div>
     </div>
@@ -245,14 +245,14 @@
       <p>Pointez la caméra vers le QR Code du patient, ou entrez le token manuellement.</p>
 
       <!-- Bouton caméra -->
-      <button class="btn-primary" id="btn-camera" onclick="toggleCamera()" style="margin-bottom:16px;">
+      <button class="btn-primary" id="btn-camera" style="margin-bottom:16px;">
         📷 Scanner avec la caméra
       </button>
 
       <!-- Viewfinder caméra -->
       <div id="camera-container" style="display:none;position:relative;margin-bottom:16px;">
         <div id="qr-reader" style="width:100%;border-radius:16px;overflow:hidden;"></div>
-        <button onclick="stopCamera()" style="margin-top:10px;width:100%;padding:10px;background:#fde8e8;border:none;border-radius:10px;color:#991b1b;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+        <button id="btn-stop-camera" style="margin-top:10px;width:100%;padding:10px;background:#fde8e8;border:none;border-radius:10px;color:#991b1b;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
           ✕ Fermer la caméra
         </button>
       </div>
@@ -265,7 +265,7 @@
       </div>
       <div class="code-input-group">
         <input class="code-input" type="text" id="qr-token-input" placeholder="Collez le token QR ici" style="font-size:13px;letter-spacing:1px;font-family:'Plus Jakarta Sans',sans-serif;">
-        <button class="btn-scan" onclick="verifierQR()">🔍 Vérifier</button>
+        <button class="btn-scan" id="btn-verifier-qr">🔍 Vérifier</button>
       </div>
       <div id="qr-result" style="display:none;"></div>
     </div>
@@ -291,7 +291,7 @@
         <div class="abo-price">5 000</div>
         <div class="abo-period">FCFA / mois</div>
         <ul class="abo-features"><li>Tout le Basique inclus</li><li>Apparaît en premier dans la liste patients</li><li>Badge "Pharmacie recommandée" visible</li><li>Carte GPS — position prioritaire</li><li>Statistiques détaillées</li></ul>
-        <button class="btn-abo" onclick="alert('Abonnement Pro Pharmacie — disponible au lancement !')">Devenir Pharmacie Pro →</button>
+        <button class="btn-abo" id="btn-abo-pro">Devenir Pharmacie Pro →</button>
       </div>
     </div>
   </div>
@@ -331,7 +331,7 @@
           <div class="detail-row"><span class="info-label">Connexion</span><span class="info-value">Mot de passe permanent</span></div>
           <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">✅ AES-256</span></div>
           <div style="margin-top:16px;" id="pwd-form-container">
-            <button onclick="document.getElementById('pwd-form-container').innerHTML=pwdFormHtml()" style="padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
+            <button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
               🔑 Changer mon mot de passe
             </button>
           </div>
@@ -341,8 +341,8 @@
           <div id="gps-status" style="font-size:13px;color:var(--texte-doux);margin-bottom:10px;">Non définie</div>
           <input type="text" id="gps-address" placeholder="Adresse (ex: Avenue Foch, Brazzaville)" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--bg-input,#f8fafc);color:var(--text);margin-bottom:10px;box-sizing:border-box;">
           <div style="display:flex;gap:8px;">
-            <button onclick="detectPosition()" style="flex:1;padding:10px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">📡 Détecter ma position</button>
-            <button onclick="savePosition()" style="flex:1;padding:10px;background:var(--grad-pharma);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
+            <button id="btn-detect-pos" style="flex:1;padding:10px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">📡 Détecter ma position</button>
+            <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--grad-pharma);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
           </div>
         </div>
       </div>
@@ -465,7 +465,7 @@ async function verifierQR() {
         <div class="ord-field"><div class="ord-field-label">Plafond restant ce mois</div><div class="ord-field-value">${restant.toLocaleString()} FCFA</div></div>
       </div>
       <div class="instructions-box">💡 Appliquez une remise de <strong>${remise}%</strong> sur la facture du patient. Bolamu prend en charge cette remise via le tiers payant.</div>
-      <button class="btn-livrer" onclick="document.getElementById('qr-token-input').value='';document.getElementById('qr-result').style.display='none';">✅ Pris en compte — Scanner suivant</button>
+      <button class="btn-livrer" data-action="reset-qr">✅ Pris en compte — Scanner suivant</button>
     </div>`;
   } catch(e) {
     resultEl.innerHTML = `<div class="ordonnance-result error" style="display:block;">
@@ -544,8 +544,8 @@ function pwdFormHtml(){
     <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
     <input id="pwd-confirm" type="password" placeholder="Confirmer le nouveau mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
     <div style="display:flex;gap:8px;">
-      <button onclick="submitChangePwd()" style="flex:1;padding:12px;background:var(--grad-pharma);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
-      <button onclick="document.getElementById('pwd-form-container').innerHTML='<button onclick=\\'document.getElementById(\\'pwd-form-container\\').innerHTML=pwdFormHtml()\\'  style=\\'padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;\\'>🔑 Changer mon mot de passe</button>'" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;">Annuler</button>
+      <button data-action="submit-pwd" style="flex:1;padding:12px;background:var(--grad-pharma);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
+      <button data-action="cancel-pwd" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;">Annuler</button>
     </div>
   </div>`;
 }
@@ -566,7 +566,7 @@ async function submitChangePwd(){
     const data = await res.json();
     if (data.success) {
       showToast('Mot de passe modifié ✅','success');
-      document.getElementById('pwd-form-container').innerHTML='<button onclick="document.getElementById(\'pwd-form-container\').innerHTML=pwdFormHtml()" style="padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
     } else {
       showToast(data.message || 'Erreur','error');
     }
@@ -602,8 +602,8 @@ async function scanOrdonnance() {
       </div>
       <div class="medications-box"><h4>💊 Médicaments prescrits</h4><div class="medications-text">${ord.medications.replace(/\n/g,'<br>')}</div></div>
       ${ord.instructions ? `<div class="instructions-box">📝 <strong>Instructions :</strong> ${ord.instructions}</div>` : ''}
-      <button class="btn-livrer" onclick="validerDelivrance('${ord.id}','${codeSession}')">✅ Confirmer la délivrance</button>
-      <button class="btn-refuser" onclick="refuserDelivrance('${codeSession}')">❌ Refuser</button>`;
+      <button class="btn-livrer" data-action="valider-delivrance" data-id="${ord.id}" data-session="${codeSession}">✅ Confirmer la délivrance</button>
+      <button class="btn-refuser" data-action="refuser-delivrance" data-session="${codeSession}">❌ Refuser</button>`;
   } catch(e) {
     resultEl.className = 'ordonnance-result error';
     resultEl.innerHTML = `<div class="ordonnance-header"><div class="ordonnance-icon">⚠️</div><div><div class="ordonnance-title">Erreur de connexion</div></div></div>`;
@@ -619,7 +619,7 @@ async function validerDelivrance(prescriptionId, codeSession) {
     });
     document.getElementById('ordonnance-result').innerHTML = `
       <div class="ordonnance-header"><div class="ordonnance-icon">✅</div><div><div class="ordonnance-title">Délivrance confirmée !</div><div class="ordonnance-sub">Le dossier patient a été mis à jour.</div></div></div>
-      <button class="btn-scan" style="margin-top:16px;width:100%;" onclick="resetScanner()">Scanner une nouvelle ordonnance</button>`;
+      <button class="btn-scan" data-action="reset-scanner" style="margin-top:16px;width:100%;">Scanner une nouvelle ordonnance</button>`;
     document.getElementById('s-today').textContent = parseInt(document.getElementById('s-today').textContent) + 1;
   } catch(e) { alert('Erreur lors de la validation. Réessayez.'); }
 }
@@ -628,7 +628,7 @@ function refuserDelivrance(code) {
   if (confirm(`Refuser l'ordonnance ${code} ?`)) {
     document.getElementById('ordonnance-result').innerHTML = `
       <div class="ordonnance-header"><div class="ordonnance-icon">❌</div><div><div class="ordonnance-title">Délivrance refusée</div></div></div>
-      <button class="btn-scan" style="margin-top:16px;width:100%;" onclick="resetScanner()">Scanner une nouvelle ordonnance</button>`;
+      <button class="btn-scan" data-action="reset-scanner" style="margin-top:16px;width:100%;">Scanner une nouvelle ordonnance</button>`;
   }
 }
 
@@ -711,7 +711,7 @@ async function loadPosition() {
 }
 
 function detectPosition() {
-  const btn = document.querySelector('button[onclick="detectPosition()"]');
+  const btn = document.getElementById('btn-detect-pos');
   btn.textContent = '⏳ Détection…';
   btn.disabled = true;
   if (!navigator.geolocation) {
@@ -765,6 +765,61 @@ async function savePosition() {
 loadProfil();
 loadHistorique();
 loadPosition();
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Logout
+  document.getElementById('btn-logout').addEventListener('click', logout);
+
+  // Tabs
+  document.getElementById('tab-accueil').addEventListener('click', () => showTab('accueil', document.getElementById('tab-accueil')));
+  document.getElementById('tab-scanner').addEventListener('click', () => showTab('scanner', document.getElementById('tab-scanner')));
+  document.getElementById('tab-qr').addEventListener('click', () => showTab('qr', document.getElementById('tab-qr')));
+  document.getElementById('tab-historique').addEventListener('click', () => showTab('historique', document.getElementById('tab-historique')));
+  document.getElementById('tab-abonnement').addEventListener('click', () => showTab('abonnement', document.getElementById('tab-abonnement')));
+  document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
+
+  // Scanner buttons
+  document.getElementById('btn-scan-ordonnance').addEventListener('click', () => showTab('scanner', document.getElementById('tab-scanner')));
+  document.getElementById('code-session').addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
+  document.getElementById('btn-scan-verifier').addEventListener('click', scanOrdonnance);
+  document.getElementById('btn-camera').addEventListener('click', toggleCamera);
+  document.getElementById('btn-stop-camera').addEventListener('click', stopCamera);
+  document.getElementById('btn-verifier-qr').addEventListener('click', verifierQR);
+
+  // Abonnement
+  document.getElementById('btn-abo-pro').addEventListener('click', () => alert('Abonnement Pro Pharmacie — disponible au lancement !'));
+
+  // Profil
+  document.getElementById('btn-change-pwd').addEventListener('click', () => {
+    document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
+  });
+  document.getElementById('btn-detect-pos').addEventListener('click', detectPosition);
+  document.getElementById('btn-save-pos').addEventListener('click', savePosition);
+
+  // Délégation d'événements pour éléments dynamiques
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    const session = btn.dataset.session;
+
+    if (action === 'reset-qr') {
+      document.getElementById('qr-token-input').value = '';
+      document.getElementById('qr-result').style.display = 'none';
+    }
+    if (action === 'submit-pwd') submitChangePwd();
+    if (action === 'cancel-pwd') {
+      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      document.getElementById('btn-change-pwd').addEventListener('click', () => {
+        document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
+      });
+    }
+    if (action === 'valider-delivrance') validerDelivrance(id, session);
+    if (action === 'refuser-delivrance') refuserDelivrance(session);
+    if (action === 'reset-scanner') resetScanner();
+  });
+});
 </script>
 </body>
 </html>

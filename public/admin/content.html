@@ -185,7 +185,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 </head>
 <body>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay" data-ononclick="closeSidebar"></div>
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-row">
@@ -207,7 +207,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
     <div class="admin-info">
       <div class="admin-avatar">🎨</div>
       <div><div class="admin-name-txt" id="admin-name">Éditeur</div><div class="admin-role-txt">Admin Éditorial</div></div>
-      <span class="logout-link" onclick="logout()">↩</span>
+      <span class="logout-link" data-ononclick="logout">↩</span>
     </div>
   </div>
 </div>
@@ -215,7 +215,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 <div class="main">
   <div class="topbar">
     <div style="display:flex;align-items:center;">
-      <button class="mobile-sidebar-toggle" onclick="toggleSidebar()">☰</button>
+      <button class="mobile-sidebar-toggle" data-ononclick="toggleSidebar">☰</button>
       <div class="topbar-title" id="panel-title">Articles & Blog</div>
     </div>
     <div class="topbar-right">
@@ -223,7 +223,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
         <div class="status-dot-el connecting" id="srv-dot-ed"></div>
         <span id="srv-lbl-ed" style="color:var(--texte-doux)">Connexion...</span>
       </div>
-      <button class="refresh-btn" onclick="refreshAll()">↻ Actualiser</button>
+      <button class="refresh-btn" data-ononclick="refreshAll">↻ Actualiser</button>
     </div>
   </div>
 
@@ -256,7 +256,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
           <div style="font-size:14px;font-weight:700;">Articles & Blog</div>
           <div style="font-size:9px;color:var(--texte-doux);">Affichés sur la page d'accueil</div>
         </div>
-        <button onclick="openArticleModal()" style="padding:8px 16px;background:var(--grad-violet);color:white;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">+ Nouvel article</button>
+        <button data-ononclick="openArticleModal" style="padding:8px 16px;background:var(--grad-violet);color:white;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">+ Nouvel article</button>
       </div>
       <div class="art-filters" id="art-filters-bar">
         <button class="art-filter-btn active" onclick="filterArticlesAdmin('tous',this)">Tous</button>
@@ -294,7 +294,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
           </div>
           <img id="hero-img-preview" class="vitrine-img-preview">
         </div>
-        <button class="btn-confirm violet" style="max-width:160px;padding:8px;" onclick="saveVitrineBlock('hero')">💾 Enregistrer Hero</button>
+        <button class="btn-confirm violet" style="max-width:160px;padding:8px;" data-onclick="saveVitrineBlock" data-arg="hero">💾 Enregistrer Hero</button>
       </div>
       <div class="config-grid" id="vitrine-cards-grid">
         <div class="loading-state" style="grid-column:1/-1"><div class="loading-spin"></div><span>Chargement...</span></div>
@@ -333,7 +333,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
         <div class="loading-state" style="grid-column:1/-1"><div class="loading-spin"></div><span>Chargement...</span></div>
       </div>
       <div style="margin-top:14px;">
-        <button onclick="saveReseaux()" style="padding:10px 20px;background:var(--grad-violet);color:white;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">💾 Enregistrer tous les liens</button>
+        <button data-ononclick="saveReseaux" style="padding:10px 20px;background:var(--grad-violet);color:white;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">💾 Enregistrer tous les liens</button>
       </div>
     </div>
 
@@ -414,7 +414,7 @@ function setBootBanner(type, msg, showRetry=false){
     if(dot){dot.className='status-dot-el online';}if(lbl)lbl.textContent='En ligne';
     setTimeout(()=>{b.className='boot-banner';},2500);
   }else if(type==='error'){
-    b.innerHTML=`<span style="font-size:16px">⚠️</span><div><strong>${msg}</strong><div style="font-size:10px;opacity:.65;margin-top:3px;">Vérifiez votre connexion ou le statut du serveur Render.</div></div><button class="retry-link" onclick="loadArticles()">↻ Réessayer</button>`;
+    b.innerHTML=`<span style="font-size:16px">⚠️</span><div><strong>${msg}</strong><div style="font-size:10px;opacity:.65;margin-top:3px;">Vérifiez votre connexion ou le statut du serveur Render.</div></div><button class="retry-link" data-ononclick="loadArticles">↻ Réessayer</button>`;
     if(dot){dot.className='status-dot-el offline';}if(lbl)lbl.textContent='Hors ligne';
   }
 }
@@ -495,7 +495,7 @@ async function loadArticles(){
       <div class="empty-icon">⚠️</div>
       <p style="font-weight:600;margin-bottom:6px">Erreur de chargement</p>
       <p style="font-size:10px;opacity:.7;margin-bottom:14px">Le serveur Render peut prendre 30–60s à démarrer.</p>
-      <button onclick="loadArticles()" style="padding:8px 18px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">↻ Réessayer</button>
+      <button data-ononclick="loadArticles" style="padding:8px 18px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">↻ Réessayer</button>
     </div>`;
   }
 }
@@ -515,8 +515,8 @@ function renderArticlesAdmin(items){
       ?`<img class="art-thumb" src="${a.image_url}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=art-thumb-ph>${a.emoji||'📄'}</div>'">`
       :`<div class="art-thumb-ph">${a.emoji||'📄'}</div>`;
     const pubBtn=a.is_published
-      ?`<button class="btn-art-pub" style="background:rgba(255,71,87,0.1);color:var(--rouge);border-color:rgba(255,71,87,0.25);" onclick="togglePub(${a.id},true)">🚫 Dépublier</button>`
-      :`<button class="btn-art-pub" style="background:rgba(0,200,167,0.1);color:var(--vert);border-color:rgba(0,200,167,0.25);" onclick="togglePub(${a.id},false)">🟢 Publier</button>`;
+      ?`<button class="btn-art-pub" style="background:rgba(255,71,87,0.1);color:var(--rouge);border-color:rgba(255,71,87,0.25);" data-onclick="togglePub" data-arg="${a.id},true">🚫 Dépublier</button>`
+      :`<button class="btn-art-pub" style="background:rgba(0,200,167,0.1);color:var(--vert);border-color:rgba(0,200,167,0.25);" data-onclick="togglePub" data-arg="${a.id},false">🟢 Publier</button>`;
     return `<div class="art-card">${thumb}<div class="art-body">
       <div class="art-tags">
         <span class="art-cat ${cat.cls}">${cat.label}</span>
@@ -588,11 +588,11 @@ function openArticleModal(a=null){
     <div class="modal-field">
       <label>Contenu complet (HTML accepté)</label>
       <div class="rt-toolbar">
-        <button class="rt-btn" onclick="artFmt('bold')"><b>G</b></button>
-        <button class="rt-btn" onclick="artFmt('h4')">H4</button>
-        <button class="rt-btn" onclick="artFmt('ul')">• Liste</button>
-        <button class="rt-btn" onclick="artFmt('highlight')">💡 Info</button>
-        <button class="rt-btn" onclick="artFmt('warning')">⚠️ Warn</button>
+        <button class="rt-btn" data-onclick="artFmt" data-arg="bold"><b>G</b></button>
+        <button class="rt-btn" data-onclick="artFmt" data-arg="h4">H4</button>
+        <button class="rt-btn" data-onclick="artFmt" data-arg="ul">• Liste</button>
+        <button class="rt-btn" data-onclick="artFmt" data-arg="highlight">💡 Info</button>
+        <button class="rt-btn" data-onclick="artFmt" data-arg="warning">⚠️ Warn</button>
       </div>
       <textarea class="rt-editor" id="art-content" placeholder="Contenu complet de l'article...">${a?.content||''}</textarea>
     </div>
@@ -601,8 +601,8 @@ function openArticleModal(a=null){
       <div class="toggle-item"><input type="checkbox" id="art-featured"  ${a?.is_featured?'checked':''}><label for="art-featured">⭐ À la une</label></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel-modal" onclick="closeArticleModal()">Annuler</button>
-      <button class="btn-confirm violet" onclick="saveArticle(${a?.id||'null'})">${isNew?'✓ Créer':'💾 Enregistrer'}</button>
+      <button class="btn-cancel-modal" data-ononclick="closeArticleModal">Annuler</button>
+      <button class="btn-confirm violet" data-onclick="saveArticle" data-arg="${a?.id||'null'}">${isNew?'✓ Créer':'💾 Enregistrer'}</button>
     </div>`;
   if(a?.image_url){document.getElementById('art-img-preview-wrap').classList.add('show');document.getElementById('art-img-preview').src=a.image_url;}
   document.getElementById('modal-article').classList.add('open');
@@ -677,7 +677,7 @@ async function loadVitrine(){
           </div>
           <img id="${key}-preview" class="vitrine-img-preview" ${b.image_url?`src="${b.image_url}" style="display:block"`:''}> 
         </div>
-        <button class="btn-confirm violet" style="max-width:150px;padding:7px;font-size:10px;" onclick="saveVitrineBlock('${key}')">💾 Enregistrer</button>
+        <button class="btn-confirm violet" style="max-width:150px;padding:7px;font-size:10px;" data-onclick="saveVitrineBlock" data-arg="${key}">💾 Enregistrer</button>
       </div>`;
     }).join('');
     if(vitBanner)vitBanner.className='boot-banner';
@@ -731,7 +731,7 @@ async function loadPlans(){
         <div class="modal-field"><label>Couleur</label><input class="modal-input" id="${key}-color" value="${p.color||'#9f7aea'}" type="color" style="height:36px;cursor:pointer;"></div>
         <div class="modal-field"><label>Fonctionnalités (une par ligne)</label><textarea class="modal-textarea" id="${key}-features" rows="6">${featuresVal}</textarea></div>
         <div class="toggle-row" style="margin-bottom:10px;"><div class="toggle-item"><input type="checkbox" id="${key}-featured" ${p.featured?'checked':''}><label for="${key}-featured">🌟 En avant</label></div></div>
-        <button class="btn-confirm violet" style="padding:8px;" onclick="savePlan('${key}')">💾 Enregistrer</button>
+        <button class="btn-confirm violet" style="padding:8px;" data-onclick="savePlan" data-arg="${key}">💾 Enregistrer</button>
       </div>`;
     }).join('');
   }catch(e){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p><button onclick="loadPlans()" style="margin-top:10px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
@@ -804,5 +804,53 @@ async function saveReseaux(){
 ══════════════════════════════════════════ */
 loadArticles();
 </script>
+
+<script>
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-onclick]');
+      if (!btn) return;
+      var fn = btn.getAttribute('data-onclick');
+      var arg = btn.getAttribute('data-arg');
+      if (typeof window[fn] === 'function') {
+        if (arg !== null) {
+          window[fn](arg);
+        } else {
+          window[fn]();
+        }
+      }
+    });
+
+    document.addEventListener('change', function(e) {
+      var el = e.target.closest('[data-onchange]');
+      if (!el) return;
+      var fn = el.getAttribute('data-onchange');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('input', function(e) {
+      var el = e.target.closest('[data-oninput]');
+      if (!el) return;
+      var fn = el.getAttribute('data-oninput');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('submit', function(e) {
+      var form = e.target.closest('[data-onsubmit]');
+      if (!form) return;
+      e.preventDefault();
+      var fn = form.getAttribute('data-onsubmit');
+      if (typeof window[fn] === 'function') window[fn](e);
+    });
+
+    // Attacher les data-on* directs aux éléments
+    document.querySelectorAll('[data-onclick]').forEach(function(el) {
+      if (el.tagName !== 'BUTTON' && el.tagName !== 'A') return;
+    });
+  });
+})();
+</script>
+
 </body>
 </html>

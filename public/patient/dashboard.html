@@ -326,15 +326,15 @@
     <div class="modal-subtitle" id="modal-doctor-name"></div>
     <div class="modal-field">
       <label>Choisissez une date</label>
-      <input type="date" id="rdv-date" onchange="loadSlots()">
+      <input type="date" id="rdv-date">
     </div>
     <div class="modal-field">
       <label>Créneaux disponibles</label>
       <div id="slots-container"><div class="slots-empty">Sélectionnez d'abord une date</div></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
-      <button class="btn-confirm" id="btn-confirm-rdv" onclick="confirmerRdv()" disabled>Choisir un créneau →</button>
+      <button class="btn-cancel" id="btn-close-modal">Annuler</button>
+      <button class="btn-confirm" id="btn-confirm-rdv" disabled>Choisir un créneau →</button>
     </div>
   </div>
 </div>
@@ -348,7 +348,7 @@
     <div class="code-display" id="success-code">—</div>
     <p style="font-size:13px;color:var(--texte-doux);margin-bottom:8px;" id="success-details"></p>
     <p style="font-size:13px;color:var(--vert);font-weight:600;margin-bottom:24px;">📲 Un SMS de confirmation a été envoyé.</p>
-    <button class="btn-confirm" onclick="closeSuccess()">Fermer</button>
+    <button class="btn-confirm" id="btn-close-success">Fermer</button>
   </div>
 </div>
 
@@ -374,39 +374,39 @@
   </a>
   <div class="topbar-right">
     <span class="phone-pill" id="topbar-phone"></span>
-    <button class="logout-btn" onclick="logout()">Déconnexion</button>
+    <button class="logout-btn" id="btn-logout">Déconnexion</button>
   </div>
 </div>
 
 <!-- TABS DESKTOP -->
 <div class="tabs-bar">
-  <button class="tab active" onclick="showTab('accueil',this)">🏠 Accueil</button>
-  <button class="tab" onclick="showTab('medecins',this)">👨‍⚕️ Médecins</button>
-  <button class="tab" onclick="showTab('dossier',this)">📋 Dossier médical</button>
-  <button class="tab" onclick="showTab('carte',this)">🗺️ Partenaires</button>
-  <button class="tab" onclick="showTab('credits',this)">🪙 Mes Crédits</button>
-  <button class="tab" onclick="showTab('profil',this)">👤 Mon profil</button>
+  <button class="tab active" id="tab-accueil" data-tab="accueil">🏠 Accueil</button>
+  <button class="tab" id="tab-medecins" data-tab="medecins">👨‍⚕️ Médecins</button>
+  <button class="tab" id="tab-dossier" data-tab="dossier">📋 Dossier médical</button>
+  <button class="tab" id="tab-carte" data-tab="carte">🗺️ Partenaires</button>
+  <button class="tab" id="tab-credits" data-tab="credits">🪙 Mes Crédits</button>
+  <button class="tab" id="tab-profil" data-tab="profil">👤 Mon profil</button>
 </div>
 
 <!-- BOTTOM NAV MOBILE -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <button class="bnav-item active" onclick="showTabMobile('accueil',this)">
+    <button class="bnav-item active" id="bnav-accueil" data-tab="accueil">
       <span class="bnav-icon">🏠</span><span class="bnav-label">Accueil</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('medecins',this)">
+    <button class="bnav-item" id="bnav-medecins" data-tab="medecins">
       <span class="bnav-icon">👨‍⚕️</span><span class="bnav-label">Médecins</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('dossier',this)">
+    <button class="bnav-item" id="bnav-dossier" data-tab="dossier">
       <span class="bnav-icon">📋</span><span class="bnav-label">Dossier</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('carte',this)">
+    <button class="bnav-item" id="bnav-carte" data-tab="carte">
       <span class="bnav-icon">🗺️</span><span class="bnav-label">Carte</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('credits',this)">
+    <button class="bnav-item" id="bnav-credits" data-tab="credits">
       <span class="bnav-icon">🪙</span><span class="bnav-label">Crédits</span>
     </button>
-    <button class="bnav-item" onclick="showTabMobile('profil',this)">
+    <button class="bnav-item" id="bnav-profil" data-tab="profil">
       <span class="bnav-icon">👤</span><span class="bnav-label">Profil</span>
     </button>
   </div>
@@ -455,14 +455,14 @@
     </div>
     <div class="section-header">
       <h2 class="section-title-dash">Mes prochains RDV</h2>
-      <button class="btn-filter" onclick="showTab('medecins',document.querySelectorAll('.tab')[1])">+ Nouveau RDV</button>
+      <button class="btn-filter" id="btn-nouveau-rdv">+ Nouveau RDV</button>
     </div>
     <div id="rdv-list-accueil"><div class="loading">Chargement…</div></div>
     <div style="margin-top:28px;background:white;border-radius:20px;padding:28px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);">
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:12px;">Abonnement Bolamu</div>
       <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">Accédez à tous les services de santé</div>
       <div style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;line-height:1.6;">Consultations illimitées, ordonnances numériques, laboratoires partenaires et bien plus.</div>
-      <button onclick="openPayment('essentiel')" style="padding:14px 32px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:52px;">
+      <button id="btn-abonner-accueil" data-plan="essentiel" style="padding:14px 32px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:52px;">
         💳 S'abonner via MTN MoMo →
       </button>
     </div>
@@ -477,7 +477,7 @@
     <div class="filters">
       <input class="filter-input" id="filter-specialty" placeholder="Spécialité (ex: Généraliste)">
       <input class="filter-input" id="filter-city" placeholder="Ville (ex: Brazzaville)">
-      <button class="btn-filter" onclick="loadDoctors()">Rechercher</button>
+      <button class="btn-filter" id="btn-search-doctors">Rechercher</button>
     </div>
     <div class="doctors-grid" id="doctors-grid"><div class="loading">Chargement…</div></div>
   </div>
@@ -496,7 +496,7 @@
         <div class="info-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <h3 style="margin:0;">Constantes médicales</h3>
-            <button onclick="openEditConstantes()" style="background:var(--turquoise,#00C9A7);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">✏️ Modifier</button>
+            <button id="btn-edit-constantes" style="background:var(--turquoise,#00C9A7);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">✏️ Modifier</button>
           </div>
           <div class="info-row"><span class="info-label">Groupe sanguin</span><span class="info-value" id="dos-groupe-sanguin">—</span></div>
           <div class="info-row"><span class="info-label">Allergies</span><span class="info-value" id="dos-allergies">—</span></div>
@@ -511,7 +511,7 @@
         <div class="info-card">
           <h3>Code QR d'urgence</h3>
           <p style="font-size:13px;color:var(--texte-doux);margin-bottom:12px;line-height:1.6;">En cas d'urgence, ce QR code permet au médecin d'accéder à vos informations vitales.</p>
-          <button class="btn-rdv" onclick="genererQRUrgence()">🔬 Générer mon QR d'urgence</button>
+          <button class="btn-rdv" id="btn-generer-qr">🔬 Générer mon QR d'urgence</button>
         </div>
         <div class="info-card">
           <h3>Historique des accès</h3>
@@ -529,10 +529,10 @@
   <div class="panel" id="panel-carte">
     <div class="section-header"><h2 class="section-title-dash">🗺️ Trouver un intervenant</h2></div>
     <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button onclick="filterMap('all')" id="filter-all" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--vert,#00C9A7);color:white;font-size:13px;cursor:pointer;font-weight:600;">Tous</button>
-      <button onclick="filterMap('doctor')" id="filter-doctor" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">🩺 Médecins</button>
-      <button onclick="filterMap('pharmacie')" id="filter-pharmacie" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">💊 Pharmacies</button>
-      <button onclick="filterMap('laboratoire')" id="filter-laboratoire" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">🔬 Labos</button>
+      <button id="filter-all" data-filter="all" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--vert,#00C9A7);color:white;font-size:13px;cursor:pointer;font-weight:600;">Tous</button>
+      <button id="filter-doctor" data-filter="doctor" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">🩺 Médecins</button>
+      <button id="filter-pharmacie" data-filter="pharmacie" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">💊 Pharmacies</button>
+      <button id="filter-laboratoire" data-filter="laboratoire" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">🔬 Labos</button>
     </div>
     <div id="map-container" style="height:400px;border-radius:16px;overflow:hidden;border:1px solid var(--border);"></div>
     <div id="map-list" style="margin-top:16px;"></div>
@@ -620,7 +620,7 @@
           <div class="detail-row"><span class="info-label">Expiration</span><span id="d-fin">—</span></div>
           <div class="detail-row"><span class="info-label">Statut</span><span id="d-statut">—</span></div>
           <div style="margin-top:16px;">
-            <button onclick="openPayment('essentiel')" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
+            <button id="btn-renouveler" data-plan="essentiel" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
               💳 Renouveler via MoMo →
             </button>
           </div>
@@ -631,7 +631,7 @@
           <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">✅ AES-256</span></div>
           <div class="detail-row"><span class="info-label">Paiement</span><span class="info-value">MTN MoMo / Airtel Money</span></div>
           <div style="margin-top:16px;" id="pwd-form-container">
-            <button onclick="document.getElementById('pwd-form-container').innerHTML=pwdFormHtml()" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
+            <button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
               🔑 Changer mon mot de passe
             </button>
           </div>
@@ -787,7 +787,7 @@ function renderPlanSelect(){
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
       ${Object.entries(PLANS).map(([key,p])=>`
-        <div onclick="selectPlan('${key}')" style="border:2px solid ${currentPlan===key?'var(--bleu-vif)':'var(--border)'};background:${currentPlan===key?'var(--bleu-pale)':'white'};border-radius:16px;padding:16px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;">
+        <div data-action="select-plan" data-plan="${key}" style="border:2px solid ${currentPlan===key?'var(--bleu-vif)':'var(--border)'};background:${currentPlan===key?'var(--bleu-pale)':'white'};border-radius:16px;padding:16px 20px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;">
           <div><div style="font-size:15px;font-weight:700;color:var(--bleu);margin-bottom:3px;">${p.label}</div>
           <div style="font-size:12px;color:var(--texte-doux);">${p.desc}</div></div>
           <div style="text-align:right;flex-shrink:0;margin-left:12px;">
@@ -800,8 +800,8 @@ function renderPlanSelect(){
       📲 Une notification sera envoyée sur <strong style="color:var(--bleu);">${phone}</strong> pour confirmer le paiement MTN MoMo.
     </div>
     <div style="display:flex;gap:10px;">
-      <button onclick="closePayment()" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);min-height:52px;">Annuler</button>
-      <button onclick="initiatePayment()" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:52px;">
+      <button data-action="close-payment" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);min-height:52px;">Annuler</button>
+      <button data-action="initiate-payment" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:52px;">
         💳 Payer ${PLANS[currentPlan].price.toLocaleString('fr-FR')} FCFA →
       </button>
     </div>`;
@@ -838,8 +838,8 @@ function showPaymentPending(){
         <div style="font-size:12px;color:var(--texte-doux);">secondes</div>
       </div>
       <div style="display:flex;gap:10px;">
-        <button onclick="closePayment()" style="padding:12px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Annuler</button>
-        <button onclick="checkPaymentNow()" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ J'ai confirmé → Vérifier</button>
+        <button data-action="close-payment" style="padding:12px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Annuler</button>
+        <button data-action="check-payment-now" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ J'ai confirmé → Vérifier</button>
       </div>
     </div>`;
   let count=30;
@@ -870,7 +870,7 @@ function showPaymentSuccess(){
         Abonnement <strong style="color:var(--bleu-vif);">${p.label}</strong> activé !<br>
         <strong style="color:var(--vert);">+100 crédits Bolamu</strong> ajoutés 🪙
       </div>
-      <button onclick="closePayment();loadSubscription();loadRdv();" style="width:100%;padding:14px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:52px;">
+      <button data-action="close-payment-reload" style="width:100%;padding:14px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:52px;">
         ✅ Accéder à mon espace →
       </button>
     </div>`;
@@ -882,8 +882,8 @@ function showPaymentError(msg){
       <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--rouge);margin-bottom:8px;">Paiement échoué</div>
       <div style="font-size:14px;color:var(--texte-doux);line-height:1.6;margin-bottom:24px;">${msg}</div>
       <div style="display:flex;gap:10px;">
-        <button onclick="closePayment()" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Fermer</button>
-        <button onclick="renderPlanSelect()" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔄 Réessayer</button>
+        <button data-action="close-payment" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Fermer</button>
+        <button data-action="render-plan" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔄 Réessayer</button>
       </div>
     </div>`;
 }
@@ -905,7 +905,7 @@ async function loadCredits(){
     const partners=data.partners||[];
     const pgEl=document.getElementById('cr-partners-grid');
     pgEl.innerHTML=!partners.length?`<div style="text-align:center;padding:32px;color:var(--texte-doux);grid-column:1/-1;"><div style="font-size:40px;margin-bottom:12px;">🤝</div><p>Partenaires bientôt disponibles</p></div>`:
-      partners.map(p=>`<div class="credit-partner-card" onclick="openSpend('${p.id}','${p.name}',${p.min_credits},${p.discount_per_100_credits})">
+      partners.map(p=>`<div class="credit-partner-card" data-action="open-spend" data-id="${p.id}" data-name="${p.name}" data-min="${p.min_credits}" data-discount="${p.discount_per_100_credits}">
         <div style="font-size:28px;margin-bottom:10px;">${catIcons[p.category]||'🤝'}</div>
         <div style="font-size:14px;font-weight:700;margin-bottom:3px;">${p.name}</div>
         <div style="font-size:12px;color:var(--texte-doux);margin-bottom:10px;">${p.city||'Brazzaville'} • ${p.category}</div>
@@ -933,20 +933,20 @@ function openSpend(partnerId,partnerName,minCredits,discountPer100){
       <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;">Crédits à utiliser</label>
       <input type="number" id="spend-amount" value="${minCredits}" min="${minCredits}" max="${balance}" step="50"
         style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:18px;font-weight:700;font-family:'Fraunces',serif;color:var(--bleu);outline:none;text-align:center;"
-        oninput="updateDiscount(${discountPer100})">
+        data-discount-rate="${discountPer100}">
     </div>
     <div id="spend-preview" style="background:var(--vert-clair);border-radius:12px;padding:14px;text-align:center;margin-bottom:20px;">
       <div style="font-size:12px;color:#047857;font-weight:600;margin-bottom:4px;">Remise obtenue</div>
       <div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#047857;" id="spend-discount">—</div>
     </div>
     <div style="display:flex;gap:10px;">
-      <button onclick="document.getElementById('modal-spend').style.display='none'" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Annuler</button>
-      <button onclick="confirmSpend('${partnerId}','${partnerName}')" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ Confirmer</button>
+      <button data-action="close-spend" style="padding:13px 20px;background:transparent;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte-doux);">Annuler</button>
+      <button data-action="confirm-spend" data-id="${partnerId}" data-name="${partnerName}" style="flex:1;padding:13px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ Confirmer</button>
     </div>`;
   updateDiscount(discountPer100);
   document.getElementById('modal-spend').style.display='flex';
 }
-function updateDiscount(rate){const amount=parseInt(document.getElementById('spend-amount')?.value)||0;const el=document.getElementById('spend-discount');if(el)el.textContent=`-${Math.floor((amount/100)*rate)}%`;}
+function updateDiscount(){const amount=parseInt(document.getElementById('spend-amount')?.value)||0;const rate=parseInt(document.getElementById('spend-amount')?.dataset.discountRate)||0;const el=document.getElementById('spend-discount');if(el)el.textContent=`-${Math.floor((amount/100)*rate)}%`;}
 async function confirmSpend(partnerId,partnerName){
   const amount=parseInt(document.getElementById('spend-amount').value);
   if(!amount||amount<=0)return;
@@ -990,13 +990,14 @@ async function loadSlots(){
     const allSlots=[...new Set([...data.slots,...data.pris])].sort();
     document.getElementById('slots-container').innerHTML=`
       <div class="slots-jour">${joursNoms[data.jour]||data.jour} ${dateStr}</div>
-      <div class="slots-grid">${allSlots.map(s=>{const libre=data.slots.includes(s);return `<button class="slot-btn${libre?'':' pris'}" ${libre?`onclick="selectSlot('${s}',this)"`:' disabled'}>${s}${libre?'':' ✗'}</button>`;}).join('')}</div>`;
+      <div class="slots-grid">${allSlots.map(s=>{const libre=data.slots.includes(s);return `<button class="slot-btn${libre?'':' pris'}" data-action="select-slot" data-time="${s}" ${libre?'':' disabled'}>${s}${libre?'':' ✗'}</button>`;}).join('')}</div>`;
   }catch(e){document.getElementById('slots-container').innerHTML='<div class="slots-empty">⚠️ Erreur.</div>';}
 }
-function selectSlot(time,btn){
+function selectSlot(time){
   selectedTime=time;
   document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
+  const btn = document.querySelector(`[data-time="${time}"]`);
+  if(btn) btn.classList.add('selected');
   document.getElementById('btn-confirm-rdv').disabled=false;
   document.getElementById('btn-confirm-rdv').textContent=`Confirmer à ${time} →`;
 }
@@ -1035,7 +1036,7 @@ async function loadRdv(){
       const timeStr=(r.appointment_time||'').slice(0,5);
       const badge=r.status==='confirme'?'<span class="badge badge-confirme">✅ Confirmé</span>':r.status==='termine'?'<span class="badge badge-termine">Terminé</span>':`<span class="badge badge-pending">${r.status}</span>`;
       const btnJitsi = (r.status === 'en_cours' || r.status === 'confirmé' || r.status === 'confirme')
-        ? `<button onclick="ouvrirJitsiPatient('${r.id}','${r.session_code}')" style="margin-top:10px;background:linear-gradient(135deg,#2E86FF,#00C9A7);color:white;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;">📹 Rejoindre la consultation</button>` 
+        ? `<button data-action="ouvrir-jitsi" data-id="${r.id}" data-session="${r.session_code}" style="margin-top:10px;background:linear-gradient(135deg,#2E86FF,#00C9A7);color:white;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;">📹 Rejoindre la consultation</button>` 
         : '';
       return `<div class="rdv-card"><div class="rdv-left"><div class="rdv-icon">👨‍⚕️</div><div><div class="rdv-doctor">${r.doctor_name||'Médecin'}</div><div class="rdv-date">${dateStr} à ${timeStr}</div><div style="margin-top:6px">${badge}</div></div></div><div class="rdv-right"><div class="rdv-code">${r.session_code}</div><div class="rdv-code-label">Code session</div></div></div>${btnJitsi}`;
     }).join('');
@@ -1069,7 +1070,7 @@ async function loadTimeline(){
         content+=`<div class="timeline-section"><div class="timeline-label">Ordonnance 💊</div><div class="timeline-medications">${meds.map(m=>`<div class="timeline-med-item">${m}</div>`).join('')}</div></div>`;
       }
       if(hasLab){
-        content+=`<div class="timeline-section"><div class="timeline-label">Résultats labo</div><div class="timeline-lab-badge">🔬 Résultats disponibles <button class="btn-timeline" onclick="voirResultatLab('${r.resultats.replace(/'/g,"\\'").replace(/\n/g,"\\n")}','${r.fichier_url||''}')">Voir</button></div></div>`;
+        content+=`<div class="timeline-section"><div class="timeline-label">Résultats labo</div><div class="timeline-lab-badge">🔬 Résultats disponibles <button class="btn-timeline" data-action="voir-resultat-lab" data-resultats="${r.resultats.replace(/'/g,"\\'").replace(/\n/g,"\\n")}" data-fichier="${r.fichier_url||''}">Voir</button></div></div>`;
       }
       if(!hasReport){
         content=`<div class="timeline-pending">⏳ Consultation en attente de compte rendu</div>`;
@@ -1117,7 +1118,7 @@ async function genererQRUrgence(){
         <div id="qr-urgence-container" style="display:flex;justify-content:center;margin:20px 0;"></div>
         <div style="font-size:12px;color:var(--texte-doux);margin-bottom:20px;">Le QR code expire dans 24h</div>
         <div style="font-size:13px;color:var(--vert);font-weight:600;margin-bottom:24px;">Valide jusqu'au ${expiresAt}</div>
-        <button class="btn-confirm" onclick="fermerModalQRUrgence()">Fermer</button>
+        <button class="btn-confirm" data-action="fermer-modal-qr">Fermer</button>
       </div>`;
     document.body.appendChild(modal);
     modal.addEventListener('click',function(e){if(e.target===modal)fermerModalQRUrgence();});
@@ -1135,14 +1136,14 @@ function voirResultatLab(resultats,fichierUrl){
   modal.className='modal-overlay open';
   modal.id='modal-lab-resultats';
   const resultatsText=resultats.replace(/\\n/g,'\n').replace(/\\'/g,"'");
-  let downloadBtn=fichierUrl?`<button class="btn-confirm" onclick="window.open('${fichierUrl}','_blank');fermerModalLabResultats();">📎 Télécharger le fichier</button>`:'';
+  let downloadBtn=fichierUrl?`<button class="btn-confirm" data-action="download-lab" data-url="${fichierUrl}">📎 Télécharger le fichier</button>`:'';
   modal.innerHTML=`
     <div class="modal">
       <h2>Résultats laboratoire</h2>
       <div class="modal-subtitle">Résultats d'analyse</div>
       <div style="background:var(--bleu-pale);padding:16px;border-radius:12px;margin-bottom:20px;max-height:300px;overflow-y:auto;white-space:pre-wrap;font-size:14px;line-height:1.6;">${resultatsText}</div>
       <div class="modal-actions" style="display:flex;gap:12px;">
-        <button class="btn-cancel" onclick="fermerModalLabResultats()">Fermer</button>
+        <button class="btn-cancel" data-action="fermer-modal-lab">Fermer</button>
         ${downloadBtn}
       </div>
     </div>`;
@@ -1234,12 +1235,14 @@ function selectStar(n) {
   const adjs = n >= 4 ? availableAdjectives.positive : availableAdjectives.negative;
   const container = document.getElementById('rating-adjectives');
   container.innerHTML = adjs.map(a =>
-    `<span onclick="toggleAdj('${a}',this)" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--bg-card);color:var(--text);transition:all 0.2s;">${a}</span>`
+    `<span data-action="toggle-adj" data-adj="${a}" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--bg-card);color:var(--text);transition:all 0.2s;">${a}</span>`
   ).join('');
   selectedAdjectives = [];
 }
 
-function toggleAdj(adj, el) {
+function toggleAdj(adj) {
+  const el = document.querySelector(`[data-adj="${adj}"]`);
+  if (!el) return;
   if (selectedAdjectives.includes(adj)) {
     selectedAdjectives = selectedAdjectives.filter(a => a !== adj);
     el.style.background = 'var(--bg-card)';
@@ -1288,8 +1291,8 @@ function pwdFormHtml(){
     <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
     <input id="pwd-confirm" type="password" placeholder="Confirmer le nouveau mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
     <div style="display:flex;gap:8px;">
-      <button onclick="submitChangePwd()" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
-      <button onclick="document.getElementById('pwd-form-container').innerHTML='<button onclick=\\'document.getElementById(\\'pwd-form-container\\').innerHTML=pwdFormHtml()\\'  style=\\'padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:\\'Plus Jakarta Sans\\',sans-serif;min-height:46px;\\'>🔑 Changer mon mot de passe</button>'" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Annuler</button>
+      <button data-action="submit-pwd" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
+      <button data-action="cancel-pwd" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Annuler</button>
     </div>
   </div>`;
 }
@@ -1311,7 +1314,7 @@ async function submitChangePwd(){
     const data = await res.json();
     if (data.success) {
       showToast('Mot de passe modifié ✅','success');
-      document.getElementById('pwd-form-container').innerHTML='<button onclick="document.getElementById(\'pwd-form-container\').innerHTML=pwdFormHtml()" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;min-height:46px;">🔑 Changer mon mot de passe</button>';
     } else {
       showToast(data.message || 'Erreur','error');
     }
@@ -1369,7 +1372,7 @@ async function loadDoctors(){
           <div><div class="doctor-name">${d.full_name}</div><div class="doctor-meta">${d.city}${d.neighborhood?' · '+d.neighborhood:''}</div></div>
         </div>
         <div class="doctor-tags"><span class="doctor-tag">👨‍⚕️ ${d.specialty}</span><span class="doctor-tag">📊 ${d.total_consultations} consult.</span></div>
-        <button class="btn-rdv" onclick="handleRdv(${d.id},'${d.full_name.replace(/'/g, "\\'")}')">
+        <button class="btn-rdv" data-action="handle-rdv" data-id="${d.id}" data-name="${d.full_name.replace(/'/g, "\\'")}">
   ${hasActiveSubscription?'Prendre rendez-vous →':'🔒 Abonnez-vous pour réserver →'}
 </button>
       </div>`).join('');
@@ -1625,7 +1628,7 @@ async function saveConstantes() {
     </div>
     <div style="display:flex;gap:10px;align-items:center;">
       <div style="background:rgba(255,255,255,0.1);color:white;padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;" id="jitsi-code-display">Code: —</div>
-      <button onclick="closeJitsi()" style="background:rgba(231,76,60,0.8);color:white;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">✕ Fermer</button>
+      <button id="btn-close-jitsi" style="background:rgba(231,76,60,0.8);color:white;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">✕ Fermer</button>
     </div>
   </div>
   <div style="flex:1;position:relative;">
@@ -1647,16 +1650,16 @@ async function saveConstantes() {
       <div style="font-size:13px;color:var(--muted);margin-top:4px;" id="rating-subtitle">—</div>
     </div>
     <div style="display:flex;justify-content:center;gap:8px;margin-bottom:20px;" id="rating-stars">
-      <span class="star-btn" data-star="1" onclick="selectStar(1)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
-      <span class="star-btn" data-star="2" onclick="selectStar(2)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
-      <span class="star-btn" data-star="3" onclick="selectStar(3)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
-      <span class="star-btn" data-star="4" onclick="selectStar(4)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
-      <span class="star-btn" data-star="5" onclick="selectStar(5)" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="1" data-action="select-star" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="2" data-action="select-star" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="3" data-action="select-star" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="4" data-action="select-star" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
+      <span class="star-btn" data-star="5" data-action="select-star" style="font-size:32px;cursor:pointer;opacity:0.3;">⭐</span>
     </div>
     <div id="rating-adjectives" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;min-height:40px;"></div>
     <div style="display:flex;gap:8px;">
-      <button onclick="skipRating()" style="flex:1;padding:12px;background:var(--bg-input,#f0f0f0);color:var(--muted);border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Passer</button>
-      <button onclick="submitRating()" style="flex:2;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Envoyer ⭐</button>
+      <button data-action="skip-rating" style="flex:1;padding:12px;background:var(--bg-input,#f0f0f0);color:var(--muted);border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Passer</button>
+      <button data-action="submit-rating" style="flex:2;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Envoyer ⭐</button>
     </div>
   </div>
 </div>
@@ -1665,7 +1668,7 @@ async function saveConstantes() {
   <div style="background:#fff;max-width:520px;margin:40px auto;border-radius:16px;padding:32px;position:relative;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
       <h3 style="margin:0;color:#0A2463;">Mes constantes médicales</h3>
-      <button onclick="closeEditConstantes()" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+      <button id="btn-close-constantes" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div>
@@ -1718,11 +1721,125 @@ async function saveConstantes() {
       </div>
     </div>
     <div style="display:flex;gap:12px;margin-top:24px;justify-content:flex-end;">
-      <button onclick="closeEditConstantes()" style="padding:10px 20px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;">Annuler</button>
-      <button onclick="saveConstantes()" style="padding:10px 20px;background:#00C9A7;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Enregistrer</button>
+      <button data-action="close-constantes" style="padding:10px 20px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;">Annuler</button>
+      <button data-action="save-constantes" style="padding:10px 20px;background:#00C9A7;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Enregistrer</button>
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Logout
+  document.getElementById('btn-logout').addEventListener('click', logout);
+
+  // Tabs desktop
+  document.getElementById('tab-accueil').addEventListener('click', () => showTab('accueil', document.getElementById('tab-accueil')));
+  document.getElementById('tab-medecins').addEventListener('click', () => showTab('medecins', document.getElementById('tab-medecins')));
+  document.getElementById('tab-dossier').addEventListener('click', () => showTab('dossier', document.getElementById('tab-dossier')));
+  document.getElementById('tab-carte').addEventListener('click', () => showTab('carte', document.getElementById('tab-carte')));
+  document.getElementById('tab-credits').addEventListener('click', () => showTab('credits', document.getElementById('tab-credits')));
+  document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
+
+  // Tabs mobile
+  document.getElementById('bnav-accueil').addEventListener('click', () => showTabMobile('accueil', document.getElementById('bnav-accueil')));
+  document.getElementById('bnav-medecins').addEventListener('click', () => showTabMobile('medecins', document.getElementById('bnav-medecins')));
+  document.getElementById('bnav-dossier').addEventListener('click', () => showTabMobile('dossier', document.getElementById('bnav-dossier')));
+  document.getElementById('bnav-carte').addEventListener('click', () => showTabMobile('carte', document.getElementById('bnav-carte')));
+  document.getElementById('bnav-credits').addEventListener('click', () => showTabMobile('credits', document.getElementById('bnav-credits')));
+  document.getElementById('bnav-profil').addEventListener('click', () => showTabMobile('profil', document.getElementById('bnav-profil')));
+
+  // Modal RDV
+  document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+  document.getElementById('btn-confirm-rdv').addEventListener('click', confirmerRdv);
+  document.getElementById('rdv-date').addEventListener('change', loadSlots);
+  document.getElementById('btn-close-success').addEventListener('click', closeSuccess);
+
+  // Accueil
+  document.getElementById('btn-nouveau-rdv').addEventListener('click', () => showTab('medecins', document.getElementById('tab-medecins')));
+  document.getElementById('btn-abonner-accueil').addEventListener('click', () => openPayment('essentiel'));
+
+  // Médecins
+  document.getElementById('btn-search-doctors').addEventListener('click', loadDoctors);
+
+  // Dossier
+  document.getElementById('btn-edit-constantes').addEventListener('click', openEditConstantes);
+  document.getElementById('btn-generer-qr').addEventListener('click', genererQRUrgence);
+
+  // Carte
+  document.getElementById('filter-all').addEventListener('click', () => filterMap('all'));
+  document.getElementById('filter-doctor').addEventListener('click', () => filterMap('doctor'));
+  document.getElementById('filter-pharmacie').addEventListener('click', () => filterMap('pharmacie'));
+  document.getElementById('filter-laboratoire').addEventListener('click', () => filterMap('laboratoire'));
+
+  // Profil
+  document.getElementById('btn-renouveler').addEventListener('click', () => openPayment('essentiel'));
+  document.getElementById('btn-change-pwd').addEventListener('click', () => {
+    document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
+  });
+
+  // Jitsi
+  document.getElementById('btn-close-jitsi').addEventListener('click', closeJitsi);
+
+  // Modal constantes
+  document.getElementById('btn-close-constantes').addEventListener('click', closeEditConstantes);
+
+  // Délégation d'événements pour éléments dynamiques
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    const name = btn.dataset.name;
+    const plan = btn.dataset.plan;
+    const time = btn.dataset.time;
+    const session = btn.dataset.session;
+    const min = btn.dataset.min;
+    const discount = btn.dataset.discount;
+    const star = btn.dataset.star;
+    const adj = btn.dataset.adj;
+    const resultats = btn.dataset.resultats;
+    const fichier = btn.dataset.fichier;
+    const url = btn.dataset.url;
+
+    if (action === 'select-plan') selectPlan(plan);
+    if (action === 'close-payment') closePayment();
+    if (action === 'initiate-payment') initiatePayment();
+    if (action === 'check-payment-now') checkPaymentNow();
+    if (action === 'close-payment-reload') { closePayment(); loadSubscription(); loadRdv(); }
+    if (action === 'render-plan') renderPlanSelect();
+    if (action === 'open-spend') openSpend(id, name, parseInt(min), parseInt(discount));
+    if (action === 'close-spend') document.getElementById('modal-spend').style.display = 'none';
+    if (action === 'confirm-spend') confirmSpend(id, name);
+    if (action === 'select-slot') selectSlot(time);
+    if (action === 'ouvrir-jitsi') ouvrirJitsiPatient(id, session);
+    if (action === 'select-star') selectStar(parseInt(star));
+    if (action === 'skip-rating') skipRating();
+    if (action === 'submit-rating') submitRating();
+    if (action === 'close-constantes') closeEditConstantes();
+    if (action === 'save-constantes') saveConstantes();
+    if (action === 'voir-resultat-lab') voirResultatLab(resultats, fichier);
+    if (action === 'fermer-modal-qr') fermerModalQRUrgence();
+    if (action === 'download-lab') { window.open(url, '_blank'); fermerModalLabResultats(); }
+    if (action === 'fermer-modal-lab') fermerModalLabResultats();
+    if (action === 'toggle-adj') toggleAdj(adj);
+    if (action === 'submit-pwd') submitChangePwd();
+    if (action === 'cancel-pwd') {
+      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      document.getElementById('btn-change-pwd').addEventListener('click', () => {
+        document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
+      });
+    }
+    if (action === 'handle-rdv') handleRdv(parseInt(id), name);
+  });
+
+  // Input handler for spend-amount
+  document.addEventListener('input', function(e) {
+    if (e.target.id === 'spend-amount') {
+      updateDiscount();
+    }
+  });
+});
+</script>
 
 </body>
 </html>

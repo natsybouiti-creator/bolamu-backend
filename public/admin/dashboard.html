@@ -279,7 +279,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
 </head>
 <body>
 
-<div class="sidebar-ov" id="sb-ov" onclick="closeSB()"></div>
+<div class="sidebar-ov" id="sb-ov" data-ononclick="closeSB"></div>
 
 <aside class="sidebar" id="sidebar">
   <div class="logo-wrap">
@@ -322,7 +322,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <div class="user-name" id="admin-name">Admin</div>
         <div class="user-role">Superadmin</div>
       </div>
-      <span class="logout" onclick="logout()" title="Déconnexion">?</span>
+      <span class="logout" data-ononclick="logout" title="Déconnexion">?</span>
     </div>
   </div>
 </aside>
@@ -330,7 +330,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
 <div class="main">
   <header class="topbar">
     <div class="topbar-left">
-      <button class="mob-toggle" onclick="toggleSB()">?</button>
+      <button class="mob-toggle" data-ononclick="toggleSB">?</button>
       <div>
         <div class="topbar-title" id="panel-title">Tableau de bord</div>
       </div>
@@ -340,7 +340,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <div class="dot amber" id="srv-dot"></div>
         <span id="srv-lbl">Connexion...</span>
       </div>
-      <button class="top-btn" onclick="refreshAll()">? Actualiser</button>
+      <button class="top-btn" data-ononclick="refreshAll">? Actualiser</button>
     </div>
   </header>
 
@@ -394,7 +394,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         </div>
       </div>
       <div class="row2">
-        <div class="card"><div class="card-title">En attente</div><div class="card-sub">Dossiers non vérifiés</div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div id="mini-pending"><div class="loading">Chargement...</div></div><button class="top-btn" onclick="loadPanel('pending')" style="font-size:11px;padding:6px 12px;">Voir tout</button></div></div>
+        <div class="card"><div class="card-title">En attente</div><div class="card-sub">Dossiers non vérifiés</div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div id="mini-pending"><div class="loading">Chargement...</div></div><button class="top-btn" data-onclick="loadPanel" data-arg="pending" style="font-size:11px;padding:6px 12px;">Voir tout</button></div></div>
         <div class="card"><div class="card-title">Fraudes HIGH</div><div class="card-sub">Activités suspectes</div><div id="mini-fraud"><div class="loading">Chargement...</div></div></div>
       </div>
     </div>
@@ -496,7 +496,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <div class="cr-stat"><div class="cr-val" id="cr-spent"></div><div class="cr-lbl">Dépensés</div></div>
       </div>
       <div class="tbl-card">
-        <div class="tbl-head"><span class="tbl-title">Comptes crédits</span><button class="ab ab-violet" onclick="openGrantCredit()">Attribuer</button></div>
+        <div class="tbl-head"><span class="tbl-title">Comptes crédits</span><button class="ab ab-violet" data-ononclick="openGrantCredit">Attribuer</button></div>
         <div id="credits-list"><div class="loading">Chargement...</div></div>
       </div>
     </div>
@@ -565,7 +565,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         Conventions Hub de proximité — CDR calculée sur
         abonnés actifs dans la zone
       </p>
-      <button onclick="openNewConvention()" style="margin-bottom:16px">+ Nouvelle convention</button>
+      <button data-ononclick="openNewConvention" style="margin-bottom:16px">+ Nouvelle convention</button>
       <table>
         <thead><tr>
           <th>Partenaire</th><th>Type</th><th>Zone</th>
@@ -603,7 +603,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         </div>
       </div>
 
-      <button onclick="lancerClearing()"
+      <button data-ononclick="lancerClearing"
         style="margin-bottom:16px;background:#00C9A7;color:white;
         padding:10px 20px;border:none;border-radius:8px;
         cursor:pointer;font-weight:600">
@@ -624,13 +624,13 @@ tr:hover td{background:rgba(255,255,255,.018);}
     <div id="panel-conflits" class="panel" style="display:none">
       <h2>⚖️ Gestion des Conflits</h2>
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-        <button onclick="loadConflits('all')">Tous</button>
-        <button onclick="loadConflits('created')">Créés</button>
-        <button onclick="loadConflits('assigned')">Assignés</button>
-        <button onclick="loadConflits('investigating')">
+        <button data-onclick="loadConflits" data-arg="all">Tous</button>
+        <button data-onclick="loadConflits" data-arg="created">Créés</button>
+        <button data-onclick="loadConflits" data-arg="assigned">Assignés</button>
+        <button data-onclick="loadConflits" data-arg="investigating">
           En cours</button>
-        <button onclick="loadConflits('resolved')">Résolus</button>
-        <button onclick="loadConflits('closed')">Fermés</button>
+        <button data-onclick="loadConflits" data-arg="resolved">Résolus</button>
+        <button data-onclick="loadConflits" data-arg="closed">Fermés</button>
       </div>
       <table>
         <thead><tr>
@@ -844,12 +844,12 @@ async function loadOverview(){
     if(mp){try{const pr=await Promise.race([
       api('/admin/pending'),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
-    ]);const pu=pr.data||[];mp.innerHTML=pu.length?'<div class="feed">'+pu.slice(0,10).map(u=>`<div class="feed-item"><div class="feed-dot-w"><div class="feed-dot" style="background:var(--amber)"></div></div><div><div class="feed-txt"><strong>${u.full_name||u.business_name||u.phone}</strong>  ${u.role||''}</div><div class="feed-time">${fd(u.created_at)}</div></div><button class="ab ab-green ab-icon" onclick="validateUser('${u.phone}')">\u2713</button></div>`).join('')+'</div>':'<div class="empty"><div class="empty-ico">\u2713</div><p>Aucun dossier</p></div>';}catch(e){mp.innerHTML='<div class="empty">Erreur de chargement</div>';}}
+    ]);const pu=pr.data||[];mp.innerHTML=pu.length?'<div class="feed">'+pu.slice(0,10).map(u=>`<div class="feed-item"><div class="feed-dot-w"><div class="feed-dot" style="background:var(--amber)"></div></div><div><div class="feed-txt"><strong>${u.full_name||u.business_name||u.phone}</strong>  ${u.role||''}</div><div class="feed-time">${fd(u.created_at)}</div></div><button class="ab ab-green ab-icon" data-onclick="validateUser" data-arg="${u.phone}">\u2713</button></div>`).join('')+'</div>':'<div class="empty"><div class="empty-ico">\u2713</div><p>Aucun dossier</p></div>';}catch(e){mp.innerHTML='<div class="empty">Erreur de chargement</div>';}}
     const mf=document.getElementById('mini-fraud');
     if(mf){try{const fr=await Promise.race([
       api('/admin/fraud'),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
-    ]);const fu=fr.data||[];const high=fu.filter(x=>x.severity==='high'||x.fraud_score>=70);mf.innerHTML=high.length?'<div class="feed">'+high.slice(0,5).map(u=>`<div class="feed-item"><div class="feed-dot-w"><div class="feed-dot" style="background:var(--red)"></div></div><div><div class="feed-txt"><strong>${u.phone}</strong>  score ${u.fraud_score||'?'}/100</div><div class="feed-time">${u.fraud_reason||''}</div></div><button class="ab ab-red ab-icon" onclick="banUser('${u.phone}')">\u26A0</button></div>`).join('')+'</div>':'<div class="empty"><div class="empty-ico">\u26A0</div><p>Aucune fraude HIGH</p></div>';}catch(e){mf.innerHTML='<div class="empty">Erreur de chargement</div>';}}
+    ]);const fu=fr.data||[];const high=fu.filter(x=>x.severity==='high'||x.fraud_score>=70);mf.innerHTML=high.length?'<div class="feed">'+high.slice(0,5).map(u=>`<div class="feed-item"><div class="feed-dot-w"><div class="feed-dot" style="background:var(--red)"></div></div><div><div class="feed-txt"><strong>${u.phone}</strong>  score ${u.fraud_score||'?'}/100</div><div class="feed-time">${u.fraud_reason||''}</div></div><button class="ab ab-red ab-icon" data-onclick="banUser" data-arg="${u.phone}">\u26A0</button></div>`).join('')+'</div>':'<div class="empty"><div class="empty-ico">\u26A0</div><p>Aucune fraude HIGH</p></div>';}catch(e){mf.innerHTML='<div class="empty">Erreur de chargement</div>';}}
     hideBanner();srvOnline();
   }catch(e){console.error(e);showBannerErr('Erreur de connexion au serveur');}
 }
@@ -888,7 +888,7 @@ async function loadPending(){
     const res=await api('/admin/pending');const rows=res.data||[];
     const cnt=document.getElementById('pending-count');if(cnt)cnt.textContent=rows.length+' dossiers';
     if(!rows.length){el.innerHTML='<div class="empty"><div class="empty-ico">!</div><p>Aucun dossier En attente</p></div>';return;}
-    el.innerHTML=`<table id="pending-tbl"><thead><tr><th>Téléphone</th><th>Rôle</th><th>Nom</th><th>Inscrit le</th><th>Documents</th><th>Actions</th></tr></thead><tbody>${rows.map(u=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${u.phone}</td><td>${badge(u.role)}</td><td style="font-weight:500">${u.full_name||u.business_name||''}</td><td style="color:var(--muted)">${fs(u.created_at)}</td><td style="font-size:12px;">${getDocumentsHtml(u)}</td><td class="acts"><button class="ab ab-green" onclick="validateUser('${u.phone}')">Valider</button><button class="ab ab-blue" onclick="viewUser('${u.phone}')">Profil</button><button class="ab ab-red" onclick="rejectUser('${u.phone}')">Rejeter</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="pending-tbl"><thead><tr><th>Téléphone</th><th>Rôle</th><th>Nom</th><th>Inscrit le</th><th>Documents</th><th>Actions</th></tr></thead><tbody>${rows.map(u=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${u.phone}</td><td>${badge(u.role)}</td><td style="font-weight:500">${u.full_name||u.business_name||''}</td><td style="color:var(--muted)">${fs(u.created_at)}</td><td style="font-size:12px;">${getDocumentsHtml(u)}</td><td class="acts"><button class="ab ab-green" data-onclick="validateUser" data-arg="${u.phone}">Valider</button><button class="ab ab-blue" data-onclick="viewUser" data-arg="${u.phone}">Profil</button><button class="ab ab-red" data-onclick="rejectUser" data-arg="${u.phone}">Rejeter</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -900,7 +900,7 @@ async function loadDoctors(status=''){
   try{
     const res=await api('/admin/doctors'+(status?'?status='+status:''));const rows=res.data||[];
     const cnt=document.getElementById('doctors-count');if(cnt)cnt.textContent=rows.length+' médecins';
-    el.innerHTML=`<table id="doctors-tbl"><thead><tr><th>Téléphone</th><th>Nom</th><th>Spécialité</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(d=>{const statutStr = d.banned ? 'banned' : (d.is_active ? 'verified' : 'pending'); return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${d.phone}</td><td style="font-weight:500">${d.full_name||''}</td><td style="color:var(--muted)">${d.specialty||d.specialite||d.speciality||d.domain||''}</td><td>${badge(statutStr)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${d.phone}')">Profil</button><button class="ab ab-violet" onclick="openGrantCreditTo('${d.phone}')">Crédit</button><button class="ab ab-amber" onclick="suspendUser('${d.phone}')">Suspend</button></td></tr>`;}).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="doctors-tbl"><thead><tr><th>Téléphone</th><th>Nom</th><th>Spécialité</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(d=>{const statutStr = d.banned ? 'banned' : (d.is_active ? 'verified' : 'pending'); return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${d.phone}</td><td style="font-weight:500">${d.full_name||''}</td><td style="color:var(--muted)">${d.specialty||d.specialite||d.speciality||d.domain||''}</td><td>${badge(statutStr)}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${d.phone}">Profil</button><button class="ab ab-violet" data-onclick="openGrantCreditTo" data-arg="${d.phone}">Crédit</button><button class="ab ab-amber" data-onclick="suspendUser" data-arg="${d.phone}">Suspend</button></td></tr>`;}).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -913,7 +913,7 @@ async function loadPharmacies(){
     const res=await api('/admin/pharmacies');const rows=res.data||[];
     const cnt=document.getElementById('pharma-count');if(cnt)cnt.textContent=rows.length+' pharmacies';
     if(!rows.length){el.innerHTML='<div class="empty">Aucune pharmacie enregistrée</div>';return;}
-    el.innerHTML=`<table id="pharma-tbl"><thead><tr><th>Téléphone</th><th>Nom / Enseigne</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>{const statutStr = p.banned ? 'banned' : (p.is_active ? 'verified' : 'pending'); return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${p.phone}</td><td style="font-weight:500">${p.business_name||p.full_name||p.name||''}</td><td>${badge(statutStr)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${p.phone}')">Profil</button><button class="ab ab-amber" onclick="suspendUser('${p.phone}')">Suspend</button></td></tr>`;}).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="pharma-tbl"><thead><tr><th>Téléphone</th><th>Nom / Enseigne</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>{const statutStr = p.banned ? 'banned' : (p.is_active ? 'verified' : 'pending'); return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${p.phone}</td><td style="font-weight:500">${p.business_name||p.full_name||p.name||''}</td><td>${badge(statutStr)}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${p.phone}">Profil</button><button class="ab ab-amber" data-onclick="suspendUser" data-arg="${p.phone}">Suspend</button></td></tr>`;}).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -925,7 +925,7 @@ async function loadLabos(){
   try{
     const res=await api('/admin/laboratories');const rows=res.data||[];
     const cnt=document.getElementById('labo-count');if(cnt)cnt.textContent=rows.length+' laboratoires';
-    el.innerHTML=`<table id="labo-tbl"><thead><tr><th>Téléphone</th><th>Nom</th><th>Actions</th></tr></thead><tbody>${rows.map(l=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${l.phone}</td><td style="font-weight:500">${l.business_name||''}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${l.phone}')">Profil</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="labo-tbl"><thead><tr><th>Téléphone</th><th>Nom</th><th>Actions</th></tr></thead><tbody>${rows.map(l=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${l.phone}</td><td style="font-weight:500">${l.business_name||''}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${l.phone}">Profil</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -937,7 +937,7 @@ async function loadPatients(){
   try{
     const res=await api('/admin/users?role=patient');const rows=res.data||[];
     const cnt=document.getElementById('patients-count');if(cnt)cnt.textContent=rows.length+' patients';
-    el.innerHTML=`<table id="patients-tbl"><thead><tr><th>Nom</th><th>Téléphone</th><th>Inscrit le</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td style="font-weight:500">${p.full_name||''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${p.phone}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.is_active?'verified':'pending')}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${p.phone}')">Profil</button><button class="ab ab-violet" onclick="openGrantCreditTo('${p.phone}')">Crédit</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="patients-tbl"><thead><tr><th>Nom</th><th>Téléphone</th><th>Inscrit le</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td style="font-weight:500">${p.full_name||''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${p.phone}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.is_active?'verified':'pending')}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${p.phone}">Profil</button><button class="ab ab-violet" data-onclick="openGrantCreditTo" data-arg="${p.phone}">Crédit</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -952,7 +952,7 @@ async function loadAppts(){
     kpi('appt-done',rows.filter(r=>r.status==='termine').length);
     kpi('appt-conf',rows.filter(r=>r.status==='confirme').length);
     kpi('appt-total',rows.length);
-    el.innerHTML=`<table id="appt-tbl"><thead><tr><th>Code</th><th>Patient</th><th>Médecin</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${r.session_code||''}</td><td>${r.patient_phone}</td><td>${r.doctor_name||r.doctor_phone}</td><td style="color:var(--muted)">${fs(r.created_at)}</td><td>${badge(r.status)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${r.patient_phone}')">Voir</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="appt-tbl"><thead><tr><th>Code</th><th>Patient</th><th>Médecin</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${r.session_code||''}</td><td>${r.patient_phone}</td><td>${r.doctor_name||r.doctor_phone}</td><td style="color:var(--muted)">${fs(r.created_at)}</td><td>${badge(r.status)}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${r.patient_phone}">Voir</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -964,7 +964,7 @@ async function loadPresc(){
   try{
     const res=await api('/admin/prescriptions');const rows=res.data||[];
     const cnt=document.getElementById('pres-count');if(cnt)cnt.textContent=rows.length+' ordonnances';
-    el.innerHTML=`<table><thead><tr><th>ID</th><th>Médecin</th><th>Patient</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">#${p.id}</td><td>${p.doctor_phone}</td><td>${p.patient_phone}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${p.patient_phone}')">Patient</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table><thead><tr><th>ID</th><th>Médecin</th><th>Patient</th><th>Date</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">#${p.id}</td><td>${p.doctor_phone}</td><td>${p.patient_phone}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${p.patient_phone}">Patient</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -979,7 +979,7 @@ async function loadPayments(){
     const total=rows.filter(r=>r.status==='success').reduce((s,r)=>s+(Number(r.amount)||0),0);
     kpi('pay-rev',fn(total)+' F');kpi('pay-cnt',rows.filter(r=>r.status==='success').length);
     kpi('pay-momo',rows.filter(r=>(r.provider||'').toLowerCase().includes('momo')).length);
-    el.innerHTML=`<table id="pay-tbl"><thead><tr><th>Téléphone</th><th>Montant</th><th>Provider</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>{const phone = p.patient_phone || 'N/A'; return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fn(p.amount)} F</td><td style="color:var(--muted)">${p.provider||''}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.status)}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${phone}')">Voir</button></td></tr>`;}).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="pay-tbl"><thead><tr><th>Téléphone</th><th>Montant</th><th>Provider</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>{const phone = p.patient_phone || 'N/A'; return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fn(p.amount)} F</td><td style="color:var(--muted)">${p.provider||''}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.status)}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${phone}">Voir</button></td></tr>`;}).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -994,7 +994,7 @@ async function loadFraud(){
     kpi('fr-high',rows.filter(r=>r.severity==='high'||r.fraud_score>=70).length);
     kpi('fr-med',rows.filter(r=>r.severity==='medium'||(r.fraud_score>=40&&r.fraud_score<70)).length);
     kpi('fr-low',rows.filter(r=>r.severity==='low'||r.fraud_score<40).length);
-    el.innerHTML=`<table id="fraud-tbl"><thead><tr><th>Téléphone</th><th>Score</th><th>Raison</th><th>Actions</th></tr></thead><tbody>${rows.map(f=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${f.phone||f.actor_phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${f.fraud_score>=70?'var(--red)':'var(--amber)'}">${f.fraud_score}/100</td><td style="color:var(--muted)">${f.fraud_reason||''}</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${f.phone||f.actor_phone}')">Profil</button><button class="ab ab-red" onclick="banUser('${f.phone||f.actor_phone}')">Bannir</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table id="fraud-tbl"><thead><tr><th>Téléphone</th><th>Score</th><th>Raison</th><th>Actions</th></tr></thead><tbody>${rows.map(f=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${f.phone||f.actor_phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${f.fraud_score>=70?'var(--red)':'var(--amber)'}">${f.fraud_score}/100</td><td style="color:var(--muted)">${f.fraud_reason||''}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${f.phone||f.actor_phone}">Profil</button><button class="ab ab-red" data-onclick="banUser" data-arg="${f.phone||f.actor_phone}">Bannir</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 
@@ -1021,7 +1021,7 @@ async function loadConfig(){
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 function editConfig(key,val){
-  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Modifier la config</div><div class="modal-sub">${key}</div><div class="mf"><label>Valeur</label><input class="mi" id="cfg-val" value="${val}"></div><div class="modal-acts"><button class="mbtn mbtn-cancel" onclick="closeModal()">Annuler</button><button class="mbtn mbtn-blue" onclick="saveConfig('${key}')">Enregistrer</button></div>`;
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Modifier la config</div><div class="modal-sub">${key}</div><div class="mf"><label>Valeur</label><input class="mi" id="cfg-val" value="${val}"></div><div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-blue" data-onclick="saveConfig" data-arg="${key}">Enregistrer</button></div>`;
   openModal();
 }
 async function saveConfig(key){
@@ -1037,13 +1037,13 @@ async function loadCredits(){
   try{
     const res=await api('/admin/credits');const rows=res.data||[];
     kpi('cr-accounts',rows.length);
-    el.innerHTML=`<table><thead><tr><th>Téléphone</th><th>Solde</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${r.phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--violet)">${r.balance||0} 💰</td><td class="acts"><button class="ab ab-blue" onclick="viewUser('${r.phone}')">👁 Profil</button><button class="ab ab-violet" onclick="openGrantCreditTo('${r.phone}')">💰 Attribuer</button></td></tr>`).join('')}</tbody></table>`;
+    el.innerHTML=`<table><thead><tr><th>Téléphone</th><th>Solde</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${r.phone}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--violet)">${r.balance||0} 💰</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${r.phone}">👁 Profil</button><button class="ab ab-violet" data-onclick="openGrantCreditTo" data-arg="${r.phone}">💰 Attribuer</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 function openGrantCredit(){openGrantCreditTo('');}
 function openGrantCreditTo(ph){
   document.getElementById('modal-box').className='modal';
-  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Attribuer des crédits</div><div class="modal-sub">Les crédits sont immédiatement crédités sur le compte.</div><div class="mf"><label>Téléphone</label><input class="mi" id="cr-phone-inp" value="${ph}" placeholder="+242..."></div><div class="mf"><label>Montant</label><input class="mi" type="number" id="cr-amount" value="10" min="1"></div><div class="mf"><label>Raison</label><input class="mi" id="cr-reason" value="Admin Manuel"></div><div class="modal-acts"><button class="mbtn mbtn-cancel" onclick="closeModal()">Annuler</button><button class="mbtn mbtn-violet" onclick="grantCredit()">Valider</button></div>`;
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Attribuer des crédits</div><div class="modal-sub">Les crédits sont immédiatement crédités sur le compte.</div><div class="mf"><label>Téléphone</label><input class="mi" id="cr-phone-inp" value="${ph}" placeholder="+242..."></div><div class="mf"><label>Montant</label><input class="mi" type="number" id="cr-amount" value="10" min="1"></div><div class="mf"><label>Raison</label><input class="mi" id="cr-reason" value="Admin Manuel"></div><div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-violet" data-ononclick="grantCredit">Valider</button></div>`;
   openModal();
 }
 async function grantCredit(){
@@ -1282,8 +1282,8 @@ async function viewUser(phone){
  
     <!-- Actions bas de modal -->
     <div class="modal-acts" style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px">
-      <button class="mbtn mbtn-cancel" onclick="closeProfileModal()">❌ Fermer</button>
-      <button class="mbtn mbtn-violet" onclick="closeProfileModal();openGrantCreditTo('${u.phone||withPlus}')">💰 Crédits</button>
+      <button class="mbtn mbtn-cancel" data-ononclick="closeProfileModal">❌ Fermer</button>
+      <button class="mbtn mbtn-violet" data-onclick="closeProfileModal" data-arg=");openGrantCreditTo('${u.phone||withPlus}'">💰 Crédits</button>
       ${(u.status==='pending')?`<button class="mbtn mbtn-green" onclick="validateUser('${u.phone||withPlus}');closeProfileModal()">✅ Valider</button>`:''}
       ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" style="background:var(--amber);color:#080a0f" onclick="suspendUser('${u.phone||withPlus}');closeProfileModal()">⏸ Suspendre</button>`:''}
       <button class="mbtn mbtn-red" onclick="banUser('${u.phone||withPlus}');closeProfileModal()">🚫 Bannir</button>
@@ -1302,7 +1302,7 @@ function renderProfileNotFound(phone){
         Le profil de cet utilisateur n'est pas accessible via l'API.<br>
         Vérifiez que le compte existe bien dans la base Neon.
       </div>
-      <button class="mbtn mbtn-cancel" onclick="closeProfileModal()" style="max-width:140px">Retour</button>
+      <button class="mbtn mbtn-cancel" data-ononclick="closeProfileModal" style="max-width:140px">Retour</button>
     </div>`;
 }
  
@@ -1446,7 +1446,7 @@ async function loadConventions() {
         <td>${badge(r.status)}</td>
         <td>${fd(r.started_at)}</td>
         <td>${r.expires_at ? fd(r.expires_at) : '—'}</td>
-        <td><button onclick="viewUser('${r.partner_phone}')">
+        <td><button data-onclick="viewUser" data-arg="${r.partner_phone}">
           Voir</button></td>
       </tr>`).join('') :
       '<tr><td colspan="7" style="text-align:center;opacity:.5">' +
@@ -1485,7 +1485,7 @@ async function loadClearing() {
         <td>${r.taux_cdr || 0}%</td>
         <td style="font-weight:600">${fn(r.amount_fcfa || 0)} FCFA</td>
         <td>${badge(r.status || 'en_attente')}</td>
-        <td><button onclick="marquerVerse('${r.id}')">
+        <td><button data-onclick="marquerVerse" data-arg="${r.id}">
           Marquer versé</button></td>
       </tr>`).join('') :
       '<tr><td colspan="8" style="text-align:center;opacity:.5">' +
@@ -1536,7 +1536,7 @@ async function loadConflits(statut = 'all') {
         <td>${badge(r.statut)}</td>
         <td>${fd(r.created_at)}</td>
         <td>
-          <button onclick="assignerConflict('${r.id}')">
+          <button data-onclick="assignerConflict" data-arg="${r.id}">
             Assigner</button>
         </td>
       </tr>`).join('') :
@@ -1574,5 +1574,53 @@ async function assignerConflict(id) {
 
 loadOverview();
 </script>
+
+<script>
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-onclick]');
+      if (!btn) return;
+      var fn = btn.getAttribute('data-onclick');
+      var arg = btn.getAttribute('data-arg');
+      if (typeof window[fn] === 'function') {
+        if (arg !== null) {
+          window[fn](arg);
+        } else {
+          window[fn]();
+        }
+      }
+    });
+
+    document.addEventListener('change', function(e) {
+      var el = e.target.closest('[data-onchange]');
+      if (!el) return;
+      var fn = el.getAttribute('data-onchange');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('input', function(e) {
+      var el = e.target.closest('[data-oninput]');
+      if (!el) return;
+      var fn = el.getAttribute('data-oninput');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('submit', function(e) {
+      var form = e.target.closest('[data-onsubmit]');
+      if (!form) return;
+      e.preventDefault();
+      var fn = form.getAttribute('data-onsubmit');
+      if (typeof window[fn] === 'function') window[fn](e);
+    });
+
+    // Attacher les data-on* directs aux éléments
+    document.querySelectorAll('[data-onclick]').forEach(function(el) {
+      if (el.tagName !== 'BUTTON' && el.tagName !== 'A') return;
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
