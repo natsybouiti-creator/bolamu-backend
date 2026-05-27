@@ -196,12 +196,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">Contenu</div>
-    <button class="nav-item active" onclick="showPanel('articles',this)"><span class="icon">📰</span> Articles & Blog</button>
+    <button class="nav-item active" id="nav-articles" data-action="show-panel" data-panel="articles"><span class="icon">📰</span> Articles & Blog</button>
     <div class="nav-section">Page d'accueil</div>
-    <button class="nav-item" onclick="showPanel('vitrine',this)"><span class="icon">🖼️</span> Vitrine & Hero</button>
-    <button class="nav-item" onclick="showPanel('plans',this)"><span class="icon">💰</span> Offres & Tarifs</button>
-    <button class="nav-item" onclick="showPanel('textes',this)"><span class="icon">✏️</span> Textes du site</button>
-    <button class="nav-item" onclick="showPanel('reseaux',this)"><span class="icon">📲</span> Réseaux sociaux</button>
+    <button class="nav-item" id="nav-vitrine" data-action="show-panel" data-panel="vitrine"><span class="icon">🖼️</span> Vitrine & Hero</button>
+    <button class="nav-item" id="nav-plans" data-action="show-panel" data-panel="plans"><span class="icon">💰</span> Offres & Tarifs</button>
+    <button class="nav-item" id="nav-textes" data-action="show-panel" data-panel="textes"><span class="icon">✏️</span> Textes du site</button>
+    <button class="nav-item" id="nav-reseaux" data-action="show-panel" data-panel="reseaux"><span class="icon">📲</span> Réseaux sociaux</button>
   </nav>
   <div class="sidebar-footer">
     <div class="admin-info">
@@ -259,7 +259,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
         <button data-ononclick="openArticleModal" style="padding:8px 16px;background:var(--grad-violet);color:white;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">+ Nouvel article</button>
       </div>
       <div class="art-filters" id="art-filters-bar">
-        <button class="art-filter-btn active" onclick="filterArticlesAdmin('tous',this)">Tous</button>
+        <button class="art-filter-btn active" id="art-filter-tous" data-action="filter-admin" data-category="tous">Tous</button>
       </div>
       <div class="articles-grid" id="articles-grid">
         <div class="loading-state" style="grid-column:1/-1">
@@ -287,10 +287,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
         </div>
         <div class="modal-field">
           <label>Photo (URL ou upload)</label>
-          <input type="file" id="hero-file-input" accept="image/*" style="display:none" onchange="handleVitrineUpload(this,'hero-image-url','hero-img-preview')">
+          <input type="file" id="hero-file-input" accept="image/*" style="display:none" data-action="vitrine-upload" data-url-id="hero-image-url" data-preview-id="hero-img-preview">
           <div style="display:flex;gap:6px;margin-bottom:5px;">
-            <button type="button" onclick="document.getElementById('hero-file-input').click()" style="padding:6px 10px;background:rgba(159,122,234,0.12);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;">📷 Upload</button>
-            <input class="modal-input" id="hero-image-url" placeholder="https://..." oninput="vitPreview('hero-img-preview',this.value)" style="flex:1;">
+            <button type="button" id="hero-file-trigger" data-action="trigger-click" data-target-id="hero-file-input" style="padding:6px 10px;background:rgba(159,122,234,0.12);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;">📷 Upload</button>
+            <input class="modal-input" id="hero-image-url" placeholder="https://..." data-action="vit-preview" data-preview-id="hero-img-preview" style="flex:1;">
           </div>
           <img id="hero-img-preview" class="vitrine-img-preview">
         </div>
@@ -341,10 +341,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
 </div>
 
 <!-- MODALS -->
-<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+<div class="modal-overlay" id="modal">
   <div class="modal"><div id="modal-body"></div></div>
 </div>
-<div class="modal-overlay" id="modal-article" onclick="if(event.target===this)closeArticleModal()">
+<div class="modal-overlay" id="modal-article">
   <div class="modal modal-lg"><div id="modal-article-body"></div></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -484,8 +484,8 @@ async function loadArticles(){
     const cats=[...new Set(allArticles.map(a=>a.category).filter(Boolean))];
     const catEmojis={paludisme:'🦟',grossesse:'🤱',nutrition:'🥗',prevention:'🛡️',sante:'❤️',seniors:'👴',contraception:'🩺',hygiene:'🧼'};
     const bar=document.getElementById('art-filters-bar');
-    if(bar)bar.innerHTML=`<button class="art-filter-btn active" onclick="filterArticlesAdmin('tous',this)">Tous</button>`+
-      cats.map(c=>`<button class="art-filter-btn" onclick="filterArticlesAdmin('${c}',this)">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
+    if(bar)bar.innerHTML=`<button class="art-filter-btn active" data-action="filter-admin" data-category="tous">Tous</button>`+
+      cats.map(c=>`<button class="art-filter-btn" data-action="filter-admin" data-category="${c}">${catEmojis[c]||'📌'} ${c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join('');
     renderArticlesAdmin(allArticles);
     setBootBanner('success');
   }catch(e){
@@ -527,9 +527,9 @@ function renderArticlesAdmin(items){
       <div class="art-excerpt">${a.excerpt||''}</div>
       <div class="art-meta"><span>✍️ ${a.author||'Dr. Bolamu'}</span><span>⏱ ${a.read_time||'5 min'}</span></div>
       <div class="art-actions">
-        <button class="btn-art-edit" onclick='openArticleModal(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(a))}")))'>✏️ Éditer</button>
+        <button class="btn-art-edit" data-action="edit-article" data-payload="${encodeURIComponent(JSON.stringify(a))}">✏️ Éditer</button>
         ${pubBtn}
-        <button class="btn-art-del" onclick="confirmDeleteArticle(${a.id},'${(a.title||'').replace(/'/g,"\\'").replace(/"/g,"'")}')">🗑️</button>
+        <button class="btn-art-del" data-action="delete-article" data-id="${a.id}" data-title="${(a.title||'').replace(/"/g,"'")}">🗑️</button>
       </div>
     </div></div>`;
   }).join('');
@@ -544,7 +544,7 @@ async function togglePub(id,cur){
 }
 
 function confirmDeleteArticle(id,title){
-  document.getElementById('modal-body').innerHTML=`<div class="modal-title">🗑️ Supprimer</div><div class="modal-sub">Supprimer <strong>"${title}"</strong> ? Action irréversible.</div><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Annuler</button><button class="btn-confirm red" onclick="deleteArticle(${id})">🗑️ Supprimer</button></div>`;
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">🗑️ Supprimer</div><div class="modal-sub">Supprimer <strong>"${title}"</strong> ? Action irréversible.</div><div class="modal-actions"><button class="btn-cancel-modal" data-onclick="closeModal">Annuler</button><button class="btn-confirm red" data-onclick="deleteArticle" data-arg="${id}">🗑️ Supprimer</button></div>`;
   showModal();
 }
 async function deleteArticle(id){
@@ -581,7 +581,7 @@ function openArticleModal(a=null){
     </div>
     <div class="modal-2col">
       <div class="modal-field"><label>Emoji</label><input class="modal-input" id="art-emoji" value="${a?.emoji||'📄'}" placeholder="📄"></div>
-      <div class="modal-field"><label>Image URL</label><input class="modal-input" id="art-image" value="${a?.image_url||''}" placeholder="https://..." oninput="previewArtImg(this.value)"></div>
+      <div class="modal-field"><label>Image URL</label><input class="modal-input" id="art-image" value="${a?.image_url||''}" placeholder="https://..." data-action="preview-art-img"></div>
     </div>
     <div class="img-preview-wrap" id="art-img-preview-wrap"><img id="art-img-preview" style="width:100%;height:120px;object-fit:cover;"></div>
     <div class="modal-field"><label>Extrait</label><textarea class="modal-textarea" id="art-excerpt" rows="2" placeholder="Résumé court...">${a?.excerpt||''}</textarea></div>
@@ -670,10 +670,10 @@ async function loadVitrine(){
         <div class="modal-field"><label>Description</label><input class="modal-input" id="${key}-desc" value="${b.desc||''}"></div>
         <div class="modal-field">
           <label>Image</label>
-          <input type="file" id="${key}-file" accept="image/*" style="display:none" onchange="handleVitrineUpload(this,'${key}-img','${key}-preview')">
+          <input type="file" id="${key}-file" accept="image/*" style="display:none" data-action="vitrine-upload" data-url-id="${key}-img" data-preview-id="${key}-preview">
           <div style="display:flex;gap:5px;margin-bottom:4px;">
-            <button type="button" onclick="document.getElementById('${key}-file').click()" style="padding:5px 9px;background:rgba(159,122,234,0.12);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;">📷 Upload</button>
-            <input class="modal-input" id="${key}-img" value="${b.image_url||''}" placeholder="https://..." oninput="vitPreview('${key}-preview',this.value)" style="flex:1;">
+            <button type="button" data-action="trigger-click" data-target-id="${key}-file" style="padding:5px 9px;background:rgba(159,122,234,0.12);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;">📷 Upload</button>
+            <input class="modal-input" id="${key}-img" value="${b.image_url||''}" placeholder="https://..." data-action="vit-preview" data-preview-id="${key}-preview" style="flex:1;">
           </div>
           <img id="${key}-preview" class="vitrine-img-preview" ${b.image_url?`src="${b.image_url}" style="display:block"`:''}> 
         </div>
@@ -682,7 +682,7 @@ async function loadVitrine(){
     }).join('');
     if(vitBanner)vitBanner.className='boot-banner';
   }catch(e){
-    if(vitBanner){vitBanner.className='boot-banner error show';vitBanner.innerHTML=`<span>⚠️</span><div><strong>Erreur de chargement de la vitrine</strong></div><button class="retry-link" onclick="loadVitrine()">↻ Réessayer</button>`;}
+    if(vitBanner){vitBanner.className='boot-banner error show';vitBanner.innerHTML=`<span>⚠️</span><div><strong>Erreur de chargement de la vitrine</strong></div><button class="retry-link" data-onclick="loadVitrine">↻ Réessayer</button>`;}
   }
 }
 function vitPreview(id,url){const img=document.getElementById(id);if(!img)return;if(url){img.src=url;img.style.display='block';}else img.style.display='none';}
@@ -734,7 +734,7 @@ async function loadPlans(){
         <button class="btn-confirm violet" style="padding:8px;" data-onclick="savePlan" data-arg="${key}">💾 Enregistrer</button>
       </div>`;
     }).join('');
-  }catch(e){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p><button onclick="loadPlans()" style="margin-top:10px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
+  }catch(e){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p><button data-onclick="loadPlans" style="margin-top:10px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
 }
 async function savePlan(key){
   const content={name:document.getElementById(key+'-name').value,price:parseInt(document.getElementById(key+'-price').value)||0,period:document.getElementById(key+'-period').value,annual:document.getElementById(key+'-annual').value,badge:document.getElementById(key+'-badge').value,color:document.getElementById(key+'-color').value,featured:document.getElementById(key+'-featured').checked,features:document.getElementById(key+'-features').value};
@@ -764,9 +764,9 @@ async function loadTextes(){
       const val=(blocks[t.key]||{}).value||'';
       const safeVal=val.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       const input=t.textarea?`<textarea class="texte-block-input" id="txt-${t.key}" rows="3">${safeVal}</textarea>`:`<input class="texte-block-input" id="txt-${t.key}" value="${safeVal}">`;
-      return `<div class="texte-block"><div class="texte-block-title">${t.label}</div>${input}<button class="save-block-btn" onclick="saveTexte('${t.key}')">💾 Enregistrer</button></div>`;
+      return `<div class="texte-block"><div class="texte-block-title">${t.label}</div>${input}<button class="save-block-btn" data-onclick="saveTexte" data-arg="${t.key}">💾 Enregistrer</button></div>`;
     }).join('')+'</div>';
-  }catch(e){el.innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p><button onclick="loadTextes()" style="margin-top:10px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
+  }catch(e){el.innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><p>Erreur de chargement</p><button data-onclick="loadTextes" style="margin-top:10px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
 }
 async function saveTexte(key){
   const el=document.getElementById('txt-'+key);if(!el)return;
@@ -791,7 +791,7 @@ async function loadReseaux(){
     const data=await api('/articles/admin/content-blocks');
     const r=(data.blocks||{}).reseaux_sociaux||{};
     el.innerHTML=RESEAUX_CONFIG.map(rs=>`<div class="reseau-block"><div class="reseau-logo ${rs.cls}">${RESEAUX_SVG[rs.key]||''}</div><div style="flex:1"><div class="reseau-name">${rs.label}</div><input class="reseau-input" id="rs-${rs.key}" value="${r[rs.key]||''}" placeholder="${rs.placeholder}"></div></div>`).join('');
-  }catch(e){el.innerHTML='<div class="empty" style="grid-column:1/-1"><p>Erreur de chargement</p><button onclick="loadReseaux()" style="margin-top:8px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
+  }catch(e){el.innerHTML='<div class="empty" style="grid-column:1/-1"><p>Erreur de chargement</p><button data-onclick="loadReseaux" style="margin-top:8px;padding:6px 14px;background:rgba(159,122,234,0.15);color:var(--content-accent);border:1px solid rgba(159,122,234,0.3);border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">↻ Réessayer</button></div>';}
 }
 async function saveReseaux(){
   const content={};
@@ -804,6 +804,100 @@ async function saveReseaux(){
 ══════════════════════════════════════════ */
 loadArticles();
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    var action = el.getAttribute('data-action');
+    if (action === 'show-panel') { showPanel(el.getAttribute('data-panel'), el); return; }
+    if (action === 'filter-admin') { filterArticlesAdmin(el.getAttribute('data-category'), el); return; }
+    if (action === 'trigger-click') {
+      var target = document.getElementById(el.getAttribute('data-target-id'));
+      if (target) target.click();
+      return;
+    }
+    if (action === 'edit-article') {
+      openArticleModal(JSON.parse(decodeURIComponent(el.getAttribute('data-payload'))));
+      return;
+    }
+    if (action === 'delete-article') {
+      confirmDeleteArticle(el.getAttribute('data-id'), el.getAttribute('data-title'));
+      return;
+    }
+  });
+
+  document.addEventListener('input', function(e) {
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    var action = el.getAttribute('data-action');
+    if (action === 'vit-preview') vitPreview(el.getAttribute('data-preview-id'), el.value);
+    if (action === 'preview-art-img') previewArtImg(el.value);
+  });
+
+  document.addEventListener('change', function(e) {
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    if (el.getAttribute('data-action') === 'vitrine-upload') {
+      handleVitrineUpload(el, el.getAttribute('data-url-id'), el.getAttribute('data-preview-id'));
+    }
+  });
+
+  var modalOverlay = document.getElementById('modal');
+  if (modalOverlay) modalOverlay.addEventListener('click', function(event) { if (event.target === modalOverlay) closeModal(); });
+  var articleOverlay = document.getElementById('modal-article');
+  if (articleOverlay) articleOverlay.addEventListener('click', function(event) { if (event.target === articleOverlay) closeArticleModal(); });
+});
+</script>
+
+<script>
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-onclick]');
+      if (!btn) return;
+      var fn = btn.getAttribute('data-onclick');
+      var arg = btn.getAttribute('data-arg');
+      if (typeof window[fn] === 'function') {
+        if (arg !== null) {
+          window[fn](arg);
+        } else {
+          window[fn]();
+        }
+      }
+    });
+
+    document.addEventListener('change', function(e) {
+      var el = e.target.closest('[data-onchange]');
+      if (!el) return;
+      var fn = el.getAttribute('data-onchange');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('input', function(e) {
+      var el = e.target.closest('[data-oninput]');
+      if (!el) return;
+      var fn = el.getAttribute('data-oninput');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('submit', function(e) {
+      var form = e.target.closest('[data-onsubmit]');
+      if (!form) return;
+      e.preventDefault();
+      var fn = form.getAttribute('data-onsubmit');
+      if (typeof window[fn] === 'function') window[fn](e);
+    });
+
+    // Attacher les data-on* directs aux éléments
+    document.querySelectorAll('[data-onclick]').forEach(function(el) {
+      if (el.tagName !== 'BUTTON' && el.tagName !== 'A') return;
+    });
+  });
+})();
+</script>
+
 
 <script>
 (function() {
