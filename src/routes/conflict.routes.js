@@ -40,6 +40,9 @@ router.post('/conflicts', authMiddleware, createConflictController);
 router.get('/conflicts/:id', authMiddleware, getConflict);
 router.post('/conflicts/:id/messages', authMiddleware, addMessageController);
 
+// Alias admin pour listing global
+router.get('/conflicts', authMiddleware, adminOnly, listConflicts);
+
 // ─── ROUTES ADMIN ─────────────────────────────────────────────────────────────
 router.get('/admin/conflicts', authMiddleware, adminOnly, listConflicts);
 router.patch('/conflicts/:id/statut', authMiddleware, adminOnly, updateStatut);

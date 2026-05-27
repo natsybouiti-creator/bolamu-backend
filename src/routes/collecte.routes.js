@@ -550,6 +550,86 @@ router.get('/admin/dashboard', authMiddleware.requireAdmin, async (req, res) => 
   }
 });
 
+// Alias historique: GET /api/v1/collecte/dashboard
+router.get('/dashboard', authMiddleware.requireAdmin, async (req, res) => {
+  try {
+    const [ovpPending, sepaPending, momoActifs, totalActifs] =
+      await Promise.all([
+        db.query(
+          `SELECT COUNT(*) as count FROM ovp_documents
+           WHERE statut = 'genere' OR statut = 'envoye'`
+        ),
+        db.query(
+          `SELECT COUNT(*) as count FROM bank_transfer_requests
+           WHERE status = 'pending' AND canal_type = 'sepa_diaspora'`
+        ),
+        db.query(
+          `SELECT COUNT(*) as count FROM subscriptions
+           WHERE canal_paiement = 'momo_annuel'
+           AND statut_collecte = 'actif'`
+        ),
+        db.query(
+          `SELECT COUNT(*) as count FROM subscriptions
+           WHERE statut_collecte = 'actif'`
+        )
+      ]);
+
+    return res.json({
+      success: true,
+      dashboard: {
+        ovp_en_attente: parseInt(ovpPending.rows[0].count),
+        sepa_en_attente: parseInt(sepaPending.rows[0].count),
+        momo_actifs: parseInt(momoActifs.rows[0].count),
+        total_actifs: parseInt(totalActifs.rows[0].count)
+      }
+    });
+  } catch (err) {
+    console.error('[COLLECTE DASHBOARD]', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// GET /api/v1/collecte/admin/ovp/pending
+router.get('/admin/ovp/pending', authMiddleware.requireAdmin, async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT
+          o.user_phone as phone,
+          s.plan,
+          o.montant_total,
+          o.created_at
+       FROM ovp_documents o
+       LEFT JOIN subscriptions s ON s.patient_phone = o.user_phone AND s.is_active = TRUE
+       WHERE o.statut IN ('genere', 'envoye')
+       ORDER BY o.created_at DESC`
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[OVP PENDING]', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// GET /api/v1/collecte/admin/sepa/pending
+router.get('/admin/sepa/pending', authMiddleware.requireAdmin, async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT
+          b.patient_phone as phone,
+          b.plan,
+          b.amount_fcfa,
+          b.created_at
+       FROM bank_transfer_requests b
+       WHERE b.status = 'pending' AND b.canal_type = 'sepa_diaspora'
+       ORDER BY b.created_at DESC`
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[SEPA PENDING]', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 // PATCH /api/v1/collecte/admin/ovp/valider/:user_phone
 router.patch('/admin/ovp/valider/:user_phone', 
   authMiddleware.requireAdmin, async (req, res) => {

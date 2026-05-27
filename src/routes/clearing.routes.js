@@ -176,6 +176,32 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
     }
 });
 
+// ─── GET /dashboard (alias KPI) ───────────────────────────────────────────────
+router.get('/dashboard', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const result = await db.query(
+            `SELECT
+                COUNT(*) as total_lignes,
+                COALESCE(SUM(amount_fcfa), 0) as total_cdr,
+                COALESCE(SUM(nb_adherents_zone), 0) as total_abonnes
+             FROM partner_payouts
+             WHERE status = 'pending'`
+        );
+        const row = result.rows[0] || {};
+        res.json({
+            success: true,
+            dashboard: {
+                total_cdr: parseFloat(row.total_cdr || 0),
+                total_lignes: parseInt(row.total_lignes || 0),
+                total_abonnes: parseInt(row.total_abonnes || 0)
+            }
+        });
+    } catch (e) {
+        console.error('GET /clearing/dashboard error:', e.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+});
+
 // ─── POST /run ───────────────────────────────────────────────────────────────────
 router.post('/run', authMiddleware, adminOnly, async (req, res) => {
     try {

@@ -1593,16 +1593,22 @@ loadOverview();
     });
 
     document.addEventListener('click', function(e) {
-      var btn = e.target.closest('[data-onclick]');
+      var btn = e.target.closest('[data-onclick],[data-ononclick]');
       if (!btn) return;
-      var fn = btn.getAttribute('data-onclick');
+
+      // Format data-ononclick="fn" (sans argument)
+      var fn1 = btn.getAttribute('data-ononclick');
+      if (fn1 && typeof window[fn1] === 'function') {
+        window[fn1]();
+        return;
+      }
+
+      // Format data-onclick="fn" data-arg="x"
+      var fn2 = btn.getAttribute('data-onclick');
       var arg = btn.getAttribute('data-arg');
-      if (typeof window[fn] === 'function') {
-        if (arg !== null) {
-          window[fn](arg);
-        } else {
-          window[fn]();
-        }
+      if (fn2 && typeof window[fn2] === 'function') {
+        if (arg !== null) window[fn2](arg);
+        else window[fn2]();
       }
     });
 
@@ -1655,16 +1661,22 @@ loadOverview();
     });
 
     document.addEventListener('click', function(e) {
-      var btn = e.target.closest('[data-onclick]');
+      var btn = e.target.closest('[data-onclick],[data-ononclick]');
       if (!btn) return;
-      var fn = btn.getAttribute('data-onclick');
+
+      // Format data-ononclick="fn" (sans argument)
+      var fn1 = btn.getAttribute('data-ononclick');
+      if (fn1 && typeof window[fn1] === 'function') {
+        window[fn1]();
+        return;
+      }
+
+      // Format data-onclick="fn" data-arg="x"
+      var fn2 = btn.getAttribute('data-onclick');
       var arg = btn.getAttribute('data-arg');
-      if (typeof window[fn] === 'function') {
-        if (arg !== null) {
-          window[fn](arg);
-        } else {
-          window[fn]();
-        }
+      if (fn2 && typeof window[fn2] === 'function') {
+        if (arg !== null) window[fn2](arg);
+        else window[fn2]();
       }
     });
 

@@ -506,7 +506,7 @@ router.patch('/users/:phone/toggle', authMiddleware, adminOnly, async (req, res)
 // ─── PLATFORM CONFIG ──────────────────────────────────────────────────────────
 router.get('/config', authMiddleware, adminOnly, async (req, res) => {
     try {
-        const result = await pool.query(`SELECT id, key as config_key, value as config_value FROM platform_config ORDER BY id`);
+        const result = await pool.query(`SELECT id, config_key, config_value FROM platform_config ORDER BY id`);
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
@@ -524,6 +524,57 @@ router.patch('/config/:key', authMiddleware, adminOnly, async (req, res) => {
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('config.updated','admin','platform_config',NULL,$1)`,
             [JSON.stringify({ config_key: key, config_value: value })]).catch(() => {});
         res.json({ success: true, data: result.rows[0], message: `${key} mis à jour → ${value}` });
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
+});
+
+// Compat dashboard: PUT /admin/config { key, value }
+router.put('/config', authMiddleware, adminOnly, async (req, res) => {
+    const { key, value } = req.body;
+    if (!key || value === undefined || value === null) {
+        return res.status(400).json({ success: false, message: 'key et value requis.' });
+    }
+    try {
+        const result = await pool.query(
+            `UPDATE platform_config SET config_value=$1, updated_at=NOW() WHERE config_key=$2 RETURNING *`,
+            [String(value), key]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Clé introuvable.' });
+        res.json({ success: true, data: result.rows[0], message: `${key} mis à jour` });
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
+});
+
+// Compat dashboard: GET /admin/ovp/pending
+router.get('/ovp/pending', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT
+                o.user_phone as phone,
+                s.plan,
+                o.montant_total,
+                o.created_at
+             FROM ovp_documents o
+             LEFT JOIN subscriptions s ON s.patient_phone = o.user_phone AND s.is_active = TRUE
+             WHERE o.statut IN ('genere', 'envoye')
+             ORDER BY o.created_at DESC`
+        );
+        ok(res, result.rows);
+    } catch (e) { err(res, 500, 'Erreur serveur.'); }
+});
+
+// Compat dashboard: GET /admin/sepa/pending
+router.get('/sepa/pending', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT
+                b.patient_phone as phone,
+                b.plan,
+                b.amount_fcfa,
+                b.created_at
+             FROM bank_transfer_requests b
+             WHERE b.status = 'pending' AND b.canal_type = 'sepa_diaspora'
+             ORDER BY b.created_at DESC`
+        );
+        ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
 });
 
