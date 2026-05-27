@@ -5,8 +5,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
-const authMiddleware = require('../../middleware/auth.middleware');
-const { runClearing } = require('../../scripts/clearing-mensuel');
+const authMiddleware = require('../middleware/auth.middleware');
+const { runClearing } = require('../scripts/clearing-mensuel');
 
 // ─── CONFIG MTN DISBURSEMENT (versements sortants) ───────────────────────────────
 const MOMO_BASE_URL = 'https://sandbox.momodeveloper.mtn.com';
