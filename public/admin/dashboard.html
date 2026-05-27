@@ -291,29 +291,29 @@ tr:hover td{background:rgba(255,255,255,.018);}
   </div>
   <nav class="nav">
     <div class="nav-group">Vue générale</div>
-    <button class="nav-btn active" onclick="go('overview',this)"><span class="ni"></span>Tableau de bord</button>
-    <button class="nav-btn"        onclick="go('activity',this)"><span class="ni"></span>Activité temps réel</button>
+    <button class="nav-btn active" id="nav-overview" data-panel="overview"><span class="ni"></span>Tableau de bord</button>
+    <button class="nav-btn"        id="nav-activity" data-panel="activity"><span class="ni"></span>Activité temps réel</button>
     <div class="nav-group">Comptes</div>
-    <button class="nav-btn" onclick="go('pending',this)"><span class="ni"></span>En attente<span class="nav-badge amber-b" id="bdg-pending">0</span></button>
-    <button class="nav-btn" onclick="go('doctors',this)"><span class="ni"></span>Médecins</button>
-    <button class="nav-btn" onclick="go('pharmacies',this)"><span class="ni"></span>Pharmacies</button>
-    <button class="nav-btn" onclick="go('laboratories',this)"><span class="ni"></span>Laboratoires</button>
-    <button class="nav-btn" onclick="go('patients',this)"><span class="ni"></span>Patients</button>
+    <button class="nav-btn" id="nav-pending" data-panel="pending"><span class="ni"></span>En attente<span class="nav-badge amber-b" id="bdg-pending">0</span></button>
+    <button class="nav-btn" id="nav-doctors" data-panel="doctors"><span class="ni"></span>Médecins</button>
+    <button class="nav-btn" id="nav-pharmacies" data-panel="pharmacies"><span class="ni"></span>Pharmacies</button>
+    <button class="nav-btn" id="nav-laboratories" data-panel="laboratories"><span class="ni"></span>Laboratoires</button>
+    <button class="nav-btn" id="nav-patients" data-panel="patients"><span class="ni"></span>Patients</button>
     <div class="nav-group">Plateforme</div>
-    <button class="nav-btn" onclick="go('appointments',this)"><span class="ni"></span>Rendez-vous</button>
-    <button class="nav-btn" onclick="go('prescriptions',this)"><span class="ni"></span>Ordonnances</button>
-    <button class="nav-btn" onclick="go('payments',this)"><span class="ni"></span>Paiements</button>
-    <button class="nav-btn" onclick="go('fraud',this)"><span class="ni"></span>Fraudes<span class="nav-badge" id="bdg-fraud">0</span></button>
-    <button class="nav-btn" onclick="go('audit',this)"><span class="ni"></span>Journal d'audit</button>
+    <button class="nav-btn" id="nav-appointments" data-panel="appointments"><span class="ni"></span>Rendez-vous</button>
+    <button class="nav-btn" id="nav-prescriptions" data-panel="prescriptions"><span class="ni"></span>Ordonnances</button>
+    <button class="nav-btn" id="nav-payments" data-panel="payments"><span class="ni"></span>Paiements</button>
+    <button class="nav-btn" id="nav-fraud" data-panel="fraud"><span class="ni"></span>Fraudes<span class="nav-badge" id="bdg-fraud">0</span></button>
+    <button class="nav-btn" id="nav-audit" data-panel="audit"><span class="ni"></span>Journal d'audit</button>
     <div class="nav-group">Paramètres</div>
-    <button class="nav-btn" onclick="go('config',this)"><span class="ni"></span>Configuration</button>
-    <button class="nav-btn" onclick="go('credits',this)"><span class="ni"></span>Crédits</button>
-    <button class="nav-btn" onclick="go('ratings',this)"><span class="ni"></span>⭐ Notations</button>
+    <button class="nav-btn" id="nav-config" data-panel="config"><span class="ni"></span>Configuration</button>
+    <button class="nav-btn" id="nav-credits" data-panel="credits"><span class="ni"></span>Crédits</button>
+    <button class="nav-btn" id="nav-ratings" data-panel="ratings"><span class="ni"></span>⭐ Notations</button>
     <div class="nav-group">Opérations</div>
-    <button class="nav-btn" onclick="go('collecte',this)"><span class="ni"></span>💰 Collecte</button>
-    <button class="nav-btn" onclick="go('conventions',this)"><span class="ni"></span>🤝 Conventions</button>
-    <button class="nav-btn" onclick="go('clearing',this)"><span class="ni"></span>🏦 Clearing CDR</button>
-    <button class="nav-btn" onclick="go('conflits',this)"><span class="ni"></span>⚖️ Conflits</button>
+    <button class="nav-btn" id="nav-collecte" data-panel="collecte"><span class="ni"></span>💰 Collecte</button>
+    <button class="nav-btn" id="nav-conventions" data-panel="conventions"><span class="ni"></span>🤝 Conventions</button>
+    <button class="nav-btn" id="nav-clearing" data-panel="clearing"><span class="ni"></span>🏦 Clearing CDR</button>
+    <button class="nav-btn" id="nav-conflits" data-panel="conflits"><span class="ni"></span>⚖️ Conflits</button>
   </nav>
   <div class="sidebar-foot">
     <div class="user-row">
@@ -416,25 +416,25 @@ tr:hover td{background:rgba(255,255,255,.018);}
 
     <!-- DOCTORS -->
     <div class="panel" id="panel-doctors">
-      <div class="search-row"><input class="search-inp" type="text" placeholder="Rechercher un médecin..." oninput="filterTbl('doctors-tbl',this.value)"><select class="filter-sel" onchange="loadDoctors(this.value)"><option value="">Tous</option><option value="verified">Vérifiés</option><option value="pending">En attente</option><option value="suspended">Suspendus</option></select></div>
+      <div class="search-row"><input class="search-inp" type="text" id="search-doctors" placeholder="Rechercher un médecin..."><select class="filter-sel" id="filter-doctors"><option value="">Tous</option><option value="verified">Vérifiés</option><option value="pending">En attente</option><option value="suspended">Suspendus</option></select></div>
       <div class="tbl-card"><div class="tbl-head"><span class="tbl-title">Médecins</span><span class="tbl-count" id="doctors-count"></span></div><div id="doctors-list"><div class="loading">Chargement...</div></div></div>
     </div>
 
     <!-- PHARMACIES -->
     <div class="panel" id="panel-pharmacies">
-      <div class="search-row"><input class="search-inp" type="text" placeholder="Rechercher une pharmacie..." oninput="filterTbl('pharma-tbl',this.value)"></div>
+      <div class="search-row"><input class="search-inp" type="text" id="search-pharma" placeholder="Rechercher une pharmacie..."></div>
       <div class="tbl-card"><div class="tbl-head"><span class="tbl-title">Pharmacies</span><span class="tbl-count" id="pharma-count"></span></div><div id="pharma-list"><div class="loading">Chargement...</div></div></div>
     </div>
 
     <!-- LABORATORIES -->
     <div class="panel" id="panel-laboratories">
-      <div class="search-row"><input class="search-inp" type="text" placeholder="Rechercher un laboratoire..." oninput="filterTbl('labo-tbl',this.value)"></div>
+      <div class="search-row"><input class="search-inp" type="text" id="search-labo" placeholder="Rechercher un laboratoire..."></div>
       <div class="tbl-card"><div class="tbl-head"><span class="tbl-title">Laboratoires</span><span class="tbl-count" id="labo-count"></span></div><div id="labo-list"><div class="loading">Chargement...</div></div></div>
     </div>
 
     <!-- PATIENTS -->
     <div class="panel" id="panel-patients">
-      <div class="search-row"><input class="search-inp" type="text" placeholder="Rechercher un patient..." oninput="filterTbl('patients-tbl',this.value)"></div>
+      <div class="search-row"><input class="search-inp" type="text" id="search-patients" placeholder="Rechercher un patient..."></div>
       <div class="tbl-card"><div class="tbl-head"><span class="tbl-title">Patients</span><span class="tbl-count" id="patients-count"></span></div><div id="patients-list"><div class="loading">Chargement...</div></div></div>
     </div>
 
@@ -475,7 +475,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
 
     <!-- AUDIT -->
     <div class="panel" id="panel-audit">
-      <div class="search-row"><input class="search-inp" type="text" placeholder="Rechercher..." oninput="filterTbl('audit-tbl',this.value)"><select class="filter-sel" onchange="loadAudit(this.value)"><option value="">Tous</option><option value="doctor.verified">Validation médecin</option><option value="account.banned">Bannissements</option><option value="credits.granted">Crédits</option><option value="article.create">Articles</option></select></div>
+      <div class="search-row"><input class="search-inp" type="text" id="search-audit" placeholder="Rechercher..."><select class="filter-sel" id="filter-audit"><option value="">Tous</option><option value="doctor.verified">Validation médecin</option><option value="account.banned">Bannissements</option><option value="credits.granted">Crédits</option><option value="article.create">Articles</option></select></div>
       <div class="tbl-card"><div class="tbl-head"><span class="tbl-title">Journal d'audit</span><span class="tbl-count" id="audit-count"></span></div><div id="audit-list"><div class="loading">Chargement...</div></div></div>
     </div>
 
@@ -676,12 +676,12 @@ tr:hover td{background:rgba(255,255,255,.018);}
 </div><!-- /main -->
 
 <!-- MODAL GENERIC -->
-<div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
+<div class="overlay" id="modal">
   <div class="modal" id="modal-box"><div id="modal-body"></div></div>
 </div>
 
 <!-- MODAL PROFIL UTILISATEUR (large) -->
-<div class="overlay" id="profile-modal" onclick="if(event.target===this)closeProfileModal()">
+<div class="overlay" id="profile-modal">
   <div class="modal modal-xl" id="profile-modal-box"><div id="profile-modal-body"></div></div>
 </div>
 
@@ -737,7 +737,7 @@ function hideBanner(){const b=document.getElementById('boot-banner');if(b)b.clas
 function showBannerErr(msg){
   const b=document.getElementById('boot-banner');if(!b)return;
   b.className='boot-banner error show';
-  b.innerHTML=`<span>!</span><div><strong>${msg}</strong></div><button class="retry-btn" onclick="loadOverview()">Réessayer</button>`;
+  b.innerHTML=`<span>!</span><div><strong>${msg}</strong></div><button class="retry-btn" data-action="load-overview">Réessayer</button>`;
   srvOffline();
 }
 
@@ -1017,7 +1017,7 @@ async function loadConfig(){
   const el=document.getElementById('cfg-grid');
   try{
     const res=await api('/admin/config');const cfg=res.data||[];
-    el.innerHTML=cfg.map(c=>`<div class="cfg-card"><div class="cfg-row"><div class="cfg-key">${c.config_key}</div><div class="cfg-val" onclick="editConfig('${c.config_key}','${c.config_value}')">${c.config_value}</div></div></div>`).join('');
+    el.innerHTML=cfg.map(c=>`<div class="cfg-card"><div class="cfg-row"><div class="cfg-key">${c.config_key}</div><div class="cfg-val" id="cfg-val-${c.config_key}" data-action="edit-config" data-key="${c.config_key}" data-value="${c.config_value}">${c.config_value}</div></div></div>`).join('');
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
 }
 function editConfig(key,val){
@@ -1185,11 +1185,11 @@ async function viewUser(phone){
     </div>
  
     <div class="profile-tabs">
-      <button class="profile-tab active" onclick="switchProfileTab('info',this)">📋 Infos</button>
-      <button class="profile-tab" onclick="switchProfileTab('rdv',this)">📅 RDV (${appointments.length})</button>
-      <button class="profile-tab" onclick="switchProfileTab('docs',this)">📄 Docs (${documents.length})</button>
-      <button class="profile-tab" onclick="switchProfileTab('credits',this)">💰 Crédits</button>
-      <button class="profile-tab" onclick="switchProfileTab('payments',this)">💳 Paiements (${payments.length})</button>
+      <button class="profile-tab active" id="profile-tab-info-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="info">📋 Infos</button>
+      <button class="profile-tab" id="profile-tab-rdv-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="rdv">📅 RDV (${appointments.length})</button>
+      <button class="profile-tab" id="profile-tab-docs-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="docs">📄 Docs (${documents.length})</button>
+      <button class="profile-tab" id="profile-tab-credits-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="credits">💰 Crédits</button>
+      <button class="profile-tab" id="profile-tab-payments-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="payments">💳 Paiements (${payments.length})</button>
     </div>
  
     <!-- ONGLET INFOS -->
@@ -1284,9 +1284,9 @@ async function viewUser(phone){
     <div class="modal-acts" style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px">
       <button class="mbtn mbtn-cancel" data-ononclick="closeProfileModal">❌ Fermer</button>
       <button class="mbtn mbtn-violet" data-onclick="closeProfileModal" data-arg=");openGrantCreditTo('${u.phone||withPlus}'">💰 Crédits</button>
-      ${(u.status==='pending')?`<button class="mbtn mbtn-green" onclick="validateUser('${u.phone||withPlus}');closeProfileModal()">✅ Valider</button>`:''}
-      ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" style="background:var(--amber);color:#080a0f" onclick="suspendUser('${u.phone||withPlus}');closeProfileModal()">⏸ Suspendre</button>`:''}
-      <button class="mbtn mbtn-red" onclick="banUser('${u.phone||withPlus}');closeProfileModal()">🚫 Bannir</button>
+      ${(u.status==='pending')?`<button class="mbtn mbtn-green" id="profile-validate-${u.phone||withPlus}" data-action="validate-user-and-close" data-phone="${u.phone||withPlus}">✅ Valider</button>`:''}
+      ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" id="profile-suspend-${u.phone||withPlus}" style="background:var(--amber);color:#080a0f" data-action="suspend-user-and-close" data-phone="${u.phone||withPlus}">⏸ Suspendre</button>`:''}
+      <button class="mbtn mbtn-red" id="profile-ban-${u.phone||withPlus}" data-action="ban-user-and-close" data-phone="${u.phone||withPlus}">🚫 Bannir</button>
     </div>`;
  
   document.getElementById('profile-modal-body').innerHTML = html;
@@ -1388,7 +1388,7 @@ async function loadCollecte() {
         <td>${r.plan || '—'}</td>
         <td>${fn(r.montant_total)} FCFA</td>
         <td>${fd(r.created_at)}</td>
-        <td><button onclick="validerOVP('${r.phone}')">
+        <td><button id="ovp-validate-${r.phone}" data-action="validate-ovp" data-phone="${r.phone}">
           ✅ Valider</button></td>
       </tr>`).join('') :
       '<tr><td colspan="5" style="text-align:center;opacity:.5">' +
@@ -1403,7 +1403,7 @@ async function loadCollecte() {
         <td>${r.plan || '—'}</td>
         <td>${fn(r.amount_fcfa)} FCFA</td>
         <td>${fd(r.created_at)}</td>
-        <td><button onclick="validerSEPA('${r.phone}')">
+        <td><button id="sepa-validate-${r.phone}" data-action="validate-sepa" data-phone="${r.phone}">
           ✅ Valider</button></td>
       </tr>`).join('') :
       '<tr><td colspan="5" style="text-align:center;opacity:.5">' +
@@ -1578,6 +1578,82 @@ loadOverview();
 <script>
 (function() {
   document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+      var actionEl = e.target.closest('[data-action]');
+      if (!actionEl) return;
+      var action = actionEl.getAttribute('data-action');
+      if (action === 'load-overview') { loadOverview(); return; }
+      if (action === 'edit-config') { editConfig(actionEl.getAttribute('data-key'), actionEl.getAttribute('data-value')); return; }
+      if (action === 'switch-profile-tab') { switchProfileTab(actionEl.getAttribute('data-tab'), actionEl); return; }
+      if (action === 'validate-user-and-close') { validateUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
+      if (action === 'suspend-user-and-close') { suspendUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
+      if (action === 'ban-user-and-close') { banUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
+      if (action === 'validate-ovp') { validerOVP(actionEl.getAttribute('data-phone')); return; }
+      if (action === 'validate-sepa') { validerSEPA(actionEl.getAttribute('data-phone')); return; }
+    });
+
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-onclick]');
+      if (!btn) return;
+      var fn = btn.getAttribute('data-onclick');
+      var arg = btn.getAttribute('data-arg');
+      if (typeof window[fn] === 'function') {
+        if (arg !== null) {
+          window[fn](arg);
+        } else {
+          window[fn]();
+        }
+      }
+    });
+
+    document.addEventListener('change', function(e) {
+      var el = e.target.closest('[data-onchange]');
+      if (!el) return;
+      var fn = el.getAttribute('data-onchange');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('input', function(e) {
+      var el = e.target.closest('[data-oninput]');
+      if (!el) return;
+      var fn = el.getAttribute('data-oninput');
+      if (typeof window[fn] === 'function') window[fn]();
+    });
+
+    document.addEventListener('submit', function(e) {
+      var form = e.target.closest('[data-onsubmit]');
+      if (!form) return;
+      e.preventDefault();
+      var fn = form.getAttribute('data-onsubmit');
+      if (typeof window[fn] === 'function') window[fn](e);
+    });
+
+    // Attacher les data-on* directs aux éléments
+    document.querySelectorAll('[data-onclick]').forEach(function(el) {
+      if (el.tagName !== 'BUTTON' && el.tagName !== 'A') return;
+    });
+  });
+})();
+</script>
+
+
+<script>
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+      var actionEl = e.target.closest('[data-action]');
+      if (!actionEl) return;
+      var action = actionEl.getAttribute('data-action');
+      if (action === 'load-overview') { loadOverview(); return; }
+      if (action === 'edit-config') { editConfig(actionEl.getAttribute('data-key'), actionEl.getAttribute('data-value')); return; }
+      if (action === 'switch-profile-tab') { switchProfileTab(actionEl.getAttribute('data-tab'), actionEl); return; }
+      if (action === 'validate-user-and-close') { validateUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
+      if (action === 'suspend-user-and-close') { suspendUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
+      if (action === 'ban-user-and-close') { banUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
+      if (action === 'validate-ovp') { validerOVP(actionEl.getAttribute('data-phone')); return; }
+      if (action === 'validate-sepa') { validerSEPA(actionEl.getAttribute('data-phone')); return; }
+    });
+
     document.addEventListener('click', function(e) {
       var btn = e.target.closest('[data-onclick]');
       if (!btn) return;
