@@ -6,21 +6,25 @@ const pool = require('../config/db');
 const logger = require('../config/logger');
 
 // Configuration VAPID
+let pushEnabled = false;
+
 function configurePush() {
+    if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+        logger.warn('[Push] VAPID keys non configurées - notifications push désactivées');
+        return;
+    }
+
     try {
         webpush.setVapidDetails(
             'mailto:contact@bolamu.co',
             process.env.VAPID_PUBLIC_KEY,
             process.env.VAPID_PRIVATE_KEY
         );
+        pushEnabled = true;
         logger.info('[Push] VAPID configuré avec succès');
     } catch (error) {
         logger.error('[Push] Erreur configuration VAPID:', error.message);
-        // En développement, ne pas bloquer si les clés ne sont pas configurées
-        if (process.env.NODE_ENV === 'production') {
-            console.error('[Push] VAPID keys requises en production');
-            process.exit(1);
-        }
+        logger.warn('[Push] Notifications push désactivées');
     }
 }
 
@@ -64,6 +68,11 @@ async function unsubscribe(user_phone, endpoint) {
 
 // Envoyer notification à un utilisateur
 async function sendToUser(user_phone, { titre, message, type, data = {} }) {
+    if (!pushEnabled) {
+        logger.info('[Push] Notifications push désactivées - envoi ignoré');
+        return { success: true, sent: 0 };
+    }
+
     try {
         // Récupérer toutes les push_subscriptions actives du user
         const subscriptionsResult = await pool.query(`
@@ -131,6 +140,11 @@ async function sendToUser(user_phone, { titre, message, type, data = {} }) {
 
 // Envoyer notification à tous les utilisateurs
 async function sendToAll(titre, message, type, data = {}) {
+    if (!pushEnabled) {
+        logger.info('[Push] Notifications push désactivées - envoi ignoré');
+        return { success: true, sent: 0 };
+    }
+
     try {
         // Récupérer toutes les subscriptions actives
         const subscriptionsResult = await pool.query(`
