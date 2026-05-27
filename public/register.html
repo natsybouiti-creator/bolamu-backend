@@ -214,29 +214,29 @@ function renderStep1(){
   updateHeader('Étape 1 sur 4','Choisissez votre rôle','Bolamu s\'adapte à votre profil pour vous offrir la meilleure expérience.');
   document.getElementById('step-content').innerHTML=`
     <div class="role-grid">
-      <div class="role-card ${state.role==='patient'?'selected':''}" onclick="selectRole('patient')">
+      <div class="role-card ${state.role==='patient'?'selected':''}" id="role-patient">
         <div class="role-icon">👤</div>
         <div class="role-name">Patient</div>
         <div class="role-desc">Accédez aux soins facilement</div>
       </div>
-      <div class="role-card ${state.role==='doctor'?'selected':''}" onclick="selectRole('doctor')">
+      <div class="role-card ${state.role==='doctor'?'selected':''}" id="role-doctor">
         <div class="role-icon">🩺</div>
         <div class="role-name">Médecin</div>
         <div class="role-desc">Congo ou international</div>
         <div class="intl-badge">🌍 International</div>
       </div>
-      <div class="role-card ${state.role==='pharmacie'?'selected':''}" onclick="selectRole('pharmacie')">
+      <div class="role-card ${state.role==='pharmacie'?'selected':''}" id="role-pharmacie">
         <div class="role-icon">💊</div>
         <div class="role-name">Pharmacie</div>
         <div class="role-desc">Partenaire ordonnances</div>
       </div>
-      <div class="role-card ${state.role==='laboratoire'?'selected':''}" onclick="selectRole('laboratoire')">
+      <div class="role-card ${state.role==='laboratoire'?'selected':''}" id="role-laboratoire">
         <div class="role-icon">🔬</div>
         <div class="role-name">Laboratoire</div>
         <div class="role-desc">Analyses médicales</div>
       </div>
     </div>
-    <button class="btn-primary" onclick="goStep2()" ${!state.role?'disabled':''} id="btn-step1">Continuer →</button>`;
+    <button class="btn-primary" ${!state.role?'disabled':''} id="btn-step1">Continuer →</button>`;
 }
 
 function selectRole(role){state.role=role;renderStep1();}
@@ -256,34 +256,34 @@ function renderStep2(){
     extraFields=`
       <div class="form-row">
         <div class="form-group"><label class="form-label">Prénom <span class="required">*</span></label>
-        <input class="form-input" id="f-firstname" type="text" placeholder="Votre prénom" value="${state.firstName}" oninput="state.firstName=this.value"></div>
+        <input class="form-input" id="f-firstname" type="text" placeholder="Votre prénom" value="${state.firstName}"></div>
         <div class="form-group"><label class="form-label">Nom <span class="required">*</span></label>
-        <input class="form-input" id="f-lastname" type="text" placeholder="Votre nom" value="${state.lastName}" oninput="state.lastName=this.value"></div>
+        <input class="form-input" id="f-lastname" type="text" placeholder="Votre nom" value="${state.lastName}"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Sexe <span class="required">*</span></label>
-        <select class="form-select" id="f-gender" onchange="state.gender=this.value">
+        <select class="form-select" id="f-gender">
           <option value="">Choisir</option>
           <option value="M" ${state.gender==='M'?'selected':''}>Masculin</option>
           <option value="F" ${state.gender==='F'?'selected':''}>Féminin</option>
         </select></div>
         <div class="form-group"><label class="form-label">Âge <span class="required">*</span></label>
-        <input class="form-input" id="f-age" type="number" min="1" max="120" placeholder="Votre âge" value="${state.age}" oninput="state.age=this.value"></div>
+        <input class="form-input" id="f-age" type="number" min="1" max="120" placeholder="Votre âge" value="${state.age}"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Ville</label>
-        <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value"></div>
+        <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}"></div>
         <div class="form-group"><label class="form-label">Quartier</label>
-        <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto…" value="${state.neighborhood}" oninput="state.neighborhood=this.value"></div>
+        <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto…" value="${state.neighborhood}"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">NIU (optionnel)</label>
-        <input class="form-input" id="f-niu" type="text" placeholder="Numéro d'Identification Unique" value="${state.niu}" oninput="state.niu=this.value"></div>
+        <input class="form-input" id="f-niu" type="text" placeholder="Numéro d'Identification Unique" value="${state.niu}"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Carte d'identité <span class="required">*</span></label>
-        <div class="upload-zone" id="id-card-zone" onclick="document.getElementById('id-card-input').click()">
-          <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf" onchange="uploadIdCard(this)">
+        <div class="upload-zone" id="id-card-zone">
+          <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf">
           <div class="upload-icon" id="id-card-icon">🪪</div>
           <div class="upload-text" id="id-card-text">Cliquez pour uploader votre carte d'identité<br><span style="font-size:11px;">CNI, passeport ou titre de séjour (PDF ou image)</span></div>
         </div>
@@ -294,12 +294,12 @@ function renderStep2(){
     extraFields=`
       <div class="form-row">
         <div class="form-group"><label class="form-label">Prénom <span class="required">*</span></label>
-        <input class="form-input" id="f-firstname" type="text" placeholder="Votre prénom" value="${state.firstName}" oninput="state.firstName=this.value"></div>
+        <input class="form-input" id="f-firstname" type="text" placeholder="Votre prénom" value="${state.firstName}"></div>
         <div class="form-group"><label class="form-label">Nom <span class="required">*</span></label>
-        <input class="form-input" id="f-lastname" type="text" placeholder="Votre nom" value="${state.lastName}" oninput="state.lastName=this.value"></div>
+        <input class="form-input" id="f-lastname" type="text" placeholder="Votre nom" value="${state.lastName}"></div>
       </div>
       <div class="form-group"><label class="form-label">Pays de résidence <span class="required">*</span></label>
-      <select class="form-select" id="f-residence" onchange="state.countryOfResidence=this.options[this.selectedIndex].text;detectInternational()">
+      <select class="form-select" id="f-residence">
         ${COUNTRIES.map(c=>`<option value="${c.code}" ${c.name===state.countryOfResidence?'selected':''}>${c.flag} ${c.name}</option>`).join('')}
       </select></div>
       <div id="intl-notice" style="display:none;" class="intl-info">
@@ -308,30 +308,30 @@ function renderStep2(){
   } else if(state.role==='pharmacie'){
     extraFields=`
       <div class="form-group"><label class="form-label">Nom de la pharmacie <span class="required">*</span></label>
-      <input class="form-input" id="f-pharma-name" type="text" placeholder="Pharmacie Centrale…" value="${state.pharmacyName}" oninput="state.pharmacyName=this.value"></div>
+      <input class="form-input" id="f-pharma-name" type="text" placeholder="Pharmacie Centrale…" value="${state.pharmacyName}"></div>
       <div class="form-group"><label class="form-label">Nom du responsable <span class="required">*</span></label>
-      <input class="form-input" id="f-responsible" type="text" placeholder="Dr. Jean Mavoungou" value="${state.responsibleName}" oninput="state.responsibleName=this.value"></div>`;
+      <input class="form-input" id="f-responsible" type="text" placeholder="Dr. Jean Mavoungou" value="${state.responsibleName}"></div>`;
   } else if(state.role==='laboratoire'){
     extraFields=`
       <div class="form-group"><label class="form-label">Nom du laboratoire <span class="required">*</span></label>
-      <input class="form-input" id="f-lab-name" type="text" placeholder="Labo BioAnalyse…" value="${state.labName}" oninput="state.labName=this.value"></div>
+      <input class="form-input" id="f-lab-name" type="text" placeholder="Labo BioAnalyse…" value="${state.labName}"></div>
       <div class="form-group"><label class="form-label">Nom du directeur technique <span class="required">*</span></label>
-      <input class="form-input" id="f-director" type="text" placeholder="Dr. Marie Nkouka" value="${state.directorName}" oninput="state.directorName=this.value"></div>`;
+      <input class="form-input" id="f-director" type="text" placeholder="Dr. Marie Nkouka" value="${state.directorName}"></div>`;
   }
 
   document.getElementById('step-content').innerHTML=`
     <div class="form-group">
       <label class="form-label">Numéro de téléphone <span class="required">*</span></label>
       <div class="phone-group">
-        <select class="country-code" id="country-code" onchange="updateCountryCode(this.value)">${countryOptions}</select>
-        <input class="form-input" id="f-phone" type="tel" placeholder="06 XXX XX XX" value="${state.phone}" oninput="state.phone=this.value;updateFullPhone()">
+        <select class="country-code" id="country-code">${countryOptions}</select>
+        <input class="form-input" id="f-phone" type="tel" placeholder="06 XXX XX XX" value="${state.phone}">
       </div>
       <div class="hint">Ce numéro recevra votre code de vérification</div>
     </div>
     ${extraFields}
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" onclick="renderStep1()" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" onclick="goStep3()" style="flex:1;margin-top:0;">Continuer →</button>
+      <button class="btn-secondary" id="btn-back-step2" style="flex:0.4;">← Retour</button>
+      <button class="btn-primary" id="btn-step2" style="flex:1;margin-top:0;">Continuer →</button>
     </div>`;
 
   detectInternational();
@@ -389,39 +389,39 @@ function renderStep3(){
   if(isDoctor){
     const specOptions=SPECIALTIES.map(s=>`<option value="${s}" ${s===state.specialty?'selected':''}>${s}</option>`).join('');
     const orderCountryOptions=COUNTRIES.map(c=>`<option value="${c.name}" ${c.name===state.orderCountry?'selected':''}>${c.flag} ${c.name}</option>`).join('');
-    const langChips=LANGUAGES.map(l=>`<div class="lang-chip ${state.consultationLanguages.includes(l)?'selected':''}" onclick="toggleLang('${l}')">${l}</div>`).join('');
+    const langChips=LANGUAGES.map(l=>`<div class="lang-chip ${state.consultationLanguages.includes(l)?'selected':''}" data-lang="${l}">${l}</div>`).join('');
     proFields=`
       <div class="form-group" style="margin-top:20px;">
         <label class="form-label">Spécialité <span class="required">*</span></label>
-        <select class="form-select" id="f-specialty" onchange="state.specialty=this.value">
+        <select class="form-select" id="f-specialty">
           <option value="">Choisir une spécialité</option>${specOptions}
         </select>
       </div>
       <div class="form-group"><label class="form-label">Pays d'inscription à l'Ordre <span class="required">*</span></label>
-      <select class="form-select" id="f-order-country" onchange="state.orderCountry=this.options[this.selectedIndex].text">${orderCountryOptions}</select></div>
+      <select class="form-select" id="f-order-country">${orderCountryOptions}</select></div>
       <div class="form-group"><label class="form-label">N° d'inscription à l'Ordre <span class="required">*</span></label>
-      <input class="form-input" id="f-reg-number" type="text" placeholder="Ex: CMCB-2024-001" value="${state.registrationNumber}" oninput="state.registrationNumber=this.value;calcScore()">
+      <input class="form-input" id="f-reg-number" type="text" placeholder="Ex: CMCB-2024-001" value="${state.registrationNumber}">
       <div class="hint">Numéro délivré par l'Ordre des médecins de votre pays</div></div>
       <div class="form-group"><label class="form-label">Langues de consultation</label>
       <div class="lang-chips" id="lang-chips">${langChips}</div></div>
       <div class="form-group"><label class="form-label">Ville d'exercice</label>
-      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville, Paris…" value="${state.city}" oninput="state.city=this.value"></div>`;
+      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville, Paris…" value="${state.city}"></div>`;
   } else if(isPharma){
     proFields=`
       <div class="form-group" style="margin-top:20px;"><label class="form-label">N° RCCM <span class="required">*</span></label>
-      <input class="form-input" id="f-rccm" type="text" placeholder="RCCM/CG/BZV/…" value="${state.rccmNumber}" oninput="state.rccmNumber=this.value;calcScore()"></div>
+      <input class="form-input" id="f-rccm" type="text" placeholder="RCCM/CG/BZV/…" value="${state.rccmNumber}"></div>
       <div class="form-group"><label class="form-label">Ville</label>
-      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value"></div>
+      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}"></div>
       <div class="form-group"><label class="form-label">Quartier</label>
-      <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto, Bacongo…" value="${state.neighborhood}" oninput="state.neighborhood=this.value"></div>`;
+      <input class="form-input" id="f-neighborhood" type="text" placeholder="Poto-Poto, Bacongo…" value="${state.neighborhood}"></div>`;
   } else if(isLabo){
     proFields=`
       <div class="form-group" style="margin-top:20px;"><label class="form-label">N° Agrément santé <span class="required">*</span></label>
-      <input class="form-input" id="f-agrement" type="text" placeholder="AGR/MS/…" value="${state.agrementNumber}" oninput="state.agrementNumber=this.value;calcScore()"></div>
+      <input class="form-input" id="f-agrement" type="text" placeholder="AGR/MS/…" value="${state.agrementNumber}"></div>
       <div class="form-group"><label class="form-label">N° RCCM</label>
-      <input class="form-input" id="f-rccm" type="text" placeholder="RCCM/CG/BZV/…" value="${state.rccmNumber}" oninput="state.rccmNumber=this.value;calcScore()"></div>
+      <input class="form-input" id="f-rccm" type="text" placeholder="RCCM/CG/BZV/…" value="${state.rccmNumber}"></div>
       <div class="form-group"><label class="form-label">Ville</label>
-      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}" oninput="state.city=this.value"></div>`;
+      <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}"></div>`;
   }
 
   document.getElementById('step-content').innerHTML=`
@@ -429,18 +429,18 @@ function renderStep3(){
       <p style="font-size:14px;color:var(--texte-doux);">Entrez le code à 6 chiffres reçu par SMS</p>
     </div>
     <div class="otp-boxes">
-      ${[1,2,3,4,5,6].map(i=>`<input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp${i}" oninput="otpNext(this,${i})" onkeydown="otpPrev(event,this,${i})">`).join('')}
+      ${[1,2,3,4,5,6].map(i=>`<input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp${i}" data-index="${i}">`).join('')}
     </div>
     <div style="text-align:center;margin-bottom:16px;">
       <span style="font-size:13px;color:var(--texte-doux);">Pas reçu ? </span>
-      <span style="font-size:13px;color:var(--bleu-vif);cursor:pointer;font-weight:600;" onclick="sendOTP()">Renvoyer le code</span>
+      <span style="font-size:13px;color:var(--bleu-vif);cursor:pointer;font-weight:600;" id="resend-otp">Renvoyer le code</span>
     </div>
     ${proFields}
     ${isPro?`
     <div class="form-group">
       <label class="form-label">Document justificatif</label>
-      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('doc-input').click()">
-        <input type="file" id="doc-input" style="display:none" accept="image/*,application/pdf" onchange="uploadDoc(this)">
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="doc-input" style="display:none" accept="image/*,application/pdf">
         <div class="upload-icon" id="upload-icon">📄</div>
         <div class="upload-text" id="upload-text">Cliquez pour uploader<br><span style="font-size:11px;">Diplôme, carte pro, certificat (PDF ou image)</span></div>
       </div>
@@ -454,8 +454,8 @@ function renderStep3(){
       <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;">Plus votre profil est complet, plus vous serez mis en avant.</p>
     </div>`:''}
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" onclick="renderStep2()" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" onclick="saveOTPAndNext()" style="flex:1;margin-top:0;" id="btn-verify">Vérifier →</button>
+      <button class="btn-secondary" id="btn-back-step3" style="flex:0.4;">← Retour</button>
+      <button class="btn-primary" id="btn-verify" style="flex:1;margin-top:0;">Vérifier →</button>
     </div>`;
 
   setTimeout(()=>document.getElementById('otp1')?.focus(),100);
@@ -571,13 +571,13 @@ function renderStep4(){
     </div>
     <div style="margin-bottom:20px;">
       <label class="checkbox-row">
-        <input type="checkbox" id="cgu-check" onchange="state.cguAccepted=this.checked">
+        <input type="checkbox" id="cgu-check">
         <span>J'ai lu et j'accepte les Conditions Générales d'Utilisation de Bolamu</span>
       </label>
     </div>
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" onclick="renderStep3()" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" onclick="finalRegister()" style="flex:1;margin-top:0;" id="btn-register">Créer mon compte Bolamu</button>
+      <button class="btn-secondary" id="btn-back-step4" style="flex:0.4;">← Retour</button>
+      <button class="btn-primary" id="btn-register" style="flex:1;margin-top:0;">Créer mon compte Bolamu</button>
     </div>`;
 }
 
@@ -623,6 +623,115 @@ async function finalRegister(){
 }
 
 renderStep1();
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Step 1 - Role selection
+  document.getElementById('role-patient').addEventListener('click', () => selectRole('patient'));
+  document.getElementById('role-doctor').addEventListener('click', () => selectRole('doctor'));
+  document.getElementById('role-pharmacie').addEventListener('click', () => selectRole('pharmacie'));
+  document.getElementById('role-laboratoire').addEventListener('click', () => selectRole('laboratoire'));
+  document.getElementById('btn-step1').addEventListener('click', goStep2);
+
+  // Step 2 - Form inputs (dynamic, re-attach after renderStep2)
+  document.getElementById('btn-back-step2').addEventListener('click', renderStep1);
+  document.getElementById('btn-step2').addEventListener('click', goStep3);
+
+  // Step 3 - OTP and pro fields (dynamic, re-attach after renderStep3)
+  document.getElementById('btn-back-step3').addEventListener('click', renderStep2);
+  document.getElementById('btn-verify').addEventListener('click', saveOTPAndNext);
+  document.getElementById('resend-otp').addEventListener('click', sendOTP);
+
+  // Step 4 - CGU and register
+  document.getElementById('btn-back-step4').addEventListener('click', renderStep3);
+  document.getElementById('btn-register').addEventListener('click', finalRegister);
+
+  // Dynamic event attachment helper
+  window.attachStep2Listeners = function() {
+    const firstName = document.getElementById('f-firstname');
+    const lastName = document.getElementById('f-lastname');
+    const gender = document.getElementById('f-gender');
+    const age = document.getElementById('f-age');
+    const city = document.getElementById('f-city');
+    const neighborhood = document.getElementById('f-neighborhood');
+    const niu = document.getElementById('f-niu');
+    const idCardZone = document.getElementById('id-card-zone');
+    const idCardInput = document.getElementById('id-card-input');
+    const residence = document.getElementById('f-residence');
+    const pharmaName = document.getElementById('f-pharma-name');
+    const responsible = document.getElementById('f-responsible');
+    const labName = document.getElementById('f-lab-name');
+    const director = document.getElementById('f-director');
+    const countryCode = document.getElementById('country-code');
+    const phone = document.getElementById('f-phone');
+
+    if (firstName) firstName.addEventListener('input', (e) => state.firstName = e.target.value);
+    if (lastName) lastName.addEventListener('input', (e) => state.lastName = e.target.value);
+    if (gender) gender.addEventListener('change', (e) => state.gender = e.target.value);
+    if (age) age.addEventListener('input', (e) => state.age = e.target.value);
+    if (city) city.addEventListener('input', (e) => state.city = e.target.value);
+    if (neighborhood) neighborhood.addEventListener('input', (e) => state.neighborhood = e.target.value);
+    if (niu) niu.addEventListener('input', (e) => state.niu = e.target.value);
+    if (idCardZone) idCardZone.addEventListener('click', () => idCardInput.click());
+    if (idCardInput) idCardInput.addEventListener('change', (e) => uploadIdCard(e.target));
+    if (residence) residence.addEventListener('change', (e) => { state.countryOfResidence = e.target.options[e.target.selectedIndex].text; detectInternational(); });
+    if (pharmaName) pharmaName.addEventListener('input', (e) => state.pharmacyName = e.target.value);
+    if (responsible) responsible.addEventListener('input', (e) => state.responsibleName = e.target.value);
+    if (labName) labName.addEventListener('input', (e) => state.labName = e.target.value);
+    if (director) director.addEventListener('input', (e) => state.directorName = e.target.value);
+    if (countryCode) countryCode.addEventListener('change', (e) => updateCountryCode(e.target.value));
+    if (phone) phone.addEventListener('input', (e) => { state.phone = e.target.value; updateFullPhone(); });
+  };
+
+  window.attachStep3Listeners = function() {
+    const specialty = document.getElementById('f-specialty');
+    const orderCountry = document.getElementById('f-order-country');
+    const regNumber = document.getElementById('f-reg-number');
+    const city = document.getElementById('f-city');
+    const rccm = document.getElementById('f-rccm');
+    const agrement = document.getElementById('f-agrement');
+    const neighborhood = document.getElementById('f-neighborhood');
+    const otpBoxes = document.querySelectorAll('.otp-box');
+    const langChips = document.querySelectorAll('.lang-chip');
+    const uploadZone = document.getElementById('upload-zone');
+    const docInput = document.getElementById('doc-input');
+    const cguCheck = document.getElementById('cgu-check');
+
+    if (specialty) specialty.addEventListener('change', (e) => state.specialty = e.target.value);
+    if (orderCountry) orderCountry.addEventListener('change', (e) => state.orderCountry = e.target.options[e.target.selectedIndex].text);
+    if (regNumber) regNumber.addEventListener('input', (e) => { state.registrationNumber = e.target.value; calcScore(); });
+    if (city) city.addEventListener('input', (e) => state.city = e.target.value);
+    if (rccm) rccm.addEventListener('input', (e) => { state.rccmNumber = e.target.value; calcScore(); });
+    if (agrement) agrement.addEventListener('input', (e) => { state.agrementNumber = e.target.value; calcScore(); });
+    if (neighborhood) neighborhood.addEventListener('input', (e) => state.neighborhood = e.target.value);
+    if (cguCheck) cguCheck.addEventListener('change', (e) => state.cguAccepted = e.target.checked);
+
+    otpBoxes.forEach((box, i) => {
+      const index = parseInt(box.dataset.index);
+      box.addEventListener('input', (e) => otpNext(e.target, index));
+      box.addEventListener('keydown', (e) => otpPrev(e, e.target, index));
+    });
+
+    langChips.forEach(chip => {
+      chip.addEventListener('click', () => toggleLang(chip.dataset.lang));
+    });
+
+    if (uploadZone) uploadZone.addEventListener('click', () => docInput.click());
+    if (docInput) docInput.addEventListener('change', (e) => uploadDoc(e.target));
+  };
+
+  // Override renderStep2 and renderStep3 to attach dynamic listeners
+  const originalRenderStep2 = renderStep2;
+  renderStep2 = function() {
+    originalRenderStep2();
+    setTimeout(() => attachStep2Listeners(), 0);
+  };
+
+  const originalRenderStep3 = renderStep3;
+  renderStep3 = function() {
+    originalRenderStep3();
+    setTimeout(() => attachStep3Listeners(), 0);
+  };
+});
 </script>
 </body>
 
