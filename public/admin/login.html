@@ -84,11 +84,11 @@
     <div class="field">
       <label>Mot de passe administrateur</label>
       <div class="input-wrap">
-        <input type="password" id="password" placeholder="••••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
-        <button class="toggle-pw" data-ononclick="togglePw" type="button" id="toggle-btn">👁</button>
+        <input type="password" id="password" placeholder="••••••••••" autocomplete="off">
+        <button class="toggle-pw" id="toggle-btn" type="button">👁</button>
       </div>
     </div>
-    <button class="btn-primary" id="btn-login" data-ononclick="doLogin">Accéder au panneau de contrôle →</button>
+    <button class="btn-primary" id="btn-login">Accéder au panneau de contrôle →</button>
     <div class="security-note">
       <span class="icon">🔒</span>
       <span>Cette page n'est pas référencée publiquement. Les tentatives de connexion échouées sont enregistrées avec l'adresse IP.</span>
@@ -198,50 +198,18 @@ const phone = document.getElementById('phone').value.trim().replace(/\s+/g, '');
 </script>
 
 <script>
-(function() {
-  document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('[data-onclick]');
-      if (!btn) return;
-      var fn = btn.getAttribute('data-onclick');
-      var arg = btn.getAttribute('data-arg');
-      if (typeof window[fn] === 'function') {
-        if (arg !== null) {
-          window[fn](arg);
-        } else {
-          window[fn]();
-        }
-      }
-    });
-
-    document.addEventListener('change', function(e) {
-      var el = e.target.closest('[data-onchange]');
-      if (!el) return;
-      var fn = el.getAttribute('data-onchange');
-      if (typeof window[fn] === 'function') window[fn]();
-    });
-
-    document.addEventListener('input', function(e) {
-      var el = e.target.closest('[data-oninput]');
-      if (!el) return;
-      var fn = el.getAttribute('data-oninput');
-      if (typeof window[fn] === 'function') window[fn]();
-    });
-
-    document.addEventListener('submit', function(e) {
-      var form = e.target.closest('[data-onsubmit]');
-      if (!form) return;
-      e.preventDefault();
-      var fn = form.getAttribute('data-onsubmit');
-      if (typeof window[fn] === 'function') window[fn](e);
-    });
-
-    // Attacher les data-on* directs aux éléments
-    document.querySelectorAll('[data-onclick]').forEach(function(el) {
-      if (el.tagName !== 'BUTTON' && el.tagName !== 'A') return;
-    });
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle password visibility
+  document.getElementById('toggle-btn').addEventListener('click', togglePw);
+  
+  // Login button
+  document.getElementById('btn-login').addEventListener('click', doLogin);
+  
+  // Enter key on password field
+  document.getElementById('password').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
   });
-})();
+});
 </script>
 
 </body>
