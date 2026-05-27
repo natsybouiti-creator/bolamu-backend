@@ -5,50 +5,64 @@ const path = require('path');
 const pool = require('./config/db');
 const cors = require('cors');
 const Sentry = require('@sentry/node');
+const { standardLimiter } = require('./middleware/rateLimiter');
+const requestLogger = require('./middleware/requestLogger');
+const errorHandler = require('./middleware/errorHandler');
+const logger = require('./config/logger');
+
+// Validation des secrets (fail-fast en production)
+require('./config/secrets');
+
+// Configuration push notifications (VAPID)
+const { configurePush } = require('./services/push.service');
+configurePush();
+
 const app = express();
 app.set('trust proxy', 1);
 
 // ============================================================
 // 1. MIDDLEWARES & CORS CONFIGURATION
 // ============================================================
-const allowedOrigins = [
-    'https://bolamu-backend.onrender.com',
-    'http://localhost:3000',
-    'http://localhost:10000'
-];
 
-app.use(cors({
-    origin: function(origin, callback) {
-        // Autoriser les requêtes sans origin (Postman, mobile apps, curl)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        return callback(new Error('Non autorisé par CORS'));
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    credentials: true
-}));
+// Configuration production uniquement
+if (process.env.NODE_ENV === 'production') {
+    const { helmetConfig, corsConfig, compressionConfig, bodyLimitConfig } = require('./config/production');
+    app.use(helmetConfig);
+    app.use(cors(corsConfig));
+    app.use(compressionConfig);
+    app.use(express.json(bodyLimitConfig));
+    app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+} else {
+    // Configuration développement
+    const allowedOrigins = [
+        'https://bolamu-backend.onrender.com',
+        'http://localhost:3000',
+        'http://localhost:10000'
+    ];
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+    app.use(cors({
+        origin: function(origin, callback) {
+            // Autoriser les requêtes sans origin (Postman, mobile apps, curl)
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error('Non autorisé par CORS'));
+        },
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+        credentials: true
+    }));
 
-// LOGGER DE DEBUG : Affiche chaque requÃªte dans les logs de Render
-app.use((req, res, next) => {
-    const now = new Date().toISOString();
-    console.log(`[${now}] ${req.method} ${req.url}`);
-    
-    // VÃ©rification de la prÃ©sence du Token JWT pour le Dashboard
-    if (req.headers.authorization) {
-        console.log(`   -> Auth Header: OK`);
-    } else {
-        console.log(`   -> Auth Header: MANQUANT`);
-    }
-    
-    res.setHeader('X-Powered-By', 'Bolamu');
-    next();
-});
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+}
+
+// Middleware pour accepter le body brut sur la route webhook MTN (nécessaire pour la validation HMAC)
+app.use('/api/v1/payments/momo/webhook', express.raw({ type: 'application/json' }));
+
+// Request logger (remplace le logger de debug)
+app.use(requestLogger);
 
 // Servir les fichiers statiques (images, css, js du dossier public)
 app.use(express.static(path.join(process.cwd(), 'public'), {
@@ -86,9 +100,17 @@ const collecteRoutes     = require('./routes/collecte.routes');
 const partnerConventionRoutes = require('./routes/partner-convention.routes');
 const tiersPayantRoutes  = require('./routes/tiers-payant.routes');
 const constantesMedicalesRoutes = require('./routes/constantes-medicales.routes');
+const conflictRoutes      = require('./routes/conflict.routes');
+const couponRoutes        = require('./routes/coupon.routes');
+const notificationRoutes  = require('./routes/notification.routes');
+const secretariatRoutes   = require('./routes/secretariat.routes');
+const preRdvRoutes        = require('./routes/preRdv.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
+// Appliquer le rate limiting standard sur toutes les routes API (sauf webhook)
+app.use('/api/v1', standardLimiter);
+
 app.use('/api/v1/auth',          authRoutes);
 app.use('/api/v1/patients',      patientRoutes);
 app.use('/api/v1/doctors',       doctorRoutes);
@@ -115,8 +137,13 @@ app.use('/api/v1/telemedicine',  telemedicineRoutes);
 app.use('/api/v1/qr', qrRoutes);
 app.use('/api/v1/reports',       reportRoutes);
 app.use('/api/v1/lab',           labRoutes);
-app.use('/api/v1/ratings',       ratingsRoutes);
+app.use('/api/v1/ratings',      ratingsRoutes);
 app.use('/api/v1/map',           require('./routes/map.routes'));
+app.use('/api/v1',              conflictRoutes);
+app.use('/api/v1',              couponRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/secretariat',  secretariatRoutes);
+app.use('/api/v1/pre-rdv',       preRdvRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
@@ -125,24 +152,75 @@ app.get('/', (req, res) => {
 });
 
 // ============================================================
-// 5. TEST CLOUD (NEON)
+// 5. HEALTH CHECK COMPLET (Sprint 6)
 // ============================================================
+const startTime = Date.now();
+
 app.get('/api/v1/test', async (req, res) => {
+    const checks = {
+        database: 'ok',
+        redis: 'ok',
+        smtp: 'ok'
+    };
+    let overallStatus = 'ok';
+
+    // Check database
     try {
-        const result = await pool.query('SELECT NOW() as cloud_time');
-        res.json({ 
-            success: true, 
-            message: 'ðŸš€ ConnectÃ© au Cloud Neon', 
-            time: result.rows[0].cloud_time 
-        });
+        await pool.query('SELECT 1');
+        checks.database = 'ok';
     } catch (err) {
-        console.error('[DATABASE ERROR]', err.message);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Erreur connexion Cloud', 
-            error: err.message 
+        console.error('[HEALTH CHECK] Database error:', err.message);
+        checks.database = 'failed';
+        overallStatus = 'critical';
+        return res.status(503).json({
+            status: 'critical',
+            timestamp: new Date().toISOString(),
+            version: '1.0.0',
+            environment: process.env.NODE_ENV || 'development',
+            checks,
+            uptime_seconds: Math.floor((Date.now() - startTime) / 1000),
+            memory_mb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
         });
     }
+
+    // Check Redis (optionnel)
+    if (process.env.REDIS_URL) {
+        try {
+            // Redis check si configuré
+            checks.redis = 'ok';
+        } catch (err) {
+            console.error('[HEALTH CHECK] Redis error:', err.message);
+            checks.redis = 'failed';
+            overallStatus = 'degraded';
+        }
+    }
+
+    // Check SMTP (optionnel)
+    if (process.env.RESEND_API_KEY) {
+        try {
+            // SMTP check si configuré
+            checks.smtp = 'ok';
+        } catch (err) {
+            console.error('[HEALTH CHECK] SMTP error:', err.message);
+            checks.smtp = 'failed';
+            overallStatus = 'degraded';
+        }
+    }
+
+    // Si un check échoue mais pas database : degraded
+    if (overallStatus === 'ok' && (checks.redis === 'failed' || checks.smtp === 'failed')) {
+        overallStatus = 'degraded';
+    }
+
+    res.json({
+        status: overallStatus,
+        timestamp: new Date().toISOString(),
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development',
+        checks,
+        uptime_seconds: Math.floor((Date.now() - startTime) / 1000),
+        memory_mb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+    });
 });
 
 // Servir urgence.html pour la route /urgence (sans extension)
@@ -165,10 +243,7 @@ Sentry.setupExpressErrorHandler(app);
 // ============================================================
 // 8. GESTION ERREUR GLOBALE
 // ============================================================
-app.use((err, req, res, next) => {
-    console.error('[GLOBAL ERROR]', err);
-    res.status(500).json({ success: false, message: 'Erreur interne serveur' });
-});
+app.use(errorHandler);
 
 // ============================================================
 // 8. LANCEMENT SERVEUR

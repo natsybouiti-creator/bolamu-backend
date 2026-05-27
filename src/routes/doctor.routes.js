@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const pool = require('../config/db');
-const { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile } = require('../controllers/doctor.controller');
+const { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile, generatePatientQRCode, createTimeSlot, getTimeSlots, updateTimeSlot, updateDoctorProfile } = require('../controllers/doctor.controller');
 const authMiddleware = require('../../middleware/auth.middleware');
 const bcrypt = require('bcrypt');
 
@@ -26,6 +26,17 @@ router.get('/pending', authMiddleware, async (req, res) => {
 router.patch('/:id/status', authMiddleware, updateDoctorStatus);
 
 router.get('/profil', authMiddleware, getDoctorProfile);
+
+// Modifier le profil médecin
+router.patch('/profil', authMiddleware, updateDoctorProfile);
+
+// Générer QR Code pour un patient (côté médecin)
+router.get('/patients/:phone/qrcode', authMiddleware, generatePatientQRCode);
+
+// Créneaux horaires
+router.post('/slots', authMiddleware, createTimeSlot);
+router.get('/slots', authMiddleware, getTimeSlots);
+router.patch('/slots/:id', authMiddleware, updateTimeSlot);
 
 router.post('/change-password', authMiddleware, async (req, res) => {
   const { phone, old_password, new_password } = req.body;

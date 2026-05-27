@@ -4,8 +4,8 @@ const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const rateLimit = require('express-rate-limit');
 const { normalizePhone } = require('../utils/phone');
+const { strictLimiter } = require('../middleware/rateLimiter');
 
 const {
     requestOtp,
@@ -15,40 +15,31 @@ const {
     registerPatient,
     registerDoctor,
     registerPharmacie,
-    registerLaboratoire
+    registerLaboratoire,
+    refreshToken,
+    logout
 } = require('../controllers/auth.controller');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
+const ACCESS_TOKEN_EXPIRES = '15m';
+const REFRESH_TOKEN_EXPIRES = '7d';
 const ADMIN_ROLES = ['admin', 'content_admin'];
 
-// Rate limiting pour les routes sensibles
-const otpLimiter = rateLimit({
-  windowMs : 15 * 60 * 1000,
-  max       : 5,
-  message   : { success: false, message: 'Trop de tentatives OTP. Réessayez dans 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders  : false,
-});
-
-const loginLimiter = rateLimit({
-  windowMs : 60 * 60 * 1000,
-  max       : 20,
-  message   : { success: false, message: 'Trop de tentatives de connexion.' },
-  standardHeaders: true,
-  legacyHeaders  : false,
-});
-
 // ─── OTP & LOGIN ──────────────────────────────────────────────────────────────
-router.post('/request-otp', otpLimiter, requestOtp);
-router.post('/verify-otp', otpLimiter, verifyOtp);
-router.post('/login', loginLimiter, login);
-router.post('/forgot-password', otpLimiter, forgotPassword);
+router.post('/request-otp', strictLimiter, requestOtp);
+router.post('/verify-otp', strictLimiter, verifyOtp);
+router.post('/login', strictLimiter, login);
+router.post('/forgot-password', strictLimiter, forgotPassword);
 
 // ─── REGISTER ─────────────────────────────────────────────────────────────────
 router.post('/register/patient',     registerPatient);
 router.post('/register/doctor',      registerDoctor);
 router.post('/register/pharmacie',   registerPharmacie);
 router.post('/register/laboratoire', registerLaboratoire);
+
+// ─── REFRESH TOKEN & LOGOUT ─────────────────────────────────────────────────────
+router.post('/refresh', refreshToken);
+router.post('/logout', logout);
 
 // ─── LOGIN ADMIN SÉCURISÉ ─────────────────────────────────────────────────────
 router.post('/admin-login', async (req, res) => {
@@ -99,12 +90,27 @@ router.post('/admin-login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });
         }
 
-        // Génération du token
-        const token = jwt.sign(
-            { id: user.id, phone: user.phone, role: user.role }, 
-            JWT_SECRET, 
-            { expiresIn: '8h' }
+        // Access token (15min)
+        const accessToken = jwt.sign(
+            { id: user.id, phone: user.phone, role: user.role },
+            JWT_SECRET,
+            { expiresIn: ACCESS_TOKEN_EXPIRES }
         );
+
+        // Refresh token (7 jours)
+        const crypto = require('crypto');
+        const bcrypt = require('bcrypt');
+        const refreshToken = crypto.randomBytes(64).toString('hex');
+        const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+
+        // Stocker le refresh token
+        await pool.query(
+            `INSERT INTO refresh_tokens (phone, token_hash, expires_at, is_revoked)
+             VALUES ($1, $2, $3, FALSE)
+             ON CONFLICT (phone) DO UPDATE SET token_hash = $2, expires_at = $3, is_revoked = FALSE`,
+            [normalizedPhone, refreshTokenHash, expiresAt]
+        ).catch(() => {}); // Ignorer si la table n'existe pas encore
 
         // Audit Log
         await pool.query(
@@ -118,13 +124,14 @@ router.post('/admin-login', async (req, res) => {
             ? '/admin/content.html'
             : '/admin/dashboard.html';
 
-        return res.json({ 
-            success: true, 
-            token, 
-            phone: user.phone, 
-            role: user.role, 
-            full_name: user.full_name, 
-            redirectUrl 
+        return res.json({
+            success: true,
+            accessToken,
+            refreshToken,
+            phone: user.phone,
+            role: user.role,
+            full_name: user.full_name,
+            redirectUrl
         });
 
     } catch (err) {

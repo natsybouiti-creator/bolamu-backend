@@ -173,4 +173,127 @@ async function updateLaboratoireStatus(req, res) {
     }
 }
 
-module.exports = { registerLaboratoire, getLaboratoireProfile, updateLaboratoireStatus };
+// ─── RECHERCHER LABORATOIRES AVEC FILTRES ET PAGINATION ─────────────────────
+async function getLaboratoires(req, res) {
+    const { search, city, page = 1, per_page = 20 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(per_page);
+
+    try {
+        const conditions = [`l.is_active = TRUE`, `l.status = 'verified'`];
+        const params = [];
+
+        if (search) {
+            params.push(`%${search}%`);
+            conditions.push(`l.name ILIKE $${params.length}`);
+        }
+        if (city) {
+            params.push(`%${city}%`);
+            conditions.push(`l.city ILIKE $${params.length}`);
+        }
+
+        const whereClause = conditions.join(' AND ');
+        params.push(parseInt(per_page));
+        params.push(offset);
+
+        const result = await pool.query(
+            `SELECT l.id, l.phone, l.name, l.city, l.neighborhood, l.member_code, l.trust_score
+             FROM laboratories l
+             WHERE ${whereClause}
+             ORDER BY l.name ASC
+             LIMIT $${params.length - 1} OFFSET $${params.length}`,
+            params
+        );
+
+        const countResult = await pool.query(
+            `SELECT COUNT(*) FROM laboratories l WHERE ${whereClause}`,
+            params.slice(0, params.length - 2)
+        );
+        const total = parseInt(countResult.rows[0].count);
+
+        return res.json({
+            success: true,
+            data: {
+                laboratories: result.rows,
+                pagination: {
+                    total: total,
+                    page: parseInt(page),
+                    per_page: parseInt(per_page),
+                    pages: Math.ceil(total / parseInt(per_page))
+                }
+            }
+        });
+    } catch (error) {
+        console.error('[getLaboratoires]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ─── MODIFIER LE PROFIL LABORATOIRE (PATCH /api/v1/laboratoires/profil) ─────────────
+async function updateLaboratoireProfile(req, res) {
+    const labPhone = req.user.phone;
+    const { name, director_name, city, neighborhood, momo_number } = req.body;
+
+    // Champs modifiables : name, director_name, city, neighborhood, momo_number
+    // Champs NON modifiables : phone (identifiant), is_active, role, created_at, rccm_number, agrement_number
+
+    try {
+        const updates = [];
+        const values = [];
+        let paramCount = 1;
+
+        if (name) {
+            updates.push(`name = $${paramCount++}`);
+            values.push(name);
+        }
+        if (director_name) {
+            updates.push(`director_name = $${paramCount++}`);
+            values.push(director_name);
+        }
+        if (city) {
+            updates.push(`city = $${paramCount++}`);
+            values.push(city);
+        }
+        if (neighborhood !== undefined) {
+            updates.push(`neighborhood = $${paramCount++}`);
+            values.push(neighborhood || null);
+        }
+        if (momo_number !== undefined) {
+            updates.push(`momo_number = $${paramCount++}`);
+            values.push(momo_number || null);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ success: false, message: 'Aucun champ à modifier.' });
+        }
+
+        updates.push(`updated_at = NOW()`);
+        values.push(labPhone);
+
+        const query = `UPDATE laboratories SET ${updates.join(', ')} WHERE phone = $${paramCount} RETURNING *`;
+        const result = await pool.query(query, values);
+
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Laboratoire introuvable.' });
+        }
+
+        // Mettre à jour aussi la table users pour full_name
+        if (name) {
+            await pool.query(`UPDATE users SET full_name = $1 WHERE phone = $2`, [name, labPhone]);
+        }
+
+        // Audit log
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('laboratoire.profile_updated', $1, 'laboratories', $2, $3)`,
+            [labPhone, result.rows[0].id, JSON.stringify({ updated_fields: Object.keys(req.body) })]
+        ).catch(() => {});
+
+        return res.json({ success: true, message: 'Profil mis à jour avec succès.', data: result.rows[0] });
+
+    } catch (error) {
+        console.error('[updateLaboratoireProfile]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+module.exports = { registerLaboratoire, getLaboratoireProfile, updateLaboratoireStatus, getLaboratoires, updateLaboratoireProfile };

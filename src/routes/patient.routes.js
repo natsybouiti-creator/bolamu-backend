@@ -4,6 +4,8 @@ const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const patientController = require('../controllers/patient.controller');
 const bcrypt = require('bcrypt');
+const idempotencyMiddleware = require('../middleware/idempotency');
+const { upgradeAbonnement } = require('../services/prorata.service');
 
 const register = patientController.registerPatient || ((req, res) => {
     res.status(501).json({ success: false, message: "Fonction d'inscription non configurée" });
@@ -18,6 +20,33 @@ router.post('/register', register);
 
 // --- ROUTES PROTÉGÉES ---
 router.get('/subscription', authMiddleware, subscription);
+
+// Créer un abonnement (POST /api/v1/patients/subscription)
+router.post('/subscription', authMiddleware, patientController.createSubscription);
+
+// Modifier mot de passe (PATCH /api/v1/patients/password)
+router.patch('/password', authMiddleware, patientController.changePassword);
+
+// Upgrade abonnement (PATCH /api/v1/patients/subscription/upgrade)
+router.patch('/subscription/upgrade', authMiddleware, idempotencyMiddleware('/subscription/upgrade'), async (req, res) => {
+    const { nouveau_plan, coupon_code } = req.body;
+    const patientPhone = req.user.phone;
+
+    // Validation montant côté serveur uniquement (TC-113) - ignorer montant envoyé par le client
+    // Le montant sera calculé par calculProrata dans upgradeAbonnement
+
+    if (!nouveau_plan) {
+        return res.status(400).json({ success: false, message: 'Nouveau plan requis.' });
+    }
+
+    try {
+        const result = await upgradeAbonnement(patientPhone, nouveau_plan, coupon_code);
+        return res.json(result);
+    } catch (error) {
+        console.error('[upgradeSubscription]', error.message);
+        return res.status(400).json({ success: false, message: error.message });
+    }
+});
 
 router.get('/profil', authMiddleware, async (req, res) => {
     try {

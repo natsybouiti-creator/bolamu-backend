@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
+const validateMtnWebhook = require('../middleware/validateMtnWebhook');
+const { webhookLimiter } = require('../middleware/rateLimiter');
 
 // ─── Import middleware ────────────────────────────────────────────────────────
 let verifyToken;
@@ -50,30 +52,50 @@ async function getMoMoToken() {
 
 // ─── HELPER : traiter paiement réussi ─────────────────────────────────────────
 async function handlePaymentSuccess(phone, referenceId) {
+    const client = await db.connect();
     try {
-        const payRes = await db.query(
+        await client.query('BEGIN');
+
+        // Verrou pessimiste sur le patient pour éviter les race conditions
+        const userLock = await client.query(
+            'SELECT phone FROM users WHERE phone = $1 FOR UPDATE',
+            [phone]
+        );
+        if (!userLock.rows.length) {
+            await client.query('ROLLBACK');
+            console.error(`[MoMo] Patient introuvable : ${phone}`);
+            return;
+        }
+
+        const payRes = await client.query(
             'SELECT * FROM payments WHERE reference = $1',
             [referenceId]
         );
-        if (!payRes.rows.length) return;
+        if (!payRes.rows.length) {
+            await client.query('ROLLBACK');
+            return;
+        }
         const payment = payRes.rows[0];
-        if (payment.status === 'success') return;
+        if (payment.status === 'success') {
+            await client.query('ROLLBACK');
+            return;
+        }
 
         // 1. Mettre à jour le statut du paiement
-        await db.query(
+        await client.query(
             `UPDATE payments SET status = 'success', updated_at = NOW() WHERE reference = $1`,
             [referenceId]
         );
 
         // 2. Désactiver les anciens abonnements actifs
-        await db.query(
+        await client.query(
             `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
              WHERE patient_phone = $1 AND is_active = TRUE`,
             [phone]
         );
 
         // 3. Créer le nouvel abonnement dans subscriptions
-        await db.query(
+        await client.query(
             `INSERT INTO subscriptions
                 (patient_phone, plan, amount_fcfa, status, started_at, expires_at, is_active, payment_reference)
              VALUES ($1, $2, $3, 'active', NOW(), NOW() + INTERVAL '30 days', TRUE, $4)`,
@@ -81,7 +103,7 @@ async function handlePaymentSuccess(phone, referenceId) {
         );
 
         // 4. Audit log
-        await db.query(
+        await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('payment.success', $1, 'subscriptions', $2, $3)`,
             [phone, referenceId, JSON.stringify({
@@ -91,9 +113,24 @@ async function handlePaymentSuccess(phone, referenceId) {
             })]
         ).catch(() => {});
 
+        await client.query('COMMIT');
         console.log(`✅ Abonnement ${payment.plan} activé pour ${phone}`);
     } catch(e) {
+        await client.query('ROLLBACK');
         console.error('handlePaymentSuccess error:', e.message);
+        
+        // Audit log en cas d'erreur
+        try {
+            await db.query(
+                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+                 VALUES ('payment.error', $1, 'payments', $2, $3)`,
+                [phone, referenceId, JSON.stringify({ error: e.message, operator: 'mtn' })]
+            );
+        } catch (auditErr) {
+            console.error('Audit log error:', auditErr.message);
+        }
+    } finally {
+        client.release();
     }
 }
 
@@ -228,6 +265,59 @@ router.get('/status/:referenceId', verifyToken, async (req, res) => {
     } catch(e) {
         console.error('[MoMo] status error:', e.message);
         res.status(500).json({ success: false });
+    }
+});
+
+// ─── POST /webhook ───────────────────────────────────────────────────────────
+// Endpoint webhook MTN MoMo avec validation HMAC-SHA256
+// Ce endpoint reçoit les notifications asynchrones de MTN MoMo
+router.post('/webhook', webhookLimiter, validateMtnWebhook, async (req, res) => {
+    try {
+        // Parser le body (il est en buffer brut à cause de express.raw())
+        const bodyString = req.body.toString('utf8');
+        const webhookData = JSON.parse(bodyString);
+
+        console.log('[MoMo Webhook] Données reçues:', JSON.stringify(webhookData));
+
+        const { externalId, status } = webhookData;
+
+        if (!externalId || !status) {
+            console.error('[MoMo Webhook] Données invalides');
+            return res.status(400).json({ success: false, message: 'Données invalides' });
+        }
+
+        // Récupérer le paiement correspondant
+        const payRes = await db.query(
+            'SELECT * FROM payments WHERE reference = $1',
+            [externalId]
+        );
+
+        if (!payRes.rows.length) {
+            console.error('[MoMo Webhook] Paiement introuvable:', externalId);
+            return res.status(404).json({ success: false, message: 'Paiement introuvable' });
+        }
+
+        const payment = payRes.rows[0];
+
+        if (status === 'SUCCESSFUL') {
+            await handlePaymentSuccess(payment.patient_phone, externalId);
+        } else if (status === 'FAILED') {
+            await db.query(
+                `UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = $1`,
+                [externalId]
+            );
+            await db.query(
+                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+                 VALUES ('payment.failed', $1, 'payments', $2, $3)`,
+                [payment.patient_phone, externalId, JSON.stringify({ operator: 'mtn', source: 'webhook' })]
+            ).catch(() => {});
+        }
+
+        res.json({ success: true, message: 'Webhook traité' });
+
+    } catch(e) {
+        console.error('[MoMo Webhook] Erreur:', e.message);
+        res.status(500).json({ success: false, message: 'Erreur traitement webhook' });
     }
 });
 

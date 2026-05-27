@@ -104,11 +104,11 @@ async function generatePatientQR(req, res) {
   const { phone } = req.user;
   try {
     const qrSecret = process.env.JWT_QR_SECRET || process.env.JWT_SECRET;
-    const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24h
+    const expiresAt = Date.now() + (1 * 60 * 60 * 1000); // 1 heure
     const token = jwt.sign(
       { patient_phone: phone, type: 'emergency_qr' },
       qrSecret,
-      { expiresIn: '24h' }
+      { expiresIn: '1h' }
     );
     const baseUrl = process.env.BASE_URL || 'https://bolamu.com';
     const emergencyUrl = `${baseUrl}/urgence?token=${token}`;
@@ -117,7 +117,7 @@ async function generatePatientQR(req, res) {
       data: {
         emergency_url: emergencyUrl,
         expires_at: new Date(expiresAt).toISOString(),
-        expires_in_hours: 24
+        expires_in_hours: 1
       }
     });
   } catch (error) {

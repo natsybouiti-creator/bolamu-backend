@@ -5,13 +5,21 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 
 // ─── CRÉER UNE PRESCRIPTION LABO (médecin) ───────────────────────────────
 async function createLabPrescription(req, res) {
-    const { appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions } = req.body;
+    const { appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions, priorite } = req.body;
     const doctorPhone = req.user?.phone;
 
     if (!patient_phone || !doctor_phone || !examens) {
         return res.status(400).json({
             success: false,
             message: 'Champs obligatoires manquants : patient_phone, doctor_phone, examens'
+        });
+    }
+
+    // Valider la priorité
+    if (priorite && !['normale', 'urgente', 'critique'].includes(priorite)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Priorité invalide. Options : normale, urgente, critique'
         });
     }
 
@@ -24,17 +32,17 @@ async function createLabPrescription(req, res) {
         // Générer un code de prescription unique de 6 chiffres
         const prescriptionCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Insérer la prescription labo
+        // Insérer la prescription labo avec priorite
         const result = await pool.query(
             `INSERT INTO lab_prescriptions 
-                (appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions, prescription_code)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+                (appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions, prescription_code, priorite)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              RETURNING *`,
-            [appointment_id || null, patient_phone, doctor_phone, lab_phone || null, examens, instructions || null, prescriptionCode]
+            [appointment_id || null, patient_phone, doctor_phone, lab_phone || null, examens, instructions || null, prescriptionCode, priorite || 'normale']
         );
 
         // Notification SMS au laboratoire (optionnel - à implémenter selon besoin)
-        console.log(`📋 Prescription labo créée pour patient ${patient_phone} par ${doctorPhone} - Code: ${prescriptionCode}`);
+        console.log(`📋 Prescription labo créée pour patient ${patient_phone} par ${doctorPhone} - Code: ${prescriptionCode} - Priorité: ${priorite || 'normale'}`);
 
         return res.status(201).json({
             success: true,
@@ -44,7 +52,14 @@ async function createLabPrescription(req, res) {
 
     } catch (error) {
         console.error('[createLabPrescription] Erreur :', error.message);
-        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+        // Retourner HTTP 422 avec message explicite en cas d'erreur d'insertion
+        if (error.code === '23505') {
+            return res.status(422).json({ success: false, message: 'Conflit de données : prescription existe déjà.' });
+        }
+        if (error.code === '23503') {
+            return res.status(422).json({ success: false, message: 'Erreur de référence : patient ou médecin introuvable.' });
+        }
+        return res.status(422).json({ success: false, message: 'Erreur lors de la création de la prescription : ' + error.message });
     }
 }
 

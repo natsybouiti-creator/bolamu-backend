@@ -206,4 +206,245 @@ async function getDoctorProfile(req, res) {
     }
 }
 
-module.exports = { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile };
+// ─── GÉNÉRER QR CODE POUR UN PATIENT (côté médecin) ─────────────────────────────
+async function generatePatientQRCode(req, res) {
+    const { phone } = req.params;
+    const doctorPhone = req.user.phone;
+    
+    if (!phone) {
+        return res.status(400).json({ success: false, message: 'Numéro de téléphone du patient requis.' });
+    }
+    
+    try {
+        // Vérifier que le patient existe et a un abonnement actif
+        const patientResult = await pool.query(
+            `SELECT u.phone, u.full_name, u.role, s.id as subscription_id, s.plan, s.expires_at
+             FROM users u
+             LEFT JOIN subscriptions s ON s.patient_phone = u.phone AND s.status = 'active' AND s.expires_at >= NOW()
+             WHERE u.phone = $1 AND u.role = 'patient'`,
+            [phone]
+        );
+        
+        if (patientResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Patient introuvable.' });
+        }
+        
+        const patient = patientResult.rows[0];
+        
+        if (!patient.subscription_id) {
+            return res.status(403).json({ success: false, message: 'Le patient n\'a pas d\'abonnement actif.' });
+        }
+        
+        // Générer le token QR (15 minutes)
+        const crypto = require('crypto');
+        const token = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        
+        // Stocker le token QR
+        await pool.query(
+            `INSERT INTO qr_tokens (user_phone, token, expires_at, generated_by) 
+             VALUES ($1, $2, $3, $4)`,
+            [phone, token, expiresAt, doctorPhone]
+        );
+        
+        // Audit log
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) 
+             VALUES ('QR_GENERATED_BY_DOCTOR', $1, 'qr_tokens', NULL, $2)`,
+            [doctorPhone, JSON.stringify({ patient_phone: phone, subscription_id: patient.subscription_id, expires_at: expiresAt })]
+        ).catch(() => {});
+        
+        return res.json({
+            success: true,
+            data: {
+                qr_token: token,
+                expires_at: expiresAt.toISOString(),
+                expires_in_minutes: 15,
+                patient: {
+                    phone: patient.phone,
+                    full_name: patient.full_name,
+                    subscription_id: patient.subscription_id,
+                    plan: patient.plan
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('[generatePatientQRCode]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ─── CRÉER UN CRÉNEAU HORAIRE (POST /api/v1/doctor/slots) ───────────────────────
+async function createTimeSlot(req, res) {
+    const doctorPhone = req.user.phone;
+    const { date, heure_debut, heure_fin } = req.body;
+
+    if (!date || !heure_debut || !heure_fin) {
+        return res.status(400).json({ success: false, message: 'Champs requis : date, heure_debut, heure_fin.' });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO time_slots (doctor_phone, date, heure_debut, heure_fin, is_available)
+             VALUES ($1, $2, $3, $4, TRUE)
+             RETURNING *`,
+            [doctorPhone, date, heure_debut, heure_fin]
+        );
+
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('timeslot.created', $1, 'time_slots', $2, $3)`,
+            [doctorPhone, result.rows[0].id, JSON.stringify({ date, heure_debut, heure_fin })]
+        ).catch(() => {});
+
+        return res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        console.error('[createTimeSlot]', error.message);
+        if (error.code === '23505') {
+            return res.status(409).json({ success: false, message: 'Ce créneau existe déjà.' });
+        }
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ─── LISTER CRÉNEAUX D'UN JOUR (GET /api/v1/doctor/slots?date=YYYY-MM-DD) ─────────
+async function getTimeSlots(req, res) {
+    const doctorPhone = req.user.phone;
+    const { date } = req.query;
+
+    if (!date) {
+        return res.status(400).json({ success: false, message: 'Paramètre date requis (YYYY-MM-DD).' });
+    }
+
+    try {
+        const result = await pool.query(
+            `SELECT * FROM time_slots
+             WHERE doctor_phone = $1 AND date = $2
+             ORDER BY heure_debut ASC`,
+            [doctorPhone, date]
+        );
+
+        return res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error('[getTimeSlots]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ─── MODIFIER DISPONIBILITÉ CRÉNEAU (PATCH /api/v1/doctor/slots/:id) ───────────────
+async function updateTimeSlot(req, res) {
+    const doctorPhone = req.user.phone;
+    const { id } = req.params;
+    const { is_available } = req.body;
+
+    if (typeof is_available !== 'boolean') {
+        return res.status(400).json({ success: false, message: 'Champ is_required requis (boolean).' });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE time_slots SET is_available = $1, updated_at = NOW()
+             WHERE id = $2 AND doctor_phone = $3
+             RETURNING *`,
+            [is_available, id, doctorPhone]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Créneau introuvable.' });
+        }
+
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('timeslot.updated', $1, 'time_slots', $2, $3)`,
+            [doctorPhone, id, JSON.stringify({ is_available })]
+        ).catch(() => {});
+
+        return res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        console.error('[updateTimeSlot]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ─── MODIFIER LE PROFIL MÉDECIN (PATCH /api/v1/doctor/profile) ───────────────────────
+async function updateDoctorProfile(req, res) {
+    const doctorPhone = req.user.phone;
+    const { full_name, specialty, city, neighborhood, bio, availability_schedule, telephone_cabinet, photo } = req.body;
+
+    // Champs modifiables : nom, prenom, specialite, telephone_cabinet, bio, photo (URL Cloudinary)
+    // Champs NON modifiables : phone (identifiant), is_active, role, created_at
+
+    try {
+        const updates = [];
+        const values = [];
+        let paramCount = 1;
+
+        if (full_name) {
+            updates.push(`full_name = $${paramCount++}`);
+            values.push(full_name);
+        }
+        if (specialty) {
+            updates.push(`specialty = $${paramCount++}`);
+            values.push(specialty);
+        }
+        if (city) {
+            updates.push(`city = $${paramCount++}`);
+            values.push(city);
+        }
+        if (neighborhood !== undefined) {
+            updates.push(`neighborhood = $${paramCount++}`);
+            values.push(neighborhood || null);
+        }
+        if (bio !== undefined) {
+            updates.push(`bio = $${paramCount++}`);
+            values.push(bio || null);
+        }
+        if (availability_schedule !== undefined) {
+            updates.push(`availability_schedule = $${paramCount++}`);
+            values.push(availability_schedule || null);
+        }
+        if (telephone_cabinet !== undefined) {
+            updates.push(`telephone_cabinet = $${paramCount++}`);
+            values.push(telephone_cabinet || null);
+        }
+        if (photo !== undefined) {
+            updates.push(`photo = $${paramCount++}`);
+            values.push(photo || null);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ success: false, message: 'Aucun champ à modifier.' });
+        }
+
+        updates.push(`updated_at = NOW()`);
+        values.push(doctorPhone);
+
+        const query = `UPDATE doctors SET ${updates.join(', ')} WHERE phone = $${paramCount} RETURNING *`;
+        const result = await pool.query(query, values);
+
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Médecin introuvable.' });
+        }
+
+        // Mettre à jour aussi la table users pour full_name
+        if (full_name) {
+            await pool.query(`UPDATE users SET full_name = $1 WHERE phone = $2`, [full_name, doctorPhone]);
+        }
+
+        // Audit log
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('doctor.profile_updated', $1, 'doctors', $2, $3)`,
+            [doctorPhone, result.rows[0].id, JSON.stringify({ updated_fields: Object.keys(req.body) })]
+        ).catch(() => {});
+
+        return res.json({ success: true, message: 'Profil mis à jour avec succès.', data: result.rows[0] });
+
+    } catch (error) {
+        console.error('[updateDoctorProfile]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+module.exports = { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile, generatePatientQRCode, createTimeSlot, getTimeSlots, updateTimeSlot, updateDoctorProfile };

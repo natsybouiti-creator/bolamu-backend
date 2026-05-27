@@ -66,14 +66,30 @@ router.post('/book', authMiddleware, async (req, res) => {
 // 3. RDV Médecin
 router.get('/doctor/:phone', authMiddleware, async (req, res) => {
     const { phone } = req.params;
+    const { page = 1, per_page = 20 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(per_page);
     try {
         const doc = await pool.query(`SELECT id FROM doctors WHERE phone = $1`, [phone]);
-        if (!doc.rows.length) return res.json({ success: true, data: [] });
+        if (!doc.rows.length) return res.json({ success: true, data: [], pagination: { total: 0, page: parseInt(page), per_page: parseInt(per_page) } });
+        
         const result = await pool.query(
-            `SELECT * FROM appointments WHERE doctor_id = $1 ORDER BY appointment_date ASC`,
-            [doc.rows[0].id]
+            `SELECT * FROM appointments WHERE doctor_id = $1 ORDER BY appointment_date ASC LIMIT $2 OFFSET $3`,
+            [doc.rows[0].id, parseInt(per_page), offset]
         );
-        res.json({ success: true, data: result.rows });
+        
+        const countResult = await pool.query(`SELECT COUNT(*) FROM appointments WHERE doctor_id = $1`, [doc.rows[0].id]);
+        const total = parseInt(countResult.rows[0].count);
+        
+        res.json({ 
+            success: true, 
+            data: result.rows,
+            pagination: {
+                total: total,
+                page: parseInt(page),
+                per_page: parseInt(per_page),
+                pages: Math.ceil(total / parseInt(per_page))
+            }
+        });
     } catch (err) {
         res.status(500).json({ error: "Erreur serveur" });
     }

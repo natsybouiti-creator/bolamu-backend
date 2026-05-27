@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { registerLaboratoire, getLaboratoireProfile, updateLaboratoireStatus } = require('../controllers/laboratoire.controller');
+const { registerLaboratoire, getLaboratoireProfile, updateLaboratoireStatus, getLaboratoires, updateLaboratoireProfile } = require('../controllers/laboratoire.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 
 const upload = multer({
@@ -19,6 +19,12 @@ const upload = multer({
 router.post('/register', upload.single('document'), registerLaboratoire);
 router.get('/profil', authMiddleware, getLaboratoireProfile);
 router.patch('/:id/status', authMiddleware, updateLaboratoireStatus);
+
+// Modifier le profil laboratoire
+router.patch('/profil', authMiddleware, updateLaboratoireProfile);
+
+// Rechercher laboratoires avec filtres et pagination
+router.get('/', getLaboratoires);
 
 router.get('/all', authMiddleware, async (req, res) => {
     const pool = require('../config/db');

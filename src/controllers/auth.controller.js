@@ -8,7 +8,8 @@ const bcrypt = require('bcrypt');
 const { sendBolamuSms } = require('../services/sms.service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
-const JWT_EXPIRES = '7d';
+const ACCESS_TOKEN_EXPIRES = '15m';
+const REFRESH_TOKEN_EXPIRES = '7d';
 
 function generatePassword(length = 8) {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -106,12 +107,26 @@ async function login(req, res) {
         
         const validPassword = await bcrypt.compare(password, user.password_hash);
         if (!validPassword) return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });
-        
-        const token = jwt.sign(
+
+        // Access token (15min)
+        const accessToken = jwt.sign(
             { id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false },
             JWT_SECRET,
-            { expiresIn: JWT_EXPIRES }
+            { expiresIn: ACCESS_TOKEN_EXPIRES }
         );
+
+        // Refresh token (7 jours)
+        const refreshToken = crypto.randomBytes(64).toString('hex');
+        const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+
+        // Stocker le refresh token
+        await pool.query(
+            `INSERT INTO refresh_tokens (phone, token_hash, expires_at, is_revoked)
+             VALUES ($1, $2, $3, FALSE)
+             ON CONFLICT (phone) DO UPDATE SET token_hash = $2, expires_at = $3, is_revoked = FALSE`,
+            [normalizedPhone, refreshTokenHash, expiresAt]
+        ).catch(() => {}); // Ignorer si la table n'existe pas encore
         
         let redirectUrl = '/login.html';
         switch (user.role) {
@@ -124,7 +139,8 @@ async function login(req, res) {
         return res.status(200).json({
             success: true,
             message: 'Connexion réussie',
-            token,
+            accessToken,
+            refreshToken,
             role: user.role,
             phone: normalizedPhone,
             redirectUrl,
@@ -212,7 +228,7 @@ async function registerPatient(req, res) {
         await pool.query(`UPDATE users SET password_hash = $1 WHERE phone = $2`, [passwordHash, normalizedPhone]);
         await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
         
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3)`,
@@ -317,7 +333,7 @@ async function registerDoctor(req, res) {
         await pool.query(`UPDATE users SET password_hash = $1 WHERE phone = $2`, [passwordHash, normalizedPhone]);
         await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
         
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.doctor', $1, 'users', $2, $3)`,
@@ -408,7 +424,7 @@ async function registerPharmacie(req, res) {
         await pool.query(`UPDATE users SET password_hash = $1 WHERE phone = $2`, [passwordHash, normalizedPhone]);
         await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
         
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.pharmacie', $1, 'users', $2, $3)`,
@@ -499,7 +515,7 @@ async function registerLaboratoire(req, res) {
         await pool.query(`UPDATE users SET password_hash = $1 WHERE phone = $2`, [passwordHash, normalizedPhone]);
         await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
         
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.laboratoire', $1, 'users', $2, $3)`,
@@ -517,7 +533,112 @@ async function registerLaboratoire(req, res) {
     }
 }
 
-module.exports = { requestOtp, verifyOtp, login, forgotPassword, registerPatient, registerDoctor, registerPharmacie, registerLaboratoire };
+// ============================================================
+// 8. REFRESH TOKEN
+// ============================================================
+async function refreshToken(req, res) {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+        return res.status(400).json({ success: false, message: 'Refresh token requis.' });
+    }
+
+    try {
+        // Récupérer tous les refresh tokens non révoqués
+        const tokensResult = await pool.query(
+            `SELECT * FROM refresh_tokens WHERE is_revoked = FALSE AND expires_at > NOW()`
+        );
+
+        let validToken = null;
+        for (const row of tokensResult.rows) {
+            const isValid = await bcrypt.compare(refreshToken, row.token_hash);
+            if (isValid) {
+                validToken = row;
+                break;
+            }
+        }
+
+        if (!validToken) {
+            return res.status(401).json({ success: false, message: 'Refresh token invalide ou expiré.' });
+        }
+
+        // Récupérer l'utilisateur
+        const userResult = await pool.query(
+            `SELECT id, phone, role, is_active, banned FROM users WHERE phone = $1`,
+            [validToken.phone]
+        );
+
+        if (!userResult.rows.length) {
+            return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
+        }
+
+        const user = userResult.rows[0];
+
+        if (user.banned) {
+            return res.status(403).json({ success: false, message: 'Compte banni.' });
+        }
+
+        if (!user.is_active) {
+            return res.status(403).json({ success: false, message: 'Compte inactif.' });
+        }
+
+        // Générer nouveau access token
+        const newAccessToken = jwt.sign(
+            { id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false },
+            JWT_SECRET,
+            { expiresIn: ACCESS_TOKEN_EXPIRES }
+        );
+
+        return res.status(200).json({
+            success: true,
+            accessToken: newAccessToken
+        });
+    } catch (err) {
+        console.error('[refreshToken]', err.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ============================================================
+// 9. LOGOUT
+// ============================================================
+async function logout(req, res) {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+        return res.status(400).json({ success: false, message: 'Refresh token requis.' });
+    }
+
+    try {
+        // Récupérer tous les refresh tokens non révoqués
+        const tokensResult = await pool.query(
+            `SELECT * FROM refresh_tokens WHERE is_revoked = FALSE`
+        );
+
+        let found = false;
+        for (const row of tokensResult.rows) {
+            const isValid = await bcrypt.compare(refreshToken, row.token_hash);
+            if (isValid) {
+                // Révoquer le token (soft delete)
+                await pool.query(
+                    `UPDATE refresh_tokens SET is_revoked = TRUE WHERE id = $1`,
+                    [row.id]
+                );
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            return res.status(401).json({ success: false, message: 'Refresh token invalide.' });
+        }
+
+        return res.status(200).json({ success: true, message: 'Déconnexion réussie.' });
+    } catch (err) {
+        console.error('[logout]', err.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+module.exports = { requestOtp, verifyOtp, login, forgotPassword, registerPatient, registerDoctor, registerPharmacie, registerLaboratoire, refreshToken, logout };
 
 
 

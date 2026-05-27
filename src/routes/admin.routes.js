@@ -163,8 +163,8 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
     }
     try {
         const result = await pool.query(
-            `UPDATE users SET is_active = $1, validated_at = $2 WHERE phone = $3 RETURNING phone, role, full_name, first_name, last_name, rccm_number, agrement_number, registration_number, created_at, is_active, validated_at`,
-            [true, 'NOW()', phone]
+            `UPDATE users SET is_active = $1, validated_at = NOW() WHERE phone = $2 RETURNING phone, role, full_name, first_name, last_name, rccm_number, agrement_number, registration_number, created_at, is_active, validated_at`,
+            [true, phone]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
         const row = result.rows[0];
@@ -554,10 +554,16 @@ router.get('/doctors', authMiddleware, adminOnly, async (req, res) => {
         let params = [];
 
         if (status === 'pending' || status === 'inactive') {
-            whereClause += " AND u.is_active = false";
+            whereClause += " AND d.status = 'pending'";
+        } else if (status === 'verified' || status === 'active') {
+            whereClause += " AND d.status = 'verified'";
+        } else if (status === 'suspended') {
+            whereClause += " AND d.status = 'suspended'";
+        } else if (status === 'rejected') {
+            whereClause += " AND d.status = 'rejected'";
         } else {
-            // Par défaut : afficher uniquement les comptes validés/actifs
-            whereClause += " AND u.is_active = true";
+            // Par défaut : afficher uniquement les médecins vérifiés
+            whereClause += " AND d.status = 'verified'";
         }
 
         const result = await pool.query(

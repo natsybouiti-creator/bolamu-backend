@@ -6,6 +6,8 @@ const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
 const authMiddleware = require('../../middleware/auth.middleware');
+const validateAirtelWebhook = require('../middleware/validateAirtelWebhook');
+const idempotencyMiddleware = require('../middleware/idempotency');
 
 // ─── CONFIG AIRTEL ───────────────────────────────────────────────────────────
 const AIRTEL_BASE_URL = process.env.AIRTEL_BASE_URL || 'https://openapi.airtel.africa';
@@ -47,30 +49,50 @@ async function getAirtelToken() {
 
 // ─── HELPER : traiter paiement réussi ─────────────────────────────────────────
 async function handlePaymentSuccess(phone, referenceId) {
+    const client = await db.connect();
     try {
-        const payRes = await db.query(
+        await client.query('BEGIN');
+
+        // Verrou pessimiste sur le patient pour éviter les race conditions
+        const userLock = await client.query(
+            'SELECT phone FROM users WHERE phone = $1 FOR UPDATE',
+            [phone]
+        );
+        if (!userLock.rows.length) {
+            await client.query('ROLLBACK');
+            console.error(`[Airtel] Patient introuvable : ${phone}`);
+            return;
+        }
+
+        const payRes = await client.query(
             'SELECT * FROM payments WHERE reference = $1',
             [referenceId]
         );
-        if (!payRes.rows.length) return;
+        if (!payRes.rows.length) {
+            await client.query('ROLLBACK');
+            return;
+        }
         const payment = payRes.rows[0];
-        if (payment.status === 'success') return;
+        if (payment.status === 'success') {
+            await client.query('ROLLBACK');
+            return;
+        }
 
         // 1. Mettre à jour le statut du paiement
-        await db.query(
+        await client.query(
             `UPDATE payments SET status = 'success', updated_at = NOW() WHERE reference = $1`,
             [referenceId]
         );
 
         // 2. Désactiver les anciens abonnements actifs
-        await db.query(
+        await client.query(
             `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
              WHERE patient_phone = $1 AND is_active = TRUE`,
             [phone]
         );
 
         // 3. Créer le nouvel abonnement dans subscriptions
-        await db.query(
+        await client.query(
             `INSERT INTO subscriptions
                 (patient_phone, plan, amount_fcfa, status, started_at, expires_at, is_active, payment_reference)
              VALUES ($1, $2, $3, 'active', NOW(), NOW() + INTERVAL '30 days', TRUE, $4)`,
@@ -78,7 +100,7 @@ async function handlePaymentSuccess(phone, referenceId) {
         );
 
         // 4. Audit log
-        await db.query(
+        await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('payment.success', $1, 'subscriptions', $2, $3)`,
             [phone, referenceId, JSON.stringify({
@@ -88,9 +110,24 @@ async function handlePaymentSuccess(phone, referenceId) {
             })]
         ).catch(() => {});
 
+        await client.query('COMMIT');
         console.log('[Airtel] ✅ Abonnement activé');
     } catch(e) {
+        await client.query('ROLLBACK');
         console.error('handlePaymentSuccess error:', e.message);
+        
+        // Audit log en cas d'erreur
+        try {
+            await db.query(
+                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+                 VALUES ('payment.error', $1, 'payments', $2, $3)`,
+                [phone, referenceId, JSON.stringify({ error: e.message, operator: 'airtel' })]
+            );
+        } catch (auditErr) {
+            console.error('Audit log error:', auditErr.message);
+        }
+    } finally {
+        client.release();
     }
 }
 
@@ -226,6 +263,55 @@ router.get('/status/:referenceId', authMiddleware, async (req, res) => {
     } catch(e) {
         console.error('[Airtel] status error:', e.message);
         res.status(500).json({ success: false });
+    }
+});
+
+// ─── POST /webhook ───────────────────────────────────────────────────────────────
+router.post('/webhook', express.raw({ type: 'application/json' }), validateAirtelWebhook, idempotencyMiddleware('/airtel/webhook'), async (req, res) => {
+    try {
+        const webhookData = JSON.parse(req.body.toString());
+        const { reference, status } = webhookData;
+
+        console.log('[Airtel Webhook] Réception webhook:', reference, status);
+
+        // Vérifier si le paiement existe
+        const payRes = await db.query(
+            'SELECT * FROM payments WHERE reference = $1',
+            [reference]
+        );
+
+        if (!payRes.rows.length) {
+            console.error('[Airtel Webhook] Paiement introuvable:', reference);
+            return res.status(404).json({ success: false, message: 'Paiement introuvable' });
+        }
+
+        const payment = payRes.rows[0];
+
+        // Si déjà traité, retourner succès (idempotence)
+        if (payment.status === 'success') {
+            return res.json({ success: true, message: 'Paiement déjà traité' });
+        }
+
+        // Traitement selon le statut
+        if (status === 'success' || status === 'DP00800001001') {
+            await handlePaymentSuccess(payment.patient_phone, reference);
+        } else if (status === 'failed' || status === 'DP00800001000') {
+            await db.query(
+                `UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = $1`,
+                [reference]
+            );
+            await db.query(
+                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+                 VALUES ('payment.failed', $1, 'payments', $2, $3)`,
+                [payment.patient_phone, reference, JSON.stringify({ operator: 'airtel' })]
+            ).catch(() => {});
+        }
+
+        res.json({ success: true, message: 'Webhook traité avec succès' });
+
+    } catch(e) {
+        console.error('[Airtel Webhook] Erreur:', e.message);
+        res.status(500).json({ success: false, message: 'Erreur traitement webhook' });
     }
 });
 
