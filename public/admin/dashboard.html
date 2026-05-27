@@ -309,6 +309,11 @@ tr:hover td{background:rgba(255,255,255,.018);}
     <button class="nav-btn" onclick="go('config',this)"><span class="ni"></span>Configuration</button>
     <button class="nav-btn" onclick="go('credits',this)"><span class="ni"></span>Crédits</button>
     <button class="nav-btn" onclick="go('ratings',this)"><span class="ni"></span>⭐ Notations</button>
+    <div class="nav-group">Opérations</div>
+    <button class="nav-btn" onclick="go('collecte',this)"><span class="ni"></span>💰 Collecte</button>
+    <button class="nav-btn" onclick="go('conventions',this)"><span class="ni"></span>🤝 Conventions</button>
+    <button class="nav-btn" onclick="go('clearing',this)"><span class="ni"></span>🏦 Clearing CDR</button>
+    <button class="nav-btn" onclick="go('conflits',this)"><span class="ni"></span>⚖️ Conflits</button>
   </nav>
   <div class="sidebar-foot">
     <div class="user-row">
@@ -511,6 +516,132 @@ tr:hover td{background:rgba(255,255,255,.018);}
       </div>
     </div>
 
+    <!-- PANEL COLLECTE -->
+    <div id="panel-collecte" class="panel" style="display:none">
+      <h2>💰 Collecte — 4 canaux</h2>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+        <div class="card">
+          <div style="font-size:12px;opacity:.7">OVP Bancaire</div>
+          <div id="kpi-ovp-val" style="font-size:24px;font-weight:700">—</div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;opacity:.7">MoMo Annuel</div>
+          <div id="kpi-momo-val" style="font-size:24px;font-weight:700">—</div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;opacity:.7">Familial</div>
+          <div id="kpi-familial-val" style="font-size:24px;font-weight:700">—</div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;opacity:.7">SEPA Diaspora</div>
+          <div id="kpi-sepa-val" style="font-size:24px;font-weight:700">—</div>
+        </div>
+      </div>
+
+      <h3>OVP en attente de validation</h3>
+      <table>
+        <thead><tr>
+          <th>Téléphone</th><th>Plan</th><th>Montant</th>
+          <th>Date</th><th>Action</th>
+        </tr></thead>
+        <tbody id="tbody-ovp"></tbody>
+      </table>
+
+      <h3 style="margin-top:24px">SEPA en attente de validation</h3>
+      <table>
+        <thead><tr>
+          <th>Téléphone</th><th>Plan</th><th>Montant</th>
+          <th>Date</th><th>Action</th>
+        </tr></thead>
+        <tbody id="tbody-sepa"></tbody>
+      </table>
+    </div>
+
+    <!-- PANEL CONVENTIONS -->
+    <div id="panel-conventions" class="panel" style="display:none">
+      <h2>🤝 Conventions Partenaires</h2>
+      <p style="opacity:.7;margin-bottom:16px">
+        Conventions Hub de proximité — CDR calculée sur
+        abonnés actifs dans la zone
+      </p>
+      <button onclick="openNewConvention()" style="margin-bottom:16px">+ Nouvelle convention</button>
+      <table>
+        <thead><tr>
+          <th>Partenaire</th><th>Type</th><th>Zone</th>
+          <th>Statut</th><th>Début</th><th>Fin</th><th>Action</th>
+        </tr></thead>
+        <tbody id="tbody-conventions"></tbody>
+      </table>
+    </div>
+
+    <!-- PANEL CLEARING CDR -->
+    <div id="panel-clearing" class="panel" style="display:none">
+      <h2>🏦 Clearing CDR — Versements partenaires</h2>
+      <p style="opacity:.7;margin-bottom:16px">
+        Cliniques 30% · Pharmacies 12.5% · Laboratoires 7.5% · 
+        Bolamu 50%<br>
+        Versement : du 25 du mois au 5 du mois suivant · 
+        Virement bancaire uniquement
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+        <div class="card">
+          <div style="font-size:12px;opacity:.7">
+            Total CDR ce mois</div>
+          <div id="kpi-cdr-total" style="font-size:24px;font-weight:700">—</div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;opacity:.7">
+            Partenaires à payer</div>
+          <div id="kpi-cdr-count" style="font-size:24px;font-weight:700">—</div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;opacity:.7">
+            Abonnés actifs</div>
+          <div id="kpi-cdr-abonnes" style="font-size:24px;font-weight:700">—</div>
+        </div>
+      </div>
+
+      <button onclick="lancerClearing()"
+        style="margin-bottom:16px;background:#00C9A7;color:white;
+        padding:10px 20px;border:none;border-radius:8px;
+        cursor:pointer;font-weight:600">
+        ⚡ Lancer le calcul CDR du mois
+      </button>
+
+      <table>
+        <thead><tr>
+          <th>Partenaire</th><th>Type</th><th>Zone</th>
+          <th>Abonnés zone</th><th>Taux CDR</th>
+          <th>Montant FCFA</th><th>Statut</th><th>Action</th>
+        </tr></thead>
+        <tbody id="tbody-clearing"></tbody>
+      </table>
+    </div>
+
+    <!-- PANEL CONFLITS -->
+    <div id="panel-conflits" class="panel" style="display:none">
+      <h2>⚖️ Gestion des Conflits</h2>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button onclick="loadConflits('all')">Tous</button>
+        <button onclick="loadConflits('created')">Créés</button>
+        <button onclick="loadConflits('assigned')">Assignés</button>
+        <button onclick="loadConflits('investigating')">
+          En cours</button>
+        <button onclick="loadConflits('resolved')">Résolus</button>
+        <button onclick="loadConflits('closed')">Fermés</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Référence</th><th>Patient</th><th>Partenaire</th>
+          <th>Sujet</th><th>Priorité</th><th>Statut</th>
+          <th>Date</th><th>Action</th>
+        </tr></thead>
+        <tbody id="tbody-conflits"></tbody>
+      </table>
+    </div>
+
   </div><!-- /content -->
 
 <footer style="
@@ -613,7 +744,7 @@ function showBannerErr(msg){
 /* -----------------------------------
    NAVIGATION
 ----------------------------------- */
-const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations'};
+const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits'};
 
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
@@ -628,7 +759,7 @@ function go(name,btn){
   loadPanel(name);
 }
 function loadPanel(name){
-  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings};
+  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits};
   if(m[name])m[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
@@ -1231,6 +1362,202 @@ async function suspendUser(phone){
 async function banUser(phone){
   if(!confirm(`Bannir définitivement ${phone} ?`))return;
   try{const d=await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('🚫 Banni'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+}
+
+/* -----------------------------------
+   COLLECTE
+----------------------------------- */
+async function loadCollecte() {
+  try {
+    const d = await api('/collecte/admin/dashboard');
+    document.getElementById('kpi-ovp-val').textContent =
+      fn(d.dashboard?.ovp_en_attente || 0);
+    document.getElementById('kpi-momo-val').textContent =
+      fn(d.dashboard?.momo_actifs || 0);
+    document.getElementById('kpi-familial-val').textContent =
+      fn(d.dashboard?.total_actifs || 0);
+    document.getElementById('kpi-sepa-val').textContent =
+      fn(d.dashboard?.sepa_en_attente || 0);
+
+    // OVP en attente
+    const ovpResult = await api('/admin/ovp/pending');
+    const ovp = ovpResult.data || [];
+    document.getElementById('tbody-ovp').innerHTML =
+      ovp.length ? ovp.map(r => `<tr>
+        <td>${r.phone}</td>
+        <td>${r.plan || '—'}</td>
+        <td>${fn(r.montant_total)} FCFA</td>
+        <td>${fd(r.created_at)}</td>
+        <td><button onclick="validerOVP('${r.phone}')">
+          ✅ Valider</button></td>
+      </tr>`).join('') :
+      '<tr><td colspan="5" style="text-align:center;opacity:.5">' +
+      'Aucun OVP en attente</td></tr>';
+
+    // SEPA en attente
+    const sepaResult = await api('/admin/sepa/pending');
+    const sepa = sepaResult.data || [];
+    document.getElementById('tbody-sepa').innerHTML =
+      sepa.length ? sepa.map(r => `<tr>
+        <td>${r.phone}</td>
+        <td>${r.plan || '—'}</td>
+        <td>${fn(r.amount_fcfa)} FCFA</td>
+        <td>${fd(r.created_at)}</td>
+        <td><button onclick="validerSEPA('${r.phone}')">
+          ✅ Valider</button></td>
+      </tr>`).join('') :
+      '<tr><td colspan="5" style="text-align:center;opacity:.5">' +
+      'Aucun SEPA en attente</td></tr>';
+  } catch(e) {
+    toast('Erreur chargement collecte', 'error');
+  }
+}
+
+async function validerOVP(phone) {
+  if (!confirm(`Valider OVP pour ${phone} ?`)) return;
+  try {
+    await api(`/collecte/admin/ovp/valider/${phone}`, { method: 'PATCH' });
+    toast('OVP validé ✅');
+    loadCollecte();
+  } catch(e) { toast('Erreur validation OVP', 'error'); }
+}
+
+async function validerSEPA(phone) {
+  if (!confirm(`Valider SEPA pour ${phone} ?`)) return;
+  try {
+    await api(`/collecte/admin/sepa/valider/${phone}`, { method: 'PATCH' });
+    toast('SEPA validé ✅');
+    loadCollecte();
+  } catch(e) { toast('Erreur validation SEPA', 'error'); }
+}
+
+/* -----------------------------------
+   CONVENTIONS
+----------------------------------- */
+async function loadConventions() {
+  try {
+    const d = await api('/admin/conventions');
+    const rows = Array.isArray(d) ? d : (d.conventions || []);
+    document.getElementById('tbody-conventions').innerHTML =
+      rows.length ? rows.map(r => `<tr>
+        <td>${r.partner_phone}</td>
+        <td>${r.partner_type || '—'}</td>
+        <td>${r.zone || '—'}</td>
+        <td>${badge(r.status)}</td>
+        <td>${fd(r.started_at)}</td>
+        <td>${r.expires_at ? fd(r.expires_at) : '—'}</td>
+        <td><button onclick="viewUser('${r.partner_phone}')">
+          Voir</button></td>
+      </tr>`).join('') :
+      '<tr><td colspan="7" style="text-align:center;opacity:.5">' +
+      'Aucune convention</td></tr>';
+  } catch(e) {
+    toast('Erreur chargement conventions', 'error');
+  }
+}
+
+function openNewConvention() {
+  toast('Module création convention — à venir', 'info');
+}
+
+/* -----------------------------------
+   CLEARING CDR
+----------------------------------- */
+async function loadClearing() {
+  try {
+    const d = await api('/clearing/pending');
+    const rows = d.payouts || [];
+    
+    const totalCdr = rows.reduce((sum, r) => sum + (r.amount_fcfa || 0), 0);
+    document.getElementById('kpi-cdr-total').textContent =
+      fn(totalCdr) + ' FCFA';
+    document.getElementById('kpi-cdr-count').textContent =
+      fn(rows.length);
+    document.getElementById('kpi-cdr-abonnes').textContent =
+      fn(rows.reduce((sum, r) => sum + (r.nb_abonnes || 0), 0));
+
+    document.getElementById('tbody-clearing').innerHTML =
+      rows.length ? rows.map(r => `<tr>
+        <td>${r.partner_phone}</td>
+        <td>${r.partner_type}</td>
+        <td>${r.zone || '—'}</td>
+        <td>${fn(r.nb_abonnes || 0)}</td>
+        <td>${r.taux_cdr || 0}%</td>
+        <td style="font-weight:600">${fn(r.amount_fcfa || 0)} FCFA</td>
+        <td>${badge(r.status || 'en_attente')}</td>
+        <td><button onclick="marquerVerse('${r.id}')">
+          Marquer versé</button></td>
+      </tr>`).join('') :
+      '<tr><td colspan="8" style="text-align:center;opacity:.5">' +
+      'Aucune ligne CDR ce mois</td></tr>';
+  } catch(e) {
+    toast('Erreur chargement clearing', 'error');
+  }
+}
+
+async function lancerClearing() {
+  if (!confirm(
+    'Lancer le calcul CDR pour ce mois ?\n' +
+    'Cette opération génère les lignes de versement ' +
+    'pour tous les partenaires actifs.')) return;
+  try {
+    await api('/clearing/run', { method: 'POST' });
+    toast('Calcul CDR lancé ✅ — rechargement dans 3s');
+    setTimeout(loadClearing, 3000);
+  } catch(e) { toast('Erreur calcul CDR', 'error'); }
+}
+
+async function marquerVerse(id) {
+  if (!confirm(`Marquer le versement CDR comme effectué pour ID ${id} ?`)) return;
+  try {
+    await api(`/clearing/${id}/pay`, { method: 'PATCH' });
+    toast('Versement enregistré ✅');
+    loadClearing();
+  } catch(e) { toast('Erreur versement', 'error'); }
+}
+
+/* -----------------------------------
+   CONFLITS
+----------------------------------- */
+async function loadConflits(statut = 'all') {
+  try {
+    const url = statut === 'all'
+      ? '/admin/conflicts'
+      : `/admin/conflicts?statut=${statut}`;
+    const d = await api(url);
+    const rows = Array.isArray(d) ? d : (d.conflicts || []);
+    document.getElementById('tbody-conflits').innerHTML =
+      rows.length ? rows.map(r => `<tr>
+        <td><code>${r.reference}</code></td>
+        <td>${r.patient_phone}</td>
+        <td>${r.partner_phone || '—'}</td>
+        <td>${r.sujet}</td>
+        <td>${badge(r.priorite)}</td>
+        <td>${badge(r.statut)}</td>
+        <td>${fd(r.created_at)}</td>
+        <td>
+          <button onclick="assignerConflict('${r.id}')">
+            Assigner</button>
+        </td>
+      </tr>`).join('') :
+      '<tr><td colspan="8" style="text-align:center;opacity:.5">' +
+      'Aucun conflit</td></tr>';
+  } catch(e) {
+    toast('Erreur chargement conflits', 'error');
+  }
+}
+
+async function assignerConflict(id) {
+  const agent = prompt('Téléphone de l\'agent à assigner :');
+  if (!agent) return;
+  try {
+    await api(`/conflicts/${id}/assign`, {
+      method: 'PATCH',
+      body: JSON.stringify({ agent_phone: agent })
+    });
+    toast('Agent assigné ✅');
+    loadConflits();
+  } catch(e) { toast('Erreur assignation', 'error'); }
 }
 
 /* -----------------------------------
