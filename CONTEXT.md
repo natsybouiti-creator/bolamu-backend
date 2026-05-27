@@ -1,19 +1,27 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 29 avril 2026
+Mis à jour : 27 mai 2026
+Statut : EN PRODUCTION — https://bolamu-backend.onrender.com
+Score Ayokai : 21/23 (91.3%)
 
 ## VISION PRODUIT
 Plateforme de santé numérique au Congo-Brazzaville. Connecte patients, médecins, pharmacies et laboratoires. Developed by NBA Gestion SARLU.
 
 ## ARCHITECTURE TECHNIQUE
-- Backend : Node.js + Express sur Render (bolamu-backend.onrender.com) — free plan, dort après inactivité, ping /api/v1/test avant démo
+- Runtime : Node.js/Express — Render Standard (port 10000)
 - Base de données : PostgreSQL Neon (Frankfurt)
-- Stockage fichiers : Cloudinary (cloud_name: dpxefz80w)
-- SMS : Africa's Talking (sandbox — OTPs visibles dans logs Render, activation Live en attente crédit)
-- Auth : JWT
-- Monitoring : Sentry
-- Téléconsultation : JaaS 8x8.vc
+- Auth : JWT access 15min + refresh 7j + bcrypt
+- Rate limiting : express-rate-limit (strict 5/15min sur auth)
+- Sécurité : Helmet + CORS whitelist + HMAC webhooks
+- Stockage : Cloudinary (cloud_name: dpxefz80w)
+- SMS : Africa's Talking (sandbox — Live en attente crédit)
+- Email : Resend
+- Push : Web Push VAPID (optionnel)
+- WhatsApp : Meta Business API (optionnel)
+- IA : Anthropic Claude — agent Amina (optionnel)
+- Monitoring : Winston + BetterStack + Prometheus /metrics
+- CI/CD : GitHub Actions 6 jobs + Docker multi-stage
 - Frontend : HTML/CSS/JS vanilla
-- Repo GitHub : natsybouiti-creator/bolamu-backend
+- Repo : natsybouiti-creator/bolamu-backend
 
 ## DESIGN SYSTEM
 - Fonts : Plus Jakarta Sans + Fraunces
@@ -57,6 +65,14 @@ Colonnes : id, patient_phone, doctor_id, appointment_date, appointment_time, sta
 ### prescriptions
 Colonnes : id, patient_phone, doctor_phone, status, created_at
 
+### lab_prescriptions (Sprint 4)
+Colonnes : id, prescription_id, medication, dosage, instructions, created_at
+- Table des prescriptions laboratoire (pas lab_orders)
+
+### refresh_tokens (Sprint 5)
+Colonnes : id, user_phone, token, expires_at, created_at
+- JWT refresh tokens 7 jours
+
 ### audit_log
 Colonnes : id, event_type, actor_phone, target_table, target_id, payload, created_at
 - Insert-only — jamais de UPDATE ou DELETE
@@ -65,8 +81,13 @@ Colonnes : id, event_type, actor_phone, target_table, target_id, payload, create
 Colonnes : id, signal_type, severity, actor_phone, appointment_id, details, created_at, fraud_score
 - fraud_score : INTEGER 0-100 DEFAULT 0 (migration_013)
 
-### Autres tables existantes
-payments, subscriptions, credits, fraud_signals, platform_config, articles, qr_tokens
+### Nouvelles tables Sprints 1-9
+conflicts, conflict_messages, conflict_actions,
+coupons, coupon_usages, idempotency_keys,
+push_subscriptions, notifications,
+secretaires, file_attente, agenda_blocs,
+pre_rdv_formulaires, ai_consult_sessions,
+renouvellement_demandes
 
 ### platform_config — taux actuels
 - price_essentiel / price_annuel_essentiel : 2000 / 24000 FCFA
@@ -175,13 +196,19 @@ notifications
 10. audit_log : insert-only — colonnes event_type, actor_phone, target_table, target_id, payload
 11. Soft delete uniquement — jamais de DELETE sur users
 12. member_code généré avec MAX() + 1 — jamais COUNT()
-13. Taux répartition partenaires : TOUJOURS depuis platform_config 
-    (partner_rate_*) — jamais hardcodés
-14. Prix abonnements : TOUJOURS depuis platform_config (price_*) 
-    — jamais hardcodés  
+13. Taux répartition partenaires : TOUJOURS depuis platform_config (partner_rate_*) — jamais hardcodés
+14. Prix abonnements : TOUJOURS depuis platform_config (price_*) — jamais hardcodés
 15. Calcul forfait partenaire : adherents × price_essentiel × partner_rate
-16. SMS : TOUJOURS via src/services/sms.service.js (sendBolamuSms) 
-    — jamais réinitialiser AfricasTalking directement
+16. SMS : TOUJOURS via src/services/sms.service.js (sendBolamuSms) — jamais réinitialiser AfricasTalking directement
+17. La table prescriptions labo s'appelle lab_prescriptions (pas lab_orders)
+18. refresh_tokens table existe pour JWT refresh tokens 7 jours
+19. Middleware : rateLimiter (strict 5/15min, standard 30/min, webhook 100/min)
+20. Middleware : idempotency sur POST paiements
+21. Middleware : validateMtnWebhook pour HMAC-SHA256
+22. Middleware : requestLogger pour logs structurés Winston
+23. Middleware : errorHandler pour erreurs standardisées sans stack trace
+24. Paiements manuels uniquement (pas d'API MTN/Airtel)
+25. 7 rôles : patient, doctor, pharmacie, laboratoire, admin, content_admin, secretaire
 
 ## BUGS CORRIGÉS — NE JAMAIS REPRODUIRE
 - Double insertion users à l'inscription partenaire — supprimé INSERT users dans auth.controller.js
@@ -230,11 +257,28 @@ Mis à jour : 28 avril 2026
 🟡 Passer Render au plan payant avant lancement
 🟡 Acheter domaine bolamu.co
 
-### Modèle tarifaire — DÉFINITIF (ne plus modifier sans décision explicite)
-- Essentiel : 1 personne — 2 000 FCFA/mois — 24 000 FCFA/an
-- Standard : 2 personnes — 4 000 FCFA/mois — 48 000 FCFA/an  
-- Premium : 5 personnes — 10 000 FCFA/mois — 120 000 FCFA/an
-- Règle absolue : 2 000 FCFA par personne, toujours
+## PAIEMENTS — MODÈLE MANUEL (DÉCISION DÉFINITIVE)
+Pas d'API MTN MoMo ni Airtel Money.
+Raison : frais API 3% vs frais manuel 1%.
+Flux : patient paie sur numéro marchand → admin valide
+l'abonnement depuis le dashboard.
+Variables MTN_* et AIRTEL_* optionnelles dans .env.
+
+## MODÈLE TARIFAIRE — DÉFINITIF
+- Bronze/MOTO : 1 personne — 2 000 FCFA/mois
+- Silver/NDEKO : 2 personnes — 5 000 FCFA/mois
+- Gold/LIBOTA : 5 personnes — 10 000 FCFA/mois
+Toujours depuis platform_config — jamais hardcodé.
+
+## RÉMUNÉRATION PARTENAIRES CDR
+- Cliniques : 30% — Pharmacies : 12.5% — Laboratoires : 7.5%
+- Bolamu : 50%
+- Versement : 25 du mois au 5 du mois suivant
+- Canal : virement bancaire uniquement
+
+## 7 RÔLES UTILISATEURS
+patient, doctor, pharmacie, laboratoire,
+admin, content_admin, secretaire
 
 ### Système de collecte 4 canaux — DÉPLOYÉ
 - Canal 1 OVP Bancaire : bancarisés Congo — Ecobank Congo (en attente ouverture compte)
@@ -412,9 +456,101 @@ Mis à jour : 25 avril 2026
 - AUCUN remboursement en temps réel — traçabilité pure uniquement
 - Les médecins/cliniques ne font PAS de tiers payant — couverts uniquement par le forfait mensuel
 
-## LOGS RENDER — ÉTAT PROPRE (29 avril 2026)
+## LOGS RENDER — ÉTAT PROPRE (27 mai 2026)
 - Index appointments : corrigé doctor_phone → doctor_id
 - Migration boot addValidatedAtColumn : supprimée de server.js
 - fraud_score : colonne créée en base (migration_013)
 - Fichiers temporaires racine : 27 fichiers supprimés (commit 6f98616)
 - Aucun avertissement au démarrage
+
+## ROUTES API MONTÉES (depuis server.js)
+auth.routes.js — /api/v1/auth
+patient.routes.js — /api/v1/patients
+doctor.routes.js — /api/v1/doctors
+appointment.routes.js — /api/v1/appointments
+payment.routes.js — /api/v1/payments
+prescription.routes.js — /api/v1/prescriptions
+pharmacie.routes.js — /api/v1/pharmacies
+laboratoire.routes.js — /api/v1/laboratories
+admin.routes.js — /api/v1/admin
+credits.routes.js — /api/v1/credits
+momo.routes.js — /api/v1/payments/momo
+airtel.routes.js — /api/v1/payments/airtel
+telemedicine.routes.js — /api/v1/telemedicine
+qr.routes.js — /api/v1/qr
+report.routes.js — /api/v1/reports
+lab.routes.js — /api/v1/lab
+ratings.routes.js — /api/v1/ratings
+payouts.routes.js — /api/v1/payouts
+bank-transfer.routes.js — /api/v1/bank-transfer
+clearing.routes.js — /api/v1/clearing
+collecte.routes.js — /api/v1/collecte
+partner-convention.routes.js — /api/v1/admin/conventions
+tiers-payant.routes.js — /api/v1/tiers-payant
+constantes-medicales.routes.js — /api/v1/patients/constantes-medicales, /api/v1/doctors/constantes-medicales
+conflict.routes.js — /api/v1/conflicts
+coupon.routes.js — /api/v1/coupons
+notification.routes.js — /api/v1/notifications
+secretariat.routes.js — /api/v1/secretariat
+preRdv.routes.js — /api/v1/pre-rdv
+articles.routes.js — /api/v1/articles
+map.routes.js — /api/v1/map
+
+## SERVICES DISPONIBLES (src/services/)
+airtel.service.js — Service Airtel Money
+amina.service.js — Service IA Amina (Anthropic Claude)
+conflict.service.js — Service gestion conflits
+coupon.service.js — Service coupons
+notification.service.js — Service notification unifié (WhatsApp, Push, SMS)
+preRdv.service.js — Service pré-RDV complet
+prorata.service.js — Service prorata abonnements
+push.service.js — Service push notifications (Web Push)
+renouvellement.service.js — Service renouvellement assisté
+secretariat.service.js — Service secrétariat
+sms.service.js — Service SMS Africa's Talking
+triage.service.js — Service triage feu tricolore
+whatsapp.service.js — Service WhatsApp Business API
+
+## MIDDLEWARE DISPONIBLES (src/middleware/)
+auth.middleware.js — Middleware authentification JWT
+errorHandler.js — Gestion erreurs globale
+idempotency.js — Middleware idempotence
+rateLimiter.js — Rate limiting (OTP: 5/15min, login: 20/hour)
+requestLogger.js — Logger requêtes
+validateAirtelWebhook.js — Validation webhook Airtel
+validateMtnWebhook.js — Validation webhook MTN MoMo
+
+## MIGRATIONS EXÉCUTÉES (database/migrations/)
+migration_001_doctors_subscriptions.sql
+migration_002_commands.sql
+migration_003_update_pricing.sql
+migration_004_doctor_payouts.sql
+migration_005_financial_tracing.sql
+migration_006_bank_transfers.sql
+migration_007_partner_clearing.sql
+migration_008_collecte_4canaux.sql
+migration_009_fix_enum_and_qr.sql
+migration_010_cleanup_tiers_payant.sql
+migration_011_transactions_colonnes.sql
+migration_012_cleanup_transactions.sql
+migration_013_fraud_score.sql
+migration_014_constantes_medicales.sql
+migration_015_remove_traitement_en_cours.sql
+migration_016_subscriptions_unique_constraint.sql
+migration_017_refresh_tokens.sql
+migration_018_time_slots.sql
+migration_019_lab_orders_priority.sql
+migration_020_conflicts.sql
+migration_021_coupons.sql
+migration_022_production_optimizations.sql
+migration_023_notifications.sql
+migration_024_secretariat.sql
+migration_025_pre_rdv.sql
+
+## ACTIONS HUMAINES RESTANTES
+- Domaine bolamu.co — achat + DNS Cloudflare → Render
+- VAPID keys — npx web-push generate-vapid-keys → Render
+- ANTHROPIC_API_KEY — console.anthropic.com → Render
+- Africa's Talking Live — activer avec crédit
+- Test MTN MoMo réel
+- Test SMS réel
