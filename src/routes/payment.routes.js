@@ -65,9 +65,9 @@ router.post('/confirm/:reference', async (req, res) => {
     try {
         await client.query('BEGIN');
 
-        // 1. Récupérer le paiement
+        // 1. Récupérer le paiement avec verrou
         const paymentResult = await client.query(
-            `SELECT * FROM payments WHERE reference = $1`,
+            `SELECT * FROM payments WHERE reference = $1 FOR UPDATE`,
             [reference]
         );
 

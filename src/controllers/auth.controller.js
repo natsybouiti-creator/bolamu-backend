@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const { sendBolamuSms } = require('../services/sms.service');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'bolamu_cle_secrete_brazzaville_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
 const ACCESS_TOKEN_EXPIRES = '7d';
 const REFRESH_TOKEN_EXPIRES = '7d';
 
@@ -206,36 +206,48 @@ async function registerPatient(req, res) {
         const member_code = `BLM-${String(nextNum).padStart(5, '0')}`;
         const finalName = full_name || `${first_name} ${last_name}`.trim();
 
-        const insertResult = await pool.query(
-            `INSERT INTO users (
-                phone, role, full_name, first_name, last_name,
-                gender, age, city, neighborhood, niu, id_card_url, id_card_public_id,
-                member_code, cgu_accepted, cgu_accepted_at,
-                is_active, trust_score, created_at
-             ) VALUES (
-                $1, 'patient', $2, $3, $4,
-                $5, $6, $7, $8, $9, $10, $11,
-                $12, $13, NOW(),
-                true, 80, NOW()
-             ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-            [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, id_card_url || null, id_card_public_id || null, member_code, cgu_accepted || false]
-        );
-
-        const user = insertResult.rows[0];
-        
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
-        await pool.query(`UPDATE users SET password_hash = $1 WHERE phone = $2`, [passwordHash, normalizedPhone]);
-        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
-        
-        const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
-        await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3)`,
-            [normalizedPhone, user.id, JSON.stringify({ member_code })]
-        ).catch(() => {});
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: normalizedPhone, role: user.role, member_code: user.member_code });
+            const insertResult = await client.query(
+                `INSERT INTO users (
+                    phone, role, full_name, first_name, last_name,
+                    gender, age, city, neighborhood, niu, id_card_url, id_card_public_id,
+                    member_code, cgu_accepted, cgu_accepted_at,
+                    is_active, trust_score, password_hash, created_at
+                 ) VALUES (
+                    $1, 'patient', $2, $3, $4,
+                    $5, $6, $7, $8, $9, $10, $11,
+                    $12, $13, NOW(),
+                    true, 80, $14, NOW()
+                 ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
+                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, id_card_url || null, id_card_public_id || null, member_code, cgu_accepted || false, passwordHash]
+            );
+
+            const user = insertResult.rows[0];
+
+            await client.query('COMMIT');
+
+            await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
+
+            const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
+
+            await pool.query(
+                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3)`,
+                [normalizedPhone, user.id, JSON.stringify({ member_code })]
+            ).catch(() => {});
+
+            return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: normalizedPhone, role: user.role, member_code: user.member_code });
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
     } catch (err) {
         console.error('[registerPatient]', err.message);
         return res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
@@ -273,6 +285,9 @@ async function registerDoctor(req, res) {
         const is_active = false;
         const autoStatus = score >= 80 ? 'verified' : 'pending';
 
+        const initialPassword = generatePassword();
+        const passwordHash = await bcrypt.hash(initialPassword, 10);
+
         let newUser;
         const client = await pool.connect();
         try {
@@ -285,21 +300,21 @@ async function registerDoctor(req, res) {
                     country_of_residence, consultation_languages,
                     is_international, city, document_url,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, created_at
+                    is_active, password_hash, created_at
                  ) VALUES (
                     $1, 'doctor', $2, $3, $4,
                     $5, $6, $7,
                     $8, $9,
                     $10, $11, $12,
                     $13, $14, $15, NOW(),
-                    $16, NOW()
+                    $16, $17, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [
                     normalizedPhone, full_name, first_name || null, last_name || null,
                     specialty, registration_number, order_country || 'Congo-Brazzaville',
                     country_of_residence || 'Congo-Brazzaville', consultation_languages || 'Français',
                     is_international || false, city || null, document_url || null,
-                    score, member_code, cgu_accepted || false, is_active
+                    score, member_code, cgu_accepted || false, is_active, passwordHash
                 ]
             );
 
@@ -328,9 +343,6 @@ async function registerDoctor(req, res) {
 
         const user = newUser.rows[0];
         
-        const initialPassword = generatePassword();
-        const passwordHash = await bcrypt.hash(initialPassword, 10);
-        await pool.query(`UPDATE users SET password_hash = $1 WHERE phone = $2`, [passwordHash, normalizedPhone]);
         await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
@@ -377,6 +389,9 @@ async function registerPharmacie(req, res) {
         const is_active = false;
         const autoStatus = score >= 80 ? 'verified' : 'pending';
 
+        const initialPassword = generatePassword();
+        const passwordHash = await bcrypt.hash(initialPassword, 10);
+
         let newUser;
         const client = await pool.connect();
         try {
@@ -387,14 +402,14 @@ async function registerPharmacie(req, res) {
                     phone, role, full_name, responsible_name, rccm_number,
                     city, neighborhood, document_url,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, created_at
+                    is_active, password_hash, created_at
                  ) VALUES (
                     $1, 'pharmacie', $2, $3, $4,
                     $5, $6, $7,
                     $8, $9, $10, NOW(),
-                    $11, NOW()
+                    $11, $12, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
+                [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_url || null, score, member_code, cgu_accepted || false, is_active, passwordHash]
             );
 
             await client.query(
@@ -419,9 +434,6 @@ async function registerPharmacie(req, res) {
 
         const user = newUser.rows[0];
         
-        const initialPassword = generatePassword();
-        const passwordHash = await bcrypt.hash(initialPassword, 10);
-        await pool.query(`UPDATE users SET password_hash = $1 WHERE phone = $2`, [passwordHash, normalizedPhone]);
         await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
@@ -468,6 +480,9 @@ async function registerLaboratoire(req, res) {
         const is_active = false;
         const autoStatus = score >= 80 ? 'verified' : 'pending';
 
+        const initialPassword = generatePassword();
+        const passwordHash = await bcrypt.hash(initialPassword, 10);
+
         let newUser;
         const client = await pool.connect();
         try {
@@ -478,14 +493,14 @@ async function registerLaboratoire(req, res) {
                     phone, role, full_name, director_name, agrement_number, rccm_number,
                     city, document_url,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, created_at
+                    is_active, password_hash, created_at
                  ) VALUES (
                     $1, 'laboratoire', $2, $3, $4, $5,
                     $6, $7,
                     $8, $9, $10, NOW(),
-                    $11, NOW()
+                    $11, $12, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_url || null, score, member_code, cgu_accepted || false, is_active]
+                [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_url || null, score, member_code, cgu_accepted || false, is_active, passwordHash]
             );
 
             await client.query(
@@ -510,9 +525,6 @@ async function registerLaboratoire(req, res) {
 
         const user = newUser.rows[0];
         
-        const initialPassword = generatePassword();
-        const passwordHash = await bcrypt.hash(initialPassword, 10);
-        await pool.query(`UPDATE users SET password_hash = $1 WHERE phone = $2`, [passwordHash, normalizedPhone]);
         await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });

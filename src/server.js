@@ -259,6 +259,10 @@ const { jobAbonnement } = require('./jobs/abonnement.job');
 jobAbonnement.start();
 console.log('[CRON] Job abonnement quotidien démarré (02h00 Brazzaville)');
 
+// Worker BullMQ SMS — démarrage automatique
+require('./workers/sms-worker');
+console.log('[BULLMQ] Worker SMS démarré');
+
 // ============================================================
 // 8. INDEX DE PERFORMANCE
 // ============================================================

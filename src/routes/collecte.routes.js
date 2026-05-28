@@ -235,12 +235,25 @@ router.post('/momo/initier', authMiddleware, async (req, res) => {
 
     // Créer la transaction en attente
     const ref = `BOL-MOMO-${phone}-${Date.now()}`;
-    await db.query(
-      `INSERT INTO payments 
-       (patient_phone, amount_fcfa, payment_method, status, reference, notes)
-       VALUES ($1, $2, 'mtn_momo', 'pending', $3, $4)`,
-      [phone, montant, ref, `Abonnement annuel ${plan}`]
-    );
+    
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+      
+      await client.query(
+        `INSERT INTO payments 
+         (patient_phone, amount_fcfa, payment_method, status, reference, notes)
+         VALUES ($1, $2, 'mtn_momo', 'pending', $3, $4)`,
+        [phone, montant, ref, `Abonnement annuel ${plan}`]
+      );
+      
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
 
     return res.json({
       success: true,
