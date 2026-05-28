@@ -103,6 +103,7 @@ const constantesMedicalesRoutes = require('./routes/constantes-medicales.routes'
 const conflictRoutes      = require('./routes/conflict.routes');
 const couponRoutes        = require('./routes/coupon.routes');
 const notificationRoutes  = require('./routes/notification.routes');
+const pushRoutes          = require('./routes/push.routes');
 const secretariatRoutes   = require('./routes/secretariat.routes');
 const preRdvRoutes        = require('./routes/preRdv.routes');
 const smartflowRoutes     = require('./routes/smartflow.routes');
@@ -143,6 +144,7 @@ app.use('/api/v1/map',           require('./routes/map.routes'));
 app.use('/api/v1',              conflictRoutes);
 app.use('/api/v1',              couponRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/push',         pushRoutes);
 app.use('/api/v1/secretariat',  secretariatRoutes);
 app.use('/api/v1/pre-rdv',       preRdvRoutes);
 app.use('/api/v1',              smartflowRoutes);
@@ -262,6 +264,10 @@ console.log('[CRON] Job abonnement quotidien démarré (02h00 Brazzaville)');
 // Worker BullMQ SMS — démarrage automatique
 require('./workers/sms-worker');
 console.log('[BULLMQ] Worker SMS démarré');
+
+// Worker BullMQ Notifications — démarrage automatique
+require('./workers/notification-worker');
+console.log('[BULLMQ] Worker Notifications démarré');
 
 // ============================================================
 // 8. INDEX DE PERFORMANCE

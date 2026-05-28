@@ -7,4 +7,11 @@ const connection = {
 
 const bolamuQueue = new Queue('bolamu', { connection });
 
-module.exports = { bolamuQueue };
+async function addNotificationJob(type, payload) {
+  await bolamuQueue.add('send-notification', { type, payload }, { 
+    attempts: 3, 
+    backoff: { type: 'exponential', delay: 5000 } 
+  });
+}
+
+module.exports = { bolamuQueue, addNotificationJob };
