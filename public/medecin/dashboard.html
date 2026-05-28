@@ -240,6 +240,7 @@
   <button class="tab active" id="tab-accueil" data-tab="accueil">🏠 Tableau de bord</button>
   <button class="tab" id="tab-rdv" data-tab="rdv">📅 Mes RDV</button>
   <button class="tab" id="tab-patients" data-tab="patients">👥 Mes patients</button>
+  <button class="tab" id="tab-smartflow" data-tab="smartflow">📊 Smart Flow</button>
   <button class="tab" id="tab-telemedicine" data-tab="telemedicine">📹 Téléconsultation</button>
   <button class="tab" id="tab-profil" data-tab="profil">👤 Mon profil</button>
 </div>
@@ -372,6 +373,36 @@
             <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-smartflow">
+    <div class="section-header"><h2 class="section-title">📊 Smart Flow — Statistiques du mois</h2></div>
+    <div style="display:flex;gap:12px;margin-bottom:24px;">
+      <input type="month" id="smartflow-mois" style="padding:10px 16px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);">
+      <button class="btn-primary" id="btn-load-smartflow-stats" style="padding:10px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔍 Charger</button>
+    </div>
+    <div class="top-grid">
+      <div class="stat-card">
+        <div class="stat-label">SSP — Actes gratuits</div>
+        <div class="stat-value" id="sf-ssp-count" style="color:var(--emeraude);">0</div>
+        <div class="stat-sub">Médicaments prescrits couverts ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hors Catalogue — Actes</div>
+        <div class="stat-value" id="sf-hors-count" style="color:var(--amber);">0</div>
+        <div class="stat-sub">Médicaments à prix plein</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hors Catalogue — Montant</div>
+        <div class="stat-value" id="sf-hors-montant" style="color:var(--amber);">0</div>
+        <div class="stat-sub">FCFA total ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Smart Flow</div>
+        <div class="stat-value" id="sf-total" style="color:var(--bleu);">0</div>
+        <div class="stat-sub">Actes ce mois</div>
       </div>
     </div>
   </div>
@@ -814,21 +845,164 @@ function afficherEtapeOrdonnance(){
     <div class="form-group">
       <label class="form-label">Médicaments prescrits *</label>
       <textarea class="form-textarea" id="ord-medications" placeholder="Paracétamol 1000mg — 3x/jour pendant 5 jours&#10;Amoxicilline 500mg — 2x/jour pendant 7 jours"></textarea>
+      <div id="medicament-badges" style="margin-top:12px;"></div>
     </div>
     <div class="form-group">
       <label class="form-label">Instructions complémentaires</label>
       <input class="form-input" id="ord-instructions" placeholder="Ex : Prendre après les repas…">
     </div>
+    <div id="ordonnance-resume" style="display:none;margin-top:20px;">
+      <div style="background:var(--vert-clair);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--vert);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span style="font-size:18px;">✅</span>
+          <span style="font-size:14px;font-weight:700;color:var(--emeraude);">SSP — Médicaments gratuits</span>
+        </div>
+        <div id="ssp-list" style="font-size:13px;"></div>
+      </div>
+      <div style="background:#fef9ec;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--amber);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span style="font-size:18px;">💰</span>
+          <span style="font-size:14px;font-weight:700;color:var(--amber);">Hors Catalogue — Prix plein</span>
+        </div>
+        <div id="hors-list" style="font-size:13px;"></div>
+        <div id="hors-total" style="margin-top:8px;font-weight:700;"></div>
+      </div>
+      <div style="font-size:12px;color:var(--texte-doux);">Le patient sera notifié automatiquement des montants hors catalogue</div>
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" data-action="retour-cr">← Retour</button>
       <button class="btn-primary" id="btn-confirmer" data-action="confirmer-validation">✅ Valider et créer l'ordonnance</button>
     </div>`;
+  
+  // Ajouter debounce pour vérification SSP
+  let debounceTimer;
+  const medInput=document.getElementById('ord-medications');
+  medInput.addEventListener('input',function(){
+    clearTimeout(debounceTimer);
+    debounceTimer=setTimeout(verifierMedicaments,500);
+  });
+  
+  verifierMedicaments();
+}
+
+let medicamentsData = [];
+
+async function verifierMedicaments(){
+  const medicationsInput = document.getElementById('ord-medications').value.trim();
+  const badgesDiv = document.getElementById('medicament-badges');
+  const resumeDiv = document.getElementById('ordonnance-resume');
+  const sspList = document.getElementById('ssp-list');
+  const horsList = document.getElementById('hors-list');
+  const horsTotal = document.getElementById('hors-total');
+  
+  if(!medicationsInput){
+    badgesDiv.innerHTML = '';
+    resumeDiv.style.display = 'none';
+    medicamentsData = [];
+    return;
+  }
+  
+  const medicationsList = medicationsInput.split('\n').filter(m => m.trim());
+  medicamentsData = [];
+  const sspMeds = [];
+  const horsMeds = [];
+  
+  for(const med of medicationsList){
+    try{
+      const res = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(med.trim())}`,{
+        headers:{'Authorization':`Bearer ${token}`}
+      });
+      const data = await res.json();
+      const isSSP = data.success && data.data && data.data.is_ssp;
+      medicamentsData.push({nom: med.trim(), isSSP});
+      
+      if(isSSP){
+        sspMeds.push(med.trim());
+      }else{
+        horsMeds.push({nom: med.trim(), prix: 0});
+      }
+    }catch(e){
+      medicamentsData.push({nom: med.trim(), isSSP: false});
+      horsMeds.push({nom: med.trim(), prix: 0});
+    }
+  }
+  
+  // Afficher badges
+  badgesDiv.innerHTML = medicationsList.map((med, i) => {
+    const isSSP = medicamentsData[i]?.isSSP;
+    return `<span style="display:inline-block;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:600;margin-right:6px;margin-bottom:6px;background:${isSSP ? 'var(--vert-clair)' : '#fef9ec'};color:${isSSP ? 'var(--emeraude)' : 'var(--amber)'};border:1px solid ${isSSP ? 'var(--vert)' : 'var(--amber)'};">${isSSP ? '✅ SSP' : '💰 Hors catalogue'}</span>`;
+  }).join('');
+  
+  // Afficher résumé
+  if(medicationsList.length > 0){
+    resumeDiv.style.display = 'block';
+    sspList.innerHTML = sspMeds.length > 0 ? sspMeds.map(m => `<div style="padding:4px 0;border-bottom:1px solid rgba(0,201,167,0.2);">${m}</div>`).join('') : '<div style="color:var(--texte-doux);">Aucun médicament SSP</div>';
+    
+    horsList.innerHTML = horsMeds.length > 0 ? horsMeds.map((m, i) => `
+      <div style="padding:4px 0;border-bottom:1px solid rgba(243,156,18,0.2);display:flex;align-items:center;gap:8px;">
+        <span>${m.nom}</span>
+        <input type="number" class="hors-prix-input" data-index="${i}" placeholder="Prix FCFA" style="width:100px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
+      </div>
+    `).join('') : '<div style="color:var(--texte-doux);">Aucun médicament hors catalogue</div>';
+    
+    // Ajouter event listeners pour inputs prix
+    document.querySelectorAll('.hors-prix-input').forEach(input => {
+      input.addEventListener('input', function(){
+        const idx = parseInt(this.dataset.index);
+        medicamentsData.filter(m => !m.isSSP)[idx].prix = parseInt(this.value) || 0;
+        updateHorsTotal();
+      });
+    });
+    
+    updateHorsTotal();
+  }else{
+    resumeDiv.style.display = 'none';
+  }
+}
+
+function updateHorsTotal(){
+  const horsMeds = medicamentsData.filter(m => !m.isSSP);
+  const total = horsMeds.reduce((sum, m) => sum + (m.prix || 0), 0);
+  document.getElementById('hors-total').textContent = total > 0 ? `Total : ${total.toLocaleString()} FCFA` : '';
+}
+
+async function loadSmartFlowStats(){
+  const moisInput = document.getElementById('smartflow-mois').value;
+  if(!moisInput){alert('Veuillez sélectionner un mois.');return;}
+  
+  try{
+    const res = await fetch(`${API}/smartflow/stats/moi?mois=${moisInput}`,{
+      headers:{'Authorization':`Bearer ${token}`}
+    });
+    const data = await res.json();
+    
+    if(data.success && data.data){
+      document.getElementById('sf-ssp-count').textContent = data.data.ssp_count || 0;
+      document.getElementById('sf-hors-count').textContent = data.data.hors_catalogue_count || 0;
+      document.getElementById('sf-hors-montant').textContent = (data.data.hors_catalogue_montant || 0).toLocaleString();
+      document.getElementById('sf-total').textContent = (data.data.ssp_count || 0) + (data.data.hors_catalogue_count || 0);
+    }else{
+      alert('Erreur lors du chargement des statistiques.');
+    }
+  }catch(e){
+    alert('Erreur de connexion.');
+  }
 }
 
 async function confirmerValidation(){
   const medications=document.getElementById('ord-medications').value.trim();
   const instructions=document.getElementById('ord-instructions').value.trim();
   if(!medications){document.getElementById('ord-medications').style.borderColor='var(--rouge)';return;}
+  
+  // Vérifier que tous les médicaments hors catalogue ont un prix
+  const horsMeds = medicamentsData.filter(m => !m.isSSP);
+  for(const med of horsMeds){
+    if(!med.prix || med.prix <= 0){
+      alert('Veuillez entrer un prix pour tous les médicaments hors catalogue.');
+      return;
+    }
+  }
+  
   const btn=document.getElementById('btn-confirmer');
   btn.disabled=true;btn.textContent='Validation en cours…';
   const dureeMinutes=Math.round((Date.now()-consultationStartTime)/60000);
@@ -847,11 +1021,28 @@ async function confirmerValidation(){
     const resPres=await fetch(`${API}/prescriptions/create`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,medications,instructions:instructions||null})});
     const dataPres=await resPres.json();
     if(!resPres.ok)throw new Error(dataPres.message||'Erreur ordonnance');
+    
+    // Enregistrer les médicaments hors catalogue dans Smart Flow
+    for(const med of horsMeds){
+      await fetch(`${API}/smartflow/hors-catalogue`,{
+        method:'POST',
+        headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          patient_phone: currentRdv.patientPhone,
+          prestataire_phone: phone,
+          prestataire_type: 'doctor',
+          libelle: med.nom,
+          prix_plein: med.prix,
+          ssp_reference_type: 'prescription'
+        })
+      });
+    }
+    
     document.getElementById('modal-content').innerHTML=`
       <div class="validation-success">
         <div class="success-icon">✅</div>
         <div class="success-title">Consultation validée !</div>
-        <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Fraunces',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong></div>
+        <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Fraunces',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong><br><br>Ordonnance envoyée — patient notifié pour les hors catalogue</div>
         <button class="btn-primary" data-action="fermer-modal-load">Fermer</button>
       </div>`;
   }catch(e){btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
@@ -1291,6 +1482,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-accueil').addEventListener('click', () => showTab('accueil', document.getElementById('tab-accueil')));
   document.getElementById('tab-rdv').addEventListener('click', () => showTab('rdv', document.getElementById('tab-rdv')));
   document.getElementById('tab-patients').addEventListener('click', () => showTab('patients', document.getElementById('tab-patients')));
+  document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
   document.getElementById('tab-telemedicine').addEventListener('click', () => showTab('telemedicine', document.getElementById('tab-telemedicine')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
 
@@ -1312,6 +1504,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.getElementById('btn-detect-pos').addEventListener('click', detectPosition);
   document.getElementById('btn-save-pos').addEventListener('click', savePosition);
+
+  // Smart Flow
+  document.getElementById('btn-load-smartflow-stats').addEventListener('click', loadSmartFlowStats);
 
   // Code boxes input handlers
   document.querySelectorAll('.code-box').forEach(box => {
