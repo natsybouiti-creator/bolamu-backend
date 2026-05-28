@@ -5,6 +5,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 const cloudinary = require('../utils/cloudinary');
 const PDFDocument = require('pdfkit');
 const { normalizePhone } = require('../utils/phone');
+const idempotencyMiddleware = require('../middleware/idempotency');
 
 // ================================================
 // CANAL 1 — OVP BANCAIRE
@@ -13,7 +14,7 @@ const { normalizePhone } = require('../utils/phone');
 // POST /api/v1/collecte/ovp/initier
 // L'adhérent saisit ses coordonnées bancaires
 // Le système génère le PDF OVP et le stocke sur Cloudinary
-router.post('/ovp/initier', authMiddleware, async (req, res) => {
+router.post('/ovp/initier', authMiddleware, idempotencyMiddleware('collecte-ovp'), async (req, res) => {
   try {
     const { nom_titulaire, numero_compte } = req.body;
     const phone = req.user.phone;
@@ -207,7 +208,7 @@ router.get('/ovp/statut', authMiddleware, async (req, res) => {
 
 // POST /api/v1/collecte/momo/initier
 // Déclenche un paiement MoMo annuel
-router.post('/momo/initier', authMiddleware, async (req, res) => {
+router.post('/momo/initier', authMiddleware, idempotencyMiddleware('collecte-momo'), async (req, res) => {
   try {
     const { plan } = req.body;
     const phone = req.user.phone;
@@ -421,7 +422,7 @@ router.get('/familial/mes-beneficiaires', authMiddleware, async (req, res) => {
 // ================================================
 
 // POST /api/v1/collecte/sepa/initier
-router.post('/sepa/initier', authMiddleware, async (req, res) => {
+router.post('/sepa/initier', authMiddleware, idempotencyMiddleware('collecte-sepa'), async (req, res) => {
   try {
     const { frequence, beneficiaires_phones, plan } = req.body;
     const phone = req.user.phone;

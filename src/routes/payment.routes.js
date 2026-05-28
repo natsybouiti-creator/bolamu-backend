@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
 const authMiddleware = require('../../middleware/auth.middleware');
+const idempotencyMiddleware = require('../middleware/idempotency');
 
 // Générer une référence unique
 function generateReference() {
@@ -12,7 +13,7 @@ function generateReference() {
 }
 
 // Initier un paiement (simulation)
-router.post('/initiate', async (req, res) => {
+router.post('/initiate', idempotencyMiddleware('payment-initiate'), async (req, res) => {
     const { patient_phone, amount_fcfa, payment_type, subscription_id, appointment_id, plan } = req.body;
 
     try {
@@ -57,7 +58,7 @@ router.post('/initiate', async (req, res) => {
 });
 
 // Confirmer un paiement (simulation du callback MTN MoMo)
-router.post('/confirm/:reference', async (req, res) => {
+router.post('/confirm/:reference', idempotencyMiddleware('payment-confirm'), async (req, res) => {
     const { reference } = req.params;
 
     const client = await db.connect();
