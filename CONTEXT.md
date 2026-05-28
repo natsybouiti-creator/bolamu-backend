@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 27 mai 2026
+Mis à jour : 28 mai 2026
 Statut : EN PRODUCTION — https://bolamu-backend.onrender.com
 Score Ayokai : 21/23 (91.3%)
 
@@ -34,7 +34,7 @@ Colonnes : id, phone, role, full_name, first_name, last_name, gender, age, city,
 
 - Table centrale pour TOUS les utilisateurs sans exception
 - Identifiant universel : phone (jamais l'id numérique)
-- Roles : 'patient', 'doctor', 'pharmacie', 'laboratoire', 'admin', 'content_admin'
+- Roles : 'patient', 'doctor', 'pharmacie', 'laboratoire', 'admin', 'content_admin', 'secretaire', 'company_rh'
 - is_active : boolean (jamais un champ status string dans users)
 - password_hash : mot de passe bcrypt — tous les comptes en ont un depuis migration 25 avril 2026
 - id_card_url : carte d'identité patient (Cloudinary)
@@ -87,7 +87,9 @@ coupons, coupon_usages, idempotency_keys,
 push_subscriptions, notifications,
 secretaires, file_attente, agenda_blocs,
 pre_rdv_formulaires, ai_consult_sessions,
-renouvellement_demandes
+renouvellement_demandes,
+hors_catalogue_transactions, medicaments_catalogue, export_paie_mensuel,
+appointment_symptoms, secretary_assignments, agenda_blocks, queue_entries
 
 ### platform_config — taux actuels
 - price_essentiel / price_annuel_essentiel : 2000 / 24000 FCFA
@@ -153,6 +155,8 @@ notifications
 - bolamu_doctor_token / bolamu_doctor_phone
 - bolamu_pharmacie_token / bolamu_pharmacie_phone
 - bolamu_laboratoire_token / bolamu_laboratoire_phone
+- bolamu_secretaire_token / bolamu_secretaire_phone
+- bolamu_rh_token / bolamu_rh_phone
 
 ## FLUX VALIDÉS EN PRODUCTION
 - Inscription patient (OTP vérification → mot de passe généré → SMS → compte actif)
@@ -276,9 +280,9 @@ Toujours depuis platform_config — jamais hardcodé.
 - Versement : 25 du mois au 5 du mois suivant
 - Canal : virement bancaire uniquement
 
-## 7 RÔLES UTILISATEURS
+## 9 RÔLES UTILISATEURS
 patient, doctor, pharmacie, laboratoire,
-admin, content_admin, secretaire
+admin, content_admin, secretaire, company_rh
 
 ### Système de collecte 4 canaux — DÉPLOYÉ
 - Canal 1 OVP Bancaire : bancarisés Congo — Ecobank Congo (en attente ouverture compte)
@@ -358,7 +362,7 @@ admin, content_admin, secretaire
 - Airtel Money — en attente credentials API
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
-users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts (obsolète — non utilisée), bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts, ovp_documents, beneficiaires_familiaux, cron_logs
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts (obsolète — non utilisée), bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts, ovp_documents, beneficiaires_familiaux, cron_logs, conflicts, conflict_messages, conflict_actions, coupons, coupon_usages, idempotency_keys, push_subscriptions, notifications, secretaires, file_attente, agenda_blocs, pre_rdv_formulaires, ai_consult_sessions, renouvellement_demandes, hors_catalogue_transactions, medicaments_catalogue, export_paie_mensuel, appointment_symptoms, secretary_assignments, queue_entries
 
 ## COLONNES GPS AJOUTÉES — 25 AVRIL 2026
 Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), longitude DECIMAL(10,7), address TEXT
@@ -495,6 +499,9 @@ secretariat.routes.js — /api/v1/secretariat
 preRdv.routes.js — /api/v1/pre-rdv
 articles.routes.js — /api/v1/articles
 map.routes.js — /api/v1/map
+smartflow.routes.js — /api/v1/smartflow
+ai-consult.routes.js — /api/v1/ai-consult
+push.routes.js — /api/v1/push
 
 ## SERVICES DISPONIBLES (src/services/)
 airtel.service.js — Service Airtel Money
@@ -507,12 +514,13 @@ prorata.service.js — Service prorata abonnements
 push.service.js — Service push notifications (Web Push)
 renouvellement.service.js — Service renouvellement assisté
 secretariat.service.js — Service secrétariat
+smartflow.service.js — Service Smart Flow SSP/hors catalogue
 sms.service.js — Service SMS Africa's Talking
 triage.service.js — Service triage feu tricolore
 whatsapp.service.js — Service WhatsApp Business API
 
 ## MIDDLEWARE DISPONIBLES (src/middleware/)
-auth.middleware.js — Middleware authentification JWT
+auth.middleware.js — Middleware authentification JWT (requireAdmin, requireSecretary, requireRH, requireOpsAdmin)
 errorHandler.js — Gestion erreurs globale
 idempotency.js — Middleware idempotence
 rateLimiter.js — Rate limiting (OTP: 5/15min, login: 20/hour)
@@ -546,6 +554,8 @@ migration_022_production_optimizations.sql
 migration_023_notifications.sql
 migration_024_secretariat.sql
 migration_025_pre_rdv.sql
+migration_026_smart_flow.sql
+migration_027_symptoms.sql
 
 ## ACTIONS HUMAINES RESTANTES
 - Domaine bolamu.co — achat + DNS Cloudflare → Render
@@ -554,3 +564,82 @@ migration_025_pre_rdv.sql
 - Africa's Talking Live — activer avec crédit
 - Test MTN MoMo réel
 - Test SMS réel
+
+## MIGRATIONS AJOUTÉES — 28 MAI 2026
+- migration_026_smart_flow.sql : tables hors_catalogue_transactions, medicaments_catalogue, export_paie_mensuel
+- migration_027_symptoms.sql : table appointment_symptoms
+
+## NOUVELLES TABLES — 28 MAI 2026
+- hors_catalogue_transactions : trace chaque acte hors SSP (patient, prestataire, libelle, prix_plein, company_contract_id, statut)
+- medicaments_catalogue : 52 médicaments SSP OMS 2023 (nom_generique, categorie, is_ssp, source_oms)
+- export_paie_mensuel : exports paie mensuel par grand compte (company_contract_id, mois, nb_actes_ssp, montant_hors_catalogue, details_json, statut)
+- appointment_symptoms : symptômes pre-RDV patient (appointment_id, motif, symptomes JSONB, duree_symptomes, intensite, traitements_en_cours, remarques_patient)
+- secretary_assignments : assignation secrétaires aux partenaires
+- agenda_blocks : blocages créneaux médecin
+- queue_entries : file d'attente temps réel (waiting/in_consultation/completed/absent)
+
+## NOUVEAUX RÔLES — 28 MAI 2026
+- secretaire : dashboard secrétariat (agenda, file d'attente, blocages, stats)
+- company_rh : dashboard RH Grand Compte (employés, SSP, hors catalogue, export paie CSV)
+Total rôles : 9 (patient, doctor, pharmacie, laboratoire, admin, content_admin, secretaire, company_rh + ancien rôle entreprise)
+
+## NOUVEAUX SERVICES — 28 MAI 2026
+- src/services/smartflow.service.js : isSSP(), enregistrerHorsCatalogue(), getStatsPartenaire(), genererExportPaie(), getStatsAdmin()
+- src/services/ai-consult.service.js : generateBriefing(), analyzeTricolor(), generateRenewal()
+- src/services/push.service.js : subscribe(), unsubscribe(), sendPush(), sendPushBulk()
+
+## NOUVELLES ROUTES MONTÉES — 28 MAI 2026
+- /api/v1/smartflow/* : Smart Flow prestataires + RH + admin
+- /api/v1/ai-consult/* : briefing IA, feu tricolore, renouvellement assisté
+- /api/v1/appointments/:id/symptoms : symptômes pre-RDV
+- /api/v1/push/* : notifications push web
+- /api/v1/secretary/* : dashboard secrétariat
+- /api/v1/admin/secretaries : gestion équipe secrétaires
+- /api/v1/conflicts/* : module conflits patient + admin
+- /api/v1/coupons/* : coupons et réductions
+- /api/v1/admin/smartflow/* : stats Smart Flow admin
+
+## NOUVEAUX DASHBOARDS — 28 MAI 2026
+- public/secretaire/dashboard.html : agenda, file d'attente, blocages, stats
+- public/rh/dashboard.html : vue d'ensemble, détail employés, export paie CSV, configuration mode
+
+## MODULES COMPLÉTÉS — 28 MAI 2026
+- Smart Flow Grands Comptes : tagging SSP/hors catalogue dans dashboards médecin + pharmacie + labo + RH
+- AI Consult Amina : briefing pre-consultation + feu tricolore + renouvellement assisté
+- Module Conflits : cycle complet Created→Resolved, dashboard patient + admin
+- Notifications Push : Service Worker sw.js + BullMQ worker + routes subscribe/unsubscribe
+- Dashboard Secrétariat : 7ème rôle complet
+- Coupons + Prorata + Idempotence : middleware idempotency sur tous les endpoints paiement critiques
+
+## INFRASTRUCTURE — 28 MAI 2026
+- BullMQ installé : queues + workers (sms-worker.js, notification-worker.js)
+- src/queues/bolamu-queue.js : queue principale + addNotificationJob()
+- src/workers/sms-worker.js : SMS batch
+- src/workers/notification-worker.js : push + SMS
+- public/sw.js : Service Worker notifications push
+- database/seeds/seed_medicaments_ssp.sql : 52 médicaments SSP OMS 2023
+
+## SÉCURITÉ CORRIGÉE (Sprint 1) — 28 MAI 2026
+- CRIT-001 : SELECT FOR UPDATE sur flux paiement
+- CRIT-002 : bcrypt dans transaction inscription
+- CRIT-003 : HMAC-SHA256 webhooks (déjà conforme)
+- CRIT-004 : JWT_SECRET synchronisé, fallback supprimé
+- CRIT-005 : BullMQ batch remplace boucles SMS/SQL
+- CRIT-006 : validated_at NOW() SQL (déjà conforme)
+
+## BUGS CORRIGÉS (Sprint 2) — 28 MAI 2026
+- TC-014 : QR Code patient dans dashboard médecin
+- TC-015 : Flux abonnement dashboard patient connecté
+- TC-022 : Icône afficher/cacher mot de passe
+- TC-024 : Module créneaux médecin
+- TC-033 : RBAC pharmacie — suppression accès dossier médical
+- TC-039 : Réhabilitation médecin dans admin
+- TC-044 : Gestion multi-admin avec rôles par équipe
+
+## LOCALSTORAGE KEYS AJOUTÉES — 28 MAI 2026
+- bolamu_secretaire_token / bolamu_secretaire_phone
+- bolamu_rh_token / bolamu_rh_phone
+
+## SKILLS WINDSURF AJOUTÉS — 28 MAI 2026
+- .windsurf/rules/bolamu-smartflow.md
+- .windsurf/rules/bolamu-cron.md (BullMQ, batch SQL)
