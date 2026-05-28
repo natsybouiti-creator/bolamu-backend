@@ -385,6 +385,7 @@
   <button class="tab" id="tab-dossier" data-tab="dossier">📋 Dossier médical</button>
   <button class="tab" id="tab-carte" data-tab="carte">🗺️ Partenaires</button>
   <button class="tab" id="tab-credits" data-tab="credits">🪙 Mes Crédits</button>
+  <button class="tab" id="tab-conflits" data-tab="conflits">⚖️ Mes Conflits</button>
   <button class="tab" id="tab-profil" data-tab="profil">👤 Mon profil</button>
 </div>
 
@@ -405,6 +406,9 @@
     </button>
     <button class="bnav-item" id="bnav-credits" data-tab="credits">
       <span class="bnav-icon">🪙</span><span class="bnav-label">Crédits</span>
+    </button>
+    <button class="bnav-item" id="bnav-conflits" data-tab="conflits">
+      <span class="bnav-icon">⚖️</span><span class="bnav-label">Conflits</span>
     </button>
     <button class="bnav-item" id="bnav-profil" data-tab="profil">
       <span class="bnav-icon">👤</span><span class="bnav-label">Profil</span>
@@ -589,6 +593,15 @@
     </div>
   </div>
 
+  <!-- CONFLITS -->
+  <div class="panel" id="panel-conflits">
+    <div class="section-header">
+      <h2 class="section-title-dash">⚖️ Mes conflits</h2>
+      <button class="btn-filter" data-action="open-nouveau-conflit">+ Nouveau conflit</button>
+    </div>
+    <div id="conflits-list"><div class="loading">Chargement…</div></div>
+  </div>
+
   <!-- PROFIL -->
   <div class="panel" id="panel-profil">
     <div class="section-header"><h2 class="section-title-dash">Mon profil</h2></div>
@@ -639,6 +652,54 @@
       </div>
     </div>
   </div>
+
+<div class="modal-overlay" id="modal-nouveau-conflit">
+  <div class="modal">
+    <h2>Signaler un conflit</h2>
+    <div class="modal-subtitle">Décrivez votre problème avec un partenaire Bolamu</div>
+    <div class="modal-field">
+      <label>Type de partenaire</label>
+      <select id="conflit-partner-type" class="filter-input">
+        <option value="">— Choisir —</option>
+        <option value="doctor">Médecin</option>
+        <option value="pharmacie">Pharmacie</option>
+        <option value="laboratoire">Laboratoire</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Téléphone du partenaire</label>
+      <input type="tel" id="conflit-partner-phone" class="filter-input" placeholder="+242...">
+    </div>
+    <div class="modal-field">
+      <label>Sujet</label>
+      <input type="text" id="conflit-subject" class="filter-input" placeholder="Résumez votre problème en une phrase">
+    </div>
+    <div class="modal-field">
+      <label>Description</label>
+      <textarea id="conflit-description" class="filter-input" rows="4" placeholder="Décrivez en détail ce qui s'est passé..." style="resize:vertical;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" data-action="close-nouveau-conflit">Annuler</button>
+      <button class="btn-confirm" data-action="submit-conflit">Envoyer →</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-detail-conflit">
+  <div class="modal" style="max-width:600px;">
+    <h2 id="detail-conflit-ref">Conflit —</h2>
+    <div class="modal-subtitle" id="detail-conflit-sujet"></div>
+    <div id="detail-conflit-messages" style="max-height:300px;overflow-y:auto;margin-bottom:16px;display:flex;flex-direction:column;gap:8px;"></div>
+    <div class="modal-field">
+      <label>Votre réponse</label>
+      <textarea id="conflit-reply" class="filter-input" rows="3" placeholder="Écrivez votre message..." style="resize:vertical;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" data-action="close-detail-conflit">Fermer</button>
+      <button class="btn-confirm" data-action="submit-reply-conflit">Envoyer →</button>
+    </div>
+  </div>
+</div>
 
 <footer style="
   position: static;
@@ -745,6 +806,7 @@ function showTab(name,btn){
   if(name==='dossier'){loadTimeline();loadConstantes();}
   if(name==='carte')loadCarte();
   if(name==='credits')loadCredits();
+  if(name==='conflits')loadConflits();
   if(name==='profil')loadProfil();
 }
 function showTabMobile(name,btn){
@@ -756,6 +818,7 @@ function showTabMobile(name,btn){
   if(name==='dossier'){loadTimeline();loadConstantes();}
   if(name==='carte')loadCarte();
   if(name==='credits')loadCredits();
+  if(name==='conflits')loadConflits();
   if(name==='profil')loadProfil();
 }
 
@@ -1627,6 +1690,120 @@ async function saveConstantes() {
         alert('Erreur réseau.');
     }
 }
+
+const CONFLIT_STATUS_LABELS = {
+  Created: {label:'Ouvert', color:'var(--texte-doux)', bg:'var(--bleu-pale)'},
+  'Pending Review': {label:'En révision', color:'var(--amber)', bg:'#fef9ec'},
+  Assigned: {label:'Assigné', color:'var(--bleu-vif)', bg:'var(--bleu-pale)'},
+  Investigating: {label:'En cours', color:'#7c3aed', bg:'#f5f3ff'},
+  Resolved: {label:'Résolu', color:'var(--vert)', bg:'var(--vert-clair)'},
+  Closed: {label:'Clôturé', color:'var(--texte-doux)', bg:'#f1f5f9'},
+};
+
+let currentConflitId = null;
+
+async function loadConflits() {
+  const token = localStorage.getItem('bolamu_patient_token');
+  try {
+    const res = await fetch(`${API}/conflicts`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    const container = document.getElementById('conflits-list');
+    if (!data.success || !data.data || !data.data.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚖️</div><p>Aucun conflit signalé.<br>Cliquez sur <strong>+ Nouveau conflit</strong> si vous avez un problème.</p></div>`;
+      return;
+    }
+    container.innerHTML = data.data.map(c => {
+      const st = CONFLIT_STATUS_LABELS[c.status] || {label:c.status, color:'var(--texte-doux)', bg:'var(--bleu-pale)'};
+      const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'});
+      return `<div class="rdv-card" style="cursor:pointer;" data-action="open-detail-conflit" data-id="${c.id}" data-ref="${c.reference}" data-sujet="${c.subject.replace(/"/g,'&quot;')}">
+        <div class="rdv-left">
+          <div class="rdv-icon">⚖️</div>
+          <div>
+            <div class="rdv-doctor">${c.subject}</div>
+            <div class="rdv-date">${date} · ${c.partner_type}</div>
+            <div style="margin-top:6px;"><span style="background:${st.bg};color:${st.color};padding:3px 12px;border-radius:50px;font-size:12px;font-weight:600;">${st.label}</span></div>
+          </div>
+        </div>
+        <div class="rdv-right">
+          <div class="rdv-code" style="font-size:14px;">${c.reference}</div>
+          <div class="rdv-code-label">Référence</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('conflits-list').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Impossible de charger les conflits.</p></div>`;
+  }
+}
+
+async function submitConflit() {
+  const token = localStorage.getItem('bolamu_patient_token');
+  const partner_type = document.getElementById('conflit-partner-type').value;
+  const partner_phone = document.getElementById('conflit-partner-phone').value;
+  const subject = document.getElementById('conflit-subject').value;
+  const description = document.getElementById('conflit-description').value;
+  if (!partner_type || !partner_phone || !subject) return showToast('Remplissez tous les champs obligatoires', 'error');
+  try {
+    const res = await fetch(`${API}/conflicts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ partner_type, partner_phone, subject, description })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('modal-nouveau-conflit').classList.remove('open');
+      showToast('Conflit signalé ✅ Référence : ' + data.data.reference, 'success');
+      loadConflits();
+    } else {
+      showToast(data.message || 'Erreur', 'error');
+    }
+  } catch(e) { showToast('Erreur serveur', 'error'); }
+}
+
+async function openDetailConflit(id, ref, sujet) {
+  currentConflitId = id;
+  document.getElementById('detail-conflit-ref').textContent = 'Conflit ' + ref;
+  document.getElementById('detail-conflit-sujet').textContent = sujet;
+  document.getElementById('detail-conflit-messages').innerHTML = '<div class="loading">Chargement…</div>';
+  document.getElementById('modal-detail-conflit').classList.add('open');
+  const token = localStorage.getItem('bolamu_patient_token');
+  try {
+    const res = await fetch(`${API}/conflicts/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    const msgs = data.data?.messages || [];
+    const container = document.getElementById('detail-conflit-messages');
+    if (!msgs.length) { container.innerHTML = '<div style="font-size:13px;color:var(--texte-doux);text-align:center;padding:16px;">Aucun message pour l\'instant.</div>'; return; }
+    container.innerHTML = msgs.map(m => {
+      const isMe = m.sender_phone === phone;
+      return `<div style="display:flex;justify-content:${isMe?'flex-end':'flex-start'};">
+        <div style="max-width:75%;background:${isMe?'var(--bleu-vif)':'var(--bleu-pale)'};color:${isMe?'white':'var(--texte)'};padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5;">
+          <div style="font-weight:600;font-size:11px;margin-bottom:4px;opacity:0.7;">${isMe?'Vous':m.sender_role}</div>
+          ${m.message}
+        </div>
+      </div>`;
+    }).join('');
+    container.scrollTop = container.scrollHeight;
+  } catch(e) { document.getElementById('detail-conflit-messages').innerHTML = '<div style="color:var(--rouge);font-size:13px;text-align:center;">Erreur de chargement.</div>'; }
+}
+
+async function submitReplyConflit() {
+  if (!currentConflitId) return;
+  const message = document.getElementById('conflit-reply').value.trim();
+  if (!message) return showToast('Écrivez un message', 'error');
+  const token = localStorage.getItem('bolamu_patient_token');
+  try {
+    const res = await fetch(`${API}/conflicts/${currentConflitId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ message })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('conflit-reply').value = '';
+      openDetailConflit(currentConflitId, '', '');
+    } else showToast(data.message || 'Erreur', 'error');
+  } catch(e) { showToast('Erreur serveur', 'error'); }
+}
+
 </script>
 
 <div id="modal-jitsi" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.95);z-index:500;flex-direction:column;">
@@ -1747,6 +1924,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-dossier').addEventListener('click', () => showTab('dossier', document.getElementById('tab-dossier')));
   document.getElementById('tab-carte').addEventListener('click', () => showTab('carte', document.getElementById('tab-carte')));
   document.getElementById('tab-credits').addEventListener('click', () => showTab('credits', document.getElementById('tab-credits')));
+  document.getElementById('tab-conflits').addEventListener('click', () => showTab('conflits', document.getElementById('tab-conflits')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
 
   // Tabs mobile
@@ -1755,6 +1933,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('bnav-dossier').addEventListener('click', () => showTabMobile('dossier', document.getElementById('bnav-dossier')));
   document.getElementById('bnav-carte').addEventListener('click', () => showTabMobile('carte', document.getElementById('bnav-carte')));
   document.getElementById('bnav-credits').addEventListener('click', () => showTabMobile('credits', document.getElementById('bnav-credits')));
+  document.getElementById('bnav-conflits').addEventListener('click', () => showTabMobile('conflits', document.getElementById('bnav-conflits')));
   document.getElementById('bnav-profil').addEventListener('click', () => showTabMobile('profil', document.getElementById('bnav-profil')));
 
   // Modal RDV
@@ -1846,6 +2025,12 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.textContent = input.type === 'password' ? '👁' : '🙈';
       }
     }
+    if (action === 'open-nouveau-conflit') document.getElementById('modal-nouveau-conflit').classList.add('open');
+    if (action === 'close-nouveau-conflit') document.getElementById('modal-nouveau-conflit').classList.remove('open');
+    if (action === 'submit-conflit') submitConflit();
+    if (action === 'open-detail-conflit') openDetailConflit(btn.dataset.id, btn.dataset.ref, btn.dataset.sujet);
+    if (action === 'close-detail-conflit') document.getElementById('modal-detail-conflit').classList.remove('open');
+    if (action === 'submit-reply-conflit') submitReplyConflit();
     if (action === 'handle-rdv') handleRdv(parseInt(id), name);
   });
 
