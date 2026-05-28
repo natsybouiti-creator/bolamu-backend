@@ -485,6 +485,12 @@ tr:hover td{background:rgba(255,255,255,.018);}
       <div class="cfg-grid" id="cfg-grid"><div class="loading">Chargement...</div></div>
     </div>
 
+    <!-- ADMIN TEAM -->
+    <div class="panel" id="panel-admin-team">
+      <div class="section-hd"><div><h2>Gestion équipe admin</h2><p>Administrateurs de la plateforme</p></div><button class="primary-btn" data-ononclick="openAddAdminModal">+ Nouvel admin</button></div>
+      <div class="tbl-card"><div class="tbl-head"><span class="tbl-title">Administrateurs</span><span class="tbl-count" id="admin-count"></span></div><div id="admin-list"><div class="loading">Chargement...</div></div></div>
+    </div>
+
     
     <!-- CREDITS -->
     <div class="panel" id="panel-credits">
@@ -1031,6 +1037,36 @@ async function saveConfig(key){
 }
 
 /* -----------------------------------
+   ADMIN TEAM
+----------------------------------- */
+async function loadAdminTeam(){
+  const el=document.getElementById('admin-list');
+  try{
+    const res=await api('/admin/team');const admins=res.data||[];
+    document.getElementById('admin-count').textContent=admins.length;
+    if(!admins.length){el.innerHTML='<div class="empty"><div class="empty-ico">👥</div><p>Aucun admin</p></div>';return;}
+    el.innerHTML=`<table><thead><tr><th>Nom</th><th>Téléphone</th><th>Actions</th></tr></thead><tbody>${admins.map(a=>`<tr><td>${a.full_name||'—'}</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${a.phone}</td><td class="acts"><button class="ab ab-red" data-onclick="deleteAdmin" data-arg="${a.phone}">🗑 Supprimer</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}
+}
+function openAddAdminModal(){
+  document.getElementById('modal-box').className='modal';
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Nouvel administrateur</div><div class="modal-sub">Créer un compte content_admin</div><div class="mf"><label>Nom complet</label><input class="mi" id="admin-name" placeholder="Ex: Jean Dupont"></div><div class="mf"><label>Téléphone</label><input class="mi" id="admin-phone" placeholder="+242..."></div><div class="mf"><label>Mot de passe</label><input class="mi" type="password" id="admin-password" placeholder="Min. 6 caractères"></div><div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-violet" data-ononclick="createAdmin">Créer</button></div>`;
+  openModal();
+}
+async function createAdmin(){
+  const name=document.getElementById('admin-name').value.trim();
+  const phone=document.getElementById('admin-phone').value.trim();
+  const password=document.getElementById('admin-password').value.trim();
+  if(!name||!phone||!password){toast('Tous les champs sont requis','err');return;}
+  if(password.length<6){toast('Min. 6 caractères','err');return;}
+  try{const d=await api('/admin/team',{method:'POST',body:JSON.stringify({full_name:name,phone,password,role:'content_admin'})});if(d.success){closeModal();toast('✅ Admin créé !');loadAdminTeam();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+}
+async function deleteAdmin(phone){
+  if(!confirm(`Supprimer l'admin ${phone} ?`))return;
+  try{const d=await api(`/admin/team/${encodeURIComponent(phone)}`,{method:'DELETE'});if(d.success){toast('✅ Admin supprimé !');loadAdminTeam();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+}
+
+/* -----------------------------------
    CREDITS
 ----------------------------------- */
 async function loadCredits(){
@@ -1287,6 +1323,7 @@ async function viewUser(phone){
       <button class="mbtn mbtn-violet" data-onclick="closeProfileModal" data-arg=");openGrantCreditTo('${u.phone||withPlus}'">💰 Crédits</button>
       ${(u.status==='pending')?`<button class="mbtn mbtn-green" id="profile-validate-${u.phone||withPlus}" data-action="validate-user-and-close" data-phone="${u.phone||withPlus}">✅ Valider</button>`:''}
       ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" id="profile-suspend-${u.phone||withPlus}" style="background:var(--amber);color:#080a0f" data-action="suspend-user-and-close" data-phone="${u.phone||withPlus}">⏸ Suspendre</button>`:''}
+      ${(u.status==='suspended')?`<button class="mbtn mbtn-green" id="profile-rehabilitate-${u.phone||withPlus}" data-action="rehabilitate-user-and-close" data-phone="${u.phone||withPlus}">✅ Réhabiliter</button>`:''}
       <button class="mbtn mbtn-red" id="profile-ban-${u.phone||withPlus}" data-action="ban-user-and-close" data-phone="${u.phone||withPlus}">🚫 Bannir</button>
     </div>`;
  
@@ -1359,6 +1396,10 @@ async function rejectUser(phone){
 async function suspendUser(phone){
   if(!confirm(`Suspendre ${phone} ?`))return;
   try{const d=await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('⏸ Suspendu'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+}
+async function rehabilitateUser(phone){
+  if(!confirm(`Réhabiliter ${phone} ?`))return;
+  try{const d=await api(`/admin/doctors/${encodeURIComponent(phone)}/rehabilitate`,{method:'PATCH',body:JSON.stringify({is_active:true,status:'verified'})});d.success?(toast('✅ Réhabilité'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 async function banUser(phone){
   if(!confirm(`Bannir définitivement ${phone} ?`))return;
@@ -1588,6 +1629,7 @@ loadOverview();
       if (action === 'switch-profile-tab') { switchProfileTab(actionEl.getAttribute('data-tab'), actionEl); return; }
       if (action === 'validate-user-and-close') { validateUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
       if (action === 'suspend-user-and-close') { suspendUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
+      if (action === 'rehabilitate-user-and-close') { rehabilitateUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
       if (action === 'ban-user-and-close') { banUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
       if (action === 'validate-ovp') { validerOVP(actionEl.getAttribute('data-phone')); return; }
       if (action === 'validate-sepa') { validerSEPA(actionEl.getAttribute('data-phone')); return; }
@@ -1656,6 +1698,7 @@ loadOverview();
       if (action === 'switch-profile-tab') { switchProfileTab(actionEl.getAttribute('data-tab'), actionEl); return; }
       if (action === 'validate-user-and-close') { validateUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
       if (action === 'suspend-user-and-close') { suspendUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
+      if (action === 'rehabilitate-user-and-close') { rehabilitateUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
       if (action === 'ban-user-and-close') { banUser(actionEl.getAttribute('data-phone')); closeProfileModal(); return; }
       if (action === 'validate-ovp') { validerOVP(actionEl.getAttribute('data-phone')); return; }
       if (action === 'validate-sepa') { validerSEPA(actionEl.getAttribute('data-phone')); return; }

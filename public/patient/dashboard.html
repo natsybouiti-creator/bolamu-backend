@@ -762,7 +762,7 @@ function showTabMobile(name,btn){
 /* ─ PAIEMENT MOMO ─ */
 const PLANS={
   essentiel:{label:'Essentiel',price:2000,desc:'Consultations illimitées, RDV en ligne'},
-  standard:{label:'Standard',price:5000,desc:'Essentiel + ordonnances numériques, labos'},
+  standard:{label:'Standard',price:4000,desc:'Essentiel + ordonnances numériques, labos'},
   premium:{label:'Premium',price:10000,desc:'Standard + priorité, support dédié'}
 };
 let currentPlan='essentiel';
@@ -812,7 +812,7 @@ async function initiatePayment(){
   const p=PLANS[currentPlan];
   document.getElementById('payment-body').innerHTML=`<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:16px;">⏳</div><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">Envoi de la demande…</div><div style="font-size:14px;color:var(--texte-doux);">Connexion à MTN Mobile Money</div></div>`;
   try{
-    const res=await fetch(`${API}/payments/momo/request`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({amount:p.price,plan:currentPlan})});
+    const res=await fetch(`${API}/payments/initiate`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({amount:p.price,plan:currentPlan})});
     const data=await res.json();
     if(!data.success){showPaymentError(data.message||'Erreur lors de la demande');return;}
     currentReferenceId=data.reference_id;
@@ -1287,9 +1287,18 @@ function skipRating() {
 
 function pwdFormHtml(){
   return `<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
-    <input id="pwd-old" type="password" placeholder="Ancien mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
-    <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
-    <input id="pwd-confirm" type="password" placeholder="Confirmer le nouveau mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
+    <div style="position:relative;">
+      <input id="pwd-old" type="password" placeholder="Ancien mot de passe" style="padding:10px 40px 10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);width:100%;box-sizing:border-box;">
+      <span data-action="toggle-pwd" data-target="pwd-old" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;">👁</span>
+    </div>
+    <div style="position:relative;">
+      <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" style="padding:10px 40px 10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);width:100%;box-sizing:border-box;">
+      <span data-action="toggle-pwd" data-target="pwd-new" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;">👁</span>
+    </div>
+    <div style="position:relative;">
+      <input id="pwd-confirm" type="password" placeholder="Confirmer le nouveau mot de passe" style="padding:10px 40px 10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);width:100%;box-sizing:border-box;">
+      <span data-action="toggle-pwd" data-target="pwd-confirm" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;">👁</span>
+    </div>
     <div style="display:flex;gap:8px;">
       <button data-action="submit-pwd" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
       <button data-action="cancel-pwd" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Annuler</button>
@@ -1828,6 +1837,14 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('btn-change-pwd').addEventListener('click', () => {
         document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
       });
+    }
+    if (action === 'toggle-pwd') {
+      const target = btn.dataset.target;
+      const input = document.getElementById(target);
+      if (input) {
+        input.type = input.type === 'password' ? 'text' : 'password';
+        btn.textContent = input.type === 'password' ? '👁' : '🙈';
+      }
     }
     if (action === 'handle-rdv') handleRdv(parseInt(id), name);
   });

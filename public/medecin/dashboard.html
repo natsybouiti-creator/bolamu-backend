@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bolamu — Espace Médecin</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root{
       --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
@@ -332,6 +333,27 @@
           <div id="horaires-display"><div style="color:var(--texte-doux);font-size:14px;">Chargement…</div></div>
         </div>
         <div class="detail-card">
+          <h3>Mes créneaux</h3>
+          <div id="creneaux-display"><div style="color:var(--texte-doux);font-size:14px;">Chargement…</div></div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--bleu-pale);">
+            <div style="font-size:12px;font-weight:600;color:var(--texte-doux);margin-bottom:8px;">Ajouter un créneau</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+              <select id="creneau-jour" style="padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text);">
+                <option value="lundi">Lundi</option>
+                <option value="mardi">Mardi</option>
+                <option value="mercredi">Mercredi</option>
+                <option value="jeudi">Jeudi</option>
+                <option value="vendredi">Vendredi</option>
+                <option value="samedi">Samedi</option>
+                <option value="dimanche">Dimanche</option>
+              </select>
+              <input type="time" id="creneau-debut" style="padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text);">
+              <input type="time" id="creneau-fin" style="padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text);">
+            </div>
+            <button id="btn-ajouter-creneau" style="padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">+ Ajouter</button>
+          </div>
+        </div>
+        <div class="detail-card">
           <h3>Sécurité & accès</h3>
           <div class="detail-row"><span class="info-label">Connexion</span><span class="info-value">Mot de passe permanent</span></div>
           <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">✅ AES-256</span></div>
@@ -461,7 +483,52 @@ if (d.is_active && d.validated_at) {
 }
 
     if(d.available_hours)renderHoraires(d.available_hours);
+    loadCreneaux();
   }catch(e){document.getElementById('mc-name').textContent='Dr. Médecin';document.getElementById('mc-code').textContent=generateMedCode(phone);}
+}
+
+async function loadCreneaux(){
+  try{
+    const res=await fetch(`${API}/doctors/slots?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    const creneaux=data.data||[];
+    const el=document.getElementById('creneaux-display');
+    if(!creneaux.length){el.innerHTML='<div style="color:var(--texte-doux);font-size:13px;">Aucun créneau configuré.</div>';return;}
+    el.innerHTML=creneaux.map(c=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bleu-pale);">
+        <div style="font-size:13px;color:var(--text);"><strong style="text-transform:capitalize;">${c.day}</strong> : ${c.start_time} - ${c.end_time}</div>
+        <button data-action="supprimer-creneau" data-id="${c.id}" style="padding:4px 8px;background:var(--rouge);color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">✕</button>
+      </div>
+    `).join('');
+  }catch(e){document.getElementById('creneaux-display').innerHTML='<div style="color:var(--rouge);font-size:13px;">Erreur de chargement.</div>';}
+}
+
+async function ajouterCreneau(){
+  const jour=document.getElementById('creneau-jour').value;
+  const debut=document.getElementById('creneau-debut').value;
+  const fin=document.getElementById('creneau-fin').value;
+  if(!debut||!fin){alert('Veuillez remplir les heures de début et fin.');return;}
+  if(debut>=fin){alert('L\'heure de fin doit être après l\'heure de début.');return;}
+  try{
+    const res=await fetch(`${API}/doctors/slots`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({phone,day:jour,start_time:debut,end_time:fin})});
+    const data=await res.json();
+    if(!data.success){alert('Erreur : '+data.message);return;}
+    alert('✅ Créneau ajouté !');
+    loadCreneaux();
+    document.getElementById('creneau-debut').value='';
+    document.getElementById('creneau-fin').value='';
+  }catch(e){alert('Erreur de connexion au serveur');}
+}
+
+async function supprimerCreneau(id){
+  if(!confirm('Supprimer ce créneau ?'))return;
+  try{
+    const res=await fetch(`${API}/doctors/slots/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    if(!data.success){alert('Erreur : '+data.message);return;}
+    alert('✅ Créneau supprimé !');
+    loadCreneaux();
+  }catch(e){alert('Erreur de connexion au serveur');}
 }
 
 function pwdFormHtml(){
@@ -525,7 +592,7 @@ async function loadRdv(){
     renderRdvList(allRdvData,'all-rdv');
     const patientsEl=document.getElementById('patients-list');
     if(!uniquePatients.length){patientsEl.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><p>Aucun patient pour l'instant.</p></div>`;}
-    else{patientsEl.innerHTML=`<div class="patients-grid">${uniquePatients.map(p=>{const rdvPatient=allRdvData.filter(r=>r.patient_phone===p);return `<div class="patient-card"><div style="font-size:24px;margin-bottom:10px;">👤</div><div style="font-size:16px;font-weight:700;margin-bottom:4px;">${p}</div><div style="font-size:13px;color:var(--texte-doux);">${rdvPatient.length} RDV — dernier : ${rdvPatient[0]?formatDate(rdvPatient[0].appointment_date||rdvPatient[0].date):'—'}</div></div>`;}).join('')}</div>`;}
+    else{patientsEl.innerHTML=`<div class="patients-grid">${uniquePatients.map(p=>{const rdvPatient=allRdvData.filter(r=>r.patient_phone===p);return `<div class="patient-card"><div style="font-size:24px;margin-bottom:10px;">👤</div><div style="font-size:16px;font-weight:700;margin-bottom:4px;">${p}</div><div style="font-size:13px;color:var(--texte-doux);margin-bottom:12px;">${rdvPatient.length} RDV — dernier : ${rdvPatient[0]?formatDate(rdvPatient[0].appointment_date||rdvPatient[0].date):'—'}</div><button class="btn-rdv" data-action="generer-qr-patient" data-patient="${p}" style="width:100%;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔬 Générer QR Code</button></div>`;}).join('')}</div>`;}
   }catch(e){['accueil-rdv','all-rdv'].forEach(id=>{document.getElementById(id).innerHTML=`<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous pour l'instant.</p></div>`;});}
 }
 
@@ -911,6 +978,32 @@ async function envoyerPrescriptionLabo(rdvId,patientPhone){
   }catch(e){btn.disabled=false;btn.textContent='🔬 Envoyer';alert('Erreur : '+e.message);}
 }
 
+async function genererQRPatient(patientPhone){
+  try{
+    const res=await fetch(`${API}/qr/generate?phone=${encodeURIComponent(patientPhone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    if(!data.success){alert('Erreur : '+data.message);return;}
+    const modal=document.createElement('div');
+    modal.className='modal-overlay open';
+    modal.id='modal-qr-patient';
+    modal.innerHTML=`
+      <div class="modal" style="text-align:center;">
+        <h2>QR Code Patient</h2>
+        <div class="modal-sub">Patient : ${patientPhone}</div>
+        <div id="qr-patient-container" style="display:flex;justify-content:center;margin:20px 0;"></div>
+        <button class="btn-cancel" data-action="fermer-modal-qr-patient">Fermer</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',function(e){if(e.target===modal)fermerModalQRPatient();});
+    new QRCode(document.getElementById('qr-patient-container'),{text:data.data.qr_url,width:200,height:200});
+  }catch(e){alert('Erreur de connexion au serveur');}
+}
+
+function fermerModalQRPatient(){
+  const modal=document.getElementById('modal-qr-patient');
+  if(modal)modal.remove();
+}
+
 function logout(){localStorage.removeItem('bolamu_medecin_token');localStorage.removeItem('bolamu_medecin_phone');localStorage.removeItem('bolamu_role');window.location.href='/login.html';}
 
 // GÉOLOCALISATION
@@ -1140,7 +1233,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'fermer-modal-load') { fermerModal(); loadRdv(); }
     if (action === 'fermer-modal-labo') fermerModalLabo();
     if (action === 'envoyer-labo') envoyerPrescriptionLabo(id, patient);
+    if (action === 'generer-qr-patient') genererQRPatient(patient);
+    if (action === 'fermer-modal-qr-patient') fermerModalQRPatient();
+    if (action === 'supprimer-creneau') supprimerCreneau(id);
   });
+  document.getElementById('btn-ajouter-creneau').addEventListener('click', ajouterCreneau);
 });
 </script>
 </body>
