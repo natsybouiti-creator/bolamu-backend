@@ -4,71 +4,54 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
-const {
-    ajouterFileAttenteController,
-    appellerPatientController,
-    terminerConsultationController,
-    getFileAttenteController,
-    bloquerAgendaController,
-    getAgendaJourController,
-    annulerRDVController,
-    getDashboardStatsController
-} = require('../controllers/secretariat.controller');
-
-// Middleware RBAC : rôle secrétaire uniquement
-const secretaireOnly = async (req, res, next) => {
-    if (req.user.role !== 'secretaire') {
-        return res.status(403).json({ success: false, message: 'Accès réservé aux secrétaires' });
-    }
-    next();
-};
+const secretary = require('../controllers/secretary.controller');
 
 // ============================================================
-// 1. FILE D'ATTENTE
+// ROUTES SECRÉTAIRE
 // ============================================================
 
-// POST /api/v1/secretariat/file-attente
-// Ajouter patient en file (secretaire)
-router.post('/file-attente', authMiddleware, secretaireOnly, ajouterFileAttenteController);
+// GET /api/v1/secretary/agenda/:doctor_id
+// Agenda d'un médecin pour une date
+router.get('/secretary/agenda/:doctor_id', authMiddleware, authMiddleware.requireSecretary, secretary.getAgenda);
 
-// GET /api/v1/secretariat/file-attente
-// Liste file du jour (secretaire)
-router.get('/file-attente', authMiddleware, secretaireOnly, getFileAttenteController);
+// POST /api/v1/secretary/appointments
+// Créer RDV présentiel
+router.post('/secretary/appointments', authMiddleware, authMiddleware.requireSecretary, secretary.createAppointment);
 
-// PATCH /api/v1/secretariat/file-attente/:id/appeler
-// Appeler le patient suivant (secretaire)
-router.patch('/file-attente/:id/appeler', authMiddleware, secretaireOnly, appellerPatientController);
+// GET /api/v1/secretary/queue/:date
+// File d'attente du jour
+router.get('/secretary/queue/:date', authMiddleware, authMiddleware.requireSecretary, secretary.getQueue);
 
-// PATCH /api/v1/secretariat/file-attente/:id/terminer
-// Terminer consultation (secretaire)
-router.patch('/file-attente/:id/terminer', authMiddleware, secretaireOnly, terminerConsultationController);
+// PATCH /api/v1/secretary/queue/:id/status
+// Changer statut patient dans file d'attente
+router.patch('/secretary/queue/:id/status', authMiddleware, authMiddleware.requireSecretary, secretary.updateQueueStatus);
 
-// ============================================================
-// 2. AGENDA
-// ============================================================
+// POST /api/v1/secretary/agenda-blocks
+// Bloquer créneau médecin
+router.post('/secretary/agenda-blocks', authMiddleware, authMiddleware.requireSecretary, secretary.createAgendaBlock);
 
-// POST /api/v1/secretariat/agenda/bloquer
-// Bloquer créneau agenda (secretaire)
-router.post('/agenda/bloquer', authMiddleware, secretaireOnly, bloquerAgendaController);
+// DELETE /api/v1/secretary/agenda-blocks/:id
+// Supprimer blocage
+router.delete('/secretary/agenda-blocks/:id', authMiddleware, authMiddleware.requireSecretary, secretary.deleteAgendaBlock);
 
-// GET /api/v1/secretariat/agenda/:doctor_phone/:date
-// Agenda du jour d'un médecin (secretaire)
-router.get('/agenda/:doctor_phone/:date', authMiddleware, secretaireOnly, getAgendaJourController);
-
-// ============================================================
-// 3. RDV
-// ============================================================
-
-// DELETE /api/v1/secretariat/rdv/:id
-// Soft delete RDV avec motif (secretaire)
-router.delete('/rdv/:id', authMiddleware, secretaireOnly, annulerRDVController);
+// GET /api/v1/secretary/stats
+// Statistiques flux
+router.get('/secretary/stats', authMiddleware, authMiddleware.requireSecretary, secretary.getStats);
 
 // ============================================================
-// 4. STATS DASHBOARD
+// ROUTES ADMIN
 // ============================================================
 
-// GET /api/v1/secretariat/stats
-// Stats dashboard secrétariat (secretaire)
-router.get('/stats', authMiddleware, secretaireOnly, getDashboardStatsController);
+// GET /api/v1/admin/secretaries
+// Liste des secrétaires
+router.get('/admin/secretaries', authMiddleware, authMiddleware.requireAdmin, secretary.getAdminSecretaries);
+
+// POST /api/v1/admin/secretaries
+// Créer compte secrétaire
+router.post('/admin/secretaries', authMiddleware, authMiddleware.requireAdmin, secretary.createSecretary);
+
+// POST /api/v1/admin/secretaries/:phone/assign
+// Assigner secrétaire à un partenaire
+router.post('/admin/secretaries/:phone/assign', authMiddleware, authMiddleware.requireAdmin, secretary.assignSecretary);
 
 module.exports = router;

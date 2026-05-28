@@ -63,7 +63,16 @@ authMiddleware.requireAdmin = (req, res, next) => {
     next();
 };
 
-// 3. Middleware pour les actions sensibles (Seulement l'Admin Principal)
+// 3. Middleware pour l'accès Secrétariat
+authMiddleware.requireSecretary = (req, res, next) => {
+    if (!req.user) return res.status(401).json({ success: false, message: 'Non authentifié' });
+    if (!['secretaire', 'admin'].includes(req.user.role)) {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux secrétaires' });
+    }
+    next();
+};
+
+// 4. Middleware pour les actions sensibles (Seulement l'Admin Principal)
 authMiddleware.requireOpsAdmin = (req, res, next) => {
     if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({ 
