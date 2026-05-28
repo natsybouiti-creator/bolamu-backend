@@ -673,6 +673,31 @@ function afficherEtapeCompteRendu(){
     <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step active">2</div><div class="step-line"></div><div class="step pending">3</div></div>
     <div class="modal-title">Compte rendu de consultation</div>
     <div class="modal-sub">Code validé ✅ — Remplissez le compte rendu obligatoire avant de valider la consultation.</div>
+    
+    <!-- 🤖 Briefing IA — Amina -->
+    <div id="ai-briefing-section" style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:16px;padding:20px;margin-bottom:24px;color:white;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:24px;">🤖</span>
+          <span style="font-size:16px;font-weight:700;">Briefing IA — Amina</span>
+        </div>
+        <button type="button" id="btn-generate-briefing" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;">🔄 Générer le briefing</button>
+      </div>
+      <div id="briefing-result" style="display:none;">
+        <div id="briefing-loading" style="text-align:center;padding:12px;font-size:13px;">⏳ Analyse en cours...</div>
+        <div id="briefing-content" style="display:none;">
+          <div id="tricolor-badge" style="display:inline-block;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;margin-bottom:12px;"></div>
+          <div style="display:grid;gap:12px;font-size:13px;line-height:1.5;">
+            <div><strong>Antécédents pertinents :</strong> <span id="briefing-antecedents">—</span></div>
+            <div><strong>Dernière consultation :</strong> <span id="briefing-consultation">—</span></div>
+            <div><strong>Alertes interactions :</strong> <span id="briefing-alertes">—</span></div>
+            <div><strong>Symptômes déclarés :</strong> <span id="briefing-symptomes">—</span></div>
+          </div>
+          <button type="button" id="btn-renewal" style="display:none;margin-top:16px;background:#00C9A7;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;">🔄 Renouvellement assisté</button>
+        </div>
+      </div>
+    </div>
+    
     <div class="form-group">
       <label class="form-label">Motif de la consultation *</label>
       <textarea class="form-textarea" id="cr-motif" placeholder="Raison de la consultation..." required></textarea>
@@ -834,6 +859,99 @@ async function confirmerValidation(){
 
 function fermerModal(){document.getElementById('modal-validation').classList.remove('open');}
 document.getElementById('modal-validation').addEventListener('click',function(e){if(e.target===this)fermerModal();});
+
+// AI Briefing Functions
+async function generateBriefing(){
+  const btn=document.getElementById('btn-generate-briefing');
+  const resultDiv=document.getElementById('briefing-result');
+  const loadingDiv=document.getElementById('briefing-loading');
+  const contentDiv=document.getElementById('briefing-content');
+  
+  btn.disabled=true;btn.textContent='⏳ Analyse...';
+  resultDiv.style.display='block';
+  loadingDiv.style.display='block';
+  contentDiv.style.display='none';
+  
+  try{
+    const res=await fetch(`${API}/ai-consult/briefing/${currentRdv.id}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    
+    loadingDiv.style.display='none';
+    contentDiv.style.display='block';
+    
+    if(data.success&&data.data){
+      const briefing=data.data;
+      document.getElementById('briefing-antecedents').textContent=briefing.antecedents_pertinents||'—';
+      document.getElementById('briefing-consultation').textContent=briefing.derniere_consultation||'—';
+      document.getElementById('briefing-alertes').textContent=briefing.alertes_interactions||'—';
+      document.getElementById('briefing-symptomes').textContent=briefing.symptomes_declares||'—';
+      
+      // Badge feu tricolore par défaut (sera mis à jour après analyse tricolor)
+      const badge=document.getElementById('tricolor-badge');
+      badge.textContent='🟢 Vert';
+      badge.style.background='#00C9A7';
+      
+      btn.textContent='🔄 Régénérer';
+    }else{
+      contentDiv.innerHTML='<div style="padding:12px;font-size:13px;">⚠️ '+ (data.message||'Analyse indisponible')+'</div>';
+    }
+  }catch(e){
+    loadingDiv.style.display='none';
+    contentDiv.innerHTML='<div style="padding:12px;font-size:13px;">⚠️ Erreur de connexion</div>';
+  }
+  
+  btn.disabled=false;
+}
+
+async function analyzeTricolor(){
+  const diagnostic=document.getElementById('cr-diagnostic').value.trim();
+  const medications=document.getElementById('ord-medications').value.trim();
+  
+  if(!diagnostic||!medications)return;
+  
+  try{
+    const res=await fetch(`${API}/ai-consult/tricolor`,{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({diagnosis:diagnostic,medications:medications,patient_phone:currentRdv.patientPhone})
+    });
+    const data=await res.json();
+    
+    if(data.success&&data.data){
+      const badge=document.getElementById('tricolor-badge');
+      const status=data.data.status;
+      
+      if(status==='green'){
+        badge.textContent='🟢 Vert';
+        badge.style.background='#00C9A7';
+      }else if(status==='orange'){
+        badge.textContent='🟠 Orange';
+        badge.style.background='#f39c12';
+      }else if(status==='red'){
+        badge.textContent='🔴 Rouge';
+        badge.style.background='#e74c3c';
+      }
+    }
+  }catch(e){console.log('Erreur tricolor:',e.message);}
+}
+
+async function generateRenewal(){
+  try{
+    const res=await fetch(`${API}/ai-consult/renewal/${currentRdv.patientPhone}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    
+    if(data.success&&data.data){
+      const renewal=data.data;
+      if(renewal.eligible&&renewal.suggestion){
+        document.getElementById('ord-medications').value=renewal.suggestion.medications||'';
+        document.getElementById('ord-instructions').value=renewal.suggestion.instructions||'';
+        alert('✅ Ordonnance suggérée chargée : '+renewal.reason);
+      }else{
+        alert('ℹ️ '+renewal.reason);
+      }
+    }
+  }catch(e){alert('Erreur de connexion');}
+}
 
 let currentJitsiRdv=null;
 async function loadTeleRdv(){
@@ -1236,6 +1354,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'generer-qr-patient') genererQRPatient(patient);
     if (action === 'fermer-modal-qr-patient') fermerModalQRPatient();
     if (action === 'supprimer-creneau') supprimerCreneau(id);
+    if (action === 'generate-briefing') generateBriefing();
+    if (action === 'renewal') generateRenewal();
+  });
+  
+  // Event listener pour boutons briefing IA (éléments dynamiques)
+  document.addEventListener('click', function(e) {
+    if (e.target.id === 'btn-generate-briefing') generateBriefing();
+    if (e.target.id === 'btn-renewal') generateRenewal();
   });
   document.getElementById('btn-ajouter-creneau').addEventListener('click', ajouterCreneau);
 });

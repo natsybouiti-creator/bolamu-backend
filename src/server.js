@@ -107,6 +107,8 @@ const pushRoutes          = require('./routes/push.routes');
 const secretariatRoutes   = require('./routes/secretariat.routes');
 const preRdvRoutes        = require('./routes/preRdv.routes');
 const smartflowRoutes     = require('./routes/smartflow.routes');
+const symptomsRoutes      = require('./routes/symptoms.routes');
+const aiConsultRoutes     = require('./routes/ai-consult.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -148,6 +150,8 @@ app.use('/api/v1/push',         pushRoutes);
 app.use('/api/v1/secretariat',  secretariatRoutes);
 app.use('/api/v1/pre-rdv',       preRdvRoutes);
 app.use('/api/v1',              smartflowRoutes);
+app.use('/api/v1',              symptomsRoutes);
+app.use('/api/v1',              aiConsultRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
