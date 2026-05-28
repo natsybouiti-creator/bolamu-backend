@@ -157,6 +157,7 @@
 <div class="tabs-bar">
   <button class="tab active" id="tab-accueil" data-tab="accueil">🏠 Tableau de bord</button>
   <button class="tab" id="tab-historique" data-tab="historique">📋 Historique</button>
+  <button class="tab" id="tab-smartflow" data-tab="smartflow">📊 Smart Flow</button>
   <button class="tab" id="tab-profil" data-tab="profil">🏥 Mon profil</button>
   <button class="tab" id="tab-qr" data-tab="qr">📱 Scanner QR Bolamu</button>
 </div>
@@ -272,6 +273,36 @@
             <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--grad-labo);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-smartflow">
+    <div class="section-header"><h2 class="section-title-dash">📊 Smart Flow — Statistiques du mois</h2></div>
+    <div style="display:flex;gap:12px;margin-bottom:24px;">
+      <input type="month" id="smartflow-mois" style="padding:10px 16px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);">
+      <button class="btn-valider" id="btn-load-smartflow-stats">🔍 Charger</button>
+    </div>
+    <div class="top-grid">
+      <div class="stat-card">
+        <div class="stat-label">SSP — Actes gratuits</div>
+        <div class="stat-value" id="sf-ssp-count" style="color:var(--emeraude);">0</div>
+        <div class="stat-sub">Analyses couvertes ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hors Catalogue — Actes</div>
+        <div class="stat-value" id="sf-hors-count" style="color:var(--amber);">0</div>
+        <div class="stat-sub">Analyses à prix plein</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hors Catalogue — Montant</div>
+        <div class="stat-value" id="sf-hors-montant" style="color:var(--amber);">0</div>
+        <div class="stat-sub">FCFA total ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Smart Flow</div>
+        <div class="stat-value" id="sf-total" style="color:var(--bleu);">0</div>
+        <div class="stat-sub">Actes ce mois</div>
       </div>
     </div>
   </div>
@@ -596,6 +627,63 @@ async function searchPrescriptionByCode() {
     }
     
     const p = data.data;
+    
+    // Tagging SSP/hors catalogue pour chaque examen
+    const examensList = p.examens.split('\n').filter(e => e.trim());
+    const sspExamens = [];
+    const horsCatalogueExamens = [];
+    
+    for (const examen of examensList) {
+      try {
+        const checkRes = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(examen.trim())}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const checkData = await checkRes.json();
+        if (checkData.success && checkData.data && checkData.data.is_ssp) {
+          sspExamens.push(examen.trim());
+        } else {
+          horsCatalogueExamens.push(examen.trim());
+        }
+      } catch(e) {
+        horsCatalogueExamens.push(examen.trim());
+      }
+    }
+    
+    let examensHtml = '';
+    if (sspExamens.length > 0) {
+      examensHtml += `
+        <div style="background:var(--vert-clair);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--vert);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:20px;">✅</span>
+            <span style="font-size:16px;font-weight:700;color:var(--emeraude);">SSP — Analyses couvertes</span>
+            <span class="badge" style="background:var(--vert);color:white;margin-left:auto;">GRATUIT</span>
+          </div>
+          <div style="font-size:12px;color:var(--texte-doux);margin-bottom:12px;">Couvert par l'abonnement Bolamu du patient</div>
+          <div style="background:white;border-radius:12px;padding:16px;">
+            ${sspExamens.map(e => `<div style="padding:8px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;">${e}</div>`).join('')}
+          </div>
+        </div>`;
+    }
+    
+    if (horsCatalogueExamens.length > 0) {
+      examensHtml += `
+        <div style="background:#fef9ec;border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--amber);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:20px;">💰</span>
+            <span style="font-size:16px;font-weight:700;color:var(--amber);">Hors Catalogue — À facturer</span>
+          </div>
+          <div style="background:white;border-radius:12px;padding:16px;margin-bottom:12px;">
+            ${horsCatalogueExamens.map((e, i) => `
+              <div style="padding:8px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;display:flex;align-items:center;gap:10px;">
+                <span>${e}</span>
+                <input type="number" class="hors-catalogue-prix" data-examen="${e}" placeholder="Prix FCFA" style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+              </div>
+            `).join('')}
+          </div>
+          <button class="btn-valider" data-action="enregistrer-hors-catalogue-labo" data-patient="${p.patient_phone}" style="width:100%;padding:12px;background:var(--amber);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Enregistrer hors catalogue</button>
+        </div>`;
+    }
+    
     container.innerHTML = `<div class="rdv-list">
       <div class="rdv-card" style="border-left:4px solid var(--vert);">
         <div class="rdv-card-top">
@@ -609,7 +697,7 @@ async function searchPrescriptionByCode() {
           <span>📅 ${new Date(p.created_at).toLocaleDateString('fr-FR')}</span>
           <span>🔑 Code: <strong style="font-family:'Fraunces',serif;color:var(--violet);letter-spacing:2px;">${p.prescription_code || '—'}</strong></span>
         </div>
-        <div style="margin-bottom:12px;font-size:14px;color:var(--texte-doux);"><strong>Examens demandés :</strong><br>${p.examens}</div>
+        ${examensHtml}
         ${p.instructions ? `<div style="margin-bottom:12px;font-size:13px;color:var(--texte-doux);"><em>Instructions : ${p.instructions}</em></div>` : ''}
         <div class="rdv-actions">
           <button class="btn-valider" data-action="ouvrir-modal" data-id="${p.id}" data-patient="${p.patient_phone}" data-doctor="${p.doctor_phone}" data-examens="${p.examens.replace(/'/g,"\\'")}">🔬 Déposer les résultats</button>
@@ -655,6 +743,66 @@ function fermerModalResultats() {
   const modal = document.getElementById('modal-resultats');
   if(modal) modal.remove();
   currentPrescription = null;
+}
+
+async function enregistrerHorsCatalogueLabo(patientPhone) {
+  const prixInputs = document.querySelectorAll('.hors-catalogue-prix');
+  const transactions = [];
+  
+  for (const input of prixInputs) {
+    const libelle = input.dataset.examen;
+    const prixPlein = input.value.trim();
+    if (prixPlein) {
+      transactions.push({
+        patient_phone: patientPhone,
+        prestataire_phone: phone,
+        prestataire_type: 'laboratoire',
+        libelle: libelle,
+        prix_plein: parseInt(prixPlein)
+      });
+    }
+  }
+  
+  if (transactions.length === 0) {
+    alert('Veuillez entrer au moins un prix pour les analyses hors catalogue.');
+    return;
+  }
+  
+  try {
+    for (const transaction of transactions) {
+      await fetch(`${API}/smartflow/hors-catalogue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(transaction)
+      });
+    }
+    alert('✅ Acte enregistré — patient notifié');
+  } catch(e) {
+    alert('Erreur lors de l\'enregistrement. Réessayez.');
+  }
+}
+
+async function loadSmartFlowStats() {
+  const moisInput = document.getElementById('smartflow-mois').value;
+  if (!moisInput) { alert('Veuillez sélectionner un mois.'); return; }
+  
+  try {
+    const res = await fetch(`${API}/smartflow/stats/moi?mois=${moisInput}`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    
+    if (data.success && data.data) {
+      document.getElementById('sf-ssp-count').textContent = data.data.ssp_count || 0;
+      document.getElementById('sf-hors-count').textContent = data.data.hors_catalogue_count || 0;
+      document.getElementById('sf-hors-montant').textContent = (data.data.hors_catalogue_montant || 0).toLocaleString();
+      document.getElementById('sf-total').textContent = (data.data.ssp_count || 0) + (data.data.hors_catalogue_count || 0);
+    } else {
+      alert('Erreur lors du chargement des statistiques.');
+    }
+  } catch(e) {
+    alert('Erreur de connexion.');
+  }
 }
 
 async function soumettreResultats() {
@@ -777,6 +925,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Tabs
   document.getElementById('tab-accueil').addEventListener('click', () => showTab('accueil', document.getElementById('tab-accueil')));
   document.getElementById('tab-historique').addEventListener('click', () => showTab('historique', document.getElementById('tab-historique')));
+  document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
   document.getElementById('tab-qr').addEventListener('click', () => showTab('qr', document.getElementById('tab-qr')));
 
@@ -792,6 +941,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.getElementById('btn-detect-pos').addEventListener('click', detectPosition);
   document.getElementById('btn-save-pos').addEventListener('click', savePosition);
+
+  // Smart Flow
+  document.getElementById('btn-load-smartflow-stats').addEventListener('click', loadSmartFlowStats);
 
   // Délégation d'événements pour éléments dynamiques
   document.addEventListener('click', function(e) {
@@ -818,6 +970,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'load-prescriptions') loadPrescriptionsAttente();
     if (action === 'fermer-modal') fermerModalResultats();
     if (action === 'soumettre-resultats') soumettreResultats();
+    if (action === 'enregistrer-hors-catalogue-labo') enregistrerHorsCatalogueLabo(patient);
   });
 });
 </script>

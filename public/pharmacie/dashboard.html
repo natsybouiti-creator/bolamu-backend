@@ -192,7 +192,8 @@
 <div class="tabs-bar">
   <button class="tab active" id="tab-accueil" data-tab="accueil">🏠 Tableau de bord</button>
   <button class="tab" id="tab-scanner" data-tab="scanner">💊 Scanner ordonnance</button>
-<button class="tab" id="tab-qr" data-tab="qr">📱 Scanner QR Bolamu</button>
+  <button class="tab" id="tab-qr" data-tab="qr">📱 Scanner QR Bolamu</button>
+  <button class="tab" id="tab-smartflow" data-tab="smartflow">📊 Smart Flow</button>
   <button class="tab" id="tab-historique" data-tab="historique">📋 Historique</button>
   <button class="tab" id="tab-abonnement" data-tab="abonnement">⭐ Abonnement Pro</button>
   <button class="tab" id="tab-profil" data-tab="profil">🏪 Mon profil</button>
@@ -345,6 +346,36 @@
             <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--grad-pharma);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-smartflow">
+    <div class="section-header"><h2 class="section-title-dash">📊 Smart Flow — Statistiques du mois</h2></div>
+    <div style="display:flex;gap:12px;margin-bottom:24px;">
+      <input type="month" id="smartflow-mois" style="padding:10px 16px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);">
+      <button class="btn-scan" id="btn-load-smartflow-stats">🔍 Charger</button>
+    </div>
+    <div class="top-grid">
+      <div class="stat-card">
+        <div class="stat-label">SSP — Actes gratuits</div>
+        <div class="stat-value" id="sf-ssp-count" style="color:var(--emeraude);">0</div>
+        <div class="stat-sub">Médicaments couverts ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hors Catalogue — Actes</div>
+        <div class="stat-value" id="sf-hors-count" style="color:var(--amber);">0</div>
+        <div class="stat-sub">Médicaments à prix plein</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hors Catalogue — Montant</div>
+        <div class="stat-value" id="sf-hors-montant" style="color:var(--amber);">0</div>
+        <div class="stat-sub">FCFA total ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Smart Flow</div>
+        <div class="stat-value" id="sf-total" style="color:var(--bleu);">0</div>
+        <div class="stat-sub">Actes ce mois</div>
       </div>
     </div>
   </div>
@@ -592,6 +623,63 @@ async function scanOrdonnance() {
     }
     const ord = data.data;
     const dateOrd = new Date(ord.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'});
+    
+    // Tagging SSP/hors catalogue pour chaque médicament
+    const medicationsList = ord.medications.split('\n').filter(m => m.trim());
+    const sspMeds = [];
+    const horsCatalogueMeds = [];
+    
+    for (const med of medicationsList) {
+      try {
+        const checkRes = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(med.trim())}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const checkData = await checkRes.json();
+        if (checkData.success && checkData.data && checkData.data.is_ssp) {
+          sspMeds.push(med.trim());
+        } else {
+          horsCatalogueMeds.push(med.trim());
+        }
+      } catch(e) {
+        horsCatalogueMeds.push(med.trim());
+      }
+    }
+    
+    let medicationsHtml = '';
+    if (sspMeds.length > 0) {
+      medicationsHtml += `
+        <div style="background:var(--vert-clair);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--vert);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:20px;">✅</span>
+            <span style="font-size:16px;font-weight:700;color:var(--emeraude);">SSP — Couvert Bolamu</span>
+            <span class="badge" style="background:var(--vert);color:white;margin-left:auto;">GRATUIT</span>
+          </div>
+          <div style="font-size:12px;color:var(--texte-doux);margin-bottom:12px;">Couvert par l'abonnement Bolamu du patient</div>
+          <div style="background:white;border-radius:12px;padding:16px;">
+            ${sspMeds.map(m => `<div style="padding:8px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;">${m}</div>`).join('')}
+          </div>
+        </div>`;
+    }
+    
+    if (horsCatalogueMeds.length > 0) {
+      medicationsHtml += `
+        <div style="background:#fef9ec;border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--amber);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:20px;">💰</span>
+            <span style="font-size:16px;font-weight:700;color:var(--amber);">Hors Catalogue — Prix plein</span>
+          </div>
+          <div style="background:white;border-radius:12px;padding:16px;margin-bottom:12px;">
+            ${horsCatalogueMeds.map((m, i) => `
+              <div style="padding:8px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;display:flex;align-items:center;gap:10px;">
+                <span>${m}</span>
+                <input type="number" class="hors-catalogue-prix" data-med="${m}" placeholder="Prix FCFA" style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+              </div>
+            `).join('')}
+          </div>
+          <button class="btn-scan" data-action="enregistrer-hors-catalogue" data-patient="${ord.patient_phone}" style="width:100%;padding:12px;background:var(--amber);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Enregistrer hors catalogue</button>
+        </div>`;
+    }
+    
     resultEl.innerHTML = `
       <div class="ordonnance-header"><div class="ordonnance-icon">📋</div><div><div class="ordonnance-title">Ordonnance valide — prête à délivrer</div><div class="ordonnance-sub">Émise le ${dateOrd}</div></div></div>
       <div class="ordonnance-grid">
@@ -600,7 +688,7 @@ async function scanOrdonnance() {
         <div class="ord-field"><div class="ord-field-label">Code session</div><div class="ord-field-value" style="color:var(--emeraude);font-family:'Fraunces',serif;letter-spacing:2px;">${codeSession}</div></div>
         <div class="ord-field"><div class="ord-field-label">Statut</div><div class="ord-field-value"><span class="badge badge-actif">Active</span></div></div>
       </div>
-      <div class="medications-box"><h4>💊 Médicaments prescrits</h4><div class="medications-text">${ord.medications.replace(/\n/g,'<br>')}</div></div>
+      ${medicationsHtml}
       ${ord.instructions ? `<div class="instructions-box">📝 <strong>Instructions :</strong> ${ord.instructions}</div>` : ''}
       <button class="btn-livrer" data-action="valider-delivrance" data-id="${ord.id}" data-session="${codeSession}">✅ Confirmer la délivrance</button>
       <button class="btn-refuser" data-action="refuser-delivrance" data-session="${codeSession}">❌ Refuser</button>`;
@@ -635,6 +723,66 @@ function refuserDelivrance(code) {
 function resetScanner() {
   document.getElementById('code-session').value = '';
   document.getElementById('ordonnance-result').style.display = 'none';
+}
+
+async function enregistrerHorsCatalogue(patientPhone) {
+  const prixInputs = document.querySelectorAll('.hors-catalogue-prix');
+  const transactions = [];
+  
+  for (const input of prixInputs) {
+    const libelle = input.dataset.med;
+    const prixPlein = input.value.trim();
+    if (prixPlein) {
+      transactions.push({
+        patient_phone: patientPhone,
+        prestataire_phone: phone,
+        prestataire_type: 'pharmacie',
+        libelle: libelle,
+        prix_plein: parseInt(prixPlein)
+      });
+    }
+  }
+  
+  if (transactions.length === 0) {
+    alert('Veuillez entrer au moins un prix pour les médicaments hors catalogue.');
+    return;
+  }
+  
+  try {
+    for (const transaction of transactions) {
+      await fetch(`${API}/smartflow/hors-catalogue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(transaction)
+      });
+    }
+    alert('✅ Acte enregistré — patient notifié');
+  } catch(e) {
+    alert('Erreur lors de l\'enregistrement. Réessayez.');
+  }
+}
+
+async function loadSmartFlowStats() {
+  const moisInput = document.getElementById('smartflow-mois').value;
+  if (!moisInput) { alert('Veuillez sélectionner un mois.'); return; }
+  
+  try {
+    const res = await fetch(`${API}/smartflow/stats/moi?mois=${moisInput}`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    
+    if (data.success && data.data) {
+      document.getElementById('sf-ssp-count').textContent = data.data.ssp_count || 0;
+      document.getElementById('sf-hors-count').textContent = data.data.hors_catalogue_count || 0;
+      document.getElementById('sf-hors-montant').textContent = (data.data.hors_catalogue_montant || 0).toLocaleString();
+      document.getElementById('sf-total').textContent = (data.data.ssp_count || 0) + (data.data.hors_catalogue_count || 0);
+    } else {
+      alert('Erreur lors du chargement des statistiques.');
+    }
+  } catch(e) {
+    alert('Erreur de connexion.');
+  }
 }
 
 function renderHistorique(items, containerId) {
@@ -774,6 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-accueil').addEventListener('click', () => showTab('accueil', document.getElementById('tab-accueil')));
   document.getElementById('tab-scanner').addEventListener('click', () => showTab('scanner', document.getElementById('tab-scanner')));
   document.getElementById('tab-qr').addEventListener('click', () => showTab('qr', document.getElementById('tab-qr')));
+  document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
   document.getElementById('tab-historique').addEventListener('click', () => showTab('historique', document.getElementById('tab-historique')));
   document.getElementById('tab-abonnement').addEventListener('click', () => showTab('abonnement', document.getElementById('tab-abonnement')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
@@ -789,6 +938,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Abonnement
   document.getElementById('btn-abo-pro').addEventListener('click', () => alert('Abonnement Pro Pharmacie — disponible au lancement !'));
 
+  // Smart Flow
+  document.getElementById('btn-load-smartflow-stats').addEventListener('click', loadSmartFlowStats);
+
   // Profil
   document.getElementById('btn-change-pwd').addEventListener('click', () => {
     document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
@@ -803,6 +955,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const action = btn.dataset.action;
     const id = btn.dataset.id;
     const session = btn.dataset.session;
+    const patient = btn.dataset.patient;
 
     if (action === 'reset-qr') {
       document.getElementById('qr-token-input').value = '';
@@ -818,6 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'valider-delivrance') validerDelivrance(id, session);
     if (action === 'refuser-delivrance') refuserDelivrance(session);
     if (action === 'reset-scanner') resetScanner();
+    if (action === 'enregistrer-hors-catalogue') enregistrerHorsCatalogue(patient);
   });
 });
 </script>
