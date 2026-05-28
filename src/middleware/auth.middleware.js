@@ -72,7 +72,16 @@ authMiddleware.requireSecretary = (req, res, next) => {
     next();
 };
 
-// 4. Middleware pour les actions sensibles (Seulement l'Admin Principal)
+// 4. Middleware pour l'accès RH Grand Compte
+authMiddleware.requireRH = (req, res, next) => {
+    if (!req.user) return res.status(401).json({ success: false, message: 'Non authentifié' });
+    if (!['company_rh', 'admin'].includes(req.user.role)) {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux RH entreprise' });
+    }
+    next();
+};
+
+// 5. Middleware pour les actions sensibles (Seulement l'Admin Principal)
 authMiddleware.requireOpsAdmin = (req, res, next) => {
     if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({ 
