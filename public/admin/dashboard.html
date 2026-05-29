@@ -882,11 +882,11 @@ async function loadActivity(){
 ----------------------------------- */
 function getDocumentsHtml(u){
   const docs = [];
-  if(u.doc_url||u.document_url) docs.push(`<a href="${u.doc_url||u.document_url}" target="_blank" class="doc-link">📄 Document</a>`);
-  if(u.id_card_url) docs.push(`<a href="${u.id_card_url}" target="_blank" class="doc-link">🪪 Carte d'identité</a>`);
-  if(u.rccm_url) docs.push(`<a href="${u.rccm_url}" target="_blank" class="doc-link">RCCM</a>`);
-  if(u.agrement_url) docs.push(`<a href="${u.agrement_url}" target="_blank" class="doc-link">Agrément</a>`);
-  if(u.registration_url) docs.push(`<a href="${u.registration_url}" target="_blank" class="doc-link">Registre</a>`);
+  if(u.document_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.document_file_id}" target="_blank" class="doc-link">📄 Document</a>`);
+  if(u.id_card_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.id_card_file_id}" target="_blank" class="doc-link">🪪 Carte d'identité</a>`);
+  if(u.rccm_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.rccm_file_id}" target="_blank" class="doc-link">RCCM</a>`);
+  if(u.agrement_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.agrement_file_id}" target="_blank" class="doc-link">Agrément</a>`);
+  if(u.registration_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.registration_file_id}" target="_blank" class="doc-link">Registre</a>`);
   return docs.length ? docs.join(' ') : '<span style="color:var(--muted)">Aucun</span>';
 }
 async function loadPending(){
@@ -1172,19 +1172,19 @@ async function viewUser(phone){
   const payments      = profileData.payments        || [];
   // Construire les documents depuis user et pro_profile
   const docs = [];
-  const docUrl = (profileData.pro_profile?.document_url) || (profileData.user?.document_url);
-  if (docUrl) {
+  const docFileId = (profileData.pro_profile?.document_file_id) || (profileData.user?.document_file_id);
+  if (docFileId) {
       docs.push({
           name: 'Document d\'inscription',
-          url: docUrl,
+          url: `/api/v1/admin/documents/${docFileId}`,
           status: profileData.pro_profile?.status || 'pending'
       });
   }
-  const idCardUrl = profileData.user?.id_card_url;
-  if (idCardUrl) {
+  const idCardFileId = profileData.user?.id_card_file_id;
+  if (idCardFileId) {
       docs.push({
           name: 'Carte d\'identité',
-          url: idCardUrl,
+          url: `/api/v1/admin/documents/${idCardFileId}`,
           status: 'pending'
       });
   }

@@ -187,7 +187,7 @@ async function forgotPassword(req, res) {
 // 5. REGISTER PATIENT
 // ============================================================
 async function registerPatient(req, res) {
-    const { phone, first_name, last_name, full_name, gender, age, city, neighborhood, niu, id_card_url, id_card_public_id, cgu_accepted } = req.body;
+    const { phone, first_name, last_name, full_name, gender, age, city, neighborhood, niu, id_card_file_id, cgu_accepted } = req.body;
 
     if (!phone || !first_name || !last_name) {
         return res.status(400).json({ success: false, message: "Prénom, nom et téléphone sont obligatoires." });
@@ -217,16 +217,16 @@ async function registerPatient(req, res) {
             const insertResult = await client.query(
                 `INSERT INTO users (
                     phone, role, full_name, first_name, last_name,
-                    gender, age, city, neighborhood, niu, id_card_url, id_card_public_id,
+                    gender, age, city, neighborhood, niu, id_card_file_id,
                     member_code, cgu_accepted, cgu_accepted_at,
                     is_active, trust_score, password_hash, created_at
                  ) VALUES (
                     $1, 'patient', $2, $3, $4,
-                    $5, $6, $7, $8, $9, $10, $11,
-                    $12, $13, NOW(),
-                    true, 80, $14, NOW()
+                    $5, $6, $7, $8, $9, $10,
+                    $11, $12, NOW(),
+                    true, 80, $13, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, id_card_url || null, id_card_public_id || null, member_code, cgu_accepted || false, passwordHash]
+                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, id_card_file_id || null, member_code, cgu_accepted || false, passwordHash]
             );
 
             const user = insertResult.rows[0];
@@ -263,7 +263,7 @@ async function registerDoctor(req, res) {
         phone, full_name, first_name, last_name,
         specialty, registration_number, order_country,
         country_of_residence, consultation_languages,
-        is_international, city, document_url, document_public_id, trust_score, cgu_accepted
+        is_international, city, document_file_id, trust_score, cgu_accepted
     } = req.body;
 
     if (!phone || !full_name || !specialty || !registration_number) {
@@ -299,7 +299,7 @@ async function registerDoctor(req, res) {
                     phone, role, full_name, first_name, last_name,
                     specialty, registration_number, order_country,
                     country_of_residence, consultation_languages,
-                    is_international, city, document_url,
+                    is_international, city, document_file_id,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, created_at
                  ) VALUES (
@@ -314,7 +314,7 @@ async function registerDoctor(req, res) {
                     normalizedPhone, full_name, first_name || null, last_name || null,
                     specialty, registration_number, order_country || 'Congo-Brazzaville',
                     country_of_residence || 'Congo-Brazzaville', consultation_languages || 'Français',
-                    is_international || false, city || null, document_url || null,
+                    is_international || false, city || null, document_file_id || null,
                     score, member_code, cgu_accepted || false, is_active, passwordHash
                 ]
             );
@@ -323,13 +323,13 @@ async function registerDoctor(req, res) {
                 `INSERT INTO doctors (
                     phone, user_id, full_name, specialty, registration_number,
                     city, neighborhood, bio, status, is_active, member_code,
-                    document_url, document_public_id, trust_score, momo_number,
+                    document_file_id, trust_score, momo_number,
                     country_of_residence, order_country, consultation_languages, is_international
                  ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, full_name, specialty, registration_number,
                  city, null, null, autoStatus, member_code,
-                 document_url || null, document_public_id || null, score, normalizedPhone,
+                 document_file_id || null, score, normalizedPhone,
                  country_of_residence || null, order_country || null,
                  consultation_languages || null, is_international || false]
             );
@@ -368,7 +368,7 @@ async function registerDoctor(req, res) {
 // 6. REGISTER PHARMACIE
 // ============================================================
 async function registerPharmacie(req, res) {
-    const { phone, name, responsible_name, rccm_number, city, neighborhood, document_url, document_public_id, trust_score, cgu_accepted } = req.body;
+    const { phone, name, responsible_name, rccm_number, city, neighborhood, document_file_id, trust_score, cgu_accepted } = req.body;
 
     if (!phone || !name || !responsible_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom de la pharmacie et responsable sont obligatoires." });
@@ -401,7 +401,7 @@ async function registerPharmacie(req, res) {
             newUser = await client.query(
                 `INSERT INTO users (
                     phone, role, full_name, responsible_name, rccm_number,
-                    city, neighborhood, document_url,
+                    city, neighborhood, document_file_id,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, created_at
                  ) VALUES (
@@ -410,19 +410,19 @@ async function registerPharmacie(req, res) {
                     $8, $9, $10, NOW(),
                     $11, $12, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_url || null, score, member_code, cgu_accepted || false, is_active, passwordHash]
+                [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_file_id || null, score, member_code, cgu_accepted || false, is_active, passwordHash]
             );
 
             await client.query(
                 `INSERT INTO pharmacies (
                     phone, user_id, name, responsible_name, rccm_number,
                     city, neighborhood, status, is_active, member_code,
-                    document_url, document_public_id, trust_score, momo_number
+                    document_file_id, trust_score, momo_number
                  ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12,$13)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, name, responsible_name || null, rccm_number || null,
                  city || null, neighborhood || null, autoStatus, member_code,
-                 document_url || null, document_public_id || null, score, normalizedPhone]
+                 document_file_id || null, score, normalizedPhone]
             );
 
             await client.query('COMMIT');
@@ -459,7 +459,7 @@ async function registerPharmacie(req, res) {
 // 7. REGISTER LABORATOIRE
 // ============================================================
 async function registerLaboratoire(req, res) {
-    const { phone, name, director_name, agrement_number, rccm_number, city, document_url, trust_score, cgu_accepted } = req.body;
+    const { phone, name, director_name, agrement_number, rccm_number, city, document_file_id, trust_score, cgu_accepted } = req.body;
 
     if (!phone || !name || !director_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom du laboratoire et directeur sont obligatoires." });
@@ -492,7 +492,7 @@ async function registerLaboratoire(req, res) {
             newUser = await client.query(
                 `INSERT INTO users (
                     phone, role, full_name, director_name, agrement_number, rccm_number,
-                    city, document_url,
+                    city, document_file_id,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, created_at
                  ) VALUES (
@@ -501,19 +501,19 @@ async function registerLaboratoire(req, res) {
                     $8, $9, $10, NOW(),
                     $11, $12, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_url || null, score, member_code, cgu_accepted || false, is_active, passwordHash]
+                [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_file_id || null, score, member_code, cgu_accepted || false, is_active, passwordHash]
             );
 
             await client.query(
                 `INSERT INTO laboratories (
                     phone, user_id, name, director_name, agrement_number, rccm_number,
                     city, status, is_active, member_code,
-                    document_url, document_public_id, trust_score, momo_number
+                    document_file_id, trust_score, momo_number
                  ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12,$13)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, name, director_name || null, agrement_number || null, rccm_number || null,
                  city || null, autoStatus, member_code,
-                 document_url || null, document_public_id || null, score, normalizedPhone]
+                 document_file_id || null, score, normalizedPhone]
             );
 
             await client.query('COMMIT');

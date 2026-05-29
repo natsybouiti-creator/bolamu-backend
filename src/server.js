@@ -2,6 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const pool = require('./config/db');
 const cors = require('cors');
 const Sentry = require('@sentry/node');
@@ -109,6 +110,8 @@ const preRdvRoutes        = require('./routes/preRdv.routes');
 const smartflowRoutes     = require('./routes/smartflow.routes');
 const symptomsRoutes      = require('./routes/symptoms.routes');
 const aiConsultRoutes     = require('./routes/ai-consult.routes');
+const uploadRoutes         = require('./routes/upload.routes');
+const adminDocsRoutes      = require('./routes/admin-docs.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -152,6 +155,8 @@ app.use('/api/v1/pre-rdv',       preRdvRoutes);
 app.use('/api/v1',              smartflowRoutes);
 app.use('/api/v1',              symptomsRoutes);
 app.use('/api/v1',              aiConsultRoutes);
+app.use('/api/v1/upload',       uploadRoutes);
+app.use('/api/v1/admin',       adminDocsRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
@@ -296,6 +301,18 @@ const createIndexes = async () => {
 
 const initializeApp = async () => {
     await createIndexes();
+    
+    // Créer le dossier d'uploads sécurisé
+    const uploadDir = process.env.NODE_ENV === 'production' 
+        ? '/var/data/uploads/documents' 
+        : path.join(process.cwd(), 'uploads', 'documents');
+    
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+        console.log('[UPLOAD] Dossier uploads sécurisé créé:', uploadDir);
+    } else {
+        console.log('[UPLOAD] Dossier uploads sécurisé existe déjà:', uploadDir);
+    }
     
     // Log du schéma users pour debugging
     try {

@@ -169,10 +169,11 @@ const state = {
   firstName:'', lastName:'', gender:'', age:'', city:'', neighborhood:'',
   fullName:'', specialty:'', registrationNumber:'', orderCountry:'Congo-Brazzaville',
   countryOfResidence:'Congo-Brazzaville', consultationLanguages:['Français'],
-  availableHours:{}, documentUrl:'', documentPublicId:'',
+  availableHours:{}, documentFileId: '', idCardFileId: '',
+  uploadToken: '',
   pharmacyName:'', responsibleName:'', rccmNumber:'',
   labName:'', directorName:'', agrementNumber:'',
-  niu: '', idCardUrl: '', idCardPublicId: '',
+  niu: '',
   trustScore:30, cguAccepted:false
 };
 
@@ -477,9 +478,9 @@ function toggleLang(lang){
 
 function calcScore(){
   let score=30;
-  if(state.role==='doctor'){if(state.registrationNumber)score+=30;if(state.documentUrl)score+=25;if(state.specialty)score+=10;if(state.isInternational&&state.registrationNumber)score+=5;}
-  else if(state.role==='pharmacie'){if(state.rccmNumber)score+=35;if(state.documentUrl)score+=25;if(state.responsibleName)score+=10;}
-  else if(state.role==='laboratoire'){if(state.agrementNumber)score+=35;if(state.rccmNumber)score+=10;if(state.documentUrl)score+=25;}
+  if(state.role==='doctor'){if(state.registrationNumber)score+=30;if(state.documentFileId)score+=25;if(state.specialty)score+=10;if(state.isInternational&&state.registrationNumber)score+=5;}
+  else if(state.role==='pharmacie'){if(state.rccmNumber)score+=35;if(state.documentFileId)score+=25;if(state.responsibleName)score+=10;}
+  else if(state.role==='laboratoire'){if(state.agrementNumber)score+=35;if(state.rccmNumber)score+=10;if(state.documentFileId)score+=25;}
   state.trustScore=Math.min(score,100);
   const scoreEl=document.getElementById('score-val');
   const fillEl=document.getElementById('score-fill');
@@ -487,62 +488,64 @@ function calcScore(){
   if(fillEl)fillEl.style.width=state.trustScore+'%';
 }
 
-async function uploadDoc(input){
-  const file=input.files[0];if(!file)return;
-  const zone=document.getElementById('upload-zone');
-  const icon=document.getElementById('upload-icon');
-  const text=document.getElementById('upload-text');
-  zone.className='upload-zone';icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';text.textContent='Chargement...';
-  try{
-    const formData=new FormData();
-    formData.append('file',file);
-    formData.append('upload_preset','bolamu_docs');
-    const res=await fetch('https://api.cloudinary.com/v1_1/dpxefz80w/raw/upload',{method:'POST',body:formData});
-    const data=await res.json();
-    console.log('[Cloudinary response]', JSON.stringify(data));
-    if(data.secure_url){
-        state.documentUrl=data.secure_url;
-        state.documentPublicId=data.public_id||'';
-        zone.className='upload-zone uploaded';
-        icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00C9A7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-        text.textContent=file.name+' — Uploadé';
-        calcScore();
-    } else {
-        throw new Error(data.error?.message || 'secure_url manquant');
-    }
-}catch(e){
-    console.error('[Cloudinary error]', e.message);
-    icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
-    text.textContent='Erreur : '+e.message;
-}
+function setUploadState(fieldName, status, message = '') {
+  const zoneId = fieldName === 'idCard' ? 'id-card-zone' : 'upload-zone';
+  const iconId = fieldName === 'idCard' ? 'id-card-icon' : 'upload-icon';
+  const textId = fieldName === 'idCard' ? 'id-card-text' : 'upload-text';
+  
+  const zone = document.getElementById(zoneId);
+  const icon = document.getElementById(iconId);
+  const text = document.getElementById(textId);
+  
+  if (!zone || !icon || !text) return;
+  
+  if (status === 'loading') {
+    zone.className = 'upload-zone';
+    icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    text.textContent = 'Chargement...';
+  } else if (status === 'success') {
+    zone.className = 'upload-zone uploaded';
+    icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00C9A7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    text.textContent = message + ' — Uploadé';
+    calcScore();
+  } else if (status === 'error') {
+    zone.className = 'upload-zone error';
+    icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    text.textContent = 'Erreur : ' + message;
+  }
 }
 
-async function uploadIdCard(input){
-  const file=input.files[0];if(!file)return;
-  const zone=document.getElementById('id-card-zone');
-  const icon=document.getElementById('id-card-icon');
-  const text=document.getElementById('id-card-text');
-  zone.className='upload-zone';icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';text.textContent='Chargement...';
-  try{
-    const formData=new FormData();
-    formData.append('file',file);
-    formData.append('upload_preset','bolamu_docs');
-    const res=await fetch('https://api.cloudinary.com/v1_1/dpxefz80w/raw/upload',{method:'POST',body:formData});
-    const data=await res.json();
-    if(data.secure_url){
-      state.idCardUrl=data.secure_url;
-      state.idCardPublicId=data.public_id||'';
-      zone.className='upload-zone uploaded';
-      icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00C9A7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-      text.textContent=file.name+' — Uploadé';
+async function uploadSecureFile(input, fieldName) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  setUploadState(fieldName, 'loading');
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const res = await fetch('/api/v1/upload/secure', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + state.uploadToken
+      },
+      body: formData
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      if (fieldName === 'idCard') {
+        state.idCardFileId = data.file_id;
+      } else {
+        state.documentFileId = data.file_id;
+      }
+      setUploadState(fieldName, 'success', file.name);
     } else {
-      throw new Error(data.error?.message||'secure_url manquant');
+      setUploadState(fieldName, 'error', data.message);
     }
-  }catch(e){
-    zone.className='upload-zone error';
-    icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
-    text.textContent='Erreur upload — réessayez';
-    console.error('[uploadIdCard]',e.message);
+  } catch(e) {
+    setUploadState(fieldName, 'error', 'Erreur réseau');
   }
 }
 
@@ -554,7 +557,26 @@ function saveOTPAndNext(){
   if(state.role==='doctor'&&!state.specialty)return showAlert('Choisissez votre spécialité.');
   if(state.role==='doctor'&&!state.registrationNumber)return showAlert('Le numéro d\'ordre est obligatoire.');
   state.otpCode = code;  // ← sauvegarde locale, pas d'appel API ici
-  renderStep4();
+  
+  // Obtenir le token d'upload
+  fetch('/api/v1/upload/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: state.fullPhone, otp_verified: true })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      state.uploadToken = data.upload_token;
+      renderStep4();
+    } else {
+      showAlert('Erreur lors de l\'obtention du token d\'upload');
+    }
+  })
+  .catch(e => {
+    console.error('[UPLOAD TOKEN]', e);
+    showAlert('Erreur réseau');
+  });
 }
 
 function renderStep4(){
@@ -588,19 +610,17 @@ async function finalRegister(){
   const btn=document.getElementById('btn-register');
   btn.disabled=true;btn.textContent='Création en cours…';
   try{
-    // ← L'OTP est inclus dans le payload pour que le backend vérifie ET crée en une seule opération
     let payload={
       phone:state.fullPhone,
       otp:state.otpCode,
       role:state.role,
       cgu_accepted:true,
       trust_score:state.trustScore,
-      document_url:state.documentUrl||null,
-      document_public_id:state.documentPublicId||null,
+      document_file_id:state.documentFileId||null,
       city:state.city||null,
       neighborhood:state.neighborhood||null
     };
-    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);payload.niu=state.niu||null;payload.id_card_url=state.idCardUrl;payload.id_card_public_id=state.idCardPublicId;}
+    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);payload.niu=state.niu||null;payload.id_card_file_id=state.idCardFileId||null;}
     else if(state.role==='doctor'){payload.full_name=`Dr. ${state.firstName} ${state.lastName}`.trim();payload.specialty=state.specialty;payload.registration_number=state.registrationNumber;payload.order_country=state.orderCountry;payload.country_of_residence=state.countryOfResidence;payload.consultation_languages=state.consultationLanguages.join(', ');payload.is_international=state.isInternational;}
     else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;}
     else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;}
@@ -671,8 +691,8 @@ document.addEventListener('change', function(e) {
   if (e.target.id === 'f-order-country') { 
     state.orderCountry = e.target.options[e.target.selectedIndex].text; return; 
   }
-  if (e.target.id === 'id-card-input') { uploadIdCard(e.target); return; }
-  if (e.target.id === 'doc-input') { uploadDoc(e.target); return; }
+  if (e.target.id === 'id-card-input') { uploadSecureFile(e.target, 'idCard'); return; }
+  if (e.target.id === 'doc-input') { uploadSecureFile(e.target, 'document'); return; }
   if (e.target.id === 'cgu-check') { 
     state.cguAccepted = e.target.checked; return; 
   }
