@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: bolamu-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node src/server.js
+    disk:
+      name: bolamu-uploads
+      mountPath: /var/data
+      sizeGB: 10
