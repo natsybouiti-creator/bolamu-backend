@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bolamu — Inscription</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -215,23 +216,23 @@ function renderStep1(){
   document.getElementById('step-content').innerHTML=`
     <div class="role-grid">
       <div class="role-card ${state.role==='patient'?'selected':''}" id="role-patient">
-        <div class="role-icon">👤</div>
+        <div class="role-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         <div class="role-name">Patient</div>
         <div class="role-desc">Accédez aux soins facilement</div>
       </div>
       <div class="role-card ${state.role==='doctor'?'selected':''}" id="role-doctor">
-        <div class="role-icon">🩺</div>
+        <div class="role-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M8 21h8"/></svg></div>
         <div class="role-name">Médecin</div>
         <div class="role-desc">Congo ou international</div>
-        <div class="intl-badge">🌍 International</div>
+        <div class="intl-badge">International</div>
       </div>
       <div class="role-card ${state.role==='pharmacie'?'selected':''}" id="role-pharmacie">
-        <div class="role-icon">💊</div>
+        <div class="role-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
         <div class="role-name">Pharmacie</div>
         <div class="role-desc">Partenaire ordonnances</div>
       </div>
       <div class="role-card ${state.role==='laboratoire'?'selected':''}" id="role-laboratoire">
-        <div class="role-icon">🔬</div>
+        <div class="role-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
         <div class="role-name">Laboratoire</div>
         <div class="role-desc">Analyses médicales</div>
       </div>
@@ -284,7 +285,7 @@ function renderStep2(){
         <label class="form-label">Carte d'identité <span class="required">*</span></label>
         <div class="upload-zone" id="id-card-zone">
           <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf">
-          <div class="upload-icon" id="id-card-icon">🪪</div>
+          <div class="upload-icon" id="id-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
           <div class="upload-text" id="id-card-text">Cliquez pour uploader votre carte d'identité<br><span style="font-size:11px;">CNI, passeport ou titre de séjour (PDF ou image)</span></div>
         </div>
       </div>
@@ -303,7 +304,7 @@ function renderStep2(){
         ${COUNTRIES.map(c=>`<option value="${c.code}" ${c.name===state.countryOfResidence?'selected':''}>${c.flag} ${c.name}</option>`).join('')}
       </select></div>
       <div id="intl-notice" style="display:none;" class="intl-info">
-        🌍 <strong>Médecin international détecté</strong> — Vous pourrez consulter des patients africains en télémédecine depuis votre pays.
+        <strong>Médecin international détecté</strong> — Vous pourrez consulter des patients africains en télémédecine depuis votre pays.
       </div>`;
   } else if(state.role==='pharmacie'){
     extraFields=`
@@ -441,7 +442,7 @@ function renderStep3(){
       <label class="form-label">Document justificatif</label>
       <div class="upload-zone" id="upload-zone">
         <input type="file" id="doc-input" style="display:none" accept="image/*,application/pdf">
-        <div class="upload-icon" id="upload-icon">📄</div>
+        <div class="upload-icon" id="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
         <div class="upload-text" id="upload-text">Cliquez pour uploader<br><span style="font-size:11px;">Diplôme, carte pro, certificat (PDF ou image)</span></div>
       </div>
     </div>
@@ -491,7 +492,7 @@ async function uploadDoc(input){
   const zone=document.getElementById('upload-zone');
   const icon=document.getElementById('upload-icon');
   const text=document.getElementById('upload-text');
-  zone.className='upload-zone';icon.textContent='⏳';text.textContent='Upload en cours…';
+  zone.className='upload-zone';icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';text.textContent='Chargement...';
   try{
     const formData=new FormData();
     formData.append('file',file);
@@ -503,15 +504,15 @@ async function uploadDoc(input){
         state.documentUrl=data.secure_url;
         state.documentPublicId=data.public_id||'';
         zone.className='upload-zone uploaded';
-        icon.textContent='✅';
-        text.textContent=file.name+' — Uploadé avec succès';
+        icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00C9A7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        text.textContent=file.name+' — Uploadé';
         calcScore();
     } else {
         throw new Error(data.error?.message || 'secure_url manquant');
     }
 }catch(e){
     console.error('[Cloudinary error]', e.message);
-    icon.textContent='❌';
+    icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
     text.textContent='Erreur : '+e.message;
 }
 }
@@ -521,7 +522,7 @@ async function uploadIdCard(input){
   const zone=document.getElementById('id-card-zone');
   const icon=document.getElementById('id-card-icon');
   const text=document.getElementById('id-card-text');
-  zone.className='upload-zone';icon.textContent='⏳';text.textContent='Upload en cours…';
+  zone.className='upload-zone';icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';text.textContent='Chargement...';
   try{
     const formData=new FormData();
     formData.append('file',file);
@@ -532,14 +533,14 @@ async function uploadIdCard(input){
       state.idCardUrl=data.secure_url;
       state.idCardPublicId=data.public_id||'';
       zone.className='upload-zone uploaded';
-      icon.textContent='✅';
-      text.textContent=file.name+' — Uploadé avec succès';
+      icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00C9A7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      text.textContent=file.name+' — Uploadé';
     } else {
       throw new Error(data.error?.message||'secure_url manquant');
     }
   }catch(e){
     zone.className='upload-zone error';
-    icon.textContent='❌';
+    icon.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
     text.textContent='Erreur upload — réessayez';
     console.error('[uploadIdCard]',e.message);
   }
@@ -740,30 +741,26 @@ document.addEventListener('DOMContentLoaded', function() {
   bottom: 0;
   left: 0;
   width: 100%;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(6px);
-  padding: 10px 0;
-  text-align: center;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: rgba(10, 36, 99, 0.85);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,255,255,0.08);
   z-index: 999;
-  font-family: inherit;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 ">
-  <p style="margin:0 0 3px 0; font-size:11px; color:rgba(255,255,255,0.55);">
-    © 2025 Bolamu · Plateforme santé digitale · Brazzaville, Congo
-  </p>
-  <p style="margin:0; font-size:11px;">
-    <a href="/cgu.html"
-       style="color:rgba(255,255,255,0.55); text-decoration:none;
-              margin-right:14px;">
-      CGU
-    </a>
-    <a href="/confidentialite.html"
-       style="color:rgba(255,255,255,0.55); text-decoration:none;
-              margin-right:14px;">
-      Confidentialité
-    </a>
-    <a href="mailto:contactbolamu@gmail.com"
-       style="color:rgba(255,255,255,0.55); text-decoration:none;">
-      contactbolamu@gmail.com
-    </a>
-  </p>
+  <span style="font-size:11px;color:rgba(255,255,255,0.4);">
+    © 2026 Bolamu
+  </span>
+  <a href="/cgu.html" style="font-size:11px;color:rgba(255,255,255,0.55);
+    text-decoration:none;font-weight:500;">CGU</a>
+  <a href="/confidentialite.html" style="font-size:11px;
+    color:rgba(255,255,255,0.55);text-decoration:none;font-weight:500;">
+    Confidentialité</a>
+  <a href="mailto:bolamucontact@gmail.com" style="font-size:11px;
+    color:rgba(255,255,255,0.55);text-decoration:none;font-weight:500;">
+    Contact</a>
 </footer>
