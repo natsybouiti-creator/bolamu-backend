@@ -23,8 +23,9 @@ router.get('/documents/:fileId', requireAdmin, async (req, res) => {
 
     const doc = rows[0];
 
-    // Déterminer le chemin du fichier
+    // Déterminer le chemin du fichier avec fallback
     const uploadDir = process.env.NODE_ENV === 'production' 
+      && fs.existsSync('/var/data')
         ? '/var/data/uploads/documents' 
         : path.join(process.cwd(), 'uploads', 'documents');
     

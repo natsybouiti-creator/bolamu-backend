@@ -1,10 +1,12 @@
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
 
 const uploadDir = process.env.NODE_ENV === 'production' 
-    ? '/var/data/uploads/documents' 
-    : path.join(process.cwd(), 'uploads', 'documents');
+  && fs.existsSync('/var/data')
+    ? '/var/data/uploads/documents'
+    : path.join(__dirname, '../../uploads/documents');
 
 const storage = multer.diskStorage({
   destination: uploadDir,

@@ -304,6 +304,7 @@ const initializeApp = async () => {
     
     // Créer le dossier d'uploads sécurisé
     const uploadDir = process.env.NODE_ENV === 'production' 
+      && fs.existsSync('/var/data')
         ? '/var/data/uploads/documents' 
         : path.join(process.cwd(), 'uploads', 'documents');
     
