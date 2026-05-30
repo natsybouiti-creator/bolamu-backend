@@ -1589,7 +1589,7 @@ async function loadConflits(statut = 'all') {
       ? '/admin/conflicts'
       : `/admin/conflicts?statut=${statut}`;
     const d = await api(url);
-    const rows = Array.isArray(d) ? d : (d.conflicts || []);
+    const rows = Array.isArray(d) ? d : (d.data?.conflicts || d.conflicts || []);
     document.getElementById('tbody-conflits').innerHTML =
       rows.length ? rows.map(r => `<tr>
         <td><code>${r.reference}</code></td>
