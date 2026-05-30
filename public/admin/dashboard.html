@@ -1619,9 +1619,9 @@ async function loadConflits(statut = 'all') {
         <td>${badge(r.priorite)}</td>
         <td>${badge(r.statut)}</td>
         <td>${fd(r.created_at)}</td>
-        <td>
-          <button data-onclick="assignerConflict" data-arg="${r.id}">
-            Assigner</button>
+        <td class="acts">
+          <button class="ab ab-blue" data-onclick="voirConflit" data-arg="${r.id}">Voir</button>
+          <button class="ab ab-violet" data-onclick="assignerConflict" data-arg="${r.id}">Assigner</button>
         </td>
       </tr>`).join('') :
       '<tr><td colspan="8" style="text-align:center;opacity:.5">' +
@@ -1642,6 +1642,152 @@ async function assignerConflict(id) {
     toast('Agent assigné ✅');
     loadConflits();
   } catch(e) { toast('Erreur assignation', 'error'); }
+}
+
+async function voirConflit(id) {
+  try {
+    const d = await api(`/conflicts/${id}`);
+    if (!d.success || !d.data?.conflict) {
+      toast('Conflit introuvable', 'error');
+      return;
+    }
+    const c = d.data.conflict;
+    const messages = d.data.messages || [];
+    const actions = d.data.actions || [];
+
+    // Boutons contextuels selon statut
+    let actionButtons = '';
+    if (c.statut === 'created') {
+      actionButtons = `<button class="mbtn mbtn-blue" data-onclick="changerStatut" data-arg="${id}|assigned">Prendre en charge</button>`;
+    } else if (c.statut === 'assigned') {
+      actionButtons = `<button class="mbtn mbtn-blue" data-onclick="changerStatut" data-arg="${id}|investigating">Lancer investigation</button>`;
+    } else if (c.statut === 'investigating') {
+      actionButtons = `<button class="mbtn mbtn-green" data-onclick="resoudreConflit" data-arg="${id}">Marquer résolu</button>`;
+    } else if (c.statut === 'resolved') {
+      actionButtons = `<button class="mbtn mbtn-violet" data-onclick="changerStatut" data-arg="${id}|closed">Clore</button>`;
+    }
+
+    document.getElementById('modal-box').className = 'modal modal-lg';
+    document.getElementById('modal-body').innerHTML = `
+      <div class="modal-title">⚖️ Conflit #${c.reference}</div>
+      <div class="modal-sub">Référence : ${c.reference} · Créé le ${fd(c.created_at)}</div>
+      
+      <div class="info-grid">
+        <div class="info-block">
+          <div class="info-label">Patient</div>
+          <div>${c.patient_phone}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Partenaire</div>
+          <div>${c.partner_phone || '—'} (${c.partner_type || '—'})</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Statut</div>
+          <div>${badge(c.statut)}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Priorité</div>
+          <div>${badge(c.priorite)}</div>
+        </div>
+      </div>
+
+      <div class="mf">
+        <label>Sujet</label>
+        <div style="font-weight:600">${c.sujet}</div>
+      </div>
+
+      <div class="mf">
+        <label>Description</label>
+        <div style="line-height:1.6">${c.description}</div>
+      </div>
+
+      ${c.resolution ? `
+      <div class="mf">
+        <label>Résolution</label>
+        <div style="background:var(--raised);padding:10px;border-radius:8px;border:1px solid var(--border2)">${c.resolution}</div>
+      </div>
+      ` : ''}
+
+      <div class="modal-acts">
+        ${actionButtons}
+        <button class="mbtn mbtn-amber" data-onclick="escaladerConflit" data-arg="${id}">Escalader</button>
+        <button class="mbtn mbtn-cancel" data-onclick="closeModal">Fermer</button>
+      </div>
+
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border2)">
+        <div style="font-weight:600;margin-bottom:10px">Messages</div>
+        <div style="max-height:150px;overflow-y:auto;margin-bottom:10px">
+          ${messages.length ? messages.map(m => `
+            <div style="padding:8px;background:var(--raised);border-radius:8px;margin-bottom:6px">
+              <div style="font-size:10px;color:var(--muted)">${m.sender_name} · ${fd(m.created_at)}</div>
+              <div>${m.message}</div>
+            </div>
+          `).join('') : '<div style="color:var(--muted);font-size:11px">Aucun message</div>'}
+        </div>
+        <div style="display:flex;gap:8px">
+          <input class="mi" id="conflit-message" placeholder="Votre message..." style="flex:1">
+          <button class="mbtn mbtn-blue" data-onclick="envoyerMessage" data-arg="${id}" style="flex:0 0 auto">Envoyer</button>
+        </div>
+      </div>
+    `;
+    openModal();
+  } catch(e) {
+    console.error('[voirConflit]', e);
+    toast('Erreur chargement conflit', 'error');
+  }
+}
+
+async function changerStatut(arg) {
+  const [id, statut] = arg.split('|');
+  try {
+    await api(`/conflicts/${id}/statut`, {
+      method: 'PATCH',
+      body: JSON.stringify({ statut })
+    });
+    toast('Statut mis à jour ✅');
+    closeModal();
+    loadConflits();
+  } catch(e) { toast('Erreur mise à jour', 'error'); }
+}
+
+async function resoudreConflit(id) {
+  const resolution = prompt('Résolution du conflit :');
+  if (!resolution) return;
+  try {
+    await api(`/conflicts/${id}/resolve`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolution })
+    });
+    toast('Conflit résolu ✅');
+    closeModal();
+    loadConflits();
+  } catch(e) { toast('Erreur résolution', 'error'); }
+}
+
+async function escaladerConflit(id) {
+  if (!confirm('Escalader ce conflit au super admin ?')) return;
+  try {
+    await api(`/conflicts/${id}/escalade`, {
+      method: 'PATCH'
+    });
+    toast('Conflit escaladé ✅');
+    closeModal();
+    loadConflits();
+  } catch(e) { toast('Erreur escalade', 'error'); }
+}
+
+async function envoyerMessage(id) {
+  const msg = document.getElementById('conflit-message').value.trim();
+  if (!msg) return;
+  try {
+    await api(`/conflicts/${id}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ message: msg })
+    });
+    toast('Message envoyé ✅');
+    document.getElementById('conflit-message').value = '';
+    voirConflit(id); // Recharger le modal
+  } catch(e) { toast('Erreur envoi', 'error'); }
 }
 
 /* -----------------------------------
