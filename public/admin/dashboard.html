@@ -885,7 +885,19 @@ async function loadActivity(){
 
 /* -----------------------------------
    PENDING
------------------------------------ */
+------------------------------------ */
+async function viewDocument(docId) {
+  const res = await fetch(`/api/v1/admin/documents/${docId}?token=${token}`, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  const data = await res.json();
+  if (data.success && data.url) {
+    window.open(data.url, '_blank');
+  } else {
+    alert('Document introuvable');
+  }
+}
+
 function getDocumentsHtml(u){
   const docLabels={id_card:"🪪 Carte d'identité",diploma:"📄 Diplôme",ordre:"📄 Carte Ordre",rccm:"📄 RCCM",autorisation:"📄 Autorisation",agrement:"📄 Agrément",identite:"📄 Document",document:"📄 Document"};
   const docs = [];
@@ -893,7 +905,7 @@ function getDocumentsHtml(u){
   if (u.documents && u.documents.length > 0) {
     u.documents.forEach(d => {
       const label = docLabels[d.document_type] || ('📄 ' + d.document_type);
-      docs.push(`<a href="/api/v1/admin/documents/${d.id}?token=${token}" target="_blank" class="doc-link">${label}</a>`);
+      docs.push(`<button onclick="viewDocument(${d.id})" class="doc-link">📄 ${label}</button>`);
     });
   }
   
