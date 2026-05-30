@@ -282,14 +282,6 @@ function renderStep2(){
         <div class="form-group"><label class="form-label">NIU (optionnel)</label>
         <input class="form-input" id="f-niu" type="text" placeholder="Numéro d'Identification Unique" value="${state.niu}"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Carte d'identité <span class="required">*</span></label>
-        <div class="upload-zone" id="id-card-zone">
-          <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf">
-          <div class="upload-icon" id="id-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
-          <div class="upload-text" id="id-card-text">Cliquez pour uploader votre carte d'identité<br><span style="font-size:11px;">CNI, passeport ou titre de séjour (PDF ou image)</span></div>
-        </div>
-      </div>
   `;
 
   } else if(isDoctor){
@@ -360,7 +352,6 @@ function goStep3(){
     if(!state.firstName||!state.lastName)return showAlert('Prénom et nom sont obligatoires.');
     if(!state.gender)return showAlert('Veuillez indiquer votre sexe.');
     if(!state.age||state.age<1)return showAlert('Veuillez indiquer votre âge.');
-    if(!state.idCardUrl)return showAlert('Veuillez uploader votre carte d\'identité pour continuer.');
   }
   if(state.role==='doctor'&&(!state.firstName||!state.lastName))return showAlert('Prénom et nom sont obligatoires.');
   if(state.role==='pharmacie'&&!state.pharmacyName)return showAlert('Nom de la pharmacie obligatoire.');
@@ -374,9 +365,31 @@ async function sendOTP(){
   try{
     const res=await fetch(`${API}/auth/request-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:state.fullPhone})});
     const data=await res.json();
-    if(data.success||res.ok){renderStep3();}
+    if(data.success||res.ok){
+      state.otpSent=true;
+      await fetchUploadToken();  // ← token prêt avant l'upload des documents à l'étape 3
+      renderStep3();
+    }
     else{showAlert(data.message||'Erreur lors de l\'envoi du code.');if(btn){btn.disabled=false;btn.textContent='Continuer →';}}
   }catch(e){showAlert('Erreur de connexion au serveur.');if(btn){btn.disabled=false;btn.textContent='Continuer →';}}
+}
+
+async function fetchUploadToken(){
+  if(state.uploadToken)return state.uploadToken;
+  try{
+    const res=await fetch('/api/v1/upload/token',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({phone:state.fullPhone,otp_verified:true})
+    });
+    const data=await res.json();
+    if(data.success&&data.upload_token){
+      state.uploadToken=data.upload_token;
+    }
+  }catch(e){
+    console.error('[fetchUploadToken]',e);
+  }
+  return state.uploadToken;
 }
 
 function renderStep3(){
@@ -437,6 +450,15 @@ function renderStep3(){
       <span style="font-size:13px;color:var(--texte-doux);">Pas reçu ? </span>
       <span style="font-size:13px;color:var(--bleu-vif);cursor:pointer;font-weight:600;" id="resend-otp">Renvoyer le code</span>
     </div>
+    ${state.role==='patient'?`
+    <div class="form-group">
+      <label class="form-label">Carte d'identité <span class="required">*</span></label>
+      <div class="upload-zone" id="id-card-zone">
+        <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf">
+        <div class="upload-icon" id="id-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+        <div class="upload-text" id="id-card-text">Cliquez pour uploader votre carte d'identité<br><span style="font-size:11px;">CNI, passeport ou titre de séjour (PDF ou image)</span></div>
+      </div>
+    </div>`:''}
     ${proFields}
     ${isPro?`
     <div class="form-group">
@@ -522,6 +544,16 @@ async function uploadSecureFile(input, fieldName) {
   setUploadState(fieldName, 'loading');
   
   try {
+    // Filet de sécurité : obtenir un token si manquant
+    if (!state.uploadToken) {
+      await fetchUploadToken();
+    }
+    
+    if (!state.uploadToken) {
+      setUploadState(fieldName, 'error', 'Veuillez d\'abord vérifier votre numéro');
+      return;
+    }
+    
     const formData = new FormData();
     formData.append('file', file);
     
@@ -554,29 +586,11 @@ async function uploadSecureFile(input, fieldName) {
 function saveOTPAndNext(){
   const code=[1,2,3,4,5,6].map(i=>document.getElementById('otp'+i)?.value||'').join('');
   if(code.length<6)return showAlert('Entrez les 6 chiffres du code.');
+  if(state.role==='patient'&&!state.idCardFileId)return showAlert('Veuillez uploader votre carte d\'identité pour continuer.');
   if(state.role==='doctor'&&!state.specialty)return showAlert('Choisissez votre spécialité.');
   if(state.role==='doctor'&&!state.registrationNumber)return showAlert('Le numéro d\'ordre est obligatoire.');
   state.otpCode = code;  // ← sauvegarde locale, pas d'appel API ici
-  
-  // Obtenir le token d'upload
-  fetch('/api/v1/upload/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: state.fullPhone, otp_verified: true })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      state.uploadToken = data.upload_token;
-      renderStep4();
-    } else {
-      showAlert('Erreur lors de l\'obtention du token d\'upload');
-    }
-  })
-  .catch(e => {
-    console.error('[UPLOAD TOKEN]', e);
-    showAlert('Erreur réseau');
-  });
+  renderStep4();
 }
 
 function renderStep4(){
