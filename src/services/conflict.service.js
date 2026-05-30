@@ -69,7 +69,7 @@ async function createConflict({ patient_phone, partner_phone, partner_type, suje
 
 // ─── MATRICE DE TRANSITIONS VALIDES ───────────────────────────────────────────
 const VALID_TRANSITIONS = {
-    created: ['pending_review', 'rejected'],
+    created: ['assigned', 'pending_review', 'rejected'],
     pending_review: ['assigned', 'rejected'],
     assigned: ['investigating'],
     investigating: ['waiting_response', 'resolved'],

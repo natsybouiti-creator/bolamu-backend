@@ -145,30 +145,24 @@ async function sendAirtelPayment(momoNumber, amount, reference) {
 router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await db.query(
-            `SELECT 
+            `SELECT
                 pp.*,
-                CASE 
-                    WHEN pp.partner_type = 'doctor' THEN d.full_name
-                    WHEN pp.partner_type = 'pharmacie' THEN ph.name
-                    WHEN pp.partner_type = 'laboratoire' THEN l.name
-                END as partner_name,
+                u.full_name as partner_name,
                 pz.zone_name,
                 pz.fee_per_adherent
              FROM partner_payouts pp
              LEFT JOIN partner_zones pz ON pz.partner_phone = pp.partner_phone AND pz.partner_type = pp.partner_type
-             LEFT JOIN doctors d ON d.phone = pp.partner_phone
-             LEFT JOIN pharmacies ph ON ph.phone = pp.partner_phone
-             LEFT JOIN laboratories l ON l.phone = pp.partner_phone
+             LEFT JOIN users u ON u.phone = pp.partner_phone
              WHERE pp.status = 'pending'
              ORDER BY pp.period_start DESC, pp.partner_phone`
         );
-        
+
         // Détecter opérateur pour chaque payout
         const payouts = result.rows.map(p => ({
             ...p,
             operator: detectOperator(p.momo_number)
         }));
-        
+
         res.json({ success: true, payouts });
     } catch (e) {
         console.error('GET /clearing/pending error:', e.message);
