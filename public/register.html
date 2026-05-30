@@ -557,7 +557,7 @@ async function uploadSecureFile(input, key) {
     const data = await res.json();
     
     if (data.success) {
-      state.docs[key] = data.file_id;
+      state.docs[key] = data.fileId;
       setUploadState(key, 'success', file.name);
     } else {
       setUploadState(key, 'error', data.message);
