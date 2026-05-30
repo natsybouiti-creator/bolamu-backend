@@ -9,6 +9,16 @@ async function getAgenda(req, res) {
     try {
         const { doctor_id, date } = req.params;
         const queryDate = date || new Date().toISOString().split('T')[0];
+        const clinicId = req.user.clinic_id;
+
+        // Vérifier que le médecin appartient à la clinique du secrétaire
+        const doctorCheck = await pool.query(
+            `SELECT id FROM doctors WHERE id = $1 AND clinic_id = $2`,
+            [doctor_id, clinicId]
+        );
+        if (!doctorCheck.rows.length) {
+            return res.status(403).json({ success: false, message: 'Accès non autorisé à ce médecin' });
+        }
 
         // Récupérer les RDV du médecin pour la date avec symptômes
         const appointmentsResult = await pool.query(
@@ -78,6 +88,16 @@ async function getQueue(req, res) {
         const { doctor_id } = req.params;
         const { date } = req.query;
         const queryDate = date || new Date().toISOString().split('T')[0];
+        const clinicId = req.user.clinic_id;
+
+        // Vérifier que le médecin appartient à la clinique du secrétaire
+        const doctorCheck = await pool.query(
+            `SELECT id FROM doctors WHERE id = $1 AND clinic_id = $2`,
+            [doctor_id, clinicId]
+        );
+        if (!doctorCheck.rows.length) {
+            return res.status(403).json({ success: false, message: 'Accès non autorisé à ce médecin' });
+        }
 
         const result = await pool.query(
             `SELECT q.id, q.patient_phone, q.status, q.arrived_at, q.in_consultation_at, q.completed_at, q.notes,
@@ -234,6 +254,16 @@ async function getStats(req, res) {
     try {
         const { doctor_id, date } = req.params;
         const queryDate = date || new Date().toISOString().split('T')[0];
+        const clinicId = req.user.clinic_id;
+
+        // Vérifier que le médecin appartient à la clinique du secrétaire
+        const doctorCheck = await pool.query(
+            `SELECT id FROM doctors WHERE id = $1 AND clinic_id = $2`,
+            [doctor_id, clinicId]
+        );
+        if (!doctorCheck.rows.length) {
+            return res.status(403).json({ success: false, message: 'Accès non autorisé à ce médecin' });
+        }
 
         // RDV du jour
         const appointmentsResult = await pool.query(

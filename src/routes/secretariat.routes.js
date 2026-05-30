@@ -11,6 +11,94 @@ const pool = require('../config/db');
 // ROUTES SECRÉTAIRE
 // ============================================================
 
+// POST /api/v1/secretary/login
+// Login secrétaire
+router.post('/secretary/login', async (req, res) => {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ success: false, message: 'Numéro requis' });
+    
+    try {
+        const result = await pool.query(
+            `SELECT id, phone, full_name, role, is_active, clinic_id 
+             FROM users 
+             WHERE phone = $1 AND role = 'secretaire' AND is_active = true`,
+            [phone]
+        );
+        
+        if (!result.rows.length) {
+            return res.status(401).json({ success: false, message: 'Numéro invalide ou compte inactif' });
+        }
+        
+        const user = result.rows[0];
+        const jwt = require('jsonwebtoken');
+        const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
+        
+        const token = jwt.sign(
+            { id: user.id, phone: user.phone, role: 'secretaire', clinic_id: user.clinic_id },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        res.json({
+            success: true,
+            token,
+            secretaire: {
+                id: user.id,
+                full_name: user.full_name,
+                phone: user.phone,
+                clinic_id: user.clinic_id
+            }
+        });
+    } catch (err) {
+        console.error('[SECRETARY LOGIN]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+// POST /api/v1/rh/login
+// Login RH
+router.post('/rh/login', async (req, res) => {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ success: false, message: 'Numéro requis' });
+    
+    try {
+        const result = await pool.query(
+            `SELECT id, phone, full_name, role, is_active, clinic_id 
+             FROM users 
+             WHERE phone = $1 AND role = 'rh' AND is_active = true`,
+            [phone]
+        );
+        
+        if (!result.rows.length) {
+            return res.status(401).json({ success: false, message: 'Numéro invalide ou compte inactif' });
+        }
+        
+        const user = result.rows[0];
+        const jwt = require('jsonwebtoken');
+        const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
+        
+        const token = jwt.sign(
+            { id: user.id, phone: user.phone, role: 'rh', clinic_id: user.clinic_id },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        res.json({
+            success: true,
+            token,
+            rh: {
+                id: user.id,
+                full_name: user.full_name,
+                phone: user.phone,
+                clinic_id: user.clinic_id
+            }
+        });
+    } catch (err) {
+        console.error('[RH LOGIN]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
 // GET /api/v1/secretary/agenda/:doctor_id
 // Agenda d'un médecin pour une date
 router.get('/secretary/agenda/:doctor_id', authMiddleware, authMiddleware.requireSecretary, secretary.getAgenda);

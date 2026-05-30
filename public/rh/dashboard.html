@@ -103,6 +103,22 @@
   </style>
 </head>
 <body>
+  <!-- Écran Login -->
+  <div id="login-screen" style="display:none;min-height:100vh;background:var(--bleu);display:flex;align-items:center;justify-content:center;padding:16px;">
+    <div class="stat-card" style="max-width:400px;width:100%;text-align:center;">
+      <div style="font-family:'Fraunces',serif;font-size:2rem;color:var(--turquoise);margin-bottom:1rem;">Bolamu</div>
+      <h2 style="margin-bottom:1.5rem;">RH Entreprise</h2>
+      <div class="form-group">
+        <label class="form-label">Numéro de téléphone</label>
+        <input type="tel" id="login-phone" class="form-input" placeholder="+242 06 XXX XXXX" style="text-align:center;font-size:1.1rem;">
+      </div>
+      <button class="btn-primary" onclick="login()" style="width:100%;margin-top:1rem;">Accéder au portail RH</button>
+      <div id="login-error" style="color:var(--rouge);margin-top:1rem;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard-content" style="display:none;">
   <div class="topbar">
     <a href="/" class="logo">
       <div class="logo-icon">B</div>
@@ -240,13 +256,85 @@
       </div>
     </div>
   </div>
+  </div>
 
   <script>
     const API = 'https://bolamu-backend.onrender.com/api/v1';
-    const phone = localStorage.getItem('bolamu_rh_phone');
-    const token = localStorage.getItem('bolamu_rh_token');
-    if (!token || !phone) { window.location.href = '/login.html'; }
-    document.getElementById('topbar-phone').textContent = phone;
+
+    function getToken() {
+      return localStorage.getItem('bolamu_rh_token');
+    }
+
+    function getPhone() {
+      return localStorage.getItem('bolamu_rh_phone');
+    }
+
+    function getClinicId() {
+      return localStorage.getItem('bolamu_rh_clinic_id');
+    }
+
+    async function login() {
+      const phone = document.getElementById('login-phone').value.trim();
+      const errorDiv = document.getElementById('login-error');
+      
+      if (!phone) {
+        errorDiv.textContent = 'Numéro requis';
+        errorDiv.style.display = 'block';
+        return;
+      }
+      
+      errorDiv.style.display = 'none';
+      
+      try {
+        const res = await fetch(`${API}/rh/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const data = await res.json();
+        
+        if (!data.success) {
+          errorDiv.textContent = data.message || 'Erreur de connexion';
+          errorDiv.style.display = 'block';
+          return;
+        }
+        
+        localStorage.setItem('bolamu_rh_token', data.token);
+        localStorage.setItem('bolamu_rh_phone', data.rh.phone);
+        localStorage.setItem('bolamu_rh_clinic_id', data.rh.clinic_id);
+        
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
+        document.getElementById('topbar-phone').textContent = data.rh.phone;
+        
+        loadDashboard();
+      } catch (e) {
+        errorDiv.textContent = 'Erreur de connexion au serveur';
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    function loadDashboard() {
+      // Charger les données RH
+      loadOverview();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = getToken();
+      const phone = getPhone();
+      
+      if (!token || !phone) {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('dashboard-content').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard-content').style.display = 'block';
+      document.getElementById('topbar-phone').textContent = phone;
+      
+      loadDashboard();
+    });
 
     function showTab(tabId, tabBtn) {
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -255,10 +343,10 @@
       tabBtn.classList.add('active');
     }
 
-    async function loadDashboard() {
+    async function loadOverview() {
       try {
         const res = await fetch(`${API}/smartflow/rh/dashboard`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         const data = await res.json();
         
