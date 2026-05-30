@@ -12,20 +12,15 @@ const {
 
 // ─── CRÉER UN CONFLIT (patient uniquement) ─────────────────────────────────────
 async function createConflictController(req, res) {
-    const { patient_phone, partner_phone, partner_type, sujet, description, priorite } = req.body;
-    const requestPhone = req.user.phone;
+    const { partner_phone, partner_type, subject, description, priorite } = req.body;
+    const patient_phone = req.user.phone; // Utiliser le phone du user authentifié
 
-    // Vérifier que le demandeur est le patient
-    if (patient_phone !== requestPhone) {
-        return res.status(403).json({ success: false, message: 'Seul le patient concerné peut créer un conflit.' });
-    }
-
-    if (!patient_phone || !partner_phone || !partner_type || !sujet || !description) {
-        return res.status(400).json({ success: false, message: 'Champs obligatoires : patient_phone, partner_phone, partner_type, sujet, description' });
+    if (!patient_phone || !partner_phone || !partner_type || !subject || !description) {
+        return res.status(400).json({ success: false, message: 'Champs obligatoires : partner_phone, partner_type, subject, description' });
     }
 
     try {
-        const result = await createConflict({ patient_phone, partner_phone, partner_type, sujet, description, priorite });
+        const result = await createConflict({ patient_phone, partner_phone, partner_type, sujet: subject, description, priorite });
         return res.status(201).json(result);
     } catch (error) {
         console.error('[createConflictController]', error.message);

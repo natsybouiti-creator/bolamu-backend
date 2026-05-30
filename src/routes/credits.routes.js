@@ -16,6 +16,46 @@ const CREDIT_RULES = {
 };
 
 // ─── OBTENIR LE SOLDE D'UN UTILISATEUR ───────────────────────────────────────
+router.get('/balance', authMiddleware, async (req, res) => {
+    const phone = req.user.phone;
+    try {
+        let result = await pool.query(`SELECT * FROM credits WHERE phone = $1`, [phone]);
+        if (!result.rows.length) {
+            // Créer un solde à 0 si inexistant
+            const userResult = await pool.query(`SELECT role FROM users WHERE phone = $1`, [phone]);
+            const role = userResult.rows[0]?.role || 'patient';
+            result = await pool.query(
+                `INSERT INTO credits (phone, role, balance, total_earned, total_spent, consecutive_months)
+                 VALUES ($1, $2, 0, 0, 0, 0) ON CONFLICT (phone) DO NOTHING RETURNING *`,
+                [phone, role]
+            );
+            result = await pool.query(`SELECT * FROM credits WHERE phone = $1`, [phone]);
+        }
+        const credit = result.rows[0];
+
+        // Historique récent
+        const history = await pool.query(
+            `SELECT * FROM credit_transactions WHERE phone = $1 ORDER BY created_at DESC LIMIT 20`,
+            [phone]
+        );
+
+        // Partenaires actifs
+        const partners = await pool.query(`SELECT * FROM credit_partners WHERE is_active = TRUE ORDER BY category`);
+
+        return res.json({
+            success: true,
+            data: {
+                ...credit,
+                transactions: history.rows,
+                partners: partners.rows
+            }
+        });
+    } catch (e) {
+        console.error('[credits/balance]', e.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+});
+
 router.get('/balance/:phone', authMiddleware, async (req, res) => {
     const { phone } = req.params;
     try {

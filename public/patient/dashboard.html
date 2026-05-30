@@ -1864,6 +1864,20 @@ async function loadConflits() {
   }
 }
 
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  toast.style.cssText = `
+    position:fixed; bottom:20px; right:20px; z-index:9999;
+    padding:12px 20px; border-radius:8px; color:white;
+    background: ${type === 'success' ? '#00C9A7' : type === 'error' ? '#e53e3e' : '#0A2463'};
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
 async function submitConflit() {
   const token = localStorage.getItem('bolamu_patient_token');
   const partner_type = document.getElementById('conflit-partner-type').value;
