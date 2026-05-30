@@ -67,15 +67,16 @@ router.get('/conflicts', authMiddleware, async (req, res) => {
     }
 });
 
-// Patient : voir ses propres conflits (par phone)
-router.get('/patient/:phone', authMiddleware, async (req, res) => {
+// Patient : voir ses propres conflits (par phone via query param)
+router.get('/patient', authMiddleware, async (req, res) => {
     try {
+        const phone = req.query.phone || req.user.phone;
         const result = await pool.query(
             `SELECT id, reference, sujet, description, statut, priorite, created_at, resolved_at, partner_type, partner_phone
              FROM conflicts 
              WHERE patient_phone = $1 
              ORDER BY created_at DESC`,
-            [req.params.phone]
+            [phone]
         );
         res.json({ success: true, conflicts: result.rows });
     } catch (err) {
