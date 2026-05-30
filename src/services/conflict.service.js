@@ -83,13 +83,14 @@ const VALID_TRANSITIONS = {
 // ─── TRANSITION DE STATUT ─────────────────────────────────────────────────────
 async function transitionStatut(conflict_id, nouveau_statut, acteur_phone, acteur_role, commentaire, isSuperAdmin = false) {
     const client = await pool.connect();
+    const id = parseInt(conflict_id, 10);
     try {
         await client.query('BEGIN');
 
         // Récupérer le conflit actuel
         const conflictResult = await client.query(
-            `SELECT statut FROM conflicts WHERE id = $1`,
-            [conflict_id]
+            `SELECT statut FROM conflicts WHERE id = $1::int`,
+            [id]
         );
 
         if (!conflictResult.rows.length) {
@@ -109,7 +110,7 @@ async function transitionStatut(conflict_id, nouveau_statut, acteur_phone, acteu
         }
 
         // Mettre à jour le conflit
-        const updates = ['statut = $1::varchar', 'updated_at = NOW()'];
+        const updates = ['statut = $1::text', 'updated_at = NOW()'];
         const values = [nouveau_statut];
         let paramCount = 2;
 
@@ -120,26 +121,26 @@ async function transitionStatut(conflict_id, nouveau_statut, acteur_phone, acteu
             updates.push(`closed_at = NOW()`);
         }
 
-        values.push(conflict_id);
+        values.push(id);
 
         await client.query(
-            `UPDATE conflicts SET ${updates.join(', ')} WHERE id = $${paramCount + 1}::integer`,
+            `UPDATE conflicts SET ${updates.join(', ')} WHERE id = $${paramCount + 1}::int`,
             values
         );
 
         // Insérer l'action de transition
         await client.query(
-            `INSERT INTO conflict_actions 
+            `INSERT INTO conflict_actions
                 (conflict_id, action, ancien_statut, nouveau_statut, acteur_phone, acteur_role, commentaire)
-             VALUES ($1, 'transition', $2, $3, $4, $5, $6)`,
-            [conflict_id, ancien_statut, nouveau_statut, acteur_phone, acteur_role, commentaire || null]
+             VALUES ($1::int, 'transition', $2::text, $3::text, $4::text, $5::text, $6::text)`,
+            [id, ancien_statut, nouveau_statut, acteur_phone, acteur_role, commentaire || null]
         );
 
         // Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('conflict.transition', $1, 'conflicts', $2, $3)`,
-            [acteur_phone, conflict_id, JSON.stringify({ ancien_statut, nouveau_statut, commentaire })]
+             VALUES ($1::text, $2::text, $3::text, $4::int, $5::text)`,
+            [acteur_phone, id, 'conflicts', id, JSON.stringify({ ancien_statut, nouveau_statut, commentaire })]
         ).catch(() => {});
 
         await client.query('COMMIT');
