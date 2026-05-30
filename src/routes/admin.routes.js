@@ -134,9 +134,8 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
         const result = await pool.query(
             `SELECT u.phone, u.role, u.full_name, u.first_name, u.last_name,
                     u.rccm_number, u.agrement_number, u.registration_number,
-                    u.created_at, u.is_active, u.documents_file_ids, u.document_file_id, u.id_card_file_id,
+                    u.created_at, u.is_active, u.documents_file_ids,
                     COALESCE(d.specialty, '') as specialty,
-                    COALESCE(d.document_file_id, ph.document_file_id, l.document_file_id, u.document_file_id) as doc_file_id,
                     COALESCE(d.status, ph.status, l.status, 'pending') as pro_status,
                     COALESCE(d.member_code, ph.member_code, l.member_code) as member_code,
                     COALESCE(ph.name, l.name) as business_name

@@ -1,0 +1,364 @@
+{
+  "info": {
+    "name": "Bolamu — Tests E2E",
+    "_postman_id": "bolamu-e2e-2026",
+    "description": "Collection de tests automatiques des flows Bolamu (inscription patient, connexion, inscription médecin, admin).\n\nPRÉREQUIS :\n1. Sélectionner un environnement Postman contenant au minimum la variable `base_url` (sinon les variables de collection sont utilisées par défaut).\n2. Pour les requêtes d'upload (form-data, champ `file`), attacher manuellement un fichier `test-document.jpg` dans l'onglet Body → form-data (Postman n'autorise pas l'attache automatique d'un fichier).\n3. Les variables `patient_password` et `admin_password` doivent être renseignées manuellement : le mot de passe patient est reçu par SMS après l'inscription, et le mot de passe admin est connu de l'administrateur.\n\nNOTE : l'inscription d'un numéro déjà existant renvoie un statut 409. Changez les numéros (`patient_phone`, `doctor_phone`) pour rejouer les flows d'inscription.\n\nVARIABLES auto-remplies par les tests :\n- upload_token (test 1)\n- file_id (test 2)\n- file_id_diploma (test 6)\n- file_id_ordre (test 7)\n- patient_token (test 3)\n- admin_token (test 9)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://bolamu-backend.onrender.com/api/v1" },
+    { "key": "patient_phone", "value": "+242062325478" },
+    { "key": "patient_password", "value": "" },
+    { "key": "doctor_phone", "value": "+242060000123" },
+    { "key": "admin_phone", "value": "+242060000099" },
+    { "key": "admin_password", "value": "" },
+    { "key": "upload_token", "value": "" },
+    { "key": "file_id", "value": "" },
+    { "key": "file_id_diploma", "value": "" },
+    { "key": "file_id_ordre", "value": "" },
+    { "key": "patient_token", "value": "" },
+    { "key": "admin_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "FLOW 1 — Inscription Patient",
+      "item": [
+        {
+          "name": "1. POST /upload/token (patient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('upload_token présent', function () { pm.expect(json.upload_token).to.be.a('string').and.not.empty; });",
+                  "if (json.upload_token) {",
+                  "  pm.environment.set('upload_token', json.upload_token);",
+                  "  pm.collectionVariables.set('upload_token', json.upload_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{patient_phone}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/upload/token", "host": ["{{base_url}}"], "path": ["upload", "token"] }
+          }
+        },
+        {
+          "name": "2. POST /upload/secure (carte identité)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('file_id présent', function () { pm.expect(json.file_id).to.be.a('string').and.not.empty; });",
+                  "if (json.file_id) {",
+                  "  pm.environment.set('file_id', json.file_id);",
+                  "  pm.collectionVariables.set('file_id', json.file_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{upload_token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [], "description": "Attacher test-document.jpg manuellement" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/upload/secure", "host": ["{{base_url}}"], "path": ["upload", "secure"] }
+          }
+        },
+        {
+          "name": "3. POST /auth/register/patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 ou 201', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "var json = pm.response.json();",
+                  "pm.test('success true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('token présent', function () { pm.expect(json.token).to.be.a('string').and.not.empty; });",
+                  "if (json.token) {",
+                  "  pm.environment.set('patient_token', json.token);",
+                  "  pm.collectionVariables.set('patient_token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{patient_phone}}\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"Bolamu\",\n  \"gender\": \"M\",\n  \"age\": 30,\n  \"city\": \"Brazzaville\",\n  \"documents_file_ids\": { \"id_card\": \"{{file_id}}\" },\n  \"cgu_accepted\": true\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/register/patient", "host": ["{{base_url}}"], "path": ["auth", "register", "patient"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FLOW 2 — Connexion",
+      "item": [
+        {
+          "name": "4. POST /auth/login (patient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('accessToken présent', function () { pm.expect(json.accessToken).to.be.a('string').and.not.empty; });",
+                  "pm.test('redirectUrl présent', function () { pm.expect(json.redirectUrl).to.be.a('string').and.not.empty; });",
+                  "if (json.accessToken) {",
+                  "  pm.environment.set('patient_token', json.accessToken);",
+                  "  pm.collectionVariables.set('patient_token', json.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{patient_phone}}\",\n  \"password\": \"{{patient_password}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FLOW 3 — Inscription Médecin",
+      "item": [
+        {
+          "name": "5. POST /upload/token (médecin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('upload_token présent', function () { pm.expect(json.upload_token).to.be.a('string').and.not.empty; });",
+                  "if (json.upload_token) {",
+                  "  pm.environment.set('upload_token', json.upload_token);",
+                  "  pm.collectionVariables.set('upload_token', json.upload_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{doctor_phone}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/upload/token", "host": ["{{base_url}}"], "path": ["upload", "token"] }
+          }
+        },
+        {
+          "name": "6. POST /upload/secure (diplôme)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('file_id présent', function () { pm.expect(json.file_id).to.be.a('string').and.not.empty; });",
+                  "if (json.file_id) {",
+                  "  pm.environment.set('file_id_diploma', json.file_id);",
+                  "  pm.collectionVariables.set('file_id_diploma', json.file_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{upload_token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [], "description": "Attacher test-document.jpg (diplôme) manuellement" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/upload/secure", "host": ["{{base_url}}"], "path": ["upload", "secure"] }
+          }
+        },
+        {
+          "name": "7. POST /upload/secure (ordre)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('file_id présent', function () { pm.expect(json.file_id).to.be.a('string').and.not.empty; });",
+                  "if (json.file_id) {",
+                  "  pm.environment.set('file_id_ordre', json.file_id);",
+                  "  pm.collectionVariables.set('file_id_ordre', json.file_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{upload_token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [], "description": "Attacher test-document.jpg (carte de l'Ordre) manuellement" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/upload/secure", "host": ["{{base_url}}"], "path": ["upload", "secure"] }
+          }
+        },
+        {
+          "name": "8. POST /auth/register/doctor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 ou 201', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "var json = pm.response.json();",
+                  "pm.test('success true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('token présent', function () { pm.expect(json.token).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{doctor_phone}}\",\n  \"full_name\": \"Dr. Test Bolamu\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"Bolamu\",\n  \"specialty\": \"Médecine générale\",\n  \"registration_number\": \"CMCB-TEST-001\",\n  \"order_country\": \"Congo-Brazzaville\",\n  \"country_of_residence\": \"Congo-Brazzaville\",\n  \"consultation_languages\": \"Français\",\n  \"is_international\": false,\n  \"city\": \"Brazzaville\",\n  \"documents_file_ids\": { \"diploma\": \"{{file_id_diploma}}\", \"ordre\": \"{{file_id_ordre}}\" },\n  \"cgu_accepted\": true\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/register/doctor", "host": ["{{base_url}}"], "path": ["auth", "register", "doctor"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FLOW 4 — Admin",
+      "item": [
+        {
+          "name": "9. POST /auth/admin-login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test(\"role === 'admin'\", function () { pm.expect(json.role).to.eql('admin'); });",
+                  "pm.test('accessToken présent', function () { pm.expect(json.accessToken).to.be.a('string').and.not.empty; });",
+                  "if (json.accessToken) {",
+                  "  pm.environment.set('admin_token', json.accessToken);",
+                  "  pm.collectionVariables.set('admin_token', json.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{admin_phone}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/admin-login", "host": ["{{base_url}}"], "path": ["auth", "admin-login"] }
+          }
+        },
+        {
+          "name": "10. GET /admin/pending",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('success true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('liste des comptes en attente', function () { pm.expect(json.data).to.be.an('array'); });",
+                  "var first = (json.data && json.data[0]) || null;",
+                  "if (first) {",
+                  "  var docMap = first.documents_file_ids;",
+                  "  if (docMap && typeof docMap === 'string') { try { docMap = JSON.parse(docMap); } catch (e) { docMap = {}; } }",
+                  "  var firstFileId = first.doc_file_id || (docMap && (docMap.id_card || docMap.diploma || docMap.rccm || docMap.agrement));",
+                  "  if (firstFileId) {",
+                  "    pm.environment.set('file_id', firstFileId);",
+                  "    pm.collectionVariables.set('file_id', firstFileId);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{base_url}}/admin/pending", "host": ["{{base_url}}"], "path": ["admin", "pending"] }
+          }
+        },
+        {
+          "name": "11. GET /admin/documents/:fileId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('fichier servi (Content-Type présent)', function () { pm.expect(pm.response.headers.get('Content-Type')).to.be.a('string').and.not.empty; });",
+                  "pm.test('corps non vide', function () { pm.expect(pm.response.responseSize).to.be.above(0); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{base_url}}/admin/documents/{{file_id}}", "host": ["{{base_url}}"], "path": ["admin", "documents", "{{file_id}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}
