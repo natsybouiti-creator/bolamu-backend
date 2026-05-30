@@ -1,17 +1,41 @@
 const { Queue } = require('bullmq');
+const { connection } = require('../config/redis');
 
-const connection = { 
-  host: process.env.REDIS_HOST || 'localhost', 
-  port: process.env.REDIS_PORT || 6379 
-};
+// Queue optionnelle : null si Redis indisponible
+let bolamuQueue = null;
 
-const bolamuQueue = new Queue('bolamu', { connection });
-
-async function addNotificationJob(type, payload) {
-  await bolamuQueue.add('send-notification', { type, payload }, { 
-    attempts: 3, 
-    backoff: { type: 'exponential', delay: 5000 } 
-  });
+if (connection) {
+  try {
+    bolamuQueue = new Queue('bolamu', { connection });
+    bolamuQueue.on('error', (err) => {
+      console.warn('[BULLMQ Queue] Erreur (ignorée):', err.message);
+    });
+  } catch (e) {
+    console.warn('[BULLMQ Queue] Initialisation impossible - queue désactivée:', e.message);
+    bolamuQueue = null;
+  }
 }
 
-module.exports = { bolamuQueue, addNotificationJob };
+// Ajoute un job sans jamais bloquer la route appelante
+async function addJob(name, data, opts = {}) {
+  if (!bolamuQueue) {
+    console.warn(`[BULLMQ Queue] Redis indisponible - job '${name}' ignoré`);
+    return null;
+  }
+  try {
+    return await bolamuQueue.add(name, data, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 5000 },
+      ...opts
+    });
+  } catch (e) {
+    console.warn(`[BULLMQ Queue] Échec ajout job '${name}' (ignoré):`, e.message);
+    return null;
+  }
+}
+
+async function addNotificationJob(type, payload) {
+  return addJob('send-notification', { type, payload });
+}
+
+module.exports = { bolamuQueue, addJob, addNotificationJob };

@@ -2,13 +2,14 @@ const { Worker } = require('bullmq');
 const { sendToUser } = require('../services/push.service');
 const { sendBolamuSms } = require('../services/sms.service');
 const db = require('../config/db');
+const { connection } = require('../config/redis');
 
-const connection = { 
-  host: process.env.REDIS_HOST || 'localhost', 
-  port: process.env.REDIS_PORT || 6379 
-};
+let notificationWorker = null;
 
-const notificationWorker = new Worker('bolamu', async (job) => {
+if (!connection) {
+  console.warn('[NOTIFICATION WORKER] Redis indisponible - worker notifications désactivé');
+} else {
+  notificationWorker = new Worker('bolamu', async (job) => {
   const { type, payload } = job.data;
   const startedAt = new Date();
   let itemsProcessed = 0;
@@ -76,14 +77,19 @@ const notificationWorker = new Worker('bolamu', async (job) => {
   }
 });
 
-notificationWorker.on('completed', (job) => {
-  console.log(`[NOTIFICATION WORKER] Job ${job.id} terminé avec succès`);
-});
+  notificationWorker.on('completed', (job) => {
+    console.log(`[NOTIFICATION WORKER] Job ${job.id} terminé avec succès`);
+  });
 
-notificationWorker.on('failed', (job, err) => {
-  console.error(`[NOTIFICATION WORKER] Job ${job?.id} échoué:`, err.message);
-});
+  notificationWorker.on('failed', (job, err) => {
+    console.error(`[NOTIFICATION WORKER] Job ${job?.id} échoué:`, err.message);
+  });
 
-console.log('[NOTIFICATION WORKER] Worker notifications démarré');
+  notificationWorker.on('error', (err) => {
+    console.warn('[NOTIFICATION WORKER] Erreur Redis (ignorée):', err.message);
+  });
+
+  console.log('[NOTIFICATION WORKER] Worker notifications démarré');
+}
 
 module.exports = notificationWorker;

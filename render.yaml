@@ -8,3 +8,15 @@ services:
       name: bolamu-uploads
       mountPath: /var/data
       sizeGB: 10
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: bolamu-redis
+          property: connectionString
+
+  - type: redis
+    name: bolamu-redis
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList: []

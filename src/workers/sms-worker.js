@@ -1,13 +1,14 @@
 const { Worker } = require('bullmq');
 const db = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
+const { connection } = require('../config/redis');
 
-const connection = { 
-  host: process.env.REDIS_HOST || 'localhost', 
-  port: process.env.REDIS_PORT || 6379 
-};
+let smsWorker = null;
 
-const smsWorker = new Worker('bolamu', async (job) => {
+if (!connection) {
+  console.warn('[SMS WORKER] Redis indisponible - worker SMS désactivé');
+} else {
+  smsWorker = new Worker('bolamu', async (job) => {
   const { phones, message } = job.data;
   const startedAt = new Date();
   let itemsProcessed = 0;
@@ -51,14 +52,19 @@ const smsWorker = new Worker('bolamu', async (job) => {
   }
 });
 
-smsWorker.on('completed', (job) => {
-  console.log(`[SMS WORKER] Job ${job.id} terminé avec succès`);
-});
+  smsWorker.on('completed', (job) => {
+    console.log(`[SMS WORKER] Job ${job.id} terminé avec succès`);
+  });
 
-smsWorker.on('failed', (job, err) => {
-  console.error(`[SMS WORKER] Job ${job?.id} échoué:`, err.message);
-});
+  smsWorker.on('failed', (job, err) => {
+    console.error(`[SMS WORKER] Job ${job?.id} échoué:`, err.message);
+  });
 
-console.log('[SMS WORKER] Worker SMS démarré');
+  smsWorker.on('error', (err) => {
+    console.warn('[SMS WORKER] Erreur Redis (ignorée):', err.message);
+  });
+
+  console.log('[SMS WORKER] Worker SMS démarré');
+}
 
 module.exports = smsWorker;

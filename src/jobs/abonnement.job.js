@@ -1,16 +1,14 @@
 const cron = require('node-cron');
 const db = require('../config/db');
 const { notify } = require('../services/notification.service');
-const { bolamuQueue } = require('../queues/bolamu-queue');
+const { addJob } = require('../queues/bolamu-queue');
 
 // Fonction helper pour envoyer SMS en batch via BullMQ
+// Non bloquant : si Redis est indisponible, le job est simplement ignoré
 async function sendSmsBatch(phones, message) {
   if (phones.length === 0) return 0;
   
-  await bolamuQueue.add('send-sms-batch', { phones, message }, {
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 5000 }
-  });
+  await addJob('send-sms-batch', { phones, message });
   
   return phones.length;
 }
