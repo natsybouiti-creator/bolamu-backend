@@ -842,18 +842,19 @@ router.post('/subscriptions/activate', authMiddleware, adminOnly, async (req, re
 // ─── MIGRATION DOCUMENTS VERS NOUVELLE TABLE DOCUMENTS ───────────────────────
 router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
   try {
-    console.log('[MIGRATE] Début migration depuis users.documents_file_ids');
+    console.log('[MIGRATE] Début migration');
 
     // 1. Migration depuis users.documents_file_ids (Persistent Disk)
+    console.log('[MIGRATE] Recherche Persistent Disk...');
     const users = await pool.query(
       `SELECT id, documents_file_ids, created_at 
        FROM users 
        WHERE documents_file_ids IS NOT NULL 
-       AND documents_file_ids != '[]'::jsonb
-       AND documents_file_ids != 'null'::jsonb`
+       AND documents_file_ids::text != '{}'
+       AND documents_file_ids::text != 'null'`
     );
 
-    console.log('[MIGRATE] Users avec documents_file_ids:', users.rows.length);
+    console.log('[MIGRATE] Users avec disk docs:', users.rows.length);
 
     let migratedCount = 0;
 
@@ -889,12 +890,15 @@ router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
     console.log('[MIGRATE] Documents Persistent Disk migrés:', migratedCount);
 
     // 2. Migration depuis users.id_card_url (Cloudinary)
+    console.log('[MIGRATE] Recherche Cloudinary...');
     const cloudinaryUsers = await pool.query(
-      `SELECT id, id_card_url, created_at FROM users
-       WHERE id_card_url LIKE '%cloudinary%'`
+      `SELECT id, id_card_url, created_at 
+       FROM users 
+       WHERE id_card_url IS NOT NULL 
+       AND id_card_url LIKE '%cloudinary%'`
     );
 
-    console.log('[MIGRATE] Users avec Cloudinary id_card_url:', cloudinaryUsers.rows.length);
+    console.log('[MIGRATE] Users avec Cloudinary:', cloudinaryUsers.rows.length);
 
     let cloudinaryCount = 0;
 
