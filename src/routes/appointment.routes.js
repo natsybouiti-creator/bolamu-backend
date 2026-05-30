@@ -38,11 +38,17 @@ router.get('/slots/:doctor_id', async (req, res) => {
         );
         const pris = prisResult.rows.map(r => r.appointment_time.slice(0,5));
         
-        // Récupérer les blocages agenda pour cette date
-        const blocksResult = await pool.query(
-            `SELECT block_start, block_end FROM agenda_blocks WHERE doctor_id = $1 AND block_date = $2`,
-            [doctor_id, date]
-        );
+        // Récupérer les blocages agenda pour cette date (gérer si table n'existe pas)
+        let blocksResult = { rows: [] };
+        try {
+            blocksResult = await pool.query(
+                `SELECT block_start, block_end FROM agenda_blocks WHERE doctor_id = $1 AND block_date = $2`,
+                [doctor_id, date]
+            );
+        } catch (blockErr) {
+            console.error('[SLOTS] agenda_blocks table error:', blockErr.message);
+            // Continuer sans blocages si table n'existe pas
+        }
         
         // Filtrer les créneaux libres en excluant ceux dans les blocages
         const libres = creneaux.filter(c => {
@@ -70,6 +76,7 @@ router.get('/slots/:doctor_id', async (req, res) => {
         
         res.json({ success: true, slots: libres, pris: tousPris, jour: jour });
     } catch(err) {
+        console.error('[SLOTS] Error:', err.message, err.stack);
         res.status(500).json({ error: err.message });
     }
 });
