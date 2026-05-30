@@ -24,21 +24,54 @@ router.get('/slots/:doctor_id', async (req, res) => {
     const { date } = req.query;
     if (!date) return res.status(400).json({ error: "Date requise" });
     try {
-        const docResult = await pool.query(`SELECT availability_schedule FROM doctors WHERE id = $1`, [doctor_id]);
-        if (!docResult.rows.length) return res.status(404).json({ error: "Médecin introuvable" });
-        
-        const schedule = docResult.rows[0].availability_schedule || {};
-        const jours = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
-        const jour = jours[new Date(date).getDay()];
-        const creneaux = schedule[jour] || [];
-        
+        // 1. Récupère le jour de la semaine de la date demandée
+        const dateObj = new Date(date + 'T00:00:00');
+        const dayOfWeek = dateObj.getDay(); // 0=Dim, 1=Lun...
+
+        // 2. Récupère les disponibilités du médecin pour ce jour
+        const availResult = await pool.query(
+            `SELECT start_time, end_time, slot_duration 
+             FROM doctor_availabilities 
+             WHERE doctor_id = $1 AND day_of_week = $2 AND is_active = true`,
+            [doctor_id, dayOfWeek]
+        );
+
+        if (!availResult.rows.length) {
+            return res.json({ success: true, slots: [], pris: [], message: 'Aucune disponibilité ce jour' });
+        }
+
+        // 3. Génère les créneaux entre start_time et end_time par tranches de slot_duration minutes
+        function generateSlots(start, end, duration) {
+            const slots = [];
+            let [h, m] = start.split(':').map(Number);
+            const [eh, em] = end.split(':').map(Number);
+            while (h < eh || (h === eh && m < em)) {
+                slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+                m += duration;
+                if (m >= 60) { h += Math.floor(m/60); m = m % 60; }
+            }
+            return slots;
+        }
+
+        const allSlots = [];
+        for (const avail of availResult.rows) {
+            const slots = generateSlots(avail.start_time, avail.end_time, avail.slot_duration);
+            allSlots.push(...slots);
+        }
+
+        // 4. Récupère les créneaux déjà pris
         const prisResult = await pool.query(
-            `SELECT appointment_time FROM appointments WHERE doctor_id = $1 AND appointment_date = $2 AND status IN ('confirme', 'en_attente')`,
+            `SELECT appointment_time FROM appointments 
+             WHERE doctor_id = $1 AND appointment_date = $2 
+             AND status NOT IN ('annule', 'refuse')`,
             [doctor_id, date]
         );
+
+        // 5. Filtre les slots pris
         const pris = prisResult.rows.map(r => r.appointment_time.slice(0,5));
-        
-        // Récupérer les blocages agenda pour cette date (gérer si table n'existe pas)
+        const libres = allSlots.filter(s => !pris.includes(s));
+
+        // 6. Gère agenda_blocks (si table existe)
         let blocksResult = { rows: [] };
         try {
             blocksResult = await pool.query(
@@ -47,13 +80,10 @@ router.get('/slots/:doctor_id', async (req, res) => {
             );
         } catch (blockErr) {
             console.error('[SLOTS] agenda_blocks table error:', blockErr.message);
-            // Continuer sans blocages si table n'existe pas
         }
-        
-        // Filtrer les créneaux libres en excluant ceux dans les blocages
-        const libres = creneaux.filter(c => {
-            if (pris.includes(c)) return false;
-            // Vérifier si le créneau est dans un blocage
+
+        // Filtre les créneaux bloqués
+        const libresFinal = libres.filter(c => {
             for (const block of blocksResult.rows) {
                 if (c >= block.block_start && c < block.block_end) {
                     return false;
@@ -61,20 +91,19 @@ router.get('/slots/:doctor_id', async (req, res) => {
             }
             return true;
         });
-        
-        // Ajouter les créneaux bloqués à la liste pris
+
         const bloques = [];
         for (const block of blocksResult.rows) {
-            for (const c of creneaux) {
+            for (const c of allSlots) {
                 if (c >= block.block_start && c < block.block_end && !pris.includes(c) && !bloques.includes(c)) {
                     bloques.push(c);
                 }
             }
         }
-        
+
         const tousPris = [...pris, ...bloques];
-        
-        res.json({ success: true, slots: libres, pris: tousPris, jour: jour });
+
+        res.json({ success: true, slots: libresFinal, pris: tousPris, jour: date });
     } catch(err) {
         console.error('[SLOTS] Error:', err.message, err.stack);
         res.status(500).json({ error: err.message });
