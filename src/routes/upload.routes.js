@@ -62,18 +62,39 @@ router.post('/secure', verifyUploadToken, upload.single('file'), async (req, res
       return res.status(400).json({ success: false, message: 'Aucun fichier fourni' });
     }
 
-    const fileId = crypto.randomUUID();
+    console.log('[UPLOAD] Fichier uploadé:', req.file.filename);
+    console.log('[UPLOAD] Sauvegarde dans DB...');
 
-    // Enregistrer les métadonnées en base
-    await pool.query(
-      `INSERT INTO documents (file_id, filename, original_name, mimetype, size, uploaded_by)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [fileId, req.file.filename, req.file.originalname, req.file.mimetype, req.file.size, req.uploadPhone]
+    // Trouver l'user_id correspondant au phone
+    const userResult = await pool.query(
+      'SELECT id FROM users WHERE phone = $1',
+      [req.uploadPhone]
     );
 
-    res.json({ success: true, file_id: fileId });
+    if (!userResult.rows.length) {
+      console.log('[UPLOAD] User non trouvé pour phone:', req.uploadPhone);
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+    }
+
+    const userId = userResult.rows[0].id;
+    const storagePath = `/var/data/uploads/${req.file.filename}`;
+
+    const result = await pool.query(
+      `INSERT INTO documents 
+       (owner_id, uploaded_by, document_type, filename, original_name, 
+        mimetype, file_size, storage_path, created_at)
+       VALUES ($1, $2, 'identite', $3, $4, $5, $6, $7, NOW())
+       RETURNING id`,
+      [userId, userId, req.file.filename, req.file.originalname, 
+       req.file.mimetype, req.file.size, storagePath]
+    );
+
+    console.log('[UPLOAD] Résultat:', result.rows[0]);
+
+    res.json({ success: true, file_id: result.rows[0].id });
   } catch (error) {
     console.error('[UPLOAD SECURE] Erreur:', error.message);
+    console.error('[UPLOAD SECURE] Stack:', error.stack);
     res.status(500).json({ success: false, message: 'Erreur lors de l\'upload' });
   }
 });

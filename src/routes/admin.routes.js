@@ -844,6 +844,7 @@ router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
   try {
     console.log('[MIGRATE] Début migration depuis users.documents_file_ids');
 
+    // 1. Migration depuis users.documents_file_ids (Persistent Disk)
     const users = await pool.query(
       `SELECT id, documents_file_ids, created_at 
        FROM users 
@@ -852,7 +853,7 @@ router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
        AND documents_file_ids != 'null'::jsonb`
     );
 
-    console.log('[MIGRATE] Users avec documents:', users.rows.length);
+    console.log('[MIGRATE] Users avec documents_file_ids:', users.rows.length);
 
     let migratedCount = 0;
 
@@ -885,11 +886,43 @@ router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
       }
     }
 
-    console.log('[MIGRATE] Documents migrés:', migratedCount);
+    console.log('[MIGRATE] Documents Persistent Disk migrés:', migratedCount);
+
+    // 2. Migration depuis users.id_card_url (Cloudinary)
+    const cloudinaryUsers = await pool.query(
+      `SELECT id, id_card_url, created_at FROM users
+       WHERE id_card_url LIKE '%cloudinary%'`
+    );
+
+    console.log('[MIGRATE] Users avec Cloudinary id_card_url:', cloudinaryUsers.rows.length);
+
+    let cloudinaryCount = 0;
+
+    for (const user of cloudinaryUsers.rows) {
+      try {
+        await pool.query(
+          `INSERT INTO documents 
+           (owner_id, uploaded_by, document_type, 
+            filename, original_name, mimetype, 
+            storage_path, created_at)
+           VALUES ($1,$2,'identite',$3,'Carte d identite','image/jpeg',$4,$5)
+           ON CONFLICT DO NOTHING`,
+          [user.id, user.id, 
+           user.id_card_url,
+           user.id_card_url,
+           user.created_at]
+        );
+        cloudinaryCount++;
+      } catch (insertErr) {
+        console.log('[MIGRATE] Erreur insertion Cloudinary user:', user.id, insertErr.message);
+      }
+    }
+
+    console.log('[MIGRATE] Documents Cloudinary migrés:', cloudinaryCount);
 
     res.json({ 
       success: true, 
-      message: `${migratedCount} document(s) migré(s) depuis ${users.rows.length} user(s)` 
+      message: `${migratedCount} document(s) Persistent Disk + ${cloudinaryCount} Cloudinary migré(s)` 
     });
   } catch (err) {
     console.log('[MIGRATE] Erreur:', err.message);
