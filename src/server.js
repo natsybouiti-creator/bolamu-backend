@@ -110,6 +110,8 @@ const symptomsRoutes      = require('./routes/symptoms.routes');
 const aiConsultRoutes     = require('./routes/ai-consult.routes');
 const uploadRoutes         = require('./routes/upload.routes');
 const adminDocsRoutes      = require('./routes/admin-docs.routes');
+const healthRecordsRouter  = require('./routes/healthRecords.routes');
+const consentRouter        = require('./routes/consent.routes');
 // ============================================================
 // 3. ROUTES API (V1)
 // ============================================================
@@ -155,6 +157,8 @@ app.use('/api/v1',              symptomsRoutes);
 app.use('/api/v1',              aiConsultRoutes);
 app.use('/api/v1/upload',       uploadRoutes);
 app.use('/api/v1/admin',       adminDocsRoutes);
+app.use('/api/v1/health-records', healthRecordsRouter);
+app.use('/api/v1/consent',     consentRouter);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================

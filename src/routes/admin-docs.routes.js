@@ -9,46 +9,52 @@ const { requireAdmin } = require('../middleware/auth.middleware');
 // GET /api/v1/admin/documents/:fileId - Servir un document à l'admin
 router.get('/documents/:fileId', requireAdmin, async (req, res) => {
   try {
-    const { fileId } = req.params;
-    console.log('[DOCUMENTS] fileId:', fileId);
-    console.log('[DOCUMENTS] Requête SQL lancée...');
-
-    // Récupérer les métadonnées du document
-    const { rows } = await pool.query(
-      'SELECT filename, mimetype, original_name FROM documents WHERE file_id = $1',
-      [fileId]
+    // Cherche d'abord dans la nouvelle table documents
+    let result = await pool.query(
+      `SELECT * FROM documents WHERE id=$1 AND is_deleted=false`,
+      [req.params.fileId]
     );
 
-    console.log('[DOCUMENTS] Résultat DB:', rows);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Document non trouvé' });
+    // Fallback sur l'ancienne table uploads si pas trouvé
+    if (!result.rows.length) {
+      result = await pool.query(
+        `SELECT filename, mimetype, original_name,
+                '/var/data/uploads/' || filename as storage_path
+         FROM uploads WHERE id=$1`,
+        [req.params.fileId]
+      );
     }
 
-    const doc = rows[0];
+    if (!result.rows.length) {
+      return res.status(404).json({ 
+        success: false, message: 'Document introuvable en base' 
+      });
+    }
 
-    // Déterminer le chemin du fichier avec fallback
-    const uploadDir = process.env.NODE_ENV === 'production' 
-      && fs.existsSync('/var/data')
-        ? '/var/data/uploads/documents' 
-        : path.join(process.cwd(), 'uploads', 'documents');
-    
-    const filePath = path.join(uploadDir, doc.filename);
+    const doc = result.rows[0];
+    const filePath = doc.storage_path || 
+                     `/var/data/uploads/${doc.filename}`;
 
-    // Vérifier que le fichier existe
+    console.log('[DOCUMENTS] Chemin:', filePath);
+
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ success: false, message: 'Fichier non trouvé sur le serveur' });
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Fichier introuvable sur le disque',
+        filename: doc.filename
+      });
     }
 
-    // Servir le fichier avec des headers de sécurité
-    res.setHeader('Content-Disposition', `inline; filename="${doc.original_name}"`);
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader(
+      'Content-Disposition', 
+      `inline; filename="${doc.original_name || doc.filename}"` 
+    );
+    res.setHeader('Content-Type', doc.mimetype || 'application/octet-stream');
     res.sendFile(filePath);
-  } catch (error) {
-    console.log('[DOCUMENTS] Erreur SQL:', error.message);
-    console.log('[DOCUMENTS] Erreur détail:', error.detail);
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
+
+  } catch (err) {
+    console.error('[DOCUMENTS] Erreur:', err.message);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 

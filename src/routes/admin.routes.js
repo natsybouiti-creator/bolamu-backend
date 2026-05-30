@@ -838,4 +838,38 @@ router.post('/subscriptions/activate', authMiddleware, adminOnly, async (req, re
     res.json({ success:true, message:`Abonnement ${plan} activé pour ${phone}`, expires_at:endDate });
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
+
+// ─── MIGRATION UPLOADS VERS NOUVELLE TABLE DOCUMENTS ───────────────────────
+router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const uploads = await pool.query(
+      `SELECT * FROM uploads WHERE id NOT IN 
+       (SELECT id::text FROM documents WHERE document_type='identite')`
+    );
+
+    for (const upload of uploads.rows) {
+      await pool.query(
+        `INSERT INTO documents 
+         (owner_id, uploaded_by, document_type, 
+          filename, original_name, mimetype, 
+          storage_path, created_at)
+         VALUES ($1,$2,'identite',$3,$4,$5,$6,$7)
+         ON CONFLICT DO NOTHING`,
+        [upload.user_id, upload.user_id, 
+         upload.filename, upload.original_name,
+         upload.mimetype,
+         `/var/data/uploads/${upload.filename}`,
+         upload.created_at]
+      );
+    }
+
+    res.json({ 
+      success: true, 
+      message: `${uploads.rows.length} document(s) migré(s)` 
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;
