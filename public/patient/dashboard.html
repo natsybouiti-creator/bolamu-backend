@@ -1843,13 +1843,13 @@ async function loadConflits() {
       return;
     }
     container.innerHTML = data.data.map(c => {
-      const st = CONFLIT_STATUS_LABELS[c.status] || {label:c.status, color:'var(--texte-doux)', bg:'var(--bleu-pale)'};
+      const st = CONFLIT_STATUS_LABELS[c.statut] || {label:c.statut, color:'var(--texte-doux)', bg:'var(--bleu-pale)'};
       const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'});
-      return `<div class="rdv-card" style="cursor:pointer;" data-action="open-detail-conflit" data-id="${c.id}" data-ref="${c.reference}" data-sujet="${c.subject.replace(/"/g,'&quot;')}">
+      return `<div class="rdv-card" style="cursor:pointer;" data-action="open-detail-conflit" data-id="${c.id}" data-ref="${c.reference}" data-sujet="${c.sujet.replace(/"/g,'&quot;')}">
         <div class="rdv-left">
           <div class="rdv-icon">⚖️</div>
           <div>
-            <div class="rdv-doctor">${c.subject}</div>
+            <div class="rdv-doctor">${c.sujet}</div>
             <div class="rdv-date">${date} · ${c.partner_type}</div>
             <div style="margin-top:6px;"><span style="background:${st.bg};color:${st.color};padding:3px 12px;border-radius:50px;font-size:12px;font-weight:600;">${st.label}</span></div>
           </div>
