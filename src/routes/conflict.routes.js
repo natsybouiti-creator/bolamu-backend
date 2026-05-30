@@ -40,8 +40,31 @@ router.post('/conflicts', authMiddleware, createConflictController);
 router.get('/conflicts/:id', authMiddleware, getConflict);
 router.post('/conflicts/:id/messages', authMiddleware, addMessageController);
 
-// Alias admin pour listing global
-router.get('/conflicts', authMiddleware, adminOnly, listConflicts);
+// Patient : voir ses propres conflits
+router.get('/conflicts', authMiddleware, async (req, res) => {
+    const phone = req.user.phone;
+    const role = req.user.role;
+
+    try {
+        if (role === 'patient') {
+            // Patient ne voit que ses propres conflits
+            const result = await pool.query(
+                `SELECT id, reference, sujet, description, statut, priorite, created_at, resolved_at, partner_type, partner_phone
+                 FROM conflicts 
+                 WHERE patient_phone = $1 
+                 ORDER BY created_at DESC`,
+                [phone]
+            );
+            return res.json({ success: true, data: result.rows });
+        } else {
+            // Admin et autres rôles voient tous les conflits
+            return listConflicts(req, res);
+        }
+    } catch (err) {
+        console.error('[conflicts]', err.message);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
 
 // ─── ROUTES ADMIN ─────────────────────────────────────────────────────────────
 router.get('/admin/conflicts', authMiddleware, adminOnly, listConflicts);
