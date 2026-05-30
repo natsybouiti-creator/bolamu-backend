@@ -1,0 +1,31 @@
+$kind: collection
+description: |-
+  Collection de tests automatiques des flows Bolamu (inscription patient, connexion, inscription médecin, admin).
+
+  PRÉREQUIS :
+  1. Sélectionner un environnement Postman contenant au minimum la variable `base_url` (sinon les variables de collection sont utilisées par défaut).
+  2. Pour les requêtes d'upload (form-data, champ `file`), attacher manuellement un fichier `test-document.jpg` dans l'onglet Body → form-data (Postman n'autorise pas l'attache automatique d'un fichier).
+  3. Les variables `patient_password` et `admin_password` doivent être renseignées manuellement : le mot de passe patient est reçu par SMS après l'inscription, et le mot de passe admin est connu de l'administrateur.
+
+  NOTE : l'inscription d'un numéro déjà existant renvoie un statut 409. Changez les numéros (`patient_phone`, `doctor_phone`) pour rejouer les flows d'inscription.
+
+  VARIABLES auto-remplies par les tests :
+  - upload_token (test 1)
+  - file_id (test 2)
+  - file_id_diploma (test 6)
+  - file_id_ordre (test 7)
+  - patient_token (test 3)
+  - admin_token (test 9)
+variables:
+  base_url: https://bolamu-backend.onrender.com/api/v1
+  patient_phone: "+242062325478"
+  patient_password: ""
+  doctor_phone: "+242060000123"
+  admin_phone: "+242060000099"
+  admin_password: ""
+  upload_token: ""
+  file_id: ""
+  file_id_diploma: ""
+  file_id_ordre: ""
+  patient_token: ""
+  admin_token: ""

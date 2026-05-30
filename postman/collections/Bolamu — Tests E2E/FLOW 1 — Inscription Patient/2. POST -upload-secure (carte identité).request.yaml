@@ -1,0 +1,25 @@
+$kind: http-request
+name: 2. POST /upload/secure (carte identité)
+url: "{{base_url}}/upload/secure"
+method: POST
+headers:
+  Authorization: Bearer {{upload_token}}
+body:
+  type: formdata
+  content:
+    - type: file
+      key: file
+      src: []
+      description: Attacher test-document.jpg manuellement
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', function () { pm.response.to.have.status(200); });
+      var json = pm.response.json();
+      pm.test('file_id présent', function () { pm.expect(json.file_id).to.be.a('string').and.not.empty; });
+      if (json.file_id) {
+        pm.environment.set('file_id', json.file_id);
+        pm.collectionVariables.set('file_id', json.file_id);
+      }
+    language: text/javascript
+order: 2000

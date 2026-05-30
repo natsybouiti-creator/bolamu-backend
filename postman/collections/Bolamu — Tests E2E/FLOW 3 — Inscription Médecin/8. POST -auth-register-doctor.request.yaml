@@ -1,0 +1,33 @@
+$kind: http-request
+name: 8. POST /auth/register/doctor
+url: "{{base_url}}/auth/register/doctor"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "phone": "{{doctor_phone}}",
+      "full_name": "Dr. Test Bolamu",
+      "first_name": "Test",
+      "last_name": "Bolamu",
+      "specialty": "Médecine générale",
+      "registration_number": "CMCB-TEST-001",
+      "order_country": "Congo-Brazzaville",
+      "country_of_residence": "Congo-Brazzaville",
+      "consultation_languages": "Français",
+      "is_international": false,
+      "city": "Brazzaville",
+      "documents_file_ids": { "diploma": "{{file_id_diploma}}", "ordre": "{{file_id_ordre}}" },
+      "cgu_accepted": true
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200 ou 201', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });
+      var json = pm.response.json();
+      pm.test('success true', function () { pm.expect(json.success).to.eql(true); });
+      pm.test('token présent', function () { pm.expect(json.token).to.be.a('string').and.not.empty; });
+    language: text/javascript
+order: 4000

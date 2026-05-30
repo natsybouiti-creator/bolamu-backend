@@ -1,0 +1,14 @@
+$kind: http-request
+name: 11. GET /admin/documents/:fileId
+url: "{{base_url}}/admin/documents/{{file_id}}"
+method: GET
+headers:
+  Authorization: Bearer {{admin_token}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', function () { pm.response.to.have.status(200); });
+      pm.test('fichier servi (Content-Type présent)', function () { pm.expect(pm.response.headers.get('Content-Type')).to.be.a('string').and.not.empty; });
+      pm.test('corps non vide', function () { pm.expect(pm.response.responseSize).to.be.above(0); });
+    language: text/javascript
+order: 3000

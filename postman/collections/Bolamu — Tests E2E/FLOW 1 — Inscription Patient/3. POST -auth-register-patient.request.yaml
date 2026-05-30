@@ -1,0 +1,32 @@
+$kind: http-request
+name: 3. POST /auth/register/patient
+url: "{{base_url}}/auth/register/patient"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "phone": "{{patient_phone}}",
+      "first_name": "Test",
+      "last_name": "Bolamu",
+      "gender": "M",
+      "age": 30,
+      "city": "Brazzaville",
+      "documents_file_ids": { "id_card": "{{file_id}}" },
+      "cgu_accepted": true
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200 ou 201', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });
+      var json = pm.response.json();
+      pm.test('success true', function () { pm.expect(json.success).to.eql(true); });
+      pm.test('token présent', function () { pm.expect(json.token).to.be.a('string').and.not.empty; });
+      if (json.token) {
+        pm.environment.set('patient_token', json.token);
+        pm.collectionVariables.set('patient_token', json.token);
+      }
+    language: text/javascript
+order: 3000

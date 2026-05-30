@@ -1,0 +1,26 @@
+$kind: http-request
+name: 4. POST /auth/login (patient)
+url: "{{base_url}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "phone": "{{patient_phone}}",
+      "password": "{{patient_password}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', function () { pm.response.to.have.status(200); });
+      var json = pm.response.json();
+      pm.test('accessToken présent', function () { pm.expect(json.accessToken).to.be.a('string').and.not.empty; });
+      pm.test('redirectUrl présent', function () { pm.expect(json.redirectUrl).to.be.a('string').and.not.empty; });
+      if (json.accessToken) {
+        pm.environment.set('patient_token', json.accessToken);
+        pm.collectionVariables.set('patient_token', json.accessToken);
+      }
+    language: text/javascript
+order: 1000

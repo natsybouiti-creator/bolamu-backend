@@ -1,0 +1,26 @@
+$kind: http-request
+name: 9. POST /auth/admin-login
+url: "{{base_url}}/auth/admin-login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "phone": "{{admin_phone}}",
+      "password": "{{admin_password}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', function () { pm.response.to.have.status(200); });
+      var json = pm.response.json();
+      pm.test("role === 'admin'", function () { pm.expect(json.role).to.eql('admin'); });
+      pm.test('accessToken présent', function () { pm.expect(json.accessToken).to.be.a('string').and.not.empty; });
+      if (json.accessToken) {
+        pm.environment.set('admin_token', json.accessToken);
+        pm.collectionVariables.set('admin_token', json.accessToken);
+      }
+    language: text/javascript
+order: 1000

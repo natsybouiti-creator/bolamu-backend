@@ -1,0 +1,25 @@
+$kind: http-request
+name: 10. GET /admin/pending
+url: "{{base_url}}/admin/pending"
+method: GET
+headers:
+  Authorization: Bearer {{admin_token}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', function () { pm.response.to.have.status(200); });
+      var json = pm.response.json();
+      pm.test('success true', function () { pm.expect(json.success).to.eql(true); });
+      pm.test('liste des comptes en attente', function () { pm.expect(json.data).to.be.an('array'); });
+      var first = (json.data && json.data[0]) || null;
+      if (first) {
+        var docMap = first.documents_file_ids;
+        if (docMap && typeof docMap === 'string') { try { docMap = JSON.parse(docMap); } catch (e) { docMap = {}; } }
+        var firstFileId = first.doc_file_id || (docMap && (docMap.id_card || docMap.diploma || docMap.rccm || docMap.agrement));
+        if (firstFileId) {
+          pm.environment.set('file_id', firstFileId);
+          pm.collectionVariables.set('file_id', firstFileId);
+        }
+      }
+    language: text/javascript
+order: 2000
