@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 28 mai 2026
+Mis à jour : 30 mai 2026
 Statut : EN PRODUCTION — https://bolamu-backend.onrender.com
 Score Ayokai : 21/23 (91.3%)
 
@@ -117,6 +117,7 @@ appointment_symptoms, secretary_assignments, agenda_blocks, queue_entries
 - company_employee_status : {pending, active, suspended}
 - partner_payout_status : {pending, paid, failed}
 - partner_zone_type : {clinique, pharmacie, laboratoire}
+- canal_paiement_enum : {ovp_bancaire, momo_annuel, familial, sepa_diaspora}
 
 ### Tables manquantes (roadmap)
 notifications
@@ -175,6 +176,19 @@ notifications
 - Téléconsultation JaaS 8x8.vc
 - RDV patient : GET /api/v1/appointments/patient/:phone
 - Sentry monitoring
+- Upload documents → Cloudinary authenticated ✅
+- Visualisation document admin (id numérique + storage_path direct) ✅
+- Dashboard patient : token sauvegardé, abonnement actif ✅
+- Dossier médical patient (route POST constantes) ✅
+- Réclamations patient : soumission + historique ✅
+- Conflits admin : liste, voir détail, changement statut, escalade, messages ✅
+- Panels admin débloqués : Collecte, Conventions, Clearing CDR ✅
+- Landing page Next.js statique servie depuis public/ ✅
+- PWA : manifest.json + favicons tous navigateurs (Safari iOS inclus) ✅
+- Register multi-étapes : uploads par rôle (JSONB) ✅
+- BHP v1.2 : health_records + consentements + access_log + purge cron ✅
+- Redis/BullMQ rendu optionnel (ne crashe plus les routes critiques) ✅
+- Dashboards RH et Secrétaire créés ✅
 
 ## FLUX IMPLÉMENTÉS — EN ATTENTE DE TEST
 - Virements bancaires individuels (patient → Bolamu) et B2B (entreprise → Bolamu)
@@ -213,6 +227,9 @@ notifications
 23. Middleware : errorHandler pour erreurs standardisées sans stack trace
 24. Paiements manuels uniquement (pas d'API MTN/Airtel)
 25. 7 rôles : patient, doctor, pharmacie, laboratoire, admin, content_admin, secretaire
+26. Fonction api() dans dashboard admin préfixe automatiquement /api/v1 — ne jamais répéter /api/v1 dans les URLs passées à api()
+27. phone en path param URL → problème avec le + — toujours utiliser query param : ?phone=encodeURIComponent(phone)
+28. Panel admin : go() gère display explicitement — ne jamais mettre display:none inline sur les panels
 
 ## BUGS CORRIGÉS — NE JAMAIS REPRODUIRE
 - Double insertion users à l'inscription partenaire — supprimé INSERT users dans auth.controller.js
@@ -232,6 +249,16 @@ notifications
 - document_public_id non récupéré à l'inscription partenaire — corrigé 25 avril 2026 (register.html + auth.controller.js)
 - handlePaymentSuccess mettait à jour users.statut_abonnement au lieu de créer dans subscriptions — corrigé 25 avril 2026
 - Montant paiement MoMo non validé contre platform_config — corrigé 25 avril 2026
+- Route /admin/documents utilisait public_id Cloudinary avec slashes → Express cassé — corrigé : utilise id numérique + storage_path direct
+- Panel admin display:none inline non overridable par CSS — corrigé : go() force style.display explicitement
+- bolamu_patient_token non sauvegardé après login — corrigé : frontend lit accessToken
+- loadConflits lisait d.conflicts au lieu de d.data.conflicts — corrigé
+- audit_log payload envoyé en text au lieu de jsonb → rollback silencieux — corrigé : cast $5::jsonb
+- paramCount non incrémenté dans transitionStatut conflicts — corrigé : utilise values.length dynamiquement
+- Enum subscription_plan : bronze/silver/gold inexistants — valeurs réelles : essentiel/standard/premium
+- Enum canal_paiement_enum : 'admin' invalide — valeurs réelles : ovp_bancaire/momo_annuel/familial/sepa_diaspora
+- + dans numéro de téléphone en path param URL → Express 404 — corrigé : query param ?phone=encodeURIComponent(phone)
+- Fonction api() dans dashboard admin préfixe déjà /api/v1 — ne pas le répéter dans les URLs
 
 ## TRAVAUX EN COURS — SUITE IMMÉDIATE
 Mis à jour : 28 avril 2026
@@ -296,6 +323,7 @@ admin, content_admin, secretaire, company_rh
 - Pharmacie : +242066226116
 - Laboratoire : +242068582563
 - Admin : +242060000099
+- Patient test RDV : +242065458932 (RifRaf Jordan — abonnement essentiel actif, ligne subscriptions créée manuellement)
 
 ### Partenaires de test avec conventions actives
 - Pharmacie +242066226116 (mot de passe : WR383LMW) — convention active, discount 15%
@@ -362,7 +390,7 @@ admin, content_admin, secretaire, company_rh
 - Airtel Money — en attente credentials API
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
-users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts (obsolète — non utilisée), bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts, ovp_documents, beneficiaires_familiaux, cron_logs, conflicts, conflict_messages, conflict_actions, coupons, coupon_usages, idempotency_keys, push_subscriptions, notifications, secretaires, file_attente, agenda_blocs, pre_rdv_formulaires, ai_consult_sessions, renouvellement_demandes, hors_catalogue_transactions, medicaments_catalogue, export_paie_mensuel, appointment_symptoms, secretary_assignments, queue_entries
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts (obsolète — non utilisée), bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts, ovp_documents, beneficiaires_familiaux, cron_logs, conflicts, conflict_messages, conflict_actions, coupons, coupon_usages, idempotency_keys, push_subscriptions, notifications, secretaires, file_attente, agenda_blocs, pre_rdv_formulaires, ai_consult_sessions, renouvellement_demandes, hors_catalogue_transactions, medicaments_catalogue, export_paie_mensuel, appointment_symptoms, secretary_assignments, queue_entries, health_records, consentements, documents
 
 ## COLONNES GPS AJOUTÉES — 25 AVRIL 2026
 Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), longitude DECIMAL(10,7), address TEXT
@@ -502,6 +530,11 @@ map.routes.js — /api/v1/map
 smartflow.routes.js — /api/v1/smartflow
 ai-consult.routes.js — /api/v1/ai-consult
 push.routes.js — /api/v1/push
+admin-docs.routes.js — /api/v1/admin/documents
+health-records.routes.js — /api/v1/health-records
+consent.routes.js — /api/v1/consent
+upload.routes.js — /api/v1/upload
+symptoms.routes.js — /api/v1/symptoms
 
 ## SERVICES DISPONIBLES (src/services/)
 airtel.service.js — Service Airtel Money
@@ -643,3 +676,27 @@ Total rôles : 9 (patient, doctor, pharmacie, laboratoire, admin, content_admin,
 ## SKILLS WINDSURF AJOUTÉS — 28 MAI 2026
 - .windsurf/rules/bolamu-smartflow.md
 - .windsurf/rules/bolamu-cron.md (BullMQ, batch SQL)
+
+## NOUVEAUTÉS — 30 MAI 2026
+
+### Nouvelles tables
+- health_records : dossier médical numérique BHP v1.2
+- consentements : consentements patients accès dossier
+- documents : documents uploadés (remplace documents_file_ids)
+
+### Nouvelles routes
+- /api/v1/admin/documents — visualisation documents admin (storage_path direct)
+- /api/v1/health-records — BHP v1.2
+- /api/v1/consent — consentements patients
+- /api/v1/upload — upload centralisé
+- /api/v1/symptoms — symptômes pre-RDV
+
+### Modules complétés — 30 mai 2026
+- Module Conflits : cycle complet validé en production (statut, escalade, messages, historique patient)
+- BHP v1.2 : health_records + consentements + access_log + purge cron
+- Cloudinary authenticated : upload sécurisé + visualisation admin
+- Landing page Next.js : statique servie depuis public/index.html
+- PWA complète : manifest.json + favicons tous navigateurs
+- Register multi-étapes : flow inscription refactorisé avec uploads JSONB par rôle
+- Redis/BullMQ : rendu optionnel — plus de crash sur les routes critiques si Redis absent
+- Panels admin Collecte/Conventions/Clearing CDR : débloqués (fix go() display inline)
