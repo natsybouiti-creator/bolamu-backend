@@ -162,7 +162,24 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
              WHERE u.is_active = false
              ORDER BY u.created_at DESC`
         );
-        ok(res, result.rows);
+        
+        // Pour chaque utilisateur, récupérer les documents de la table documents
+        const usersWithDocs = await Promise.all(result.rows.map(async (user) => {
+            const docsResult = await pool.query(
+                `SELECT id, filename, original_name, document_type, mimetype, created_at
+                 FROM documents 
+                 WHERE uploaded_by = $1 AND owner_id IS NULL AND is_deleted = false
+                 ORDER BY created_at DESC`,
+                [user.phone]
+            );
+            
+            return {
+                ...user,
+                documents: docsResult.rows
+            };
+        }));
+        
+        ok(res, usersWithDocs);
     } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
