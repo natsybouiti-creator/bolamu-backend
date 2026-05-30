@@ -148,38 +148,40 @@ router.get('/stats/appointments', authMiddleware, adminOnly, async (req, res) =>
 router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT u.phone, u.role, u.full_name, u.first_name, u.last_name,
-                    u.rccm_number, u.agrement_number, u.registration_number,
-                    u.created_at, u.is_active, u.documents_file_ids,
-                    COALESCE(d.specialty, '') as specialty,
-                    COALESCE(d.status, ph.status, l.status, 'pending') as pro_status,
-                    COALESCE(d.member_code, ph.member_code, l.member_code) as member_code,
-                    COALESCE(ph.name, l.name) as business_name
+            `SELECT 
+              u.phone, u.role, u.full_name, u.first_name, u.last_name,
+              u.rccm_number, u.agrement_number, u.registration_number,
+              u.created_at, u.is_active, u.documents_file_ids,
+              COALESCE(d.specialty, '') as specialty,
+              COALESCE(d.status, ph.status, l.status, 'pending') as pro_status,
+              COALESCE(d.member_code, ph.member_code, l.member_code) as member_code,
+              COALESCE(ph.name, l.name) as business_name,
+              COALESCE(
+                json_agg(
+                  json_build_object(
+                    'id', doc.id,
+                    'document_type', doc.document_type,
+                    'storage_path', doc.storage_path
+                  )
+                ) FILTER (WHERE doc.id IS NOT NULL),
+                '[]'
+              ) as documents
              FROM users u
              LEFT JOIN doctors d ON d.phone = u.phone AND u.role = 'doctor'
              LEFT JOIN pharmacies ph ON ph.phone = u.phone AND u.role = 'pharmacie'
              LEFT JOIN laboratories l ON l.phone = u.phone AND u.role = 'laboratoire'
+             LEFT JOIN documents doc ON doc.uploaded_by = u.phone AND doc.is_deleted = false
              WHERE u.is_active = false
+             GROUP BY u.phone, u.role, u.full_name, u.first_name, u.last_name,
+                      u.rccm_number, u.agrement_number, u.registration_number,
+                      u.created_at, u.is_active, u.documents_file_ids,
+                      d.specialty, d.status, d.member_code,
+                      ph.status, ph.member_code, ph.name,
+                      l.status, l.member_code, l.name
              ORDER BY u.created_at DESC`
         );
         
-        // Pour chaque utilisateur, récupérer les documents de la table documents
-        const usersWithDocs = await Promise.all(result.rows.map(async (user) => {
-            const docsResult = await pool.query(
-                `SELECT id, filename, original_name, document_type, storage_path, mimetype, created_at
-                 FROM documents 
-                 WHERE uploaded_by = $1 AND owner_id IS NULL AND is_deleted = false
-                 ORDER BY created_at DESC`,
-                [user.phone]
-            );
-            
-            return {
-                ...user,
-                documents: docsResult.rows
-            };
-        }));
-        
-        ok(res, usersWithDocs);
+        ok(res, result.rows);
     } catch (e) {
         err(res, 500, 'Erreur serveur.');
     }
