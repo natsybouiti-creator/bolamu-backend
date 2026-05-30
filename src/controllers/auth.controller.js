@@ -225,7 +225,7 @@ async function registerPatient(req, res) {
                     $1, 'patient', $2, $3, $4,
                     $5, $6, $7, $8, $9, $10,
                     $11, $12, NOW(),
-                    true, 80, $13, NOW()
+                    false, 80, $13, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, JSON.stringify({ id_card: id_card_file_id || (documents_file_ids && documents_file_ids.id_card) || null }), member_code, cgu_accepted || false, passwordHash]
             );

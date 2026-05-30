@@ -51,16 +51,53 @@ async function authMiddleware(req, res, next) {
 }
 
 // 2. Middleware pour l'accès aux interfaces Admin (Ops ou Content)
-authMiddleware.requireAdmin = (req, res, next) => {
+// Combine authMiddleware + vérification rôle
+authMiddleware.requireAdmin = async (req, res, next) => {
     const rolesAutorises = ['admin', 'content_admin'];
     
-    if (!req.user || !rolesAutorises.includes(req.user.role)) {
-        return res.status(403).json({ 
-            success: false, 
-            message: "Accès interdit : Droits d'administration requis." 
+    // 1. Essayer le token depuis le header Authorization
+    let token = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+        token = authHeader.split(' ')[1];
+    }
+    
+    // 2. Essayer le token depuis le cookie
+    if (!token && req.cookies && req.cookies.bolamu_admin_token) {
+        token = req.cookies.bolamu_admin_token;
+    }
+    
+    // Log temporaire pour debug
+    console.log('[REQUIRE_ADMIN] Token from header:', !!authHeader, 'Token from cookie:', !!(req.cookies && req.cookies.bolamu_admin_token), 'Token present:', !!token);
+    
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: "Accès refusé — connexion requise"
         });
     }
-    next();
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        
+        console.log('[REQUIRE_ADMIN] Decoded user:', { phone: decoded.phone, role: decoded.role });
+        
+        if (!rolesAutorises.includes(decoded.role)) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Accès interdit : Droits d'administration requis." 
+            });
+        }
+        
+        next();
+    } catch (err) {
+        console.error('[REQUIRE_ADMIN] Token error:', err.message);
+        return res.status(403).json({
+            success: false,
+            message: "Token invalide ou expiré"
+        });
+    }
 };
 
 // 3. Middleware pour l'accès Secrétariat

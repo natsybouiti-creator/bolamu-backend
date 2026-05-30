@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const cookieParser = require('cookie-parser');
 const pool = require('./config/db');
 const cors = require('cors');
 const Sentry = require('@sentry/node');
@@ -20,6 +21,9 @@ configurePush();
 
 const app = express();
 app.set('trust proxy', 1);
+
+// Cookie parser pour lire les cookies
+app.use(cookieParser());
 
 // ============================================================
 // 1. MIDDLEWARES & CORS CONFIGURATION
