@@ -10,7 +10,10 @@ const {
 // Patient — voir ses propres constantes
 router.get('/constantes/:phone', authMiddleware, getConstantes);
 
-// Patient — modifier ses constantes
+// Patient — modifier ses constantes (POST pour compatibilité frontend)
+router.post('/constantes', authMiddleware, updateConstantesPatient);
+
+// Patient — modifier ses constantes (PATCH RESTful)
 router.patch('/constantes', authMiddleware, updateConstantesPatient);
 
 // Médecin — modifier les constantes d'un patient
