@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { requireAuth } = require('../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 const { bhpAccessMiddleware } = require('../middleware/bhpAccess');
 
 // POST — Créer un enregistrement médical
 // Rôles : medecin, pharmacie, laboratoire
 router.post('/',
-  requireAuth,
+  authMiddleware,
   bhpAccessMiddleware(['medecin', 'pharmacie', 'laboratoire']),
   async (req, res) => {
     try {
@@ -43,7 +43,7 @@ router.post('/',
 // GET — Lire le carnet de santé d'un patient
 // Rôles : patient (le sien), medecin (avec consentement)
 router.get('/patient/:patientId',
-  requireAuth,
+  authMiddleware,
   bhpAccessMiddleware(['patient', 'medecin', 'cms_medecin', 'admin']),
   async (req, res) => {
     try {
@@ -137,7 +137,7 @@ router.delete('/:id',
 
 // GET — Historique accès à un dossier (droit loi 29-2019)
 router.get('/access-log/:recordId',
-  requireAuth,
+  authMiddleware,
   bhpAccessMiddleware(['patient', 'admin']),
   async (req, res) => {
     try {

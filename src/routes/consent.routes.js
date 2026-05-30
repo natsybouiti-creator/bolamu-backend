@@ -48,7 +48,7 @@ router.delete('/:type', requireAuth, async (req, res) => {
 });
 
 // GET — Lire ses consentements
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const result = await db.query(
       `SELECT * FROM patient_consents WHERE patient_id=$1`,
