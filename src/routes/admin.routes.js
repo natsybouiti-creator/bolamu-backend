@@ -875,7 +875,7 @@ router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
               storage_path, created_at)
              VALUES ($1,$2,'identite',$3,$3,NULL,$4,$5)
              ON CONFLICT DO NOTHING`,
-            [user.id, user.id, 
+            [user.id, String(user.id), 
              fileId,
              `/var/data/uploads/${fileId}`,
              user.created_at]
@@ -911,7 +911,7 @@ router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
             storage_path, created_at)
            VALUES ($1,$2,'identite',$3,'Carte d identite','image/jpeg',$4,$5)
            ON CONFLICT DO NOTHING`,
-          [user.id, user.id, 
+          [user.id, String(user.id), 
            user.id_card_url,
            user.id_card_url,
            user.created_at]

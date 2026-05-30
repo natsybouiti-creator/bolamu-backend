@@ -56,6 +56,7 @@ const verifyUploadToken = (req, res, next) => {
 };
 
 // POST /api/v1/upload/secure - Upload sécurisé de document
+// Upload AVANT création de compte - stockage temporaire avec phone comme uploaded_by
 router.post('/secure', verifyUploadToken, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -65,27 +66,17 @@ router.post('/secure', verifyUploadToken, upload.single('file'), async (req, res
     console.log('[UPLOAD] Fichier uploadé:', req.file.filename);
     console.log('[UPLOAD] Sauvegarde dans DB...');
 
-    // Trouver l'user_id correspondant au phone
-    const userResult = await pool.query(
-      'SELECT id FROM users WHERE phone = $1',
-      [req.uploadPhone]
-    );
-
-    if (!userResult.rows.length) {
-      console.log('[UPLOAD] User non trouvé pour phone:', req.uploadPhone);
-      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
-    }
-
-    const userId = userResult.rows[0].id;
+    const fileId = crypto.randomUUID();
     const storagePath = `/var/data/uploads/${req.file.filename}`;
 
+    // Stockage temporaire : uploaded_by = phone (pas d'owner_id car compte pas encore créé)
     const result = await pool.query(
       `INSERT INTO documents 
        (owner_id, uploaded_by, document_type, filename, original_name, 
         mimetype, file_size, storage_path, created_at)
-       VALUES ($1, $2, 'identite', $3, $4, $5, $6, $7, NOW())
+       VALUES (NULL, $1, 'identite', $2, $3, $4, $5, $6, NOW())
        RETURNING id`,
-      [userId, userId, req.file.filename, req.file.originalname, 
+      [req.uploadPhone, req.file.filename, req.file.originalname, 
        req.file.mimetype, req.file.size, storagePath]
     );
 

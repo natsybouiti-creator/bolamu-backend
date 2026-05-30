@@ -2,12 +2,13 @@
 -- (remplace l'ancienne logique uploads fragmentée)
 CREATE TABLE IF NOT EXISTS documents (
   id              SERIAL PRIMARY KEY,
-  owner_id        INTEGER NOT NULL REFERENCES users(id),
+  owner_id        INTEGER REFERENCES users(id),
   -- Propriétaire du document (patient, médecin, etc.)
-  uploaded_by     INTEGER NOT NULL REFERENCES users(id),
-  -- Qui a uploadé (peut être différent du propriétaire)
+  -- NULL pour les uploads pré-inscription (mis à jour après création compte)
+  uploaded_by     VARCHAR(20) NOT NULL,
+  -- Qui a uploadé : phone (pré-inscription) ou id (après création)
   document_type   VARCHAR(50) NOT NULL,
-  -- Types : identite | diplome | autorisation | 
+  -- Types : identite | diplome | autorisation |
   --         ordonnance_pdf | resultat_labo_pdf | autre
   filename        VARCHAR(255) NOT NULL,
   -- Nom du fichier sur le Persistent Disk
@@ -24,9 +25,9 @@ CREATE TABLE IF NOT EXISTS documents (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_docs_owner    
+CREATE INDEX IF NOT EXISTS idx_docs_owner
   ON documents(owner_id);
-CREATE INDEX IF NOT EXISTS idx_docs_type     
+CREATE INDEX IF NOT EXISTS idx_docs_type
   ON documents(document_type);
-CREATE INDEX IF NOT EXISTS idx_docs_active   
+CREATE INDEX IF NOT EXISTS idx_docs_active
   ON documents(is_deleted) WHERE is_deleted = false;
