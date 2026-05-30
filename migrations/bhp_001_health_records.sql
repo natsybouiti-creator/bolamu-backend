@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS health_records (
-  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id        UUID NOT NULL REFERENCES users(id),
+  id                SERIAL PRIMARY KEY,
+  patient_id        INTEGER NOT NULL REFERENCES users(id),
   record_type       VARCHAR(50) NOT NULL,
   -- Types : consultation | teleconsultation | ordonnance | 
   --         prescription_labo | resultat_labo | 
@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS health_records (
   title             VARCHAR(255) NOT NULL,
   content           JSONB NOT NULL,
   source_role       VARCHAR(50) NOT NULL,
-  source_user_id    UUID NOT NULL REFERENCES users(id),
-  company_id        UUID REFERENCES companies(id),
+  source_user_id    INTEGER NOT NULL REFERENCES users(id),
+  company_id        INTEGER REFERENCES companies(id),
   consent_granted   BOOLEAN NOT NULL DEFAULT false,
   consent_date      TIMESTAMPTZ,
   is_deleted        BOOLEAN NOT NULL DEFAULT false,

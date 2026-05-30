@@ -1,10 +1,10 @@
 -- Table unifiée pour tous les documents de la plateforme
 -- (remplace l'ancienne logique uploads fragmentée)
 CREATE TABLE IF NOT EXISTS documents (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id        UUID NOT NULL REFERENCES users(id),
+  id              SERIAL PRIMARY KEY,
+  owner_id        INTEGER NOT NULL REFERENCES users(id),
   -- Propriétaire du document (patient, médecin, etc.)
-  uploaded_by     UUID NOT NULL REFERENCES users(id),
+  uploaded_by     INTEGER NOT NULL REFERENCES users(id),
   -- Qui a uploadé (peut être différent du propriétaire)
   document_type   VARCHAR(50) NOT NULL,
   -- Types : identite | diplome | autorisation | 
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS documents (
   -- Chemin complet sur /var/data/uploads/
   is_verified     BOOLEAN DEFAULT false,
   -- Vérifié par admin (pour documents d'identité)
-  verified_by     UUID REFERENCES users(id),
+  verified_by     INTEGER REFERENCES users(id),
   verified_at     TIMESTAMPTZ,
   is_deleted      BOOLEAN DEFAULT false,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
