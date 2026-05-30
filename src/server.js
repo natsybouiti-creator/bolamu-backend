@@ -29,26 +29,21 @@ app.use(cookieParser());
 app.get('/', (req, res) => {
   let html = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
   const injection = `
-<div style="position:fixed;bottom:0;left:0;width:100%;text-align:center;
-            padding:10px 24px;background:rgba(0,0,0,0.55);
-            backdrop-filter:blur(8px);z-index:9999;
-            font-family:'Plus Jakarta Sans',sans-serif;
-            border-top:1px solid rgba(255,255,255,0.06);">
+<div style="position:fixed;bottom:16px;left:0;width:100%;text-align:center;
+            z-index:9999;font-family:sans-serif;">
   <a href="/secretaire/login.html"
-     style="color:rgba(255,255,255,0.35);text-decoration:none;
-            margin:0 14px;font-size:11px;font-weight:500;">
+     style="color:rgba(255,255,255,0.2);text-decoration:none;
+            margin:0 12px;font-size:11px;">
     Accès Secrétariat
   </a>
-  <span style="color:rgba(255,255,255,0.15);font-size:11px;">|</span>
   <a href="/rh/login.html"
-     style="color:rgba(255,255,255,0.35);text-decoration:none;
-            margin:0 14px;font-size:11px;font-weight:500;">
+     style="color:rgba(255,255,255,0.2);text-decoration:none;
+            margin:0 12px;font-size:11px;">
     Espace RH
   </a>
-  <span style="color:rgba(255,255,255,0.15);font-size:11px;">|</span>
   <a href="/admin/login.html"
-     style="color:rgba(255,255,255,0.18);text-decoration:none;
-            margin:0 14px;font-size:11px;font-weight:500;">
+     style="color:rgba(255,255,255,0.12);text-decoration:none;
+            margin:0 12px;font-size:11px;">
     Admin
   </a>
 </div>
