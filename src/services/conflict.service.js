@@ -139,9 +139,9 @@ async function transitionStatut(conflict_id, nouveau_statut, acteur_phone, acteu
         // Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ($1::text, $2::text, $3::text, $4::int, $5::text)`,
+             VALUES ($1::text, $2::text, $3::text, $4::int, $5::jsonb)`,
             [acteur_phone, id, 'conflicts', id, JSON.stringify({ ancien_statut, nouveau_statut, commentaire })]
-        ).catch(() => {});
+        ).catch((err) => console.error('[audit_log] Erreur:', err.message));
 
         await client.query('COMMIT');
 
