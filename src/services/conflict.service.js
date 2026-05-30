@@ -109,7 +109,7 @@ async function transitionStatut(conflict_id, nouveau_statut, acteur_phone, acteu
         }
 
         // Mettre à jour le conflit
-        const updates = ['statut = $1', 'updated_at = NOW()'];
+        const updates = ['statut = $1::varchar', 'updated_at = NOW()'];
         const values = [nouveau_statut];
         let paramCount = 2;
 
@@ -123,7 +123,7 @@ async function transitionStatut(conflict_id, nouveau_statut, acteur_phone, acteu
         values.push(conflict_id);
 
         await client.query(
-            `UPDATE conflicts SET ${updates.join(', ')} WHERE id = $${paramCount + 1}`,
+            `UPDATE conflicts SET ${updates.join(', ')} WHERE id = $${paramCount + 1}::integer`,
             values
         );
 
