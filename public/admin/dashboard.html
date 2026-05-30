@@ -1586,8 +1586,8 @@ async function marquerVerse(id) {
 async function loadConflits(statut = 'all') {
   try {
     const url = statut === 'all'
-      ? '/api/v1/admin/conflicts'
-      : `/api/v1/admin/conflicts?statut=${statut}`;
+      ? '/admin/conflicts'
+      : `/admin/conflicts?statut=${statut}`;
     const d = await api(url);
     const rows = Array.isArray(d) ? d : (d.data?.conflicts || d.conflicts || []);
     document.getElementById('tbody-conflits').innerHTML =
