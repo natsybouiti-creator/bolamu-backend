@@ -74,7 +74,7 @@ router.get('/patient/:patientId',
 
 // GET — Lire un enregistrement précis
 router.get('/:id',
-  requireAuth,
+  authMiddleware,
   bhpAccessMiddleware([
     'patient', 'medecin', 'pharmacie', 
     'laboratoire', 'admin'
@@ -99,7 +99,7 @@ router.get('/:id',
 
 // DELETE — Soft delete uniquement (jamais physique avant 5 ans)
 router.delete('/:id',
-  requireAuth,
+  authMiddleware,
   bhpAccessMiddleware(['patient', 'admin']),
   async (req, res) => {
     const client = await db.pool.connect();

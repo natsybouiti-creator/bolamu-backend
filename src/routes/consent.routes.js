@@ -32,7 +32,7 @@ router.post('/:type', requireAuth, async (req, res) => {
 });
 
 // DELETE — Révoquer un consentement (effet immédiat)
-router.delete('/:type', requireAuth, async (req, res) => {
+router.delete('/:type', authMiddleware, async (req, res) => {
   try {
     await db.query(
       `UPDATE patient_consents 
