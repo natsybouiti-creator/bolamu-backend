@@ -142,6 +142,17 @@
     .btn-confirm:hover{opacity:0.9;}
     .btn-confirm:disabled{opacity:0.5;cursor:not-allowed;}
 
+    /* ── PROGRESS STEPS ── */
+    .progress-steps{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;}
+    .step-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid var(--border);color:var(--texte-doux);background:white;transition:all 0.3s;flex-shrink:0;}
+    .step-circle.active{border-color:var(--bleu-vif);background:var(--bleu-vif);color:white;}
+    .step-circle.done{border-color:var(--vert);background:var(--vert);color:white;}
+    .step-line{flex:1;height:2px;background:var(--border);max-width:48px;transition:background 0.3s;}
+    .step-line.done{background:var(--vert);}
+    .symptom-tag{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:50px;border:2px solid var(--border);background:white;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.2s;user-select:none;margin:4px;}
+    .symptom-tag.selected{border-color:var(--vert);background:var(--vert-clair);color:#047857;}
+    .intensity-slider{width:100%;accent-color:var(--bleu-vif);}
+
     /* ── RDV LIST ── */
     .rdv-list{display:flex;flex-direction:column;gap:12px;}
     .rdv-card{background:white;border-radius:16px;padding:20px 24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(10,36,99,0.04);}
@@ -333,6 +344,18 @@
     <h2>Prendre rendez-vous</h2>
     <div class="modal-subtitle" id="modal-doctor-name"></div>
     
+    <!-- Barre de progression -->
+    <div class="progress-steps">
+      <div class="step-circle active" id="step-1-circle">1</div>
+      <div class="step-line" id="step-line-1"></div>
+      <div class="step-circle" id="step-2-circle">2</div>
+      <div class="step-line" id="step-line-2"></div>
+      <div class="step-circle" id="step-3-circle">3</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--texte-doux);margin-bottom:20px;">
+      <span>Créneau</span><span>Symptômes</span><span>Confirmation</span>
+    </div>
+    
     <!-- ÉTAPE 1 : Sélection créneau -->
     <div id="rdv-step-1">
       <div class="modal-field">
@@ -349,84 +372,104 @@
       </div>
     </div>
     
-    <!-- ÉTAPE 2 : Symptômes -->
+    <!-- ÉTAPE 2 : Motif & Symptômes -->
     <div id="rdv-step-2" style="display:none;">
+      <!-- BLOC A : Motif -->
       <div class="modal-field">
-        <label>Motif de consultation *</label>
-        <input type="text" id="symptoms-motif" maxlength="200" placeholder="Ex: Mal de tête, fièvre..." style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);transition:border-color 0.2s;">
+        <label>Pourquoi consultez-vous ? *</label>
+        <input type="text" id="symptoms-motif" maxlength="200" 
+          placeholder="Ex: Douleur abdominale depuis 3 jours..."
+          style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);">
       </div>
+
+      <!-- BLOC B : Tags symptômes emoji -->
       <div class="modal-field">
-        <label>Symptômes (cochez ceux qui s'appliquent)</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Fièvre" class="symptom-checkbox"> Fièvre
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Toux" class="symptom-checkbox"> Toux
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Difficultés respiratoires" class="symptom-checkbox"> Difficultés respiratoires
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Douleur thoracique" class="symptom-checkbox"> Douleur thoracique
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Maux de tête" class="symptom-checkbox"> Maux de tête
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Douleurs abdominales" class="symptom-checkbox"> Douleurs abdominales
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Nausées" class="symptom-checkbox"> Nausées
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Vomissements" class="symptom-checkbox"> Vomissements
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Diarrhée" class="symptom-checkbox"> Diarrhée
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Fatigue intense" class="symptom-checkbox"> Fatigue intense
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Douleurs articulaires" class="symptom-checkbox"> Douleurs articulaires
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Éruption cutanée" class="symptom-checkbox"> Éruption cutanée
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Œdèmes" class="symptom-checkbox"> Œdèmes
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Vertiges" class="symptom-checkbox"> Vertiges
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
-            <input type="checkbox" value="Autre" class="symptom-checkbox"> Autre
-          </label>
+        <label>Symptômes ressentis (sélectionnez tout ce qui s'applique)</label>
+        <div id="symptom-tags-container" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">
+          <span class="symptom-tag" data-symptom="Fièvre">🤒 Fièvre</span>
+          <span class="symptom-tag" data-symptom="Toux">😮 Toux</span>
+          <span class="symptom-tag" data-symptom="Difficultés respiratoires">😮‍💨 Difficultés respiratoires</span>
+          <span class="symptom-tag" data-symptom="Douleur thoracique">💔 Douleur thoracique</span>
+          <span class="symptom-tag" data-symptom="Maux de tête">🤕 Maux de tête</span>
+          <span class="symptom-tag" data-symptom="Nausées">🤢 Nausées</span>
+          <span class="symptom-tag" data-symptom="Vomissements">🤮 Vomissements</span>
+          <span class="symptom-tag" data-symptom="Diarrhée">💩 Diarrhée</span>
+          <span class="symptom-tag" data-symptom="Fatigue intense">😴 Fatigue intense</span>
+          <span class="symptom-tag" data-symptom="Douleurs articulaires">🦴 Douleurs articulaires</span>
+          <span class="symptom-tag" data-symptom="Douleurs abdominales">🫃 Douleurs abdominales</span>
+          <span class="symptom-tag" data-symptom="Éruption cutanée">🤧 Éruption cutanée</span>
+          <span class="symptom-tag" data-symptom="Vertiges">😵 Vertiges</span>
+          <span class="symptom-tag" data-symptom="Œdèmes">🦵 Œdèmes</span>
+          <span class="symptom-tag" data-symptom="Autre">➕ Autre</span>
         </div>
       </div>
+
+      <!-- BLOC C : Détails optionnels (accordéon) -->
       <div class="modal-field">
-        <label>Durée des symptômes</label>
-        <select id="symptoms-duree" style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);transition:border-color 0.2s;background:white;">
-          <option value="">Sélectionnez...</option>
-          <option value="moins_24h">Moins de 24h</option>
-          <option value="1_3_jours">1-3 jours</option>
-          <option value="4_7_jours">4-7 jours</option>
-          <option value="plus_semaine">Plus d'une semaine</option>
-          <option value="chronique">Chronique</option>
-        </select>
+        <div id="details-toggle" style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--bleu-vif);font-size:13px;font-weight:600;margin-bottom:8px;">
+          <span id="details-arrow">▶</span> Ajouter des détails (optionnel)
+        </div>
+        <div id="details-panel" style="display:none;">
+          <div class="modal-field" style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:700;color:var(--texte-doux);">Depuis combien de temps ?</label>
+            <select id="symptoms-duree" style="width:100%;border:2px solid var(--border);border-radius:12px;padding:10px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:white;color:var(--texte);">
+              <option value="">Sélectionnez...</option>
+              <option value="moins_24h">Moins de 24h</option>
+              <option value="1_3_jours">1 à 3 jours</option>
+              <option value="4_7_jours">4 à 7 jours</option>
+              <option value="plus_semaine">Plus d'une semaine</option>
+              <option value="chronique">Chronique / récurrent</option>
+            </select>
+          </div>
+          <div class="modal-field" style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:700;color:var(--texte-doux);">Intensité : <span id="intensity-label">Modérée</span></label>
+            <input type="range" id="symptoms-intensite" class="intensity-slider" min="1" max="10" value="5">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--texte-doux);margin-top:4px;">
+              <span>Légère</span><span>Modérée</span><span>Intense</span><span>Très intense</span>
+            </div>
+          </div>
+          <div class="modal-field" style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:700;color:var(--texte-doux);">Traitements en cours (optionnel)</label>
+            <textarea id="symptoms-traitements" placeholder="Médicaments que vous prenez actuellement..."
+              style="width:100%;border:2px solid var(--border);border-radius:12px;padding:10px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;min-height:60px;resize:vertical;"></textarea>
+          </div>
+          <div class="modal-field">
+            <label style="font-size:12px;font-weight:700;color:var(--texte-doux);">Remarques (optionnel)</label>
+            <textarea id="symptoms-remarques" placeholder="Autres informations importantes..."
+              style="width:100%;border:2px solid var(--border);border-radius:12px;padding:10px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;min-height:60px;resize:vertical;"></textarea>
+          </div>
+        </div>
       </div>
-      <div class="modal-field">
-        <label>Traitements en cours (optionnel)</label>
-        <textarea id="symptoms-traitements" placeholder="Médicaments que vous prenez actuellement..." style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);transition:border-color 0.2s;min-height:80px;resize:vertical;"></textarea>
-      </div>
-      <div class="modal-field">
-        <label>Remarques (optionnel)</label>
-        <textarea id="symptoms-remarques" placeholder="Autres informations importantes..." style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);transition:border-color 0.2s;min-height:60px;resize:vertical;"></textarea>
-      </div>
+
       <div class="modal-actions">
         <button class="btn-cancel" id="btn-back-step1">← Retour</button>
-        <button class="btn-confirm" id="btn-confirm-symptoms">Confirmer le RDV</button>
+        <button class="btn-confirm" id="btn-go-step3">Voir le récapitulatif →</button>
+      </div>
+    </div>
+    
+    <!-- ÉTAPE 3 : Récapitulatif + Confirmation -->
+    <div id="rdv-step-3" style="display:none;">
+      <div style="background:var(--bleu-pale);border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:16px;">Récapitulatif de votre RDV</div>
+        <div id="recap-medecin" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+          <div style="width:40px;height:40px;border-radius:12px;background:var(--grad-btn);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">👨‍⚕️</div>
+          <div><div style="font-weight:700;" id="recap-doctor-name">—</div><div style="font-size:13px;color:var(--texte-doux);" id="recap-datetime">—</div></div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--texte-doux);margin-bottom:4px;">MOTIF</div>
+          <div style="font-size:14px;" id="recap-motif">—</div>
+        </div>
+        <div id="recap-symptomes-section" style="display:none;margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--texte-doux);margin-bottom:6px;">SYMPTÔMES</div>
+          <div id="recap-symptomes" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+      </div>
+      <div style="background:var(--vert-clair);border-radius:12px;padding:14px;margin-bottom:20px;font-size:13px;color:#047857;display:flex;align-items:center;gap:10px;">
+        🤖 <span>Bolamu IA Consult analysera ces informations pour préparer votre médecin avant la consultation.</span>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-back-step2">← Modifier</button>
+        <button class="btn-confirm" id="btn-confirm-final">✅ Confirmer mon RDV</button>
       </div>
     </div>
   </div>
@@ -830,6 +873,7 @@
 const API='https://bolamu-backend.onrender.com/api/v1';
 const phone=localStorage.getItem('bolamu_patient_phone')||'+242060000001';
 let selectedDoctorId=null,selectedDoctorName='',selectedTime=null,selectedDate=null;
+let selectedSymptoms=[];
 const today=new Date().toISOString().split('T')[0];
 let hasActiveSubscription=false;
 
@@ -1120,13 +1164,16 @@ document.getElementById('modal-spend').addEventListener('click',function(e){if(e
 
 /* ─ RDV ─ */
 function prendreRdv(doctorId,doctorName){
-  selectedDoctorId=doctorId;selectedDoctorName=doctorName;selectedTime=null;selectedDate=null;
+  selectedDoctorId=doctorId;selectedDoctorName=doctorName;selectedTime=null;selectedDate=null;selectedSymptoms=[];
+  document.querySelectorAll('.symptom-tag').forEach(t=>t.classList.remove('selected'));
   document.getElementById('modal-doctor-name').textContent='avec '+doctorName;
   document.getElementById('rdv-date').value='';
   document.getElementById('rdv-date').min=today;
   document.getElementById('slots-container').innerHTML='<div class="slots-empty">Sélectionnez d\'abord une date</div>';
   document.getElementById('btn-confirm-rdv').disabled=true;
   document.getElementById('btn-confirm-rdv').textContent='Choisir un créneau →';
+  document.getElementById('symptoms-motif').value='';
+  showStep(1);
   document.getElementById('modal-rdv').classList.add('open');
 }
 function closeModal(){document.getElementById('modal-rdv').classList.remove('open');}
@@ -1161,56 +1208,143 @@ function selectSlot(time){
 async function confirmerRdv(){
   if(!hasActiveSubscription){closeModal();openPayment('essentiel');return;}
   if(!selectedDate||!selectedTime)return;
-  // Passer à l'étape 2 : formulaire symptômes
-  document.getElementById('rdv-step-1').style.display='none';
-  document.getElementById('rdv-step-2').style.display='block';
+  showStep(2);
 }
 
-async function confirmerSymptoms(){
+// Toggle symptôme
+function toggleSymptom(tag){
+  const symptom=tag.dataset.symptom;
+  if(selectedSymptoms.includes(symptom)){
+    selectedSymptoms=selectedSymptoms.filter(s=>s!==symptom);
+    tag.classList.remove('selected');
+  }else{
+    selectedSymptoms.push(symptom);
+    tag.classList.add('selected');
+  }
+}
+
+// Barre de progression
+function updateProgress(step){
+  [1,2,3].forEach(n=>{
+    const circle=document.getElementById(`step-${n}-circle`);
+    if(n<step)circle.className='step-circle done';
+    else if(n===step)circle.className='step-circle active';
+    else circle.className='step-circle';
+  });
+  [1,2].forEach(n=>{
+    const line=document.getElementById(`step-line-${n}`);
+    if(line)line.className=step>n?'step-line done':'step-line';
+  });
+}
+
+// Afficher étape
+function showStep(n){
+  document.getElementById('rdv-step-1').style.display=n===1?'block':'none';
+  document.getElementById('rdv-step-2').style.display=n===2?'block':'none';
+  document.getElementById('rdv-step-3').style.display=n===3?'block':'none';
+  updateProgress(n);
+}
+
+// Passer à l'étape 3 avec validation
+function goToStep3(){
   const motif=document.getElementById('symptoms-motif').value.trim();
-  if(!motif){alert('Veuillez renseigner le motif de consultation.');return;}
-  
-  // Récupérer les symptômes cochés
-  const symptomCheckboxes=document.querySelectorAll('.symptom-checkbox:checked');
-  const symptomes=Array.from(symptomCheckboxes).map(cb=>cb.value);
-  
+  if(!motif){
+    document.getElementById('symptoms-motif').style.borderColor='var(--rouge)';
+    document.getElementById('symptoms-motif').focus();
+    return;
+  }
+  document.getElementById('symptoms-motif').style.borderColor='var(--border)';
+  // Construire récap
+  document.getElementById('recap-doctor-name').textContent=selectedDoctorName;
+  document.getElementById('recap-datetime').textContent=
+    new Date(selectedDate).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+' à '+selectedTime;
+  document.getElementById('recap-motif').textContent=motif;
+  const sympSection=document.getElementById('recap-symptomes-section');
+  const sympContainer=document.getElementById('recap-symptomes');
+  if(selectedSymptoms.length){
+    sympSection.style.display='block';
+    sympContainer.innerHTML=selectedSymptoms.map(s=>
+      `<span style="background:var(--vert-clair);color:#047857;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:600;">${s}</span>`
+    ).join('');
+  }else{
+    sympSection.style.display='none';
+  }
+  showStep(3);
+}
+
+// Confirmer final
+async function confirmerFinal(){
+  const motif=document.getElementById('symptoms-motif').value.trim();
   const duree=document.getElementById('symptoms-duree').value;
+  const intensite=document.getElementById('symptoms-intensite').value;
   const traitements=document.getElementById('symptoms-traitements').value.trim();
   const remarques=document.getElementById('symptoms-remarques').value.trim();
   
-  const btn=document.getElementById('btn-confirm-symptoms');
+  const btn=document.getElementById('btn-confirm-final');
   btn.disabled=true;btn.textContent='Confirmation…';
   
   try{
     const token=localStorage.getItem('bolamu_patient_token');
-    // Créer le RDV
-    const res=await fetch(`${API}/appointments/book`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({patient_phone:phone,doctor_id:selectedDoctorId,date:selectedDate,time:selectedTime})});
+    // 1. Créer le RDV
+    const res=await fetch(`${API}/appointments/book`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({patient_phone:phone,doctor_id:selectedDoctorId,date:selectedDate,time:selectedTime})
+    });
     const data=await res.json();
-    if(data.success){
-      const appointmentId=data.appointment.id;
-      // Envoyer les symptômes
-      const symptomsRes=await fetch(`${API}/appointments/${appointmentId}/symptoms`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({motif,symptomes,duree_symptomes:duree,traitements_en_cours:traitements,remarques_patient:remarques})});
-      const symptomsData=await symptomsRes.json();
-      
-      closeModal();
-      document.getElementById('success-code').textContent=data.appointment.session_code;
-      document.getElementById('success-details').textContent=`${selectedDoctorName} — ${new Date(selectedDate).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})} à ${selectedTime}`;
-      document.getElementById('modal-success').classList.add('open');
-      
-      // Réinitialiser le formulaire
-      document.getElementById('symptoms-motif').value='';
-      document.querySelectorAll('.symptom-checkbox').forEach(cb=>cb.checked=false);
-      document.getElementById('symptoms-duree').value='';
-      document.getElementById('symptoms-traitements').value='';
-      document.getElementById('symptoms-remarques').value='';
-    }else{alert('❌ '+(data.message||'Ce créneau est déjà pris.'));loadSlots();}
-  }catch(e){alert('Erreur de connexion.');}
-  btn.disabled=false;btn.textContent='Confirmer le RDV';
+    if(!data.success){
+      showToast(data.message||'Ce créneau est déjà pris.','error');
+      showStep(1);loadSlots();
+      btn.disabled=false;btn.textContent='✅ Confirmer mon RDV';
+      return;
+    }
+    
+    // 2. Envoyer les symptômes
+    const appointmentId=data.appointment.id;
+    await fetch(`${API}/appointments/${appointmentId}/symptoms`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({
+        motif,
+        symptomes:selectedSymptoms,
+        duree_symptomes:duree||null,
+        intensite:parseInt(intensite)||5,
+        traitements_en_cours:traitements||null,
+        remarques_patient:remarques||null
+      })
+    });
+    
+    // 3. Succès
+    closeModal();
+    document.getElementById('success-code').textContent=data.appointment.session_code;
+    document.getElementById('success-details').textContent=
+      `${selectedDoctorName} — ${new Date(selectedDate).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})} à ${selectedTime}`;
+    document.getElementById('modal-success').classList.add('open');
+    
+    // Reset
+    selectedSymptoms=[];
+    document.querySelectorAll('.symptom-tag').forEach(t=>t.classList.remove('selected'));
+    document.getElementById('symptoms-motif').value='';
+    document.getElementById('symptoms-duree').value='';
+    document.getElementById('symptoms-intensite').value='5';
+    document.getElementById('symptoms-traitements').value='';
+    document.getElementById('symptoms-remarques').value='';
+    
+  }catch(e){
+    showToast('Erreur de connexion.','error');
+  }
+  btn.disabled=false;btn.textContent='✅ Confirmer mon RDV';
+}
+
+// Intensity label
+function updateIntensityLabel(val){
+  const labels={1:'Légère',2:'Légère',3:'Légère',4:'Modérée',5:'Modérée',6:'Modérée',7:'Intense',8:'Intense',9:'Très intense',10:'Très intense'};
+  const el=document.getElementById('intensity-label');
+  if(el)el.textContent=labels[val]||'Modérée';
 }
 
 function backToStep1(){
-  document.getElementById('rdv-step-2').style.display='none';
-  document.getElementById('rdv-step-1').style.display='block';
+  showStep(1);
 }
 
 async function loadRdv(){
@@ -2084,9 +2218,31 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-close-modal').addEventListener('click', closeModal);
   document.getElementById('btn-confirm-rdv').addEventListener('click', confirmerRdv);
   document.getElementById('btn-back-step1').addEventListener('click', backToStep1);
-  document.getElementById('btn-confirm-symptoms').addEventListener('click', confirmerSymptoms);
+  document.getElementById('btn-go-step3').addEventListener('click', goToStep3);
+  document.getElementById('btn-back-step2').addEventListener('click', () => showStep(2));
+  document.getElementById('btn-confirm-final').addEventListener('click', confirmerFinal);
   document.getElementById('rdv-date').addEventListener('change', loadSlots);
   document.getElementById('btn-close-success').addEventListener('click', closeSuccess);
+  
+  // Symptômes tags (delegated)
+  document.addEventListener('click', function(e){
+    const tag=e.target.closest('.symptom-tag');
+    if(tag)toggleSymptom(tag);
+  });
+  
+  // Accordéon détails
+  document.getElementById('details-toggle').addEventListener('click', function(){
+    const panel=document.getElementById('details-panel');
+    const arrow=document.getElementById('details-arrow');
+    const open=panel.style.display!=='none';
+    panel.style.display=open?'none':'block';
+    arrow.textContent=open?'▶':'▼';
+  });
+  
+  // Slider intensité
+  document.getElementById('symptoms-intensite').addEventListener('input', function(){
+    updateIntensityLabel(parseInt(this.value));
+  });
 
   // Accueil
   document.getElementById('btn-nouveau-rdv').addEventListener('click', () => showTab('medecins', document.getElementById('tab-medecins')));
