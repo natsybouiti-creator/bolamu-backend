@@ -112,19 +112,19 @@ async function transitionStatut(conflict_id, nouveau_statut, acteur_phone, acteu
         // Mettre à jour le conflit
         const updates = ['statut = $1::text', 'updated_at = NOW()'];
         const values = [nouveau_statut];
-        let paramCount = 2;
 
         if (nouveau_statut === 'resolved') {
-            updates.push(`resolved_at = NOW()`);
+            updates.push('resolved_at = NOW()');
         }
         if (nouveau_statut === 'closed') {
-            updates.push(`closed_at = NOW()`);
+            updates.push('closed_at = NOW()');
         }
 
         values.push(id);
+        const paramIndex = values.length; // = 2
 
         await client.query(
-            `UPDATE conflicts SET ${updates.join(', ')} WHERE id = $${paramCount + 1}::int`,
+            `UPDATE conflicts SET ${updates.join(', ')} WHERE id = $${paramIndex}::int`,
             values
         );
 
