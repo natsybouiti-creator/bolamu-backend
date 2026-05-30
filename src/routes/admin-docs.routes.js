@@ -1,56 +1,51 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('../config/cloudinary');
 
 const { requireAdmin } = require('../middleware/auth.middleware');
 
-// GET /api/v1/admin/documents/:fileId - Servir un document à l'admin
+// GET /api/v1/admin/documents/:fileId - Générer une signed URL temporaire
 router.get('/documents/:fileId', requireAdmin, async (req, res) => {
   try {
-    // Cherche d'abord dans la nouvelle table documents
-    let result = await pool.query(
+    const result = await pool.query(
       `SELECT * FROM documents WHERE id=$1 AND is_deleted=false`,
       [req.params.fileId]
     );
 
-    // Fallback sur l'ancienne table uploads si pas trouvé
-    if (!result.rows.length) {
-      result = await pool.query(
-        `SELECT filename, mimetype, original_name,
-                '/var/data/uploads/' || filename as storage_path
-         FROM uploads WHERE id=$1`,
-        [req.params.fileId]
-      );
-    }
-
     if (!result.rows.length) {
       return res.status(404).json({ 
-        success: false, message: 'Document introuvable en base' 
+        success: false, message: 'Document introuvable' 
       });
     }
 
     const doc = result.rows[0];
-    const filePath = doc.storage_path || 
-                     `/var/data/uploads/${doc.filename}`;
 
-    console.log('[DOCUMENTS] Chemin:', filePath);
+    // Si storage_path contient cloudinary.com, générer une signed URL
+    if (doc.storage_path && doc.storage_path.includes('cloudinary.com')) {
+      const signedUrl = cloudinary.utils.private_download_url(
+        doc.filename,
+        doc.mimetype?.split('/')[1] || 'jpg',
+        {
+          resource_type: doc.mimetype?.startsWith('video') ? 'video' : 'image',
+          expires_at: Math.floor(Date.now() / 1000) + 300 // 5 minutes
+        }
+      );
 
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Fichier introuvable sur le disque',
-        filename: doc.filename
+      return res.json({ 
+        success: true, 
+        url: signedUrl,
+        expires_in: 300,
+        source: 'cloudinary'
       });
     }
 
-    res.setHeader(
-      'Content-Disposition', 
-      `inline; filename="${doc.original_name || doc.filename}"` 
-    );
-    res.setHeader('Content-Type', doc.mimetype || 'application/octet-stream');
-    res.sendFile(filePath);
+    // Fallback pour fichiers locaux (ancien système)
+    return res.json({ 
+      success: true, 
+      url: doc.storage_path,
+      source: 'local'
+    });
 
   } catch (err) {
     console.error('[DOCUMENTS] Erreur:', err.message);

@@ -232,6 +232,14 @@ async function registerPatient(req, res) {
 
             const user = insertResult.rows[0];
 
+            // Mettre à jour owner_id des documents uploadés avant inscription
+            await client.query(
+                `UPDATE documents 
+                 SET owner_id = $1 
+                 WHERE uploaded_by = $2 AND owner_id IS NULL`,
+                [user.id, normalizedPhone]
+            );
+
             await client.query('COMMIT');
 
             await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
