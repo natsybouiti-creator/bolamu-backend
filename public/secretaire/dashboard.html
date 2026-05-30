@@ -191,7 +191,12 @@
         <!-- Tab Agenda -->
         <div id="agenda-panel" class="panel active">
             <div class="card">
-                <h2>Agenda du jour</h2>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2>Agenda du jour</h2>
+                    <button onclick="openRdvManuel()" style="padding:8px 16px;border-radius:50px;background:var(--turquoise);border:none;color:var(--navy);font-size:0.875rem;font-weight:700;cursor:pointer;">
+                        ➕ RDV à l'accueil
+                    </button>
+                </div>
                 <div class="form-group" style="margin-top: 1rem;">
                     <label>Médecin</label>
                     <select id="doctor-select" onchange="loadAgenda()">
@@ -236,7 +241,12 @@
         <!-- Tab File d'attente -->
         <div id="queue-panel" class="panel">
             <div class="card">
-                <h2>File d'attente</h2>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2>File d'attente</h2>
+                    <button onclick="openUrgence()" style="padding:8px 16px;border-radius:50px;background:#fee2e2;border:none;color:#991b1b;font-size:0.875rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                        🚨 Urgence sans RDV
+                    </button>
+                </div>
                 <div class="form-group" style="margin-top: 1rem;">
                     <label>Médecin</label>
                     <select id="queue-doctor-select" onchange="loadQueue()">
@@ -343,6 +353,50 @@
         </div>
     </div>
 
+    <!-- Modal RDV Manuel -->
+    <div class="modal-overlay" id="modal-rdv-manuel" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.55);z-index:200;align-items:center;justify-content:center;padding:16px;">
+        <div class="card" style="max-width:480px;width:100%;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <h3 style="margin:0;">📋 Enregistrer un RDV à l'accueil</h3>
+                <button onclick="closeModal('modal-rdv-manuel')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">✕</button>
+            </div>
+            <div class="form-group">
+                <label>Numéro du patient *</label>
+                <input type="tel" id="rdv-manuel-phone" placeholder="+242 06 XXX XXXX" style="width:100%;padding:0.5rem;border:1px solid var(--gray-200);border-radius:4px;">
+            </div>
+            <div class="form-group">
+                <label>Médecin *</label>
+                <select id="rdv-manuel-doctor" style="width:100%;padding:0.5rem;border:1px solid var(--gray-200);border-radius:4px;">
+                    <option value="">Sélectionnez un médecin...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Date *</label>
+                <input type="date" id="rdv-manuel-date" style="width:100%;padding:0.5rem;border:1px solid var(--gray-200);border-radius:4px;">
+            </div>
+            <div class="form-group">
+                <label>Créneau *</label>
+                <div id="rdv-manuel-slots" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+                    <div style="color:var(--gray-600);font-size:0.875rem;">Sélectionnez d'abord une date</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Motif de consultation</label>
+                <input type="text" id="rdv-manuel-motif" placeholder="Ex: Consultation générale, urgence..." style="width:100%;padding:0.5rem;border:1px solid var(--gray-200);border-radius:4px;">
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.875rem;font-weight:600;">
+                    <input type="checkbox" id="rdv-manuel-urgent" style="width:18px;height:18px;accent-color:#e74c3c;">
+                    🚨 Marquer comme urgent
+                </label>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:1rem;">
+                <button class="btn" onclick="closeModal('modal-rdv-manuel')" style="flex:1;">Annuler</button>
+                <button class="btn btn-primary" id="btn-rdv-manuel-confirm" onclick="creerRdvManuel()" style="flex:2;">✅ Enregistrer le RDV</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = 'https://bolamu-backend.onrender.com/api/v1';
         let currentSecretary = null;
@@ -418,10 +472,25 @@
                 appointmentsTbody.innerHTML = '';
                 (result.appointments || []).forEach(apt => {
                     const time = new Date(apt.appointment_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    let symptomsHtml = '';
+                    if (apt.symptomes_motif) {
+                        symptomsHtml = `
+                            <div style="margin-top:6px;padding:8px;background:#e6fbf7;border-radius:8px;font-size:12px;color:#047857;">
+                                <strong>📋 Motif :</strong> ${apt.symptomes_motif}
+                                ${apt.symptomes_liste && apt.symptomes_liste.length ? 
+                                    `<div style="margin-top:4px;">${JSON.parse(apt.symptomes_liste).map(s => 
+                                        `<span style="background:white;padding:2px 8px;border-radius:50px;margin:2px;display:inline-block;">${s}</span>` 
+                                    ).join('')}</div>` : ''}
+                            </div>
+                        `;
+                    }
                     appointmentsTbody.innerHTML += `
                         <tr>
                             <td>${time}</td>
-                            <td>${apt.patient_phone}</td>
+                            <td>
+                                ${apt.patient_phone}
+                                ${symptomsHtml}
+                            </td>
                             <td>${apt.reason || '-'}</td>
                             <td><span class="status-badge status-${apt.status}">${apt.status}</span></td>
                         </tr>
@@ -552,6 +621,121 @@
             window.location.href = '/login.html';
         }
 
+        // ── RDV MANUEL ──
+        let rdvManuelSlotSelected = null;
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        async function creerRdvManuel() {
+            const phone = document.getElementById('rdv-manuel-phone').value.trim();
+            const doctorId = document.getElementById('rdv-manuel-doctor').value;
+            const date = document.getElementById('rdv-manuel-date').value;
+            const motif = document.getElementById('rdv-manuel-motif').value.trim();
+            const isUrgent = document.getElementById('rdv-manuel-urgent').checked;
+
+            if (!phone || !doctorId || !date || !rdvManuelSlotSelected) {
+                alert('Veuillez remplir tous les champs obligatoires.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-rdv-manuel-confirm');
+            btn.disabled = true; btn.textContent = 'Enregistrement…';
+
+            try {
+                const token = getToken();
+                const res = await fetch(`${API_BASE}/secretary/rdv-manuel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        patient_phone: phone,
+                        doctor_id: parseInt(doctorId),
+                        date: date,
+                        time: rdvManuelSlotSelected,
+                        motif: motif || null,
+                        is_urgent: isUrgent,
+                        created_by: 'secretariat'
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) { alert(data.message || 'Erreur.'); return; }
+                alert('RDV enregistré avec succès ✅');
+                closeModal('modal-rdv-manuel');
+                rdvManuelSlotSelected = null;
+                loadAgenda();
+            } catch(e) { alert('Erreur de connexion.'); }
+            btn.disabled = false; btn.textContent = '✅ Enregistrer le RDV';
+        }
+
+        document.getElementById('rdv-manuel-date').addEventListener('change', async function() {
+            const doctorId = document.getElementById('rdv-manuel-doctor').value;
+            const date = this.value;
+            if (!doctorId || !date) return;
+            const container = document.getElementById('rdv-manuel-slots');
+            container.innerHTML = '<div style="color:var(--gray-600);font-size:0.875rem;">Chargement…</div>';
+            try {
+                const token = getToken();
+                const res = await fetch(`${API_BASE}/appointments/slots/${doctorId}?date=${date}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.slots || !data.slots.length) {
+                    container.innerHTML = '<div style="color:var(--gray-600);font-size:0.875rem;">Aucun créneau disponible</div>';
+                    return;
+                }
+                container.innerHTML = data.slots.map(slot =>
+                    `<button onclick="selectManuelSlot('${slot}', this)"
+                        style="padding:8px 16px;border-radius:50px;border:1px solid var(--gray-200);background:white;font-size:0.875rem;font-weight:700;cursor:pointer;color:var(--gray-800);">
+                        ${slot}
+                    </button>`
+                ).join('');
+            } catch(e) { container.innerHTML = '<div style="color:#e74c3c;font-size:0.875rem;">Erreur chargement</div>'; }
+        });
+
+        function selectManuelSlot(time, btn) {
+            rdvManuelSlotSelected = time;
+            document.querySelectorAll('#rdv-manuel-slots button').forEach(b => {
+                b.style.background = 'white';
+                b.style.borderColor = 'var(--gray-200)';
+                b.style.color = 'var(--gray-800)';
+            });
+            btn.style.background = 'var(--turquoise)';
+            btn.style.borderColor = 'var(--turquoise)';
+            btn.style.color = 'var(--navy)';
+        }
+
+        function openRdvManuel() {
+            rdvManuelSlotSelected = null;
+            document.getElementById('rdv-manuel-phone').value = '';
+            document.getElementById('rdv-manuel-motif').value = '';
+            document.getElementById('rdv-manuel-urgent').checked = false;
+            document.getElementById('rdv-manuel-slots').innerHTML = 
+                '<div style="color:var(--gray-600);font-size:0.875rem;">Sélectionnez d\'abord une date et un médecin</div>';
+            loadDoctorsIntoSelect('rdv-manuel-doctor');
+            document.getElementById('modal-rdv-manuel').style.display = 'flex';
+        }
+
+        function openUrgence() {
+            openRdvManuel();
+            document.getElementById('rdv-manuel-urgent').checked = true;
+        }
+
+        async function loadDoctorsIntoSelect(selectId) {
+            try {
+                const token = getToken();
+                const res = await fetch(`${API_BASE}/doctors`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Sélectionnez un médecin...</option>';
+                (data.doctors || data.data || []).forEach(d => {
+                    select.innerHTML += `<option value="${d.id}">${d.full_name || d.name} — ${d.specialty || 'Médecin'}</option>`;
+                });
+            } catch(e) {}
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const token = getToken();
             const phone = getPhone();
@@ -571,6 +755,14 @@
 
             loadDoctors();
             loadAgenda();
+
+            // Polling — refresh agenda + file d'attente toutes les 30 secondes
+            setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    loadAgenda();
+                    loadQueue();
+                }
+            }, 30000);
         });
     </script>
 </body>

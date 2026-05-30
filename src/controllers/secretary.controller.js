@@ -10,12 +10,15 @@ async function getAgenda(req, res) {
         const { doctor_id, date } = req.params;
         const queryDate = date || new Date().toISOString().split('T')[0];
 
-        // Récupérer les RDV du médecin pour la date
+        // Récupérer les RDV du médecin pour la date avec symptômes
         const appointmentsResult = await pool.query(
-            `SELECT id, patient_phone, appointment_time, status, reason 
-             FROM appointments 
-             WHERE doctor_id = $1 AND DATE(appointment_time) = $2
-             ORDER BY appointment_time`,
+            `SELECT a.id, a.patient_phone, a.appointment_time, a.status, a.reason,
+                    s.motif as symptomes_motif,
+                    s.symptomes as symptomes_liste
+             FROM appointments a
+             LEFT JOIN appointment_symptoms s ON s.appointment_id = a.id
+             WHERE a.doctor_id = $1 AND DATE(a.appointment_time) = $2
+             ORDER BY a.appointment_time`,
             [doctor_id, queryDate]
         );
 
