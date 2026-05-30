@@ -138,6 +138,7 @@ app.use('/api/v1/payments/airtel', airtelRoutes);
 app.use('/api/v1/prescriptions', prescriptionRoutes);
 app.use('/api/v1/pharmacies',    pharmacieRoutes);
 app.use('/api/v1/laboratories',  laboratoireRoutes);
+app.use('/api/v1/admin',       adminDocsRoutes);
 app.use('/api/v1/admin',         adminRoutes);
 app.use('/api/v1/payouts',      payoutsRoutes);
 app.use('/api/v1/bank-transfer', bankTransferRoutes);
@@ -164,7 +165,6 @@ app.use('/api/v1',              smartflowRoutes);
 app.use('/api/v1',              symptomsRoutes);
 app.use('/api/v1',              aiConsultRoutes);
 app.use('/api/v1/upload',       uploadRoutes);
-app.use('/api/v1/admin',       adminDocsRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
