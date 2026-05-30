@@ -3,10 +3,10 @@ const router = express.Router();
 const pool = require('../config/db');
 const cloudinary = require('../config/cloudinary');
 
-const { requireAdmin } = require('../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 
 // GET /api/v1/admin/documents/:fileId - Générer une signed URL temporaire
-router.get('/documents/:fileId', requireAdmin, async (req, res) => {
+router.get('/documents/:fileId', authMiddleware.requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT * FROM documents WHERE id=$1 AND is_deleted=false`,
