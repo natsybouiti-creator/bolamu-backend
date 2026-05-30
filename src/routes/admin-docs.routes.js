@@ -10,12 +10,16 @@ const { requireAdmin } = require('../middleware/auth.middleware');
 router.get('/documents/:fileId', requireAdmin, async (req, res) => {
   try {
     const { fileId } = req.params;
+    console.log('[DOCUMENTS] fileId:', fileId);
+    console.log('[DOCUMENTS] Requête SQL lancée...');
 
     // Récupérer les métadonnées du document
     const { rows } = await pool.query(
       'SELECT filename, mimetype, original_name FROM documents WHERE file_id = $1',
       [fileId]
     );
+
+    console.log('[DOCUMENTS] Résultat DB:', rows);
 
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Document non trouvé' });
@@ -42,7 +46,8 @@ router.get('/documents/:fileId', requireAdmin, async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.sendFile(filePath);
   } catch (error) {
-    console.error('[ADMIN DOCS] Erreur:', error.message);
+    console.log('[DOCUMENTS] Erreur SQL:', error.message);
+    console.log('[DOCUMENTS] Erreur détail:', error.detail);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
