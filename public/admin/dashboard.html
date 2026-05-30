@@ -760,7 +760,11 @@ const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pendin
 
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
-document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{if(window.innerWidth<=760)closeSB();}));
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{
+  const panel=b.getAttribute('data-panel');
+  if(panel)go(panel);
+  if(window.innerWidth<=760)closeSB();
+}));
 
 function go(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
