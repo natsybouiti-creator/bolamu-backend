@@ -65,11 +65,18 @@ app.use('/api/v1/payments/momo/webhook', express.raw({ type: 'application/json' 
 // Request logger (remplace le logger de debug)
 app.use(requestLogger);
 
+// Définir le type MIME pour les fichiers .ico
+express.static.mime.define({'image/x-icon': ['ico']});
+
 // Servir les fichiers statiques (images, css, js du dossier public)
 app.use(express.static(path.join(process.cwd(), 'public'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+    if (filePath.endsWith('.ico')) {
+      res.setHeader('Content-Type', 'image/x-icon');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
     }
   }
 }));
