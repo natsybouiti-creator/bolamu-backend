@@ -23,20 +23,19 @@ router.get('/documents/:fileId', authMiddleware.requireAdmin, async (req, res) =
 
     // Si storage_path contient cloudinary.com, générer une signed URL
     if (doc.storage_path && doc.storage_path.includes('cloudinary.com')) {
-      const signedUrl = cloudinary.utils.private_download_url(
-        doc.filename,
-        doc.mimetype?.split('/')[1] || 'jpg',
-        {
-          resource_type: doc.mimetype?.startsWith('video') ? 'video' : 'image',
-          expires_at: Math.floor(Date.now() / 1000) + 300 // 5 minutes
-        }
-      );
+      const extension = doc.mimetype?.split('/')[1] || 'jpg';
+      const signedUrl = cloudinary.url(doc.filename, {
+        resource_type: 'image',
+        type: 'authenticated',
+        sign_url: true,
+        expires_at: Math.floor(Date.now() / 1000) + 300,
+        format: extension
+      });
 
       return res.json({ 
         success: true, 
         url: signedUrl,
-        expires_in: 300,
-        source: 'cloudinary'
+        expires_in: 300
       });
     }
 

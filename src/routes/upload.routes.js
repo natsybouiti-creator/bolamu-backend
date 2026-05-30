@@ -105,7 +105,8 @@ router.post('/secure', verifyUploadToken, upload.single('file'), async (req, res
       `INSERT INTO documents 
        (owner_id, uploaded_by, document_type, filename, 
         original_name, mimetype, storage_path, file_size, created_at)
-       VALUES (NULL, $1, 'identite', $2, $3, $4, $5, $6, NOW())`,
+       VALUES (NULL, $1, 'identite', $2, $3, $4, $5, $6, NOW())
+       RETURNING id`,
       [
         req.uploadPhone,
         result.public_id,
