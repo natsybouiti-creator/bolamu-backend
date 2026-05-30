@@ -2,12 +2,19 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const cloudinary = require('../config/cloudinary');
-const streamifier = require('streamifier');
+const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 // Secret pour les tokens d'upload (différent du secret JWT principal)
 const UPLOAD_SECRET = process.env.UPLOAD_SECRET || crypto.randomBytes(32).toString('hex');
+
+// Multer avec memoryStorage (buffer en mémoire, pas sur disk)
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
+});
 
 // POST /api/v1/upload/token - Génère un token d'upload temporaire
 // Accepte un simple numéro de téléphone valide (pas de vérification OTP)
@@ -57,12 +64,11 @@ const verifyUploadToken = (req, res, next) => {
 };
 
 // Upload vers Cloudinary en mode privé
-const uploadToCloudinary = (buffer, filename) => {
+const uploadToCloudinary = (buffer, mimetype) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: 'bolamu/documents',
-        public_id: filename,
         resource_type: 'auto',
         type: 'authenticated',
         access_mode: 'authenticated'
@@ -72,48 +78,55 @@ const uploadToCloudinary = (buffer, filename) => {
         else resolve(result);
       }
     );
-    streamifier.createReadStream(buffer).pipe(stream);
+    stream.end(buffer);
   });
 };
 
 // POST /api/v1/upload/secure - Upload sécurisé de document
 // Upload AVANT création de compte - stockage temporaire avec phone comme uploaded_by
-router.post('/secure', verifyUploadToken, async (req, res) => {
+router.post('/secure', verifyUploadToken, upload.single('file'), async (req, res) => {
   try {
-    if (!req.body.file) {
-      return res.status(400).json({ success: false, message: 'Fichier base64 requis' });
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false, message: 'Aucun fichier reçu' 
+      });
     }
 
-    console.log('[UPLOAD] Fichier reçu, upload vers Cloudinary...');
+    console.log('[UPLOAD] Fichier reçu:', req.file.originalname);
 
-    // Convertir base64 en buffer
-    const base64Data = req.body.file.replace(/^data:([A-Za-z-+/]+);base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
-    const filename = `${req.uploadPhone}_${Date.now()}`;
-
-    // Upload vers Cloudinary
-    const result = await uploadToCloudinary(buffer, filename);
-
-    console.log('[UPLOAD] Cloudinary upload réussi:', result.public_id);
-
-    // Stockage dans table documents
-    const dbResult = await pool.query(
-      `INSERT INTO documents 
-       (owner_id, uploaded_by, document_type, filename, original_name, 
-        mimetype, file_size, storage_path, created_at)
-       VALUES (NULL, $1, 'identite', $2, $3, $4, $5, $6, NOW())
-       RETURNING id`,
-      [req.uploadPhone, result.public_id, req.body.original_name || 'document',
-       result.resource_type, result.bytes, result.secure_url]
+    const result = await uploadToCloudinary(
+      req.file.buffer, 
+      req.file.mimetype
     );
 
-    console.log('[UPLOAD] Document enregistré en DB:', dbResult.rows[0].id);
+    console.log('[UPLOAD] Cloudinary OK:', result.public_id);
 
-    res.json({ success: true, file_id: dbResult.rows[0].id });
-  } catch (error) {
-    console.error('[UPLOAD SECURE] Erreur:', error.message);
-    console.error('[UPLOAD SECURE] Stack:', error.stack);
-    res.status(500).json({ success: false, message: 'Erreur lors de l\'upload' });
+    await pool.query(
+      `INSERT INTO documents 
+       (owner_id, uploaded_by, document_type, filename, 
+        original_name, mimetype, storage_path, file_size, created_at)
+       VALUES (NULL, $1, 'identite', $2, $3, $4, $5, $6, NOW())`,
+      [
+        req.uploadPhone,
+        result.public_id,
+        req.file.originalname,
+        req.file.mimetype,
+        result.secure_url,
+        result.bytes
+      ]
+    );
+
+    console.log('[UPLOAD] Sauvegardé en DB');
+
+    res.json({ 
+      success: true, 
+      fileId: result.public_id,
+      url: result.secure_url
+    });
+
+  } catch (err) {
+    console.error('[UPLOAD SECURE] Erreur:', err.message);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
