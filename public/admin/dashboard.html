@@ -2,7 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#2E86FF">
 <link rel="manifest" href="/manifest.json">
@@ -952,7 +954,7 @@ async function loadLabos(){
 async function loadPatients(){
   const el=document.getElementById('patients-list');
   try{
-    const res=await api('/admin/users?role=patient');const rows=res.data||[];
+    const res=await api('/admin/patients');const rows=res.data||[];
     const cnt=document.getElementById('patients-count');if(cnt)cnt.textContent=rows.length+' patients';
     el.innerHTML=`<table id="patients-tbl"><thead><tr><th>Nom</th><th>Téléphone</th><th>Inscrit le</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td style="font-weight:500">${p.full_name||''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${p.phone}</td><td style="color:var(--muted)">${fs(p.created_at)}</td><td>${badge(p.is_active?'verified':'pending')}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewUser" data-arg="${p.phone}">Profil</button><button class="ab ab-violet" data-onclick="openGrantCreditTo" data-arg="${p.phone}">Crédit</button></td></tr>`).join('')}</tbody></table>`;
   }catch(e){el.innerHTML='<div class="empty">Erreur</div>';}

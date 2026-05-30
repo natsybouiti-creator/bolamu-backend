@@ -120,6 +120,22 @@ router.get('/stats/patients', authMiddleware, adminOnly, async (req, res) => {
     } catch (e) { err(res, 500, 'Erreur serveur.', { count: 0 }); }
 });
 
+// ─── PATIENTS VÉRIFIÉS (is_active = true) ───────────────────────────────────────
+router.get('/patients', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT u.phone, u.full_name, u.first_name, u.last_name,
+                    u.created_at, u.is_active, u.member_code
+             FROM users u
+             WHERE u.role = 'patient' AND u.is_active = true
+             ORDER BY u.created_at DESC`
+        );
+        ok(res, result.rows);
+    } catch (e) {
+        err(res, 500, 'Erreur serveur.');
+    }
+});
+
 // ─── STATS APPOINTMENTS ───────────────────────────────────────────────────────
 router.get('/stats/appointments', authMiddleware, adminOnly, async (req, res) => {
     try {
@@ -144,9 +160,7 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
              LEFT JOIN pharmacies ph ON ph.phone = u.phone AND u.role = 'pharmacie'
              LEFT JOIN laboratories l ON l.phone = u.phone AND u.role = 'laboratoire'
              WHERE u.is_active = false
-             AND u.role = ANY($1::text[])
-             ORDER BY u.created_at DESC`,
-            [PRO_ROLES]
+             ORDER BY u.created_at DESC`
         );
         ok(res, result.rows);
     } catch (e) {
