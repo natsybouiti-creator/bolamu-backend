@@ -25,7 +25,39 @@ app.set('trust proxy', 1);
 // Cookie parser pour lire les cookies
 app.use(cookieParser());
 
-// Servir les fichiers statiques (images, css, js du dossier public) - AVANT toutes les routes
+// Route GET '/' avec injection footer pour liens secrétariat/RH/admin
+app.get('/', (req, res) => {
+  let html = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+  const injection = `
+<div style="position:fixed;bottom:0;left:0;width:100%;text-align:center;
+            padding:10px 24px;background:rgba(0,0,0,0.55);
+            backdrop-filter:blur(8px);z-index:9999;
+            font-family:'Plus Jakarta Sans',sans-serif;
+            border-top:1px solid rgba(255,255,255,0.06);">
+  <a href="/secretaire/login.html"
+     style="color:rgba(255,255,255,0.35);text-decoration:none;
+            margin:0 14px;font-size:11px;font-weight:500;">
+    Accès Secrétariat
+  </a>
+  <span style="color:rgba(255,255,255,0.15);font-size:11px;">|</span>
+  <a href="/rh/login.html"
+     style="color:rgba(255,255,255,0.35);text-decoration:none;
+            margin:0 14px;font-size:11px;font-weight:500;">
+    Espace RH
+  </a>
+  <span style="color:rgba(255,255,255,0.15);font-size:11px;">|</span>
+  <a href="/admin/login.html"
+     style="color:rgba(255,255,255,0.18);text-decoration:none;
+            margin:0 14px;font-size:11px;font-weight:500;">
+    Admin
+  </a>
+</div>
+</body>`;
+  html = html.replace('</body>', injection);
+  res.send(html);
+});
+
+// Servir les fichiers statiques (images, css, js du dossier public) - APRÈS la route GET '/'
 app.use(express.static(path.join(__dirname, '../public')));
 
 // ============================================================
@@ -168,9 +200,6 @@ app.use('/api/v1/upload',       uploadRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
-app.get('/', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
-});
 
 // ============================================================
 // 5. HEALTH CHECK COMPLET (Sprint 6)
