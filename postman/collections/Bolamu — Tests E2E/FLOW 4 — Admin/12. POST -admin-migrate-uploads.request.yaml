@@ -1,0 +1,14 @@
+$kind: http-request
+name: 12. POST /admin/migrate-uploads
+url: '{{base_url}}/admin/migrate-uploads'
+method: POST
+headers:
+  Authorization: 'Bearer {{admin_token}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', function () { pm.response.to.have.status(200); });
+      var json = pm.response.json();
+      pm.test('Réponse valide', function () { pm.expect(json).to.be.an('object'); });
+    language: text/javascript
+order: 5000

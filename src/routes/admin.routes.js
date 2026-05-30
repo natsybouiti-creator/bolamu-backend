@@ -842,10 +842,25 @@ router.post('/subscriptions/activate', authMiddleware, adminOnly, async (req, re
 // ─── MIGRATION UPLOADS VERS NOUVELLE TABLE DOCUMENTS ───────────────────────
 router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
   try {
+    // Vérifier si la table uploads existe
+    const check = await pool.query(
+      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'uploads')"
+    );
+    console.log('[MIGRATE] Table uploads existe:', check.rows[0].exists);
+
+    if (!check.rows[0].exists) {
+      return res.json({ 
+        success: true, 
+        message: 'Table uploads inexistante — rien à migrer' 
+      });
+    }
+
     const uploads = await pool.query(
       `SELECT * FROM uploads WHERE id NOT IN 
        (SELECT id::text FROM documents WHERE document_type='identite')`
     );
+
+    console.log('[MIGRATE] Uploads à migrer:', uploads.rows.length);
 
     for (const upload of uploads.rows) {
       await pool.query(
@@ -868,6 +883,8 @@ router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
       message: `${uploads.rows.length} document(s) migré(s)` 
     });
   } catch (err) {
+    console.log('[MIGRATE] Erreur:', err.message);
+    console.log('[MIGRATE] Stack:', err.stack);
     res.status(500).json({ success: false, message: err.message });
   }
 });
