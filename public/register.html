@@ -165,16 +165,35 @@ const API = 'https://bolamu-backend.onrender.com/api/v1';
 
 const state = {
   step:1, role:'', phone:'', fullPhone:'', countryCode:'+242', isInternational:false,
-  otpCode:'',  // ← OTP sauvegardé localement, envoyé avec le register
   firstName:'', lastName:'', gender:'', age:'', city:'', neighborhood:'',
   fullName:'', specialty:'', registrationNumber:'', orderCountry:'Congo-Brazzaville',
   countryOfResidence:'Congo-Brazzaville', consultationLanguages:['Français'],
-  availableHours:{}, documentFileId: '', idCardFileId: '',
+  availableHours:{},
+  docs:{},          // ← documents uploadés par clé : {id_card, diploma, ordre, rccm, autorisation, agrement}
   uploadToken: '',
   pharmacyName:'', responsibleName:'', rccmNumber:'',
   labName:'', directorName:'', agrementNumber:'',
   niu: '',
   trustScore:30, cguAccepted:false
+};
+
+// Configuration des documents requis par rôle
+const DOC_CONFIG = {
+  patient: [
+    { key:'id_card', label:"Carte d'identité", hint:'CNI, passeport ou titre de séjour (PDF ou image)' }
+  ],
+  doctor: [
+    { key:'diploma', label:'Diplôme de médecine', hint:'Diplôme d\'État ou équivalent (PDF ou image)' },
+    { key:'ordre', label:"Carte de l'Ordre des médecins", hint:'Carte professionnelle (PDF ou image)' }
+  ],
+  pharmacie: [
+    { key:'rccm', label:'RCCM', hint:'Registre du commerce (PDF ou image)' },
+    { key:'autorisation', label:"Autorisation d'exploitation", hint:'Autorisation du Ministère de la Santé (PDF ou image)' }
+  ],
+  laboratoire: [
+    { key:'agrement', label:'Agrément santé', hint:'Agrément du Ministère de la Santé (PDF ou image)' },
+    { key:'rccm', label:'RCCM', hint:'Registre du commerce (PDF ou image)' }
+  ]
 };
 
 const COUNTRIES=[
@@ -345,7 +364,7 @@ function detectInternational(){
   noticeEl.style.display=isIntl?'block':'none';
 }
 
-function goStep3(){
+async function goStep3(){
   updateFullPhone();
   if(!state.fullPhone||state.fullPhone.length<8)return showAlert('Veuillez entrer un numéro de téléphone valide.');
   if(state.role==='patient'){
@@ -356,22 +375,8 @@ function goStep3(){
   if(state.role==='doctor'&&(!state.firstName||!state.lastName))return showAlert('Prénom et nom sont obligatoires.');
   if(state.role==='pharmacie'&&!state.pharmacyName)return showAlert('Nom de la pharmacie obligatoire.');
   if(state.role==='laboratoire'&&!state.labName)return showAlert('Nom du laboratoire obligatoire.');
-  sendOTP();
-}
-
-async function sendOTP(){
-  const btn=document.querySelector('#step-content .btn-primary');
-  if(btn){btn.disabled=true;btn.textContent='Envoi en cours…';}
-  try{
-    const res=await fetch(`${API}/auth/request-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:state.fullPhone})});
-    const data=await res.json();
-    if(data.success||res.ok){
-      state.otpSent=true;
-      await fetchUploadToken();  // ← token prêt avant l'upload des documents à l'étape 3
-      renderStep3();
-    }
-    else{showAlert(data.message||'Erreur lors de l\'envoi du code.');if(btn){btn.disabled=false;btn.textContent='Continuer →';}}
-  }catch(e){showAlert('Erreur de connexion au serveur.');if(btn){btn.disabled=false;btn.textContent='Continuer →';}}
+  await fetchUploadToken();  // token prêt avant l'upload des documents à l'étape 3
+  renderStep3();
 }
 
 async function fetchUploadToken(){
@@ -380,7 +385,7 @@ async function fetchUploadToken(){
     const res=await fetch('/api/v1/upload/token',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({phone:state.fullPhone,otp_verified:true})
+      body:JSON.stringify({phone:state.fullPhone})
     });
     const data=await res.json();
     if(data.success&&data.upload_token){
@@ -394,7 +399,7 @@ async function fetchUploadToken(){
 
 function renderStep3(){
   state.step=3;
-  updateHeader('Étape 3 sur 4','Vérification',`Code envoyé au ${state.fullPhone}`);
+  updateHeader('Étape 3 sur 4','Vos documents','Téléversez les documents requis pour valider votre dossier.');
   const isDoctor=state.role==='doctor';
   const isPharma=state.role==='pharmacie';
   const isLabo=state.role==='laboratoire';
@@ -439,36 +444,24 @@ function renderStep3(){
       <input class="form-input" id="f-city" type="text" placeholder="Brazzaville" value="${state.city}"></div>`;
   }
 
+  const uploadIcon='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+  const docZones=(DOC_CONFIG[state.role]||[]).map(d=>{
+    const uploaded=!!state.docs[d.key];
+    return `
+    <div class="form-group">
+      <label class="form-label">${d.label} <span class="required">*</span></label>
+      <div class="upload-zone ${uploaded?'uploaded':''}" id="zone-${d.key}" data-upload-key="${d.key}">
+        <input type="file" id="input-${d.key}" data-upload-input="${d.key}" style="display:none" accept="image/*,application/pdf">
+        <div class="upload-icon" id="icon-${d.key}">${uploadIcon}</div>
+        <div class="upload-text" id="text-${d.key}">${uploaded?'Document uploadé — cliquez pour remplacer':'Cliquez pour uploader<br><span style="font-size:11px;">'+d.hint+'</span>'}</div>
+      </div>
+    </div>`;
+  }).join('');
+
   document.getElementById('step-content').innerHTML=`
-    <div style="text-align:center;margin-bottom:8px;">
-      <p style="font-size:14px;color:var(--texte-doux);">Entrez le code à 6 chiffres reçu par SMS</p>
-    </div>
-    <div class="otp-boxes">
-      ${[1,2,3,4,5,6].map(i=>`<input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp${i}" data-index="${i}">`).join('')}
-    </div>
-    <div style="text-align:center;margin-bottom:16px;">
-      <span style="font-size:13px;color:var(--texte-doux);">Pas reçu ? </span>
-      <span style="font-size:13px;color:var(--bleu-vif);cursor:pointer;font-weight:600;" id="resend-otp">Renvoyer le code</span>
-    </div>
-    ${state.role==='patient'?`
-    <div class="form-group">
-      <label class="form-label">Carte d'identité <span class="required">*</span></label>
-      <div class="upload-zone" id="id-card-zone">
-        <input type="file" id="id-card-input" style="display:none" accept="image/*,application/pdf">
-        <div class="upload-icon" id="id-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
-        <div class="upload-text" id="id-card-text">Cliquez pour uploader votre carte d'identité<br><span style="font-size:11px;">CNI, passeport ou titre de séjour (PDF ou image)</span></div>
-      </div>
-    </div>`:''}
     ${proFields}
+    ${docZones}
     ${isPro?`
-    <div class="form-group">
-      <label class="form-label">Document justificatif</label>
-      <div class="upload-zone" id="upload-zone">
-        <input type="file" id="doc-input" style="display:none" accept="image/*,application/pdf">
-        <div class="upload-icon" id="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-        <div class="upload-text" id="upload-text">Cliquez pour uploader<br><span style="font-size:11px;">Diplôme, carte pro, certificat (PDF ou image)</span></div>
-      </div>
-    </div>
     <div class="score-bar-wrap">
       <div class="score-bar-top">
         <span style="font-weight:600;font-size:13px;">Score de confiance</span>
@@ -479,15 +472,11 @@ function renderStep3(){
     </div>`:''}
     <div style="display:flex;gap:10px;">
       <button class="btn-secondary" id="btn-back-step3" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" id="btn-verify" style="flex:1;margin-top:0;">Vérifier →</button>
+      <button class="btn-primary" id="btn-step3" style="flex:1;margin-top:0;">Continuer →</button>
     </div>`;
 
-  setTimeout(()=>document.getElementById('otp1')?.focus(),100);
   calcScore();
 }
-
-function otpNext(el,i){el.value=el.value.replace(/\D/g,'');if(el.value&&i<6)document.getElementById('otp'+(i+1))?.focus();}
-function otpPrev(e,el,i){if(e.key==='Backspace'&&!el.value&&i>1)document.getElementById('otp'+(i-1))?.focus();}
 
 function toggleLang(lang){
   const idx=state.consultationLanguages.indexOf(lang);
@@ -500,9 +489,9 @@ function toggleLang(lang){
 
 function calcScore(){
   let score=30;
-  if(state.role==='doctor'){if(state.registrationNumber)score+=30;if(state.documentFileId)score+=25;if(state.specialty)score+=10;if(state.isInternational&&state.registrationNumber)score+=5;}
-  else if(state.role==='pharmacie'){if(state.rccmNumber)score+=35;if(state.documentFileId)score+=25;if(state.responsibleName)score+=10;}
-  else if(state.role==='laboratoire'){if(state.agrementNumber)score+=35;if(state.rccmNumber)score+=10;if(state.documentFileId)score+=25;}
+  if(state.role==='doctor'){if(state.registrationNumber)score+=25;if(state.docs.diploma)score+=15;if(state.docs.ordre)score+=15;if(state.specialty)score+=10;if(state.isInternational&&state.registrationNumber)score+=5;}
+  else if(state.role==='pharmacie'){if(state.rccmNumber)score+=30;if(state.docs.rccm)score+=15;if(state.docs.autorisation)score+=15;if(state.responsibleName)score+=10;}
+  else if(state.role==='laboratoire'){if(state.agrementNumber)score+=30;if(state.docs.agrement)score+=15;if(state.docs.rccm)score+=15;if(state.rccmNumber)score+=5;}
   state.trustScore=Math.min(score,100);
   const scoreEl=document.getElementById('score-val');
   const fillEl=document.getElementById('score-fill');
@@ -510,14 +499,10 @@ function calcScore(){
   if(fillEl)fillEl.style.width=state.trustScore+'%';
 }
 
-function setUploadState(fieldName, status, message = '') {
-  const zoneId = fieldName === 'idCard' ? 'id-card-zone' : 'upload-zone';
-  const iconId = fieldName === 'idCard' ? 'id-card-icon' : 'upload-icon';
-  const textId = fieldName === 'idCard' ? 'id-card-text' : 'upload-text';
-  
-  const zone = document.getElementById(zoneId);
-  const icon = document.getElementById(iconId);
-  const text = document.getElementById(textId);
+function setUploadState(key, status, message = '') {
+  const zone = document.getElementById('zone-' + key);
+  const icon = document.getElementById('icon-' + key);
+  const text = document.getElementById('text-' + key);
   
   if (!zone || !icon || !text) return;
   
@@ -537,11 +522,11 @@ function setUploadState(fieldName, status, message = '') {
   }
 }
 
-async function uploadSecureFile(input, fieldName) {
+async function uploadSecureFile(input, key) {
   const file = input.files[0];
   if (!file) return;
   
-  setUploadState(fieldName, 'loading');
+  setUploadState(key, 'loading');
   
   try {
     // Filet de sécurité : obtenir un token si manquant
@@ -550,7 +535,7 @@ async function uploadSecureFile(input, fieldName) {
     }
     
     if (!state.uploadToken) {
-      setUploadState(fieldName, 'error', 'Veuillez d\'abord vérifier votre numéro');
+      setUploadState(key, 'error', 'Veuillez d\'abord vérifier votre numéro');
       return;
     }
     
@@ -567,29 +552,26 @@ async function uploadSecureFile(input, fieldName) {
     const data = await res.json();
     
     if (data.success) {
-      if (fieldName === 'idCard') {
-        state.idCardFileId = data.file_id;
-      } else {
-        state.documentFileId = data.file_id;
-      }
-      setUploadState(fieldName, 'success', file.name);
+      state.docs[key] = data.file_id;
+      setUploadState(key, 'success', file.name);
     } else {
-      setUploadState(fieldName, 'error', data.message);
+      setUploadState(key, 'error', data.message);
     }
   } catch(e) {
-    setUploadState(fieldName, 'error', 'Erreur réseau');
+    setUploadState(key, 'error', 'Erreur réseau');
   }
 }
 
-// ── CORRECTION PRINCIPALE : on sauvegarde l'OTP localement sans appeler /verify-otp
-// L'OTP sera envoyé directement avec /register pour éviter le double appel qui le supprime
-function saveOTPAndNext(){
-  const code=[1,2,3,4,5,6].map(i=>document.getElementById('otp'+i)?.value||'').join('');
-  if(code.length<6)return showAlert('Entrez les 6 chiffres du code.');
-  if(state.role==='patient'&&!state.idCardFileId)return showAlert('Veuillez uploader votre carte d\'identité pour continuer.');
+// Validation des documents requis avant de passer aux CGU
+function goStep4(){
+  const required = DOC_CONFIG[state.role] || [];
   if(state.role==='doctor'&&!state.specialty)return showAlert('Choisissez votre spécialité.');
   if(state.role==='doctor'&&!state.registrationNumber)return showAlert('Le numéro d\'ordre est obligatoire.');
-  state.otpCode = code;  // ← sauvegarde locale, pas d'appel API ici
+  if(state.role==='pharmacie'&&!state.rccmNumber)return showAlert('Le numéro RCCM est obligatoire.');
+  if(state.role==='laboratoire'&&!state.agrementNumber)return showAlert('Le numéro d\'agrément est obligatoire.');
+  for(const d of required){
+    if(!state.docs[d.key])return showAlert(`Veuillez téléverser : ${d.label}.`);
+  }
   renderStep4();
 }
 
@@ -620,41 +602,49 @@ function renderStep4(){
 
 async function finalRegister(){
   if(!state.cguAccepted)return showAlert('Veuillez accepter les CGU pour continuer.');
-  if(!state.otpCode||state.otpCode.length<6)return showAlert('Code OTP manquant. Veuillez recommencer.');
   const btn=document.getElementById('btn-register');
   btn.disabled=true;btn.textContent='Création en cours…';
   try{
     let payload={
       phone:state.fullPhone,
-      otp:state.otpCode,
       role:state.role,
       cgu_accepted:true,
       trust_score:state.trustScore,
-      document_file_id:state.documentFileId||null,
+      documents_file_ids:state.docs,
       city:state.city||null,
       neighborhood:state.neighborhood||null
     };
-    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);payload.niu=state.niu||null;payload.id_card_file_id=state.idCardFileId||null;}
-    else if(state.role==='doctor'){payload.full_name=`Dr. ${state.firstName} ${state.lastName}`.trim();payload.specialty=state.specialty;payload.registration_number=state.registrationNumber;payload.order_country=state.orderCountry;payload.country_of_residence=state.countryOfResidence;payload.consultation_languages=state.consultationLanguages.join(', ');payload.is_international=state.isInternational;}
-    else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;}
-    else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;}
+    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);payload.niu=state.niu||null;payload.id_card_file_id=state.docs.id_card||null;}
+    else if(state.role==='doctor'){payload.full_name=`Dr. ${state.firstName} ${state.lastName}`.trim();payload.specialty=state.specialty;payload.registration_number=state.registrationNumber;payload.order_country=state.orderCountry;payload.country_of_residence=state.countryOfResidence;payload.consultation_languages=state.consultationLanguages.join(', ');payload.is_international=state.isInternational;payload.document_file_id=state.docs.diploma||null;}
+    else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;payload.document_file_id=state.docs.rccm||null;}
+    else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;payload.document_file_id=state.docs.agrement||null;}
 
     const endpoint={patient:'/auth/register/patient',doctor:'/auth/register/doctor',pharmacie:'/auth/register/pharmacie',laboratoire:'/auth/register/laboratoire'}[state.role];
     const res=await fetch(`${API}${endpoint}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json();
     if(data.success){
-      if(data.token){
-        const tokenKey = `bolamu_${state.role}_token`;
-        const phoneKey = `bolamu_${state.role}_phone`;
-        localStorage.setItem(tokenKey, data.token);
-        localStorage.setItem(phoneKey, state.fullPhone);
-        localStorage.setItem('bolamu_role', state.role);
-      }
-      const redirects={patient:'/patient/dashboard.html',doctor:'/medecin/dashboard.html',pharmacie:'/pharmacie/dashboard.html',laboratoire:'/laboratoire/dashboard.html'};
-      showAlert('Compte créé avec succès ! Redirection…','success');
-      setTimeout(()=>{window.location.href=redirects[state.role];},1500);
+      renderConfirmation();
     }else{showAlert(data.message||'Erreur lors de la création du compte.');btn.disabled=false;btn.textContent='Créer mon compte Bolamu';}
   }catch(e){showAlert('Erreur de connexion au serveur.');btn.disabled=false;btn.textContent='Créer mon compte Bolamu';}
+}
+
+function renderConfirmation(){
+  updateHeader('Inscription terminée','Compte créé','Merci de votre confiance.');
+  for(let i=1;i<=4;i++){const pill=document.getElementById('pill-'+i);if(pill)pill.className='step-pill done';}
+  document.getElementById('step-content').innerHTML=`
+    <div style="text-align:center;padding:24px 8px;">
+      <div style="width:72px;height:72px;border-radius:50%;background:rgba(0,201,167,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 style="font-family:'Fraunces',serif;color:var(--bleu-marine,#0A2463);font-size:22px;margin:0 0 12px;">Votre compte a été créé</h2>
+      <p style="color:var(--texte-doux,#5A6E8C);font-size:15px;line-height:1.6;max-width:360px;margin:0 auto 8px;">
+        Vous recevrez un SMS de confirmation une fois votre dossier validé par l'équipe Bolamu.
+      </p>
+      <p style="color:var(--texte-doux,#5A6E8C);font-size:13px;line-height:1.6;max-width:360px;margin:0 auto 24px;">
+        Un SMS contenant votre mot de passe vient de vous être envoyé au <strong>${state.fullPhone}</strong>.
+      </p>
+      <a href="/login.html" class="btn-primary" style="display:inline-block;text-decoration:none;text-align:center;">Aller à la connexion</a>
+    </div>`;
 }
 
 renderStep1();
@@ -671,17 +661,14 @@ document.addEventListener('click', function(e) {
   if (e.target.closest('#btn-back-step2')) { renderStep1(); return; }
   if (e.target.closest('#btn-step2')) { goStep3(); return; }
   if (e.target.closest('#btn-back-step3')) { renderStep2(); return; }
-  if (e.target.closest('#btn-verify')) { saveOTPAndNext(); return; }
-  if (e.target.closest('#resend-otp')) { sendOTP(); return; }
+  if (e.target.closest('#btn-step3')) { goStep4(); return; }
   if (e.target.closest('#btn-back-step4')) { renderStep3(); return; }
   if (e.target.closest('#btn-register')) { finalRegister(); return; }
   
-  // Upload zones
-  if (e.target.closest('#id-card-zone')) { 
-    document.getElementById('id-card-input')?.click(); return; 
-  }
-  if (e.target.closest('#upload-zone')) { 
-    document.getElementById('doc-input')?.click(); return; 
+  // Upload zones (dynamiques par clé)
+  const uploadZone = e.target.closest('[data-upload-key]');
+  if (uploadZone) {
+    document.getElementById('input-' + uploadZone.dataset.uploadKey)?.click(); return;
   }
   
   // Lang chips
@@ -705,8 +692,7 @@ document.addEventListener('change', function(e) {
   if (e.target.id === 'f-order-country') { 
     state.orderCountry = e.target.options[e.target.selectedIndex].text; return; 
   }
-  if (e.target.id === 'id-card-input') { uploadSecureFile(e.target, 'idCard'); return; }
-  if (e.target.id === 'doc-input') { uploadSecureFile(e.target, 'document'); return; }
+  if (e.target.dataset && e.target.dataset.uploadInput) { uploadSecureFile(e.target, e.target.dataset.uploadInput); return; }
   if (e.target.id === 'cgu-check') { 
     state.cguAccepted = e.target.checked; return; 
   }
@@ -732,20 +718,6 @@ document.addEventListener('input', function(e) {
   }
   if (e.target.id === 'f-phone') { 
     state.phone = e.target.value; updateFullPhone(); return; 
-  }
-});
-
-document.addEventListener('keydown', function(e) {
-  const box = e.target.closest('.otp-box');
-  if (box) { 
-    otpPrev(e, e.target, parseInt(box.dataset.index)); return; 
-  }
-});
-
-document.addEventListener('keyup', function(e) {
-  const box = e.target.closest('.otp-box');
-  if (box) { 
-    otpNext(e.target, parseInt(box.dataset.index)); return; 
   }
 });
 </script>

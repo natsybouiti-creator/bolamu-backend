@@ -9,19 +9,14 @@ const crypto = require('crypto');
 const UPLOAD_SECRET = process.env.UPLOAD_SECRET || crypto.randomBytes(32).toString('hex');
 
 // POST /api/v1/upload/token - Génère un token d'upload temporaire
+// Accepte un simple numéro de téléphone valide (pas de vérification OTP)
+// car les documents sont uploadés AVANT la création du compte.
 router.post('/token', async (req, res) => {
   try {
-    const { phone, otp_verified } = req.body;
+    const { phone } = req.body;
 
     if (!phone) {
       return res.status(400).json({ success: false, message: 'Numéro de téléphone requis' });
-    }
-
-    // Vérifier que l'OTP a été validé pour ce numéro
-    // Pour simplifier, on accepte la demande si otp_verified est true
-    // En production, on vérifierait dans Redis ou une table temporaire
-    if (!otp_verified) {
-      return res.status(400).json({ success: false, message: 'OTP non validé' });
     }
 
     // Générer un token JWT valide 30 minutes

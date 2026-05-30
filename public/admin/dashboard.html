@@ -881,12 +881,18 @@ async function loadActivity(){
    PENDING
 ----------------------------------- */
 function getDocumentsHtml(u){
+  const docLabels={id_card:"🪪 Carte d'identité",diploma:"📄 Diplôme",ordre:"📄 Carte Ordre",rccm:"📄 RCCM",autorisation:"📄 Autorisation",agrement:"📄 Agrément",document:"📄 Document"};
   const docs = [];
-  if(u.document_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.document_file_id}" target="_blank" class="doc-link">📄 Document</a>`);
-  if(u.id_card_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.id_card_file_id}" target="_blank" class="doc-link">🪪 Carte d'identité</a>`);
-  if(u.rccm_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.rccm_file_id}" target="_blank" class="doc-link">RCCM</a>`);
-  if(u.agrement_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.agrement_file_id}" target="_blank" class="doc-link">Agrément</a>`);
-  if(u.registration_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.registration_file_id}" target="_blank" class="doc-link">Registre</a>`);
+  let map = u.documents_file_ids;
+  if(map && typeof map === 'string'){ try{ map = JSON.parse(map); }catch(e){ map = {}; } }
+  if(map && typeof map === 'object'){
+    Object.keys(map).forEach(k=>{
+      if(map[k]) docs.push(`<a href="/api/v1/admin/documents/${map[k]}" target="_blank" class="doc-link">${docLabels[k]||('📄 '+k)}</a>`);
+    });
+  }
+  // Fallback colonnes legacy
+  if(!docs.length && (u.doc_file_id||u.document_file_id)) docs.push(`<a href="/api/v1/admin/documents/${u.doc_file_id||u.document_file_id}" target="_blank" class="doc-link">📄 Document</a>`);
+  if(!docs.length && u.id_card_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.id_card_file_id}" target="_blank" class="doc-link">🪪 Carte d'identité</a>`);
   return docs.length ? docs.join(' ') : '<span style="color:var(--muted)">Aucun</span>';
 }
 async function loadPending(){
@@ -1172,21 +1178,20 @@ async function viewUser(phone){
   const payments      = profileData.payments        || [];
   // Construire les documents depuis user et pro_profile
   const docs = [];
-  const docFileId = (profileData.pro_profile?.document_file_id) || (profileData.user?.document_file_id);
-  if (docFileId) {
-      docs.push({
-          name: 'Document d\'inscription',
-          url: `/api/v1/admin/documents/${docFileId}`,
-          status: profileData.pro_profile?.status || 'pending'
-      });
+  const docNames = {id_card:"Carte d'identité",diploma:"Diplôme de médecine",ordre:"Carte de l'Ordre",rccm:"RCCM",autorisation:"Autorisation d'exploitation",agrement:"Agrément santé",document:"Document"};
+  let docMap = profileData.user?.documents_file_ids;
+  if (docMap && typeof docMap === 'string') { try { docMap = JSON.parse(docMap); } catch(e) { docMap = {}; } }
+  if (docMap && typeof docMap === 'object') {
+    Object.keys(docMap).forEach(k => {
+      if (docMap[k]) docs.push({ name: docNames[k] || k, url: `/api/v1/admin/documents/${docMap[k]}`, status: profileData.pro_profile?.status || 'pending' });
+    });
   }
-  const idCardFileId = profileData.user?.id_card_file_id;
-  if (idCardFileId) {
-      docs.push({
-          name: 'Carte d\'identité',
-          url: `/api/v1/admin/documents/${idCardFileId}`,
-          status: 'pending'
-      });
+  // Fallback colonnes legacy
+  if (!docs.length) {
+    const docFileId = (profileData.pro_profile?.document_file_id) || (profileData.user?.document_file_id);
+    if (docFileId) docs.push({ name: 'Document d\'inscription', url: `/api/v1/admin/documents/${docFileId}`, status: profileData.pro_profile?.status || 'pending' });
+    const idCardFileId = profileData.user?.id_card_file_id;
+    if (idCardFileId) docs.push({ name: 'Carte d\'identité', url: `/api/v1/admin/documents/${idCardFileId}`, status: 'pending' });
   }
   const documents     = docs;
   const creditHistory = profileData.credit_history  || [];

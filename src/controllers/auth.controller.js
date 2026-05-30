@@ -187,7 +187,7 @@ async function forgotPassword(req, res) {
 // 5. REGISTER PATIENT
 // ============================================================
 async function registerPatient(req, res) {
-    const { phone, first_name, last_name, full_name, gender, age, city, neighborhood, niu, id_card_file_id, cgu_accepted } = req.body;
+    const { phone, first_name, last_name, full_name, gender, age, city, neighborhood, niu, id_card_file_id, documents_file_ids, cgu_accepted } = req.body;
 
     if (!phone || !first_name || !last_name) {
         return res.status(400).json({ success: false, message: "Prénom, nom et téléphone sont obligatoires." });
@@ -217,16 +217,16 @@ async function registerPatient(req, res) {
             const insertResult = await client.query(
                 `INSERT INTO users (
                     phone, role, full_name, first_name, last_name,
-                    gender, age, city, neighborhood, niu, id_card_file_id,
+                    gender, age, city, neighborhood, niu, id_card_file_id, documents_file_ids,
                     member_code, cgu_accepted, cgu_accepted_at,
                     is_active, trust_score, password_hash, created_at
                  ) VALUES (
                     $1, 'patient', $2, $3, $4,
-                    $5, $6, $7, $8, $9, $10,
-                    $11, $12, NOW(),
-                    true, 80, $13, NOW()
+                    $5, $6, $7, $8, $9, $10, $11,
+                    $12, $13, NOW(),
+                    true, 80, $14, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, id_card_file_id || null, member_code, cgu_accepted || false, passwordHash]
+                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, id_card_file_id || null, JSON.stringify(documents_file_ids || {}), member_code, cgu_accepted || false, passwordHash]
             );
 
             const user = insertResult.rows[0];
@@ -263,7 +263,7 @@ async function registerDoctor(req, res) {
         phone, full_name, first_name, last_name,
         specialty, registration_number, order_country,
         country_of_residence, consultation_languages,
-        is_international, city, document_file_id, trust_score, cgu_accepted
+        is_international, city, document_file_id, documents_file_ids, trust_score, cgu_accepted
     } = req.body;
 
     if (!phone || !full_name || !specialty || !registration_number) {
@@ -301,21 +301,22 @@ async function registerDoctor(req, res) {
                     country_of_residence, consultation_languages,
                     is_international, city, document_file_id,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, password_hash, created_at
+                    is_active, password_hash, documents_file_ids, created_at
                  ) VALUES (
                     $1, 'doctor', $2, $3, $4,
                     $5, $6, $7,
                     $8, $9,
                     $10, $11, $12,
                     $13, $14, $15, NOW(),
-                    $16, $17, NOW()
+                    $16, $17, $18, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [
                     normalizedPhone, full_name, first_name || null, last_name || null,
                     specialty, registration_number, order_country || 'Congo-Brazzaville',
                     country_of_residence || 'Congo-Brazzaville', consultation_languages || 'Français',
                     is_international || false, city || null, document_file_id || null,
-                    score, member_code, cgu_accepted || false, is_active, passwordHash
+                    score, member_code, cgu_accepted || false, is_active, passwordHash,
+                    JSON.stringify(documents_file_ids || {})
                 ]
             );
 
@@ -368,7 +369,7 @@ async function registerDoctor(req, res) {
 // 6. REGISTER PHARMACIE
 // ============================================================
 async function registerPharmacie(req, res) {
-    const { phone, name, responsible_name, rccm_number, city, neighborhood, document_file_id, trust_score, cgu_accepted } = req.body;
+    const { phone, name, responsible_name, rccm_number, city, neighborhood, document_file_id, documents_file_ids, trust_score, cgu_accepted } = req.body;
 
     if (!phone || !name || !responsible_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom de la pharmacie et responsable sont obligatoires." });
@@ -403,14 +404,14 @@ async function registerPharmacie(req, res) {
                     phone, role, full_name, responsible_name, rccm_number,
                     city, neighborhood, document_file_id,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, password_hash, created_at
+                    is_active, password_hash, documents_file_ids, created_at
                  ) VALUES (
                     $1, 'pharmacie', $2, $3, $4,
                     $5, $6, $7,
                     $8, $9, $10, NOW(),
-                    $11, $12, NOW()
+                    $11, $12, $13, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_file_id || null, score, member_code, cgu_accepted || false, is_active, passwordHash]
+                [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, document_file_id || null, score, member_code, cgu_accepted || false, is_active, passwordHash, JSON.stringify(documents_file_ids || {})]
             );
 
             await client.query(
@@ -459,7 +460,7 @@ async function registerPharmacie(req, res) {
 // 7. REGISTER LABORATOIRE
 // ============================================================
 async function registerLaboratoire(req, res) {
-    const { phone, name, director_name, agrement_number, rccm_number, city, document_file_id, trust_score, cgu_accepted } = req.body;
+    const { phone, name, director_name, agrement_number, rccm_number, city, document_file_id, documents_file_ids, trust_score, cgu_accepted } = req.body;
 
     if (!phone || !name || !director_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom du laboratoire et directeur sont obligatoires." });
@@ -494,14 +495,14 @@ async function registerLaboratoire(req, res) {
                     phone, role, full_name, director_name, agrement_number, rccm_number,
                     city, document_file_id,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, password_hash, created_at
+                    is_active, password_hash, documents_file_ids, created_at
                  ) VALUES (
                     $1, 'laboratoire', $2, $3, $4, $5,
                     $6, $7,
                     $8, $9, $10, NOW(),
-                    $11, $12, NOW()
+                    $11, $12, $13, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_file_id || null, score, member_code, cgu_accepted || false, is_active, passwordHash]
+                [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, document_file_id || null, score, member_code, cgu_accepted || false, is_active, passwordHash, JSON.stringify(documents_file_ids || {})]
             );
 
             await client.query(
