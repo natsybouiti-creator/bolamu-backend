@@ -633,25 +633,32 @@ tr:hover td{background:rgba(255,255,255,.018);}
     </div>
 
     <!-- PANEL CONFLITS -->
-    <div id="panel-conflits" class="panel" style="display:none">
-      <h2>⚖️ Gestion des Conflits</h2>
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-        <button data-onclick="loadConflits" data-arg="all">Tous</button>
-        <button data-onclick="loadConflits" data-arg="created">Créés</button>
-        <button data-onclick="loadConflits" data-arg="assigned">Assignés</button>
-        <button data-onclick="loadConflits" data-arg="investigating">
-          En cours</button>
-        <button data-onclick="loadConflits" data-arg="resolved">Résolus</button>
-        <button data-onclick="loadConflits" data-arg="closed">Fermés</button>
+    <div id="panel-conflits" class="panel">
+      <div class="section-hd">
+        <div><h2>⚖️ Gestion des Conflits</h2></div>
       </div>
-      <table>
-        <thead><tr>
-          <th>Référence</th><th>Patient</th><th>Partenaire</th>
-          <th>Sujet</th><th>Priorité</th><th>Statut</th>
-          <th>Date</th><th>Action</th>
-        </tr></thead>
-        <tbody id="tbody-conflits"></tbody>
-      </table>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="ab ab-blue" data-onclick="loadConflits" data-arg="all">Tous</button>
+        <button class="ab" data-onclick="loadConflits" data-arg="created">Créés</button>
+        <button class="ab" data-onclick="loadConflits" data-arg="assigned">Assignés</button>
+        <button class="ab" data-onclick="loadConflits" data-arg="investigating">En cours</button>
+        <button class="ab" data-onclick="loadConflits" data-arg="resolved">Résolus</button>
+        <button class="ab" data-onclick="loadConflits" data-arg="closed">Fermés</button>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-head">
+          <span class="tbl-title">Réclamations</span>
+          <span class="tbl-count" id="conflits-count"></span>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Référence</th><th>Patient</th><th>Partenaire</th>
+            <th>Sujet</th><th>Priorité</th><th>Statut</th>
+            <th>Date</th><th>Action</th>
+          </tr></thead>
+          <tbody id="tbody-conflits"></tbody>
+        </table>
+      </div>
     </div>
 
   </div><!-- /content -->
@@ -1601,6 +1608,8 @@ async function loadConflits(statut = 'all') {
       : `/admin/conflicts?statut=${statut}`;
     const d = await api(url);
     const rows = d.data?.conflicts || d.conflicts || (Array.isArray(d) ? d : []);
+    const cnt = document.getElementById('conflits-count');
+    if(cnt) cnt.textContent = rows.length + ' réclamations';
     document.getElementById('tbody-conflits').innerHTML =
       rows.length ? rows.map(r => `<tr>
         <td><code>${r.reference}</code></td>
