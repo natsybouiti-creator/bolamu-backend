@@ -348,7 +348,7 @@ async function registerDoctor(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
+        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
@@ -442,7 +442,7 @@ async function registerPharmacie(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
+        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
@@ -536,7 +536,7 @@ async function registerLaboratoire(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
+        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 

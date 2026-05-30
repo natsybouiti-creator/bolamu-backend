@@ -353,7 +353,7 @@ function renderStep2(){
 function updateCountryCode(code){state.countryCode=code;updateFullPhone();detectInternational();}
 function updateFullPhone(){
   const num=document.getElementById('f-phone')?.value||'';
-  const clean=num.replace(/^0/,'').replace(/\s/g,'');
+  const clean=num.replace(/\s/g,'');
   state.fullPhone=state.countryCode+clean;
 }
 function detectInternational(){
