@@ -839,48 +839,57 @@ router.post('/subscriptions/activate', authMiddleware, adminOnly, async (req, re
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
 
-// ─── MIGRATION UPLOADS VERS NOUVELLE TABLE DOCUMENTS ───────────────────────
+// ─── MIGRATION DOCUMENTS VERS NOUVELLE TABLE DOCUMENTS ───────────────────────
 router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
   try {
-    // Vérifier si la table uploads existe
-    const check = await pool.query(
-      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'uploads')"
-    );
-    console.log('[MIGRATE] Table uploads existe:', check.rows[0].exists);
+    console.log('[MIGRATE] Début migration depuis users.documents_file_ids');
 
-    if (!check.rows[0].exists) {
-      return res.json({ 
-        success: true, 
-        message: 'Table uploads inexistante — rien à migrer' 
-      });
-    }
-
-    const uploads = await pool.query(
-      `SELECT * FROM uploads WHERE id NOT IN 
-       (SELECT id::text FROM documents WHERE document_type='identite')`
+    const users = await pool.query(
+      `SELECT id, documents_file_ids, created_at 
+       FROM users 
+       WHERE documents_file_ids IS NOT NULL 
+       AND documents_file_ids != '[]'::jsonb
+       AND documents_file_ids != 'null'::jsonb`
     );
 
-    console.log('[MIGRATE] Uploads à migrer:', uploads.rows.length);
+    console.log('[MIGRATE] Users avec documents:', users.rows.length);
 
-    for (const upload of uploads.rows) {
-      await pool.query(
-        `INSERT INTO documents 
-         (owner_id, uploaded_by, document_type, 
-          filename, original_name, mimetype, 
-          storage_path, created_at)
-         VALUES ($1,$2,'identite',$3,$4,$5,$6,$7)
-         ON CONFLICT DO NOTHING`,
-        [upload.user_id, upload.user_id, 
-         upload.filename, upload.original_name,
-         upload.mimetype,
-         `/var/data/uploads/${upload.filename}`,
-         upload.created_at]
-      );
+    let migratedCount = 0;
+
+    for (const user of users.rows) {
+      const docs = user.documents_file_ids;
+      
+      // documents_file_ids peut être un objet ou un tableau
+      const fileIds = Array.isArray(docs) ? docs : Object.values(docs || {});
+
+      for (const fileId of fileIds) {
+        if (!fileId) continue;
+
+        try {
+          await pool.query(
+            `INSERT INTO documents 
+             (owner_id, uploaded_by, document_type, 
+              filename, original_name, mimetype, 
+              storage_path, created_at)
+             VALUES ($1,$2,'identite',$3,$3,NULL,$4,$5)
+             ON CONFLICT DO NOTHING`,
+            [user.id, user.id, 
+             fileId,
+             `/var/data/uploads/${fileId}`,
+             user.created_at]
+          );
+          migratedCount++;
+        } catch (insertErr) {
+          console.log('[MIGRATE] Erreur insertion fileId:', fileId, 'user:', user.id, insertErr.message);
+        }
+      }
     }
+
+    console.log('[MIGRATE] Documents migrés:', migratedCount);
 
     res.json({ 
       success: true, 
-      message: `${uploads.rows.length} document(s) migré(s)` 
+      message: `${migratedCount} document(s) migré(s) depuis ${users.rows.length} user(s)` 
     });
   } catch (err) {
     console.log('[MIGRATE] Erreur:', err.message);
