@@ -3,6 +3,7 @@
 // ============================================================
 const express = require('express');
 const router = express.Router();
+const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const {
     createConflictController,
@@ -63,6 +64,23 @@ router.get('/conflicts', authMiddleware, async (req, res) => {
     } catch (err) {
         console.error('[conflicts]', err.message);
         return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// Patient : voir ses propres conflits (par phone)
+router.get('/patient/:phone', authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, reference, sujet, description, statut, priorite, created_at, resolved_at, partner_type, partner_phone
+             FROM conflicts 
+             WHERE patient_phone = $1 
+             ORDER BY created_at DESC`,
+            [req.params.phone]
+        );
+        res.json({ success: true, conflicts: result.rows });
+    } catch (err) {
+        console.error('[conflicts/patient]', err.message);
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
