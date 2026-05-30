@@ -269,8 +269,12 @@
       return localStorage.getItem('bolamu_rh_phone');
     }
 
-    function getClinicId() {
-      return localStorage.getItem('bolamu_rh_clinic_id');
+    function getCompanyId() {
+      return localStorage.getItem('bolamu_rh_company_id');
+    }
+
+    function getCompanyName() {
+      return localStorage.getItem('bolamu_rh_company_name');
     }
 
     async function login() {
@@ -301,11 +305,13 @@
         
         localStorage.setItem('bolamu_rh_token', data.token);
         localStorage.setItem('bolamu_rh_phone', data.rh.phone);
-        localStorage.setItem('bolamu_rh_clinic_id', data.rh.clinic_id);
+        localStorage.setItem('bolamu_rh_company_id', data.rh.company_id);
+        localStorage.setItem('bolamu_rh_company_name', data.rh.company_name);
         
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('dashboard-content').style.display = 'block';
         document.getElementById('topbar-phone').textContent = data.rh.phone;
+        document.getElementById('topbar-company').textContent = data.rh.company_name || '—';
         
         loadDashboard();
       } catch (e) {
@@ -322,6 +328,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       const token = getToken();
       const phone = getPhone();
+      const companyName = getCompanyName();
       
       if (!token || !phone) {
         document.getElementById('login-screen').style.display = 'flex';
@@ -332,6 +339,7 @@
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('dashboard-content').style.display = 'block';
       document.getElementById('topbar-phone').textContent = phone;
+      document.getElementById('topbar-company').textContent = companyName || '—';
       
       loadDashboard();
     });
@@ -491,6 +499,8 @@
     function logout() {
       localStorage.removeItem('bolamu_rh_token');
       localStorage.removeItem('bolamu_rh_phone');
+      localStorage.removeItem('bolamu_rh_company_id');
+      localStorage.removeItem('bolamu_rh_company_name');
       window.location.href = '/login.html';
     }
 

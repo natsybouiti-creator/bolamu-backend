@@ -124,9 +124,9 @@ authMiddleware.requireRH = (req, res, next) => {
     if (!['rh', 'admin'].includes(req.user.role)) {
         return res.status(403).json({ success: false, message: 'Accès réservé aux RH entreprise' });
     }
-    // Attacher clinic_id depuis le token
-    if (req.user.clinic_id) {
-        req.user.clinic_id = req.user.clinic_id;
+    // Attacher company_id depuis le token
+    if (req.user.company_id) {
+        req.user.company_id = req.user.company_id;
     }
     next();
 };

@@ -63,9 +63,10 @@ router.post('/rh/login', async (req, res) => {
     
     try {
         const result = await pool.query(
-            `SELECT id, phone, full_name, role, is_active, clinic_id 
-             FROM users 
-             WHERE phone = $1 AND role = 'rh' AND is_active = true`,
+            `SELECT u.id, u.full_name, u.phone, u.role, u.is_active, u.company_id, c.name as company_name
+             FROM users u
+             LEFT JOIN companies c ON c.id = u.company_id
+             WHERE u.phone = $1 AND u.role = 'rh' AND u.is_active = true`,
             [phone]
         );
         
@@ -78,7 +79,7 @@ router.post('/rh/login', async (req, res) => {
         const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
         
         const token = jwt.sign(
-            { id: user.id, phone: user.phone, role: 'rh', clinic_id: user.clinic_id },
+            { id: user.id, phone: user.phone, role: 'rh', company_id: user.company_id },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -90,7 +91,8 @@ router.post('/rh/login', async (req, res) => {
                 id: user.id,
                 full_name: user.full_name,
                 phone: user.phone,
-                clinic_id: user.clinic_id
+                company_id: user.company_id,
+                company_name: user.company_name
             }
         });
     } catch (err) {
