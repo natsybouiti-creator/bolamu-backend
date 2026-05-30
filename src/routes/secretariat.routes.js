@@ -18,9 +18,13 @@ router.get('/secretary/agenda/:doctor_id', authMiddleware, authMiddleware.requir
 // Créer RDV présentiel
 router.post('/secretary/appointments', authMiddleware, authMiddleware.requireSecretary, secretary.createAppointment);
 
-// GET /api/v1/secretary/queue/:date
-// File d'attente du jour
-router.get('/secretary/queue/:date', authMiddleware, authMiddleware.requireSecretary, secretary.getQueue);
+// GET /api/v1/secretary/queue/:doctor_id
+// File d'attente du jour (date en query param optionnel)
+router.get('/secretary/queue/:doctor_id', authMiddleware, authMiddleware.requireSecretary, secretary.getQueue);
+
+// POST /api/v1/secretary/queue
+// Ajouter patient en urgence sans RDV préalable
+router.post('/secretary/queue', authMiddleware, authMiddleware.requireSecretary, secretary.addToQueue);
 
 // PATCH /api/v1/secretary/queue/:id/status
 // Changer statut patient dans file d'attente

@@ -37,9 +37,38 @@ router.get('/slots/:doctor_id', async (req, res) => {
             [doctor_id, date]
         );
         const pris = prisResult.rows.map(r => r.appointment_time.slice(0,5));
-        const libres = creneaux.filter(c => !pris.includes(c));
         
-        res.json({ success: true, slots: libres, pris: pris, jour: jour });
+        // Récupérer les blocages agenda pour cette date
+        const blocksResult = await pool.query(
+            `SELECT block_start, block_end FROM agenda_blocks WHERE doctor_id = $1 AND block_date = $2`,
+            [doctor_id, date]
+        );
+        
+        // Filtrer les créneaux libres en excluant ceux dans les blocages
+        const libres = creneaux.filter(c => {
+            if (pris.includes(c)) return false;
+            // Vérifier si le créneau est dans un blocage
+            for (const block of blocksResult.rows) {
+                if (c >= block.block_start && c < block.block_end) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        
+        // Ajouter les créneaux bloqués à la liste pris
+        const bloques = [];
+        for (const block of blocksResult.rows) {
+            for (const c of creneaux) {
+                if (c >= block.block_start && c < block.block_end && !pris.includes(c) && !bloques.includes(c)) {
+                    bloques.push(c);
+                }
+            }
+        }
+        
+        const tousPris = [...pris, ...bloques];
+        
+        res.json({ success: true, slots: libres, pris: tousPris, jour: jour });
     } catch(err) {
         res.status(500).json({ error: err.message });
     }
@@ -49,6 +78,32 @@ router.get('/slots/:doctor_id', async (req, res) => {
 router.post('/book', authMiddleware, async (req, res) => {
     const { patient_phone, doctor_id, date, time } = req.body;
     try {
+        // a) Vérifier double booking
+        const existingAppointment = await pool.query(
+            `SELECT id FROM appointments 
+             WHERE doctor_id = $1 
+             AND appointment_date = $2 
+             AND appointment_time = $3 
+             AND status NOT IN ('annule', 'refuse')`,
+            [doctor_id, date, time]
+        );
+        if (existingAppointment.rows.length > 0) {
+            return res.status(409).json({ success: false, message: 'Ce créneau est déjà réservé' });
+        }
+
+        // b) Vérifier agenda_blocks
+        const existingBlock = await pool.query(
+            `SELECT id FROM agenda_blocks 
+             WHERE doctor_id = $1 
+             AND block_date = $2 
+             AND block_start <= $3 
+             AND block_end > $3`,
+            [doctor_id, date, time]
+        );
+        if (existingBlock.rows.length > 0) {
+            return res.status(409).json({ success: false, message: 'Ce créneau est bloqué par le secrétariat' });
+        }
+
         const session_code = Math.floor(1000 + Math.random() * 9000).toString();
         const result = await pool.query(
             `INSERT INTO appointments (patient_phone, doctor_id, appointment_date, appointment_time, session_code, status)
@@ -73,7 +128,20 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
         if (!doc.rows.length) return res.json({ success: true, data: [], pagination: { total: 0, page: parseInt(page), per_page: parseInt(per_page) } });
         
         const result = await pool.query(
-            `SELECT * FROM appointments WHERE doctor_id = $1 ORDER BY appointment_date ASC LIMIT $2 OFFSET $3`,
+            `SELECT 
+                a.*,
+                u.full_name as patient_name,
+                s.motif as symptomes_motif,
+                s.symptomes as symptomes_liste,
+                s.duree_symptomes,
+                s.intensite,
+                s.remarques_patient
+             FROM appointments a
+             LEFT JOIN users u ON u.phone = a.patient_phone
+             LEFT JOIN appointment_symptoms s ON s.appointment_id = a.id
+             WHERE a.doctor_id = $1
+             ORDER BY a.appointment_date DESC, a.appointment_time DESC
+             LIMIT $2 OFFSET $3`,
             [doc.rows[0].id, parseInt(per_page), offset]
         );
         
@@ -131,6 +199,57 @@ router.post('/:id/validate', authMiddleware, async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: "Erreur" });
     }
+});
+
+// 6. Symptômes pre-RDV (alias vers appointment_symptoms)
+router.post('/:id/symptoms', authMiddleware, async (req, res) => {
+  try {
+    const appointmentId = parseInt(req.params.id);
+    const { 
+      motif, symptomes, duree_symptomes, 
+      intensite, traitements_en_cours, remarques_patient 
+    } = req.body;
+    
+    if (!motif) {
+      return res.status(400).json({ success: false, message: 'Motif obligatoire' });
+    }
+    
+    // Vérifie que le RDV existe
+    const rdv = await pool.query(
+      'SELECT id FROM appointments WHERE id = $1', [appointmentId]
+    );
+    if (!rdv.rows.length) {
+      return res.status(404).json({ success: false, message: 'RDV introuvable' });
+    }
+    
+    // Upsert dans appointment_symptoms
+    await pool.query(
+      `INSERT INTO appointment_symptoms 
+        (appointment_id, motif, symptomes, duree_symptomes, intensite, traitements_en_cours, remarques_patient)
+       VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7)
+       ON CONFLICT (appointment_id) DO UPDATE SET
+        motif = EXCLUDED.motif,
+        symptomes = EXCLUDED.symptomes,
+        duree_symptomes = EXCLUDED.duree_symptomes,
+        intensite = EXCLUDED.intensite,
+        traitements_en_cours = EXCLUDED.traitements_en_cours,
+        remarques_patient = EXCLUDED.remarques_patient`,
+      [
+        appointmentId,
+        motif,
+        JSON.stringify(symptomes || []),
+        duree_symptomes || null,
+        intensite ? String(intensite) : null,
+        traitements_en_cours || null,
+        remarques_patient || null
+      ]
+    );
+    
+    res.json({ success: true, message: 'Symptômes enregistrés' });
+  } catch (err) {
+    console.error('[SYMPTOMS]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 module.exports = router;

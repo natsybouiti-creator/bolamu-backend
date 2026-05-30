@@ -72,7 +72,8 @@ async function createAppointment(req, res) {
 // ─── GET FILE D'ATTENTE DU JOUR ─────────────────────────────────────────────────────
 async function getQueue(req, res) {
     try {
-        const { doctor_id, date } = req.params;
+        const { doctor_id } = req.params;
+        const { date } = req.query;
         const queryDate = date || new Date().toISOString().split('T')[0];
 
         const result = await pool.query(
@@ -91,6 +92,37 @@ async function getQueue(req, res) {
         });
     } catch (error) {
         console.error('[GET QUEUE]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+}
+
+// ─── POST AJOUTER PATIENT EN URGENCE ─────────────────────────────────────────────────────
+async function addToQueue(req, res) {
+    try {
+        const { doctor_id, patient_phone, motif, is_urgent } = req.body;
+        
+        if (!doctor_id || !patient_phone) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'doctor_id et patient_phone requis' 
+            });
+        }
+        
+        const result = await pool.query(
+            `INSERT INTO queue_entries 
+                (doctor_id, patient_phone, motif, status, is_urgent, queue_date, arrived_at)
+             VALUES ($1, $2, $3, 'waiting', $4, CURRENT_DATE, NOW())
+             RETURNING *`,
+            [doctor_id, patient_phone, motif || null, is_urgent || false]
+        );
+        
+        return res.status(201).json({
+            success: true,
+            message: 'Patient ajouté à la file d\'attente',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error('[ADD TO QUEUE]', error.message);
         return res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
 }
@@ -359,6 +391,7 @@ module.exports = {
     getAgenda,
     createAppointment,
     getQueue,
+    addToQueue,
     updateQueueStatus,
     createAgendaBlock,
     deleteAgendaBlock,
