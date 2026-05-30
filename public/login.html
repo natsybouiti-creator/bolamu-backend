@@ -207,10 +207,10 @@ async function doLogin() {
     if (res.ok && data.success) {
       const role = data.role;
       if (role === 'patient') {
-        localStorage.setItem('bolamu_patient_token', data.token);
+        localStorage.setItem('bolamu_patient_token', data.accessToken);
         localStorage.setItem('bolamu_patient_phone', data.phone);
       } else {
-        localStorage.setItem(`bolamu_${role}_token`, data.token);
+        localStorage.setItem(`bolamu_${role}_token`, data.accessToken);
         localStorage.setItem(`bolamu_${role}_phone`, data.phone);
       }
       localStorage.setItem('bolamu_role', role);
