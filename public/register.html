@@ -456,7 +456,7 @@ function renderStep3(){
     <div class="form-group">
       <label class="form-label">${d.label} <span class="required">*</span></label>
       <div class="upload-zone ${uploaded?'uploaded':''}" id="zone-${d.key}" data-upload-key="${d.key}">
-        <input type="file" id="input-${d.key}" data-upload-input="${d.key}" style="display:none" accept="image/*,application/pdf">
+        <input type="file" id="input-${d.key}" data-upload-input="${d.key}" style="display:none" accept="image/*,application/pdf" onchange="uploadSecureFile(this, '${d.key}')">
         <div class="upload-icon" id="icon-${d.key}">${uploadIcon}</div>
         <div class="upload-text" id="text-${d.key}">${uploaded?'Document uploadé — cliquez pour remplacer':'Cliquez pour uploader<br><span style="font-size:11px;">'+d.hint+'</span>'}</div>
       </div>
