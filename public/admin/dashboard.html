@@ -890,27 +890,13 @@ function getDocumentsHtml(u){
   const docLabels={id_card:"🪪 Carte d'identité",diploma:"📄 Diplôme",ordre:"📄 Carte Ordre",rccm:"📄 RCCM",autorisation:"📄 Autorisation",agrement:"📄 Agrément",identite:"📄 Document",document:"📄 Document"};
   const docs = [];
   
-  // Nouveau système : u.documents contient les documents de la table documents avec id numérique
-  if(u.documents && Array.isArray(u.documents)){
-    u.documents.forEach(d=>{
-      if(d.id) docs.push(`<a href="/api/v1/admin/documents/${d.id}?token=${token}" target="_blank" class="doc-link">${docLabels[d.document_type]||('📄 '+d.document_type)}</a>`);
+  if (u.documents && u.documents.length > 0) {
+    u.documents.forEach(d => {
+      const label = docLabels[d.document_type] || ('📄 ' + d.document_type);
+      docs.push(`<a href="/api/v1/admin/documents/${d.id}?token=${token}" target="_blank" class="doc-link">${label}</a>`);
     });
   }
   
-  // Fallback ancien système : documents_file_ids
-  if(!docs.length){
-    let map = u.documents_file_ids;
-    if(map && typeof map === 'string'){ try{ map = JSON.parse(map); }catch(e){ map = {}; } }
-    if(map && typeof map === 'object'){
-      Object.keys(map).forEach(k=>{
-        if(map[k]) docs.push(`<a href="/api/v1/admin/documents/${map[k]}?token=${token}" target="_blank" class="doc-link">${docLabels[k]||('📄 '+k)}</a>`);
-      });
-    }
-  }
-  
-  // Fallback colonnes legacy
-  if(!docs.length && (u.doc_file_id||u.document_file_id)) docs.push(`<a href="/api/v1/admin/documents/${u.doc_file_id||u.document_file_id}?token=${token}" target="_blank" class="doc-link">📄 Document</a>`);
-  if(!docs.length && u.id_card_file_id) docs.push(`<a href="/api/v1/admin/documents/${u.id_card_file_id}?token=${token}" target="_blank" class="doc-link">🪪 Carte d'identité</a>`);
   return docs.length ? docs.join(' ') : '<span style="color:var(--muted)">Aucun</span>';
 }
 async function loadPending(){

@@ -166,7 +166,7 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
         // Pour chaque utilisateur, récupérer les documents de la table documents
         const usersWithDocs = await Promise.all(result.rows.map(async (user) => {
             const docsResult = await pool.query(
-                `SELECT id, filename, original_name, document_type, mimetype, created_at
+                `SELECT id, filename, original_name, document_type, storage_path, mimetype, created_at
                  FROM documents 
                  WHERE uploaded_by = $1 AND owner_id IS NULL AND is_deleted = false
                  ORDER BY created_at DESC`,
