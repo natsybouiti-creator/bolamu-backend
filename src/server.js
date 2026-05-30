@@ -25,6 +25,9 @@ app.set('trust proxy', 1);
 // Cookie parser pour lire les cookies
 app.use(cookieParser());
 
+// Servir les fichiers statiques (images, css, js du dossier public) - AVANT toutes les routes
+app.use(express.static(path.join(__dirname, '../public')));
+
 // ============================================================
 // 1. MIDDLEWARES & CORS CONFIGURATION
 // ============================================================
@@ -68,9 +71,6 @@ app.use('/api/v1/payments/momo/webhook', express.raw({ type: 'application/json' 
 
 // Request logger (remplace le logger de debug)
 app.use(requestLogger);
-
-// Servir les fichiers statiques (images, css, js du dossier public)
-app.use(express.static(path.join(__dirname, '../public')));
 
 // ============================================================
 // 2. IMPORT DES ROUTES
