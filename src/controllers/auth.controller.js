@@ -209,6 +209,7 @@ async function registerPatient(req, res) {
 
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
+        console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
 
         const client = await pool.connect();
         try {
@@ -288,6 +289,7 @@ async function registerDoctor(req, res) {
 
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
+        console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
 
         let newUser;
         const client = await pool.connect();
@@ -396,6 +398,7 @@ async function registerPharmacie(req, res) {
 
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
+        console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
 
         let newUser;
         const client = await pool.connect();
@@ -490,6 +493,7 @@ async function registerLaboratoire(req, res) {
 
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
+        console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
 
         let newUser;
         const client = await pool.connect();
