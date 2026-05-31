@@ -903,7 +903,10 @@
           tbody.innerHTML += `
             <tr>
               <td>${time}</td>
-              <td>${apt.patient_phone || '—'}</td>
+              <td>
+                <div>${apt.patient_name || apt.patient_phone}</div>
+                <div style="font-size:12px;color:var(--texte-doux);">${apt.patient_phone}</div>
+              </td>
               <td>${apt.motif || '—'}</td>
               <td>
                 <span class="status-badge status-${apt.status}">
