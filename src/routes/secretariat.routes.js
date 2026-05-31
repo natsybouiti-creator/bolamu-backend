@@ -146,7 +146,7 @@ router.get('/agenda', authMiddleware, authMiddleware.requireSecretary, async (re
 
     const result = await pool.query(
       `SELECT a.id, a.patient_phone, a.appointment_date,
-              a.appointment_time, a.status, a.reason,
+              a.appointment_time, a.status, a.motif,
               u.full_name as patient_name,
               s.motif as symptomes_motif
        FROM appointments a
@@ -171,6 +171,37 @@ router.get('/secretary/agenda/:doctor_id', authMiddleware, authMiddleware.requir
 // POST /api/v1/secretary/appointments
 // Créer RDV présentiel
 router.post('/secretary/appointments', authMiddleware, authMiddleware.requireSecretary, secretary.createAppointment);
+
+// POST /api/v1/secretariat/rdv-manuel
+// Créer RDV manuel à l'accueil (avec double booking check)
+router.post('/rdv-manuel', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const { patient_phone, doctor_id, date, time, motif, is_urgent } = req.body;
+    if (!patient_phone || !doctor_id || !date || !time) {
+      return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
+    }
+    const existing = await pool.query(
+      `SELECT id FROM appointments 
+       WHERE doctor_id = $1 AND appointment_date = $2 AND appointment_time = $3
+       AND status NOT IN ('annule','refuse')`,
+      [doctor_id, date, time]
+    );
+    if (existing.rows.length) {
+      return res.status(409).json({ success: false, message: 'Ce créneau est déjà réservé' });
+    }
+    const result = await pool.query(
+      `INSERT INTO appointments 
+        (patient_phone, doctor_id, appointment_date, appointment_time, status, motif, is_urgent, created_by)
+       VALUES ($1, $2, $3, $4, 'confirme', $5, $6, 'secretariat')
+       RETURNING *`,
+      [patient_phone, doctor_id, date, time, motif || null, is_urgent || false]
+    );
+    res.json({ success: true, appointment: result.rows[0] });
+  } catch(err) {
+    console.error('[RDV MANUEL]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // POST /api/v1/secretary/rdv-manuel
 // Créer RDV manuel à l'accueil (avec double booking check)
@@ -211,6 +242,21 @@ router.get('/secretary/queue/:doctor_id', authMiddleware, authMiddleware.require
 // POST /api/v1/secretary/queue
 // Ajouter patient en urgence sans RDV préalable
 router.post('/secretary/queue', authMiddleware, authMiddleware.requireSecretary, secretary.addToQueue);
+
+// PATCH /api/v1/secretariat/queue/:id/status
+// Changer statut patient dans file d'attente
+router.patch('/queue/:id/status', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const { status } = req.body;
+    await pool.query(
+      `UPDATE queue_entries SET status = $1, updated_at = NOW() WHERE id = $2`,
+      [status, req.params.id]
+    );
+    res.json({ success: true });
+  } catch(err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // PATCH /api/v1/secretary/queue/:id/status
 // Changer statut patient dans file d'attente
@@ -328,8 +374,7 @@ router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (
 // File d'attente globale
 router.get('/queue', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   try {
-    const { date } = req.query;
-    const today = date || new Date().toISOString().split('T')[0];
+    const date = req.query.date || new Date().toISOString().split('T')[0];
     const result = await pool.query(
       `SELECT q.id, q.patient_phone, q.doctor_id, q.status, q.motif,
               q.is_urgent, q.created_at,
@@ -339,9 +384,9 @@ router.get('/queue', authMiddleware, authMiddleware.requireSecretary, async (req
        LEFT JOIN doctors d ON d.id = q.doctor_id
        LEFT JOIN users u ON u.phone = q.patient_phone
        WHERE d.clinic_id = $1
-       AND DATE(q.created_at) = $2
+       AND DATE(q.created_at) = $2::date
        ORDER BY q.created_at ASC`,
-      [req.user.clinic_id, today]
+      [req.user.clinic_id, date]
     );
     res.json({ success: true, queue: result.rows });
   } catch(err) {
