@@ -193,7 +193,8 @@ router.get('/secretary/stats', authMiddleware, authMiddleware.requireSecretary, 
 // Stats dashboard secrétaire
 router.get('/dashboard-stats', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   try {
-    const { clinic_id, date } = req.query;
+    const { date } = req.query;
+    const clinicId = req.user.clinic_id;
     const queryDate = date || new Date().toISOString().split('T')[0];
     
     const [rdvToday, enAttente, enConsult, medecins] = await Promise.all([
@@ -201,23 +202,23 @@ router.get('/dashboard-stats', authMiddleware, authMiddleware.requireSecretary, 
         `SELECT COUNT(*) FROM appointments a 
          JOIN doctors d ON d.id = a.doctor_id 
          WHERE d.clinic_id = $1 AND a.appointment_date = $2 AND a.status NOT IN ('annule','refuse')`,
-        [clinic_id, queryDate]
+        [clinicId, queryDate]
       ),
       pool.query(
         `SELECT COUNT(*) FROM appointments a 
          JOIN doctors d ON d.id = a.doctor_id 
          WHERE d.clinic_id = $1 AND a.appointment_date = $2 AND a.status = 'en_attente'`,
-        [clinic_id, queryDate]
+        [clinicId, queryDate]
       ),
       pool.query(
         `SELECT COUNT(*) FROM appointments a 
          JOIN doctors d ON d.id = a.doctor_id 
          WHERE d.clinic_id = $1 AND a.appointment_date = $2 AND a.status = 'en_cours'`,
-        [clinic_id, queryDate]
+        [clinicId, queryDate]
       ),
       pool.query(
         `SELECT COUNT(*) FROM doctors WHERE clinic_id = $1 AND is_active = true`,
-        [clinic_id]
+        [clinicId]
       )
     ]);
     
@@ -262,8 +263,8 @@ router.get('/patients/search', authMiddleware, authMiddleware.requireSecretary, 
 // Liste médecins de la clinique
 router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   try {
-    const { clinic_id } = req.query;
-    console.log('[MEDECINS] clinic_id:', clinic_id);
+    const clinicId = req.user.clinic_id;
+    console.log('[MEDECINS] clinic_id:', clinicId);
     
     const result = await pool.query(
       `SELECT d.id, d.full_name, d.specialty, d.is_active,
@@ -272,7 +273,7 @@ router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (
        LEFT JOIN appointments a ON a.doctor_id = d.id
        WHERE d.clinic_id = $1
        GROUP BY d.id ORDER BY d.full_name`,
-      [clinic_id]
+      [clinicId]
     );
     
     console.log('[MEDECINS] result rows:', result.rows.length);
@@ -287,7 +288,8 @@ router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (
 // File d'attente globale
 router.get('/queue', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   try {
-    const { clinic_id, date } = req.query;
+    const { date } = req.query;
+    const clinicId = req.user.clinic_id;
     const queryDate = date || new Date().toISOString().split('T')[0];
     
     const result = await pool.query(
@@ -298,9 +300,9 @@ router.get('/queue', authMiddleware, authMiddleware.requireSecretary, async (req
        FROM queue_entries q
        LEFT JOIN users u ON u.phone = q.patient_phone
        LEFT JOIN doctors d ON d.id = q.doctor_id
-       WHERE q.queue_date = $1
+       WHERE q.queue_date = $1 AND d.clinic_id = $2
        ORDER BY q.created_at`,
-      [queryDate]
+      [queryDate, clinicId]
     );
     
     res.json({ success: true, queue: result.rows });
