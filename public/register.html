@@ -100,6 +100,13 @@
     .upload-icon{font-size:28px;margin-bottom:8px;}
     .upload-text{font-size:13px;color:var(--texte-doux);}
 
+    /* ── PHOTO CAPTURE ── */
+    .photo-capture-bloc{border:2px dashed var(--border);border-radius:14px;padding:20px;text-align:center;}
+    .photo-preview{width:120px;height:120px;border-radius:50%;background:var(--bleu-pale);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--border);}
+    .photo-preview img{width:100%;height:100%;object-fit:cover;}
+    .photo-placeholder{font-size:40px;color:var(--texte-doux);}
+    .photo-actions{display:flex;gap:8px;justify-content:center;margin-bottom:12px;}
+
     /* ── ALERTS ── */
     .alert{padding:12px 16px;border-radius:12px;font-size:14px;margin-bottom:16px;}
     .alert-error{background:#fde8e8;border:1px solid rgba(231,76,60,0.2);color:var(--rouge);}
@@ -463,9 +470,33 @@ function renderStep3(){
     </div>`;
   }).join('');
 
+  // Photo identité (pour tous les rôles)
+  const photoZone = `
+    <div class="form-group" style="margin-top:24px;padding-top:24px;border-top:1px solid var(--border);">
+      <label class="form-label">Photo d'identité <span class="required">*</span></label>
+      <div class="photo-capture-bloc">
+        <div class="photo-preview" id="reg-photo-preview">
+          <div class="photo-placeholder">📷</div>
+        </div>
+        <div class="photo-actions">
+          <button type="button" class="btn-secondary" onclick="regOpenCamera()">📷 Prendre photo</button>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('reg-photo-input').click()">📁 Choisir fichier</button>
+          <input type="file" id="reg-photo-input" accept="image/*" style="display:none" onchange="regHandlePhotoUpload(this)" />
+        </div>
+        <video id="reg-camera" autoplay playsinline style="display:none;width:100%;max-width:320px;border-radius:14px;margin-top:12px;"></video>
+        <canvas id="reg-canvas" style="display:none;"></canvas>
+        <button type="button" id="reg-capture-btn" style="display:none;margin-top:12px;" onclick="regCapturePhoto()">Capturer</button>
+        <button type="button" id="reg-close-camera-btn" style="display:none;margin-top:12px;" onclick="regCloseCamera()">Fermer caméra</button>
+      </div>
+      <input type="hidden" id="reg-photo-data" />
+      <div class="hint" id="reg-photo-hint">Photo obligatoire pour valider votre identité</div>
+    </div>
+  `;
+
   document.getElementById('step-content').innerHTML=`
     ${proFields}
     ${docZones}
+    ${photoZone}
     ${isPro?`
     <div class="score-bar-wrap">
       <div class="score-bar-top">
@@ -577,6 +608,10 @@ function goStep4(){
   for(const d of required){
     if(!state.docs[d.key])return showAlert(`Veuillez téléverser : ${d.label}.`);
   }
+  // Validation photo identité
+  const photoData = document.getElementById('reg-photo-data').value;
+  if(!photoData)return showAlert('Veuillez capturer ou charger une photo d\'identité.');
+  state.photoData = photoData;
   renderStep4();
 }
 
@@ -725,6 +760,68 @@ document.addEventListener('input', function(e) {
     state.phone = e.target.value; updateFullPhone(); return; 
   }
 });
+
+// ─── PHOTO CAPTURE (REGISTER) ───
+let regCameraStream = null;
+let regPhotoData = null;
+
+async function regOpenCamera() {
+  const video = document.getElementById('reg-camera');
+  const captureBtn = document.getElementById('reg-capture-btn');
+  const closeBtn = document.getElementById('reg-close-camera-btn');
+  
+  try {
+    regCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+    video.srcObject = regCameraStream;
+    video.style.display = 'block';
+    captureBtn.style.display = 'inline-block';
+    closeBtn.style.display = 'inline-block';
+  } catch (err) {
+    alert('Impossible d\'accéder à la caméra. Veuillez choisir un fichier.');
+    console.error('[REG CAMERA]', err);
+  }
+}
+
+function regCloseCamera() {
+  if (regCameraStream) {
+    regCameraStream.getTracks().forEach(track => track.stop());
+    regCameraStream = null;
+  }
+  document.getElementById('reg-camera').style.display = 'none';
+  document.getElementById('reg-capture-btn').style.display = 'none';
+  document.getElementById('reg-close-camera-btn').style.display = 'none';
+}
+
+function regCapturePhoto() {
+  const video = document.getElementById('reg-camera');
+  const canvas = document.getElementById('reg-canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+  regSetPhotoPreview(dataUrl);
+  regCloseCamera();
+}
+
+function regHandlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    regSetPhotoPreview(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function regSetPhotoPreview(dataUrl) {
+  regPhotoData = dataUrl;
+  document.getElementById('reg-photo-data').value = dataUrl;
+  const preview = document.getElementById('reg-photo-preview');
+  preview.innerHTML = `<img src="${dataUrl}" alt="Photo" />`;
+  document.getElementById('reg-photo-hint').textContent = 'Photo capturée ✓';
+}
 </script>
 </body>
 

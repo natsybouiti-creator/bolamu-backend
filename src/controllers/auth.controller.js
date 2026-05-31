@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const { sendBolamuSms } = require('../services/sms.service');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
 const ACCESS_TOKEN_EXPIRES = '7d';
@@ -187,7 +188,7 @@ async function forgotPassword(req, res) {
 // 5. REGISTER PATIENT
 // ============================================================
 async function registerPatient(req, res) {
-    const { phone, first_name, last_name, full_name, gender, age, city, neighborhood, niu, id_card_file_id, documents_file_ids, cgu_accepted } = req.body;
+    const { phone, first_name, last_name, full_name, gender, age, city, neighborhood, niu, id_card_file_id, documents_file_ids, cgu_accepted, photoData } = req.body;
 
     if (!phone || !first_name || !last_name) {
         return res.status(400).json({ success: false, message: "Prénom, nom et téléphone sont obligatoires." });
@@ -211,6 +212,23 @@ async function registerPatient(req, res) {
         const passwordHash = await bcrypt.hash(initialPassword, 10);
         console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
 
+        // Upload photo sur Cloudinary si fournie
+        let photoUrl = null;
+        if (photoData) {
+            try {
+                const base64Data = photoData.replace(/^data:image\/\w+;base64,/, '');
+                const buffer = Buffer.from(base64Data, 'base64');
+                const uploadResult = await uploadToCloudinary(buffer, 'bolamu/photos', {
+                    public_id: `patient_${normalizedPhone}_${Date.now()}`,
+                    transformation: { width: 400, height: 400, crop: 'fill' }
+                });
+                photoUrl = uploadResult.secure_url;
+            } catch (photoErr) {
+                console.error('[CLOUDINARY UPLOAD REGISTER]', photoErr.message);
+                // Ne pas bloquer l'inscription si l'upload échoue
+            }
+        }
+
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -220,14 +238,14 @@ async function registerPatient(req, res) {
                     phone, role, full_name, first_name, last_name,
                     gender, age, city, neighborhood, niu, documents_file_ids,
                     member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, trust_score, password_hash, created_at
+                    is_active, trust_score, password_hash, photo_url, temp_password_must_change, created_at
                  ) VALUES (
                     $1, 'patient', $2, $3, $4,
                     $5, $6, $7, $8, $9, $10,
                     $11, $12, NOW(),
-                    false, 80, $13, NOW()
+                    false, 80, $13, $14, true, NOW()
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, JSON.stringify({ id_card: id_card_file_id || (documents_file_ids && documents_file_ids.id_card) || null }), member_code, cgu_accepted || false, passwordHash]
+                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, JSON.stringify({ id_card: id_card_file_id || (documents_file_ids && documents_file_ids.id_card) || null }), member_code, cgu_accepted || false, passwordHash, photoUrl]
             );
 
             const user = insertResult.rows[0];
@@ -248,7 +266,7 @@ async function registerPatient(req, res) {
 
             await pool.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3)`,
-                [normalizedPhone, user.id, JSON.stringify({ member_code })]
+                [normalizedPhone, user.id, JSON.stringify({ member_code, photo_url: photoUrl })]
             ).catch(() => {});
 
             return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: normalizedPhone, role: user.role, member_code: user.member_code });

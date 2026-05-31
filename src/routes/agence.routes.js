@@ -7,6 +7,8 @@ const pool     = require('../config/db');
 const bcrypt   = require('bcrypt');
 const jwt       = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth.middleware');
+const crypto = require('crypto');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
 
@@ -260,7 +262,8 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
     const {
       phone, nom, prenom, dob, genre, ville, adresse,
       docType, docNumero, niu, rib, email,
-      plan, cguAcceptedAt, payment_mode, momo_number, virement_ref, created_by
+      plan, cguAcceptedAt, payment_mode, momo_number, virement_ref, created_by,
+      canal, proche_number, photoData
     } = req.body;
 
     if (!phone || !nom || !prenom || !dob || !genre || !ville || !plan) {
@@ -284,6 +287,27 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
 
     await client.query('BEGIN');
 
+    // Générer mot de passe temporaire
+    const tempPassword = crypto.randomBytes(6).toString('hex').toUpperCase();
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Upload photo sur Cloudinary si fournie
+    let photoUrl = null;
+    if (photoData) {
+      try {
+        const base64Data = photoData.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        const uploadResult = await uploadToCloudinary(buffer, 'bolamu/photos', {
+          public_id: `patient_${phone}_${Date.now()}`,
+          transformation: { width: 400, height: 400, crop: 'fill' }
+        });
+        photoUrl = uploadResult.secure_url;
+      } catch (photoErr) {
+        console.error('[CLOUDINARY UPLOAD]', photoErr.message);
+        // Ne pas bloquer l'inscription si l'upload échoue
+      }
+    }
+
     // Créer ou mettre à jour le patient
     const existing = await client.query(
       `SELECT phone, member_code FROM users WHERE phone = $1`,
@@ -304,12 +328,14 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
         `INSERT INTO users
           (phone, full_name, first_name, last_name, date_of_birth, gender, city, address,
            role, is_active, statut_abonnement, member_code,
-           doc_type, doc_numero, niu, rib, email, cgu_accepted_at, created_by, created_at, updated_at)
+           doc_type, doc_numero, niu, rib, email, cgu_accepted_at, created_by, created_at, updated_at,
+           password, photo_url, temp_password_must_change, proche_number)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'patient', true, 'en_attente', $9,
-          $10, $11, $12, $13, $14, $15, $16, NOW(), NOW())`,
+          $10, $11, $12, $13, $14, $15, $16, NOW(), NOW(),
+          $17, $18, true, $19)`,
         [phone, fullName, prenom, nom, dob, genre, ville, adresse || null,
          memberCode, docType || null, docNumero || null, niu || null, rib || null, email || null,
-         cguAcceptedAt || null, created_by || null]
+         cguAcceptedAt || null, created_by || null, hashedPassword, photoUrl, proche_number || null]
       );
     } else {
       // Patient existant : mettre à jour les informations
@@ -320,10 +346,12 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
         `UPDATE users SET
           full_name = $1, first_name = $2, last_name = $3, date_of_birth = $4, gender = $5,
           city = $6, address = $7, doc_type = $8, doc_numero = $9, niu = $10, rib = $11, email = $12,
-          updated_at = NOW()
-         WHERE phone = $13`,
+          password = $13, photo_url = COALESCE($14, users.photo_url), temp_password_must_change = true,
+          proche_number = $15, updated_at = NOW()
+         WHERE phone = $16`,
         [fullName, prenom, nom, dob, genre, ville, adresse || null,
-         docType || null, docNumero || null, niu || null, rib || null, email || null, phone]
+         docType || null, docNumero || null, niu || null, rib || null, email || null,
+         hashedPassword, photoUrl, proche_number || null, phone]
       );
     }
 
@@ -359,7 +387,9 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
         payment_mode,
         momo_number,
         virement_ref,
-        created_by
+        created_by,
+        canal,
+        proche_number
       })]
     );
 
@@ -370,7 +400,10 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
       plan: planEnum,
       amount_fcfa: amount,
       expires_at: expires.toISOString().split('T')[0],
-      member_code: memberCode
+      member_code: memberCode,
+      temp_password: tempPassword,
+      canal: canal || null,
+      proche_number: proche_number || null
     });
   } catch (err) {
     await client.query('ROLLBACK');

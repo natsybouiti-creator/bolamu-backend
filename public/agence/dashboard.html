@@ -228,7 +228,23 @@
     .wizard-actions { display: flex; gap: 12px; margin-top: 24px; }
     .wizard-actions button { flex: 1; }
 
-    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .plan-cards { grid-template-columns: 1fr; } .action-cards { grid-template-columns: 1fr; } }
+    /* Canal de confirmation */
+    .canal-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .canal-card { border: 2px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; background: var(--fond); text-align: center; }
+    .canal-card:hover { border-color: var(--accent); }
+    .canal-card.selected { border-color: var(--accent); background: var(--accent-light); }
+    .canal-icon { font-size: 24px; margin-bottom: 8px; }
+    .canal-name { font-size: 13px; font-weight: 600; color: var(--texte); }
+    .field-hint { font-size: 12px; color: var(--texte-doux); margin-top: 6px; }
+
+    /* Photo capture */
+    .photo-capture-bloc { border: 2px dashed var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+    .photo-preview { width: 120px; height: 120px; border-radius: 50%; background: var(--fond); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--border); }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-placeholder { font-size: 40px; color: var(--texte-doux); }
+    .photo-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+
+    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .plan-cards { grid-template-columns: 1fr; } .action-cards { grid-template-columns: 1fr; } .canal-options { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 768px) {
       /* Desktop : masquer sidebar, afficher bottom nav */
       .sidebar { display: none !important; }
@@ -490,6 +506,34 @@
                 <label>Adresse</label>
                 <input type="text" id="w-adresse" placeholder="Quartier, rue..." />
               </div>
+              <div class="form-group">
+                <label>Canal de confirmation *</label>
+                <div class="canal-options">
+                  <div class="canal-card" data-canal="whatsapp" onclick="selectCanal('whatsapp')">
+                    <div class="canal-icon">📱</div>
+                    <div class="canal-name">WhatsApp</div>
+                  </div>
+                  <div class="canal-card" data-canal="email" onclick="selectCanal('email')">
+                    <div class="canal-icon">📧</div>
+                    <div class="canal-name">Email</div>
+                  </div>
+                  <div class="canal-card" data-canal="proche" onclick="selectCanal('proche')">
+                    <div class="canal-icon">👥</div>
+                    <div class="canal-name">Proche</div>
+                  </div>
+                  <div class="canal-card" data-canal="aucun" onclick="selectCanal('aucun')">
+                    <div class="canal-icon">📋</div>
+                    <div class="canal-name">Aucun</div>
+                  </div>
+                </div>
+                <input type="hidden" id="w-canal" />
+                <div class="field-hint" id="w-canal-hint">Sélectionnez le canal pour recevoir la confirmation</div>
+              </div>
+              <div class="form-group hidden" id="w-proche-field">
+                <label>Numéro WhatsApp du proche *</label>
+                <input type="tel" id="w-proche-number" placeholder="+242..." />
+                <div class="field-hint">Le proche recevra le message de confirmation</div>
+              </div>
               <div class="wizard-actions">
                 <button class="btn-primary" onclick="wizardNext(1)">Continuer</button>
               </div>
@@ -522,6 +566,25 @@
               <div class="form-group">
                 <label>Email (optionnel)</label>
                 <input type="email" id="w-email" placeholder="email@exemple.com" />
+              </div>
+              <div class="form-group">
+                <label>Photo d'identité *</label>
+                <div class="photo-capture-bloc">
+                  <div class="photo-preview" id="w-photo-preview">
+                    <div class="photo-placeholder">📷</div>
+                  </div>
+                  <div class="photo-actions">
+                    <button type="button" class="btn-sm" onclick="openCamera()">📷 Prendre photo</button>
+                    <button type="button" class="btn-sm" onclick="document.getElementById('w-photo-input').click()">📁 Choisir fichier</button>
+                    <input type="file" id="w-photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)" />
+                  </div>
+                  <video id="w-camera" autoplay playsinline style="display:none;width:100%;max-width:320px;border-radius:10px;margin-top:10px;"></video>
+                  <canvas id="w-canvas" style="display:none;"></canvas>
+                  <button type="button" id="w-capture-btn" style="display:none;margin-top:10px;" onclick="capturePhoto()">Capturer</button>
+                  <button type="button" id="w-close-camera-btn" style="display:none;margin-top:10px;" onclick="closeCamera()">Fermer caméra</button>
+                </div>
+                <input type="hidden" id="w-photo-data" />
+                <div class="field-hint" id="w-photo-hint">Photo obligatoire pour valider l'identité</div>
               </div>
               <div class="wizard-actions">
                 <button class="btn-secondary" onclick="wizardBack(2)">Retour</button>
@@ -1188,6 +1251,93 @@
     }
     function fermerActionModal() { document.getElementById('modal-action').classList.remove('open'); }
 
+    // ─── CANAL DE CONFIRMATION ───
+    let selectedCanal = null;
+    let photoData = null;
+    let cameraStream = null;
+
+    function selectCanal(canal) {
+      selectedCanal = canal;
+      document.getElementById('w-canal').value = canal;
+      document.querySelectorAll('.canal-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`.canal-card[data-canal="${canal}"]`).classList.add('selected');
+      
+      const procheField = document.getElementById('w-proche-field');
+      const hint = document.getElementById('w-canal-hint');
+      
+      if (canal === 'proche') {
+        procheField.classList.remove('hidden');
+        hint.textContent = 'Entrez le numéro WhatsApp du proche';
+      } else {
+        procheField.classList.add('hidden');
+        const hints = {
+          whatsapp: 'Confirmation envoyée sur WhatsApp du client',
+          email: 'Email de confirmation en cours d\'envoi...',
+          aucun: 'Aucune confirmation envoyée'
+        };
+        hint.textContent = hints[canal] || '';
+      }
+    }
+
+    // ─── PHOTO CAPTURE ───
+    async function openCamera() {
+      const video = document.getElementById('w-camera');
+      const captureBtn = document.getElementById('w-capture-btn');
+      const closeBtn = document.getElementById('w-close-camera-btn');
+      
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        video.srcObject = cameraStream;
+        video.style.display = 'block';
+        captureBtn.style.display = 'inline-block';
+        closeBtn.style.display = 'inline-block';
+      } catch (err) {
+        alert('Impossible d\'accéder à la caméra. Veuillez choisir un fichier.');
+        console.error('[CAMERA]', err);
+      }
+    }
+
+    function closeCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      document.getElementById('w-camera').style.display = 'none';
+      document.getElementById('w-capture-btn').style.display = 'none';
+      document.getElementById('w-close-camera-btn').style.display = 'none';
+    }
+
+    function capturePhoto() {
+      const video = document.getElementById('w-camera');
+      const canvas = document.getElementById('w-canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      setPhotoPreview(dataUrl);
+      closeCamera();
+    }
+
+    function handlePhotoUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function setPhotoPreview(dataUrl) {
+      photoData = dataUrl;
+      document.getElementById('w-photo-data').value = dataUrl;
+      const preview = document.getElementById('w-photo-preview');
+      preview.innerHTML = `<img src="${dataUrl}" alt="Photo" />`;
+      document.getElementById('w-photo-hint').textContent = 'Photo capturée ✓';
+    }
+
     // ─── WIZARD SOUSCRIPTION ───
     let wizardStep = 1;
     let wizardData = {};
@@ -1244,10 +1394,20 @@
         const dob = document.getElementById('w-dob').value;
         const genre = document.getElementById('w-genre').value;
         const ville = document.getElementById('w-ville').value;
+        const canal = document.getElementById('w-canal').value;
 
-        if (!phone || !nom || !prenom || !dob || !genre || !ville) {
+        if (!phone || !nom || !prenom || !dob || !genre || !ville || !canal) {
           alert('Veuillez remplir tous les champs obligatoires (*).');
           return false;
+        }
+
+        if (canal === 'proche') {
+          const procheNumber = document.getElementById('w-proche-number').value.trim();
+          if (!procheNumber) {
+            alert('Veuillez entrer le numéro WhatsApp du proche.');
+            return false;
+          }
+          wizardData.procheNumber = procheNumber;
         }
 
         // Normaliser le numéro
@@ -1261,20 +1421,26 @@
         }
         document.getElementById('w-phone').value = normalizedPhone;
 
-        wizardData = { phone: normalizedPhone, nom, prenom, dob, genre, ville, adresse: document.getElementById('w-adresse').value.trim() };
+        wizardData = { phone: normalizedPhone, nom, prenom, dob, genre, ville, adresse: document.getElementById('w-adresse').value.trim(), canal, procheNumber: wizardData.procheNumber || null };
         return true;
       }
 
       if (step === 2) {
         const docType = document.getElementById('w-doc-type').value;
         const docNumero = document.getElementById('w-doc-numero').value.trim();
+        const photoData = document.getElementById('w-photo-data').value;
 
         if (!docType || !docNumero) {
           alert('Veuillez remplir le type et le numéro de document (*).');
           return false;
         }
 
-        wizardData = { ...wizardData, docType, docNumero, niu: document.getElementById('w-niu').value.trim(), rib: document.getElementById('w-rib').value.trim(), email: document.getElementById('w-email').value.trim() };
+        if (!photoData) {
+          alert('Veuillez capturer ou charger une photo d\'identité (*).');
+          return false;
+        }
+
+        wizardData = { ...wizardData, docType, docNumero, niu: document.getElementById('w-niu').value.trim(), rib: document.getElementById('w-rib').value.trim(), email: document.getElementById('w-email').value.trim(), photoData };
         return true;
       }
 
@@ -1486,19 +1652,63 @@
 
         if (data.success) {
           resultDiv.className = 'result-msg ok';
-          resultDiv.innerHTML = `
+          
+          // Construire les messages WhatsApp
+          const msgClient = `✅ *Bolamu - Souscription confirmée*\n\nBonjour ${wizardData.prenom} ${wizardData.nom},\nVotre abonnement ${data.plan || wizardData.plan} est actif !\n\n📋 Code membre : ${data.member_code || '—'}\n🔑 Mot de passe temporaire : ${data.temp_password || '—'}\n📅 Expiration : ${data.expires_at || '—'}\n\nConnectez-vous sur bolamu.cg pour accéder à votre espace.`;
+          
+          const msgProche = `✅ *Bolamu - Souscription confirmée*\n\nBonjour,\n${wizardData.prenom} ${wizardData.nom} vient de souscrire à l'abonnement ${data.plan || wizardData.plan}.\n\n📋 Code membre : ${data.member_code || '—'}\n🔑 Mot de passe temporaire : ${data.temp_password || '—'}\n\nMerci de lui transmettre ces informations.`;
+          
+          // Déterminer le numéro et le message selon le canal
+          let waNumber = wizardData.phone;
+          let waMsg = msgClient;
+          
+          if (data.canal === 'proche' && data.proche_number) {
+            waNumber = data.proche_number;
+            waMsg = msgProche;
+          }
+          
+          // Générer le lien WhatsApp
+          const waLink = `https://wa.me/${waNumber.replace('+', '')}?text=${encodeURIComponent(waMsg)}`;
+          
+          // Afficher le résultat selon le canal
+          let resultHTML = `
             <strong>✅ Souscription réussie !</strong><br>
             Client : ${wizardData.prenom} ${wizardData.nom}<br>
             Plan : ${data.plan || wizardData.plan}<br>
             Code membre : ${data.member_code || '—'}<br>
-            Expiration : ${data.expires_at || '—'}
+            Expiration : ${data.expires_at || '—'}<br>
+            Mot de passe temporaire : <strong>${data.temp_password || '—'}</strong>
           `;
+          
+          if (data.canal === 'whatsapp' || data.canal === 'proche') {
+            resultHTML += `
+              <div style="margin-top:16px;">
+                <a href="${waLink}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#25D366;color:white;text-decoration:none;border-radius:10px;font-weight:600;">
+                  📱 Envoyer sur WhatsApp
+                </a>
+              </div>
+            `;
+          } else if (data.canal === 'email') {
+            resultHTML += `
+              <div style="margin-top:16px;color:var(--texte-doux);">
+                📧 Email de confirmation en cours d'envoi...
+              </div>
+            `;
+          } else {
+            resultHTML += `
+              <div style="margin-top:16px;color:var(--texte-doux);">
+                📋 Aucune confirmation envoyée (canal : Aucun)
+              </div>
+            `;
+          }
+          
+          resultDiv.innerHTML = resultHTML;
           resultDiv.classList.remove('hidden');
 
-          // Réinitialiser le wizard après 3 secondes
+          // Réinitialiser le wizard après 5 secondes
           setTimeout(() => {
             resetWizard();
-          }, 3000);
+          }, 5000);
         } else {
           resultDiv.className = 'result-msg err';
           resultDiv.textContent = data.message || 'Erreur lors de la souscription';
