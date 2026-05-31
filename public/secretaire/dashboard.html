@@ -861,31 +861,41 @@
       .user-name { display: none !important; }
       .topbar-title { display: none !important; }
 
-      /* Conteneur de la card agenda */
-      #tab-agenda .card,
-      #tab-agenda [class*="card"] {
+      /* ── FIX AGENDA MOBILE ── */
+      #tab-agenda {
+        width: 100% !important;
         overflow: hidden !important;
-        padding: 16px !important;
+        box-sizing: border-box !important;
       }
 
-      /* Tous les inputs et selects dans l'agenda — forcer 100% */
-      #tab-agenda input,
-      #tab-agenda select,
-      #tab-agenda input[type="date"] {
+      #tab-agenda .card {
         width: 100% !important;
         max-width: 100% !important;
+        overflow: hidden !important;
+        padding: 16px !important;
+        box-sizing: border-box !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      #tab-agenda .form-group {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        padding: 0 !important;
+        margin-bottom: 12px !important;
+      }
+
+      #agenda-date,
+      #agenda-doctor {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
         box-sizing: border-box !important;
         display: block !important;
         font-size: 14px !important;
-      }
-
-      /* Form groups en colonne pleine largeur */
-      #tab-agenda .form-group,
-      #tab-agenda [class*="form-group"] {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        margin-bottom: 12px !important;
+        overflow: hidden !important;
       }
 
       /* Base identique pour TOUS les panels (onglets) */
@@ -994,8 +1004,10 @@
         flex-direction: column !important;
         gap: 10px !important;
         width: 100% !important;
+        max-width: 100% !important;
         box-sizing: border-box !important;
         padding: 0 !important;
+        overflow: hidden !important;
       }
 
       /* Sélecteur de date — pleine largeur */
