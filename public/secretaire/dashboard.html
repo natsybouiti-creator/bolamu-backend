@@ -818,13 +818,87 @@
         width: 100% !important;
       }
 
-      /* Topbar compacte */
+      /* Header mobile — flex avec logo gauche + titre droite */
       .topbar {
-        padding: 0 16px !important;
-        height: 56px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 14px !important;
+        height: 52px !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 100 !important;
       }
+
+      /* Logo + texte Bolamu — toujours visibles */
+      .mobile-logo {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+      }
+      .mobile-logo svg {
+        display: flex !important;
+        width: 32px !important;
+        height: 32px !important;
+      }
+      .mobile-logo .logo-name {
+        display: block !important;
+        font-size: 16px !important;
+        font-weight: 800 !important;
+      }
+
+      /* Titre onglet actif — à droite */
+      .mobile-tab-title {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: var(--texte) !important;
+        flex-shrink: 0 !important;
+      }
+
+      /* Masquer les autres éléments du header en mobile */
       .topbar-clinic { display: none !important; }
       .user-name { display: none !important; }
+      .topbar-title { display: none !important; }
+
+      /* Conteneur principal agenda — pas de débordement */
+      #tab-agenda {
+        overflow: hidden !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Ligne de navigation date — contrainte dans le cadre */
+      .form-group {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+
+      /* Input date ou select médecin — pleine largeur */
+      #agenda-date.form-input,
+      #agenda-doctor.form-select {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--border) !important;
+        background: var(--fond) !important;
+        color: var(--texte) !important;
+      }
+
+      /* Titre section agenda */
+      .card-title {
+        font-size: 15px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        line-height: 1.3 !important;
+      }
 
       /* Base identique pour TOUS les panels (onglets) */
       .tab {
@@ -1152,7 +1226,16 @@
     <!-- Main Content -->
     <main class="main-content">
       <header class="topbar">
+        <div class="sidebar-logo mobile-logo">
+          <svg width="32" height="32" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="22" cy="22" r="22" fill="#2E86FF"/>
+            <text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text>
+            <ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/>
+          </svg>
+          <span class="logo-name">Bola<span style="color:var(--vert)">mu</span></span>
+        </div>
         <div class="topbar-title" id="page-title">Accueil</div>
+        <div id="mobile-tab-title" class="mobile-tab-title"></div>
         <div class="topbar-right">
           <div class="topbar-clinic">
             <div class="clinic-name" id="clinic-name">Chargement...</div>
@@ -1445,7 +1528,20 @@
       document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
       document.querySelector(`.bnav-item[data-tab="${tabId}"]`).classList.add('active');
       document.getElementById('page-title').textContent = tabId.charAt(0).toUpperCase() + tabId.slice(1);
-      
+
+      // Mettre à jour le titre mobile
+      const tabTitles = {
+        'accueil': 'Accueil',
+        'agenda': 'Agenda',
+        'patients': 'Patients',
+        'medecins': 'Médecins',
+        'clinique': 'Ma Clinique'
+      };
+      const titleEl = document.getElementById('mobile-tab-title');
+      if (titleEl && tabTitles[tabId]) {
+        titleEl.textContent = tabTitles[tabId];
+      }
+
       if (tabId === 'accueil') loadDashboardStats();
       if (tabId === 'agenda') loadAgenda();
       if (tabId === 'patients') loadPatients();
@@ -2049,13 +2145,19 @@
       const token = getToken();
       const phone = getPhone();
       const clinicId = getClinicId();
-      
+
       if (!token || !phone) {
         window.location.href = '/secretaire/login.html';
         return;
       }
-      
+
       document.getElementById('user-name').textContent = phone;
+
+      // Initialiser le titre mobile avec l'onglet par défaut
+      const titleEl = document.getElementById('mobile-tab-title');
+      if (titleEl) {
+        titleEl.textContent = 'Accueil';
+      }
       
       // 1. Charger les médecins d'abord
       await loadMedecins();
