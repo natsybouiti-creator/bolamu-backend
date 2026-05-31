@@ -271,6 +271,37 @@
        RESPONSIVE — MOBILE (≤768px)
     ════════════════════════════════════ */
     @media(max-width:768px){
+      /* Header mobile — toujours visible et complet */
+      .topbar {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 16px !important;
+        height: 52px !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 100 !important;
+      }
+
+      /* Logo B + texte Bolamu — toujours visibles */
+      .logo {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+      }
+      .logo-icon {
+        display: flex !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 16px !important;
+      }
+      .logo-name {
+        display: block !important;
+        font-size: 16px !important;
+        font-weight: 800 !important;
+      }
+
       /* Topbar */
       .topbar{padding:0 16px;height:56px;}
       .logo-name{font-size:17px;}
@@ -592,6 +623,9 @@
     </button>
     <button class="bnav-item" id="bnav-profil" data-tab="profil">
       <i data-lucide="user" class="bnav-icon"></i><span class="bnav-label">Profil</span>
+    </button>
+    <button class="bnav-item" onclick="logout()">
+      <i data-lucide="log-out" class="bnav-icon"></i><span class="bnav-label">Quitter</span>
     </button>
   </div>
 </nav>
