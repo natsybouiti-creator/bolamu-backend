@@ -262,6 +262,7 @@ router.get('/patients/search', authMiddleware, authMiddleware.requireSecretary, 
 // GET /api/v1/secretariat/medecins
 // Liste médecins de la clinique
 router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
   try {
     const clinicId = req.user.clinic_id;
     console.log('[MEDECINS] clinic_id:', clinicId);
@@ -279,7 +280,7 @@ router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (
     console.log('[MEDECINS] result rows:', result.rows.length);
     res.json({ success: true, medecins: result.rows });
   } catch (err) {
-    console.error('[MEDECINS LIST]', err.message);
+    console.error('[MEDECINS ERROR]', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -289,25 +290,23 @@ router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (
 router.get('/queue', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   try {
     const { date } = req.query;
-    const clinicId = req.user.clinic_id;
-    const queryDate = date || new Date().toISOString().split('T')[0];
-    
+    const today = date || new Date().toISOString().split('T')[0];
     const result = await pool.query(
-      `SELECT q.id, q.patient_phone, q.status, q.created_at,
-        u.full_name as patient_name,
-        d.full_name as doctor_name,
-        TO_CHAR(q.created_at, 'HH24:MI') as time
+      `SELECT q.id, q.patient_phone, q.doctor_id, q.status, q.motif,
+              q.is_urgent, q.created_at,
+              d.full_name as doctor_name,
+              u.full_name as patient_name
        FROM queue_entries q
-       LEFT JOIN users u ON u.phone = q.patient_phone
        LEFT JOIN doctors d ON d.id = q.doctor_id
-       WHERE q.queue_date = $1 AND d.clinic_id = $2
-       ORDER BY q.created_at`,
-      [queryDate, clinicId]
+       LEFT JOIN users u ON u.phone = q.patient_phone
+       WHERE d.clinic_id = $1
+       AND DATE(q.created_at) = $2
+       ORDER BY q.created_at ASC`,
+      [req.user.clinic_id, today]
     );
-    
     res.json({ success: true, queue: result.rows });
-  } catch (err) {
-    console.error('[QUEUE LIST]', err.message);
+  } catch(err) {
+    console.error('[QUEUE ERROR]', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
