@@ -104,7 +104,7 @@ async function login(req, res) {
         if (user.role === 'admin') return res.status(403).json({ success: false, message: 'Accès non autorisé. Utilisez le portail administrateur.', redirectUrl: '/admin/login.html' });
         if (user.banned) return res.status(403).json({ success: false, message: 'Compte suspendu. Contactez le support.' });
         
-        if (!user.password_hash) return res.status(401).json({ success: false, message: 'Mot de passe non défini. Contactez le support.' });
+        if (!user.password_hash) return res.status(401).json({ success: false, message: 'Mot de passe non configuré. Contactez votre agent Bolamu.' });
         
         const validPassword = await bcrypt.compare(password, user.password_hash);
         if (!validPassword) return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });

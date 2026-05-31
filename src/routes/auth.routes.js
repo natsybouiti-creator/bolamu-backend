@@ -141,12 +141,34 @@ router.post('/admin-login', async (req, res) => {
 
 // ─── GET /api/v1/auth/me ──────────────────────────────────────────────────────
 router.get('/me', authMiddleware, (req, res) => {
-  res.json({ 
-    success: true, 
-    id: req.user.id, 
-    role: req.user.role, 
-    phone: req.user.phone 
+  res.json({
+    success: true,
+    id: req.user.id,
+    role: req.user.role,
+    phone: req.user.phone
   });
+});
+
+// ─── POST /api/v1/auth/set-password-temp — usage interne uniquement ─────────────
+router.post('/set-password-temp', async (req, res) => {
+  const { phone, password } = req.body;
+  const normalizedPhone = normalizePhone(phone);
+
+  if (!phone || !password) {
+    return res.status(400).json({ success: false, message: 'Téléphone et mot de passe requis.' });
+  }
+
+  try {
+    const hashed = await bcrypt.hash(password, 10);
+    await pool.query(
+      `UPDATE users SET password_hash = $1, temp_password_must_change = true WHERE phone = $2`,
+      [hashed, normalizedPhone]
+    );
+    res.json({ success: true, message: 'Mot de passe configuré avec succès.' });
+  } catch (err) {
+    console.error('[set-password-temp]', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
 });
 
 module.exports = router;
