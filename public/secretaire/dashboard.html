@@ -1,775 +1,1026 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secrétariat - Bolamu</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <meta name="theme-color" content="#2E86FF">
-    <link rel="manifest" href="/manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --navy: #0A2463;
-            --turquoise: #00C9A7;
-            --white: #ffffff;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-600: #4b5563;
-            --gray-800: #1f2937;
-        }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--gray-100);
-            color: var(--gray-800);
-        }
-        .header {
-            background: var(--navy);
-            color: var(--white);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            font-family: 'Fraunces', serif;
-            font-size: 1.5rem;
-            color: var(--turquoise);
-        }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .secretary-name {
-            font-weight: 500;
-        }
-        .logout-btn {
-            background: var(--turquoise);
-            color: var(--navy);
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .tabs {
-            background: var(--white);
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem 2rem;
-            border-bottom: 1px solid var(--gray-200);
-        }
-        .tab {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-weight: 500;
-            color: var(--gray-600);
-            border-radius: 4px;
-        }
-        .tab.active {
-            background: var(--navy);
-            color: var(--white);
-        }
-        .content {
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .panel {
-            display: none;
-        }
-        .panel.active {
-            display: block;
-        }
-        .card {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid var(--gray-200);
-            border-radius: 4px;
-            font-family: inherit;
-        }
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .btn-primary {
-            background: var(--navy);
-            color: var(--white);
-        }
-        .btn-turquoise {
-            background: var(--turquoise);
-            color: var(--navy);
-        }
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .table th, .table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--gray-200);
-        }
-        .table th {
-            background: var(--gray-100);
-            font-weight: 600;
-        }
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-        .status-waiting { background: #fef3c7; color: #92400e; }
-        .status-in_consultation { background: #dbeafe; color: #1e40af; }
-        .status-completed { background: #d1fae5; color: #065f46; }
-        .status-absent { background: #fee2e2; color: #991b1b; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-        .stat-card {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--navy);
-            font-family: 'Fraunces', serif;
-        }
-        .stat-label {
-            color: var(--gray-600);
-            font-size: 0.875rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolamu — Secrétariat</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#0A2463">
+  <link rel="manifest" href="/manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bleu: #0A2463;
+      --bleu-vif: #2E86FF;
+      --vert: #00C9A7;
+      --rouge: #ff4757;
+      --amber: #ffa502;
+      --texte: #0A2463;
+      --texte-doux: #5A6E8C;
+      --border: rgba(10,36,99,0.1);
+      --blanc: #ffffff;
+      --fond: #F4F7FF;
+      --card-shadow: 0 2px 12px rgba(10,36,99,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--fond);
+      color: var(--texte);
+      min-height: 100vh;
+    }
+    .app-layout { display: flex; min-height: 100vh; }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: var(--blanc);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--bleu), var(--bleu-vif));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      font-family: 'Fraunces', serif;
+    }
+    .logo-name {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--bleu);
+    }
+    .logo-name span { color: var(--vert); }
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: none;
+      background: none;
+      color: var(--texte-doux);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .nav-item:hover {
+      background: var(--fond);
+      color: var(--bleu);
+    }
+    .nav-item.active {
+      background: var(--bleu);
+      color: white;
+    }
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-logout {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--rouge);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover {
+      background: #fee2e2;
+      border-color: var(--rouge);
+    }
+    .btn-logout svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    
+    /* Main Content */
+    .main-content {
+      margin-left: 250px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      height: 64px;
+      background: var(--blanc);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+    .topbar-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--bleu);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .clinic-name {
+      padding: 6px 14px;
+      background: var(--fond);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bleu);
+    }
+    .user-name {
+      padding: 6px 14px;
+      background: var(--bleu);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+    .content-area {
+      padding: 32px;
+      flex: 1;
+    }
+    .tab {
+      display: none;
+    }
+    .tab.active {
+      display: block;
+    }
+    
+    /* Cards */
+    .card {
+      background: var(--blanc);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--bleu);
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--blanc);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+    }
+    .stat-value {
+      font-family: 'Fraunces', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--bleu);
+      margin-bottom: 8px;
+    }
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--texte-doux);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-card.alert .stat-value { color: var(--rouge); }
+    .stat-card.success .stat-value { color: var(--vert); }
+    
+    /* Table */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--texte-doux);
+      border-bottom: 1px solid var(--border);
+      background: var(--fond);
+    }
+    .table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .table tr:last-child td { border-bottom: none; }
+    .table tr.highlight { background: #e6f0ff; }
+    
+    /* Status Badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .status-waiting { background: #fef3c7; color: #92400e; }
+    .status-waiting .status-dot { background: #f59e0b; }
+    .status-in_consultation { background: #dbeafe; color: #1e40af; }
+    .status-in_consultation .status-dot { background: #3b82f6; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-completed .status-dot { background: #10b981; }
+    .status-confirmed { background: #d1fae5; color: #065f46; }
+    .status-confirmed .status-dot { background: #10b981; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-cancelled .status-dot { background: #ef4444; }
+    
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--bleu);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary:hover {
+      background: var(--bleu-vif);
+      transform: translateY(-1px);
+    }
+    .btn-primary svg {
+      width: 18px;
+      height: 18px;
+    }
+    .btn-danger {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--rouge);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+    }
+    .btn-danger svg {
+      width: 18px;
+      height: 18px;
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--fond);
+      color: var(--bleu);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      background: var(--bleu);
+      color: white;
+      border-color: var(--bleu);
+    }
+    
+    /* Form Inputs */
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--texte);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      color: var(--texte);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--bleu-vif);
+    }
+    .form-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      color: var(--texte);
+      outline: none;
+      cursor: pointer;
+      background: white;
+    }
+    
+    /* Actions */
+    .actions { display: flex; gap: 8px; }
+    
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,36,99,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--blanc);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--bleu);
+      margin-bottom: 8px;
+    }
+    .modal-subtitle {
+      font-size: 14px;
+      color: var(--texte-doux);
+      margin-bottom: 24px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .modal-actions button {
+      flex: 1;
+    }
+    
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--texte-doux);
+      font-size: 14px;
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--texte-doux);
+      font-size: 14px;
+    }
+    
+    /* Badge Pre-consultation */
+    .badge-preconsult {
+      display: inline-block;
+      padding: 4px 10px;
+      background: #d1fae5;
+      color: #065f46;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-250px); transition: transform 0.3s; }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .topbar { padding: 0 16px; }
+      .content-area { padding: 16px; }
+    }
+  </style>
 </head>
 <body>
-    <header class="header">
-        <div class="logo">Bolamu</div>
-        <div class="header-right">
-            <span class="secretary-name" id="secretary-name">Chargement...</span>
-            <button class="logout-btn" onclick="logout()">Déconnexion</button>
-        </div>
-    </header>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">B</div>
+        <div class="logo-name">Bola<span>mu</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="accueil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Accueil</span>
+        </button>
+        <button class="nav-item" data-tab="agenda">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>Agenda</span>
+        </button>
+        <button class="nav-item" data-tab="patients">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Patients</span>
+        </button>
+        <button class="nav-item" data-tab="medecins">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          <span>Médecins</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <span>Déconnexion</span>
+        </button>
+      </div>
+    </aside>
 
-    <div class="tabs">
-        <button class="tab active" onclick="showTab('agenda')">Agenda</button>
-        <button class="tab" onclick="showTab('queue')">File d'attente</button>
-        <button class="tab" onclick="showTab('blocks')">Blocages</button>
-        <button class="tab" onclick="showTab('stats')">Statistiques</button>
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-title" id="page-title">Accueil</div>
+        <div class="topbar-right">
+          <span class="clinic-name" id="clinic-name">—</span>
+          <span class="user-name" id="user-name">—</span>
+        </div>
+      </header>
+      
+      <div class="content-area">
+        <!-- Onglet Accueil -->
+        <section id="tab-accueil" class="tab active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-en-attente">—</div>
+              <div class="stat-label">En attente</div>
+            </div>
+            <div class="stat-card success">
+              <div class="stat-value" id="stat-en-consultation">—</div>
+              <div class="stat-label">En consultation</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-rdv-aujourd-hui">—</div>
+              <div class="stat-label">RDV aujourd'hui</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-medecins-actifs">—</div>
+              <div class="stat-label">Médecins actifs</div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">File d'attente</div>
+              <div class="actions">
+                <button class="btn-primary" onclick="openRdvManuel()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  Nouveau RDV
+                </button>
+                <button class="btn-danger" onclick="openUrgence()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  Urgence
+                </button>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Heure</th>
+                  <th>Patient</th>
+                  <th>Médecin</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="queue-table">
+                <tr><td colspan="5" class="loading">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Onglet Agenda -->
+        <section id="tab-agenda" class="tab">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Agenda</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" id="agenda-date" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Médecin</label>
+              <select id="agenda-doctor" class="form-select">
+                <option value="">Sélectionner un médecin</option>
+              </select>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 16px;">Rendez-vous</div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Heure</th>
+                  <th>Patient</th>
+                  <th>Motif</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="agenda-table">
+                <tr><td colspan="5" class="loading">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Onglet Patients -->
+        <section id="tab-patients" class="tab">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Patients</div>
+            </div>
+            <div class="form-group">
+              <input type="text" id="patient-search" class="form-input" placeholder="Rechercher par nom ou téléphone...">
+            </div>
+          </div>
+          <div class="card">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Téléphone</th>
+                  <th>Abonnement</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="patients-table">
+                <tr><td colspan="4" class="loading">Chargement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Onglet Médecins -->
+        <section id="tab-medecins" class="tab">
+          <div class="card">
+            <div class="card-title">Médecins de la clinique</div>
+            <div id="medecins-list" style="margin-top: 20px;">
+              <div class="loading">Chargement...</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal RDV Manuel -->
+  <div class="modal-overlay" id="modal-rdv-manuel">
+    <div class="modal">
+      <div class="modal-title">Nouveau rendez-vous</div>
+      <div class="modal-subtitle">Enregistrer un RDV à l'accueil</div>
+      <div class="form-group">
+        <label class="form-label">Numéro du patient</label>
+        <input type="tel" id="rdv-phone" class="form-input" placeholder="+242 06 XXX XXXX">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Médecin</label>
+        <select id="rdv-doctor" class="form-select">
+          <option value="">Sélectionner un médecin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="rdv-date" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Heure</label>
+        <select id="rdv-time" class="form-select">
+          <option value="">Sélectionner d'abord la date et le médecin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motif</label>
+        <input type="text" id="rdv-motif" class="form-input" placeholder="Motif de consultation">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modal-rdv-manuel')">Annuler</button>
+        <button class="btn-primary" onclick="createRdv()">Enregistrer</button>
+      </div>
     </div>
+  </div>
 
-    <div class="content">
-        <!-- Tab Agenda -->
-        <div id="agenda-panel" class="panel active">
-            <div class="card">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <h2>Agenda du jour</h2>
-                    <button onclick="openRdvManuel()" style="padding:8px 16px;border-radius:50px;background:var(--turquoise);border:none;color:var(--navy);font-size:0.875rem;font-weight:700;cursor:pointer;">
-                        ➕ RDV à l'accueil
-                    </button>
+  <script>
+    const API = 'https://bolamu-backend.onrender.com/api/v1';
+    let currentTab = 'accueil';
+    let currentDoctorId = null;
+
+    function getToken() {
+      return localStorage.getItem('bolamu_secretaire_token');
+    }
+
+    function getPhone() {
+      return localStorage.getItem('bolamu_secretaire_phone');
+    }
+
+    function getClinicId() {
+      return localStorage.getItem('bolamu_secretaire_clinic_id');
+    }
+
+    function logout() {
+      localStorage.removeItem('bolamu_secretaire_token');
+      localStorage.removeItem('bolamu_secretaire_phone');
+      localStorage.removeItem('bolamu_secretaire_clinic_id');
+      window.location.href = '/secretaire/login.html';
+    }
+
+    async function api(endpoint, options = {}) {
+      const token = getToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${API}${endpoint}`, {
+        ...options,
+        headers
+      });
+      if (response.status === 401) {
+        logout();
+        return null;
+      }
+      return response.json();
+    }
+
+    function showTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+      document.getElementById('page-title').textContent = tabId.charAt(0).toUpperCase() + tabId.slice(1);
+      
+      if (tabId === 'accueil') loadDashboardStats();
+      if (tabId === 'agenda') loadAgenda();
+      if (tabId === 'patients') loadPatients();
+      if (tabId === 'medecins') loadMedecins();
+    }
+
+    async function loadDashboardStats() {
+      const clinicId = getClinicId();
+      const today = new Date().toISOString().split('T')[0];
+      
+      try {
+        const result = await api(`/secretariat/dashboard-stats?clinic_id=${clinicId}&date=${today}`);
+        if (result && result.success) {
+          document.getElementById('stat-en-attente').textContent = result.stats.en_attente || 0;
+          document.getElementById('stat-en-consultation').textContent = result.stats.en_consultation || 0;
+          document.getElementById('stat-rdv-aujourd-hui').textContent = result.stats.rdv_today || 0;
+          document.getElementById('stat-medecins-actifs').textContent = result.stats.medecins_disponibles || 0;
+          
+          if (result.stats.en_attente > 5) {
+            document.querySelector('#stat-en-attente').parentElement.classList.add('alert');
+          }
+        }
+      } catch (e) {
+        console.error('Erreur stats:', e);
+      }
+      
+      loadQueue();
+    }
+
+    async function loadQueue() {
+      const clinicId = getClinicId();
+      const today = new Date().toISOString().split('T')[0];
+      
+      try {
+        const result = await api(`/secretariat/queue?clinic_id=${clinicId}&date=${today}`);
+        if (result && result.success) {
+          const tbody = document.getElementById('queue-table');
+          tbody.innerHTML = '';
+          (result.queue || []).forEach((item, index) => {
+            const isNext = index === 0;
+            tbody.innerHTML += `
+              <tr class="${isNext ? 'highlight' : ''}">
+                <td>${item.time || '—'}</td>
+                <td>${item.patient_name || item.patient_phone || '—'}</td>
+                <td>${item.doctor_name || '—'}</td>
+                <td>
+                  <span class="status-badge status-${item.status}">
+                    <span class="status-dot"></span>
+                    ${item.status.replace('_', ' ')}
+                  </span>
+                </td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-secondary" onclick="updateQueueStatus(${item.id}, 'in_consultation')">Arrivé</button>
+                    <button class="btn-secondary" onclick="updateQueueStatus(${item.id}, 'cancelled')">Annuler</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+        }
+      } catch (e) {
+        console.error('Erreur queue:', e);
+      }
+    }
+
+    async function updateQueueStatus(id, status) {
+      await api(`/secretariat/queue/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      loadQueue();
+    }
+
+    async function loadAgenda() {
+      const date = document.getElementById('agenda-date').value || new Date().toISOString().split('T')[0];
+      const doctorId = document.getElementById('agenda-doctor').value;
+      
+      if (!doctorId) return;
+      
+      try {
+        const result = await api(`/secretary/agenda/${doctorId}?date=${date}`);
+        if (result && result.success) {
+          const tbody = document.getElementById('agenda-table');
+          tbody.innerHTML = '';
+          (result.appointments || []).forEach(apt => {
+            const time = apt.appointment_time ? apt.appointment_time.slice(11, 16) : '—';
+            tbody.innerHTML += `
+              <tr>
+                <td>${time}</td>
+                <td>${apt.patient_phone || '—'}</td>
+                <td>${apt.reason || '—'}</td>
+                <td>
+                  <span class="status-badge status-${apt.status}">
+                    <span class="status-dot"></span>
+                    ${apt.status.replace('_', ' ')}
+                  </span>
+                </td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-secondary" onclick="confirmAppointment(${apt.id})">Confirmer</button>
+                    <button class="btn-secondary" onclick="cancelAppointment(${apt.id})">Annuler</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+        }
+      } catch (e) {
+        console.error('Erreur agenda:', e);
+      }
+    }
+
+    async function loadPatients() {
+      const search = document.getElementById('patient-search').value;
+      
+      try {
+        const result = await api(`/secretariat/patients/search?q=${search}`);
+        if (result && result.success) {
+          const tbody = document.getElementById('patients-table');
+          tbody.innerHTML = '';
+          (result.patients || []).forEach(patient => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${patient.full_name || '—'}</td>
+                <td>${patient.phone || '—'}</td>
+                <td>${patient.statut_abonnement || '—'}</td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-secondary" onclick="viewPatient(${patient.id})">Voir fiche</button>
+                    <button class="btn-secondary" onclick="openRdvForPatient('${patient.phone}')">Prendre RDV</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+        }
+      } catch (e) {
+        console.error('Erreur patients:', e);
+      }
+    }
+
+    async function loadMedecins() {
+      const clinicId = getClinicId();
+      
+      try {
+        const result = await api(`/secretariat/medecins?clinic_id=${clinicId}`);
+        if (result && result.success) {
+          const container = document.getElementById('medecins-list');
+          container.innerHTML = '';
+          (result.medecins || []).forEach(doc => {
+            const statusClass = doc.is_active ? 'status-completed' : 'status-cancelled';
+            const statusText = doc.is_active ? 'Disponible' : 'Absent';
+            container.innerHTML += `
+              <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--fond); border-radius: 12px; margin-bottom: 12px;">
+                <div style="width: 48px; height: 48px; background: var(--bleu); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
+                  ${doc.full_name ? doc.full_name.charAt(0).toUpperCase() : 'M'}
                 </div>
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label>Médecin</label>
-                    <select id="doctor-select" onchange="loadAgenda()">
-                        <option value="">Sélectionner un médecin</option>
-                    </select>
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; font-size: 16px; color: var(--bleu);">${doc.full_name || '—'}</div>
+                  <div style="font-size: 14px; color: var(--texte-doux); margin-top: 4px;">${doc.specialty || 'Médecin'}</div>
                 </div>
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="agenda-date" onchange="loadAgenda()">
+                <span class="status-badge ${statusClass}">
+                  <span class="status-dot"></span>
+                  ${statusText}
+                </span>
+                <div class="actions">
+                  <button class="btn-secondary" onclick="viewAgenda(${doc.id})">Voir agenda</button>
+                  <button class="btn-secondary" onclick="openBlockModal(${doc.id})">Bloquer créneau</button>
                 </div>
-            </div>
-            <div class="card">
-                <h3>Rendez-vous</h3>
-                <table class="table" id="appointments-table">
-                    <thead>
-                        <tr>
-                            <th>Heure</th>
-                            <th>Patient</th>
-                            <th>Motif</th>
-                            <th>Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div class="card">
-                <h3>Blocages</h3>
-                <table class="table" id="blocks-table">
-                    <thead>
-                        <tr>
-                            <th>Heure début</th>
-                            <th>Heure fin</th>
-                            <th>Motif</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Tab File d'attente -->
-        <div id="queue-panel" class="panel">
-            <div class="card">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <h2>File d'attente</h2>
-                    <button onclick="openUrgence()" style="padding:8px 16px;border-radius:50px;background:#fee2e2;border:none;color:#991b1b;font-size:0.875rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
-                        🚨 Urgence sans RDV
-                    </button>
-                </div>
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label>Médecin</label>
-                    <select id="queue-doctor-select" onchange="loadQueue()">
-                        <option value="">Sélectionner un médecin</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="queue-date" onchange="loadQueue()">
-                </div>
-            </div>
-            <div class="card">
-                <table class="table" id="queue-table">
-                    <thead>
-                        <tr>
-                            <th>Ordre</th>
-                            <th>Patient</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Tab Blocages -->
-        <div id="blocks-panel" class="panel">
-            <div class="card">
-                <h2>Bloquer un créneau</h2>
-                <form onsubmit="createBlock(event)">
-                    <div class="form-group">
-                        <label>Médecin</label>
-                        <select id="block-doctor-select" required>
-                            <option value="">Sélectionner un médecin</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="block-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Heure début</label>
-                        <input type="time" id="block-start" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Heure fin</label>
-                        <input type="time" id="block-end" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Motif</label>
-                        <textarea id="block-reason" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Bloquer créneau</button>
-                </form>
-            </div>
-            <div class="card">
-                <h3>Blocages existants</h3>
-                <table class="table" id="all-blocks-table">
-                    <thead>
-                        <tr>
-                            <th>Médecin</th>
-                            <th>Date</th>
-                            <th>Heure début</th>
-                            <th>Heure fin</th>
-                            <th>Motif</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Tab Statistiques -->
-        <div id="stats-panel" class="panel">
-            <div class="card">
-                <h2>Statistiques du jour</h2>
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label>Médecin</label>
-                    <select id="stats-doctor-select" onchange="loadStats()">
-                        <option value="">Sélectionner un médecin</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="stats-date" onchange="loadStats()">
-                </div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-appointments">0</div>
-                    <div class="stat-label">RDV aujourd'hui</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-fill-rate">0%</div>
-                    <div class="stat-label">Taux de remplissage</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-wait-time">0 min</div>
-                    <div class="stat-label">Temps d'attente moyen</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal RDV Manuel -->
-    <div class="modal-overlay" id="modal-rdv-manuel" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.55);z-index:200;align-items:center;justify-content:center;padding:16px;">
-        <div class="card" style="max-width:480px;width:100%;max-height:90vh;overflow-y:auto;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                <h3 style="margin:0;">📋 Enregistrer un RDV à l'accueil</h3>
-                <button onclick="closeModal('modal-rdv-manuel')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">✕</button>
-            </div>
-            <div class="form-group">
-                <label>Numéro du patient *</label>
-                <input type="tel" id="rdv-manuel-phone" placeholder="+242 06 XXX XXXX" style="width:100%;padding:0.5rem;border:1px solid var(--gray-200);border-radius:4px;">
-            </div>
-            <div class="form-group">
-                <label>Médecin *</label>
-                <select id="rdv-manuel-doctor" style="width:100%;padding:0.5rem;border:1px solid var(--gray-200);border-radius:4px;">
-                    <option value="">Sélectionnez un médecin...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Date *</label>
-                <input type="date" id="rdv-manuel-date" style="width:100%;padding:0.5rem;border:1px solid var(--gray-200);border-radius:4px;">
-            </div>
-            <div class="form-group">
-                <label>Créneau *</label>
-                <div id="rdv-manuel-slots" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-                    <div style="color:var(--gray-600);font-size:0.875rem;">Sélectionnez d'abord une date</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Motif de consultation</label>
-                <input type="text" id="rdv-manuel-motif" placeholder="Ex: Consultation générale, urgence..." style="width:100%;padding:0.5rem;border:1px solid var(--gray-200);border-radius:4px;">
-            </div>
-            <div style="display:flex;gap:12px;margin-top:8px;">
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.875rem;font-weight:600;">
-                    <input type="checkbox" id="rdv-manuel-urgent" style="width:18px;height:18px;accent-color:#e74c3c;">
-                    🚨 Marquer comme urgent
-                </label>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:1rem;">
-                <button class="btn" onclick="closeModal('modal-rdv-manuel')" style="flex:1;">Annuler</button>
-                <button class="btn btn-primary" id="btn-rdv-manuel-confirm" onclick="creerRdvManuel()" style="flex:2;">✅ Enregistrer le RDV</button>
-            </div>
-        </div>
-    </div>
-    </div>
-
-    <script>
-        const API_BASE = 'https://bolamu-backend.onrender.com/api/v1';
-        let currentSecretary = null;
-
-        function getToken() {
-            return localStorage.getItem('bolamu_secretaire_token');
+              </div>
+            `;
+          });
         }
+      } catch (e) {
+        console.error('Erreur médecins:', e);
+      }
+    }
 
-        function getPhone() {
-            return localStorage.getItem('bolamu_secretaire_phone');
+    function openRdvManuel() {
+      document.getElementById('modal-rdv-manuel').classList.add('open');
+      loadDoctorsSelect('rdv-doctor');
+    }
+
+    function openUrgence() {
+      openRdvManuel();
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('open');
+    }
+
+    async function loadDoctorsSelect(selectId) {
+      const clinicId = getClinicId();
+      
+      try {
+        const result = await api(`/secretariat/medecins?clinic_id=${clinicId}`);
+        if (result && result.success) {
+          const select = document.getElementById(selectId);
+          select.innerHTML = '<option value="">Sélectionner un médecin</option>';
+          (result.medecins || []).forEach(doc => {
+            select.innerHTML += `<option value="${doc.id}">${doc.full_name || '—'}</option>`;
+          });
         }
+      } catch (e) {
+        console.error('Erreur médecins:', e);
+      }
+    }
 
-        function getClinicId() {
-            return localStorage.getItem('bolamu_secretaire_clinic_id');
+    async function createRdv() {
+      const phone = document.getElementById('rdv-phone').value.trim();
+      const doctorId = document.getElementById('rdv-doctor').value;
+      const date = document.getElementById('rdv-date').value;
+      const time = document.getElementById('rdv-time').value;
+      const motif = document.getElementById('rdv-motif').value.trim();
+      
+      if (!phone || !doctorId || !date || !time) {
+        alert('Veuillez remplir tous les champs obligatoires');
+        return;
+      }
+      
+      await api('/secretary/rdv-manuel', {
+        method: 'POST',
+        body: JSON.stringify({
+          patient_phone: phone,
+          doctor_id: parseInt(doctorId),
+          date: date,
+          time: time,
+          motif: motif || null,
+          is_urgent: false,
+          created_by: 'secretariat'
+        })
+      });
+      
+      closeModal('modal-rdv-manuel');
+      loadDashboardStats();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = getToken();
+      const phone = getPhone();
+      const clinicId = getClinicId();
+      
+      if (!token || !phone) {
+        window.location.href = '/secretaire/login.html';
+        return;
+      }
+      
+      document.getElementById('user-name').textContent = phone;
+      document.getElementById('clinic-name').textContent = `Clinique ${clinicId || '—'}`;
+      
+      document.getElementById('agenda-date').value = new Date().toISOString().split('T')[0];
+      
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => showTab(item.dataset.tab));
+      });
+      
+      document.getElementById('agenda-date').addEventListener('change', loadAgenda);
+      document.getElementById('agenda-doctor').addEventListener('change', loadAgenda);
+      document.getElementById('patient-search').addEventListener('input', loadPatients);
+      
+      loadDashboardStats();
+      
+      setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          loadDashboardStats();
+          if (currentTab === 'agenda') loadAgenda();
         }
-
-        async function api(endpoint, options = {}) {
-            const token = getToken();
-            const headers = {
-                'Content-Type': 'application/json',
-                ...options.headers
-            };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-            const response = await fetch(`${API_BASE}${endpoint}`, {
-                ...options,
-                headers
-            });
-            if (response.status === 401) {
-                logout();
-                return null;
-            }
-            return response.json();
-        }
-
-        function showTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
-            document.getElementById(`${tabName}-panel`).classList.add('active');
-            
-            if (tabName === 'agenda') loadAgenda();
-            if (tabName === 'queue') loadQueue();
-            if (tabName === 'blocks') loadBlocks();
-            if (tabName === 'stats') loadStats();
-        }
-
-        async function loadDoctors() {
-            const result = await api('/doctors');
-            if (result && result.success) {
-                const doctors = result.data || [];
-                const selects = ['doctor-select', 'queue-doctor-select', 'block-doctor-select', 'stats-doctor-select'];
-                selects.forEach(selectId => {
-                    const select = document.getElementById(selectId);
-                    if (select) {
-                        select.innerHTML = '<option value="">Sélectionner un médecin</option>';
-                        doctors.forEach(doc => {
-                            select.innerHTML += `<option value="${doc.id}">${doc.full_name || doc.name}</option>`;
-                        });
-                    }
-                });
-            }
-        }
-
-        async function loadAgenda() {
-            const doctorId = document.getElementById('doctor-select').value;
-            const date = document.getElementById('agenda-date').value || new Date().toISOString().split('T')[0];
-            
-            if (!doctorId) return;
-
-            const result = await api(`/secretary/agenda/${doctor_id}?date=${date}`);
-            if (result && result.success) {
-                const appointmentsTbody = document.querySelector('#appointments-table tbody');
-                const blocksTbody = document.querySelector('#blocks-table tbody');
-                
-                appointmentsTbody.innerHTML = '';
-                (result.appointments || []).forEach(apt => {
-                    const time = new Date(apt.appointment_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    let symptomsHtml = '';
-                    if (apt.symptomes_motif) {
-                        symptomsHtml = `
-                            <div style="margin-top:6px;padding:8px;background:#e6fbf7;border-radius:8px;font-size:12px;color:#047857;">
-                                <strong>📋 Motif :</strong> ${apt.symptomes_motif}
-                                ${apt.symptomes_liste && apt.symptomes_liste.length ? 
-                                    `<div style="margin-top:4px;">${JSON.parse(apt.symptomes_liste).map(s => 
-                                        `<span style="background:white;padding:2px 8px;border-radius:50px;margin:2px;display:inline-block;">${s}</span>` 
-                                    ).join('')}</div>` : ''}
-                            </div>
-                        `;
-                    }
-                    appointmentsTbody.innerHTML += `
-                        <tr>
-                            <td>${time}</td>
-                            <td>
-                                ${apt.patient_phone}
-                                ${symptomsHtml}
-                            </td>
-                            <td>${apt.reason || '-'}</td>
-                            <td><span class="status-badge status-${apt.status}">${apt.status}</span></td>
-                        </tr>
-                    `;
-                });
-
-                blocksTbody.innerHTML = '';
-                (result.blocks || []).forEach(block => {
-                    blocksTbody.innerHTML += `
-                        <tr>
-                            <td>${block.block_start}</td>
-                            <td>${block.block_end}</td>
-                            <td>${block.reason || '-'}</td>
-                            <td><button class="btn btn-turquoise" onclick="deleteBlock(${block.id})">Supprimer</button></td>
-                        </tr>
-                    `;
-                });
-            }
-        }
-
-        async function loadQueue() {
-            const doctorId = document.getElementById('queue-doctor-select').value;
-            const date = document.getElementById('queue-date').value || new Date().toISOString().split('T')[0];
-            
-            if (!doctorId) return;
-
-            const result = await api(`/secretary/queue/${doctorId}?date=${date}`);
-            if (result && result.success) {
-                const tbody = document.querySelector('#queue-table tbody');
-                tbody.innerHTML = '';
-                (result.queue || []).forEach((entry, index) => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${entry.full_name || entry.patient_phone}</td>
-                            <td><span class="status-badge status-${entry.status}">${entry.status}</span></td>
-                            <td>
-                                <button class="btn btn-primary" onclick="updateQueueStatus(${entry.id}, 'in_consultation')">En consultation</button>
-                                <button class="btn btn-turquoise" onclick="updateQueueStatus(${entry.id}, 'completed')">Terminé</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-        }
-
-        async function updateQueueStatus(id, status) {
-            const result = await api(`/secretary/queue/${id}/status`, {
-                method: 'PATCH',
-                body: JSON.stringify({ status })
-            });
-            if (result && result.success) {
-                loadQueue();
-            }
-        }
-
-        async function createBlock(event) {
-            event.preventDefault();
-            const doctorId = document.getElementById('block-doctor-select').value;
-            const date = document.getElementById('block-date').value;
-            const start = document.getElementById('block-start').value;
-            const end = document.getElementById('block-end').value;
-            const reason = document.getElementById('block-reason').value;
-
-            const result = await api('/secretary/agenda-blocks', {
-                method: 'POST',
-                body: JSON.stringify({ doctor_id: doctorId, block_date: date, block_start: start, block_end: end, reason })
-            });
-            if (result && result.success) {
-                loadBlocks();
-                document.getElementById('block-reason').value = '';
-            }
-        }
-
-        async function deleteBlock(id) {
-            const result = await api(`/secretary/agenda-blocks/${id}`, {
-                method: 'DELETE'
-            });
-            if (result && result.success) {
-                loadAgenda();
-                loadBlocks();
-            }
-        }
-
-        async function loadBlocks() {
-            const doctorId = document.getElementById('block-doctor-select').value;
-            const date = document.getElementById('block-date').value || new Date().toISOString().split('T')[0];
-            
-            // Charger les blocages pour le médecin sélectionné
-            if (doctorId) {
-                const result = await api(`/secretary/agenda/${doctorId}?date=${date}`);
-                if (result && result.success) {
-                    const tbody = document.querySelector('#all-blocks-table tbody');
-                    tbody.innerHTML = '';
-                    (result.blocks || []).forEach(block => {
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>Médecin ${doctorId}</td>
-                                <td>${block.block_date}</td>
-                                <td>${block.block_start}</td>
-                                <td>${block.block_end}</td>
-                                <td>${block.reason || '-'}</td>
-                                <td><button class="btn btn-turquoise" onclick="deleteBlock(${block.id})">Supprimer</button></td>
-                            </tr>
-                        `;
-                    });
-                }
-            }
-        }
-
-        async function loadStats() {
-            const doctorId = document.getElementById('stats-doctor-select').value;
-            const date = document.getElementById('stats-date').value || new Date().toISOString().split('T')[0];
-            
-            if (!doctorId) return;
-
-            const result = await api(`/secretary/stats?doctor_id=${doctorId}&date=${date}`);
-            if (result && result.success) {
-                document.getElementById('stat-appointments').textContent = result.stats.appointments.total || 0;
-                document.getElementById('stat-fill-rate').textContent = Math.round(result.stats.fill_rate || 0) + '%';
-                document.getElementById('stat-wait-time').textContent = Math.round(result.stats.queue.avg_wait_minutes || 0) + ' min';
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('bolamu_secretaire_token');
-            localStorage.removeItem('bolamu_secretaire_phone');
-            localStorage.removeItem('bolamu_secretaire_clinic_id');
-            window.location.href = '/secretaire/login.html';
-        }
-
-        // ── RDV MANUEL ──
-        let rdvManuelSlotSelected = null;
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        async function creerRdvManuel() {
-            const phone = document.getElementById('rdv-manuel-phone').value.trim();
-            const doctorId = document.getElementById('rdv-manuel-doctor').value;
-            const date = document.getElementById('rdv-manuel-date').value;
-            const motif = document.getElementById('rdv-manuel-motif').value.trim();
-            const isUrgent = document.getElementById('rdv-manuel-urgent').checked;
-
-            if (!phone || !doctorId || !date || !rdvManuelSlotSelected) {
-                alert('Veuillez remplir tous les champs obligatoires.');
-                return;
-            }
-
-            const btn = document.getElementById('btn-rdv-manuel-confirm');
-            btn.disabled = true; btn.textContent = 'Enregistrement…';
-
-            try {
-                const token = getToken();
-                const res = await fetch(`${API_BASE}/secretary/rdv-manuel`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({
-                        patient_phone: phone,
-                        doctor_id: parseInt(doctorId),
-                        date: date,
-                        time: rdvManuelSlotSelected,
-                        motif: motif || null,
-                        is_urgent: isUrgent,
-                        created_by: 'secretariat'
-                    })
-                });
-                const data = await res.json();
-                if (!data.success) { alert(data.message || 'Erreur.'); return; }
-                alert('RDV enregistré avec succès ✅');
-                closeModal('modal-rdv-manuel');
-                rdvManuelSlotSelected = null;
-                loadAgenda();
-            } catch(e) { alert('Erreur de connexion.'); }
-            btn.disabled = false; btn.textContent = '✅ Enregistrer le RDV';
-        }
-
-        document.getElementById('rdv-manuel-date').addEventListener('change', async function() {
-            const doctorId = document.getElementById('rdv-manuel-doctor').value;
-            const date = this.value;
-            if (!doctorId || !date) return;
-            const container = document.getElementById('rdv-manuel-slots');
-            container.innerHTML = '<div style="color:var(--gray-600);font-size:0.875rem;">Chargement…</div>';
-            try {
-                const token = getToken();
-                const res = await fetch(`${API_BASE}/appointments/slots/${doctorId}?date=${date}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (!data.slots || !data.slots.length) {
-                    container.innerHTML = '<div style="color:var(--gray-600);font-size:0.875rem;">Aucun créneau disponible</div>';
-                    return;
-                }
-                container.innerHTML = data.slots.map(slot =>
-                    `<button onclick="selectManuelSlot('${slot}', this)"
-                        style="padding:8px 16px;border-radius:50px;border:1px solid var(--gray-200);background:white;font-size:0.875rem;font-weight:700;cursor:pointer;color:var(--gray-800);">
-                        ${slot}
-                    </button>`
-                ).join('');
-            } catch(e) { container.innerHTML = '<div style="color:#e74c3c;font-size:0.875rem;">Erreur chargement</div>'; }
-        });
-
-        function selectManuelSlot(time, btn) {
-            rdvManuelSlotSelected = time;
-            document.querySelectorAll('#rdv-manuel-slots button').forEach(b => {
-                b.style.background = 'white';
-                b.style.borderColor = 'var(--gray-200)';
-                b.style.color = 'var(--gray-800)';
-            });
-            btn.style.background = 'var(--turquoise)';
-            btn.style.borderColor = 'var(--turquoise)';
-            btn.style.color = 'var(--navy)';
-        }
-
-        function openRdvManuel() {
-            rdvManuelSlotSelected = null;
-            document.getElementById('rdv-manuel-phone').value = '';
-            document.getElementById('rdv-manuel-motif').value = '';
-            document.getElementById('rdv-manuel-urgent').checked = false;
-            document.getElementById('rdv-manuel-slots').innerHTML = 
-                '<div style="color:var(--gray-600);font-size:0.875rem;">Sélectionnez d\'abord une date et un médecin</div>';
-            loadDoctorsIntoSelect('rdv-manuel-doctor');
-            document.getElementById('modal-rdv-manuel').style.display = 'flex';
-        }
-
-        function openUrgence() {
-            openRdvManuel();
-            document.getElementById('rdv-manuel-urgent').checked = true;
-        }
-
-        async function loadDoctorsIntoSelect(selectId) {
-            try {
-                const token = getToken();
-                const res = await fetch(`${API_BASE}/doctors`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                const select = document.getElementById(selectId);
-                select.innerHTML = '<option value="">Sélectionnez un médecin...</option>';
-                (data.doctors || data.data || []).forEach(d => {
-                    select.innerHTML += `<option value="${d.id}">${d.full_name || d.name} — ${d.specialty || 'Médecin'}</option>`;
-                });
-            } catch(e) {}
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = getToken();
-            const phone = getPhone();
-            
-            if (!token || !phone) {
-                window.location.href = '/secretaire/login.html';
-                return;
-            }
-
-            document.getElementById('secretary-name').textContent = phone;
-            
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('agenda-date').value = today;
-            document.getElementById('queue-date').value = today;
-            document.getElementById('block-date').value = today;
-            document.getElementById('stats-date').value = today;
-
-            loadDoctors();
-            loadAgenda();
-
-            // Polling — refresh agenda + file d'attente toutes les 30 secondes
-            setInterval(() => {
-                if (document.visibilityState === 'visible') {
-                    loadAgenda();
-                    loadQueue();
-                }
-            }, 30000);
-        });
-    </script>
+      }, 30000);
+    });
+  </script>
 </body>
 </html>

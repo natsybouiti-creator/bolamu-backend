@@ -189,6 +189,125 @@ router.delete('/secretary/agenda-blocks/:id', authMiddleware, authMiddleware.req
 // Statistiques flux
 router.get('/secretary/stats', authMiddleware, authMiddleware.requireSecretary, secretary.getStats);
 
+// GET /api/v1/secretariat/dashboard-stats
+// Stats dashboard secrétaire
+router.get('/dashboard-stats', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const { clinic_id, date } = req.query;
+    const queryDate = date || new Date().toISOString().split('T')[0];
+    
+    const [rdvToday, enAttente, enConsult, medecins] = await Promise.all([
+      pool.query(
+        `SELECT COUNT(*) FROM appointments a 
+         JOIN doctors d ON d.id = a.doctor_id 
+         WHERE d.clinic_id = $1 AND a.appointment_date = $2 AND a.status NOT IN ('annule','refuse')`,
+        [clinic_id, queryDate]
+      ),
+      pool.query(
+        `SELECT COUNT(*) FROM appointments a 
+         JOIN doctors d ON d.id = a.doctor_id 
+         WHERE d.clinic_id = $1 AND a.appointment_date = $2 AND a.status = 'en_attente'`,
+        [clinic_id, queryDate]
+      ),
+      pool.query(
+        `SELECT COUNT(*) FROM appointments a 
+         JOIN doctors d ON d.id = a.doctor_id 
+         WHERE d.clinic_id = $1 AND a.appointment_date = $2 AND a.status = 'en_cours'`,
+        [clinic_id, queryDate]
+      ),
+      pool.query(
+        `SELECT COUNT(*) FROM doctors WHERE clinic_id = $1 AND is_active = true`,
+        [clinic_id]
+      )
+    ]);
+    
+    res.json({ 
+      success: true, 
+      stats: {
+        rdv_today: parseInt(rdvToday.rows[0].count),
+        en_attente: parseInt(enAttente.rows[0].count),
+        en_consultation: parseInt(enConsult.rows[0].count),
+        medecins_disponibles: parseInt(medecins.rows[0].count)
+      }
+    });
+  } catch (err) {
+    console.error('[DASHBOARD STATS]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/v1/secretariat/patients/search
+// Recherche patients
+router.get('/patients/search', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.length < 2) return res.json({ success: true, patients: [] });
+    
+    const result = await pool.query(
+      `SELECT id, full_name, phone, statut_abonnement, created_at FROM users
+       WHERE role = 'patient' AND is_active = true
+       AND (full_name ILIKE $1 OR phone ILIKE $1)
+       ORDER BY full_name LIMIT 20`,
+      [`%${q}%`]
+    );
+    
+    res.json({ success: true, patients: result.rows });
+  } catch (err) {
+    console.error('[PATIENTS SEARCH]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/v1/secretariat/medecins
+// Liste médecins de la clinique
+router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const { clinic_id } = req.query;
+    
+    const result = await pool.query(
+      `SELECT d.id, d.full_name, d.specialty, d.is_active,
+        COUNT(a.id) FILTER (WHERE a.appointment_date = CURRENT_DATE AND a.status NOT IN ('annule','refuse')) as rdv_today
+       FROM doctors d
+       LEFT JOIN appointments a ON a.doctor_id = d.id
+       WHERE d.clinic_id = $1
+       GROUP BY d.id ORDER BY d.full_name`,
+      [clinic_id]
+    );
+    
+    res.json({ success: true, medecins: result.rows });
+  } catch (err) {
+    console.error('[MEDECINS LIST]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/v1/secretariat/queue
+// File d'attente globale
+router.get('/queue', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const { clinic_id, date } = req.query;
+    const queryDate = date || new Date().toISOString().split('T')[0];
+    
+    const result = await pool.query(
+      `SELECT q.id, q.patient_phone, q.status, q.arrived_at,
+        u.full_name as patient_name,
+        d.full_name as doctor_name,
+        TO_CHAR(q.arrived_at, 'HH24:MI') as time
+       FROM queue_entries q
+       LEFT JOIN users u ON u.phone = q.patient_phone
+       LEFT JOIN doctors d ON d.id = q.doctor_id
+       WHERE q.queue_date = $1
+       ORDER BY q.arrived_at`,
+      [queryDate]
+    );
+    
+    res.json({ success: true, queue: result.rows });
+  } catch (err) {
+    console.error('[QUEUE LIST]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ============================================================
 // ROUTES ADMIN
 // ============================================================
