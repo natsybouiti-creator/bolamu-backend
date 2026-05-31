@@ -263,10 +263,11 @@ router.get('/patients/search', authMiddleware, authMiddleware.requireSecretary, 
 router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   try {
     const { clinic_id } = req.query;
+    console.log('[MEDECINS] clinic_id:', clinic_id);
     
     const result = await pool.query(
       `SELECT d.id, d.full_name, d.specialty, d.is_active,
-        COUNT(a.id) FILTER (WHERE a.appointment_date = CURRENT_DATE AND a.status NOT IN ('annule','refuse')) as rdv_today
+        COUNT(a.id) FILTER (WHERE DATE(a.appointment_time) = CURRENT_DATE AND a.status NOT IN ('annule','refuse')) as rdv_today
        FROM doctors d
        LEFT JOIN appointments a ON a.doctor_id = d.id
        WHERE d.clinic_id = $1
@@ -274,6 +275,7 @@ router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (
       [clinic_id]
     );
     
+    console.log('[MEDECINS] result rows:', result.rows.length);
     res.json({ success: true, medecins: result.rows });
   } catch (err) {
     console.error('[MEDECINS LIST]', err.message);
@@ -289,15 +291,15 @@ router.get('/queue', authMiddleware, authMiddleware.requireSecretary, async (req
     const queryDate = date || new Date().toISOString().split('T')[0];
     
     const result = await pool.query(
-      `SELECT q.id, q.patient_phone, q.status, q.arrived_at,
+      `SELECT q.id, q.patient_phone, q.status, q.created_at,
         u.full_name as patient_name,
         d.full_name as doctor_name,
-        TO_CHAR(q.arrived_at, 'HH24:MI') as time
+        TO_CHAR(q.created_at, 'HH24:MI') as time
        FROM queue_entries q
        LEFT JOIN users u ON u.phone = q.patient_phone
        LEFT JOIN doctors d ON d.id = q.doctor_id
        WHERE q.queue_date = $1
-       ORDER BY q.arrived_at`,
+       ORDER BY q.created_at`,
       [queryDate]
     );
     
