@@ -7,8 +7,8 @@ const bcrypt = require('bcrypt');
 // ─── GET AGENDA MÉDECIN ─────────────────────────────────────────────────────────────
 async function getAgenda(req, res) {
     try {
-        const { doctor_id, date } = req.params;
-        const queryDate = date || new Date().toISOString().split('T')[0];
+        const { doctor_id } = req.params;
+        const { date } = req.query;
         const clinicId = req.user.clinic_id;
 
         // Vérifier que le médecin appartient à la clinique du secrétaire
@@ -20,25 +20,38 @@ async function getAgenda(req, res) {
             return res.status(403).json({ success: false, message: 'Accès non autorisé à ce médecin' });
         }
 
-        // Récupérer les RDV du médecin pour la date avec symptômes
+        // Si date fournie, afficher RDV de cette date précise
+        // Sinon, afficher RDV d'aujourd'hui et futurs
+        let dateFilter;
+        let queryParams;
+        if (date) {
+            dateFilter = 'DATE(a.appointment_time) = $2';
+            queryParams = [doctor_id, date];
+        } else {
+            dateFilter = 'DATE(a.appointment_time) >= CURRENT_DATE';
+            queryParams = [doctor_id];
+        }
+
+        // Récupérer les RDV du médecin avec symptômes
         const appointmentsResult = await pool.query(
             `SELECT a.id, a.patient_phone, a.appointment_time, a.status, a.reason,
                     s.motif as symptomes_motif,
                     s.symptomes as symptomes_liste
              FROM appointments a
              LEFT JOIN appointment_symptoms s ON s.appointment_id = a.id
-             WHERE a.doctor_id = $1 AND DATE(a.appointment_time) = $2
+             WHERE a.doctor_id = $1 AND ${dateFilter}
              ORDER BY a.appointment_time`,
-            [doctor_id, queryDate]
+            queryParams
         );
 
-        // Récupérer les blocages agenda pour la date
+        // Récupérer les blocages agenda pour la date (si date fournie, sinon aujourd'hui)
+        const blockDate = date || new Date().toISOString().split('T')[0];
         const blocksResult = await pool.query(
             `SELECT id, block_start, block_end, reason 
              FROM agenda_blocks 
              WHERE doctor_id = $1 AND block_date = $2
              ORDER BY block_start`,
-            [doctor_id, queryDate]
+            [doctor_id, blockDate]
         );
 
         return res.json({
