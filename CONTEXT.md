@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 30 mai 2026
+Mis à jour : 31 mai 2026
 Statut : EN PRODUCTION — https://bolamu-backend.onrender.com
 Score Ayokai : 21/23 (91.3%)
 
@@ -324,6 +324,9 @@ admin, content_admin, secretaire, company_rh
 - Laboratoire : +242068582563
 - Admin : +242060000099
 - Patient test RDV : +242065458932 (RifRaf Jordan — abonnement essentiel actif, ligne subscriptions créée manuellement)
+- Secrétaire : +242077000001 / bolamu2026 (Clinique Louise Michel, Pointe-Noire)
+- RH : +242077000002 / bolamu2026
+- RH Brasco : +242077000003 / bolamu2026
 
 ### Partenaires de test avec conventions actives
 - Pharmacie +242066226116 (mot de passe : WR383LMW) — convention active, discount 15%
@@ -372,6 +375,9 @@ admin, content_admin, secretaire, company_rh
   Premium 5 pers. 10000/120000 FCFA (mois/an)
 - platform_config — taux répartition partenaires :
   clinique 30%, pharmacie 12.5%, laboratoire 7.5%, Bolamu 50%
+- Dashboard Secrétaire V2 : 4 onglets, agenda RDV, patients, médecins, file d'attente ✅
+- Pages login secrétaire (bleu) + RH (amber) ✅
+- Routes secretariat alignées frontend/backend ✅
 
 ### Partiel ⚠️
 - Africa's Talking (sandbox — activation Live en attente crédit)
@@ -700,3 +706,73 @@ Total rôles : 9 (patient, doctor, pharmacie, laboratoire, admin, content_admin,
 - Register multi-étapes : flow inscription refactorisé avec uploads JSONB par rôle
 - Redis/BullMQ : rendu optionnel — plus de crash sur les routes critiques si Redis absent
 - Panels admin Collecte/Conventions/Clearing CDR : débloqués (fix go() display inline)
+
+## NOUVEAUTÉS — 31 MAI 2026
+
+### Nouveaux dashboards créés
+- public/secretaire/login.html : page login secrétaire — dark theme bleu (#2E86FF), champ téléphone + mot de passe, pill "ESPACE SECRÉTARIAT"
+- public/rh/login.html : page login RH — dark theme amber (#ffa502), champ téléphone + mot de passe, pill "ESPACE RH ENTREPRISE"
+- public/secretaire/dashboard.html : dashboard secrétaire V2 complet (refonte totale)
+- public/rh/dashboard.html : dashboard RH (en cours)
+
+### Dashboard Secrétaire V2 — Fonctionnalités validées en production
+- Sidebar fixe avec 4 onglets : Accueil, Agenda, Patients, Médecins
+- Design system complet : navy #0A2463 + turquoise #00C9A7, Plus Jakarta Sans + Fraunces, zéro emoji
+- Responsive mobile : sidebar bottom bar sur < 768px
+- Onglet Accueil : 4 stat cards (en attente, en consultation, RDV aujourd'hui, médecins actifs) + file d'attente temps réel + boutons Nouveau RDV / Urgence
+- Onglet Agenda : sélecteur date + médecin, liste RDV avec nom + téléphone patient, heure (format TIME 09:30), statut, actions Confirmer/Annuler
+- Onglet Patients : recherche par nom ou téléphone, liste 50 patients par défaut, boutons Voir fiche / Prendre RDV
+- Onglet Médecins : liste médecins filtrée par clinic_id, badge Disponible/Absent, modal emploi du temps avec créneaux par jour
+- Clinique Louise Michel / Pointe-Noire affiché dans topbar et sidebar
+- Logout → /secretaire/login.html
+- Polling 30s sur l'onglet actif
+
+### Routes backend ajoutées — secretariat.routes.js
+- GET /secretariat/agenda?doctor_id=X&date=YYYY-MM-DD — RDV médecin par date (query params, corrige l'ancienne route /secretary/agenda/:doctor_id)
+- GET /secretariat/queue?date=YYYY-MM-DD — file d'attente par clinic_id depuis JWT
+- POST /secretariat/rdv-manuel — créer RDV à l'accueil sans préfixe /secretary/
+- PATCH /secretariat/queue/:id/status — changer statut patient file d'attente
+- GET /secretariat/patients/search?q= — retourne 50 patients si q vide, filtre sinon
+- GET /secretariat/clinic-info — infos clinique depuis clinic_id JWT
+- GET /secretariat/medecin/:id/disponibilites — emploi du temps médecin (vérifie clinic_id)
+- GET /secretariat/dashboard-stats?date= — 4 compteurs accueil
+
+### Bugs corrigés — 31 mai 2026
+- DATE(a.appointment_date) → a.appointment_date (appointment_date est déjà de type DATE)
+- appointment_time::date impossible (type TIME) — colonne correcte est appointment_date
+- a.reason inexistant → a.motif (colonne réelle dans appointments)
+- URLs frontend /secretary/ → /secretariat/ (alignement avec montage server.js)
+- doctor_id en query param (frontend) vs path param (ancien backend) — nouvelle route alignée
+- appointment_time.slice(11,16) → slice(0,5) (format TIME, pas TIMESTAMP)
+- Médecins route 304 cache → header Cache-Control: no-store ajouté
+- queue_entries.arrived_at inexistant → created_at utilisé à la place
+- dashboard.html.bak supprimé
+
+### Données de test ajoutées — 31 mai 2026
+- Dr. Guy-Noël Bolamu (id=1) : clinic_id=1 (Clinique Louise Michel)
+- RDV id=16 : RifRaf Jordan (+242065458932) → Dr. Guy-Noël, 2026-05-31 09:30, confirmé
+- doctor_availabilities Dr. Guy-Noël : Lundi-Vendredi 08h00-17h00, créneaux 30min
+- queue_entries : entrée test RifRaf (waiting, Consultation générale)
+- Comptes secrétaire et RH : password_hash bcrypt "bolamu2026"
+
+### Comptes de test ajoutés
+- Secrétaire : +242077000001 / bolamu2026 → dashboard secrétaire Clinique Louise Michel
+- RH : +242077000002 / bolamu2026 → dashboard RH
+- RH Brasco : +242077000003 / bolamu2026 → dashboard RH
+
+### Landing page — liens discrets footer
+- "Accès Secrétariat" / "Espace RH" / "Admin" injectés dans la barre copyright via interval JS (attend rendu Next.js)
+- Technique : src/server.js route GET '/' intercepte index.html et injecte le script avant </body>
+
+### BHP v1.2 — Décision architecture
+- Option A validée : restrictions BHP appliquées sur les dashboards existants
+- Secrétaire : accès autorisé — identité, RDV, statut abonnement, motif (non médical)
+- Secrétaire : accès refusé — comptes rendus, ordonnances, résultats labo
+- Dashboard RH : stats agrégées anonymisées uniquement (pas de données nominatives individuelles)
+- Sprint BHP dédié prévu : health_records + health_record_access_log + consentements granulaires
+
+### Règles architecturales ajoutées
+29. appointment_date est de type DATE — ne jamais utiliser DATE() ou ::date cast dessus
+30. appointment_time est de type TIME (format 09:30:00) — slice(0,5) pour afficher, jamais slice(11,16)
+31. Routes secretariat montées sous /api/v1/secretariat — jamais de sous-préfixe /secretary/ dans les routes
+32. clinic_id et company_id toujours récupérés depuis le JWT (req.user) — jamais en query param côté sécurité
