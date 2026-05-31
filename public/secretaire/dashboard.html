@@ -814,6 +814,8 @@
         padding-bottom: 72px !important;
         padding-left: 12px !important;
         padding-right: 12px !important;
+        overflow-x: hidden !important;
+        width: 100% !important;
       }
 
       /* Topbar compacte */
@@ -824,29 +826,97 @@
       .topbar-clinic { display: none !important; }
       .user-name { display: none !important; }
 
-      /* Stats grid */
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-      .medecin-card { flex-direction: column; align-items: flex-start; }
-      table { font-size: 12px; }
-      table th, table td { padding: 8px 6px; }
-      
+      /* Base identique pour TOUS les panels (onglets) */
+      .tab {
+        display: none;
+        padding: 16px 0 80px 0 !important;
+        min-height: calc(100vh - 52px - 64px) !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+        width: 100% !important;
+      }
+      .tab.active {
+        display: block !important;
+      }
+
+      /* Tous les blocs directs dans un tab */
+      .tab > * {
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Blocs cards, verification, agenda — largeur pleine */
+      .verification-bloc,
+      .stats-grid,
+      .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Verification adhérent */
+      .verification-search {
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .verification-search input,
+      .btn-verify {
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Carte résultat vérification */
+      .verify-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        padding: 14px !important;
+      }
+      .verify-badge {
+        align-self: flex-start !important;
+      }
+
+      /* Stats grid — 2 colonnes stables */
+      .stats-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        width: 100% !important;
+      }
+
       /* Tableaux scroll horizontal */
-      .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .table table { min-width: 600px; }
-      
+      .table {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+      }
+      table {
+        min-width: 480px !important;
+        font-size: 12px;
+      }
+      table th, table td { padding: 8px 6px; }
+
       /* Formulaires et inputs */
-      .form-row { flex-direction: column; gap: 8px; }
-      .form-row input, .form-row button { width: 100%; }
-      .form-group select, .form-group input { width: 100%; }
-      
+      .form-group select,
+      .form-group input {
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Sélecteur motif */
+      .verify-motif-section select {
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
       /* Cards partenaires et médecins */
       .medecin-card { flex-direction: column; align-items: flex-start; }
       .medecin-actions { flex-direction: column; width: 100%; gap: 8px; }
-      
+
       /* Modals plein écran */
       .modal-overlay { padding: 16px; }
       .modal { max-width: 100%; max-height: 100vh; overflow-y: auto; }
-      
+
       /* Catalogue SSP */
       .catalogue-filters { flex-wrap: wrap; gap: 8px; }
       .filter-btn { font-size: 11px; padding: 6px 12px; }
