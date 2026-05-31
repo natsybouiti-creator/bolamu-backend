@@ -389,7 +389,7 @@ setTimeout(async () => {
     // Test médecins
     const r1 = await pool.query(
       `SELECT d.id, d.full_name, d.specialty, d.is_active,
-        COUNT(a.id) FILTER (WHERE DATE(a.appointment_time) = CURRENT_DATE AND a.status NOT IN ('annule','refuse')) as rdv_today
+        COUNT(a.id) FILTER (WHERE a.appointment_time::date = CURRENT_DATE AND a.status NOT IN ('annule','refuse')) as rdv_today
        FROM doctors d
        LEFT JOIN appointments a ON a.doctor_id = d.id
        WHERE d.clinic_id = 1
@@ -402,7 +402,7 @@ setTimeout(async () => {
       `SELECT a.id, a.patient_phone, a.appointment_time, a.status
        FROM appointments a
        JOIN doctors d ON d.id = a.doctor_id
-       WHERE d.clinic_id = 1 AND DATE(a.appointment_time) >= CURRENT_DATE
+       WHERE d.clinic_id = 1 AND a.appointment_time::date >= CURRENT_DATE
        ORDER BY a.appointment_time`
     );
     console.log('[DEBUG AGENDA]', JSON.stringify(r2.rows));
@@ -411,7 +411,7 @@ setTimeout(async () => {
     const r3 = await pool.query(
       `SELECT COUNT(*) as total FROM appointments a
        JOIN doctors d ON d.id = a.doctor_id
-       WHERE d.clinic_id = 1 AND DATE(a.appointment_time) = CURRENT_DATE
+       WHERE d.clinic_id = 1 AND a.appointment_time::date = CURRENT_DATE
        AND a.status NOT IN ('annule','refuse')`
     );
     console.log('[DEBUG STATS]', JSON.stringify(r3.rows));
