@@ -97,8 +97,49 @@
       .main{padding:120px 16px 24px;}
       .top-grid{grid-template-columns:1fr;gap:16px;}
       .role-pill,.company-pill,.phone-pill{display:none;}
-      table{font-size:12px;}
-      th,td{padding:8px 4px;}
+
+      /* Tableaux scroll horizontal */
+      .table-wrapper,
+      .table-container,
+      .agenda-table-wrapper,
+      .agenda-table-container,
+      .queue-table-container,
+      .patients-table-container,
+      .table {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 10px !important;
+      }
+
+      /* Table elle-même — ne jamais dépasser la largeur dispo */
+      table {
+        width: 100% !important;
+        min-width: unset !important;
+        font-size: 12px !important;
+        border-collapse: collapse !important;
+      }
+
+      th, td {
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+        font-size: 12px !important;
+      }
+
+      /* Colonnes secondaires masquées sur mobile */
+      .col-hide-mobile {
+        display: none !important;
+      }
+
+      /* Texte long tronqué dans les cellules */
+      td .cell-truncate {
+        max-width: 120px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        display: block !important;
+      }
     }
   </style>
 </head>

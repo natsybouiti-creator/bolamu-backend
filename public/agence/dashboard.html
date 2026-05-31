@@ -181,6 +181,53 @@
     .modal-actions button { flex: 1; }
     .btn-secondary { padding: 12px 24px; background: var(--fond); color: var(--bleu); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; cursor: pointer; }
 
+    /* ─── WIZARD SOUSCRIPTION ─── */
+    .wizard-container { max-width: 800px; margin: 0 auto; }
+    .wizard-progress { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 32px; }
+    .wizard-step-indicator { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+    .step-dot { width: 40px; height: 40px; border-radius: 50%; background: var(--border); color: var(--texte-doux); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; transition: all 0.3s; }
+    .wizard-step-indicator.active .step-dot { background: var(--accent); color: white; }
+    .wizard-step-indicator.done .step-dot { background: var(--vert); color: white; }
+    .step-label { font-size: 12px; font-weight: 600; color: var(--texte-doux); }
+    .wizard-step-indicator.active .step-label { color: var(--accent); }
+    .wizard-step-divider { flex: 1; height: 2px; background: var(--border); max-width: 60px; }
+    .wizard-step-divider.done { background: var(--vert); }
+
+    .wizard-panel { display: none; }
+    .wizard-panel.active { display: block; }
+    .wizard-panel h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--bleu); margin-bottom: 24px; }
+
+    .input-row { display: flex; gap: 12px; }
+    .input-row input { flex: 1; }
+    .w-info-box { margin-top: 12px; padding: 12px 16px; border-radius: 10px; font-size: 13px; }
+    .w-info-box.success { background: rgba(0,201,167,0.1); color: #047857; border: 1px solid var(--vert); }
+    .w-info-box.error { background: rgba(220,53,69,0.08); color: #dc3545; border: 1px solid #dc3545; }
+
+    .cgu-bloc { margin-top: 24px; padding: 16px; background: var(--bleu-pale); border-radius: 12px; border: 1px solid var(--border); }
+    .cgu-text-container { margin-bottom: 12px; }
+    .cgu-title { font-weight: 700; color: var(--bleu); margin-bottom: 8px; font-size: 14px; }
+    .cgu-body { font-size: 13px; color: var(--texte-doux); line-height: 1.5; max-height: 100px; overflow-y: auto; }
+    .cgu-checkbox-row { display: flex; align-items: flex-start; gap: 10px; }
+    .cgu-checkbox-row input { margin-top: 4px; }
+    .cgu-checkbox-row label { font-size: 13px; color: var(--texte); line-height: 1.4; }
+
+    .recap-bloc { margin-bottom: 24px; padding: 16px; background: var(--accent-light); border-radius: 12px; border: 1px solid var(--accent); }
+    .recap-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .recap-row:last-child { border-bottom: none; }
+    .recap-label { color: var(--texte-doux); }
+    .recap-value { font-weight: 600; color: var(--bleu); }
+    .recap-total { margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--accent); display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: var(--accent); }
+
+    .payment-methods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .payment-card { padding: 16px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; background: var(--blanc); }
+    .payment-card:hover { border-color: var(--accent); }
+    .payment-card.selected { border-color: var(--accent); background: var(--accent-light); }
+    .payment-name { font-weight: 700; color: var(--bleu); margin-bottom: 4px; }
+    .payment-desc { font-size: 12px; color: var(--texte-doux); }
+
+    .wizard-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .wizard-actions button { flex: 1; }
+
     @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .plan-cards { grid-template-columns: 1fr; } .action-cards { grid-template-columns: 1fr; } }
     @media (max-width: 768px) {
       /* Desktop : masquer sidebar, afficher bottom nav */
@@ -208,8 +255,47 @@
       .stats-grid { grid-template-columns: 1fr 1fr; }
       
       /* Tableaux scroll horizontal */
-      .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .table table { min-width: 600px; }
+      .table-wrapper,
+      .table-container,
+      .agenda-table-wrapper,
+      .agenda-table-container,
+      .queue-table-container,
+      .patients-table-container,
+      .table {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 10px !important;
+      }
+
+      /* Table elle-même — ne jamais dépasser la largeur dispo */
+      table {
+        width: 100% !important;
+        min-width: unset !important;
+        font-size: 12px !important;
+        border-collapse: collapse !important;
+      }
+
+      th, td {
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+        font-size: 12px !important;
+      }
+
+      /* Colonnes secondaires masquées sur mobile */
+      .col-hide-mobile {
+        display: none !important;
+      }
+
+      /* Texte long tronqué dans les cellules */
+      td .cell-truncate {
+        max-width: 120px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        display: block !important;
+      }
       
       /* Formulaires et inputs */
       .form-row { flex-direction: column; gap: 8px; }
@@ -335,35 +421,198 @@
 
         <!-- SOUSCRIPTION -->
         <section id="tab-souscription" class="tab">
-          <div class="step-bloc">
-            <h3>Étape 1 — Identifier le client</h3>
-            <div class="form-row">
-              <input type="text" id="sub-phone" placeholder="Numéro de téléphone (+242...)" />
-              <button onclick="rechercherClient()">Rechercher</button>
-            </div>
-            <div id="sub-client-result"></div>
-            <div id="sub-new-client" class="hidden" style="margin-top:16px;">
-              <div class="form-row" style="margin-bottom:12px;">
-                <input type="text" id="sub-nom" placeholder="Nom" />
-                <input type="text" id="sub-prenom" placeholder="Prénom" />
+          <!-- WIZARD SOUSCRIPTION AGENT -->
+          <div class="wizard-container" id="wizard-souscription">
+
+            <!-- Barre de progression -->
+            <div class="wizard-progress">
+              <div class="wizard-step-indicator active" data-step="1">
+                <div class="step-dot">1</div>
+                <span class="step-label">Identité</span>
+              </div>
+              <div class="wizard-step-divider"></div>
+              <div class="wizard-step-indicator" data-step="2">
+                <div class="step-dot">2</div>
+                <span class="step-label">Documents</span>
+              </div>
+              <div class="wizard-step-divider"></div>
+              <div class="wizard-step-indicator" data-step="3">
+                <div class="step-dot">3</div>
+                <span class="step-label">Formule</span>
+              </div>
+              <div class="wizard-step-divider"></div>
+              <div class="wizard-step-indicator" data-step="4">
+                <div class="step-dot">4</div>
+                <span class="step-label">Paiement</span>
               </div>
             </div>
-          </div>
 
-          <div class="step-bloc hidden" id="step-plan">
-            <h3>Étape 2 — Choisir la formule</h3>
-            <div class="plan-cards" id="plan-cards"></div>
-            <div class="form-group" style="margin-top:16px;">
-              <label>Mode de paiement</label>
-              <select id="sub-payment-mode">
-                <option value="mtn_momo">MTN MoMo</option>
-                <option value="airtel_money">Airtel Money</option>
-                <option value="especes">Espèces en agence</option>
-                <option value="virement">Virement bancaire</option>
-              </select>
+            <!-- ÉTAPE 1 — Identité -->
+            <div class="wizard-panel active" id="wizard-step-1">
+              <h3>Identité du client</h3>
+              <div class="form-group">
+                <label>Téléphone *</label>
+                <div class="input-row">
+                  <input type="tel" id="w-phone" placeholder="+242..." />
+                  <button class="btn-sm" onclick="verifierClientExistant()">Vérifier</button>
+                </div>
+                <div id="w-client-existing" class="w-info-box hidden"></div>
+              </div>
+              <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" id="w-nom" placeholder="Nom de famille" />
+              </div>
+              <div class="form-group">
+                <label>Prénom *</label>
+                <input type="text" id="w-prenom" placeholder="Prénom" />
+              </div>
+              <div class="form-group">
+                <label>Date de naissance *</label>
+                <input type="date" id="w-dob" />
+              </div>
+              <div class="form-group">
+                <label>Genre *</label>
+                <select id="w-genre">
+                  <option value="">Sélectionner</option>
+                  <option value="homme">Homme</option>
+                  <option value="femme">Femme</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Ville *</label>
+                <select id="w-ville">
+                  <option value="">Sélectionner</option>
+                  <option value="Brazzaville">Brazzaville</option>
+                  <option value="Pointe-Noire">Pointe-Noire</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Adresse</label>
+                <input type="text" id="w-adresse" placeholder="Quartier, rue..." />
+              </div>
+              <div class="wizard-actions">
+                <button class="btn-primary" onclick="wizardNext(1)">Continuer</button>
+              </div>
             </div>
-            <button class="btn-primary" onclick="confirmerSouscription()">Confirmer la souscription</button>
-            <div id="sub-confirmation" class="hidden"></div>
+
+            <!-- ÉTAPE 2 — Documents -->
+            <div class="wizard-panel hidden" id="wizard-step-2">
+              <h3>Pièce d'identité</h3>
+              <div class="form-group">
+                <label>Type de document *</label>
+                <select id="w-doc-type">
+                  <option value="">Sélectionner</option>
+                  <option value="cni">Carte Nationale d'Identité (CNI)</option>
+                  <option value="passeport">Passeport</option>
+                  <option value="permis">Permis de conduire</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Numéro du document *</label>
+                <input type="text" id="w-doc-numero" placeholder="Ex: CNI-0012345" />
+              </div>
+              <div class="form-group">
+                <label>NIU (optionnel)</label>
+                <input type="text" id="w-niu" placeholder="Numéro d'Identification Unique" />
+              </div>
+              <div class="form-group">
+                <label>RIB / Coordonnées bancaires (optionnel)</label>
+                <input type="text" id="w-rib" placeholder="Banque + numéro de compte" />
+              </div>
+              <div class="form-group">
+                <label>Email (optionnel)</label>
+                <input type="email" id="w-email" placeholder="email@exemple.com" />
+              </div>
+              <div class="wizard-actions">
+                <button class="btn-secondary" onclick="wizardBack(2)">Retour</button>
+                <button class="btn-primary" onclick="wizardNext(2)">Continuer</button>
+              </div>
+            </div>
+
+            <!-- ÉTAPE 3 — Formule -->
+            <div class="wizard-panel hidden" id="wizard-step-3">
+              <h3>Choisir la formule</h3>
+              <div class="plan-cards" id="w-plan-cards">
+                <!-- Rempli dynamiquement depuis loadPlansConfig() -->
+              </div>
+              <input type="hidden" id="w-plan-selected" />
+
+              <!-- CGU + OVP -->
+              <div class="cgu-bloc">
+                <div class="cgu-text-container">
+                  <div class="cgu-title">Conditions Générales d'Utilisation & Offre de Vente Personnalisée</div>
+                  <div class="cgu-body" id="cgu-body">
+                    <p>En souscrivant à une formule Bolamu, le client accepte les conditions générales d'utilisation de la plateforme Bolamu, l'offre de vente personnalisée (OVP) correspondant à la formule choisie, ainsi que la politique de confidentialité des données de santé. La formule est renouvelée automatiquement chaque mois sauf résiliation avant la date d'échéance. Les soins couverts sont définis dans le catalogue SSP Bolamu disponible sur bolamu.cg.</p>
+                  </div>
+                </div>
+                <div class="cgu-checkbox-row">
+                  <input type="checkbox" id="w-cgu-accept" />
+                  <label for="w-cgu-accept">
+                    Le client a lu et accepte les CGU et l'OVP — signature validée par l'agent en présence du client
+                  </label>
+                </div>
+              </div>
+
+              <div class="wizard-actions">
+                <button class="btn-secondary" onclick="wizardBack(3)">Retour</button>
+                <button class="btn-primary" onclick="wizardNext(3)">Continuer</button>
+              </div>
+            </div>
+
+            <!-- ÉTAPE 4 — Paiement -->
+            <div class="wizard-panel hidden" id="wizard-step-4">
+              <h3>Paiement</h3>
+
+              <!-- Récap commande -->
+              <div class="recap-bloc" id="w-recap">
+                <!-- Rempli dynamiquement -->
+              </div>
+
+              <div class="form-group">
+                <label>Mode de paiement *</label>
+                <div class="payment-methods" id="w-payment-methods">
+                  <div class="payment-card" data-method="mtn_momo" onclick="selectPayment(this)">
+                    <div class="payment-name">MTN MoMo</div>
+                    <div class="payment-desc">Paiement Mobile Money MTN</div>
+                  </div>
+                  <div class="payment-card" data-method="airtel_money" onclick="selectPayment(this)">
+                    <div class="payment-name">Airtel Money</div>
+                    <div class="payment-desc">Paiement Mobile Money Airtel</div>
+                  </div>
+                  <div class="payment-card" data-method="especes" onclick="selectPayment(this)">
+                    <div class="payment-name">Espèces en agence</div>
+                    <div class="payment-desc">Paiement cash remis à l'agent</div>
+                  </div>
+                  <div class="payment-card" data-method="virement" onclick="selectPayment(this)">
+                    <div class="payment-name">Virement bancaire</div>
+                    <div class="payment-desc">Virement sur compte Bolamu</div>
+                  </div>
+                </div>
+                <input type="hidden" id="w-payment-selected" />
+              </div>
+
+              <!-- Champ numéro MoMo — visible uniquement si MTN ou Airtel sélectionné -->
+              <div class="form-group hidden" id="w-momo-field">
+                <label>Numéro MoMo du client *</label>
+                <input type="tel" id="w-momo-number" placeholder="+242..." />
+              </div>
+
+              <!-- Champ référence virement — visible si virement -->
+              <div class="form-group hidden" id="w-virement-field">
+                <label>Référence du virement *</label>
+                <input type="text" id="w-virement-ref" placeholder="Référence de la transaction" />
+              </div>
+
+              <div class="wizard-actions">
+                <button class="btn-secondary" onclick="wizardBack(4)">Retour</button>
+                <button class="btn-primary" id="btn-confirmer-souscription" onclick="confirmerSouscriptionComplete()">
+                  Valider la souscription
+                </button>
+              </div>
+
+              <div id="w-souscription-result" class="hidden"></div>
+            </div>
+
           </div>
         </section>
 
@@ -588,6 +837,7 @@
       document.querySelector(`.bnav-item[data-tab="${tabId}"]`).classList.add('active');
       document.getElementById('page-title').textContent = TITLES[tabId] || tabId;
       if (tabId === 'accueil') loadStatsGlobales();
+      if (tabId === 'souscription') loadPlansConfig();
       if (tabId === 'orientation') loadPartenaires();
       if (tabId === 'rdv') { loadMedecinsReseau(); remplirMotifsRdv(); }
     }
@@ -937,6 +1187,370 @@
       document.getElementById('modal-action').classList.add('open');
     }
     function fermerActionModal() { document.getElementById('modal-action').classList.remove('open'); }
+
+    // ─── WIZARD SOUSCRIPTION ───
+    let wizardStep = 1;
+    let wizardData = {};
+    let plansConfig = [];
+
+    // Navigation wizard
+    function wizardNext(currentStep) {
+      if (!validateStep(currentStep)) return;
+      wizardStep = currentStep + 1;
+      updateWizardUI();
+    }
+
+    function wizardBack(currentStep) {
+      wizardStep = currentStep - 1;
+      updateWizardUI();
+    }
+
+    function updateWizardUI() {
+      // Masquer tous les panels
+      document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+      // Afficher le panel actuel
+      document.getElementById(`wizard-step-${wizardStep}`).classList.add('active');
+
+      // Mettre à jour les indicateurs de progression
+      document.querySelectorAll('.wizard-step-indicator').forEach(ind => {
+        const step = parseInt(ind.dataset.step);
+        ind.classList.remove('active', 'done');
+        if (step === wizardStep) ind.classList.add('active');
+        if (step < wizardStep) ind.classList.add('done');
+      });
+
+      // Mettre à jour les dividers
+      document.querySelectorAll('.wizard-step-divider').forEach((div, idx) => {
+        div.classList.remove('done');
+        if (idx < wizardStep - 1) div.classList.add('done');
+      });
+
+      // Si étape 3, charger les plans
+      if (wizardStep === 3) {
+        loadPlansConfig();
+      }
+
+      // Si étape 4, afficher le récap
+      if (wizardStep === 4) {
+        updateRecap();
+      }
+    }
+
+    function validateStep(step) {
+      if (step === 1) {
+        const phone = document.getElementById('w-phone').value.trim();
+        const nom = document.getElementById('w-nom').value.trim();
+        const prenom = document.getElementById('w-prenom').value.trim();
+        const dob = document.getElementById('w-dob').value;
+        const genre = document.getElementById('w-genre').value;
+        const ville = document.getElementById('w-ville').value;
+
+        if (!phone || !nom || !prenom || !dob || !genre || !ville) {
+          alert('Veuillez remplir tous les champs obligatoires (*).');
+          return false;
+        }
+
+        // Normaliser le numéro
+        let normalizedPhone = phone.replace(/\s+/g, '');
+        if (!normalizedPhone.startsWith('+242')) {
+          if (normalizedPhone.startsWith('0')) {
+            normalizedPhone = '+242' + normalizedPhone.substring(1);
+          } else {
+            normalizedPhone = '+242' + normalizedPhone;
+          }
+        }
+        document.getElementById('w-phone').value = normalizedPhone;
+
+        wizardData = { phone: normalizedPhone, nom, prenom, dob, genre, ville, adresse: document.getElementById('w-adresse').value.trim() };
+        return true;
+      }
+
+      if (step === 2) {
+        const docType = document.getElementById('w-doc-type').value;
+        const docNumero = document.getElementById('w-doc-numero').value.trim();
+
+        if (!docType || !docNumero) {
+          alert('Veuillez remplir le type et le numéro de document (*).');
+          return false;
+        }
+
+        wizardData = { ...wizardData, docType, docNumero, niu: document.getElementById('w-niu').value.trim(), rib: document.getElementById('w-rib').value.trim(), email: document.getElementById('w-email').value.trim() };
+        return true;
+      }
+
+      if (step === 3) {
+        const plan = document.getElementById('w-plan-selected').value;
+        const cguAccept = document.getElementById('w-cgu-accept').checked;
+
+        if (!plan) {
+          alert('Veuillez sélectionner une formule.');
+          return false;
+        }
+
+        if (!cguAccept) {
+          alert('Le client doit accepter les CGU et l\'OVP pour continuer.');
+          return false;
+        }
+
+        wizardData = { ...wizardData, plan, cguAcceptedAt: new Date().toISOString() };
+        return true;
+      }
+
+      return true;
+    }
+
+    // Vérifier si le client existe déjà
+    async function verifierClientExistant() {
+      const phone = document.getElementById('w-phone').value.trim().replace(/\s+/g, '');
+      const resultDiv = document.getElementById('w-client-existing');
+
+      if (!phone || phone.length < 10) {
+        resultDiv.className = 'w-info-box error';
+        resultDiv.textContent = 'Numéro invalide';
+        return;
+      }
+
+      // Normaliser
+      let normalizedPhone = phone;
+      if (!normalizedPhone.startsWith('+242')) {
+        if (normalizedPhone.startsWith('0')) {
+          normalizedPhone = '+242' + normalizedPhone.substring(1);
+        } else {
+          normalizedPhone = '+242' + normalizedPhone;
+        }
+      }
+      document.getElementById('w-phone').value = normalizedPhone;
+
+      const token = getToken();
+      resultDiv.className = 'w-info-box';
+      resultDiv.textContent = 'Vérification...';
+
+      try {
+        const res = await fetch(`${API}/agence/client?phone=${encodeURIComponent(normalizedPhone)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+
+        if (data.success && data.client) {
+          resultDiv.className = 'w-info-box success';
+          resultDiv.textContent = `Client existant : ${data.client.full_name || normalizedPhone} — ${data.client.plan ? 'Plan ' + data.client.plan : 'Aucun abonnement actif'}`;
+          // Pré-remplir les champs si possible
+          if (data.client.full_name) {
+            const parts = data.client.full_name.split(' ');
+            if (parts.length >= 2) {
+              document.getElementById('w-nom').value = parts[parts.length - 1];
+              document.getElementById('w-prenom').value = parts.slice(0, -1).join(' ');
+            } else {
+              document.getElementById('w-nom').value = data.client.full_name;
+            }
+          }
+        } else {
+          resultDiv.className = 'w-info-box success';
+          resultDiv.textContent = 'Nouveau client — création de compte requise';
+        }
+      } catch(e) {
+        resultDiv.className = 'w-info-box error';
+        resultDiv.textContent = 'Erreur de vérification';
+        console.error('[VERIFIER CLIENT]', e);
+      }
+    }
+
+    // Charger la configuration des plans depuis l'API
+    async function loadPlansConfig() {
+      const token = getToken();
+      try {
+        const res = await fetch(`${API}/agence/plans-config`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+
+        if (data.success && data.plans) {
+          plansConfig = data.plans;
+          renderPlanCards();
+        }
+      } catch(e) {
+        console.error('[LOAD PLANS]', e);
+        // Fallback : plans par défaut
+        plansConfig = [
+          { id: 'essentiel', name: 'MOTO', price: 15000, members: 1, description: 'Couverture de base pour une personne' },
+          { id: 'standard', name: 'NDEKO', price: 35000, members: 4, description: 'Pour la famille jusqu\'à 4 personnes' },
+          { id: 'premium', name: 'LIBOTA', price: 70000, members: 8, description: 'Famille élargie jusqu\'à 8 personnes' }
+        ];
+        renderPlanCards();
+      }
+    }
+
+    function renderPlanCards() {
+      const container = document.getElementById('w-plan-cards');
+      container.innerHTML = plansConfig.map(plan => `
+        <div class="plan-card" data-plan="${plan.id}" onclick="selectPlan(this)">
+          <div class="plan-nom">${plan.name}</div>
+          <div class="plan-prix">${plan.price.toLocaleString('fr-FR')} FCFA</div>
+          <div class="plan-membres">${plan.members} membre${plan.members > 1 ? 's' : ''}</div>
+          <div class="plan-desc">${plan.description}</div>
+        </div>
+      `).join('');
+    }
+
+    function selectPlan(card) {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      document.getElementById('w-plan-selected').value = card.dataset.plan;
+    }
+
+    // Sélectionner le mode de paiement
+    function selectPayment(card) {
+      document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const method = card.dataset.method;
+      document.getElementById('w-payment-selected').value = method;
+
+      // Afficher/masquer les champs conditionnels
+      const momoField = document.getElementById('w-momo-field');
+      const virementField = document.getElementById('w-virement-field');
+
+      momoField.classList.add('hidden');
+      virementField.classList.add('hidden');
+
+      if (method === 'mtn_momo' || method === 'airtel_money') {
+        momoField.classList.remove('hidden');
+      } else if (method === 'virement') {
+        virementField.classList.remove('hidden');
+      }
+    }
+
+    // Mettre à jour le récapitulatif
+    function updateRecap() {
+      const plan = plansConfig.find(p => p.id === wizardData.plan);
+      const paymentMethod = document.getElementById('w-payment-selected').value;
+      const methodLabels = { mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', especes: 'Espèces en agence', virement: 'Virement bancaire' };
+
+      const recap = document.getElementById('w-recap');
+      recap.innerHTML = `
+        <div class="recap-row"><span class="recap-label">Client</span><span class="recap-value">${wizardData.prenom} ${wizardData.nom}</span></div>
+        <div class="recap-row"><span class="recap-label">Téléphone</span><span class="recap-value">${wizardData.phone}</span></div>
+        <div class="recap-row"><span class="recap-label">Date de naissance</span><span class="recap-value">${new Date(wizardData.dob).toLocaleDateString('fr-FR')}</span></div>
+        <div class="recap-row"><span class="recap-label">Ville</span><span class="recap-value">${wizardData.ville}</span></div>
+        <div class="recap-row"><span class="recap-label">Formule</span><span class="recap-value">${plan ? plan.name : wizardData.plan}</span></div>
+        <div class="recap-total"><span>Total à payer</span><span>${plan ? plan.price.toLocaleString('fr-FR') : '—'} FCFA</span></div>
+        <div class="recap-row" style="margin-top:8px;"><span class="recap-label">Mode de paiement</span><span class="recap-value">${methodLabels[paymentMethod] || paymentMethod}</span></div>
+      `;
+    }
+
+    // Confirmer la souscription complète
+    async function confirmerSouscriptionComplete() {
+      const paymentMethod = document.getElementById('w-payment-selected').value;
+      if (!paymentMethod) {
+        alert('Veuillez sélectionner un mode de paiement.');
+        return;
+      }
+
+      let momoNumber = null;
+      let virementRef = null;
+
+      if (paymentMethod === 'mtn_momo' || paymentMethod === 'airtel_money') {
+        momoNumber = document.getElementById('w-momo-number').value.trim();
+        if (!momoNumber) {
+          alert('Veuillez entrer le numéro MoMo du client.');
+          return;
+        }
+      }
+
+      if (paymentMethod === 'virement') {
+        virementRef = document.getElementById('w-virement-ref').value.trim();
+        if (!virementRef) {
+          alert('Veuillez entrer la référence du virement.');
+          return;
+        }
+      }
+
+      const payload = {
+        ...wizardData,
+        payment_mode: paymentMethod,
+        momo_number: momoNumber,
+        virement_ref: virementRef,
+        created_by: localStorage.getItem('bolamu_agent_phone')
+      };
+
+      const token = getToken();
+      const btn = document.getElementById('btn-confirmer-souscription');
+      const resultDiv = document.getElementById('w-souscription-result');
+
+      btn.disabled = true;
+      btn.textContent = 'Traitement...';
+      resultDiv.className = 'hidden';
+
+      try {
+        const res = await fetch(`${API}/agence/souscrire-complet`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          resultDiv.className = 'result-msg ok';
+          resultDiv.innerHTML = `
+            <strong>✅ Souscription réussie !</strong><br>
+            Client : ${wizardData.prenom} ${wizardData.nom}<br>
+            Plan : ${data.plan || wizardData.plan}<br>
+            Code membre : ${data.member_code || '—'}<br>
+            Expiration : ${data.expires_at || '—'}
+          `;
+          resultDiv.classList.remove('hidden');
+
+          // Réinitialiser le wizard après 3 secondes
+          setTimeout(() => {
+            resetWizard();
+          }, 3000);
+        } else {
+          resultDiv.className = 'result-msg err';
+          resultDiv.textContent = data.message || 'Erreur lors de la souscription';
+          resultDiv.classList.remove('hidden');
+        }
+      } catch(e) {
+        resultDiv.className = 'result-msg err';
+        resultDiv.textContent = 'Erreur de connexion au serveur';
+        resultDiv.classList.remove('hidden');
+        console.error('[SOUSCRIPTION COMPLETE]', e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Valider la souscription';
+      }
+    }
+
+    function resetWizard() {
+      wizardStep = 1;
+      wizardData = {};
+      document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('wizard-step-1').classList.add('active');
+      document.querySelectorAll('.wizard-step-indicator').forEach(ind => ind.classList.remove('active', 'done'));
+      document.querySelector('.wizard-step-indicator[data-step="1"]').classList.add('active');
+      document.querySelectorAll('.wizard-step-divider').forEach(d => d.classList.remove('done'));
+
+      // Vider les champs
+      document.getElementById('w-phone').value = '';
+      document.getElementById('w-nom').value = '';
+      document.getElementById('w-prenom').value = '';
+      document.getElementById('w-dob').value = '';
+      document.getElementById('w-genre').value = '';
+      document.getElementById('w-ville').value = '';
+      document.getElementById('w-adresse').value = '';
+      document.getElementById('w-doc-type').value = '';
+      document.getElementById('w-doc-numero').value = '';
+      document.getElementById('w-niu').value = '';
+      document.getElementById('w-rib').value = '';
+      document.getElementById('w-email').value = '';
+      document.getElementById('w-plan-selected').value = '';
+      document.getElementById('w-cgu-accept').checked = false;
+      document.getElementById('w-payment-selected').value = '';
+      document.getElementById('w-momo-number').value = '';
+      document.getElementById('w-virement-ref').value = '';
+      document.getElementById('w-client-existing').classList.add('hidden');
+      document.getElementById('w-souscription-result').classList.add('hidden');
+
+      // Réinitialiser les sélections visuelles
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('w-momo-field').classList.add('hidden');
+      document.getElementById('w-virement-field').classList.add('hidden');
+    }
 
     // ─── Init ───
     document.addEventListener('DOMContentLoaded', () => {

@@ -215,6 +215,172 @@ router.post('/souscrire', requireAgent, async (req, res) => {
   }
 });
 
+// ─── GET /plans-config ───────────────────────────────────────────────────────
+// Retourne la configuration des plans (prix, membres, description)
+router.get('/plans-config', requireAgent, async (req, res) => {
+  try {
+    const plans = [];
+    const planKeys = ['essentiel', 'standard', 'premium'];
+    const planNames = { essentiel: 'MOTO', standard: 'NDEKO', premium: 'LIBOTA' };
+    const planMembers = { essentiel: 1, standard: 4, premium: 8 };
+    const planDescs = {
+      essentiel: 'Couverture de base pour une personne',
+      standard: 'Pour la famille jusqu\'à 4 personnes',
+      premium: 'Famille élargie jusqu\'à 8 personnes'
+    };
+
+    for (const key of planKeys) {
+      const cfg = await pool.query(
+        `SELECT config_value FROM platform_config WHERE config_key = $1`,
+        [`price_${key}`]
+      );
+      if (cfg.rows.length) {
+        plans.push({
+          id: key,
+          name: planNames[key],
+          price: parseInt(cfg.rows[0].config_value, 10),
+          members: planMembers[key],
+          description: planDescs[key]
+        });
+      }
+    }
+
+    res.json({ success: true, plans });
+  } catch (err) {
+    console.error('[AGENCE PLANS CONFIG]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ─── POST /souscrire-complet ───────────────────────────────────────────────────
+// Version complète du wizard : identité + documents + formule + paiement
+router.post('/souscrire-complet', requireAgent, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const {
+      phone, nom, prenom, dob, genre, ville, adresse,
+      docType, docNumero, niu, rib, email,
+      plan, cguAcceptedAt, payment_mode, momo_number, virement_ref, created_by
+    } = req.body;
+
+    if (!phone || !nom || !prenom || !dob || !genre || !ville || !plan) {
+      return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
+    }
+
+    const planEnum = PLAN_MAP[String(plan).toLowerCase()] || String(plan).toLowerCase();
+    if (!['essentiel', 'standard', 'premium'].includes(planEnum)) {
+      return res.status(400).json({ success: false, message: 'Plan invalide' });
+    }
+
+    // Prix depuis platform_config
+    const cfg = await client.query(
+      `SELECT config_value FROM platform_config WHERE config_key = $1`,
+      [`price_${planEnum}`]
+    );
+    if (!cfg.rows.length) {
+      return res.status(400).json({ success: false, message: 'Tarif introuvable dans platform_config' });
+    }
+    const amount = parseInt(cfg.rows[0].config_value, 10);
+
+    await client.query('BEGIN');
+
+    // Créer ou mettre à jour le patient
+    const existing = await client.query(
+      `SELECT phone, member_code FROM users WHERE phone = $1`,
+      [phone]
+    );
+
+    let memberCode;
+    if (!existing.rows.length) {
+      // Nouveau patient : générer member_code via MAX+1
+      const codeRes = await client.query(
+        `SELECT COALESCE(MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)), 0) + 1 AS next
+         FROM users WHERE member_code ~ '^BLM-[0-9]+$'`
+      );
+      memberCode = `BLM-${String(codeRes.rows[0].next).padStart(5, '0')}`;
+      const fullName = `${prenom} ${nom}`.trim();
+
+      await client.query(
+        `INSERT INTO users
+          (phone, full_name, first_name, last_name, date_of_birth, gender, city, address,
+           role, is_active, statut_abonnement, member_code,
+           doc_type, doc_numero, niu, rib, email, cgu_accepted_at, created_by, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'patient', true, 'en_attente', $9,
+          $10, $11, $12, $13, $14, $15, $16, NOW(), NOW())`,
+        [phone, fullName, prenom, nom, dob, genre, ville, adresse || null,
+         memberCode, docType || null, docNumero || null, niu || null, rib || null, email || null,
+         cguAcceptedAt || null, created_by || null]
+      );
+    } else {
+      // Patient existant : mettre à jour les informations
+      memberCode = existing.rows[0].member_code;
+      const fullName = `${prenom} ${nom}`.trim();
+
+      await client.query(
+        `UPDATE users SET
+          full_name = $1, first_name = $2, last_name = $3, date_of_birth = $4, gender = $5,
+          city = $6, address = $7, doc_type = $8, doc_numero = $9, niu = $10, rib = $11, email = $12,
+          updated_at = NOW()
+         WHERE phone = $13`,
+        [fullName, prenom, nom, dob, genre, ville, adresse || null,
+         docType || null, docNumero || null, niu || null, rib || null, email || null, phone]
+      );
+    }
+
+    // Créer l'abonnement
+    const expires = new Date();
+    expires.setMonth(expires.getMonth() + 1);
+
+    const paymentRef = `AGENT-${(payment_mode || 'especes').toUpperCase()}-${Date.now()}`;
+    if (momo_number) paymentRef += `-${momo_number}`;
+    if (virement_ref) paymentRef += `-${virement_ref}`;
+
+    const sub = await client.query(
+      `INSERT INTO subscriptions (patient_phone, plan, status, amount_fcfa, started_at, expires_at, payment_reference)
+       VALUES ($1, $2, 'active', $3, NOW(), $4, $5)
+       RETURNING id`,
+      [phone, planEnum, amount, expires, paymentRef]
+    );
+
+    // Mettre à jour le statut du patient
+    await client.query(
+      `UPDATE users SET statut_abonnement = 'actif' WHERE phone = $1`,
+      [phone]
+    );
+
+    // Audit log
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('agent.souscription_complete', $1, 'subscriptions', $2, $3::jsonb)`,
+      [req.user.phone, sub.rows[0].id, JSON.stringify({
+        patient_phone: phone,
+        plan: planEnum,
+        amount,
+        payment_mode,
+        momo_number,
+        virement_ref,
+        created_by
+      })]
+    );
+
+    await client.query('COMMIT');
+    res.json({
+      success: true,
+      subscription_id: sub.rows[0].id,
+      plan: planEnum,
+      amount_fcfa: amount,
+      expires_at: expires.toISOString().split('T')[0],
+      member_code: memberCode
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[AGENCE SOUSCRIRE COMPLET]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 // ─── GET /partenaires?ville=&type=&q= ────────────────────────────────────────
 // Réseau complet : cliniques + pharmacies + laboratoires (tables distinctes)
 router.get('/partenaires', requireAgent, async (req, res) => {
