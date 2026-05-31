@@ -872,20 +872,11 @@
     }
 
     async function loadAgenda() {
-      const date = document.getElementById('agenda-date').value || new Date().toISOString().split('T')[0];
-      const doctorSelect = document.getElementById('agenda-doctor');
-      let doctorId = doctorSelect.value;
+      const token = getToken();
+      const date = document.getElementById('agenda-date')?.value || new Date().toISOString().split('T')[0];
+      const doctorId = document.getElementById('agenda-doctor')?.value;
       
-      // Charger les médecins si la liste est vide
-      if (doctorSelect.options.length <= 1) {
-        await loadDoctorsSelect('agenda-doctor');
-      }
-      
-      // Sélectionner automatiquement le premier médecin si aucun n'est sélectionné
-      if (!doctorId && doctorSelect.options.length > 1) {
-        doctorId = doctorSelect.options[1].value;
-        doctorSelect.value = doctorId;
-      }
+      console.log('[AGENDA FRONTEND] date:', date, 'doctorId:', doctorId);
       
       if (!doctorId) {
         document.getElementById('agenda-table').innerHTML = '<tr><td colspan="5" class="empty-state">Sélectionnez un médecin pour voir son agenda</td></tr>';
@@ -893,33 +884,42 @@
       }
       
       try {
-        const result = await api(`/secretary/agenda/${doctorId}?date=${date}`);
-        if (result && result.success) {
-          const tbody = document.getElementById('agenda-table');
-          tbody.innerHTML = '';
-          (result.appointments || []).forEach(apt => {
-            const time = apt.appointment_time ? apt.appointment_time.slice(11, 16) : '—';
-            tbody.innerHTML += `
-              <tr>
-                <td>${time}</td>
-                <td>${apt.patient_phone || '—'}</td>
-                <td>${apt.reason || '—'}</td>
-                <td>
-                  <span class="status-badge status-${apt.status}">
-                    <span class="status-dot"></span>
-                    ${apt.status.replace('_', ' ')}
-                  </span>
-                </td>
-                <td>
-                  <div class="actions">
-                    <button class="btn-secondary" onclick="confirmAppointment(${apt.id})">Confirmer</button>
-                    <button class="btn-secondary" onclick="cancelAppointment(${apt.id})">Annuler</button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          });
+        const res = await fetch(`${API}/secretariat/agenda?doctor_id=${doctorId}&date=${date}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        console.log('[AGENDA FRONTEND] response:', data);
+        
+        const tbody = document.getElementById('agenda-table');
+        tbody.innerHTML = '';
+        
+        if (!data.appointments || !data.appointments.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun rendez-vous pour cette date.</td></tr>';
+          return;
         }
+        
+        data.appointments.forEach(apt => {
+          const time = apt.appointment_time ? apt.appointment_time.slice(11, 16) : '—';
+          tbody.innerHTML += `
+            <tr>
+              <td>${time}</td>
+              <td>${apt.patient_phone || '—'}</td>
+              <td>${apt.reason || '—'}</td>
+              <td>
+                <span class="status-badge status-${apt.status}">
+                  <span class="status-dot"></span>
+                  ${apt.status.replace('_', ' ')}
+                </span>
+              </td>
+              <td>
+                <div class="actions">
+                  <button class="btn-secondary" onclick="confirmAppointment(${apt.id})">Confirmer</button>
+                  <button class="btn-secondary" onclick="cancelAppointment(${apt.id})">Annuler</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
       } catch (e) {
         console.error('Erreur agenda:', e);
       }
@@ -956,16 +956,33 @@
 
     async function loadMedecins() {
       const clinicId = getClinicId();
+      const token = getToken();
+      
+      console.log('[MEDECINS FRONTEND] clinic_id:', clinicId);
       
       try {
-        const result = await api(`/secretariat/medecins?clinic_id=${clinicId}`);
-        if (result && result.success) {
-          const container = document.getElementById('medecins-list');
-          if (!result.medecins || !result.medecins.length) {
+        const res = await fetch(`${API}/secretariat/medecins?clinic_id=${clinicId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        console.log('[MEDECINS FRONTEND]', data);
+        
+        // Remplir le select dans l'onglet Agenda
+        const select = document.getElementById('agenda-doctor');
+        if (select && data.medecins && data.medecins.length) {
+          select.innerHTML = '<option value="">Sélectionner un médecin</option>' + data.medecins.map(m =>
+            `<option value="${m.id}">${m.full_name} — ${m.specialty || 'Généraliste'}</option>` 
+          ).join('');
+        }
+        
+        // Remplir la liste dans l'onglet Médecins
+        const container = document.getElementById('medecins-list');
+        if (container && data.medecins) {
+          if (!data.medecins.length) {
             container.innerHTML = '<div class="empty-state">Aucun médecin rattaché à cette clinique.</div>';
             return;
           }
-          container.innerHTML = result.medecins.map(m => `
+          container.innerHTML = data.medecins.map(m => `
             <div class="medecin-card">
               <div class="medecin-avatar">${m.full_name.charAt(0)}</div>
               <div class="medecin-info">
@@ -977,12 +994,8 @@
                 <span class="badge-status ${m.is_active ? 'badge-green' : 'badge-grey'}">
                   ${m.is_active ? 'Disponible' : 'Absent'}
                 </span>
-                <button class="btn-sm" onclick="voirEmploiDuTemps(${m.id}, '${m.full_name}')">
-                  Emploi du temps
-                </button>
-                <button class="btn-sm btn-outline" onclick="bloquerCreneau(${m.id})">
-                  Bloquer créneau
-                </button>
+                <button class="btn-sm" onclick="voirEmploiDuTemps(${m.id}, '${m.full_name}')">Emploi du temps</button>
+                <button class="btn-sm btn-outline" onclick="bloquerCreneau(${m.id})">Bloquer créneau</button>
               </div>
             </div>
           `).join('');
@@ -1091,7 +1104,7 @@
       loadDashboardStats();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const token = getToken();
       const phone = getPhone();
       const clinicId = getClinicId();
@@ -1102,9 +1115,23 @@
       }
       
       document.getElementById('user-name').textContent = phone;
-      loadClinicInfo();
       
-      document.getElementById('agenda-date').value = new Date().toISOString().split('T')[0];
+      // 1. Charger les médecins d'abord
+      await loadMedecins();
+      
+      // 2. Charger les stats accueil
+      loadDashboardStats();
+      
+      // 3. Charger l'agenda avec le premier médecin disponible
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('agenda-date').value = today;
+      loadAgenda();
+      
+      // 4. Charger la file d'attente
+      loadQueue();
+      
+      // 5. Info clinique
+      loadClinicInfo();
       
       document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => showTab(item.dataset.tab));
@@ -1113,8 +1140,6 @@
       document.getElementById('agenda-date').addEventListener('change', loadAgenda);
       document.getElementById('agenda-doctor').addEventListener('change', loadAgenda);
       document.getElementById('patient-search').addEventListener('input', loadPatients);
-      
-      loadDashboardStats();
       
       setInterval(() => {
         if (document.visibilityState === 'visible') {

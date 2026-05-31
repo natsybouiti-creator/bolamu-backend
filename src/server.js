@@ -376,51 +376,6 @@ const initializeApp = async () => {
     }
 };
 
-// DEBUG AUTO-TEST — à supprimer après debug
-setTimeout(async () => {
-  try {
-    const jwt = require('jsonwebtoken');
-    const token = jwt.sign(
-      { id: 43, phone: '+242077000001', role: 'secretaire', clinic_id: 1 },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-    
-    // Test médecins
-    const r1 = await pool.query(
-      `SELECT d.id, d.full_name, d.specialty, d.is_active,
-        COUNT(a.id) FILTER (WHERE a.appointment_date = CURRENT_DATE AND a.status NOT IN ('annule','refuse')) as rdv_today
-       FROM doctors d
-       LEFT JOIN appointments a ON a.doctor_id = d.id
-       WHERE d.clinic_id = 1
-       GROUP BY d.id ORDER BY d.full_name`
-    );
-    console.log('[DEBUG MEDECINS]', JSON.stringify(r1.rows));
-
-    // Test agenda
-    const r2 = await pool.query(
-      `SELECT a.id, a.patient_phone, a.appointment_time, a.status
-       FROM appointments a
-       JOIN doctors d ON d.id = a.doctor_id
-       WHERE d.clinic_id = 1 AND a.appointment_date >= CURRENT_DATE
-       ORDER BY a.appointment_time`
-    );
-    console.log('[DEBUG AGENDA]', JSON.stringify(r2.rows));
-
-    // Test stats
-    const r3 = await pool.query(
-      `SELECT COUNT(*) as total FROM appointments a
-       JOIN doctors d ON d.id = a.doctor_id
-       WHERE d.clinic_id = 1 AND a.appointment_date = CURRENT_DATE
-       AND a.status NOT IN ('annule','refuse')`
-    );
-    console.log('[DEBUG STATS]', JSON.stringify(r3.rows));
-
-  } catch(e) {
-    console.error('[DEBUG ERROR]', e.message);
-  }
-}, 5000);
-
 const server = app.listen(PORT, '0.0.0.0', async () => {
     console.log(`âœ… Bolamu server running on port ${PORT}`);
     await initializeApp();
