@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Bolamu — Agent</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
@@ -174,15 +174,99 @@
 
     @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .plan-cards { grid-template-columns: 1fr; } .action-cards { grid-template-columns: 1fr; } }
     @media (max-width: 768px) {
-      .app-layout { flex-direction: column; }
-      .sidebar { width: 100%; flex-direction: row; padding: 8px; position: fixed; bottom: 0; left: 0; top: auto; height: auto; z-index: 100; border-top: 1px solid var(--border); }
-      .sidebar-nav { flex-direction: row; gap: 0; flex: 1; justify-content: space-around; padding: 0; }
-      .nav-item span { display: none; }
-      .nav-item { flex-direction: column; padding: 8px; font-size: 10px; }
-      .sidebar-logo, .sidebar-footer { display: none; }
-      .main-content { margin-left: 0; padding-bottom: 70px; }
-      .topbar { padding: 12px 16px; }
-      .topbar-center { display: none; }
+      /* Sidebar devient bottom bar */
+      .sidebar {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        height: 60px !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-around !important;
+        border-top: 1px solid var(--border) !important;
+        border-right: none !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        z-index: 999 !important;
+      }
+
+      /* Masquer logo et footer sidebar */
+      .sidebar-logo,
+      .sidebar-header,
+      .sidebar-footer,
+      .sidebar-brand {
+        display: none !important;
+      }
+
+      /* Chaque item nav = colonne centrée */
+      .nav-item {
+        flex: 1 !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 6px 2px !important;
+        gap: 2px !important;
+        min-width: 0 !important;
+        height: 60px !important;
+        border-left: none !important;
+        border-bottom: none !important;
+        border-radius: 0 !important;
+      }
+
+      /* Icône SVG — taille fixe */
+      .nav-item svg,
+      .nav-icon svg,
+      .nav-icon {
+        width: 20px !important;
+        height: 20px !important;
+        flex-shrink: 0 !important;
+      }
+
+      /* Label sous l'icône */
+      .nav-item span {
+        font-size: 9px !important;
+        line-height: 1 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 56px !important;
+        display: block !important;
+      }
+
+      /* Contenu principal — dégager la bottom bar */
+      .main-content,
+      .content,
+      .dashboard-content {
+        margin-left: 0 !important;
+        padding-bottom: 72px !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+      }
+
+      /* Topbar compacte */
+      .topbar {
+        padding: 0 12px !important;
+        height: 52px !important;
+      }
+
+      .topbar-center {
+        display: none !important;
+      }
+
+      /* Éviter le scroll horizontal */
+      body {
+        overflow-x: hidden !important;
+      }
+
+      * {
+        box-sizing: border-box !important;
+      }
+
+      /* Stats grid */
       .stats-grid { grid-template-columns: 1fr 1fr; }
       
       /* Tableaux scroll horizontal */
