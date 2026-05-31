@@ -34,8 +34,12 @@ router.post('/login', async (req, res) => {
         const user = result.rows[0];
 
         // Vérifier le mot de passe
+        console.log('[SECRETARY LOGIN DEBUG] phone:', phone);
+        console.log('[SECRETARY LOGIN DEBUG] password reçu:', password ? 'OUI (longueur: ' + password.length + ')' : 'NON/VIDE');
+        console.log('[SECRETARY LOGIN DEBUG] hash en base:', user.password_hash ? user.password_hash.substring(0, 20) : 'NULL');
         const bcrypt = require('bcrypt');
         const valid = await bcrypt.compare(password, user.password_hash);
+        console.log('[SECRETARY LOGIN DEBUG] bcrypt.compare result:', valid);
         if (!valid) {
             return res.status(401).json({ success: false, message: 'Mot de passe incorrect' });
         }

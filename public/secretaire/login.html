@@ -116,6 +116,7 @@
   async function doLogin() {
     const phone = document.getElementById('phone').value.trim().replace(/\s+/g, '');
     const password = document.getElementById('password').value.trim();
+    console.log('[FRONTEND DEBUG] password envoyé:', password, 'longueur:', password.length);
     if (!phone || !password) { showMsg('Veuillez remplir tous les champs.', 'error'); return; }
     const btn = document.getElementById('btn-login');
     btn.disabled = true; btn.textContent = 'Vérification…';
