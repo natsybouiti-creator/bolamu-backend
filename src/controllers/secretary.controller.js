@@ -25,10 +25,10 @@ async function getAgenda(req, res) {
         let dateFilter;
         let queryParams;
         if (date) {
-            dateFilter = 'a.appointment_time::date = $2';
+            dateFilter = 'a.appointment_date = $2';
             queryParams = [doctor_id, date];
         } else {
-            dateFilter = 'a.appointment_time::date >= CURRENT_DATE';
+            dateFilter = 'a.appointment_date >= CURRENT_DATE';
             queryParams = [doctor_id];
         }
 
@@ -284,7 +284,7 @@ async function getStats(req, res) {
                     SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                     SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled
              FROM appointments 
-             WHERE doctor_id = $1 AND appointment_time::date = $2`,
+             WHERE doctor_id = $1 AND appointment_date = $2`,
             [doctor_id, queryDate]
         );
 
