@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolamu — Agent</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#7C3AED">
+  <link rel="manifest" href="/manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bleu: #0A2463;
+      --bleu-vif: #2E86FF;
+      --vert: #00C9A7;
+      --rouge: #ff4757;
+      --amber: #ffa502;
+      --accent: #7C3AED;
+      --accent-light: rgba(124, 58, 237, 0.1);
+      --texte: #0A2463;
+      --texte-doux: #5A6E8C;
+      --border: rgba(10,36,99,0.1);
+      --blanc: #ffffff;
+      --fond: #F4F7FF;
+      --card-shadow: 0 2px 12px rgba(10,36,99,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--fond); color: var(--texte); min-height: 100vh; }
+    .app-layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: 250px; background: var(--blanc); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+    .sidebar-logo { display:flex; align-items:center; gap:10px; padding:24px 20px 16px; border-bottom:1px solid var(--border); }
+    .logo-name { font-family:'Fraunces',serif; font-size:20px; font-weight:900; color:var(--texte); }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; border: none; background: none; color: var(--texte-doux); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; }
+    .nav-item:hover { background: var(--accent-light); color: var(--accent); }
+    .nav-item.active { background: var(--accent); color: white; }
+    .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .btn-logout { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: white; color: var(--rouge); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-logout:hover { background: #fee2e2; border-color: var(--rouge); }
+    .btn-logout svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* Main */
+    .main-content { margin-left: 250px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { height: 64px; background: var(--blanc); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 90; }
+    .topbar-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: var(--bleu); }
+    .topbar-center { font-size: 14px; font-weight: 600; color: var(--texte-doux); }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .badge-agence { padding: 6px 14px; background: var(--accent); border-radius: 20px; font-size: 12px; font-weight: 700; color: white; letter-spacing: 0.5px; }
+    .user-name { padding: 6px 14px; background: var(--bleu); border-radius: 20px; font-size: 13px; font-weight: 600; color: white; }
+    .content-area { padding: 32px; flex: 1; }
+    .tab { display: none; }
+    .tab.active { display: block; }
+
+    /* Cards */
+    .card { background: var(--blanc); border-radius: 12px; padding: 24px; box-shadow: var(--card-shadow); margin-bottom: 20px; }
+    .card-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--bleu); margin-bottom: 16px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 24px; }
+    .stat-card { background: var(--blanc); border-radius: 12px; padding: 24px; box-shadow: var(--card-shadow); }
+    .stat-value { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+    .stat-label { font-size: 13px; font-weight: 600; color: var(--texte-doux); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Buttons */
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--accent); color: white; border: none; border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-sm { padding:8px 16px; border-radius:8px; border:none; background:var(--accent); color:white; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-sm:hover { opacity: 0.9; }
+
+    /* Forms */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--texte); margin-bottom: 8px; }
+    input, select { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--texte); }
+    .input-std, .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--fond); outline: none; transition: border-color 0.2s; }
+    .input-std:focus, .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+    .form-row { display: flex; gap: 12px; align-items: stretch; }
+    .form-row input, .form-row select { flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--fond); outline: none; }
+    .form-row input:focus { border-color: var(--accent); }
+    .form-row button { padding: 12px 24px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .form-row button:hover { opacity: 0.9; }
+    .hidden { display: none; }
+    .empty-state { padding: 20px; text-align: center; color: var(--texte-doux); font-size: 14px; }
+
+    /* Vérification adhérent */
+    .verification-bloc { background: var(--blanc); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: var(--card-shadow); }
+    .verification-header h3 { font-family: 'Fraunces', serif; font-size: 18px; color: var(--texte); margin: 0 0 4px 0; }
+    .verification-header .subtitle { font-size: 13px; color: var(--texte-doux); margin: 0 0 16px 0; }
+    .verification-search { display: flex; gap: 12px; }
+    .verification-search input { flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--fond); color: var(--texte); font-size: 15px; outline: none; transition: border-color 0.2s; }
+    .verification-search input:focus { border-color: var(--accent); }
+    .btn-verify { padding: 12px 24px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
+    .btn-verify:hover { opacity: 0.85; }
+    .verify-result { margin-top: 16px; border-radius: 12px; overflow: hidden; }
+    .verify-result.hidden { display: none; }
+    .verify-card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 12px; border: 2px solid; }
+    .verify-card.actif { background: rgba(0,201,167,0.08); border-color: var(--vert); }
+    .verify-card.inactif { background: rgba(220,53,69,0.08); border-color: #dc3545; }
+    .verify-card.en-attente { background: rgba(255,193,7,0.08); border-color: #ffc107; }
+    .verify-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--bleu); color: var(--vert); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; flex-shrink: 0; }
+    .verify-info { flex: 1; }
+    .verify-name { font-size: 17px; font-weight: 700; color: var(--texte); margin-bottom: 4px; }
+    .verify-phone { font-size: 13px; color: var(--texte-doux); margin-bottom: 6px; }
+    .verify-plan { font-size: 13px; font-weight: 600; }
+    .verify-expiry { font-size: 12px; color: var(--texte-doux); margin-top: 4px; }
+    .verify-badge { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+    .verify-badge.actif { background: var(--vert); color: white; }
+    .verify-badge.inactif { background: #dc3545; color: white; }
+    .verify-badge.en-attente { background: #ffc107; color: #333; }
+    .verify-not-found { padding: 16px 20px; background: rgba(220,53,69,0.08); border: 2px solid #dc3545; border-radius: 12px; color: #dc3545; font-weight: 600; text-align: center; }
+
+    /* Motif */
+    .verify-motif-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .motif-label { font-size: 13px; font-weight: 600; color: var(--texte); display: block; margin-bottom: 8px; }
+    .verify-motif-section select { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; color: var(--texte); outline: none; cursor: pointer; background: white; }
+    .verify-motif-section select:focus { border-color: var(--accent); }
+    .motif-coverage-result { margin-top: 8px; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; }
+    .motif-coverage-result.couvert { display: block; background: rgba(0,201,167,0.08); color: #047857; border: 1px solid var(--vert); }
+    .motif-coverage-result.hors-catalogue { display: block; background: rgba(255,165,2,0.10); color: #b45309; border: 1px solid var(--amber); }
+
+    /* Souscription steps */
+    .step-bloc { background: var(--blanc); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: var(--card-shadow); }
+    .step-bloc h3 { font-family: 'Fraunces', serif; font-size: 17px; color: var(--bleu); margin-bottom: 16px; }
+    .step-bloc.hidden { display: none; }
+    .plan-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .plan-card { border: 2px solid var(--border); border-radius: 14px; padding: 20px; cursor: pointer; transition: all 0.2s; background: var(--fond); }
+    .plan-card:hover { border-color: var(--accent); }
+    .plan-card.selected { border-color: var(--accent); background: var(--accent-light); }
+    .plan-card .plan-nom { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--bleu); }
+    .plan-card .plan-prix { font-size: 22px; font-weight: 700; color: var(--accent); margin: 8px 0 4px; }
+    .plan-card .plan-membres { font-size: 12px; font-weight: 600; color: var(--texte-doux); text-transform: uppercase; letter-spacing: 0.4px; }
+    .plan-card .plan-desc { font-size: 13px; color: var(--texte-doux); margin-top: 8px; line-height: 1.4; }
+    .result-msg { margin-top: 12px; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+    .result-msg.ok { background: rgba(0,201,167,0.1); color: #047857; border: 1px solid var(--vert); }
+    .result-msg.warn { background: rgba(255,165,2,0.1); color: #b45309; border: 1px solid var(--amber); }
+    .result-msg.err { background: rgba(220,53,69,0.08); color: #dc3545; border: 1px solid #dc3545; }
+
+    /* Orientation */
+    .orientation-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .orientation-filters select, .orientation-filters input { padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--blanc); outline: none; }
+    .orientation-filters input { flex: 1; min-width: 200px; }
+    .partenaires-list { display: flex; flex-direction: column; gap: 12px; }
+    .partenaire-card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: var(--blanc); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--card-shadow); }
+    .partenaire-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; flex-shrink: 0; }
+    .partenaire-info { flex: 1; }
+    .partenaire-name { font-size: 16px; font-weight: 700; color: var(--texte); }
+    .partenaire-type { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+    .partenaire-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: var(--texte-doux); margin-top: 6px; }
+    .partenaire-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .badge-statut { padding: 4px 12px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .badge-statut.actif { background: #d1fae5; color: #065f46; }
+    .badge-statut.inactif { background: #fee2e2; color: #991b1b; }
+
+    /* Réclamations */
+    .action-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 8px; }
+    .action-card { border: 1px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; transition: all 0.2s; background: var(--fond); }
+    .action-card:hover { border-color: var(--accent); background: var(--accent-light); }
+    .action-card-title { font-weight: 700; color: var(--bleu); margin-bottom: 4px; }
+    .action-card-desc { font-size: 13px; color: var(--texte-doux); line-height: 1.4; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,36,99,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--blanc); border-radius: 16px; padding: 28px; width: 100%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--bleu); margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .modal-actions button { flex: 1; }
+    .btn-secondary { padding: 12px 24px; background: var(--fond); color: var(--bleu); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; cursor: pointer; }
+
+    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .plan-cards { grid-template-columns: 1fr; } .action-cards { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .app-layout { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; padding: 8px; position: fixed; bottom: 0; left: 0; top: auto; height: auto; z-index: 100; border-top: 1px solid var(--border); }
+      .sidebar-nav { flex-direction: row; gap: 0; flex: 1; justify-content: space-around; padding: 0; }
+      .nav-item span { display: none; }
+      .nav-item { flex-direction: column; padding: 8px; font-size: 10px; }
+      .sidebar-logo, .sidebar-footer { display: none; }
+      .main-content { margin-left: 0; padding-bottom: 70px; }
+      .topbar { padding: 12px 16px; }
+      .topbar-center { display: none; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <svg width="32" height="32" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="22" r="22" fill="#7C3AED"/>
+          <text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text>
+          <ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/>
+        </svg>
+        <span class="logo-name">Bola<span style="color:var(--vert)">mu</span></span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="accueil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Accueil</span>
+        </button>
+        <button class="nav-item" data-tab="souscription">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+          <span>Souscription</span>
+        </button>
+        <button class="nav-item" data-tab="orientation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"></circle><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"></path></svg>
+          <span>Orientation réseau</span>
+        </button>
+        <button class="nav-item" data-tab="rdv">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>Rendez-vous</span>
+        </button>
+        <button class="nav-item" data-tab="reclamations">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Réclamations</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <span>Déconnexion</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-title" id="page-title">Accueil</div>
+        <div class="topbar-center">Agent Bolamu — Réseau national</div>
+        <div class="topbar-right">
+          <span class="badge-agence">AGENCE</span>
+          <span class="user-name" id="agent-name">—</span>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- ACCUEIL -->
+        <section id="tab-accueil" class="tab active">
+          <div class="verification-bloc">
+            <div class="verification-header">
+              <h3>Vérifier un adhérent</h3>
+              <p class="subtitle">Recherche sur tout le réseau national — numéro ou nom</p>
+            </div>
+            <div class="verification-search">
+              <input type="text" id="verify-input" placeholder="Ex: +242065458932 ou RifRaf Jordan" autocomplete="off" />
+              <button class="btn-verify" onclick="verifierAdherent()">Vérifier</button>
+            </div>
+            <div id="verify-result" class="verify-result hidden"></div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="stat-total">—</div><div class="stat-label">Adhérents total</div></div>
+            <div class="stat-card"><div class="stat-value" id="stat-actifs">—</div><div class="stat-label">Abonnés actifs</div></div>
+            <div class="stat-card"><div class="stat-value" id="stat-partenaires">—</div><div class="stat-label">Partenaires actifs</div></div>
+            <div class="stat-card"><div class="stat-value" id="stat-rdv">—</div><div class="stat-label">RDV aujourd'hui</div></div>
+          </div>
+        </section>
+
+        <!-- SOUSCRIPTION -->
+        <section id="tab-souscription" class="tab">
+          <div class="step-bloc">
+            <h3>Étape 1 — Identifier le client</h3>
+            <div class="form-row">
+              <input type="text" id="sub-phone" placeholder="Numéro de téléphone (+242...)" />
+              <button onclick="rechercherClient()">Rechercher</button>
+            </div>
+            <div id="sub-client-result"></div>
+            <div id="sub-new-client" class="hidden" style="margin-top:16px;">
+              <div class="form-row" style="margin-bottom:12px;">
+                <input type="text" id="sub-nom" placeholder="Nom" />
+                <input type="text" id="sub-prenom" placeholder="Prénom" />
+              </div>
+            </div>
+          </div>
+
+          <div class="step-bloc hidden" id="step-plan">
+            <h3>Étape 2 — Choisir la formule</h3>
+            <div class="plan-cards" id="plan-cards"></div>
+            <div class="form-group" style="margin-top:16px;">
+              <label>Mode de paiement</label>
+              <select id="sub-payment-mode">
+                <option value="mtn_momo">MTN MoMo</option>
+                <option value="airtel_money">Airtel Money</option>
+                <option value="especes">Espèces en agence</option>
+                <option value="virement">Virement bancaire</option>
+              </select>
+            </div>
+            <button class="btn-primary" onclick="confirmerSouscription()">Confirmer la souscription</button>
+            <div id="sub-confirmation" class="hidden"></div>
+          </div>
+        </section>
+
+        <!-- ORIENTATION -->
+        <section id="tab-orientation" class="tab">
+          <div class="orientation-filters">
+            <select id="orient-ville" onchange="loadPartenaires()">
+              <option value="">Toutes les villes</option>
+              <option value="Brazzaville">Brazzaville</option>
+              <option value="Pointe-Noire">Pointe-Noire</option>
+            </select>
+            <select id="orient-type" onchange="loadPartenaires()">
+              <option value="">Tous les types</option>
+              <option value="clinique">Cliniques</option>
+              <option value="pharmacie">Pharmacies</option>
+              <option value="laboratoire">Laboratoires</option>
+            </select>
+            <input type="text" id="orient-search" placeholder="Rechercher un partenaire..." oninput="loadPartenaires()" />
+          </div>
+          <div id="partenaires-list" class="partenaires-list"></div>
+        </section>
+
+        <!-- RDV -->
+        <section id="tab-rdv" class="tab">
+          <div class="card">
+            <div class="card-title">Créer un rendez-vous réseau</div>
+            <div id="rdv-partner-note"></div>
+            <div class="form-group">
+              <label>Patient</label>
+              <div class="form-row">
+                <input type="text" id="rdv-patient-phone" placeholder="Numéro de téléphone du patient" />
+                <button onclick="verifierPatientRdv()">Vérifier</button>
+              </div>
+              <div id="rdv-patient-info"></div>
+            </div>
+            <div class="form-group">
+              <label>Partenaire</label>
+              <select id="rdv-ville-filter" onchange="loadMedecinsReseau()">
+                <option value="">Toutes les villes</option>
+                <option value="Brazzaville">Brazzaville</option>
+                <option value="Pointe-Noire">Pointe-Noire</option>
+              </select>
+              <select id="rdv-medecin-select" onchange="loadCreneauxReseau()" style="margin-top:12px;">
+                <option value="">Sélectionner un médecin</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date et créneau</label>
+              <input type="date" id="rdv-date-agent" onchange="loadCreneauxReseau()" />
+              <select id="rdv-creneau-select" style="margin-top:12px;">
+                <option value="">Sélectionner un créneau</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Motif</label>
+              <select id="rdv-motif-agent"><option value="">Sélectionner un motif</option></select>
+            </div>
+            <button class="btn-primary" onclick="confirmerRdvAgent()">Confirmer le rendez-vous</button>
+            <div id="rdv-agent-confirmation"></div>
+          </div>
+        </section>
+
+        <!-- RECLAMATIONS -->
+        <section id="tab-reclamations" class="tab">
+          <div class="step-bloc">
+            <h3>Rechercher un compte</h3>
+            <div class="form-row">
+              <input type="text" id="reclam-phone" placeholder="Numéro de téléphone du client" />
+              <button onclick="rechercherCompteReclam()">Rechercher</button>
+            </div>
+            <div id="reclam-client-card"></div>
+          </div>
+
+          <div id="reclam-actions" class="step-bloc hidden">
+            <h3>Actions sur le compte</h3>
+            <div class="action-cards">
+              <div class="action-card" onclick="ouvrirActionModal('reactivation')">
+                <div class="action-card-title">Réactiver abonnement</div>
+                <div class="action-card-desc">Abonnement expiré ou suspendu — réactiver manuellement</div>
+              </div>
+              <div class="action-card" onclick="ouvrirActionModal('changement_plan')">
+                <div class="action-card-title">Changer de formule</div>
+                <div class="action-card-desc">Passer de MOTO à NDEKO ou LIBOTA</div>
+              </div>
+              <div class="action-card" onclick="ouvrirActionModal('correction_info')">
+                <div class="action-card-title">Corriger les informations</div>
+                <div class="action-card-desc">Nom, prénom, date de naissance</div>
+              </div>
+              <div class="action-card" onclick="ouvrirActionModal('signalement')">
+                <div class="action-card-title">Signaler un problème</div>
+                <div class="action-card-desc">Problème avec un partenaire, accès refusé, facturation incorrecte</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-bloc">
+            <h3>Réclamations récentes</h3>
+            <div id="reclamations-list"><div class="empty-state">Aucune réclamation en cours.</div></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal action réclamation -->
+  <div class="modal-overlay" id="modal-action">
+    <div class="modal">
+      <div class="modal-title" id="modal-action-title">Action</div>
+      <div id="modal-action-body"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="fermerActionModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api/v1';
+
+    function getToken() {
+      const token = localStorage.getItem('bolamu_agent_token');
+      if (!token) { window.location.href = '/agence/login.html'; return null; }
+      return token;
+    }
+    function logout() {
+      localStorage.removeItem('bolamu_agent_token');
+      localStorage.removeItem('bolamu_agent_phone');
+      localStorage.removeItem('bolamu_agent_name');
+      window.location.href = '/agence/login.html';
+    }
+
+    // ─── Catalogue SSP (identique au dashboard secrétaire) ───
+    const CATALOGUE_SSP = [
+      { nom: "Paludisme simple (diagnostic + TDR + traitement ACT)", cat: "medecine", couvert: true },
+      { nom: "Infections respiratoires (rhinopharyngite, angine, sinusite, otite, bronchite)", cat: "medecine", couvert: true },
+      { nom: "Maladies diarrhéiques (gastroentérite, diarrhée aiguë)", cat: "medecine", couvert: true },
+      { nom: "Infections urinaires basses (cystite, urétrite)", cat: "medecine", couvert: true },
+      { nom: "Infections cutanées (impétigo, furoncle, gale, teigne)", cat: "medecine", couvert: true },
+      { nom: "Grippe et syndromes grippaux", cat: "medecine", couvert: true },
+      { nom: "Conjonctivite infectieuse", cat: "medecine", couvert: true },
+      { nom: "HTA — contrôle tensionnel et suivi ambulatoire", cat: "medecine", couvert: true },
+      { nom: "Diabète type 2 stable — surveillance et éducation thérapeutique", cat: "medecine", couvert: true },
+      { nom: "Asthme stable — contrôle et renouvellement traitement", cat: "medecine", couvert: true },
+      { nom: "Drépanocytose en phase stable", cat: "medecine", couvert: true },
+      { nom: "Épilepsie stable sous traitement", cat: "medecine", couvert: true },
+      { nom: "Plaies simples, sutures, pansements", cat: "medecine", couvert: true },
+      { nom: "Entorses légères", cat: "medecine", couvert: true },
+      { nom: "Brûlures superficielles limitées (moins de 5% surface corporelle)", cat: "medecine", couvert: true },
+      { nom: "Céphalées et migraines", cat: "medecine", couvert: true },
+      { nom: "Fièvre isolée", cat: "medecine", couvert: true },
+      { nom: "Troubles anxieux et dépressifs légers à modérés", cat: "medecine", couvert: true },
+      { nom: "Kinésithérapie simple post-traumatique", cat: "medecine", couvert: true },
+      { nom: "Soins palliatifs de base — gestion douleur paliers 1 et 2", cat: "medecine", couvert: true },
+      { nom: "Consultations prénatales CPN 1 à 8 (protocole OMS)", cat: "maternite", couvert: true },
+      { nom: "Dépistage prénatal (anémie, paludisme gestationnel, syphilis, VIH)", cat: "maternite", couvert: true },
+      { nom: "Consultations post-natales jusqu'à 6 semaines", cat: "maternite", couvert: true },
+      { nom: "Suivi nourrisson 0 à 5 ans (croissance, nutrition, développement)", cat: "maternite", couvert: true },
+      { nom: "Planification familiale — conseil et prescription contraceptifs", cat: "maternite", couvert: true },
+      { nom: "Dépistage HTA, diabète, VIH, hépatites, tuberculose", cat: "prevention", couvert: true },
+      { nom: "Éducation à l'hygiène (eau, assainissement, lavage des mains)", cat: "prevention", couvert: true },
+      { nom: "Sensibilisation vaccinale et orientation PEV Congo", cat: "prevention", couvert: true },
+      { nom: "Prévention paludisme (moustiquaires, conseils)", cat: "prevention", couvert: true },
+      { nom: "Artéméther + Luméfantrine (ACT) — paludisme", cat: "medicaments", couvert: true },
+      { nom: "Amoxicilline — angines, infections respiratoires et urinaires", cat: "medicaments", couvert: true },
+      { nom: "Paracétamol — douleur et fièvre", cat: "medicaments", couvert: true },
+      { nom: "Metformine et Glibenclamide — diabète", cat: "medicaments", couvert: true },
+      { nom: "Amlodipine, Énalapril, Hydrochlorothiazide — HTA", cat: "medicaments", couvert: true },
+      { nom: "Salbutamol inhalateur — asthme", cat: "medicaments", couvert: true },
+      { nom: "Sulfate ferreux + Acide folique — grossesse et anémie", cat: "medicaments", couvert: true },
+      { nom: "Sels de Réhydratation Orale (SRO)", cat: "medicaments", couvert: true },
+      { nom: "Cotrimoxazole — urinaire, prévention VIH", cat: "medicaments", couvert: true },
+      { nom: "Médicaments hors liste OMS SSP — tarif préférentiel -10 à -15%", cat: "medicaments", couvert: false },
+      { nom: "TDR Paludisme", cat: "examens", couvert: true },
+      { nom: "Numération Formule Sanguine (NFS)", cat: "examens", couvert: true },
+      { nom: "Glycémie à jeun et HbA1c", cat: "examens", couvert: true },
+      { nom: "ECBU (infections urinaires)", cat: "examens", couvert: true },
+      { nom: "TDR VIH (1 et 2)", cat: "examens", couvert: true },
+      { nom: "Antigène HBs (hépatite B)", cat: "examens", couvert: true },
+      { nom: "TPHA / VDRL (syphilis)", cat: "examens", couvert: true },
+      { nom: "Groupe sanguin et Rhésus", cat: "examens", couvert: true },
+      { nom: "Bilan lipidique (cholestérol total, LDL, HDL, triglycérides)", cat: "examens", couvert: true },
+      { nom: "Bacilloscopie BK (tuberculose)", cat: "examens", couvert: true },
+      { nom: "Scanner, IRM, sérologies spécialisées — tarif préférentiel -10 à -15%", cat: "examens", couvert: false },
+      { nom: "Téléconsultation (toute pathologie couverte SSP)", cat: "telemedecine", couvert: true },
+      { nom: "Renouvellement d'ordonnances", cat: "telemedecine", couvert: true },
+      { nom: "Deuxième avis médical", cat: "telemedecine", couvert: true },
+      { nom: "Suivi post-hospitalisation", cat: "telemedecine", couvert: true },
+      { nom: "Chirurgie (sauf petits actes infirmiers)", cat: "hors", couvert: false },
+      { nom: "Hospitalisation longue durée (plus de 24h)", cat: "hors", couvert: false },
+      { nom: "Réanimation et soins intensifs — orienter SAMU 1515", cat: "hors", couvert: false },
+      { nom: "Accouchement — orienter maternité partenaire", cat: "hors", couvert: false },
+      { nom: "Imagerie lourde (scanner, IRM)", cat: "hors", couvert: false },
+      { nom: "Soins dentaires lourds", cat: "hors", couvert: false },
+      { nom: "Chimiothérapie et oncologie", cat: "hors", couvert: false },
+      { nom: "Psychiatrie lourde", cat: "hors", couvert: false },
+    ];
+    const CAT_LABELS = { medecine:'Médecine générale', maternite:'Maternité et Enfant', prevention:'Prévention', medicaments:'Médicaments', examens:'Examens biologiques', telemedecine:'Télémédecine', hors:'Hors catalogue' };
+
+    function checkMotifCoverage(value) {
+      const div = document.getElementById('motif-coverage-result');
+      if (!div) return;
+      if (!value) { div.className = 'motif-coverage-result'; div.textContent = ''; return; }
+      const couvert = value === 'true';
+      if (couvert) {
+        div.className = 'motif-coverage-result couvert';
+        div.textContent = "Couvert par l'abonnement Bolamu — accès libre sans avance de frais.";
+      } else {
+        div.className = 'motif-coverage-result hors-catalogue';
+        div.textContent = "Hors catalogue SSP — tarif préférentiel -10 à -15% applicable. Orienter vers le médecin pour devis.";
+      }
+    }
+
+    // ─── Navigation ───
+    let currentTab = 'accueil';
+    const TITLES = { accueil:'Accueil', souscription:'Souscription', orientation:'Orientation réseau', rdv:'Rendez-vous', reclamations:'Réclamations' };
+    function showTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+      document.getElementById('page-title').textContent = TITLES[tabId] || tabId;
+      if (tabId === 'accueil') loadStatsGlobales();
+      if (tabId === 'orientation') loadPartenaires();
+      if (tabId === 'rdv') { loadMedecinsReseau(); remplirMotifsRdv(); }
+    }
+
+    // ─── Vérification adhérent (réseau) ───
+    async function verifierAdherent() {
+      const input = document.getElementById('verify-input').value.trim();
+      const resultDiv = document.getElementById('verify-result');
+      if (!input || input.length < 3) {
+        resultDiv.className = 'verify-result';
+        resultDiv.innerHTML = '<div class="verify-not-found">Entrez au moins 3 caractères.</div>';
+        return;
+      }
+      const token = getToken();
+      resultDiv.className = 'verify-result';
+      resultDiv.innerHTML = '<div style="padding:12px;color:var(--texte-doux);text-align:center;">Recherche en cours...</div>';
+      try {
+        const res = await fetch(`${API}/agence/verifier-adherent?q=${encodeURIComponent(input)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (!data.success || !data.patient) {
+          resultDiv.innerHTML = `<div class="verify-not-found">Aucun adhérent trouvé pour "${input}"</div>`;
+          return;
+        }
+        const p = data.patient;
+        const statut = p.statut_abonnement === 'actif' ? 'actif' : p.statut_abonnement === 'en_attente' ? 'en-attente' : 'inactif';
+        const labelStatut = statut === 'actif' ? 'Actif' : statut === 'en-attente' ? 'En attente' : 'Non couvert';
+        const planLabel = p.plan_nom ? `Plan ${p.plan_nom}${p.plan_prix ? ' — ' + Number(p.plan_prix).toLocaleString('fr-FR') + ' FCFA/mois' : ''}` : 'Aucun plan actif';
+        const expiryText = p.date_fin ? `Valide jusqu'au ${new Date(p.date_fin).toLocaleDateString('fr-FR')}` : '';
+        const initial = (p.full_name || p.phone || '?').charAt(0).toUpperCase();
+        resultDiv.innerHTML = `
+          <div class="verify-card ${statut}">
+            <div class="verify-avatar">${initial}</div>
+            <div class="verify-info">
+              <div class="verify-name">${p.full_name || '—'}</div>
+              <div class="verify-phone">${p.phone}</div>
+              <div class="verify-plan">${planLabel}</div>
+              ${expiryText ? `<div class="verify-expiry">${expiryText}</div>` : ''}
+            </div>
+            <div class="verify-badge ${statut}">${labelStatut}</div>
+          </div>`;
+        resultDiv.innerHTML += `
+          <div class="verify-motif-section">
+            <label class="motif-label">Motif de consultation ou service demandé</label>
+            <select id="motif-select" onchange="checkMotifCoverage(this.value)">
+              <option value="">Sélectionner un motif</option>
+              ${CATALOGUE_SSP.map(item => `<option value="${item.couvert}">${item.nom}</option>`).join('')}
+            </select>
+            <div id="motif-coverage-result" class="motif-coverage-result"></div>
+          </div>`;
+      } catch(e) {
+        resultDiv.innerHTML = '<div class="verify-not-found">Erreur de connexion au serveur.</div>';
+        console.error('[VERIFY]', e);
+      }
+    }
+
+    // ─── Stats globales ───
+    async function loadStatsGlobales() {
+      const token = getToken();
+      try {
+        const res = await fetch(`${API}/agence/stats-globales`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success && data.stats) {
+          document.getElementById('stat-total').textContent = data.stats.total_abonnes ?? 0;
+          document.getElementById('stat-actifs').textContent = data.stats.abonnes_actifs ?? 0;
+          document.getElementById('stat-partenaires').textContent = data.stats.partenaires_actifs ?? 0;
+          document.getElementById('stat-rdv').textContent = data.stats.rdv_aujourd_hui ?? 0;
+        }
+      } catch(e) { console.error('[STATS]', e); }
+    }
+
+    // ─── Souscription ───
+    const PLANS_UI = [
+      { key: 'moto',   nom: 'MOTO',   prix: 2000,  membres: '1 personne',   desc: 'Couverture individuelle des soins de santé primaires.' },
+      { key: 'ndeko',  nom: 'NDEKO',  prix: 4000,  membres: '2 personnes',  desc: 'Couverture pour le foyer restreint.' },
+      { key: 'libota', nom: 'LIBOTA', prix: 10000, membres: '5 personnes',  desc: 'Couverture familiale étendue.' },
+    ];
+    let planSelectionne = null;
+    let clientSouscription = null;
+
+    function renderPlanCards() {
+      document.getElementById('plan-cards').innerHTML = PLANS_UI.map(p => `
+        <div class="plan-card" data-plan="${p.key}" onclick="selectPlan('${p.key}', this)">
+          <div class="plan-nom">${p.nom}</div>
+          <div class="plan-prix">${p.prix.toLocaleString('fr-FR')} FCFA</div>
+          <div class="plan-membres">${p.membres}</div>
+          <div class="plan-desc">${p.desc}</div>
+        </div>`).join('');
+    }
+    function selectPlan(key, el) {
+      planSelectionne = key;
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    async function rechercherClient() {
+      const phone = document.getElementById('sub-phone').value.trim().replace(/\s+/g, '');
+      const out = document.getElementById('sub-client-result');
+      const newClient = document.getElementById('sub-new-client');
+      if (!phone) { out.innerHTML = '<div class="result-msg err">Entrez un numéro.</div>'; return; }
+      const token = getToken();
+      out.innerHTML = '<div class="result-msg">Recherche...</div>';
+      try {
+        const res = await fetch(`${API}/agence/client?phone=${encodeURIComponent(phone)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success && data.client) {
+          clientSouscription = { phone, existant: true };
+          newClient.classList.add('hidden');
+          out.innerHTML = `<div class="result-msg ok">Client trouvé : <strong>${data.client.full_name || phone}</strong>${data.client.plan ? ' — abonnement actuel : ' + data.client.plan : ''}.</div>`;
+        } else {
+          clientSouscription = { phone, existant: false };
+          newClient.classList.remove('hidden');
+          out.innerHTML = '<div class="result-msg warn">Client non trouvé. Renseignez son nom et prénom pour créer le compte.</div>';
+        }
+        document.getElementById('step-plan').classList.remove('hidden');
+        renderPlanCards();
+      } catch(e) {
+        out.innerHTML = '<div class="result-msg err">Erreur de connexion au serveur.</div>';
+        console.error('[CLIENT]', e);
+      }
+    }
+
+    async function confirmerSouscription() {
+      const out = document.getElementById('sub-confirmation');
+      if (!clientSouscription) { return; }
+      if (!planSelectionne) { out.classList.remove('hidden'); out.className = 'result-msg err'; out.textContent = 'Sélectionnez une formule.'; return; }
+      const token = getToken();
+      const payload = {
+        patient_phone: clientSouscription.phone,
+        plan: planSelectionne,
+        payment_mode: document.getElementById('sub-payment-mode').value,
+      };
+      if (!clientSouscription.existant) {
+        payload.nom = document.getElementById('sub-nom').value.trim();
+        payload.prenom = document.getElementById('sub-prenom').value.trim();
+      }
+      out.classList.remove('hidden'); out.className = 'result-msg'; out.textContent = 'Enregistrement...';
+      try {
+        const res = await fetch(`${API}/agence/souscrire`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          out.className = 'result-msg ok';
+          out.textContent = `Souscription confirmée — plan ${data.plan} (${Number(data.amount_fcfa).toLocaleString('fr-FR')} FCFA), valide jusqu'au ${new Date(data.expires_at).toLocaleDateString('fr-FR')}.`;
+        } else {
+          out.className = 'result-msg err';
+          out.textContent = data.message || 'Échec de la souscription.';
+        }
+      } catch(e) {
+        out.className = 'result-msg err';
+        out.textContent = 'Erreur de connexion au serveur.';
+        console.error('[SOUSCRIRE]', e);
+      }
+    }
+
+    // ─── Orientation ───
+    async function loadPartenaires() {
+      const ville  = document.getElementById('orient-ville').value;
+      const type   = document.getElementById('orient-type').value;
+      const search = document.getElementById('orient-search').value;
+      const token  = getToken();
+      const params = new URLSearchParams();
+      if (ville)  params.append('ville', ville);
+      if (type)   params.append('type', type);
+      if (search) params.append('q', search);
+      const list = document.getElementById('partenaires-list');
+      try {
+        const res  = await fetch(`${API}/agence/partenaires?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (!data.partenaires || !data.partenaires.length) {
+          list.innerHTML = '<div class="empty-state">Aucun partenaire trouvé.</div>';
+          return;
+        }
+        list.innerHTML = data.partenaires.map(p => `
+          <div class="partenaire-card">
+            <div class="partenaire-avatar">${(p.name || 'P').charAt(0).toUpperCase()}</div>
+            <div class="partenaire-info">
+              <div class="partenaire-name">${p.name || '—'}</div>
+              <div class="partenaire-type">${p.type || '—'}</div>
+              <div class="partenaire-meta">
+                <span>${p.city || '—'}</span>
+                ${p.address ? `<span>${p.address}</span>` : ''}
+                ${p.phone ? `<span>${p.phone}</span>` : ''}
+              </div>
+            </div>
+            <div class="partenaire-actions">
+              <span class="badge-statut ${p.is_active ? 'actif' : 'inactif'}">${p.is_active ? 'Actif' : 'Inactif'}</span>
+              <button class="btn-sm" onclick="prendreRdvPartenaire(${p.id}, '${(p.name || '').replace(/'/g, "\\'")}', '${p.type}', '${p.city || ''}')">Prendre RDV</button>
+            </div>
+          </div>`).join('');
+      } catch(e) {
+        list.innerHTML = '<div class="empty-state">Erreur de connexion au serveur.</div>';
+        console.error('[PARTENAIRES]', e);
+      }
+    }
+
+    function prendreRdvPartenaire(id, name, type, city) {
+      showTab('rdv');
+      document.querySelector('.nav-item[data-tab="rdv"]').classList.add('active');
+      const note = document.getElementById('rdv-partner-note');
+      note.innerHTML = `<div class="result-msg ok">Partenaire sélectionné : <strong>${name}</strong> (${type}${city ? ', ' + city : ''}). Sélectionnez le médecin et le créneau.</div>`;
+      if (city) { document.getElementById('rdv-ville-filter').value = city; }
+      loadMedecinsReseau();
+    }
+
+    // ─── RDV ───
+    function remplirMotifsRdv() {
+      document.getElementById('rdv-motif-agent').innerHTML =
+        '<option value="">Sélectionner un motif</option>' +
+        CATALOGUE_SSP.filter(i => i.couvert).map(i => `<option value="${i.nom}">${i.nom}</option>`).join('');
+    }
+
+    async function verifierPatientRdv() {
+      const phone = document.getElementById('rdv-patient-phone').value.trim().replace(/\s+/g, '');
+      const out = document.getElementById('rdv-patient-info');
+      if (!phone) { out.innerHTML = '<div class="result-msg err">Entrez un numéro.</div>'; return; }
+      const token = getToken();
+      out.innerHTML = '<div class="result-msg">Vérification...</div>';
+      try {
+        const res = await fetch(`${API}/agence/client?phone=${encodeURIComponent(phone)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success && data.client) {
+          out.innerHTML = `<div class="result-msg ok">${data.client.full_name || phone}${data.client.plan ? ' — plan ' + data.client.plan : ' — aucun abonnement actif'}.</div>`;
+        } else {
+          out.innerHTML = '<div class="result-msg warn">Patient non trouvé dans le réseau.</div>';
+        }
+      } catch(e) {
+        out.innerHTML = '<div class="result-msg err">Erreur de connexion au serveur.</div>';
+        console.error('[RDV PATIENT]', e);
+      }
+    }
+
+    async function loadMedecinsReseau() {
+      const ville = document.getElementById('rdv-ville-filter').value;
+      const token = getToken();
+      const params = new URLSearchParams();
+      if (ville) params.append('ville', ville);
+      const sel = document.getElementById('rdv-medecin-select');
+      try {
+        const res = await fetch(`${API}/agence/medecins?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (!data.medecins || !data.medecins.length) {
+          sel.innerHTML = '<option value="">Aucun médecin disponible</option>';
+          return;
+        }
+        sel.innerHTML = '<option value="">Sélectionner un médecin</option>' +
+          data.medecins.map(m => `<option value="${m.id}">${m.full_name}${m.specialty ? ' — ' + m.specialty : ''}${m.clinic_name ? ' (' + m.clinic_name + ')' : ''}</option>`).join('');
+      } catch(e) {
+        sel.innerHTML = '<option value="">Erreur de chargement</option>';
+        console.error('[MEDECINS]', e);
+      }
+    }
+
+    async function loadCreneauxReseau() {
+      const doctorId = document.getElementById('rdv-medecin-select').value;
+      const date = document.getElementById('rdv-date-agent').value;
+      const sel = document.getElementById('rdv-creneau-select');
+      if (!doctorId || !date) { sel.innerHTML = '<option value="">Sélectionner un créneau</option>'; return; }
+      const token = getToken();
+      try {
+        const res = await fetch(`${API}/appointments/slots/${doctorId}?date=${date}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        const slots = data.slots || data.creneaux || data.available || [];
+        if (!slots.length) {
+          sel.innerHTML = '<option value="">Aucun créneau disponible</option>';
+          return;
+        }
+        sel.innerHTML = '<option value="">Sélectionner un créneau</option>' +
+          slots.map(s => { const t = typeof s === 'string' ? s : (s.time || s.heure || s.slot); return `<option value="${t}">${String(t).slice(0,5)}</option>`; }).join('');
+      } catch(e) {
+        sel.innerHTML = '<option value="">Erreur de chargement</option>';
+        console.error('[CRENEAUX]', e);
+      }
+    }
+
+    async function confirmerRdvAgent() {
+      const out = document.getElementById('rdv-agent-confirmation');
+      const patient_phone = document.getElementById('rdv-patient-phone').value.trim().replace(/\s+/g, '');
+      const doctor_id = document.getElementById('rdv-medecin-select').value;
+      const date = document.getElementById('rdv-date-agent').value;
+      const time = document.getElementById('rdv-creneau-select').value;
+      const motif = document.getElementById('rdv-motif-agent').value;
+      if (!patient_phone || !doctor_id || !date || !time) {
+        out.className = 'result-msg err'; out.textContent = 'Renseignez le patient, le médecin, la date et le créneau.'; return;
+      }
+      const token = getToken();
+      out.className = 'result-msg'; out.textContent = 'Création du rendez-vous...';
+      try {
+        const res = await fetch(`${API}/agence/rdv`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ patient_phone, doctor_id, date, time, motif })
+        });
+        const data = await res.json();
+        if (data.success) {
+          out.className = 'result-msg ok'; out.textContent = `Rendez-vous confirmé (réf. ${data.appointment_id}) le ${new Date(date).toLocaleDateString('fr-FR')} à ${String(time).slice(0,5)}.`;
+          loadCreneauxReseau();
+        } else {
+          out.className = 'result-msg err'; out.textContent = data.message || 'Échec de la création du rendez-vous.';
+        }
+      } catch(e) {
+        out.className = 'result-msg err'; out.textContent = 'Erreur de connexion au serveur.';
+        console.error('[RDV]', e);
+      }
+    }
+
+    // ─── Réclamations ───
+    let compteReclam = null;
+    async function rechercherCompteReclam() {
+      const phone = document.getElementById('reclam-phone').value.trim().replace(/\s+/g, '');
+      const out = document.getElementById('reclam-client-card');
+      const actions = document.getElementById('reclam-actions');
+      if (!phone) { out.innerHTML = '<div class="result-msg err">Entrez un numéro.</div>'; return; }
+      const token = getToken();
+      out.innerHTML = '<div class="result-msg">Recherche...</div>';
+      try {
+        const res = await fetch(`${API}/agence/client?phone=${encodeURIComponent(phone)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success && data.client) {
+          compteReclam = { phone, ...data.client };
+          out.innerHTML = `<div class="result-msg ok" style="margin-top:12px;">Compte : <strong>${data.client.full_name || phone}</strong>${data.client.plan ? ' — plan ' + data.client.plan : ' — aucun abonnement actif'}.</div>`;
+          actions.classList.remove('hidden');
+        } else {
+          compteReclam = null;
+          out.innerHTML = '<div class="result-msg warn" style="margin-top:12px;">Compte non trouvé dans le réseau.</div>';
+          actions.classList.add('hidden');
+        }
+      } catch(e) {
+        out.innerHTML = '<div class="result-msg err">Erreur de connexion au serveur.</div>';
+        console.error('[RECLAM]', e);
+      }
+    }
+
+    const ACTION_LABELS = {
+      reactivation: 'Réactiver abonnement',
+      changement_plan: 'Changer de formule',
+      correction_info: 'Corriger les informations',
+      signalement: 'Signaler un problème'
+    };
+    function ouvrirActionModal(type) {
+      if (!compteReclam) return;
+      document.getElementById('modal-action-title').textContent = ACTION_LABELS[type] || 'Action';
+      document.getElementById('modal-action-body').innerHTML =
+        `<div class="result-msg warn">Action sur le compte <strong>${compteReclam.full_name || compteReclam.phone}</strong>.<br>Cette fonctionnalité sera connectée au module de gestion des réclamations. Contactez l'administrateur pour traitement immédiat.</div>`;
+      document.getElementById('modal-action').classList.add('open');
+    }
+    function fermerActionModal() { document.getElementById('modal-action').classList.remove('open'); }
+
+    // ─── Init ───
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!getToken()) return;
+      document.getElementById('agent-name').textContent = localStorage.getItem('bolamu_agent_name') || localStorage.getItem('bolamu_agent_phone') || 'Agent';
+      document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', () => showTab(item.dataset.tab)));
+      document.getElementById('verify-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') verifierAdherent(); });
+      document.getElementById('rdv-date-agent').value = new Date().toISOString().split('T')[0];
+      loadStatsGlobales();
+    });
+  </script>
+</body>
+</html>

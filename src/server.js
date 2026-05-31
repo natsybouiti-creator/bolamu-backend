@@ -55,7 +55,7 @@ app.get('/', (req, res) => {
           if (document.querySelector('.bolamu-pro-links')) return clearInterval(interval);
           const links = document.createElement('span');
           links.className = 'bolamu-pro-links';
-          links.innerHTML = ' · <a href="/secretaire/login.html">Secrétariat</a> · <a href="/rh/login.html">Espace RH</a> · <a href="/admin/login.html">Admin</a>';
+          links.innerHTML = ' · <a href="/secretaire/login.html">Secrétariat</a> · <a href="/rh/login.html">Espace RH</a> · <a href="/agence/login.html">Espace Agent</a> · <a href="/admin/login.html">Admin</a>';
           el.parentNode.insertBefore(links, el.nextSibling);
           clearInterval(interval);
           break;
@@ -157,6 +157,7 @@ const symptomsRoutes      = require('./routes/symptoms.routes');
 const aiConsultRoutes     = require('./routes/ai-consult.routes');
 const uploadRoutes         = require('./routes/upload.routes');
 const adminDocsRoutes      = require('./routes/admin-docs.routes');
+const agenceRoutes         = require('./routes/agence.routes');
 
 // Routes BHP (Bolamu Health Data Protocol)
 try {
@@ -207,6 +208,7 @@ app.use('/api/v1',              couponRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/push',         pushRoutes);
 app.use('/api/v1/secretariat',  secretariatRoutes);
+app.use('/api/v1/agence',       agenceRoutes);
 app.use('/api/v1/pre-rdv',       preRdvRoutes);
 app.use('/api/v1',              smartflowRoutes);
 app.use('/api/v1',              symptomsRoutes);
