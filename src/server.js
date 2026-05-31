@@ -29,24 +29,37 @@ app.use(cookieParser());
 app.get('/', (req, res) => {
   let html = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
   const injection = `
-<div style="position:fixed;bottom:16px;left:0;width:100%;text-align:center;
-            z-index:9999;font-family:sans-serif;">
-  <a href="/secretaire/login.html"
-     style="color:rgba(255,255,255,0.2);text-decoration:none;
-            margin:0 12px;font-size:11px;">
-    Accès Secrétariat
-  </a>
-  <a href="/rh/login.html"
-     style="color:rgba(255,255,255,0.2);text-decoration:none;
-            margin:0 12px;font-size:11px;">
-    Espace RH
-  </a>
-  <a href="/admin/login.html"
-     style="color:rgba(255,255,255,0.12);text-decoration:none;
-            margin:0 12px;font-size:11px;">
-    Admin
-  </a>
-</div>
+<style>
+  .bolamu-pro-links {
+    display: inline-flex;
+    gap: 20px;
+    margin-left: 24px;
+  }
+  .bolamu-pro-links a {
+    color: rgba(255,255,255,0.28);
+    text-decoration: none;
+    font-size: 11px;
+    font-family: sans-serif;
+  }
+  .bolamu-pro-links a:hover {
+    color: rgba(255,255,255,0.5);
+  }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Trouve l'élément qui contient "2026 Bolamu"
+    const all = document.querySelectorAll('*');
+    for (const el of all) {
+      if (el.children.length === 0 && el.textContent.includes('2026 Bolamu')) {
+        const links = document.createElement('span');
+        links.className = 'bolamu-pro-links';
+        links.innerHTML = '<a href="/secretaire/login.html">Accès Secrétariat</a><a href="/rh/login.html">Espace RH</a><a href="/admin/login.html">Admin</a>';
+        el.parentNode.appendChild(links);
+        break;
+      }
+    }
+  });
+</script>
 </body>`;
   html = html.replace('</body>', injection);
   res.send(html);
