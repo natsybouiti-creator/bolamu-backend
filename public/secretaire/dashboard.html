@@ -892,39 +892,72 @@
       .queue-table-container,
       .patients-table-container,
       .table {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 10px !important;
+        overflow-x: visible !important;
       }
 
-      /* Table elle-même — ne jamais dépasser la largeur dispo */
-      table {
-        width: 100% !important;
-        min-width: unset !important;
-        font-size: 12px !important;
-        border-collapse: collapse !important;
-      }
-
-      th, td {
-        padding: 8px 10px !important;
-        white-space: nowrap !important;
-        font-size: 12px !important;
-      }
-
-      /* Colonnes secondaires masquées sur mobile */
-      .col-hide-mobile {
+      /* Masquer les headers de tableau sur mobile */
+      table thead {
         display: none !important;
       }
 
-      /* Texte long tronqué dans les cellules */
-      td .cell-truncate {
-        max-width: 120px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
+      /* Chaque ligne devient une card */
+      table tbody tr {
         display: block !important;
+        background: var(--blanc) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 10px !important;
+        margin-bottom: 10px !important;
+        padding: 12px 14px !important;
+        box-shadow: none !important;
+      }
+
+      /* Chaque cellule devient une ligne label : valeur */
+      table tbody td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        padding: 5px 0 !important;
+        border: none !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        gap: 8px !important;
+      }
+
+      /* Masquer les cellules vides ou non pertinentes */
+      table tbody td:empty {
+        display: none !important;
+      }
+
+      /* Label à gauche généré par data-label */
+      table tbody td::before {
+        content: attr(data-label) !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.4px !important;
+        color: var(--texte-doux) !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        min-width: 90px !important;
+      }
+
+      /* Valeur à droite */
+      table tbody td > * {
+        text-align: right !important;
+      }
+
+      /* Première cellule de chaque row = titre de la card, plus grande */
+      table tbody tr td:first-child {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: var(--texte) !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 4px !important;
+        border-bottom: 1px solid var(--border) !important;
+      }
+
+      table tbody tr td:first-child::before {
+        display: none !important;
       }
 
       /* Formulaires et inputs */
@@ -1637,16 +1670,16 @@
         }
         tbody.innerHTML = data.queue.map((item, i) => `
           <tr class="${i === 0 ? 'highlight' : ''}">
-            <td>${item.created_at ? new Date(item.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '—'}</td>
-            <td>${item.patient_name || item.patient_phone || '—'}</td>
-            <td>${item.doctor_name || '—'}</td>
-            <td>
+            <td data-label="Heure">${item.created_at ? new Date(item.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '—'}</td>
+            <td data-label="Patient">${item.patient_name || item.patient_phone || '—'}</td>
+            <td data-label="Médecin">${item.doctor_name || '—'}</td>
+            <td data-label="Statut">
               <span class="status-badge status-${item.status}">
                 <span class="status-dot"></span>
                 ${item.status === 'waiting' ? 'En attente' : item.status === 'in_consultation' ? 'En consultation' : item.status}
               </span>
             </td>
-            <td>
+            <td data-label="Actions">
               <div class="actions">
                 <button class="btn-secondary" onclick="updateQueueStatus(${item.id}, 'in_consultation')">Arrivé</button>
                 <button class="btn-secondary" onclick="updateQueueStatus(${item.id}, 'cancelled')">Annuler</button>
@@ -1698,19 +1731,19 @@
           const time = apt.appointment_time ? apt.appointment_time.slice(0, 5) : '—';
           tbody.innerHTML += `
             <tr>
-              <td>${time}</td>
-              <td>
+              <td data-label="Heure">${time}</td>
+              <td data-label="Patient">
                 <div>${apt.patient_name || apt.patient_phone}</div>
                 <div style="font-size:12px;color:var(--texte-doux);">${apt.patient_phone}</div>
               </td>
-              <td>${apt.motif || '—'}</td>
-              <td>
+              <td data-label="Motif">${apt.motif || '—'}</td>
+              <td data-label="Statut">
                 <span class="status-badge status-${apt.status}">
                   <span class="status-dot"></span>
                   ${apt.status.replace('_', ' ')}
                 </span>
               </td>
-              <td>
+              <td data-label="Actions">
                 <div class="actions">
                   <button class="btn-secondary" onclick="confirmAppointment(${apt.id})">Confirmer</button>
                   <button class="btn-secondary" onclick="cancelAppointment(${apt.id})">Annuler</button>
@@ -1738,10 +1771,10 @@
         }
         tbody.innerHTML = data.patients.map(p => `
           <tr>
-            <td>${p.full_name || '—'}</td>
-            <td>${p.phone || '—'}</td>
-            <td><span class="badge-${p.statut_abonnement === 'actif' ? 'green' : 'grey'}">${p.statut_abonnement || '—'}</span></td>
-            <td>
+            <td data-label="Nom">${p.full_name || '—'}</td>
+            <td data-label="Téléphone">${p.phone || '—'}</td>
+            <td data-label="Abonnement"><span class="badge-${p.statut_abonnement === 'actif' ? 'green' : 'grey'}">${p.statut_abonnement || '—'}</span></td>
+            <td data-label="Actions">
               <div class="actions">
                 <button class="btn-secondary" onclick="viewPatient(${p.id})">Voir fiche</button>
                 <button class="btn-secondary" onclick="openRdvForPatient('${p.phone}')">Prendre RDV</button>
