@@ -45,6 +45,15 @@
     .btn-logout:hover { background: #fee2e2; border-color: var(--rouge); }
     .btn-logout svg { width: 20px; height: 20px; flex-shrink: 0; }
 
+    /* ── BOTTOM NAV (mobile) ── */
+    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);height:64px;padding:0 4px;padding-bottom:env(safe-area-inset-bottom);}
+    .bottom-nav-inner{display:flex;height:100%;align-items:center;justify-content:space-around;}
+    .bnav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 6px;cursor:pointer;flex:1;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;border-radius:12px;min-height:52px;}
+    .bnav-item.active .bnav-icon{color:var(--accent);}
+    .bnav-item.active .bnav-label{color:var(--accent);font-weight:700;}
+    .bnav-icon{width:20px;height:20px;}
+    .bnav-label{font-size:10px;font-weight:500;color:var(--texte-doux);white-space:nowrap;}
+
     /* Main */
     .main-content { margin-left: 250px; flex: 1; display: flex; flex-direction: column; }
     .topbar { height: 64px; background: var(--blanc); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 90; }
@@ -174,73 +183,12 @@
 
     @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .plan-cards { grid-template-columns: 1fr; } .action-cards { grid-template-columns: 1fr; } }
     @media (max-width: 768px) {
-      /* Sidebar devient bottom bar */
-      .sidebar {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        top: auto !important;
-        width: 100% !important;
-        height: 60px !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: space-around !important;
-        border-top: 1px solid var(--border) !important;
-        border-right: none !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-        z-index: 999 !important;
-      }
-
-      /* Masquer logo et footer sidebar */
-      .sidebar-logo,
-      .sidebar-header,
-      .sidebar-footer,
-      .sidebar-brand {
-        display: none !important;
-      }
-
-      /* Chaque item nav = colonne centrée */
-      .nav-item {
-        flex: 1 !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 6px 2px !important;
-        gap: 2px !important;
-        min-width: 0 !important;
-        height: 60px !important;
-        border-left: none !important;
-        border-bottom: none !important;
-        border-radius: 0 !important;
-      }
-
-      /* Icône SVG — taille fixe */
-      .nav-item svg,
-      .nav-icon svg,
-      .nav-icon {
-        width: 20px !important;
-        height: 20px !important;
-        flex-shrink: 0 !important;
-      }
-
-      /* Label sous l'icône */
-      .nav-item span {
-        font-size: 9px !important;
-        line-height: 1 !important;
-        text-align: center !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        max-width: 56px !important;
-        display: block !important;
-      }
+      /* Desktop : masquer sidebar, afficher bottom nav */
+      .sidebar { display: none !important; }
+      .bottom-nav { display: flex; }
 
       /* Contenu principal — dégager la bottom bar */
-      .main-content,
-      .content,
-      .dashboard-content {
+      .main-content {
         margin-left: 0 !important;
         padding-bottom: 72px !important;
         padding-left: 12px !important;
@@ -249,22 +197,12 @@
 
       /* Topbar compacte */
       .topbar {
-        padding: 0 12px !important;
-        height: 52px !important;
+        padding: 0 16px !important;
+        height: 56px !important;
       }
-
-      .topbar-center {
-        display: none !important;
-      }
-
-      /* Éviter le scroll horizontal */
-      body {
-        overflow-x: hidden !important;
-      }
-
-      * {
-        box-sizing: border-box !important;
-      }
+      .topbar-center { display: none !important; }
+      .badge-agence { display: none !important; }
+      .user-name { display: none !important; }
 
       /* Stats grid */
       .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -335,6 +273,32 @@
         </button>
       </div>
     </aside>
+
+    <!-- BOTTOM NAV MOBILE — visible uniquement sur mobile -->
+    <nav class="bottom-nav" id="agence-bottom-nav">
+      <div class="bottom-nav-inner">
+        <button class="bnav-item active" data-tab="accueil">
+          <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span class="bnav-label">Accueil</span>
+        </button>
+        <button class="bnav-item" data-tab="souscription">
+          <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+          <span class="bnav-label">Souscription</span>
+        </button>
+        <button class="bnav-item" data-tab="orientation">
+          <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"></circle><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"></path></svg>
+          <span class="bnav-label">Orientation</span>
+        </button>
+        <button class="bnav-item" data-tab="rdv">
+          <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span class="bnav-label">RDV</span>
+        </button>
+        <button class="bnav-item" data-tab="reclamations">
+          <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span class="bnav-label">Réclamations</span>
+        </button>
+      </div>
+    </nav>
 
     <main class="main-content">
       <header class="topbar">
@@ -618,8 +582,10 @@
       currentTab = tabId;
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
       document.getElementById(`tab-${tabId}`).classList.add('active');
       document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+      document.querySelector(`.bnav-item[data-tab="${tabId}"]`).classList.add('active');
       document.getElementById('page-title').textContent = TITLES[tabId] || tabId;
       if (tabId === 'accueil') loadStatsGlobales();
       if (tabId === 'orientation') loadPartenaires();
@@ -977,6 +943,7 @@
       if (!getToken()) return;
       document.getElementById('agent-name').textContent = localStorage.getItem('bolamu_agent_name') || localStorage.getItem('bolamu_agent_phone') || 'Agent';
       document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', () => showTab(item.dataset.tab)));
+      document.querySelectorAll('.bnav-item').forEach(item => item.addEventListener('click', () => showTab(item.dataset.tab)));
       document.getElementById('verify-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') verifierAdherent(); });
       document.getElementById('rdv-date-agent').value = new Date().toISOString().split('T')[0];
       loadStatsGlobales();
