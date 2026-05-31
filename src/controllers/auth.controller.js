@@ -290,7 +290,8 @@ async function registerDoctor(req, res) {
         phone, full_name, first_name, last_name,
         specialty, registration_number, order_country,
         country_of_residence, consultation_languages,
-        is_international, city, document_file_id, documents_file_ids, trust_score, cgu_accepted
+        is_international, city, document_file_id, documents_file_ids, trust_score, cgu_accepted,
+        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville
     } = req.body;
 
     if (!phone || !full_name || !specialty || !registration_number) {
@@ -329,14 +330,16 @@ async function registerDoctor(req, res) {
                     country_of_residence, consultation_languages,
                     is_international, city,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, password_hash, documents_file_ids, created_at
+                    is_active, password_hash, documents_file_ids, created_at,
+                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville
                  ) VALUES (
                     $1, 'doctor', $2, $3, $4,
                     $5, $6, $7,
                     $8, $9,
                     $10, $11,
                     $12, $13, $14, NOW(),
-                    $15, $16, $17, NOW()
+                    $15, $16, $17, NOW(),
+                    $18, $19, $20, $21, $22
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [
                     normalizedPhone, full_name, first_name || null, last_name || null,
@@ -347,7 +350,8 @@ async function registerDoctor(req, res) {
                     JSON.stringify({
                         diploma: (documents_file_ids && documents_file_ids.diploma) || document_file_id || null,
                         ordre: (documents_file_ids && documents_file_ids.ordre) || null
-                    })
+                    }),
+                    etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null
                 ]
             );
 
@@ -400,7 +404,8 @@ async function registerDoctor(req, res) {
 // 6. REGISTER PHARMACIE
 // ============================================================
 async function registerPharmacie(req, res) {
-    const { phone, name, responsible_name, rccm_number, city, neighborhood, document_file_id, documents_file_ids, trust_score, cgu_accepted } = req.body;
+    const { phone, name, responsible_name, rccm_number, city, neighborhood, document_file_id, documents_file_ids, trust_score, cgu_accepted,
+        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville } = req.body;
 
     if (!phone || !name || !responsible_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom de la pharmacie et responsable sont obligatoires." });
@@ -436,17 +441,19 @@ async function registerPharmacie(req, res) {
                     phone, role, full_name, responsible_name, rccm_number,
                     city, neighborhood,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, password_hash, documents_file_ids, created_at
+                    is_active, password_hash, documents_file_ids, created_at,
+                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville
                  ) VALUES (
                     $1, 'pharmacie', $2, $3, $4,
                     $5, $6,
                     $7, $8, $9, NOW(),
-                    $10, $11, $12, NOW()
+                    $10, $11, $12, NOW(),
+                    $13, $14, $15, $16, $17
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, score, member_code, cgu_accepted || false, is_active, passwordHash, JSON.stringify({
                     rccm: (documents_file_ids && documents_file_ids.rccm) || document_file_id || null,
                     autorisation: (documents_file_ids && documents_file_ids.autorisation) || null
-                })]
+                }), etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null]
             );
 
             await client.query(
@@ -495,7 +502,8 @@ async function registerPharmacie(req, res) {
 // 7. REGISTER LABORATOIRE
 // ============================================================
 async function registerLaboratoire(req, res) {
-    const { phone, name, director_name, agrement_number, rccm_number, city, document_file_id, documents_file_ids, trust_score, cgu_accepted } = req.body;
+    const { phone, name, director_name, agrement_number, rccm_number, city, document_file_id, documents_file_ids, trust_score, cgu_accepted,
+        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville } = req.body;
 
     if (!phone || !name || !director_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom du laboratoire et directeur sont obligatoires." });
@@ -531,17 +539,19 @@ async function registerLaboratoire(req, res) {
                     phone, role, full_name, director_name, agrement_number, rccm_number,
                     city,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, password_hash, documents_file_ids, created_at
+                    is_active, password_hash, documents_file_ids, created_at,
+                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville
                  ) VALUES (
                     $1, 'laboratoire', $2, $3, $4, $5,
                     $6,
                     $7, $8, $9, NOW(),
-                    $10, $11, $12, NOW()
+                    $10, $11, $12, NOW(),
+                    $13, $14, $15, $16, $17
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, score, member_code, cgu_accepted || false, is_active, passwordHash, JSON.stringify({
                     agrement: (documents_file_ids && documents_file_ids.agrement) || document_file_id || null,
                     rccm: (documents_file_ids && documents_file_ids.rccm) || null
-                })]
+                }), etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null]
             );
 
             await client.query(

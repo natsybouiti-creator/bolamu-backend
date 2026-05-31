@@ -495,6 +495,34 @@ function renderStep3(){
 
   document.getElementById('step-content').innerHTML=`
     ${proFields}
+    <!-- Champs établissement — visibles uniquement pour partenaires professionnels -->
+    <div id="etab-fields" style="display:none;">
+      <div class="form-group">
+        <label for="reg-etab-nom">Nom de l'établissement *</label>
+        <input type="text" id="reg-etab-nom" name="etablissement_nom"
+               placeholder="Ex : Clinique Médicale Securex, Pharmacie de la Paix..."
+               class="form-control" />
+      </div>
+      <div class="form-group">
+        <label for="reg-etab-adresse">Adresse de l'établissement *</label>
+        <input type="text" id="reg-etab-adresse" name="etablissement_adresse"
+               placeholder="Ex : Avenue du Havre, Face Base Total, Pointe-Noire"
+               class="form-control"
+               oninput="debounceGeocodeRegister()" />
+        <div id="reg-geocode-result" style="font-size:11px;color:#636e72;margin-top:4px;"></div>
+      </div>
+      <div class="form-group">
+        <label for="reg-etab-ville">Ville *</label>
+        <select id="reg-etab-ville" name="etablissement_ville" class="form-control">
+          <option value="Brazzaville">Brazzaville</option>
+          <option value="Pointe-Noire">Pointe-Noire</option>
+          <option value="Dolisie">Dolisie</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+      <input type="hidden" id="reg-etab-lat" name="etablissement_lat" />
+      <input type="hidden" id="reg-etab-lng" name="etablissement_lng" />
+    </div>
     ${docZones}
     ${photoZone}
     ${isPro?`
@@ -821,6 +849,52 @@ function regSetPhotoPreview(dataUrl) {
   const preview = document.getElementById('reg-photo-preview');
   preview.innerHTML = `<img src="${dataUrl}" alt="Photo" />`;
   document.getElementById('reg-photo-hint').textContent = 'Photo capturée ✓';
+}
+
+// ─── TOGGLE CHAMPS ÉTABLISSEMENT ───
+function toggleEtabFields() {
+  const show = ['doctor', 'medecin', 'pharmacie', 'laboratoire'].includes(state.role);
+  const etabFields = document.getElementById('etab-fields');
+  if (etabFields) {
+    etabFields.style.display = show ? 'block' : 'none';
+  }
+}
+
+// Attacher l'event au chargement
+document.addEventListener('DOMContentLoaded', () => {
+  // Toggle champs établissement quand le rôle change
+  const roleCards = document.querySelectorAll('.role-card');
+  roleCards.forEach(card => {
+    card.addEventListener('click', () => {
+      setTimeout(toggleEtabFields, 100);
+    });
+  });
+});
+
+// ─── GÉOCODAGE NOMINATIM ───
+let geocodeRegisterTimeout = null;
+function debounceGeocodeRegister() {
+  clearTimeout(geocodeRegisterTimeout);
+  geocodeRegisterTimeout = setTimeout(geocodeRegisterAddress, 800);
+}
+
+async function geocodeRegisterAddress() {
+  const adresse = document.getElementById('reg-etab-adresse').value.trim();
+  const ville   = document.getElementById('reg-etab-ville').value;
+  if (adresse.length < 5) return;
+  const query = encodeURIComponent(`${adresse}, ${ville}, Republic of Congo`);
+  try {
+    const res  = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+      { headers: { 'Accept-Language': 'fr' } }
+    );
+    const data = await res.json();
+    if (data.length > 0) {
+      document.getElementById('reg-etab-lat').value = data[0].lat;
+      document.getElementById('reg-etab-lng').value = data[0].lon;
+      document.getElementById('reg-geocode-result').textContent = '📍 ' + data[0].display_name;
+    }
+  } catch(e) { console.error('Géocodage échoué:', e); }
 }
 </script>
 </body>
