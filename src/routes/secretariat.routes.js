@@ -438,6 +438,58 @@ router.get('/medecin/:id/disponibilites', authMiddleware, authMiddleware.require
   }
 });
 
+// GET /api/v1/secretariat/verifier-adherent?q=numero_ou_nom
+// Vérification adhérent à l'accueil — statut abonnement immédiat
+router.get('/verifier-adherent', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.length < 3) {
+      return res.status(400).json({ success: false, message: 'Requête trop courte' });
+    }
+
+    const result = await pool.query(
+      `SELECT
+         u.id, u.full_name, u.phone,
+         s.plan AS plan_nom,
+         s.amount_fcfa AS plan_prix,
+         s.expires_at AS date_fin,
+         CASE
+           WHEN s.id IS NOT NULL THEN 'actif'
+           WHEN pend.id IS NOT NULL THEN 'en_attente'
+           ELSE 'inactif'
+         END AS statut_abonnement
+       FROM users u
+       LEFT JOIN subscriptions s ON s.patient_phone = u.phone
+         AND s.status = 'active'
+         AND s.is_active = TRUE
+         AND s.expires_at >= NOW()
+       LEFT JOIN LATERAL (
+         SELECT p.id FROM payments p
+         WHERE p.patient_phone = u.phone
+           AND p.status = 'pending'
+           AND p.plan IS NOT NULL
+         ORDER BY p.id DESC
+         LIMIT 1
+       ) pend ON TRUE
+       WHERE u.role = 'patient'
+         AND u.is_active = true
+         AND (u.phone ILIKE $1 OR u.full_name ILIKE $1)
+       ORDER BY s.expires_at DESC NULLS LAST
+       LIMIT 1`,
+      [`%${q}%`]
+    );
+
+    if (!result.rows.length) {
+      return res.json({ success: true, patient: null });
+    }
+
+    res.json({ success: true, patient: result.rows[0] });
+  } catch(err) {
+    console.error('[VERIFIER ADHERENT]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ============================================================
 // ROUTES ADMIN
 // ============================================================
