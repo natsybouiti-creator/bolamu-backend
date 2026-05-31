@@ -36,6 +36,8 @@
     .field input{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:13px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
     .field input:focus{border-color:var(--amber);}
     .field input::placeholder{color:var(--texte-doux);}
+    .field .input-wrap{position:relative;}
+    .field .toggle-pw{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texte-doux);cursor:pointer;font-size:16px;padding:0;}
     .btn-primary{width:100%;padding:15px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:4px;}
     .btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
     .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
@@ -76,6 +78,13 @@
       <label>Numéro de téléphone</label>
       <input type="tel" id="phone" placeholder="+242 06 XXX XX XX" maxlength="15" autocomplete="off">
     </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <div class="input-wrap">
+        <input type="password" id="password" placeholder="••••••••••" autocomplete="off">
+        <button class="toggle-pw" id="toggle-btn" type="button">👁</button>
+      </div>
+    </div>
     <button class="btn-primary" id="btn-login">Accéder à l'espace RH →</button>
     <div class="security-note">
       <span class="icon">🔒</span>
@@ -97,16 +106,24 @@
     setTimeout(() => el.className = 'msg-box', 5000);
   }
 
+  function togglePw() {
+    const inp = document.getElementById('password');
+    const btn = document.getElementById('toggle-btn');
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+
   async function doLogin() {
     const phone = document.getElementById('phone').value.trim().replace(/\s+/g, '');
-    if (!phone) { showMsg('Veuillez entrer votre numéro.', 'error'); return; }
+    const password = document.getElementById('password').value.trim();
+    if (!phone || !password) { showMsg('Veuillez remplir tous les champs.', 'error'); return; }
     const btn = document.getElementById('btn-login');
     btn.disabled = true; btn.textContent = 'Vérification…';
     try {
-      const res = await fetch('/api/v1/rh/login', {
+      const res = await fetch('/api/v1/secretariat/rh/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
+        body: JSON.stringify({ phone, password })
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -130,7 +147,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-login').addEventListener('click', doLogin);
+  document.getElementById('toggle-btn').addEventListener('click', togglePw);
   document.getElementById('phone').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('password').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') doLogin();
   });
 });

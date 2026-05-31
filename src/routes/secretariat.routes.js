@@ -11,34 +11,44 @@ const pool = require('../config/db');
 // ROUTES SECRÉTAIRE
 // ============================================================
 
-// POST /api/v1/secretary/login
+// POST /api/v1/secretariat/login
 // Login secrétaire
-router.post('/secretary/login', async (req, res) => {
-    const { phone } = req.body;
-    if (!phone) return res.status(400).json({ success: false, message: 'Numéro requis' });
-    
+router.post('/login', async (req, res) => {
     try {
+        const { phone, password } = req.body;
+        if (!phone || !password) {
+            return res.status(400).json({ success: false, message: 'Numéro et mot de passe requis' });
+        }
+
         const result = await pool.query(
-            `SELECT id, phone, full_name, role, is_active, clinic_id 
-             FROM users 
+            `SELECT id, phone, full_name, role, is_active, clinic_id, password_hash
+             FROM users
              WHERE phone = $1 AND role = 'secretaire' AND is_active = true`,
             [phone]
         );
-        
+
         if (!result.rows.length) {
-            return res.status(401).json({ success: false, message: 'Numéro invalide ou compte inactif' });
+            return res.status(401).json({ success: false, message: 'Compte secrétaire introuvable' });
         }
-        
+
         const user = result.rows[0];
+
+        // Vérifier le mot de passe
+        const bcrypt = require('bcrypt');
+        const valid = await bcrypt.compare(password, user.password_hash);
+        if (!valid) {
+            return res.status(401).json({ success: false, message: 'Mot de passe incorrect' });
+        }
+
         const jwt = require('jsonwebtoken');
         const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
-        
+
         const token = jwt.sign(
             { id: user.id, phone: user.phone, role: 'secretaire', clinic_id: user.clinic_id },
             JWT_SECRET,
-            { expiresIn: '7d' }
+            { expiresIn: '8h' }
         );
-        
+
         res.json({
             success: true,
             token,
@@ -51,39 +61,49 @@ router.post('/secretary/login', async (req, res) => {
         });
     } catch (err) {
         console.error('[SECRETARY LOGIN]', err.message);
-        res.status(500).json({ success: false, message: 'Erreur serveur' });
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
-// POST /api/v1/rh/login
+// POST /api/v1/secretariat/rh/login
 // Login RH
 router.post('/rh/login', async (req, res) => {
-    const { phone } = req.body;
-    if (!phone) return res.status(400).json({ success: false, message: 'Numéro requis' });
-    
     try {
+        const { phone, password } = req.body;
+        if (!phone || !password) {
+            return res.status(400).json({ success: false, message: 'Numéro et mot de passe requis' });
+        }
+
         const result = await pool.query(
-            `SELECT u.id, u.full_name, u.phone, u.role, u.is_active, u.company_id, c.name as company_name
+            `SELECT u.id, u.full_name, u.phone, u.role, u.is_active, u.company_id, u.password_hash, c.name as company_name
              FROM users u
              LEFT JOIN companies c ON c.id = u.company_id
              WHERE u.phone = $1 AND u.role = 'rh' AND u.is_active = true`,
             [phone]
         );
-        
+
         if (!result.rows.length) {
-            return res.status(401).json({ success: false, message: 'Numéro invalide ou compte inactif' });
+            return res.status(401).json({ success: false, message: 'Compte RH introuvable' });
         }
-        
+
         const user = result.rows[0];
+
+        // Vérifier le mot de passe
+        const bcrypt = require('bcrypt');
+        const valid = await bcrypt.compare(password, user.password_hash);
+        if (!valid) {
+            return res.status(401).json({ success: false, message: 'Mot de passe incorrect' });
+        }
+
         const jwt = require('jsonwebtoken');
         const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
-        
+
         const token = jwt.sign(
             { id: user.id, phone: user.phone, role: 'rh', company_id: user.company_id },
             JWT_SECRET,
-            { expiresIn: '7d' }
+            { expiresIn: '8h' }
         );
-        
+
         res.json({
             success: true,
             token,
@@ -97,7 +117,7 @@ router.post('/rh/login', async (req, res) => {
         });
     } catch (err) {
         console.error('[RH LOGIN]', err.message);
-        res.status(500).json({ success: false, message: 'Erreur serveur' });
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 

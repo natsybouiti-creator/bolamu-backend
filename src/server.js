@@ -19,6 +19,10 @@ require('./config/secrets');
 const { configurePush } = require('./services/push.service');
 configurePush();
 
+// Générer hash bcrypt pour mot de passe test (temporaire)
+const bcrypt = require('bcrypt');
+bcrypt.hash('bolamu2026', 10).then(hash => console.log('[HASH BCRYPT bolamu2026]', hash)).catch(err => console.error('[HASH ERROR]', err));
+
 const app = express();
 app.set('trust proxy', 1);
 
