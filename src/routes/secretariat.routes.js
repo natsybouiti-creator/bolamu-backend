@@ -308,6 +308,46 @@ router.get('/queue', authMiddleware, authMiddleware.requireSecretary, async (req
   }
 });
 
+// GET /api/v1/secretariat/clinic-info
+// Info clinique du secrétaire
+router.get('/clinic-info', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, city, address, phone FROM clinics WHERE id = $1`,
+      [req.user.clinic_id]
+    );
+    if (!result.rows.length) return res.status(404).json({ success: false, message: 'Clinique introuvable' });
+    res.json({ success: true, clinic: result.rows[0] });
+  } catch (err) {
+    console.error('[CLINIC INFO]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/v1/secretariat/medecin/:id/disponibilites
+// Disponibilités d'un médecin
+router.get('/medecin/:id/disponibilites', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    // Vérifier que ce médecin appartient bien à la clinique du secrétaire
+    const doc = await pool.query(
+      `SELECT id FROM doctors WHERE id = $1 AND clinic_id = $2`,
+      [req.params.id, req.user.clinic_id]
+    );
+    if (!doc.rows.length) return res.status(403).json({ success: false, message: 'Accès non autorisé' });
+    
+    const result = await pool.query(
+      `SELECT day_of_week, start_time, end_time, slot_duration
+       FROM doctor_availabilities WHERE doctor_id = $1 AND is_active = true
+       ORDER BY day_of_week`,
+      [req.params.id]
+    );
+    res.json({ success: true, disponibilites: result.rows });
+  } catch (err) {
+    console.error('[MEDECIN DISPONIBILITES]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ============================================================
 // ROUTES ADMIN
 // ============================================================
