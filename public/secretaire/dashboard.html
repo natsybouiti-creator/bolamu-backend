@@ -831,12 +831,37 @@
       .topbar { padding: 12px 16px; }
       table { font-size: 12px; }
       table th, table td { padding: 8px 6px; }
+      
+      /* Tableaux scroll horizontal */
+      .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .table table { min-width: 600px; }
+      
+      /* Formulaires et inputs */
+      .form-row { flex-direction: column; gap: 8px; }
+      .form-row input, .form-row button { width: 100%; }
+      .form-group select, .form-group input { width: 100%; }
+      
+      /* Cards partenaires et médecins */
+      .medecin-card { flex-direction: column; align-items: flex-start; }
+      .medecin-actions { flex-direction: column; width: 100%; gap: 8px; }
+      
+      /* Modals plein écran */
+      .modal-overlay { padding: 16px; }
+      .modal { max-width: 100%; max-height: 100vh; overflow-y: auto; }
+      
+      /* Catalogue SSP */
+      .catalogue-filters { flex-wrap: wrap; gap: 8px; }
+      .filter-btn { font-size: 11px; padding: 6px 12px; }
     }
 
     @media (max-width: 480px) {
       .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
       .card { padding: 16px; }
       .btn-primary, .btn-danger { font-size: 13px; padding: 10px 14px; }
+      
+      /* Actions buttons stack */
+      .actions { flex-direction: column; gap: 8px; }
+      .actions button { width: 100%; }
     }
   </style>
 </head>
