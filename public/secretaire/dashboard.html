@@ -899,7 +899,7 @@
         }
         
         data.appointments.forEach(apt => {
-          const time = apt.appointment_time ? apt.appointment_time.slice(11, 16) : '—';
+          const time = apt.appointment_time ? apt.appointment_time.slice(0, 5) : '—';
           tbody.innerHTML += `
             <tr>
               <td>${time}</td>

@@ -125,6 +125,45 @@ router.post('/rh/login', async (req, res) => {
     }
 });
 
+// GET /api/v1/secretariat/agenda?doctor_id=X&date=YYYY-MM-DD
+router.get('/agenda', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const doctor_id = parseInt(req.query.doctor_id);
+    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const clinicId = req.user.clinic_id;
+
+    if (!doctor_id) {
+      return res.status(400).json({ success: false, message: 'doctor_id requis' });
+    }
+
+    const doctorCheck = await pool.query(
+      `SELECT id FROM doctors WHERE id = $1 AND clinic_id = $2`,
+      [doctor_id, clinicId]
+    );
+    if (!doctorCheck.rows.length) {
+      return res.status(403).json({ success: false, message: 'Accès non autorisé' });
+    }
+
+    const result = await pool.query(
+      `SELECT a.id, a.patient_phone, a.appointment_date,
+              a.appointment_time, a.status, a.reason,
+              u.full_name as patient_name,
+              s.motif as symptomes_motif
+       FROM appointments a
+       LEFT JOIN users u ON u.phone = a.patient_phone
+       LEFT JOIN appointment_symptoms s ON s.appointment_id = a.id
+       WHERE a.doctor_id = $1 AND a.appointment_date = $2
+       ORDER BY a.appointment_time`,
+      [doctor_id, date]
+    );
+
+    res.json({ success: true, appointments: result.rows });
+  } catch(err) {
+    console.error('[AGENDA]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // GET /api/v1/secretary/agenda/:doctor_id
 // Agenda d'un médecin pour une date
 router.get('/secretary/agenda/:doctor_id', authMiddleware, authMiddleware.requireSecretary, secretary.getAgenda);
