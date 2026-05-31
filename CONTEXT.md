@@ -776,3 +776,53 @@ Total rôles : 9 (patient, doctor, pharmacie, laboratoire, admin, content_admin,
 30. appointment_time est de type TIME (format 09:30:00) — slice(0,5) pour afficher, jamais slice(11,16)
 31. Routes secretariat montées sous /api/v1/secretariat — jamais de sous-préfixe /secretary/ dans les routes
 32. clinic_id et company_id toujours récupérés depuis le JWT (req.user) — jamais en query param côté sécurité
+
+## Session 31 mai 2026
+
+### Fichiers modifiés
+- public/cgu.html
+- public/secretaire/dashboard.html
+- public/register.html
+- public/agence/dashboard.html
+- public/patient/dashboard.html
+- public/rh/dashboard.html
+- src/controllers/auth.controller.js
+- src/routes/agence.routes.js
+- src/routes/auth.routes.js
+- migrations/add_wizard_columns.sql
+
+### CGU V8.2 (public/cgu.html)
+- Réécriture complète — remplacement de la V5.0 obsolète
+- OVP = Ordre de Virement Permanent (mandat prélèvement mensuel via RIB bancaire)
+- Article 8 : deux canaux de paiement — Mobile Money OU virement bancaire via RIB (OVP)
+- Article 2 : définition OVP ajoutée au glossaire
+- Article 15 : RIB bancaire ajouté aux données collectées
+- Bases légales : loi 29-2019, loi 5-2025, OHADA, BEAC, CAMU
+
+### Dashboard secrétariat (public/secretaire/dashboard.html)
+- Header mobile portrait : logo Bolamu à gauche, titre onglet actif à droite
+- showTab() mis à jour avec mapping titres français + initialisation "Accueil"
+- Fix agenda mobile : -webkit-appearance: none sur #agenda-date et #agenda-doctor
+- Les deux champs ont le même style visuel cohérent (fond, bordure, border-radius)
+
+### Register partenaires (public/register.html)
+- Bloc #etab-fields visible uniquement pour doctor / pharmacie / laboratoire
+- Champs : etablissement_nom, etablissement_adresse, etablissement_ville, lat, lng
+- Géocodage automatique Nominatim OSM à la saisie
+- Backend auth.controller.js : registerDoctor, registerPharmacie, registerLaboratoire
+  sauvegardent les colonnes etablissement_*
+
+### Migration SQL (migrations/add_wizard_columns.sql)
+- ALTER TABLE users : colonnes etablissement_nom, etablissement_adresse,
+  etablissement_lat, etablissement_lng, etablissement_ville
+- ⚠️ À VÉRIFIER : exécuter dans Neon :
+  SELECT column_name FROM information_schema.columns
+  WHERE table_name = 'users' AND column_name LIKE 'etablissement%';
+
+### Chantiers générés mais PAS encore déployés
+- Wizard inscription partenaires depuis dashboard agent
+  (médecins, pharmacies, labos) avec adresse géolocalisée OSM
+- Notifications WhatsApp RDV : liens wa.me patient + médecin
+  (date, heure, motif, adresse clinique, code session)
+- Affichage établissement partout où un médecin apparaît
+  (compte patient, confirmation RDV, historique)
