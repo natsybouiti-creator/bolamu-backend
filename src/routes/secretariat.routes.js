@@ -327,19 +327,22 @@ router.get('/dashboard-stats', authMiddleware, authMiddleware.requireSecretary, 
 router.get('/patients/search', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   try {
     const { q } = req.query;
-    if (!q || q.length < 2) return res.json({ success: true, patients: [] });
-    
-    const result = await pool.query(
-      `SELECT id, full_name, phone, statut_abonnement, created_at FROM users
-       WHERE role = 'patient' AND is_active = true
-       AND (full_name ILIKE $1 OR phone ILIKE $1)
-       ORDER BY full_name LIMIT 20`,
-      [`%${q}%`]
-    );
-    
+    let query, params;
+    if (!q || q.length < 2) {
+      query = `SELECT id, full_name, phone, statut_abonnement FROM users 
+               WHERE role = 'patient' AND is_active = true 
+               ORDER BY full_name LIMIT 50`;
+      params = [];
+    } else {
+      query = `SELECT id, full_name, phone, statut_abonnement FROM users 
+               WHERE role = 'patient' AND is_active = true
+               AND (full_name ILIKE $1 OR phone ILIKE $1)
+               ORDER BY full_name LIMIT 20`;
+      params = [`%${q}%`];
+    }
+    const result = await pool.query(query, params);
     res.json({ success: true, patients: result.rows });
-  } catch (err) {
-    console.error('[PATIENTS SEARCH]', err.message);
+  } catch(err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });

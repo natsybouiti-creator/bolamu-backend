@@ -827,39 +827,39 @@
     }
 
     async function loadQueue() {
-      const clinicId = getClinicId();
+      const token = getToken();
       const today = new Date().toISOString().split('T')[0];
-      
       try {
-        const result = await api(`/secretariat/queue?date=${today}`);
-        if (result && result.success) {
-          const tbody = document.getElementById('queue-table');
-          tbody.innerHTML = '';
-          (result.queue || []).forEach((item, index) => {
-            const isNext = index === 0;
-            tbody.innerHTML += `
-              <tr class="${isNext ? 'highlight' : ''}">
-                <td>${item.time || '—'}</td>
-                <td>${item.patient_name || item.patient_phone || '—'}</td>
-                <td>${item.doctor_name || '—'}</td>
-                <td>
-                  <span class="status-badge status-${item.status}">
-                    <span class="status-dot"></span>
-                    ${item.status.replace('_', ' ')}
-                  </span>
-                </td>
-                <td>
-                  <div class="actions">
-                    <button class="btn-secondary" onclick="updateQueueStatus(${item.id}, 'in_consultation')">Arrivé</button>
-                    <button class="btn-secondary" onclick="updateQueueStatus(${item.id}, 'cancelled')">Annuler</button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          });
+        const res = await fetch(`${API}/secretariat/queue?date=${today}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const tbody = document.getElementById('queue-table');
+        if (!data.queue || !data.queue.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun patient en attente.</td></tr>';
+          return;
         }
-      } catch (e) {
-        console.error('Erreur queue:', e);
+        tbody.innerHTML = data.queue.map((item, i) => `
+          <tr class="${i === 0 ? 'highlight' : ''}">
+            <td>${item.created_at ? new Date(item.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '—'}</td>
+            <td>${item.patient_name || item.patient_phone || '—'}</td>
+            <td>${item.doctor_name || '—'}</td>
+            <td>
+              <span class="status-badge status-${item.status}">
+                <span class="status-dot"></span>
+                ${item.status === 'waiting' ? 'En attente' : item.status === 'in_consultation' ? 'En consultation' : item.status}
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="btn-secondary" onclick="updateQueueStatus(${item.id}, 'in_consultation')">Arrivé</button>
+                <button class="btn-secondary" onclick="updateQueueStatus(${item.id}, 'cancelled')">Annuler</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch(e) {
+        console.error('[QUEUE]', e);
       }
     }
 
@@ -928,32 +928,33 @@
       }
     }
 
-    async function loadPatients() {
-      const search = document.getElementById('patient-search').value;
-      
+    async function loadPatients(search = '') {
+      const token = getToken();
       try {
-        const result = await api(`/secretariat/patients/search?q=${search}`);
-        if (result && result.success) {
-          const tbody = document.getElementById('patients-table');
-          tbody.innerHTML = '';
-          (result.patients || []).forEach(patient => {
-            tbody.innerHTML += `
-              <tr>
-                <td>${patient.full_name || '—'}</td>
-                <td>${patient.phone || '—'}</td>
-                <td>${patient.statut_abonnement || '—'}</td>
-                <td>
-                  <div class="actions">
-                    <button class="btn-secondary" onclick="viewPatient(${patient.id})">Voir fiche</button>
-                    <button class="btn-secondary" onclick="openRdvForPatient('${patient.phone}')">Prendre RDV</button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          });
+        const res = await fetch(`${API}/secretariat/patients/search?q=${encodeURIComponent(search)}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const tbody = document.getElementById('patients-table');
+        if (!data.patients || !data.patients.length) {
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aucun patient trouvé.</td></tr>';
+          return;
         }
-      } catch (e) {
-        console.error('Erreur patients:', e);
+        tbody.innerHTML = data.patients.map(p => `
+          <tr>
+            <td>${p.full_name || '—'}</td>
+            <td>${p.phone || '—'}</td>
+            <td><span class="badge-${p.statut_abonnement === 'actif' ? 'green' : 'grey'}">${p.statut_abonnement || '—'}</span></td>
+            <td>
+              <div class="actions">
+                <button class="btn-secondary" onclick="viewPatient(${p.id})">Voir fiche</button>
+                <button class="btn-secondary" onclick="openRdvForPatient('${p.phone}')">Prendre RDV</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch(e) {
+        console.error('[PATIENTS]', e);
       }
     }
 
@@ -1078,6 +1079,34 @@
       }
     }
 
+    async function loadCreneaux() {
+      const doctorId = document.getElementById('rdv-doctor').value;
+      const date = document.getElementById('rdv-date').value;
+      const select = document.getElementById('rdv-time');
+      
+      if (!doctorId || !date) {
+        select.innerHTML = '<option value="">Sélectionner d\'abord la date et le médecin</option>';
+        return;
+      }
+      
+      select.innerHTML = '<option value="">Chargement...</option>';
+      const token = getToken();
+      try {
+        const res = await fetch(`${API.replace('/secretariat','')}/appointments/slots/${doctorId}?date=${date}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!data.slots || !data.slots.length) {
+          select.innerHTML = '<option value="">Aucun créneau disponible</option>';
+          return;
+        }
+        select.innerHTML = '<option value="">Sélectionner un créneau</option>' +
+          data.slots.map(s => `<option value="${s}">${s}</option>`).join('');
+      } catch(e) {
+        select.innerHTML = '<option value="">Erreur chargement</option>';
+      }
+    }
+
     async function createRdv() {
       const phone = document.getElementById('rdv-phone').value.trim();
       const doctorId = document.getElementById('rdv-doctor').value;
@@ -1143,6 +1172,10 @@
       document.getElementById('agenda-date').addEventListener('change', loadAgenda);
       document.getElementById('agenda-doctor').addEventListener('change', loadAgenda);
       document.getElementById('patient-search').addEventListener('input', loadPatients);
+      
+      // Charger les créneaux quand date ou médecin change dans le modal
+      document.getElementById('rdv-date').addEventListener('change', loadCreneaux);
+      document.getElementById('rdv-doctor').addEventListener('change', loadCreneaux);
       
       setInterval(() => {
         if (document.visibilityState === 'visible') {
