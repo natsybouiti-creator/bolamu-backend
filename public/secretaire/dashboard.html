@@ -597,6 +597,198 @@
       font-weight: 600;
       text-align: center;
     }
+
+    /* Motif dans vérification adhérent */
+    .verify-motif-section {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .motif-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--texte);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .verify-motif-section select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      color: var(--texte);
+      outline: none;
+      cursor: pointer;
+      background: white;
+    }
+    .verify-motif-section select:focus { border-color: var(--bleu-vif); }
+    .motif-coverage-result {
+      margin-top: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+    .motif-coverage-result.couvert {
+      display: block;
+      background: rgba(0,201,167,0.08);
+      color: #047857;
+      border: 1px solid var(--vert);
+    }
+    .motif-coverage-result.hors-catalogue {
+      display: block;
+      background: rgba(255,165,2,0.10);
+      color: #b45309;
+      border: 1px solid var(--amber);
+    }
+
+    /* Profil clinique */
+    .clinic-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 24px;
+      align-items: flex-start;
+      background: var(--blanc);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
+    }
+    .clinic-card-loading { color: var(--texte-doux); font-size: 14px; grid-column: 1 / -1; }
+    .clinic-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--bleu);
+      color: var(--vert);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .clinic-details h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--bleu);
+      margin-bottom: 16px;
+    }
+    .clinic-meta { display: flex; flex-direction: column; gap: 10px; }
+    .clinic-meta-row {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--texte);
+    }
+    .meta-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--vert);
+      min-width: 80px;
+    }
+    .clinic-status-badge {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .clinic-status-badge.actif { background: var(--vert); color: white; }
+    .clinic-status-badge.inactif { background: var(--rouge); color: white; }
+
+    /* Catalogue SSP */
+    .catalogue-section {
+      background: var(--blanc);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--card-shadow);
+    }
+    .catalogue-header h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--bleu);
+      margin-bottom: 4px;
+    }
+    .catalogue-subtitle {
+      font-size: 13px;
+      color: var(--texte-doux);
+      margin-bottom: 16px;
+    }
+    .catalogue-search-bar input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--fond);
+      color: var(--texte);
+      font-size: 15px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+    .catalogue-search-bar input:focus { border-color: var(--vert); }
+    .catalogue-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .filter-btn {
+      padding: 8px 16px;
+      background: var(--fond);
+      color: var(--bleu);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { background: var(--bleu); color: white; border-color: var(--bleu); }
+    .filter-btn.active { background: var(--bleu); color: white; border-color: var(--bleu); }
+    .filter-btn-hors { color: var(--amber); border-color: var(--amber); }
+    .filter-btn-hors:hover, .filter-btn-hors.active { background: var(--amber); color: white; border-color: var(--amber); }
+    .catalogue-list { display: flex; flex-direction: column; gap: 6px; }
+    .catalogue-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+    }
+    .catalogue-item-name { font-size: 14px; font-weight: 500; color: var(--texte); }
+    .catalogue-item-cat { font-size: 11px; color: var(--texte-doux); margin-top: 2px; }
+    .badge-couvert {
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .badge-couvert.couvert-oui { background: #d1fae5; color: #065f46; }
+    .badge-couvert.couvert-non { background: rgba(255,165,2,0.15); color: #b45309; }
+    .catalogue-empty { padding: 20px; text-align: center; color: var(--texte-doux); }
+    @media (max-width: 768px) {
+      .clinic-card { grid-template-columns: 1fr; gap: 16px; }
+      .clinic-status-badge { justify-self: start; }
+    }
     
     /* Responsive */
     @media (max-width: 1024px) {
@@ -676,6 +868,10 @@
         <button class="nav-item" data-tab="medecins">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
           <span>Médecins</span>
+        </button>
+        <button class="nav-item" data-tab="clinique">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 9h.01"></path><path d="M9 13h.01"></path><path d="M9 17h.01"></path><path d="M15 9h.01"></path><path d="M15 13h.01"></path><path d="M15 17h.01"></path></svg>
+          <span>Ma Clinique</span>
         </button>
       </nav>
       <div class="sidebar-clinic-info" id="sidebar-clinic">
@@ -846,6 +1042,41 @@
             </div>
           </div>
         </section>
+
+        <!-- Onglet Ma Clinique -->
+        <section id="tab-clinique" class="tab">
+          <div id="clinic-profile-card" class="clinic-card">
+            <div class="clinic-card-loading">Chargement...</div>
+          </div>
+
+          <div class="catalogue-section">
+            <div class="catalogue-header">
+              <h3>Catalogue des soins SSP Bolamu</h3>
+              <p class="catalogue-subtitle">
+                Soins couverts pour tout abonné actif — vérifier la couverture avant orientation
+              </p>
+            </div>
+            <div class="catalogue-search-bar">
+              <input
+                type="text"
+                id="catalogue-search"
+                placeholder="Rechercher un soin, médicament ou examen..."
+                oninput="filterCatalogue(this.value)"
+              />
+            </div>
+            <div class="catalogue-filters" id="catalogue-filters">
+              <button class="filter-btn active" onclick="filterByCat('tous', this)">Tous</button>
+              <button class="filter-btn" onclick="filterByCat('medecine', this)">Médecine générale</button>
+              <button class="filter-btn" onclick="filterByCat('maternite', this)">Maternité et Enfant</button>
+              <button class="filter-btn" onclick="filterByCat('prevention', this)">Prévention</button>
+              <button class="filter-btn" onclick="filterByCat('medicaments', this)">Médicaments</button>
+              <button class="filter-btn" onclick="filterByCat('examens', this)">Examens biologiques</button>
+              <button class="filter-btn" onclick="filterByCat('telemedecine', this)">Télémédecine</button>
+              <button class="filter-btn filter-btn-hors" onclick="filterByCat('hors', this)">Hors catalogue</button>
+            </div>
+            <div id="catalogue-list" class="catalogue-list"></div>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -954,6 +1185,10 @@
       if (tabId === 'agenda') loadAgenda();
       if (tabId === 'patients') loadPatients();
       if (tabId === 'medecins') loadMedecins();
+      if (tabId === 'clinique') {
+        loadClinicProfile();
+        renderCatalogue();
+      }
     }
 
     async function loadDashboardStats() {
@@ -977,6 +1212,187 @@
       }
       
       loadQueue();
+    }
+
+    const CATALOGUE_SSP = [
+      // Médecine générale — couverts
+      { nom: "Paludisme simple (diagnostic + TDR + traitement ACT)", cat: "medecine", couvert: true },
+      { nom: "Infections respiratoires (rhinopharyngite, angine, sinusite, otite, bronchite)", cat: "medecine", couvert: true },
+      { nom: "Maladies diarrhéiques (gastroentérite, diarrhée aiguë)", cat: "medecine", couvert: true },
+      { nom: "Infections urinaires basses (cystite, urétrite)", cat: "medecine", couvert: true },
+      { nom: "Infections cutanées (impétigo, furoncle, gale, teigne)", cat: "medecine", couvert: true },
+      { nom: "Grippe et syndromes grippaux", cat: "medecine", couvert: true },
+      { nom: "Conjonctivite infectieuse", cat: "medecine", couvert: true },
+      { nom: "HTA — contrôle tensionnel et suivi ambulatoire", cat: "medecine", couvert: true },
+      { nom: "Diabète type 2 stable — surveillance et éducation thérapeutique", cat: "medecine", couvert: true },
+      { nom: "Asthme stable — contrôle et renouvellement traitement", cat: "medecine", couvert: true },
+      { nom: "Drépanocytose en phase stable", cat: "medecine", couvert: true },
+      { nom: "Épilepsie stable sous traitement", cat: "medecine", couvert: true },
+      { nom: "Plaies simples, sutures, pansements", cat: "medecine", couvert: true },
+      { nom: "Entorses légères", cat: "medecine", couvert: true },
+      { nom: "Brûlures superficielles limitées (moins de 5% surface corporelle)", cat: "medecine", couvert: true },
+      { nom: "Céphalées et migraines", cat: "medecine", couvert: true },
+      { nom: "Fièvre isolée", cat: "medecine", couvert: true },
+      { nom: "Troubles anxieux et dépressifs légers à modérés", cat: "medecine", couvert: true },
+      { nom: "Kinésithérapie simple post-traumatique", cat: "medecine", couvert: true },
+      { nom: "Soins palliatifs de base — gestion douleur paliers 1 et 2", cat: "medecine", couvert: true },
+      // Maternité et Enfant
+      { nom: "Consultations prénatales CPN 1 à 8 (protocole OMS)", cat: "maternite", couvert: true },
+      { nom: "Dépistage prénatal (anémie, paludisme gestationnel, syphilis, VIH)", cat: "maternite", couvert: true },
+      { nom: "Consultations post-natales jusqu'à 6 semaines", cat: "maternite", couvert: true },
+      { nom: "Suivi nourrisson 0 à 5 ans (croissance, nutrition, développement)", cat: "maternite", couvert: true },
+      { nom: "Planification familiale — conseil et prescription contraceptifs", cat: "maternite", couvert: true },
+      // Prévention
+      { nom: "Dépistage HTA, diabète, VIH, hépatites, tuberculose", cat: "prevention", couvert: true },
+      { nom: "Éducation à l'hygiène (eau, assainissement, lavage des mains)", cat: "prevention", couvert: true },
+      { nom: "Sensibilisation vaccinale et orientation PEV Congo", cat: "prevention", couvert: true },
+      { nom: "Prévention paludisme (moustiquaires, conseils)", cat: "prevention", couvert: true },
+      // Médicaments
+      { nom: "Artéméther + Luméfantrine (ACT) — paludisme", cat: "medicaments", couvert: true },
+      { nom: "Amoxicilline — angines, infections respiratoires et urinaires", cat: "medicaments", couvert: true },
+      { nom: "Paracétamol — douleur et fièvre", cat: "medicaments", couvert: true },
+      { nom: "Metformine et Glibenclamide — diabète", cat: "medicaments", couvert: true },
+      { nom: "Amlodipine, Énalapril, Hydrochlorothiazide — HTA", cat: "medicaments", couvert: true },
+      { nom: "Salbutamol inhalateur — asthme", cat: "medicaments", couvert: true },
+      { nom: "Sulfate ferreux + Acide folique — grossesse et anémie", cat: "medicaments", couvert: true },
+      { nom: "Sels de Réhydratation Orale (SRO)", cat: "medicaments", couvert: true },
+      { nom: "Cotrimoxazole — urinaire, prévention VIH", cat: "medicaments", couvert: true },
+      { nom: "Médicaments hors liste OMS SSP — tarif préférentiel -10 à -15%", cat: "medicaments", couvert: false },
+      // Examens biologiques
+      { nom: "TDR Paludisme", cat: "examens", couvert: true },
+      { nom: "Numération Formule Sanguine (NFS)", cat: "examens", couvert: true },
+      { nom: "Glycémie à jeun et HbA1c", cat: "examens", couvert: true },
+      { nom: "ECBU (infections urinaires)", cat: "examens", couvert: true },
+      { nom: "TDR VIH (1 et 2)", cat: "examens", couvert: true },
+      { nom: "Antigène HBs (hépatite B)", cat: "examens", couvert: true },
+      { nom: "TPHA / VDRL (syphilis)", cat: "examens", couvert: true },
+      { nom: "Groupe sanguin et Rhésus", cat: "examens", couvert: true },
+      { nom: "Bilan lipidique (cholestérol total, LDL, HDL, triglycérides)", cat: "examens", couvert: true },
+      { nom: "Bacilloscopie BK (tuberculose)", cat: "examens", couvert: true },
+      { nom: "Scanner, IRM, sérologies spécialisées — tarif préférentiel -10 à -15%", cat: "examens", couvert: false },
+      // Télémédecine
+      { nom: "Téléconsultation (toute pathologie couverte SSP)", cat: "telemedecine", couvert: true },
+      { nom: "Renouvellement d'ordonnances", cat: "telemedecine", couvert: true },
+      { nom: "Deuxième avis médical", cat: "telemedecine", couvert: true },
+      { nom: "Suivi post-hospitalisation", cat: "telemedecine", couvert: true },
+      // Hors catalogue
+      { nom: "Chirurgie (sauf petits actes infirmiers)", cat: "hors", couvert: false },
+      { nom: "Hospitalisation longue durée (plus de 24h)", cat: "hors", couvert: false },
+      { nom: "Réanimation et soins intensifs — orienter SAMU 1515", cat: "hors", couvert: false },
+      { nom: "Accouchement — orienter maternité partenaire", cat: "hors", couvert: false },
+      { nom: "Imagerie lourde (scanner, IRM)", cat: "hors", couvert: false },
+      { nom: "Soins dentaires lourds", cat: "hors", couvert: false },
+      { nom: "Chimiothérapie et oncologie", cat: "hors", couvert: false },
+      { nom: "Psychiatrie lourde", cat: "hors", couvert: false },
+    ];
+
+    const CAT_LABELS = {
+      medecine:     'Médecine générale',
+      maternite:    'Maternité et Enfant',
+      prevention:   'Prévention',
+      medicaments:  'Médicaments',
+      examens:      'Examens biologiques',
+      telemedecine: 'Télémédecine',
+      hors:         'Hors catalogue'
+    };
+
+    let catalogueFiltreActif = 'tous';
+    let catalogueSearchActif = '';
+
+    function renderCatalogue() {
+      const list = document.getElementById('catalogue-list');
+      if (!list) return;
+
+      const items = CATALOGUE_SSP.filter(item => {
+        const matchCat    = catalogueFiltreActif === 'tous' || item.cat === catalogueFiltreActif;
+        const matchSearch = !catalogueSearchActif ||
+          item.nom.toLowerCase().includes(catalogueSearchActif.toLowerCase());
+        return matchCat && matchSearch;
+      });
+
+      if (!items.length) {
+        list.innerHTML = '<div class="catalogue-empty">Aucun soin trouvé.</div>';
+        return;
+      }
+
+      list.innerHTML = items.map(item => `
+        <div class="catalogue-item">
+          <div class="catalogue-item-body">
+            <div class="catalogue-item-name">${item.nom}</div>
+            <div class="catalogue-item-cat">${CAT_LABELS[item.cat] || item.cat}</div>
+          </div>
+          <span class="badge-couvert ${item.couvert ? 'couvert-oui' : 'couvert-non'}">
+            ${item.couvert ? 'Couvert' : 'Hors catalogue'}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    function filterCatalogue(value) {
+      catalogueSearchActif = value;
+      renderCatalogue();
+    }
+
+    function filterByCat(cat, btn) {
+      catalogueFiltreActif = cat;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderCatalogue();
+    }
+
+    function checkMotifCoverage(value) {
+      const div = document.getElementById('motif-coverage-result');
+      if (!div) return;
+      if (!value) { div.className = 'motif-coverage-result'; div.textContent = ''; return; }
+      const couvert = value === 'true';
+      if (couvert) {
+        div.className = 'motif-coverage-result couvert';
+        div.textContent = 'Couvert par l\'abonnement Bolamu — accès libre sans avance de frais.';
+      } else {
+        div.className = 'motif-coverage-result hors-catalogue';
+        div.textContent = 'Hors catalogue SSP — tarif préférentiel -10 à -15% applicable. Orienter vers le médecin pour devis.';
+      }
+    }
+
+    async function loadClinicProfile() {
+      const token = getToken();
+      try {
+        const res = await fetch(`${API}/secretariat/clinic-info`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const card = document.getElementById('clinic-profile-card');
+        if (!card || !data.clinic) return;
+        const c = data.clinic;
+        const initial     = (c.name || 'C').charAt(0).toUpperCase();
+        const statutClass = c.is_active === false ? 'inactif' : 'actif';
+        const statutLabel = statutClass === 'actif' ? 'Conventionné Bolamu' : 'Convention inactive';
+        card.innerHTML = `
+          <div class="clinic-avatar">${initial}</div>
+          <div class="clinic-details">
+            <h2>${c.name || '—'}</h2>
+            <div class="clinic-meta">
+              <div class="clinic-meta-row">
+                <span class="meta-label">Adresse</span>
+                <span>${c.address || '—'}</span>
+              </div>
+              <div class="clinic-meta-row">
+                <span class="meta-label">Téléphone</span>
+                <span>${c.phone || '—'}</span>
+              </div>
+              <div class="clinic-meta-row">
+                <span class="meta-label">Ville</span>
+                <span>${c.city || '—'}</span>
+              </div>
+              ${c.email ? `<div class="clinic-meta-row"><span class="meta-label">Email</span><span>${c.email}</span></div>` : ''}
+              ${c.zone  ? `<div class="clinic-meta-row"><span class="meta-label">Zone</span><span>${c.zone}</span></div>`  : ''}
+            </div>
+          </div>
+          <span class="clinic-status-badge ${statutClass}">${statutLabel}</span>
+        `;
+      } catch(e) {
+        console.error('[CLINIC PROFILE]', e);
+      }
     }
 
     async function verifierAdherent() {
@@ -1033,6 +1449,19 @@
               ${expiryText ? `<div class="verify-expiry">${expiryText}</div>` : ''}
             </div>
             <div class="verify-badge ${statut}">${labelStatut}</div>
+          </div>
+        `;
+
+        resultDiv.innerHTML += `
+          <div class="verify-motif-section">
+            <label class="motif-label">Motif de consultation ou service demandé</label>
+            <select id="motif-select" onchange="checkMotifCoverage(this.value)">
+              <option value="">Sélectionner un motif</option>
+              ${CATALOGUE_SSP.map(item =>
+                `<option value="${item.couvert}">${item.nom}</option>`
+              ).join('')}
+            </select>
+            <div id="motif-coverage-result" class="motif-coverage-result"></div>
           </div>
         `;
       } catch(e) {
