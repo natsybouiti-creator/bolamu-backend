@@ -376,6 +376,17 @@ const initializeApp = async () => {
     }
 };
 
+// Route de test — à supprimer après debug
+app.get('/api/v1/debug/secretaire-token', async (req, res) => {
+  const jwt = require('jsonwebtoken');
+  const token = jwt.sign(
+    { id: 43, phone: '+242077000001', role: 'secretaire', clinic_id: 1 },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+  res.json({ token });
+});
+
 const server = app.listen(PORT, '0.0.0.0', async () => {
     console.log(`âœ… Bolamu server running on port ${PORT}`);
     await initializeApp();
