@@ -126,7 +126,7 @@ router.get('/search', authMiddleware, async (req, res) => {
       `SELECT u.phone, u.full_name, u.bolamu_id as account_number, 
               u.member_code, s.plan as plan_nom, s.status as subscription_status, u.is_active
        FROM users u
-       LEFT JOIN subscriptions s ON u.phone = s.phone AND s.status = 'active' AND s.expires_at > NOW()
+       LEFT JOIN subscriptions s ON u.phone = s.patient_phone AND s.status = 'active' AND s.expires_at > NOW()
        WHERE u.role = 'patient' 
          AND (REPLACE(u.phone, '+', '') ILIKE $1 
               OR u.full_name ILIKE $1 
