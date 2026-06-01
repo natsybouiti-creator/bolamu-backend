@@ -11,7 +11,11 @@
   <meta name="theme-color" content="#0A2463">
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module">
+import { BrowserQRCodeReader } from 'https://unpkg.com/@zxing/browser@0.1.4/esm/index.js';
+window.ZXingReader = new BrowserQRCodeReader();
+</script>
   <style>
     :root {
       --bleu: #0A2463;
@@ -2437,47 +2441,36 @@
       loadDashboardStats();
     }
 
-  var html5QrCodeSecTab = null;
   var scannerActifSecTab = false;
 
   function demarrerScannerSecTab() {
     if (scannerActifSecTab) return;
-    html5QrCodeSecTab = new Html5Qrcode('qr-reader-sec-tab');
     scannerActifSecTab = true;
     document.getElementById('btn-start-scanner-sec-tab').style.display = 'none';
     document.getElementById('btn-stop-scanner-sec-tab').style.display = 'block';
     document.getElementById('scanner-status-sec-tab').textContent = 
       'Scanner actif — pointez vers le QR code';
-    html5QrCodeSecTab.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      function(decodedText) {
-        arreterScannerSecTab().then(function() {
-          traiterPatientSecTab(decodedText, 'qr');
-        });
-      },
-      function() {}
-    ).catch(function() {
-      document.getElementById('scanner-status-sec-tab').textContent = 
-        'Erreur camera — verifiez les permissions';
-      scannerActifSecTab = false;
-      document.getElementById('btn-start-scanner-sec-tab').style.display = 'block';
-      document.getElementById('btn-stop-scanner-sec-tab').style.display = 'none';
-    });
+    
+    window.ZXingReader.decodeFromVideoDevice(
+      undefined,
+      'qr-reader-sec-tab',
+      function(result, error) {
+        if (result) {
+          arreterScannerSecTab();
+          traiterPatientSecTab(result.getText(), 'qr');
+        }
+      }
+    );
   }
 
   function arreterScannerSecTab() {
-    if (html5QrCodeSecTab && scannerActifSecTab) {
-      return html5QrCodeSecTab.stop().then(function() {
-        html5QrCodeSecTab.clear();
-        scannerActifSecTab = false;
-        document.getElementById('btn-start-scanner-sec-tab').style.display = 'block';
-        document.getElementById('btn-stop-scanner-sec-tab').style.display = 'none';
-        document.getElementById('scanner-status-sec-tab').textContent = 
-          'Scanner arrete';
-      });
+    scannerActifSecTab = false;
+    document.getElementById('btn-start-scanner-sec-tab').style.display = 'block';
+    document.getElementById('btn-stop-scanner-sec-tab').style.display = 'none';
+    document.getElementById('scanner-status-sec-tab').textContent = 'Scanner arrêté';
+    if (window.ZXingReader) {
+      window.ZXingReader.reset();
     }
-    return Promise.resolve();
   }
 
   function rechercherPatientSecTab() {

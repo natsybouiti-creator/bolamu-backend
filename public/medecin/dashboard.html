@@ -12,7 +12,10 @@
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+  <script type="module">
+import { BrowserQRCodeReader } from 'https://unpkg.com/@zxing/browser@0.1.4/esm/index.js';
+window.ZXingReader = new BrowserQRCodeReader();
+</script>
   <style>
     :root{
       --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
@@ -1693,47 +1696,36 @@ async function savePatientConstantes() {
   }
 }
 
-var html5QrCodeMedecin = null;
 var scannerActifMedecin = false;
 
 function demarrerScannerMedecin() {
   if (scannerActifMedecin) return;
-  html5QrCodeMedecin = new Html5Qrcode('qr-reader-medecin');
   scannerActifMedecin = true;
   document.getElementById('btn-start-scanner').style.display = 'none';
   document.getElementById('btn-stop-scanner').style.display = 'block';
   document.getElementById('scanner-status').textContent = 
     'Scanner actif — pointez vers le QR code';
-  html5QrCodeMedecin.start(
-    { facingMode: 'environment' },
-    { fps: 10, qrbox: { width: 250, height: 250 } },
-    function(decodedText) {
-      arreterScannerMedecin().then(function() {
-        traiterPatientMedecin(decodedText, 'qr');
-      });
-    },
-    function() {}
-  ).catch(function() {
-    document.getElementById('scanner-status').textContent = 
-      'Erreur camera — verifiez les permissions';
-    scannerActifMedecin = false;
-    document.getElementById('btn-start-scanner').style.display = 'block';
-    document.getElementById('btn-stop-scanner').style.display = 'none';
-  });
+  
+  window.ZXingReader.decodeFromVideoDevice(
+    undefined,
+    'qr-reader-medecin',
+    function(result, error) {
+      if (result) {
+        arreterScannerMedecin();
+        traiterPatientMedecin(result.getText(), 'qr');
+      }
+    }
+  );
 }
 
 function arreterScannerMedecin() {
-  if (html5QrCodeMedecin && scannerActifMedecin) {
-    return html5QrCodeMedecin.stop().then(function() {
-      html5QrCodeMedecin.clear();
-      scannerActifMedecin = false;
-      document.getElementById('btn-start-scanner').style.display = 'block';
-      document.getElementById('btn-stop-scanner').style.display = 'none';
-      document.getElementById('scanner-status').textContent = 
-        'Scanner arrete';
-    });
+  scannerActifMedecin = false;
+  document.getElementById('btn-start-scanner').style.display = 'block';
+  document.getElementById('btn-stop-scanner').style.display = 'none';
+  document.getElementById('scanner-status').textContent = 'Scanner arrêté';
+  if (window.ZXingReader) {
+    window.ZXingReader.reset();
   }
-  return Promise.resolve();
 }
 
 function rechercherPatientMedecin() {
