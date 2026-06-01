@@ -38,7 +38,7 @@ const generateQRToken = async (req, res) => {
 };
 
 const verifyQRToken = async (req, res) => {
-  const { token } = req.body;
+  const { token } = req.query || req.body;
   const partnerPhone = req.user.phone;
   if (!token) {
     return res.status(400).json({ success: false, message: 'Token manquant.' });
@@ -59,23 +59,14 @@ const verifyQRToken = async (req, res) => {
       `SELECT s.id, s.plan, s.expires_at, pc.config_value as monthly_cap FROM subscriptions s LEFT JOIN platform_config pc ON pc.config_key = 'tiers_payant_monthly_cap' WHERE s.patient_phone = $1 AND s.status = 'active' AND s.expires_at >= NOW() LIMIT 1`,
       [qrToken.user_phone]
     );
-    if (subCheck.rows.length === 0) {
-      return res.status(403).json({ success: false, message: 'Abonnement patient inactif ou expiré.' });
-    }
+    const hasActiveSub = subCheck.rows.length > 0;
+    const sub = subCheck.rows[0] || null;
     const convRes = await pool.query(
       `SELECT discount_rate, monthly_cap_fcfa, partner_name FROM partner_conventions WHERE partner_phone = $1 AND status_new = 'actif'`,
       [partnerPhone]
     );
-    if (convRes.rows.length === 0) {
-      return res.status(403).json({ success: false, message: 'Votre établissement n\'a pas de convention active avec Bolamu.' });
-    }
-    const convention = convRes.rows[0];
-    const consumptionRes = await pool.query(
-      `SELECT COALESCE(SUM(montant_remise), 0) as total_consumed FROM transactions_tiers_payant WHERE patient_phone = $1 AND status_new IN ('validated', 'paid') AND created_at >= date_trunc('month', NOW())`,
-      [qrToken.user_phone]
-    );
-    const totalConsumed = parseInt(consumptionRes.rows[0].total_consumed);
-    const sub = subCheck.rows[0];
+    const hasConvention = convRes.rows.length > 0;
+    const convention = convRes.rows[0] || null;
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2)`,
       [partnerPhone, JSON.stringify({ patient_phone: qrToken.user_phone, token })]
@@ -83,9 +74,12 @@ const verifyQRToken = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        patient: { phone: qrToken.user_phone, full_name: qrToken.full_name, plan: sub.plan, subscription_end: sub.expires_at },
-        convention: { discount_rate: parseFloat(convention.discount_rate), partner_name: convention.partner_name },
-        consumption: { this_month_fcfa: totalConsumed, monthly_cap_fcfa: convention.monthly_cap_fcfa },
+        phone: qrToken.user_phone,
+        full_name: qrToken.full_name,
+        is_active: hasActiveSub,
+        plan_nom: sub ? sub.plan : null,
+        subscription_end: sub ? sub.expires_at : null,
+        convention: convention,
         token_expires_at: qrToken.expires_at
       }
     });
