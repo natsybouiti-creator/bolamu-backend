@@ -18,6 +18,7 @@ if (typeof BarcodeDetector !== 'undefined') {
   try { QRDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
 }
 </script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <style>
     :root {
       --bleu: #0A2463;
@@ -1615,7 +1616,10 @@ if (typeof BarcodeDetector !== 'undefined') {
     <div class="modal">
       <div class="modal-title">Scanner QR Code Adhérent</div>
       <div class="modal-subtitle">Scannez le QR Code du patient pour vérifier sa couverture</div>
-      <div id="qr-reader-secretaire" style="width:100%;min-height:300px;background:#f8fafc;border-radius:12px;display:flex;align-items:center;justify-content:center;"></div>
+      <video id="qr-video-secretaire"
+             style="width:100%;border-radius:10px;display:block;"
+             playsinline autoplay muted></video>
+      <canvas id="qr-canvas-secretaire" style="display:none;"></canvas>
       <div id="scanner-sec-status" style="text-align:center;margin-top:16px;font-size:14px;color:var(--texte-doux);">Cliquez sur "Démarrer" pour commencer</div>
       <div id="scanner-sec-result" style="margin-top:20px;display:none;"></div>
       <div style="display:flex;gap:12px;margin-top:20px;">
@@ -2254,7 +2258,7 @@ if (typeof BarcodeDetector !== 'undefined') {
 
     function startScannerSec() {
       if (isScanningSec) return;
-      const video = document.getElementById('qr-reader-secretaire');
+      const video = document.getElementById('qr-video-secretaire');
       const canvas = document.getElementById('qr-canvas-secretaire');
       const statusDiv = document.getElementById('scanner-sec-status');
       const startBtn = document.getElementById('btn-start-scanner-sec');
@@ -2275,11 +2279,8 @@ if (typeof BarcodeDetector !== 'undefined') {
           isScanningSec = true;
           statusDiv.textContent = 'Scanner actif — positionnez le QR Code devant la caméra';
           statusDiv.style.color = '#00C9A7';
-          if (QRDetector) {
-            lancerDetectionNativeSec(video);
-          } else {
-            lancerDetectionCanvasSec(video, canvas);
-          }
+          // Toujours utiliser canvas+jsQR, ignorer BarcodeDetector
+          lancerDetectionCanvasSec(video, canvas);
         });
       }).catch(function(err) {
         statusDiv.textContent = 'Caméra refusée — autorisez dans les réglages du navigateur';
@@ -2305,14 +2306,32 @@ if (typeof BarcodeDetector !== 'undefined') {
     }
 
     function lancerDetectionCanvasSec(video, canvas) {
-      if (!isScanningSec || !canvas) return;
-      if (video.readyState >= 2) {
-        const ctx = canvas.getContext('2d');
+      if (!isScanningSec) return;
+      if (!canvas) {
+        canvas = document.getElementById('qr-canvas-secretaire');
+      }
+      if (video.readyState >= 2 && canvas) {
+        var ctx = canvas.getContext('2d');
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (typeof jsQR !== 'undefined') {
+          var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          var code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'dontInvert'
+          });
+          if (code && code.data && isScanningSec) {
+            console.log('[SCANNER SEC] QR détecté:', code.data);
+            stopScannerSec().then(function() {
+              traiterAdherentSecretaire(code.data, 'qr');
+            });
+            return;
+          }
+        }
       }
-      scanAnimFrameSec = setTimeout(function() { lancerDetectionCanvasSec(video, canvas); }, 400);
+      scanAnimFrameSec = setTimeout(function() {
+        lancerDetectionCanvasSec(video, canvas);
+      }, 200);
     }
 
     function stopScannerSec() {
@@ -2334,7 +2353,7 @@ if (typeof BarcodeDetector !== 'undefined') {
         scanStreamSec.getTracks().forEach(function(t) { t.stop(); });
         scanStreamSec = null;
       }
-      const video = document.getElementById('qr-reader-secretaire');
+      const video = document.getElementById('qr-video-secretaire');
       if (video) { video.srcObject = null; }
       
       return Promise.resolve();
