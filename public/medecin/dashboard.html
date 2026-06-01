@@ -628,10 +628,16 @@ const safeStorage = () => {
 };
 const storage = safeStorage();
 
+function getAuthToken() {
+  return storage.getItem('bolamu_token') 
+    || storage.getItem('bolamu_doctor_token')
+    || storage.getItem('token')
+    || null;
+}
+
 const API='https://bolamu-backend.onrender.com/api/v1';
 const phone=storage.getItem('bolamu_doctor_phone');
-const token=storage.getItem('bolamu_doctor_token');
-if(!token||!phone){window.location.href='/login.html';}
+if(!getAuthToken()||!phone){window.location.href='/login.html';}
 document.getElementById('topbar-phone').textContent=phone;
 
 function generateMedCode(p){
@@ -1537,7 +1543,7 @@ async function loadPosition() {
   try {
     const role = storage.getItem('bolamu_role');
     const phone = storage.getItem(`bolamu_${role}_phone`);
-    const token = storage.getItem(`bolamu_${role}_token`);
+    const token = getAuthToken();
     const res = await fetch(`${API}/auth/profile`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -1584,7 +1590,7 @@ function detectPosition() {
 async function savePosition() {
   const role = storage.getItem('bolamu_role');
   const phone = storage.getItem(`bolamu_${role}_phone`);
-  const token = storage.getItem(`bolamu_${role}_token`);
+  const token = getAuthToken();
   const address = document.getElementById('gps-address').value.trim();
   if (!currentLat || !currentLng) {
     alert('Détectez d\'abord votre position');
@@ -1612,7 +1618,7 @@ async function loadPatientConstantes() {
     alert('Numéro de téléphone du patient non disponible.');
     return;
   }
-  const token = storage.getItem('bolamu_doctor_token');
+  const token = getAuthToken();
   try {
     const res = await fetch(`${API}/patients/constantes/${encodeURIComponent(_currentPatientPhone)}`, {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -1645,7 +1651,7 @@ async function savePatientConstantes() {
     alert('Numéro de téléphone du patient non disponible.');
     return;
   }
-  const token = storage.getItem('bolamu_doctor_token');
+  const token = getAuthToken();
   const body = {
     patient_phone: _currentPatientPhone
   };
