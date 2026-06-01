@@ -447,9 +447,21 @@
           Scannez le QR code Bolamu du patient pour accéder 
           à sa fiche et démarrer la consultation.
         </div>
-        <div id="qr-reader-medecin"
-             style="width:100%;border-radius:12px;overflow:hidden;">
-        </div>
+        <div style="position:relative;width:100%;border-radius:12px;
+            overflow:hidden;background:#111;min-height:280px;
+            display:flex;align-items:center;justify-content:center;">
+  <video id="qr-video-medecin"
+         style="width:100%;height:280px;object-fit:cover;
+                display:block;border-radius:12px;"
+         playsinline autoplay muted></video>
+  <canvas id="qr-canvas-medecin" style="display:none;"></canvas>
+  <div id="qr-overlay"
+       style="display:none;position:absolute;top:50%;left:50%;
+              transform:translate(-50%,-50%);
+              width:180px;height:180px;
+              border:3px solid #00d4aa;border-radius:12px;
+              pointer-events:none;"></div>
+</div>
         <div id="scanner-status"
              style="margin-top:14px;text-align:center;
                     font-size:13px;color:var(--texte-doux);">
@@ -647,6 +659,9 @@ function getAuthToken() {
 
 const API='https://bolamu-backend.onrender.com/api/v1';
 const phone=storage.getItem('bolamu_doctor_phone');
+if (phone) {
+  try { phone = decodeURIComponent(phone); } catch(e) {}
+}
 if(!getAuthToken()||!phone){window.location.href='/login.html';}
 document.getElementById('topbar-phone').textContent=phone;
 
@@ -1684,40 +1699,85 @@ async function savePatientConstantes() {
   }
 }
 
+var scanStream = null;
 var scannerActifMedecin = false;
+var scanAnimFrame = null;
 
 function demarrerScannerMedecin() {
   if (scannerActifMedecin) return;
-  if (!ZXingReader) {
-    document.getElementById('scanner-status').textContent =
-      'Lecteur QR non disponible — rechargez la page';
-    return;
-  }
-  scannerActifMedecin = true;
+  var video = document.getElementById('qr-video-medecin');
+  var canvas = document.getElementById('qr-canvas-medecin');
+  var overlay = document.getElementById('qr-overlay');
+  if (!video || !canvas) return;
   document.getElementById('btn-start-scanner').style.display = 'none';
   document.getElementById('btn-stop-scanner').style.display = 'block';
-  document.getElementById('scanner-status').textContent =
-    'Scanner actif — pointez vers le QR code';
-  ZXingReader.decodeFromVideoDevice(
-    undefined,
-    'qr-reader-medecin',
-    function(result, err) {
-      if (result && scannerActifMedecin) {
-        arreterScannerMedecin();
-        traiterPatientMedecin(result.getText(), 'qr');
-      }
+  document.getElementById('scanner-status').textContent = 'Activation caméra...';
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+  }).then(function(stream) {
+    scanStream = stream;
+    video.srcObject = stream;
+    video.play();
+    scannerActifMedecin = true;
+    if (overlay) overlay.style.display = 'block';
+    document.getElementById('scanner-status').textContent =
+      'Pointez le QR code dans le cadre';
+    scanQRFrame(video, canvas);
+  }).catch(function(err) {
+    document.getElementById('scanner-status').textContent =
+      'Caméra refusée — autorisez l\'accès caméra dans le navigateur';
+    document.getElementById('btn-start-scanner').style.display = 'block';
+    document.getElementById('btn-stop-scanner').style.display = 'none';
+  });
+}
+
+function scanQRFrame(video, canvas) {
+  if (!scannerActifMedecin) return;
+  if (video.readyState === video.HAVE_ENOUGH_DATA && ZXingReader) {
+    try {
+      var ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      ZXingReader.decodeFromCanvas(canvas).then(function(result) {
+        if (result && scannerActifMedecin) {
+          arreterScannerMedecin();
+          traiterPatientMedecin(result.getText(), 'qr');
+        }
+        scanAnimFrame = requestAnimationFrame(function() {
+          scanQRFrame(video, canvas);
+        });
+      }).catch(function() {
+        scanAnimFrame = requestAnimationFrame(function() {
+          scanQRFrame(video, canvas);
+        });
+      });
+    } catch(e) {
+      scanAnimFrame = requestAnimationFrame(function() {
+        scanQRFrame(video, canvas);
+      });
     }
-  );
+  } else {
+    scanAnimFrame = requestAnimationFrame(function() {
+      scanQRFrame(video, canvas);
+    });
+  }
 }
 
 function arreterScannerMedecin() {
   scannerActifMedecin = false;
+  if (scanAnimFrame) { cancelAnimationFrame(scanAnimFrame); scanAnimFrame = null; }
+  if (scanStream) {
+    scanStream.getTracks().forEach(function(t) { t.stop(); });
+    scanStream = null;
+  }
+  var video = document.getElementById('qr-video-medecin');
+  if (video) { video.srcObject = null; }
+  var overlay = document.getElementById('qr-overlay');
+  if (overlay) overlay.style.display = 'none';
   document.getElementById('btn-start-scanner').style.display = 'block';
   document.getElementById('btn-stop-scanner').style.display = 'none';
   document.getElementById('scanner-status').textContent = 'Scanner arrêté';
-  if (ZXingReader) {
-    try { ZXingReader.reset(); } catch(e) {}
-  }
   return Promise.resolve();
 }
 
