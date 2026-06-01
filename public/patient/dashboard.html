@@ -990,7 +990,7 @@ async function initQR(){
 
     container.innerHTML='';
     new QRCode(container,{
-      text: data.data.token,
+      text: 'bolamu://verify?token=' + data.data.token,
       width:200,height:200,
       colorDark:'#0A2463',colorLight:'#ffffff',
       correctLevel:QRCode.CorrectLevel.M

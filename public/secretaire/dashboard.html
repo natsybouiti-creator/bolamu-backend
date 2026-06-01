@@ -2496,8 +2496,14 @@
     if (mode === 'qr') {
       var qrToken = valeur;
       if (valeur.indexOf('token=') !== -1) {
-        qrToken = new URL(valeur).searchParams.get('token');
+        try {
+          qrToken = new URL(valeur).searchParams.get('token');
+        } catch(e) {
+          qrToken = valeur.split('token=')[1];
+          if (qrToken) qrToken = qrToken.split('&')[0];
+        }
       }
+      if (!qrToken || qrToken.length < 10) qrToken = valeur;
       url = API + '/qr/verify?token=' + encodeURIComponent(qrToken);
     } else {
       url = API + '/patients/search?q=' + encodeURIComponent(valeur);
