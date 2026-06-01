@@ -670,7 +670,7 @@ function showTabMobile(name,btn){
 
 async function loadProfil(){
   try{
-    const res=await fetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     const d=data.data||{};
     if (d.banned) {
@@ -717,7 +717,7 @@ if (d.is_active && d.validated_at) {
 
 async function loadCreneaux(){
   try{
-    const res=await fetch(`${API}/doctors/slots?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/doctors/slots?phone=${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     const creneaux=data.data||[];
     const el=document.getElementById('creneaux-display');
@@ -738,7 +738,7 @@ async function ajouterCreneau(){
   if(!debut||!fin){alert('Veuillez remplir les heures de début et fin.');return;}
   if(debut>=fin){alert('L\'heure de fin doit être après l\'heure de début.');return;}
   try{
-    const res=await fetch(`${API}/doctors/slots`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({phone,day:jour,start_time:debut,end_time:fin})});
+    const res=await fetch(`${API}/doctors/slots`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({phone,day:jour,start_time:debut,end_time:fin})});
     const data=await res.json();
     if(!data.success){alert('Erreur : '+data.message);return;}
     alert('✅ Créneau ajouté !');
@@ -751,7 +751,7 @@ async function ajouterCreneau(){
 async function supprimerCreneau(id){
   if(!confirm('Supprimer ce créneau ?'))return;
   try{
-    const res=await fetch(`${API}/doctors/slots/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/doctors/slots/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     if(!data.success){alert('Erreur : '+data.message);return;}
     alert('✅ Créneau supprimé !');
@@ -781,7 +781,7 @@ async function submitChangePwd(){
   try {
     const res = await fetch(`${API}/doctors/change-password`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
       body: JSON.stringify({ phone, old_password: oldPwd, new_password: newPwd })
     });
     const data = await res.json();
@@ -806,7 +806,7 @@ function renderHoraires(hours){
 let allRdvData=[];
 async function loadRdv(){
   try{
-    const res=await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     allRdvData=data.data||data||[];
     const today=new Date().toISOString().split('T')[0];
@@ -880,7 +880,7 @@ function ouvrirValidation(rdvId,patientPhone,sessionCode,date,time,symptomesMoti
   currentRdv={rdvId,patientPhone,sessionCode,date,time,symptomesMotif};
   _currentPatientPhone = patientPhone;
   consultationStartTime=Date.now();
-  fetch(`${API}/appointments/${rdvId}/open`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}}).catch(()=>{});
+  fetch(`${API}/appointments/${rdvId}/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'}}).catch(()=>{});
   afficherEtapeCode();
   document.getElementById('modal-validation').classList.add('open');
 }
@@ -1050,7 +1050,7 @@ async function soumettreCompteRendu(){
   btn.disabled=true;btn.textContent='Envoi en cours...';
   
   try{
-    const res=await fetch(`${API}/reports/submit`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,motif,observations,diagnostic,traitement,prochaine_etape:prochaine})});
+    const res=await fetch(`${API}/reports/submit`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,motif,observations,diagnostic,traitement,prochaine_etape:prochaine})});
     const data=await res.json();
     if(!res.ok)throw new Error(data.message||'Erreur compte rendu');
     afficherEtapeOrdonnance();
@@ -1131,7 +1131,7 @@ async function verifierMedicaments(){
   for(const med of medicationsList){
     try{
       const res = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(med.trim())}`,{
-        headers:{'Authorization':`Bearer ${token}`}
+        headers:{'Authorization':`Bearer ${getAuthToken()}`}
       });
       const data = await res.json();
       const isSSP = data.success && data.data && data.data.is_ssp;
@@ -1193,7 +1193,7 @@ async function loadSmartFlowStats(){
   
   try{
     const res = await fetch(`${API}/smartflow/stats/moi?mois=${moisInput}`,{
-      headers:{'Authorization':`Bearer ${token}`}
+      headers:{'Authorization':`Bearer ${getAuthToken()}`}
     });
     const data = await res.json();
     
@@ -1228,7 +1228,7 @@ async function confirmerValidation(){
   btn.disabled=true;btn.textContent='Validation en cours…';
   const dureeMinutes=Math.round((Date.now()-consultationStartTime)/60000);
   try{
-    const resVal=await fetch(`${API}/appointments/${currentRdv.rdvId}/validate`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({session_code:currentRdv.sessionCode,consultation_duration_minutes:dureeMinutes})});
+    const resVal=await fetch(`${API}/appointments/${currentRdv.rdvId}/validate`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({session_code:currentRdv.sessionCode,consultation_duration_minutes:dureeMinutes})});
     const dataVal=await resVal.json();
     if(!resVal.ok){
       if(dataVal.message&&dataVal.message.includes('Compte rendu obligatoire')){
@@ -1239,7 +1239,7 @@ async function confirmerValidation(){
       }
       throw new Error(dataVal.message||'Erreur validation');
     }
-    const resPres=await fetch(`${API}/prescriptions/create`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,medications,instructions:instructions||null})});
+    const resPres=await fetch(`${API}/prescriptions/create`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,medications,instructions:instructions||null})});
     const dataPres=await resPres.json();
     if(!resPres.ok)throw new Error(dataPres.message||'Erreur ordonnance');
     
@@ -1247,7 +1247,7 @@ async function confirmerValidation(){
     for(const med of horsMeds){
       await fetch(`${API}/smartflow/hors-catalogue`,{
         method:'POST',
-        headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+        headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},
         body:JSON.stringify({
           patient_phone: currentRdv.patientPhone,
           prestataire_phone: phone,
@@ -1285,7 +1285,7 @@ async function generateBriefing(){
   contentDiv.style.display='none';
   
   try{
-    const res=await fetch(`${API}/ai-consult/briefing/${currentRdv.id}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/ai-consult/briefing/${currentRdv.id}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     
     loadingDiv.style.display='none';
@@ -1324,7 +1324,7 @@ async function analyzeTricolor(){
   try{
     const res=await fetch(`${API}/ai-consult/tricolor`,{
       method:'POST',
-      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},
       body:JSON.stringify({diagnosis:diagnostic,medications:medications,patient_phone:currentRdv.patientPhone})
     });
     const data=await res.json();
@@ -1349,7 +1349,7 @@ async function analyzeTricolor(){
 
 async function generateRenewal(){
   try{
-    const res=await fetch(`${API}/ai-consult/renewal/${currentRdv.patientPhone}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/ai-consult/renewal/${currentRdv.patientPhone}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     
     if(data.success&&data.data){
@@ -1368,7 +1368,7 @@ async function generateRenewal(){
 let currentJitsiRdv=null;
 async function loadTeleRdv(){
   try{
-    const res=await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     const rdvs=(data.data||data||[]).filter(r=>r.status==='confirme'||r.status==='en_cours');
     const container=document.getElementById('tele-rdv-list');
@@ -1395,7 +1395,7 @@ async function loadTeleRdv(){
 }
 
 async function demarrerTeleconsultation(rdvId,sessionCode,patientPhone){
-  try{await fetch(`${API}/telemedicine/start`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:rdvId})});}catch(e){console.log('Notif patient non envoyée:',e.message);}
+  try{await fetch(`${API}/telemedicine/start`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:rdvId})});}catch(e){console.log('Notif patient non envoyée:',e.message);}
   currentJitsiRdv={rdvId,sessionCode,role:'doctor'};
   ouvrirJitsi(rdvId,sessionCode,'doctor');
 }
@@ -1499,7 +1499,7 @@ async function envoyerPrescriptionLabo(rdvId,patientPhone){
   btn.disabled=true;btn.textContent='Envoi en cours...';
   
   try{
-    const res=await fetch(`${API}/lab/prescribe`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:rdvId,patient_phone:patientPhone,doctor_phone:phone,examens,instructions:instructions||null})});
+    const res=await fetch(`${API}/lab/prescribe`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:rdvId,patient_phone:patientPhone,doctor_phone:phone,examens,instructions:instructions||null})});
     const data=await res.json();
     if(!res.ok)throw new Error(data.message||'Erreur prescription');
     fermerModalLabo();
@@ -1510,7 +1510,7 @@ async function envoyerPrescriptionLabo(rdvId,patientPhone){
 
 async function genererQRPatient(patientPhone){
   try{
-    const res=await fetch(`${API}/qr/generate?phone=${encodeURIComponent(patientPhone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/qr/generate?phone=${encodeURIComponent(patientPhone)}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     if(!data.success){alert('Erreur : '+data.message);return;}
     const modal=document.createElement('div');
@@ -1545,7 +1545,7 @@ async function loadPosition() {
     const phone = storage.getItem(`bolamu_${role}_phone`);
     const token = getAuthToken();
     const res = await fetch(`${API}/auth/profile`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'Authorization': `Bearer ${getAuthToken()}` }
     });
     const data = await res.json();
     if (data.user?.latitude) {
@@ -1599,7 +1599,7 @@ async function savePosition() {
   try {
     const res = await fetch(`${API}/map/position`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
       body: JSON.stringify({ phone, latitude: currentLat, longitude: currentLng, address })
     });
     const data = await res.json();
@@ -1621,7 +1621,7 @@ async function loadPatientConstantes() {
   const token = getAuthToken();
   try {
     const res = await fetch(`${API}/patients/constantes/${encodeURIComponent(_currentPatientPhone)}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'Authorization': `Bearer ${getAuthToken()}` }
     });
     const data = await res.json();
     if (!data.success) {
@@ -1678,7 +1678,7 @@ async function savePatientConstantes() {
   try {
     const res = await fetch(`${API}/doctors/constantes-patient`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
       body: JSON.stringify(body)
     });
     const data = await res.json();
