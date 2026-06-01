@@ -652,6 +652,7 @@
         <div id="qrcode" style="display:flex;justify-content:center;"></div>
         <p style="margin-top:12px;font-size:14px;">📱 Montrez ce QR à votre partenaire Bolamu</p>
         <span id="qr-countdown" style="font-size:11px;color:var(--vert);font-weight:600;"></span>
+        <button id="btn-refresh-qr" onclick="initQR()" style="display:none;margin-top:12px;padding:8px 16px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Actualiser mon QR</button>
       </div>
     </div>
     <div class="stat-cards">
@@ -974,6 +975,8 @@ let qrRefreshTimer=null;
 
 async function initQR(){
   const container=document.getElementById('qrcode');
+  const btn=document.getElementById('btn-refresh-qr');
+  if(btn)btn.style.display='none';
   container.innerHTML='<div style="width:130px;height:130px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--texte-doux);text-align:center;">Génération…</div>';
   
   try{
@@ -996,15 +999,20 @@ async function initQR(){
       correctLevel:QRCode.CorrectLevel.M
     });
 
-    // Compte à rebours + auto-refresh
-    const ttl=data.data.ttl_seconds||60;
+    // Compte à rebours sans auto-refresh
+    const ttl=data.data.ttl_seconds||300;
     const expiresAt=new Date(data.data.expires_at).getTime();
     if(qrRefreshTimer)clearInterval(qrRefreshTimer);
     qrRefreshTimer=setInterval(()=>{
       const remaining=Math.ceil((expiresAt-Date.now())/1000);
       const label=document.getElementById('qr-countdown');
+      const btn=document.getElementById('btn-refresh-qr');
       if(label)label.textContent=`Expire dans ${remaining}s`;
-      if(remaining<=0){clearInterval(qrRefreshTimer);initQR();}
+      if(remaining<=0){
+        clearInterval(qrRefreshTimer);
+        if(label)label.textContent='QR expiré';
+        if(btn)btn.style.display='inline-block';
+      }
     },1000);
 
   }catch(e){
