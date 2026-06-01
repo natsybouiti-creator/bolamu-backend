@@ -1014,7 +1014,7 @@ router.post('/company-contracts', authMiddleware, adminOnly, async (req, res) =>
     let destAccountId = destination_account_id;
     if (!destAccountId) {
       const accountResult = await client.query(
-        `SELECT account_id FROM bolamu_accounts WHERE account_type = 'bank' LIMIT 1`
+        `SELECT account_id FROM bolamu_accounts WHERE account_type = 'bank_account' LIMIT 1`
       );
       if (!accountResult.rows.length) {
         await client.query('ROLLBACK');
@@ -1084,7 +1084,7 @@ router.post('/company-contracts', authMiddleware, adminOnly, async (req, res) =>
 router.get('/company-contracts', authMiddleware, adminOnly, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT cc.*, ba.account_name as destination_account_name
+      `SELECT cc.*, ba.account_id as destination_account_id, ba.provider_name as destination_account_name
        FROM company_contracts cc
        LEFT JOIN bolamu_accounts ba ON cc.destination_account_id = ba.account_id
        ORDER BY cc.created_at DESC`
