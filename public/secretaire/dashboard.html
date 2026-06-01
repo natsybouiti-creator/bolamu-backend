@@ -11,6 +11,7 @@
   <meta name="theme-color" content="#0A2463">
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root {
       --bleu: #0A2463;
@@ -542,6 +543,19 @@
       transition: opacity 0.2s;
     }
     .btn-verify:hover { opacity: 0.85; }
+    .btn-scan-qr {
+      padding: 12px 24px;
+      background: var(--bleu-vif);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .btn-scan-qr:hover { opacity: 0.85; }
 
     /* Carte résultat */
     .verify-result { margin-top: 16px; border-radius: 12px; overflow: hidden; }
@@ -1279,6 +1293,7 @@
                 autocomplete="off"
               />
               <button class="btn-verify" onclick="verifierAdherent()">Vérifier</button>
+              <button class="btn-scan-qr" id="btn-scan-qr-secretaire" onclick="openScannerModal()">Scanner QR</button>
             </div>
             <div id="verify-result" class="verify-result hidden"></div>
           </div>
@@ -1488,6 +1503,24 @@
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal('modal-rdv-manuel')">Annuler</button>
         <button class="btn-primary" onclick="createRdv()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Scanner QR -->
+  <div class="modal-overlay" id="modal-scanner-qr">
+    <div class="modal">
+      <div class="modal-title">Scanner QR Code Adhérent</div>
+      <div class="modal-subtitle">Scannez le QR Code du patient pour vérifier sa couverture</div>
+      <div id="qr-reader-secretaire" style="width:100%;min-height:300px;background:#f8fafc;border-radius:12px;display:flex;align-items:center;justify-content:center;"></div>
+      <div id="scanner-sec-status" style="text-align:center;margin-top:16px;font-size:14px;color:var(--texte-doux);">Cliquez sur "Démarrer" pour commencer</div>
+      <div id="scanner-sec-result" style="margin-top:20px;display:none;"></div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button id="btn-start-scanner-sec" style="flex:1;padding:12px;background:var(--bleu-vif);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Démarrer</button>
+        <button id="btn-stop-scanner-sec" style="flex:1;padding:12px;background:var(--bg-input,#f0f0f0);color:var(--texte);border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;" disabled>Arrêter</button>
+      </div>
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn-secondary" onclick="closeScannerModal()">Fermer</button>
       </div>
     </div>
   </div>
@@ -2084,6 +2117,137 @@
       document.getElementById(modalId).classList.remove('open');
     }
 
+    // ─── SCANNER QR CODE ADHÉRENT ───────────────────────────────────────
+    let html5QrCodeSec = null;
+    let isScanningSec = false;
+
+    function openScannerModal() {
+      document.getElementById('modal-scanner-qr').classList.add('open');
+    }
+
+    function closeScannerModal() {
+      stopScannerSec();
+      document.getElementById('modal-scanner-qr').classList.remove('open');
+    }
+
+    function startScannerSec() {
+      if (isScanningSec) return;
+      
+      const qrReader = document.getElementById('qr-reader-secretaire');
+      const statusDiv = document.getElementById('scanner-sec-status');
+      const startBtn = document.getElementById('btn-start-scanner-sec');
+      const stopBtn = document.getElementById('btn-stop-scanner-sec');
+      
+      html5QrCodeSec = new Html5Qrcode("qr-reader-secretaire");
+      
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      
+      html5QrCodeSec.start({ facingMode: "environment" }, config, onScanSuccessSec, onScanFailureSec)
+        .then(() => {
+          isScanningSec = true;
+          statusDiv.textContent = 'Scanner actif — positionnez le QR Code devant la caméra';
+          statusDiv.style.color = '#00C9A7';
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+        })
+        .catch(err => {
+          statusDiv.textContent = 'Erreur: ' + err;
+          statusDiv.style.color = '#e74c3c';
+        });
+    }
+
+    function stopScannerSec() {
+      if (!isScanningSec || !html5QrCodeSec) return;
+      
+      html5QrCodeSec.stop().then(() => {
+        isScanningSec = false;
+        html5QrCodeSec.clear();
+        html5QrCodeSec = null;
+        
+        const statusDiv = document.getElementById('scanner-sec-status');
+        const startBtn = document.getElementById('btn-start-scanner-sec');
+        const stopBtn = document.getElementById('btn-stop-scanner-sec');
+        
+        statusDiv.textContent = 'Scanner arrêté';
+        statusDiv.style.color = 'var(--texte-doux)';
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }).catch(err => {
+        console.error('Erreur arrêt scanner:', err);
+      });
+    }
+
+    async function onScanSuccessSec(decodedText, decodedResult) {
+      stopScannerSec();
+      
+      const resultDiv = document.getElementById('scanner-sec-result');
+      const statusDiv = document.getElementById('scanner-sec-status');
+      
+      statusDiv.textContent = 'QR Code détecté — vérification en cours...';
+      statusDiv.style.color = '#00C9A7';
+      
+      try {
+        const res = await fetch(`${API}/qr/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify({ qr_token: decodedText })
+        });
+        const data = await res.json();
+        
+        if (data.success && data.patient) {
+          const p = data.patient;
+          resultDiv.style.display = 'block';
+          resultDiv.innerHTML = `
+            <div style="background:var(--vert-clair);border-radius:12px;padding:20px;border:1px solid var(--vert);">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                <div style="width:48px;height:48px;background:var(--vert);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:white;">✓</div>
+                <div>
+                  <div style="font-size:16px;font-weight:700;color:var(--emeraude);">Adhérent identifié</div>
+                  <div style="font-size:13px;color:#047857;">${p.full_name || p.phone}</div>
+                </div>
+              </div>
+              <div style="display:grid;gap:8px;font-size:13px;">
+                <div><strong>Téléphone:</strong> ${p.phone}</div>
+                <div><strong>Abonnement:</strong> ${p.statut_abonnement || '—'}</div>
+                <div><strong>Plan:</strong> ${p.plan_nom || '—'}</div>
+              </div>
+              <button onclick="closeScannerModal(); document.getElementById('verify-input').value='${p.phone}'; verifierAdherent();" style="margin-top:16px;width:100%;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Vérifier la couverture</button>
+            </div>
+          `;
+          statusDiv.textContent = 'QR Code vérifié avec succès';
+        } else {
+          resultDiv.style.display = 'block';
+          resultDiv.innerHTML = `
+            <div style="background:#fef2f2;border-radius:12px;padding:20px;border:1px solid #ef4444;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:48px;height:48px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:white;">✕</div>
+                <div>
+                  <div style="font-size:16px;font-weight:700;color:#b91c1c;">QR Code invalide</div>
+                  <div style="font-size:13px;color:#7f1d1d;">${data.message || 'Adhérent non trouvé'}</div>
+                </div>
+              </div>
+            </div>
+          `;
+          statusDiv.textContent = 'QR Code invalide';
+          statusDiv.style.color = '#ef4444';
+        }
+      } catch(e) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+          <div style="background:#fef2f2;border-radius:12px;padding:20px;border:1px solid #ef4444;">
+            <div style="font-size:16px;font-weight:700;color:#b91c1c;">Erreur de vérification</div>
+            <div style="font-size:13px;color:#7f1d1d;">Erreur de connexion au serveur</div>
+          </div>
+        `;
+        statusDiv.textContent = 'Erreur de connexion';
+        statusDiv.style.color = '#ef4444';
+      }
+    }
+
+    function onScanFailureSec(error) {
+      // Ignorer les erreurs de scan en cours (normal)
+    }
+
     async function loadDoctorsSelect(selectId) {
       const clinicId = getClinicId();
       
@@ -2192,6 +2356,10 @@
       
       // 5. Info clinique
       loadClinicInfo();
+      
+      // Scanner QR event listeners
+      document.getElementById('btn-start-scanner-sec').addEventListener('click', startScannerSec);
+      document.getElementById('btn-stop-scanner-sec').addEventListener('click', stopScannerSec);
       
       document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => showTab(item.dataset.tab));
