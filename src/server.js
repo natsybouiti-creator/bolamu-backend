@@ -72,6 +72,16 @@ app.get('/', (req, res) => {
   res.send(html);
 });
 
+// No-cache headers pour fichiers HTML — éviter cache navigateur
+app.use(function(req, res, next) {
+  if (req.path.endsWith('.html')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 // Servir les fichiers statiques (images, css, js du dossier public) - APRÈS la route GET '/'
 app.use(express.static(path.join(__dirname, '../public')));
 
