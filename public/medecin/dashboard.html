@@ -653,10 +653,9 @@ function getAuthToken() {
 }
 
 const API='https://bolamu-backend.onrender.com/api/v1';
-const phone=storage.getItem('bolamu_doctor_phone');
-if (phone) {
-  try { phone = decodeURIComponent(phone); } catch(e) {}
-}
+var _rawPhone = storage.getItem('bolamu_doctor_phone') || '';
+var phone;
+try { phone = decodeURIComponent(_rawPhone); } catch(e) { phone = _rawPhone; }
 if(!getAuthToken()||!phone){window.location.href='/login.html';}
 document.getElementById('topbar-phone').textContent=phone;
 
@@ -1803,7 +1802,7 @@ function traiterPatientMedecin(valeur, mode) {
     url = API + '/patients/search?q=' + encodeURIComponent(valeur);
   }
 
-  fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+  fetch(url, { headers: { 'Authorization': 'Bearer ' + getAuthToken() } })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (!data.success || !data.data) {
@@ -1817,7 +1816,7 @@ function traiterPatientMedecin(valeur, mode) {
 
       if (mode === 'qr' && data.data.patient && data.data.patient.phone) {
         var phone = data.data.patient.phone;
-        fetch(API + '/patients/search?q=' + encodeURIComponent(phone), { headers: { 'Authorization': 'Bearer ' + token } })
+        fetch(API + '/patients/search?q=' + encodeURIComponent(phone), { headers: { 'Authorization': 'Bearer ' + getAuthToken() } })
           .then(function(res) { return res.json(); })
           .then(function(searchData) {
             if (!searchData.success || !searchData.data || searchData.data.length === 0) {
