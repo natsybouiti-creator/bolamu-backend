@@ -741,7 +741,10 @@ async function loadCreneaux(){
     const data=await res.json();
     const creneaux=data.data||[];
     const el=document.getElementById('creneaux-display');
-    if(!creneaux.length){el.innerHTML='<div style="color:var(--texte-doux);font-size:13px;">Aucun créneau configuré.</div>';return;}
+    if(!creneaux.length){
+      await creerCreneauxParDefaut();
+      return;
+    }
     el.innerHTML=creneaux.map(c=>`
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bleu-pale);">
         <div style="font-size:13px;color:var(--text);"><strong style="text-transform:capitalize;">${c.day}</strong> : ${c.start_time} - ${c.end_time}</div>
@@ -749,6 +752,37 @@ async function loadCreneaux(){
       </div>
     `).join('');
   }catch(e){document.getElementById('creneaux-display').innerHTML='<div style="color:var(--rouge);font-size:13px;">Erreur de chargement.</div>';}
+}
+
+async function creerCreneauxParDefaut() {
+  const joursOuvrables = ['lundi','mardi','mercredi','jeudi','vendredi'];
+  const token = getAuthToken();
+  let created = 0;
+  for (const jour of joursOuvrables) {
+    try {
+      const res = await fetch(`${API}/doctors/slots`, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone: phone,
+          day: jour,
+          start_time: '08:00',
+          end_time: '17:00'
+        })
+      });
+      const data = await res.json();
+      if (data.success) created++;
+    } catch(e) {}
+  }
+  if (created > 0) {
+    loadCreneaux();
+  } else {
+    document.getElementById('creneaux-display').innerHTML =
+      '<div style="color:var(--texte-doux);font-size:13px;">Aucun créneau configuré.</div>';
+  }
 }
 
 async function ajouterCreneau(){

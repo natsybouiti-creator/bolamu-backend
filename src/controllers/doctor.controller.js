@@ -278,24 +278,28 @@ async function generatePatientQRCode(req, res) {
 // ─── CRÉER UN CRÉNEAU HORAIRE (POST /api/v1/doctor/slots) ───────────────────────
 async function createTimeSlot(req, res) {
     const doctorPhone = req.user.phone;
-    const { date, heure_debut, heure_fin } = req.body;
+    const { date, heure_debut, heure_fin, day, start_time, end_time } = req.body;
 
-    if (!date || !heure_debut || !heure_fin) {
-        return res.status(400).json({ success: false, message: 'Champs requis : date, heure_debut, heure_fin.' });
+    const dayParam = day || date;
+    const startParam = start_time || heure_debut;
+    const endParam = end_time || heure_fin;
+
+    if (!dayParam || !startParam || !endParam) {
+        return res.status(400).json({ success: false, message: 'Champs requis : day/date, start_time/heure_debut, end_time/heure_fin.' });
     }
 
     try {
         const result = await pool.query(
-            `INSERT INTO time_slots (doctor_phone, date, heure_debut, heure_fin, is_available)
+            `INSERT INTO time_slots (doctor_phone, day, start_time, end_time, is_available)
              VALUES ($1, $2, $3, $4, TRUE)
              RETURNING *`,
-            [doctorPhone, date, heure_debut, heure_fin]
+            [doctorPhone, dayParam, startParam, endParam]
         );
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('timeslot.created', $1, 'time_slots', $2, $3)`,
-            [doctorPhone, result.rows[0].id, JSON.stringify({ date, heure_debut, heure_fin })]
+            [doctorPhone, result.rows[0].id, JSON.stringify({ day: dayParam, start_time: startParam, end_time: endParam })]
         ).catch(() => {});
 
         return res.status(201).json({ success: true, data: result.rows[0] });
