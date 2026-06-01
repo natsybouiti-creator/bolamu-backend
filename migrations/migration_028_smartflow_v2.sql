@@ -67,14 +67,15 @@ CREATE TABLE IF NOT EXISTS config_categories_rh (
 CREATE INDEX IF NOT EXISTS idx_config_categories_contract ON config_categories_rh(company_contract_id);
 
 -- 5. Insertion config par défaut pour Brasco (contract_id = 1)
-INSERT INTO config_categories_rh (company_contract_id, categorie_rh, pourcentage_salarie, plafond_mensuel)
-VALUES 
-  (1, 'cadre_direction', 30, 200000),
-  (1, 'cadre', 25, 150000),
-  (1, 'agent_maitrise', 20, 100000),
-  (1, 'employe', 15, 75000),
-  (1, 'ouvrier', 10, 50000)
-ON CONFLICT (company_contract_id, categorie_rh) DO NOTHING;
+-- Commenté car aucun contrat n'existe encore - sera inséré lors de la création du contrat
+-- INSERT INTO config_categories_rh (company_contract_id, categorie_rh, pourcentage_salarie, plafond_mensuel)
+-- VALUES
+--   (1, 'cadre_direction', 30, 200000),
+--   (1, 'cadre', 25, 150000),
+--   (1, 'agent_maitrise', 20, 100000),
+--   (1, 'employe', 15, 75000),
+--   (1, 'ouvrier', 10, 50000)
+-- ON CONFLICT (company_contract_id, categorie_rh) DO NOTHING;
 
 -- 6. Trigger pour updated_at sur catalogue_pharmacie
 CREATE OR REPLACE FUNCTION update_catalogue_pharmacie_updated_at()
