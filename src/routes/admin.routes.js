@@ -954,4 +954,147 @@ router.post('/migrate-uploads', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
+// ─── COMPANY CONTRACTS (Smart Flow V2) ───────────────────────────────────────────────
+
+/**
+ * POST /api/v1/admin/company-contracts
+ * Créer un contrat entreprise avec auto-insertion config catégories RH
+ */
+router.post('/company-contracts', authMiddleware, adminOnly, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const {
+      company_name,
+      company_phone,
+      contact_name,
+      contact_phone,
+      contact_email,
+      plan,
+      max_employees,
+      payment_mode,
+      destination_account_id,
+      notes
+    } = req.body;
+
+    if (!company_name || !contact_name || !contact_phone || !plan || !max_employees) {
+      return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
+    }
+
+    if (!['essentiel', 'standard', 'premium'].includes(plan)) {
+      return res.status(400).json({ success: false, message: 'Plan invalide (essentiel, standard, premium)' });
+    }
+
+    if (!['monthly', 'annual'].includes(payment_mode)) {
+      return res.status(400).json({ success: false, message: 'Mode paiement invalide (monthly, annual)' });
+    }
+
+    // Générer company_code à partir du nom (3 premières lettres en majuscules)
+    const company_code = company_name.substring(0, 3).toUpperCase() + Date.now().toString().slice(-4);
+
+    // Générer référence
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const reference = `BOL-B2B-${company_code}-${today}`;
+
+    // Récupérer le prix du plan depuis platform_config
+    const priceKey = payment_mode === 'annual' ? `price_annual_${plan}` : `price_${plan}`;
+    const priceResult = await client.query(
+      `SELECT config_value FROM platform_config WHERE config_key = $1`,
+      [priceKey]
+    );
+
+    if (!priceResult.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'Tarif introuvable pour ce plan' });
+    }
+
+    const price_per_employee = parseInt(priceResult.rows[0].config_value, 10);
+    const total_amount_fcfa = price_per_employee * max_employees;
+
+    // Destination account par défaut si non fourni
+    let destAccountId = destination_account_id;
+    if (!destAccountId) {
+      const accountResult = await client.query(
+        `SELECT account_id FROM bolamu_accounts WHERE account_type = 'bank' LIMIT 1`
+      );
+      if (!accountResult.rows.length) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: 'Aucun compte bancaire Bolamu configuré' });
+      }
+      destAccountId = accountResult.rows[0].account_id;
+    }
+
+    await client.query('BEGIN');
+
+    // Insérer le contrat
+    const contractResult = await client.query(
+      `INSERT INTO company_contracts
+        (reference, company_code, company_name, contact_name, contact_phone, contact_email,
+         employee_count, total_amount_fcfa, plan, billing_type, status,
+         destination_account_id, notes, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'draft', $11, $12, NOW(), NOW())
+       RETURNING id`,
+      [reference, company_code, company_name, contact_name, contact_phone, contact_email || null,
+       max_employees, total_amount_fcfa, plan, payment_mode, destAccountId, notes || null]
+    );
+
+    const contractId = contractResult.rows[0].id;
+
+    // Insérer automatiquement les 5 catégories RH par défaut
+    await client.query(
+      `INSERT INTO config_categories_rh (company_contract_id, categorie_rh, pourcentage_salarie, plafond_mensuel)
+       VALUES
+         ($1, 'cadre_direction', 20, 0),
+         ($1, 'cadre', 30, 0),
+         ($1, 'agent_maitrise', 50, 0),
+         ($1, 'employe', 60, 0),
+         ($1, 'ouvrier', 70, 0)
+       ON CONFLICT (company_contract_id, categorie_rh) DO NOTHING`,
+      [contractId]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      data: {
+        id: contractId,
+        reference,
+        company_code,
+        company_name,
+        plan,
+        employee_count: max_employees,
+        total_amount_fcfa,
+        billing_type: payment_mode
+      },
+      message: 'Contrat créé avec configuration catégories RH par défaut'
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[ADMIN COMPANY CONTRACTS POST]', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  } finally {
+    client.release();
+  }
+});
+
+/**
+ * GET /api/v1/admin/company-contracts
+ * Lister tous les contrats entreprise
+ */
+router.get('/company-contracts', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT cc.*, ba.account_name as destination_account_name
+       FROM company_contracts cc
+       LEFT JOIN bolamu_accounts ba ON cc.destination_account_id = ba.account_id
+       ORDER BY cc.created_at DESC`
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('[ADMIN COMPANY CONTRACTS GET]', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
 module.exports = router;
