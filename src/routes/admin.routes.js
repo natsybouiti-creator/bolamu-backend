@@ -1097,4 +1097,57 @@ router.get('/company-contracts', authMiddleware, adminOnly, async (req, res) => 
   }
 });
 
+/**
+ * DELETE /api/v1/admin/company-contracts/:id
+ * Supprimer un contrat entreprise avec ses config RH
+ */
+router.delete('/company-contracts/:id', authMiddleware, adminOnly, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ success: false, message: 'ID invalide' });
+    }
+
+    await client.query('BEGIN');
+
+    // Vérifier que le contrat existe
+    const contractResult = await client.query(
+      `SELECT id, company_name FROM company_contracts WHERE id = $1`,
+      [id]
+    );
+
+    if (!contractResult.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Contrat introuvable' });
+    }
+
+    // Supprimer les config catégories RH
+    await client.query(
+      `DELETE FROM config_categories_rh WHERE company_contract_id = $1`,
+      [id]
+    );
+
+    // Supprimer le contrat
+    await client.query(
+      `DELETE FROM company_contracts WHERE id = $1`,
+      [id]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      message: `Contrat "${contractResult.rows[0].company_name}" supprimé avec ses configurations RH`
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[ADMIN COMPANY CONTRACTS DELETE]', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  } finally {
+    client.release();
+  }
+});
+
 module.exports = router;

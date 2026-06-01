@@ -723,7 +723,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
           <table>
             <thead><tr>
               <th>Entreprise</th><th>Contact</th><th>Plan</th>
-              <th>Employés max</th><th>Mode paiement</th><th>Statut</th><th>Date</th>
+              <th>Employés max</th><th>Mode paiement</th><th>Statut</th><th>Date</th><th>Action</th>
             </tr></thead>
             <tbody id="tbody-contracts"><div class="loading">Chargement...</div></tbody>
           </table>
@@ -1272,9 +1272,9 @@ async function loadContracts(){
   try{
     const res=await api('/admin/company-contracts');const rows=res.data||[];
     const cnt=document.getElementById('contracts-count');if(cnt)cnt.textContent=rows.length+' contrats';
-    if(!rows.length){el.innerHTML='<tr><td colspan="7" class="empty">Aucun contrat</td></tr>';return;}
-    el.innerHTML=rows.map(c=>`<tr><td style="font-weight:500">${c.company_name||''}</td><td>${c.contact_name||''}<br><span style="font-size:10px;color:var(--muted)">${c.contact_phone||''}</span></td><td>${badge(c.plan)}</td><td style="font-family:'JetBrains Mono',monospace">${c.employee_count||0}</td><td>${c.billing_type==='monthly'?'Mensuel':'Annuel'}</td><td>${badge(c.status)}</td><td style="color:var(--muted)">${fs(c.created_at)}</td></tr>`).join('');
-  }catch(e){el.innerHTML='<tr><td colspan="7" class="empty">Erreur</td></tr>';}
+    if(!rows.length){el.innerHTML='<tr><td colspan="8" class="empty">Aucun contrat</td></tr>';return;}
+    el.innerHTML=rows.map(c=>`<tr><td style="font-weight:500">${c.company_name||''}</td><td>${c.contact_name||''}<br><span style="font-size:10px;color:var(--muted)">${c.contact_phone||''}</span></td><td>${badge(c.plan)}</td><td style="font-family:'JetBrains Mono',monospace">${c.employee_count||0}</td><td>${c.billing_type==='monthly'?'Mensuel':'Annuel'}</td><td>${badge(c.status)}</td><td style="color:var(--muted)">${fs(c.created_at)}</td><td class="acts"><button class="ab ab-red" data-onclick="deleteContract" data-arg="${c.id}">Supprimer</button></td></tr>`).join('');
+  }catch(e){el.innerHTML='<tr><td colspan="8" class="empty">Erreur</td></tr>';}
 }
 
 async function loadTransactions(){
@@ -1306,6 +1306,11 @@ async function createContract(){
   };
   if(!body.company_name||!body.contact_name||!body.contact_phone||!body.max_employees){toast('Champs obligatoires manquants','err');return;}
   try{const d=await api('/admin/company-contracts',{method:'POST',body:JSON.stringify(body)});if(d.success){closeModal();toast('Contrat créé avec config RH par défaut');loadContracts();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+}
+
+async function deleteContract(id){
+  if(!confirm('Supprimer ce contrat et toutes ses configurations RH ? Cette action est irréversible.'))return;
+  try{const d=await api(`/admin/company-contracts/${id}`,{method:'DELETE'});if(d.success){toast(d.message);loadContracts();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 
 /* -----------------------------------
