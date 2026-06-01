@@ -113,4 +113,31 @@ router.post('/change-password', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/search', authMiddleware, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ success: false, message: 'Requête trop courte (min 2 caractères)' });
+    }
+
+    const query = q.trim();
+    const result = await pool.query(
+      `SELECT u.phone, u.full_name, u.bolamu_id as account_number, 
+              s.plan as plan_nom, s.status as subscription_status, u.is_active
+       FROM users u
+       LEFT JOIN subscriptions s ON u.phone = s.phone AND s.status = 'active' AND s.expires_at > NOW()
+       WHERE u.role = 'patient' 
+         AND (u.phone ILIKE $1 OR u.full_name ILIKE $1 OR u.bolamu_id ILIKE $1)
+       ORDER BY u.full_name
+       LIMIT 10`,
+      [`%${query}%`]
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[patients-search]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
 module.exports = router;

@@ -12,6 +12,7 @@
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root{
       --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
@@ -242,29 +243,107 @@
 </div>
 
 <div class="tabs-bar">
-  <button class="tab active" id="tab-accueil" data-tab="accueil">Tableau de bord</button>
-  <button class="tab" id="tab-rdv" data-tab="rdv">Mes RDV</button>
-  <button class="tab" id="tab-patients" data-tab="patients">Mes patients</button>
-  <button class="tab" id="tab-smartflow" data-tab="smartflow">Smart Flow</button>
-  <button class="tab" id="tab-telemedicine" data-tab="telemedicine">Téléconsultation</button>
-  <button class="tab" id="tab-profil" data-tab="profil">Mon profil</button>
+  <button class="tab active" id="tab-accueil" data-tab="accueil">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+    </svg>Tableau de bord
+  </button>
+  <button class="tab" id="tab-rdv" data-tab="rdv">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>Mes RDV
+  </button>
+  <button class="tab" id="tab-patients" data-tab="patients">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>Mes patients
+  </button>
+  <button class="tab" id="tab-scanner" data-tab="scanner">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <rect x="3" y="3" width="5" height="5" rx="1"/>
+      <rect x="16" y="3" width="5" height="5" rx="1"/>
+      <rect x="3" y="16" width="5" height="5" rx="1"/>
+      <path d="M21 16h-3v3"/><path d="M21 21h-3"/><path d="M16 21v-3"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+    </svg>Scanner patient
+  </button>
+  <button class="tab" id="tab-smartflow" data-tab="smartflow">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>Smart Flow
+  </button>
+  <button class="tab" id="tab-telemedicine" data-tab="telemedicine">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <polygon points="23 7 16 12 23 17 23 7"/>
+      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+    </svg>Téléconsultation
+  </button>
+  <button class="tab" id="tab-profil" data-tab="profil">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>Mon profil
+  </button>
 </div>
 
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
     <button class="bnav-item active" id="bnav-accueil" data-tab="accueil">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+      </svg>
       <span class="bnav-label">Accueil</span>
     </button>
     <button class="bnav-item" id="bnav-rdv" data-tab="rdv">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
       <span class="bnav-label">RDV</span>
     </button>
     <button class="bnav-item" id="bnav-telemedicine" data-tab="telemedicine">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;">
+        <polygon points="23 7 16 12 23 17 23 7"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+      </svg>
       <span class="bnav-label">Vidéo</span>
     </button>
     <button class="bnav-item" id="bnav-patients" data-tab="patients">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
       <span class="bnav-label">Patients</span>
     </button>
+    <button class="bnav-item" id="bnav-scanner" data-tab="scanner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;">
+        <rect x="3" y="3" width="5" height="5" rx="1"/>
+        <rect x="16" y="3" width="5" height="5" rx="1"/>
+        <rect x="3" y="16" width="5" height="5" rx="1"/>
+        <path d="M21 16h-3v3"/><path d="M21 21h-3"/><path d="M16 21v-3"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+      </svg>
+      <span class="bnav-label">Scanner</span>
+    </button>
     <button class="bnav-item" id="bnav-profil" data-tab="profil">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
       <span class="bnav-label">Profil</span>
     </button>
   </div>
@@ -303,6 +382,95 @@
   <div class="panel" id="panel-patients">
     <div class="section-header"><h2 class="section-title">Mes patients</h2></div>
     <div id="patients-list"><div class="loading">Chargement…</div></div>
+  </div>
+  <div class="panel" id="panel-scanner">
+    <div class="section-header">
+      <h2 class="section-title">Scanner un patient</h2>
+    </div>
+    <div style="max-width:520px;margin:0 auto;">
+
+      <!-- BLOC RECHERCHE MANUELLE -->
+      <div style="background:white;border-radius:24px;padding:28px;
+                  border:1px solid var(--border);
+                  box-shadow:0 2px 12px rgba(10,36,99,0.04);
+                  margin-bottom:20px;">
+        <div style="font-family:'Fraunces',serif;font-size:16px;
+                    font-weight:700;color:var(--bleu);margin-bottom:16px;">
+          Recherche manuelle
+        </div>
+        <div style="display:flex;gap:10px;">
+          <input type="text" id="search-patient-input"
+                 placeholder="Téléphone, nom ou numéro de compte..."
+                 style="flex:1;padding:12px 16px;border:1.5px solid var(--border);
+                        border-radius:12px;font-size:14px;
+                        font-family:'Plus Jakarta Sans',sans-serif;
+                        color:var(--texte);outline:none;
+                        transition:border-color 0.2s;"
+                 onfocus="this.style.borderColor='var(--bleu)'"
+                 onblur="this.style.borderColor='var(--border)'" />
+          <button id="btn-search-patient"
+                  style="padding:12px 20px;background:var(--grad-btn);
+                         color:white;border:none;border-radius:12px;
+                         font-size:14px;font-weight:700;cursor:pointer;
+                         font-family:'Plus Jakarta Sans',sans-serif;
+                         white-space:nowrap;">
+            Rechercher
+          </button>
+        </div>
+        <div style="font-size:12px;color:var(--texte-doux);margin-top:8px;">
+          Vous pouvez rechercher par numéro de téléphone, nom complet 
+          ou numéro de compte Bolamu.
+        </div>
+      </div>
+
+      <!-- BLOC SCANNER QR -->
+      <div style="background:white;border-radius:24px;padding:28px;
+                  border:1px solid var(--border);
+                  box-shadow:0 2px 12px rgba(10,36,99,0.04);
+                  margin-bottom:20px;">
+        <div style="font-family:'Fraunces',serif;font-size:16px;
+                    font-weight:700;color:var(--bleu);margin-bottom:16px;">
+          Scanner le QR code
+        </div>
+        <div style="font-size:14px;color:var(--texte-doux);
+                    margin-bottom:16px;line-height:1.6;">
+          Scannez le QR code Bolamu du patient pour accéder 
+          à sa fiche et démarrer la consultation.
+        </div>
+        <div id="qr-reader-medecin"
+             style="width:100%;border-radius:12px;overflow:hidden;">
+        </div>
+        <div id="scanner-status"
+             style="margin-top:14px;text-align:center;
+                    font-size:13px;color:var(--texte-doux);">
+          Pointez la caméra vers le QR code du patient
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;">
+          <button id="btn-start-scanner"
+                  style="flex:1;padding:12px;background:var(--grad-btn);
+                         color:white;border:none;border-radius:12px;
+                         font-size:14px;font-weight:700;cursor:pointer;
+                         font-family:'Plus Jakarta Sans',sans-serif;">
+            Activer la caméra
+          </button>
+          <button id="btn-stop-scanner"
+                  style="display:none;flex:1;padding:12px;
+                         background:var(--border);color:var(--texte);
+                         border:none;border-radius:12px;font-size:14px;
+                         font-weight:600;cursor:pointer;
+                         font-family:'Plus Jakarta Sans',sans-serif;">
+            Arrêter
+          </button>
+        </div>
+      </div>
+
+      <!-- RÉSULTAT -->
+      <div id="scanner-result" style="display:none;
+           background:white;border-radius:24px;padding:28px;
+           border:1px solid var(--border);
+           box-shadow:0 2px 12px rgba(10,36,99,0.04);">
+      </div>
+    </div>
   </div>
   <div class="panel" id="panel-telemedicine">
     <div class="section-header"><h2 class="section-title">Téléconsultations</h2></div>
@@ -458,6 +626,7 @@ function generateMedCode(p){
 }
 
 function showTab(name,btn){
+  if (name !== 'scanner') { arreterScannerMedecin(); }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -467,6 +636,7 @@ function showTab(name,btn){
   if(name==='patients')loadRdv();
 }
 function showTabMobile(name,btn){
+  if (name !== 'scanner') { arreterScannerMedecin(); }
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -1500,6 +1670,188 @@ async function savePatientConstantes() {
   }
 }
 
+var html5QrCodeMedecin = null;
+var scannerActifMedecin = false;
+
+function demarrerScannerMedecin() {
+  if (scannerActifMedecin) return;
+  html5QrCodeMedecin = new Html5Qrcode('qr-reader-medecin');
+  scannerActifMedecin = true;
+  document.getElementById('btn-start-scanner').style.display = 'none';
+  document.getElementById('btn-stop-scanner').style.display = 'block';
+  document.getElementById('scanner-status').textContent = 
+    'Scanner actif — pointez vers le QR code';
+  html5QrCodeMedecin.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    function(decodedText) {
+      arreterScannerMedecin().then(function() {
+        traiterPatientMedecin(decodedText, 'qr');
+      });
+    },
+    function() {}
+  ).catch(function() {
+    document.getElementById('scanner-status').textContent = 
+      'Erreur camera — verifiez les permissions';
+    scannerActifMedecin = false;
+    document.getElementById('btn-start-scanner').style.display = 'block';
+    document.getElementById('btn-stop-scanner').style.display = 'none';
+  });
+}
+
+function arreterScannerMedecin() {
+  if (html5QrCodeMedecin && scannerActifMedecin) {
+    return html5QrCodeMedecin.stop().then(function() {
+      html5QrCodeMedecin.clear();
+      scannerActifMedecin = false;
+      document.getElementById('btn-start-scanner').style.display = 'block';
+      document.getElementById('btn-stop-scanner').style.display = 'none';
+      document.getElementById('scanner-status').textContent = 
+        'Scanner arrete';
+    });
+  }
+  return Promise.resolve();
+}
+
+function rechercherPatientMedecin() {
+  var query = document.getElementById('search-patient-input').value.trim();
+  if (!query) return;
+  traiterPatientMedecin(query, 'search');
+}
+
+function traiterPatientMedecin(valeur, mode) {
+  var resultDiv = document.getElementById('scanner-result');
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<div style="text-align:center;padding:24px;'
+    + 'color:var(--texte-doux);">Recherche en cours...</div>';
+
+  var url;
+  if (mode === 'qr') {
+    var qrToken = valeur;
+    if (valeur.indexOf('token=') !== -1) {
+      qrToken = new URL(valeur).searchParams.get('token');
+    }
+    url = API + '/qr/verify?token=' + encodeURIComponent(qrToken);
+  } else {
+    url = API + '/patients/search?q=' + encodeURIComponent(valeur);
+  }
+
+  fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (!data.success || !data.data) {
+        resultDiv.innerHTML = '<div style="text-align:center;padding:24px;">'
+          + '<div style="font-size:14px;font-weight:700;color:var(--rouge);'
+          + 'margin-bottom:16px;">Aucun patient trouve</div>'
+          + '<button onclick="document.getElementById(\'search-patient-input\').focus()" '
+          + 'class="btn-valider">Nouvelle recherche</button></div>';
+        return;
+      }
+
+      var patients = Array.isArray(data.data) ? data.data : [data.data];
+
+      if (patients.length === 0) {
+        resultDiv.innerHTML = '<div style="text-align:center;padding:24px;'
+          + 'color:var(--texte-doux);font-size:14px;">Aucun resultat</div>';
+        return;
+      }
+
+      if (patients.length === 1) {
+        afficherFichePatientMedecin(patients[0], resultDiv);
+        return;
+      }
+
+      var html = '<div style="font-family:\'Fraunces\',serif;font-size:15px;'
+        + 'font-weight:700;color:var(--bleu);margin-bottom:16px;">'
+        + patients.length + ' patients trouves</div>';
+      patients.forEach(function(p) {
+        var initial = (p.full_name || p.phone || '?').charAt(0).toUpperCase();
+        html += '<div onclick="afficherFichePatientMedecin(' 
+          + JSON.stringify(p).replace(/'/g, "\\'") + ', document.getElementById(\'scanner-result\'))"'
+          + ' style="display:flex;align-items:center;gap:14px;padding:14px;'
+          + 'border-radius:14px;border:1px solid var(--border);margin-bottom:10px;'
+          + 'cursor:pointer;transition:background 0.2s;"'
+          + ' onmouseover="this.style.background=\'var(--bleu-pale)\'"'
+          + ' onmouseout="this.style.background=\'white\'">'
+          + '<div style="width:44px;height:44px;border-radius:12px;'
+          + 'background:var(--bleu-pale);display:flex;align-items:center;'
+          + 'justify-content:center;font-family:\'Fraunces\',serif;'
+          + 'font-size:18px;font-weight:900;color:var(--bleu);">'
+          + initial + '</div>'
+          + '<div><div style="font-size:14px;font-weight:700;">'
+          + (p.full_name || '') + '</div>'
+          + '<div style="font-size:13px;color:var(--texte-doux);">'
+          + p.phone + '</div></div></div>';
+      });
+      resultDiv.innerHTML = html;
+    })
+    .catch(function() {
+      resultDiv.innerHTML = '<div style="text-align:center;padding:24px;'
+        + 'color:var(--rouge);font-size:14px;">Erreur de connexion.</div>';
+    });
+}
+
+function afficherFichePatientMedecin(p, resultDiv) {
+  var statut = p.is_active ? 'Actif' : 'Inactif';
+  var statutColor = p.is_active ? 'var(--vert)' : 'var(--rouge)';
+  var statutBg = p.is_active ? 'var(--vert-clair)' : '#fee2e2';
+  var initial = (p.full_name || p.phone || '?').charAt(0).toUpperCase();
+  var rdvPatient = allRdvData ? allRdvData.find(function(r) {
+    return r.patient_phone === p.phone && 
+      (r.status === 'confirme' || r.status === 'en_cours');
+  }) : null;
+
+  var html = '<div style="display:flex;align-items:center;gap:16px;'
+    + 'margin-bottom:20px;padding-bottom:18px;'
+    + 'border-bottom:1px solid var(--border);">'
+    + '<div style="width:56px;height:56px;border-radius:16px;'
+    + 'background:var(--bleu-pale);display:flex;align-items:center;'
+    + 'justify-content:center;font-family:\'Fraunces\',serif;'
+    + 'font-size:22px;font-weight:900;color:var(--bleu);flex-shrink:0;">'
+    + initial + '</div>'
+    + '<div style="flex:1;">'
+    + '<div style="font-size:17px;font-weight:700;margin-bottom:4px;">'
+    + (p.full_name || '') + '</div>'
+    + '<div style="font-size:13px;color:var(--texte-doux);margin-bottom:8px;">'
+    + p.phone + '</div>'
+    + '<div style="display:inline-block;padding:4px 12px;border-radius:50px;'
+    + 'font-size:12px;font-weight:700;background:' + statutBg + ';'
+    + 'color:' + statutColor + ';">' + statut + '</div>'
+    + '</div></div>';
+
+  if (p.plan_nom) {
+    html += '<div style="background:var(--bleu-pale);border-radius:12px;'
+      + 'padding:12px 16px;margin-bottom:16px;font-size:14px;">'
+      + '<span style="color:var(--texte-doux);">Plan : </span>'
+      + '<strong>' + p.plan_nom + '</strong></div>';
+  }
+
+  if (rdvPatient) {
+    html += '<div style="background:var(--vert-clair);border-radius:12px;'
+      + 'padding:12px 16px;margin-bottom:16px;font-size:13px;'
+      + 'color:#047857;font-weight:600;">'
+      + 'RDV confirme — Code session : ' + rdvPatient.session_code + '</div>'
+      + '<button class="btn-valider" style="width:100%;margin-bottom:12px;"'
+      + ' onclick="ouvrirValidation(\'' + rdvPatient.id + '\',\''
+      + rdvPatient.patient_phone + '\',\'' + rdvPatient.session_code + '\',\''
+      + (rdvPatient.appointment_date || rdvPatient.date || '') + '\',\''
+      + (rdvPatient.appointment_time || '').substring(0,5) + '\',\'\')">'
+      + 'Demarrer la consultation</button>';
+  } else {
+    html += '<div style="background:#fef9ec;border-radius:12px;'
+      + 'padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400e;">'
+      + 'Aucun RDV confirme pour ce patient aujourd\'hui.</div>';
+  }
+
+  html += '<button onclick="document.getElementById(\'scanner-result\').style.display=\'none\';'
+    + 'document.getElementById(\'search-patient-input\').value=\'\';"'
+    + ' style="width:100%;padding:12px;background:var(--border);color:var(--texte);'
+    + 'border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;'
+    + 'font-family:\'Plus Jakarta Sans\',sans-serif;">Nouvelle recherche</button>';
+
+  resultDiv.innerHTML = html;
+}
+
 loadProfil();loadRdv();loadPosition();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1510,6 +1862,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-accueil').addEventListener('click', () => showTab('accueil', document.getElementById('tab-accueil')));
   document.getElementById('tab-rdv').addEventListener('click', () => showTab('rdv', document.getElementById('tab-rdv')));
   document.getElementById('tab-patients').addEventListener('click', () => showTab('patients', document.getElementById('tab-patients')));
+  document.getElementById('tab-scanner').addEventListener('click', () => showTab('scanner', document.getElementById('tab-scanner')));
   document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
   document.getElementById('tab-telemedicine').addEventListener('click', () => showTab('telemedicine', document.getElementById('tab-telemedicine')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
@@ -1519,7 +1872,16 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('bnav-rdv').addEventListener('click', () => showTabMobile('rdv', document.getElementById('bnav-rdv')));
   document.getElementById('bnav-telemedicine').addEventListener('click', () => showTabMobile('telemedicine', document.getElementById('bnav-telemedicine')));
   document.getElementById('bnav-patients').addEventListener('click', () => showTabMobile('patients', document.getElementById('bnav-patients')));
+  document.getElementById('bnav-scanner').addEventListener('click', () => showTabMobile('scanner', document.getElementById('bnav-scanner')));
   document.getElementById('bnav-profil').addEventListener('click', () => showTabMobile('profil', document.getElementById('bnav-profil')));
+
+  // Scanner QR buttons
+  document.getElementById('btn-start-scanner').addEventListener('click', demarrerScannerMedecin);
+  document.getElementById('btn-stop-scanner').addEventListener('click', arreterScannerMedecin);
+  document.getElementById('btn-search-patient').addEventListener('click', rechercherPatientMedecin);
+  document.getElementById('search-patient-input').addEventListener('keypress', function(e) { 
+    if (e.key === 'Enter') rechercherPatientMedecin(); 
+  });
 
   // Jitsi buttons
   document.getElementById('btn-close-jitsi').addEventListener('click', closeJitsi);

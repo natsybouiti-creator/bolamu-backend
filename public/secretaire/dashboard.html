@@ -1203,6 +1203,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           <span>Patients</span>
         </button>
+        <button class="nav-item" data-tab="verifier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <span>Vérifier adhérent</span>
+        </button>
         <button class="nav-item" data-tab="medecins">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
           <span>Médecins</span>
@@ -1238,6 +1242,10 @@
         <button class="bnav-item" data-tab="patients">
           <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           <span class="bnav-label">Patients</span>
+        </button>
+        <button class="bnav-item" data-tab="verifier">
+          <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <span class="bnav-label">Vérifier</span>
         </button>
         <button class="bnav-item" data-tab="medecins">
           <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
@@ -1411,6 +1419,95 @@
           </div>
         </section>
 
+        <!-- Onglet Vérifier adhérent -->
+        <section id="tab-verifier" class="tab">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Vérifier un adhérent</div>
+            </div>
+            <div style="max-width:520px;margin:0 auto;padding:20px;">
+
+              <!-- BLOC RECHERCHE MANUELLE -->
+              <div style="background:white;border-radius:16px;padding:20px;
+                          border:1px solid var(--border);
+                          box-shadow:0 2px 8px rgba(10,36,99,0.04);
+                          margin-bottom:16px;">
+                <div style="font-family:'Fraunces',serif;font-size:15px;
+                            font-weight:700;color:var(--bleu);margin-bottom:12px;">
+                  Recherche manuelle
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <input type="text" id="search-patient-input-sec-tab"
+                         placeholder="Téléphone, nom ou numéro de compte..."
+                         style="flex:1;padding:10px 14px;border:1.5px solid var(--border);
+                                border-radius:10px;font-size:14px;
+                                font-family:'Plus Jakarta Sans',sans-serif;
+                                color:var(--texte);outline:none;
+                                transition:border-color 0.2s;"
+                         onfocus="this.style.borderColor='var(--bleu)'"
+                         onblur="this.style.borderColor='var(--border)'" />
+                  <button id="btn-search-patient-sec-tab"
+                          style="padding:10px 16px;background:var(--grad-btn);
+                                 color:white;border:none;border-radius:10px;
+                                 font-size:14px;font-weight:700;cursor:pointer;
+                                 font-family:'Plus Jakarta Sans',sans-serif;
+                                 white-space:nowrap;">
+                    Rechercher
+                  </button>
+                </div>
+              </div>
+
+              <!-- BLOC SCANNER QR -->
+              <div style="background:white;border-radius:16px;padding:20px;
+                          border:1px solid var(--border);
+                          box-shadow:0 2px 8px rgba(10,36,99,0.04);
+                          margin-bottom:16px;">
+                <div style="font-family:'Fraunces',serif;font-size:15px;
+                            font-weight:700;color:var(--bleu);margin-bottom:12px;">
+                  Scanner le QR code
+                </div>
+                <div style="font-size:13px;color:var(--texte-doux);
+                            margin-bottom:12px;line-height:1.5;">
+                  Scannez le QR code Bolamu du patient pour vérifier 
+                  son adhésion et sa couverture.
+                </div>
+                <div id="qr-reader-sec-tab"
+                     style="width:100%;border-radius:10px;overflow:hidden;">
+                </div>
+                <div id="scanner-status-sec-tab"
+                     style="margin-top:12px;text-align:center;
+                            font-size:12px;color:var(--texte-doux);">
+                  Pointez la caméra vers le QR code du patient
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                  <button id="btn-start-scanner-sec-tab"
+                          style="flex:1;padding:10px;background:var(--grad-btn);
+                                 color:white;border:none;border-radius:10px;
+                                 font-size:14px;font-weight:700;cursor:pointer;
+                                 font-family:'Plus Jakarta Sans',sans-serif;">
+                    Activer la caméra
+                  </button>
+                  <button id="btn-stop-scanner-sec-tab"
+                          style="display:none;flex:1;padding:10px;
+                                 background:var(--border);color:var(--texte);
+                                 border:none;border-radius:10px;font-size:14px;
+                                 font-weight:600;cursor:pointer;
+                                 font-family:'Plus Jakarta Sans',sans-serif;">
+                    Arrêter
+                  </button>
+                </div>
+              </div>
+
+              <!-- RÉSULTAT -->
+              <div id="scanner-result-sec-tab" style="display:none;
+                   background:white;border-radius:16px;padding:20px;
+                   border:1px solid var(--border);
+                   box-shadow:0 2px 8px rgba(10,36,99,0.04);">
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Onglet Médecins -->
         <section id="tab-medecins" class="tab">
           <div class="card">
@@ -1570,6 +1667,7 @@
     }
 
     function showTab(tabId) {
+      if (tabId !== 'verifier') { arreterScannerSecTab(); }
       currentTab = tabId;
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -2322,6 +2420,167 @@
       loadDashboardStats();
     }
 
+  var html5QrCodeSecTab = null;
+  var scannerActifSecTab = false;
+
+  function demarrerScannerSecTab() {
+    if (scannerActifSecTab) return;
+    html5QrCodeSecTab = new Html5Qrcode('qr-reader-sec-tab');
+    scannerActifSecTab = true;
+    document.getElementById('btn-start-scanner-sec-tab').style.display = 'none';
+    document.getElementById('btn-stop-scanner-sec-tab').style.display = 'block';
+    document.getElementById('scanner-status-sec-tab').textContent = 
+      'Scanner actif — pointez vers le QR code';
+    html5QrCodeSecTab.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      function(decodedText) {
+        arreterScannerSecTab().then(function() {
+          traiterPatientSecTab(decodedText, 'qr');
+        });
+      },
+      function() {}
+    ).catch(function() {
+      document.getElementById('scanner-status-sec-tab').textContent = 
+        'Erreur camera — verifiez les permissions';
+      scannerActifSecTab = false;
+      document.getElementById('btn-start-scanner-sec-tab').style.display = 'block';
+      document.getElementById('btn-stop-scanner-sec-tab').style.display = 'none';
+    });
+  }
+
+  function arreterScannerSecTab() {
+    if (html5QrCodeSecTab && scannerActifSecTab) {
+      return html5QrCodeSecTab.stop().then(function() {
+        html5QrCodeSecTab.clear();
+        scannerActifSecTab = false;
+        document.getElementById('btn-start-scanner-sec-tab').style.display = 'block';
+        document.getElementById('btn-stop-scanner-sec-tab').style.display = 'none';
+        document.getElementById('scanner-status-sec-tab').textContent = 
+          'Scanner arrete';
+      });
+    }
+    return Promise.resolve();
+  }
+
+  function rechercherPatientSecTab() {
+    var query = document.getElementById('search-patient-input-sec-tab').value.trim();
+    if (!query) return;
+    traiterPatientSecTab(query, 'search');
+  }
+
+  function traiterPatientSecTab(valeur, mode) {
+    var resultDiv = document.getElementById('scanner-result-sec-tab');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div style="text-align:center;padding:20px;'
+      + 'color:var(--texte-doux);">Recherche en cours...</div>';
+
+    var url;
+    if (mode === 'qr') {
+      var qrToken = valeur;
+      if (valeur.indexOf('token=') !== -1) {
+        qrToken = new URL(valeur).searchParams.get('token');
+      }
+      url = API + '/qr/verify?token=' + encodeURIComponent(qrToken);
+    } else {
+      url = API + '/patients/search?q=' + encodeURIComponent(valeur);
+    }
+
+    fetch(url, { headers: { 'Authorization': 'Bearer ' + getToken() } })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data.success || !data.data) {
+          resultDiv.innerHTML = '<div style="text-align:center;padding:20px;">'
+            + '<div style="font-size:14px;font-weight:700;color:var(--rouge);'
+            + 'margin-bottom:16px;">Aucun patient trouve</div>'
+            + '<button onclick="document.getElementById(\'search-patient-input-sec-tab\').focus()" '
+            + 'class="btn-valider">Nouvelle recherche</button></div>';
+          return;
+        }
+
+        var patients = Array.isArray(data.data) ? data.data : [data.data];
+
+        if (patients.length === 0) {
+          resultDiv.innerHTML = '<div style="text-align:center;padding:20px;'
+            + 'color:var(--texte-doux);font-size:14px;">Aucun resultat</div>';
+          return;
+        }
+
+        if (patients.length === 1) {
+          afficherFichePatientSecTab(patients[0], resultDiv);
+          return;
+        }
+
+        var html = '<div style="font-family:\'Fraunces\',serif;font-size:15px;'
+          + 'font-weight:700;color:var(--bleu);margin-bottom:16px;">'
+          + patients.length + ' patients trouves</div>';
+        patients.forEach(function(p) {
+          var initial = (p.full_name || p.phone || '?').charAt(0).toUpperCase();
+          html += '<div onclick="afficherFichePatientSecTab(' 
+            + JSON.stringify(p).replace(/'/g, "\\'") + ', document.getElementById(\'scanner-result-sec-tab\'))"'
+            + ' style="display:flex;align-items:center;gap:12px;padding:12px;'
+            + 'border-radius:12px;border:1px solid var(--border);margin-bottom:8px;'
+            + 'cursor:pointer;transition:background 0.2s;"'
+            + ' onmouseover="this.style.background=\'var(--bleu-pale)\'"'
+            + ' onmouseout="this.style.background=\'white\'">'
+            + '<div style="width:40px;height:40px;border-radius:10px;'
+            + 'background:var(--bleu-pale);display:flex;align-items:center;'
+            + 'justify-content:center;font-family:\'Fraunces\',serif;'
+            + 'font-size:16px;font-weight:900;color:var(--bleu);">'
+            + initial + '</div>'
+            + '<div><div style="font-size:14px;font-weight:700;">'
+            + (p.full_name || '') + '</div>'
+            + '<div style="font-size:12px;color:var(--texte-doux);">'
+            + p.phone + '</div></div></div>';
+        });
+        resultDiv.innerHTML = html;
+      })
+      .catch(function() {
+        resultDiv.innerHTML = '<div style="text-align:center;padding:20px;'
+          + 'color:var(--rouge);font-size:14px;">Erreur de connexion.</div>';
+      });
+  }
+
+  function afficherFichePatientSecTab(p, resultDiv) {
+    var statut = p.is_active ? 'Actif' : 'Inactif';
+    var statutColor = p.is_active ? 'var(--vert)' : 'var(--rouge)';
+    var statutBg = p.is_active ? 'var(--vert-clair)' : '#fee2e2';
+    var initial = (p.full_name || p.phone || '?').charAt(0).toUpperCase();
+
+    var html = '<div style="display:flex;align-items:center;gap:14px;'
+      + 'margin-bottom:16px;padding-bottom:14px;'
+      + 'border-bottom:1px solid var(--border);">'
+      + '<div style="width:52px;height:52px;border-radius:14px;'
+      + 'background:var(--bleu-pale);display:flex;align-items:center;'
+      + 'justify-content:center;font-family:\'Fraunces\',serif;'
+      + 'font-size:20px;font-weight:900;color:var(--bleu);flex-shrink:0;">'
+      + initial + '</div>'
+      + '<div style="flex:1;">'
+      + '<div style="font-size:16px;font-weight:700;margin-bottom:4px;">'
+      + (p.full_name || '') + '</div>'
+      + '<div style="font-size:13px;color:var(--texte-doux);margin-bottom:6px;">'
+      + p.phone + '</div>'
+      + '<div style="display:inline-block;padding:4px 10px;border-radius:50px;'
+      + 'font-size:12px;font-weight:700;background:' + statutBg + ';'
+      + 'color:' + statutColor + ';">' + statut + '</div>'
+      + '</div></div>';
+
+    if (p.plan_nom) {
+      html += '<div style="background:var(--bleu-pale);border-radius:10px;'
+        + 'padding:10px 14px;margin-bottom:12px;font-size:13px;">'
+        + '<span style="color:var(--texte-doux);">Plan : </span>'
+        + '<strong>' + p.plan_nom + '</strong></div>';
+    }
+
+    html += '<button onclick="document.getElementById(\'scanner-result-sec-tab\').style.display=\'none\';'
+      + 'document.getElementById(\'search-patient-input-sec-tab\').value=\'\';"'
+      + ' style="width:100%;padding:10px;background:var(--border);color:var(--texte);'
+      + 'border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;'
+      + 'font-family:\'Plus Jakarta Sans\',sans-serif;">Nouvelle recherche</button>';
+
+    resultDiv.innerHTML = html;
+  }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const token = getToken();
       const phone = getPhone();
@@ -2360,6 +2619,14 @@
       // Scanner QR event listeners
       document.getElementById('btn-start-scanner-sec').addEventListener('click', startScannerSec);
       document.getElementById('btn-stop-scanner-sec').addEventListener('click', stopScannerSec);
+      
+      // Scanner QR tab-verifier event listeners
+      document.getElementById('btn-start-scanner-sec-tab').addEventListener('click', demarrerScannerSecTab);
+      document.getElementById('btn-stop-scanner-sec-tab').addEventListener('click', arreterScannerSecTab);
+      document.getElementById('btn-search-patient-sec-tab').addEventListener('click', rechercherPatientSecTab);
+      document.getElementById('search-patient-input-sec-tab').addEventListener('keypress', function(e) { 
+        if (e.key === 'Enter') rechercherPatientSecTab(); 
+      });
       
       document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => showTab(item.dataset.tab));
