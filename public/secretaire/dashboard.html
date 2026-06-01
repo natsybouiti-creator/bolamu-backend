@@ -12,9 +12,16 @@
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script type="module">
-import { BrowserQRCodeReader } from 'https://unpkg.com/@zxing/browser@0.1.4/esm/index.js';
-window.ZXingReader = new BrowserQRCodeReader();
+  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+  <script>
+  var ZXingReader = null;
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      ZXingReader = new ZXing.BrowserQRCodeReader();
+    } catch(e) {
+      console.warn('ZXing non disponible:', e);
+    }
+  });
 </script>
   <style>
     :root {
@@ -2237,7 +2244,6 @@ window.ZXingReader = new BrowserQRCodeReader();
     }
 
     // ─── SCANNER QR CODE ADHÉRENT ───────────────────────────────────────
-    let html5QrCodeSec = null;
     let isScanningSec = false;
 
     function openScannerModal() {
@@ -2250,50 +2256,50 @@ window.ZXingReader = new BrowserQRCodeReader();
     }
 
     function startScannerSec() {
-      if (isScanningSec) return;
+      if (isScanningSec || !ZXingReader) return;
       
-      const qrReader = document.getElementById('qr-reader-secretaire');
       const statusDiv = document.getElementById('scanner-sec-status');
       const startBtn = document.getElementById('btn-start-scanner-sec');
       const stopBtn = document.getElementById('btn-stop-scanner-sec');
       
-      html5QrCodeSec = new Html5Qrcode("qr-reader-secretaire");
+      isScanningSec = true;
+      statusDiv.textContent = 'Scanner actif — positionnez le QR Code devant la caméra';
+      statusDiv.style.color = '#00C9A7';
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
       
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-      
-      html5QrCodeSec.start({ facingMode: "environment" }, config, onScanSuccessSec, onScanFailureSec)
-        .then(() => {
-          isScanningSec = true;
-          statusDiv.textContent = 'Scanner actif — positionnez le QR Code devant la caméra';
-          statusDiv.style.color = '#00C9A7';
-          startBtn.disabled = true;
-          stopBtn.disabled = false;
-        })
-        .catch(err => {
-          statusDiv.textContent = 'Erreur: ' + err;
-          statusDiv.style.color = '#e74c3c';
-        });
+      ZXingReader.decodeFromVideoDevice(
+        undefined,
+        'qr-reader-secretaire',
+        function(result, err) {
+          if (result && isScanningSec) {
+            stopScannerSec().then(function() {
+              traiterAdherentSecretaire(result.getText(), 'qr');
+            });
+          }
+        }
+      );
     }
 
     function stopScannerSec() {
-      if (!isScanningSec || !html5QrCodeSec) return;
+      if (!isScanningSec) return Promise.resolve();
       
-      html5QrCodeSec.stop().then(() => {
-        isScanningSec = false;
-        html5QrCodeSec.clear();
-        html5QrCodeSec = null;
-        
-        const statusDiv = document.getElementById('scanner-sec-status');
-        const startBtn = document.getElementById('btn-start-scanner-sec');
-        const stopBtn = document.getElementById('btn-stop-scanner-sec');
-        
-        statusDiv.textContent = 'Scanner arrêté';
-        statusDiv.style.color = 'var(--texte-doux)';
-        startBtn.disabled = false;
-        stopBtn.disabled = true;
-      }).catch(err => {
-        console.error('Erreur arrêt scanner:', err);
-      });
+      isScanningSec = false;
+      
+      const statusDiv = document.getElementById('scanner-sec-status');
+      const startBtn = document.getElementById('btn-start-scanner-sec');
+      const stopBtn = document.getElementById('btn-stop-scanner-sec');
+      
+      statusDiv.textContent = 'Scanner arrêté';
+      statusDiv.style.color = 'var(--texte-doux)';
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      
+      if (ZXingReader) {
+        try { ZXingReader.reset(); } catch(e) {}
+      }
+      
+      return Promise.resolve();
     }
 
     async function onScanSuccessSec(decodedText, decodedResult) {
@@ -2445,17 +2451,22 @@ window.ZXingReader = new BrowserQRCodeReader();
 
   function demarrerScannerSecTab() {
     if (scannerActifSecTab) return;
+    if (!ZXingReader) {
+      document.getElementById('scanner-status-sec-tab').textContent =
+        'Lecteur QR non disponible — rechargez la page';
+      return;
+    }
     scannerActifSecTab = true;
     document.getElementById('btn-start-scanner-sec-tab').style.display = 'none';
     document.getElementById('btn-stop-scanner-sec-tab').style.display = 'block';
     document.getElementById('scanner-status-sec-tab').textContent = 
       'Scanner actif — pointez vers le QR code';
     
-    window.ZXingReader.decodeFromVideoDevice(
+    ZXingReader.decodeFromVideoDevice(
       undefined,
       'qr-reader-sec-tab',
-      function(result, error) {
-        if (result) {
+      function(result, err) {
+        if (result && scannerActifSecTab) {
           arreterScannerSecTab();
           traiterPatientSecTab(result.getText(), 'qr');
         }
@@ -2468,8 +2479,8 @@ window.ZXingReader = new BrowserQRCodeReader();
     document.getElementById('btn-start-scanner-sec-tab').style.display = 'block';
     document.getElementById('btn-stop-scanner-sec-tab').style.display = 'none';
     document.getElementById('scanner-status-sec-tab').textContent = 'Scanner arrêté';
-    if (window.ZXingReader) {
-      window.ZXingReader.reset();
+    if (ZXingReader) {
+      try { ZXingReader.reset(); } catch(e) {}
     }
   }
 

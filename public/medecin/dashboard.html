@@ -12,9 +12,16 @@
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script type="module">
-import { BrowserQRCodeReader } from 'https://unpkg.com/@zxing/browser@0.1.4/esm/index.js';
-window.ZXingReader = new BrowserQRCodeReader();
+  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+  <script>
+  var ZXingReader = null;
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      ZXingReader = new ZXing.BrowserQRCodeReader();
+    } catch(e) {
+      console.warn('ZXing non disponible:', e);
+    }
+  });
 </script>
   <style>
     :root{
@@ -1700,17 +1707,21 @@ var scannerActifMedecin = false;
 
 function demarrerScannerMedecin() {
   if (scannerActifMedecin) return;
+  if (!ZXingReader) {
+    document.getElementById('scanner-status').textContent =
+      'Lecteur QR non disponible — rechargez la page';
+    return;
+  }
   scannerActifMedecin = true;
   document.getElementById('btn-start-scanner').style.display = 'none';
   document.getElementById('btn-stop-scanner').style.display = 'block';
-  document.getElementById('scanner-status').textContent = 
+  document.getElementById('scanner-status').textContent =
     'Scanner actif — pointez vers le QR code';
-  
-  window.ZXingReader.decodeFromVideoDevice(
+  ZXingReader.decodeFromVideoDevice(
     undefined,
     'qr-reader-medecin',
-    function(result, error) {
-      if (result) {
+    function(result, err) {
+      if (result && scannerActifMedecin) {
         arreterScannerMedecin();
         traiterPatientMedecin(result.getText(), 'qr');
       }
@@ -1723,9 +1734,10 @@ function arreterScannerMedecin() {
   document.getElementById('btn-start-scanner').style.display = 'block';
   document.getElementById('btn-stop-scanner').style.display = 'none';
   document.getElementById('scanner-status').textContent = 'Scanner arrêté';
-  if (window.ZXingReader) {
-    window.ZXingReader.reset();
+  if (ZXingReader) {
+    try { ZXingReader.reset(); } catch(e) {}
   }
+  return Promise.resolve();
 }
 
 function rechercherPatientMedecin() {
