@@ -499,4 +499,140 @@ router.post('/rdv', requireAgent, async (req, res) => {
   }
 });
 
+// ─── POST /import-employes ───────────────────────────────────────────────────────
+// Import en masse d'employés pour Smart Flow (création comptes + abonnements)
+router.post('/import-employes', requireAgent, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { employes } = req.body;
+
+    if (!Array.isArray(employes) || employes.length === 0) {
+      return res.status(400).json({ success: false, message: 'employes doit être un tableau non vide' });
+    }
+
+    // Prix depuis platform_config
+    const planPrices = {};
+    for (const planKey of ['essentiel', 'standard', 'premium']) {
+      const cfg = await client.query(
+        `SELECT config_value FROM platform_config WHERE config_key = $1`,
+        [`price_${planKey}`]
+      );
+      if (cfg.rows.length) {
+        planPrices[planKey] = parseInt(cfg.rows[0].config_value, 10);
+      }
+    }
+
+    await client.query('BEGIN');
+
+    const results = [];
+    const errors = [];
+
+    for (const emp of employes) {
+      const { nom, prenom, phone, categorie_rh, plan, payment_method } = emp;
+
+      if (!nom || !prenom || !phone || !plan || !payment_method) {
+        errors.push({ phone, error: 'Champs manquants' });
+        continue;
+      }
+
+      const planEnum = PLAN_MAP[String(plan).toLowerCase()] || String(plan).toLowerCase();
+      if (!['essentiel', 'standard', 'premium'].includes(planEnum)) {
+        errors.push({ phone, error: 'Plan invalide' });
+        continue;
+      }
+
+      const amount = planPrices[planEnum];
+      if (!amount) {
+        errors.push({ phone, error: 'Tarif introuvable pour le plan' });
+        continue;
+      }
+
+      try {
+        // Vérifier si l'utilisateur existe déjà
+        const existing = await client.query(
+          `SELECT phone, member_code FROM users WHERE phone = $1`,
+          [phone]
+        );
+
+        let memberCode;
+        if (!existing.rows.length) {
+          // Nouveau patient : générer member_code via MAX+1
+          const codeRes = await client.query(
+            `SELECT COALESCE(MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)), 0) + 1 AS next
+             FROM users WHERE member_code ~ '^BLM-[0-9]+$'`
+          );
+          memberCode = `BLM-${String(codeRes.rows[0].next).padStart(5, '0')}`;
+          const fullName = `${prenom} ${nom}`.trim();
+
+          // Générer mot de passe temporaire
+          const tempPassword = crypto.randomBytes(6).toString('hex').toUpperCase();
+          const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+          await client.query(
+            `INSERT INTO users (phone, full_name, first_name, last_name, role, is_active, statut_abonnement, member_code, password, temp_password_must_change)
+             VALUES ($1, $2, $3, $4, 'patient', true, 'en_attente', $5, $6, true)`,
+            [phone, fullName, prenom, nom, memberCode, hashedPassword]
+          );
+        } else {
+          memberCode = existing.rows[0].member_code;
+        }
+
+        // Créer l'abonnement
+        const expires = new Date();
+        expires.setMonth(expires.getMonth() + 1);
+
+        const paymentRef = `AGENT-IMPORT-${payment_method.toUpperCase()}-${Date.now()}-${phone}`;
+
+        const sub = await client.query(
+          `INSERT INTO subscriptions (patient_phone, plan, status, amount_fcfa, started_at, expires_at, payment_reference)
+           VALUES ($1, $2, 'active', $3, NOW(), $4, $5)
+           RETURNING id`,
+          [phone, planEnum, amount, expires, paymentRef]
+        );
+
+        // Mettre à jour le statut du patient
+        await client.query(
+          `UPDATE users SET statut_abonnement = 'actif' WHERE phone = $1`,
+          [phone]
+        );
+
+        // Audit log
+        await client.query(
+          `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+           VALUES ('agent.import_employe', $1, 'subscriptions', $2, $3::jsonb)`,
+          [req.user.phone, sub.rows[0].id, JSON.stringify({ patient_phone: phone, plan: planEnum, amount, payment_method })]
+        );
+
+        results.push({
+          phone,
+          nom,
+          prenom,
+          plan: planEnum,
+          subscription_id: sub.rows[0].id,
+          member_code: memberCode
+        });
+      } catch (empErr) {
+        await client.query('ROLLBACK');
+        console.error('[AGENCE IMPORT EMPLOYE]', empErr.message);
+        return res.status(500).json({ success: false, message: `Erreur pour ${phone}: ${empErr.message}` });
+      }
+    }
+
+    await client.query('COMMIT');
+    res.json({
+      success: true,
+      imported: results.length,
+      errors: errors.length,
+      results,
+      errors
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[AGENCE IMPORT EMPLOYES]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 module.exports = router;

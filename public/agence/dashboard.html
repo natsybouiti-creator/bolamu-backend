@@ -360,6 +360,7 @@
       .verification-bloc { padding: 16px; }
     }
   </style>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -706,6 +707,58 @@
               <div id="w-souscription-result" class="hidden"></div>
             </div>
 
+          </div>
+
+          <!-- IMPORT MASSE EMPLOYES -->
+          <div class="card" style="margin-top:32px;">
+            <div class="card-title">Import employés en masse</div>
+            <p style="color:var(--texte-doux);font-size:14px;margin-bottom:16px;">Importez une liste d'employés depuis un fichier Excel/CSV pour créer leurs comptes en une seule opération.</p>
+            <div class="form-group">
+              <label>Fichier Excel/CSV *</label>
+              <input type="file" id="import-employes-file" accept=".xlsx,.xls,.csv" />
+            </div>
+            <div class="form-group">
+              <label>Plan d'abonnement *</label>
+              <select id="import-plan-select">
+                <option value="">Sélectionner</option>
+                <option value="essentiel">Essentiel</option>
+                <option value="standard">Standard</option>
+                <option value="premium">Premium</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Mode de paiement *</label>
+              <select id="import-payment-select">
+                <option value="">Sélectionner</option>
+                <option value="mtn_momo">MTN MoMo</option>
+                <option value="airtel_money">Airtel Money</option>
+                <option value="especes">Espèces</option>
+                <option value="virement">Virement</option>
+              </select>
+            </div>
+            <button class="btn-primary" id="btn-import-employes-preview">Aperçu</button>
+
+            <!-- Preview -->
+            <div id="import-employes-preview" style="display:none;margin-top:24px;">
+              <h4 style="font-size:15px;font-weight:700;margin-bottom:12px;">Aperçu avant import</h4>
+              <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                  <thead style="background:var(--fond);position:sticky;top:0;">
+                    <tr>
+                      <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Nom</th>
+                      <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Prénom</th>
+                      <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Téléphone</th>
+                      <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Catégorie RH</th>
+                    </tr>
+                  </thead>
+                  <tbody id="import-employes-preview-body"></tbody>
+                </table>
+              </div>
+              <div style="margin-top:16px;display:flex;gap:12px;">
+                <button class="btn-primary" id="btn-confirm-import-employes" style="background:var(--vert);">Confirmer l'import</button>
+                <button class="btn-secondary" id="btn-cancel-import-employes">Annuler</button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1791,6 +1844,132 @@
       document.getElementById('w-momo-field').classList.add('hidden');
       document.getElementById('w-virement-field').classList.add('hidden');
     }
+
+    // ─── Import employés en masse ───
+    let importEmployesData = [];
+
+    function normalizePhone(phone) {
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length === 10 && digits.startsWith('0')) {
+        return '+242' + digits;
+      }
+      if (digits.length === 9) {
+        return '+2420' + digits;
+      }
+      if (digits.length === 12 && digits.startsWith('242')) {
+        return '+' + digits;
+      }
+      return null;
+    }
+
+    document.getElementById('btn-import-employes-preview').addEventListener('click', async () => {
+      const fileInput = document.getElementById('import-employes-file');
+      const file = fileInput.files[0];
+      const plan = document.getElementById('import-plan-select').value;
+      const payment = document.getElementById('import-payment-select').value;
+
+      if (!file) { alert('Veuillez sélectionner un fichier Excel/CSV.'); return; }
+      if (!plan) { alert('Veuillez sélectionner un plan d\'abonnement.'); return; }
+      if (!payment) { alert('Veuillez sélectionner un mode de paiement.'); return; }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+          if (jsonData.length < 2) {
+            alert('Le fichier est vide ou mal formaté.');
+            return;
+          }
+
+          const headers = jsonData[0].map(h => String(h).toLowerCase());
+          const nomIdx = headers.findIndex(h => h.includes('nom') && !h.includes('prenom'));
+          const prenomIdx = headers.findIndex(h => h.includes('prenom'));
+          const phoneIdx = headers.findIndex(h => h.includes('phone') || h.includes('tel') || h.includes('mobile'));
+          const categorieIdx = headers.findIndex(h => h.includes('categorie') || h.includes('catégorie') || h.includes('rh'));
+
+          if (nomIdx === -1 || prenomIdx === -1 || phoneIdx === -1) {
+            alert('Colonnes requises : "Nom", "Prénom", "Téléphone"');
+            return;
+          }
+
+          importEmployesData = [];
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            const phoneRaw = row[phoneIdx] ? String(row[phoneIdx]).trim() : '';
+            const phoneNorm = normalizePhone(phoneRaw);
+            if (phoneNorm && row[nomIdx] && row[prenomIdx]) {
+              importEmployesData.push({
+                nom: String(row[nomIdx]).trim(),
+                prenom: String(row[prenomIdx]).trim(),
+                phone: phoneNorm,
+                categorie_rh: categorieIdx !== -1 ? String(row[categorieIdx]).trim() : 'employe',
+                plan: plan,
+                payment_method: payment
+              });
+            }
+          }
+
+          if (importEmployesData.length === 0) {
+            alert('Aucun employé valide trouvé. Vérifiez le format des numéros de téléphone (+2420XXXXXXXX).');
+            return;
+          }
+
+          renderImportEmployesPreview();
+          document.getElementById('import-employes-preview').style.display = 'block';
+        } catch(err) {
+          alert('Erreur lors de la lecture du fichier : ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function renderImportEmployesPreview() {
+      const tbody = document.getElementById('import-employes-preview-body');
+      tbody.innerHTML = importEmployesData.map(emp => `
+        <tr>
+          <td style="padding:10px;border-bottom:1px solid var(--border);">${emp.nom}</td>
+          <td style="padding:10px;border-bottom:1px solid var(--border);">${emp.prenom}</td>
+          <td style="padding:10px;border-bottom:1px solid var(--border);">${emp.phone}</td>
+          <td style="padding:10px;border-bottom:1px solid var(--border);">${emp.categorie_rh}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('btn-cancel-import-employes').addEventListener('click', () => {
+      document.getElementById('import-employes-preview').style.display = 'none';
+      document.getElementById('import-employes-file').value = '';
+      importEmployesData = [];
+    });
+
+    document.getElementById('btn-confirm-import-employes').addEventListener('click', async () => {
+      if (importEmployesData.length === 0) {
+        alert('Aucune donnée à importer.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/agence/import-employes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+          body: JSON.stringify({ employes: importEmployesData })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`${importEmployesData.length} employé(s) importé(s) avec succès !`);
+          document.getElementById('import-employes-preview').style.display = 'none';
+          document.getElementById('import-employes-file').value = '';
+          importEmployesData = [];
+        } else {
+          alert('Erreur lors de l\'import : ' + (data.message || 'Erreur serveur'));
+        }
+      } catch(e) {
+        alert('Erreur de connexion.');
+      }
+    });
 
     // ─── Init ───
     document.addEventListener('DOMContentLoaded', () => {

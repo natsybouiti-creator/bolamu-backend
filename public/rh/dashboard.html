@@ -207,10 +207,11 @@
   </div>
 
   <div class="tabs-bar">
-    <button class="tab active" id="tab-overview" data-tab="overview">📊 Vue d'ensemble</button>
-    <button class="tab" id="tab-employes" data-tab="employes">👥 Détail employés</button>
-    <button class="tab" id="tab-export" data-tab="export">📁 Export paie</button>
-    <button class="tab" id="tab-config" data-tab="config">⚙️ Configuration</button>
+    <button class="tab active" id="tab-overview" data-tab="overview">Vue d'ensemble</button>
+    <button class="tab" id="tab-employes" data-tab="employes">Détail employés</button>
+    <button class="tab" id="tab-retenues" data-tab="retenues">Retenues du mois</button>
+    <button class="tab" id="tab-export" data-tab="export">Export paie</button>
+    <button class="tab" id="tab-config" data-tab="config">Configuration</button>
   </div>
 
   <div class="main">
@@ -287,6 +288,40 @@
       </div>
     </div>
 
+    <div class="panel" id="panel-retenues">
+      <div class="section-header">
+        <h2 class="section-title">Retenues du mois</h2>
+        <div class="section-subtitle">Validation mensuelle des retenues sur salaire</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mois de validation</label>
+        <input type="month" id="retenues-mois" class="form-input">
+      </div>
+      <button class="btn-primary" id="btn-charger-retenues">Charger les données</button>
+      <div id="retenues-container" style="margin-top:24px;display:none;">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Récapitulatif des retenues</div>
+            <button class="btn-primary" id="btn-valider-retenues" style="background:var(--emeraude);">Valider les retenues</button>
+          </div>
+          <table id="retenues-table">
+            <thead>
+              <tr>
+                <th>Employé</th>
+                <th>Catégorie RH</th>
+                <th>Salaire brut FCFA</th>
+                <th>Montant retenue FCFA</th>
+                <th>% retenu</th>
+                <th>Nb actes</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody><tr><td colspan="7" class="loading">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="panel" id="panel-export">
       <div class="section-header">
         <h2 class="section-title">Export paie</h2>
@@ -315,7 +350,7 @@
     <div class="panel" id="panel-config">
       <div class="section-header">
         <h2 class="section-title">Configuration</h2>
-        <div class="section-subtitle">Paramètres de gestion hors catalogue</div>
+        <div class="section-subtitle">Paramètres de gestion hors catalogue et catégories RH</div>
       </div>
       <div class="table-card">
         <div class="form-group">
@@ -326,7 +361,24 @@
             <option value="prise_en_charge">Prise en charge (Brasco assume)</option>
           </select>
         </div>
-        <button class="btn-primary" id="btn-sauvegarder-config">💾 Sauvegarder</button>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Configuration des catégories RH</div>
+          <button class="btn-primary" id="btn-sauvegarder-categories">Sauvegarder</button>
+        </div>
+        <table id="categories-table">
+          <thead>
+            <tr>
+              <th>Catégorie RH</th>
+              <th>% retenu sur salaire</th>
+              <th>Plafond mensuel FCFA</th>
+            </tr>
+          </thead>
+          <tbody id="categories-tbody">
+            <tr><td colspan="3" class="loading">Chargement…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -529,16 +581,181 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('btn-logout').addEventListener('click', logout);
-      
+
       document.getElementById('tab-overview').addEventListener('click', () => showTab('overview', document.getElementById('tab-overview')));
       document.getElementById('tab-employes').addEventListener('click', () => showTab('employes', document.getElementById('tab-employes')));
+      document.getElementById('tab-retenues').addEventListener('click', () => { showTab('retenues', document.getElementById('tab-retenues')); loadCategoriesConfig(); });
       document.getElementById('tab-export').addEventListener('click', () => showTab('export', document.getElementById('tab-export')));
-      document.getElementById('tab-config').addEventListener('click', () => showTab('config', document.getElementById('tab-config')));
-      
+      document.getElementById('tab-config').addEventListener('click', () => { showTab('config', document.getElementById('tab-config')); loadCategoriesConfig(); });
+
       document.getElementById('employes-mois').addEventListener('change', loadEmployesByMonth);
       document.getElementById('btn-generer-export').addEventListener('click', genererExport);
       document.getElementById('btn-sauvegarder-config').addEventListener('click', sauvegarderConfig);
+
+      document.getElementById('btn-charger-retenues').addEventListener('click', loadRetenues);
+      document.getElementById('btn-valider-retenues').addEventListener('click', validerRetenues);
+      document.getElementById('btn-sauvegarder-categories').addEventListener('click', sauvegarderCategoriesConfig);
     });
+
+    // RETENUES DU MOIS
+    let retenuesData = [];
+
+    async function loadRetenues() {
+      const mois = document.getElementById('retenues-mois').value;
+      if (!mois) { alert('Veuillez sélectionner un mois.'); return; }
+
+      try {
+        const res = await fetch(`${API}/smartflow/rh/retenues/provisoire?mois=${mois}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const data = await res.json();
+
+        if (data.success && data.data) {
+          retenuesData = data.data;
+          renderRetenuesTable(retenuesData);
+          document.getElementById('retenues-container').style.display = 'block';
+        } else {
+          alert('Erreur lors du chargement des retenues.');
+        }
+      } catch(e) {
+        alert('Erreur de connexion.');
+      }
+    }
+
+    function renderRetenuesTable(data) {
+      const tbody = document.getElementById('retenues-table').querySelector('tbody');
+      if (!data || !data.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucune donnée pour ce mois</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map((r, idx) => `
+        <tr>
+          <td>${r.nom_complet || '—'}</td>
+          <td>${r.categorie_rh || 'employe'}</td>
+          <td>${(r.salaire_brut || 0).toLocaleString()}</td>
+          <td>${(r.montant_retenue || 0).toLocaleString()}</td>
+          <td>${r.pourcentage_retenue || 0}%</td>
+          <td>${r.nombre_actes || 0}</td>
+          <td><button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="toggleActesDetails(${idx})">Détails</button></td>
+        </tr>
+        <tr id="actes-row-${idx}" style="display:none;">
+          <td colspan="7" style="padding:16px;background:var(--gris-clair);">
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Détail des actes</div>
+            <table style="width:100%;font-size:12px;">
+              <thead>
+                <tr>
+                  <th style="padding:8px;text-align:left;">Date</th>
+                  <th style="padding:8px;text-align:left;">Type</th>
+                  <th style="padding:8px;text-align:left;">Montant FCFA</th>
+                  <th style="padding:8px;text-align:left;">Prestataire</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(r.actes_details || []).map(acte => `
+                  <tr>
+                    <td style="padding:8px;">${acte.date || '—'}</td>
+                    <td style="padding:8px;">${acte.type || '—'}</td>
+                    <td style="padding:8px;">${(acte.montant || 0).toLocaleString()}</td>
+                    <td style="padding:8px;">${acte.prestataire || '—'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function toggleActesDetails(idx) {
+      const row = document.getElementById(`actes-row-${idx}`);
+      row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
+
+    async function validerRetenues() {
+      const mois = document.getElementById('retenues-mois').value;
+      if (!mois) { alert('Veuillez sélectionner un mois.'); return; }
+      if (!confirm('Confirmer la validation des retenues pour ' + mois + ' ? Cette action est irréversible.')) return;
+
+      try {
+        const res = await fetch(`${API}/smartflow/rh/retenues/valider`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify({ mois })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert('Retenues validées avec succès !');
+          loadRetenues();
+        } else {
+          alert('Erreur lors de la validation : ' + (data.message || 'Erreur serveur'));
+        }
+      } catch(e) {
+        alert('Erreur de connexion.');
+      }
+    }
+
+    // CONFIGURATION CATEGORIES RH
+    let categoriesConfig = [];
+
+    async function loadCategoriesConfig() {
+      try {
+        const res = await fetch(`${API}/smartflow/rh/config/categories`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const data = await res.json();
+
+        if (data.success && data.data) {
+          categoriesConfig = data.data;
+          renderCategoriesTable();
+        }
+      } catch(e) {
+        console.error('Erreur chargement catégories:', e);
+      }
+    }
+
+    function renderCategoriesTable() {
+      const tbody = document.getElementById('categories-tbody');
+      if (!categoriesConfig || !categoriesConfig.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">Aucune configuration trouvée</td></tr>';
+        return;
+      }
+      tbody.innerHTML = categoriesConfig.map((cat, idx) => `
+        <tr>
+          <td>${cat.categorie_rh || '—'}</td>
+          <td><input type="number" class="form-input" style="padding:8px;" value="${cat.pourcentage_salarie || 20}" data-idx="${idx}" data-field="pourcentage_salarie"></td>
+          <td><input type="number" class="form-input" style="padding:8px;" value="${cat.plafond_mensuel || 100000}" data-idx="${idx}" data-field="plafond_mensuel"></td>
+        </tr>
+      `).join('');
+    }
+
+    async function sauvegarderCategoriesConfig() {
+      const inputs = document.querySelectorAll('#categories-tbody input');
+      inputs.forEach(input => {
+        const idx = input.dataset.idx;
+        const field = input.dataset.field;
+        if (categoriesConfig[idx]) {
+          categoriesConfig[idx][field] = parseInt(input.value) || 0;
+        }
+      });
+
+      try {
+        const res = await fetch(`${API}/smartflow/rh/config/categories`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify({ categories: categoriesConfig })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert('Configuration des catégories sauvegardée !');
+        } else {
+          alert('Erreur lors de la sauvegarde : ' + (data.message || 'Erreur serveur'));
+        }
+      } catch(e) {
+        alert('Erreur de connexion.');
+      }
+    }
   </script>
 </body>
 </html>

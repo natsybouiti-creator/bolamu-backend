@@ -95,13 +95,101 @@ router.get('/smartflow/medicaments/check', authMiddleware, async (req, res) => {
  */
 router.get('/smartflow/stats/moi', authMiddleware, prestataireOnly, async (req, res) => {
   const { mois } = req.query;
-  
+
   // Par défaut, mois courant
   const currentMonth = new Date().toISOString().slice(0, 7);
   const targetMonth = mois || currentMonth;
-  
+
   const result = await getStatsPartenaire(req.user.phone, targetMonth);
   ok(res, result);
+});
+
+/**
+ * GET /api/v1/smartflow/pharmacie/catalogue
+ * Récupérer le catalogue de la pharmacie connectée
+ */
+router.get('/smartflow/pharmacie/catalogue', authMiddleware, async (req, res) => {
+  if (req.user?.role !== 'pharmacie') {
+    return err(res, 403, 'Accès réservé aux pharmacies');
+  }
+
+  const pool = require('../config/db');
+
+  try {
+    const result = await pool.query(
+      `SELECT medicament_nom, prix_unitaire, unite, est_ssp
+       FROM catalogue_pharmacie
+       WHERE pharmacie_phone = $1 AND actif = true
+       ORDER BY medicament_nom ASC`,
+      [req.user.phone]
+    );
+
+    ok(res, result.rows);
+  } catch (error) {
+    console.error('[Catalogue Pharmacie GET]', error.message);
+    err(res, 500, 'Erreur serveur');
+  }
+});
+
+/**
+ * POST /api/v1/smartflow/pharmacie/catalogue
+ * Importer ou mettre à jour le catalogue de la pharmacie (upsert)
+ */
+router.post('/smartflow/pharmacie/catalogue', authMiddleware, async (req, res) => {
+  if (req.user?.role !== 'pharmacie') {
+    return err(res, 403, 'Accès réservé aux pharmacies');
+  }
+
+  const { medicaments } = req.body;
+
+  if (!Array.isArray(medicaments) || medicaments.length === 0) {
+    return err(res, 400, 'medicaments doit être un tableau non vide');
+  }
+
+  const pool = require('../config/db');
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    for (const med of medicaments) {
+      const { medicament_nom, prix_unitaire, unite, est_ssp } = med;
+
+      if (!medicament_nom || prix_unitaire === undefined || prix_unitaire === null) {
+        await client.query('ROLLBACK');
+        return err(res, 400, 'Champs manquants : medicament_nom, prix_unitaire');
+      }
+
+      // Normaliser le nom du médicament
+      const medicament_nom_normalise = medicament_nom.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '')
+        .trim();
+
+      await client.query(
+        `INSERT INTO catalogue_pharmacie (pharmacie_phone, medicament_nom, medicament_nom_normalise, prix_unitaire, unite, est_ssp, actif)
+         VALUES ($1, $2, $3, $4, $5, $6, true)
+         ON CONFLICT (pharmacie_phone, medicament_nom_normalise)
+         DO UPDATE SET
+           medicament_nom = EXCLUDED.medicament_nom,
+           prix_unitaire = EXCLUDED.prix_unitaire,
+           unite = EXCLUDED.unite,
+           est_ssp = EXCLUDED.est_ssp,
+           actif = true,
+           updated_at = NOW()`,
+        [req.user.phone, medicament_nom, medicament_nom_normalise, prix_unitaire, unite || 'comprimé', est_ssp || false]
+      );
+    }
+
+    await client.query('COMMIT');
+    ok(res, null, `${medicaments.length} médicament(s) importé(s) avec succès`);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[Catalogue Pharmacie POST]', error.message);
+    err(res, 500, 'Erreur serveur');
+  } finally {
+    client.release();
+  }
 });
 
 // ============================================================
@@ -191,32 +279,32 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
  */
 router.get('/smartflow/rh/export/:mois', authMiddleware, rhOnly, async (req, res) => {
   const { mois } = req.params;
-  
+
   // Valider format mois (YYYY-MM)
   if (!/^\d{4}-\d{2}$/.test(mois)) {
     return err(res, 400, 'Format mois invalide (YYYY-MM)');
   }
-  
+
   const pool = require('../config/db');
-  
+
   try {
     // Récupérer le contrat de l'entreprise du RH
     const contractResult = await pool.query(
-      `SELECT cc.id 
+      `SELECT cc.id
        FROM company_contracts cc
        JOIN company_employees ce ON ce.company_contract_id = cc.id
        WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
       [req.user.phone]
     );
-    
+
     if (!contractResult.rows.length) {
       return err(res, 404, 'Contrat d\'entreprise introuvable');
     }
-    
+
     const contractId = contractResult.rows[0].id;
-    
+
     const result = await genererExportPaie(contractId, mois);
-    
+
     if (result.success) {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename="export_paie_${mois}.csv"`);
@@ -224,10 +312,416 @@ router.get('/smartflow/rh/export/:mois', authMiddleware, rhOnly, async (req, res
     } else {
       err(res, 500, result.message);
     }
-    
+
   } catch (error) {
     console.error('[SmartFlow RH Export]', error.message);
     err(res, 500, 'Erreur serveur');
+  }
+});
+
+/**
+ * GET /api/v1/smartflow/rh/employe/:phone/actes
+ * Détail des actes d'un employé
+ */
+router.get('/smartflow/rh/employe/:phone/actes', authMiddleware, rhOnly, async (req, res) => {
+  const { phone } = req.params;
+  const { mois } = req.query;
+
+  const pool = require('../config/db');
+
+  try {
+    // Récupérer le contrat de l'entreprise du RH
+    const contractResult = await pool.query(
+      `SELECT cc.id
+       FROM company_contracts cc
+       JOIN company_employees ce ON ce.company_contract_id = cc.id
+       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+      [req.user.phone]
+    );
+
+    if (!contractResult.rows.length) {
+      return err(res, 404, 'Contrat d\'entreprise introuvable');
+    }
+
+    const contractId = contractResult.rows[0].id;
+
+    // Vérifier que l'employé appartient à l'entreprise
+    const employeeResult = await pool.query(
+      `SELECT ce.*, u.full_name
+       FROM company_employees ce
+       LEFT JOIN users u ON ce.phone = u.phone
+       WHERE ce.phone = $1 AND ce.company_contract_id = $2 AND ce.status = 'active'`,
+      [phone, contractId]
+    );
+
+    if (!employeeResult.rows.length) {
+      return err(res, 404, 'Employé introuvable dans votre entreprise');
+    }
+
+    const employee = employeeResult.rows[0];
+
+    // Récupérer les actes hors catalogue
+    let query = `
+      SELECT hct.*
+      FROM hors_catalogue_transactions hct
+      WHERE hct.company_contract_id = $1 AND hct.patient_phone = $2
+    `;
+    const params = [contractId, phone];
+
+    if (mois) {
+      query += ` AND TO_CHAR(hct.created_at, 'YYYY-MM') = $3`;
+      params.push(mois);
+    }
+
+    query += ` ORDER BY hct.created_at DESC`;
+
+    const actesResult = await pool.query(query, params);
+
+    ok(res, {
+      employee: {
+        phone: employee.phone,
+        name: employee.full_name,
+        categorie_rh: employee.categorie_rh || 'employe'
+      },
+      actes: actesResult.rows
+    });
+  } catch (error) {
+    console.error('[SmartFlow RH Employe Actes]', error.message);
+    err(res, 500, 'Erreur serveur');
+  }
+});
+
+/**
+ * GET /api/v1/smartflow/rh/retenues/provisoire?mois=YYYY-MM
+ * Calcul provisoire des retenues du mois (avant validation)
+ */
+router.get('/smartflow/rh/retenues/provisoire', authMiddleware, rhOnly, async (req, res) => {
+  const { mois } = req.query;
+
+  const pool = require('../config/db');
+
+  try {
+    // Récupérer le contrat de l'entreprise du RH
+    const contractResult = await pool.query(
+      `SELECT cc.id
+       FROM company_contracts cc
+       JOIN company_employees ce ON ce.company_contract_id = cc.id
+       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+      [req.user.phone]
+    );
+
+    if (!contractResult.rows.length) {
+      return err(res, 404, 'Contrat d\'entreprise introuvable');
+    }
+
+    const contractId = contractResult.rows[0].id;
+
+    // Récupérer la configuration des catégories RH
+    const configResult = await pool.query(
+      `SELECT categorie_rh, pourcentage_salarie, plafond_mensuel
+       FROM config_categories_rh
+       WHERE company_contract_id = $1`,
+      [contractId]
+    );
+
+    const configMap = {};
+    configResult.rows.forEach(c => {
+      configMap[c.categorie_rh] = {
+        pourcentage: c.pourcentage_salarie,
+        plafond: c.plafond_mensuel
+      };
+    });
+
+    // Récupérer les employés actifs
+    const employeesResult = await pool.query(
+      `SELECT ce.phone, ce.categorie_rh, u.full_name
+       FROM company_employees ce
+       LEFT JOIN users u ON ce.phone = u.phone
+       WHERE ce.company_contract_id = $1 AND ce.status = 'active'`,
+      [contractId]
+    );
+
+    const retenues = [];
+
+    for (const emp of employeesResult.rows) {
+      const categorie = emp.categorie_rh || 'employe';
+      const config = configMap[categorie] || { pourcentage: 20, plafond: 100000 };
+
+      // Calculer le total hors catalogue du mois
+      let query = `
+        SELECT COALESCE(SUM(prix_plein), 0) as total_montant, COUNT(*) as nb_actes
+        FROM hors_catalogue_transactions
+        WHERE company_contract_id = $1 AND patient_phone = $2
+      `;
+      const params = [contractId, emp.phone];
+
+      if (mois) {
+        query += ` AND TO_CHAR(created_at, 'YYYY-MM') = $3`;
+        params.push(mois);
+      }
+
+      const actesResult = await pool.query(query, params);
+      const totalMontant = parseFloat(actesResult.rows[0].total_montant) || 0;
+      const nbActes = parseInt(actesResult.rows[0].nb_actes) || 0;
+
+      // Calculer la retenue (pourcentage du salaire, plafonné)
+      // Pour l'instant, on utilise le montant hors catalogue comme base
+      // Dans un vrai système, il faudrait le salaire brut de l'employé
+      const pourcentage = config.pourcentage;
+      const plafond = config.plafond;
+      const montantRetenue = Math.min(totalMontant * pourcentage / 100, plafond);
+
+      // Récupérer les détails des actes
+      let actesQuery = `
+        SELECT TO_CHAR(created_at, 'DD/MM/YYYY') as date,
+               prestataire_type as type,
+               prix_plein as montant,
+               prestataire_phone as prestataire
+        FROM hors_catalogue_transactions
+        WHERE company_contract_id = $1 AND patient_phone = $2
+      `;
+      const actesParams = [contractId, emp.phone];
+
+      if (mois) {
+        actesQuery += ` AND TO_CHAR(created_at, 'YYYY-MM') = $3`;
+        actesParams.push(mois);
+      }
+
+      actesQuery += ` ORDER BY created_at DESC`;
+
+      const actesDetailsResult = await pool.query(actesQuery, actesParams);
+
+      retenues.push({
+        employee_phone: emp.phone,
+        nom_complet: emp.full_name,
+        categorie_rh: categorie,
+        salaire_brut: 0, // À remplacer par le vrai salaire quand disponible
+        montant_retenue: Math.round(montantRetenue),
+        pourcentage_retenue: pourcentage,
+        nombre_actes: nbActes,
+        actes_details: actesDetailsResult.rows
+      });
+    }
+
+    ok(res, retenues);
+  } catch (error) {
+    console.error('[SmartFlow RH Retenues Provisoire]', error.message);
+    err(res, 500, 'Erreur serveur');
+  }
+});
+
+/**
+ * POST /api/v1/smartflow/rh/retenues/valider
+ * Valider les retenues du mois (créer un snapshot dans retenues_validees)
+ */
+router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req, res) => {
+  const { mois } = req.body;
+
+  if (!mois || !/^\d{4}-\d{2}$/.test(mois)) {
+    return err(res, 400, 'Format mois invalide (YYYY-MM)');
+  }
+
+  const pool = require('../config/db');
+  const client = await pool.connect();
+
+  try {
+    // Récupérer le contrat de l'entreprise du RH
+    const contractResult = await client.query(
+      `SELECT cc.id
+       FROM company_contracts cc
+       JOIN company_employees ce ON ce.company_contract_id = cc.id
+       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+      [req.user.phone]
+    );
+
+    if (!contractResult.rows.length) {
+      await client.query('ROLLBACK');
+      return err(res, 404, 'Contrat d\'entreprise introuvable');
+    }
+
+    const contractId = contractResult.rows[0].id;
+
+    await client.query('BEGIN');
+
+    // Récupérer la configuration des catégories RH
+    const configResult = await client.query(
+      `SELECT categorie_rh, pourcentage_salarie, plafond_mensuel
+       FROM config_categories_rh
+       WHERE company_contract_id = $1`,
+      [contractId]
+    );
+
+    const configMap = {};
+    configResult.rows.forEach(c => {
+      configMap[c.categorie_rh] = {
+        pourcentage: c.pourcentage_salarie,
+        plafond: c.plafond_mensuel
+      };
+    });
+
+    // Récupérer les employés actifs
+    const employeesResult = await client.query(
+      `SELECT ce.phone, ce.categorie_rh, u.full_name
+       FROM company_employees ce
+       LEFT JOIN users u ON ce.phone = u.phone
+       WHERE ce.company_contract_id = $1 AND ce.status = 'active'`,
+      [contractId]
+    );
+
+    // Calculer et insérer les retenues pour chaque employé
+    for (const emp of employeesResult.rows) {
+      const categorie = emp.categorie_rh || 'employe';
+      const config = configMap[categorie] || { pourcentage: 20, plafond: 100000 };
+
+      // Calculer le total hors catalogue du mois
+      const actesResult = await client.query(
+        `SELECT COALESCE(SUM(prix_plein), 0) as total_montant, COUNT(*) as nb_actes
+         FROM hors_catalogue_transactions
+         WHERE company_contract_id = $1 AND patient_phone = $2
+         AND TO_CHAR(created_at, 'YYYY-MM') = $3`,
+        [contractId, emp.phone, mois]
+      );
+
+      const totalMontant = parseFloat(actesResult.rows[0].total_montant) || 0;
+      const nbActes = parseInt(actesResult.rows[0].nb_actes) || 0;
+
+      // Calculer la retenue
+      const pourcentage = config.pourcentage;
+      const plafond = config.plafond;
+      const montantRetenue = Math.min(totalMontant * pourcentage / 100, plafond);
+
+      // Récupérer les détails des actes
+      const actesDetailsResult = await client.query(
+        `SELECT TO_CHAR(created_at, 'DD/MM/YYYY') as date,
+                prestataire_type as type,
+                prix_plein as montant,
+                prestataire_phone as prestataire
+         FROM hors_catalogue_transactions
+         WHERE company_contract_id = $1 AND patient_phone = $2
+         AND TO_CHAR(created_at, 'YYYY-MM') = $3
+         ORDER BY created_at DESC`,
+        [contractId, emp.phone, mois]
+      );
+
+      // Insérer dans retenues_validees
+      await client.query(
+        `INSERT INTO retenues_validees (company_contract_id, mois, employee_phone, nom_complet, categorie_rh, salaire_brut, montant_retenue, pourcentage_retenue, nombre_actes, actes_details, valide_par)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (company_contract_id, mois, employee_phone) DO NOTHING`,
+        [contractId, mois, emp.phone, emp.full_name, categorie, 0, Math.round(montantRetenue), pourcentage, nbActes, JSON.stringify(actesDetailsResult.rows), req.user.phone]
+      );
+    }
+
+    await client.query('COMMIT');
+    ok(res, null, 'Retenues validées avec succès');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[SmartFlow RH Retenues Valider]', error.message);
+    err(res, 500, 'Erreur serveur');
+  } finally {
+    client.release();
+  }
+});
+
+/**
+ * GET /api/v1/smartflow/rh/config/categories
+ * Récupérer la configuration des catégories RH
+ */
+router.get('/smartflow/rh/config/categories', authMiddleware, rhOnly, async (req, res) => {
+  const pool = require('../config/db');
+
+  try {
+    // Récupérer le contrat de l'entreprise du RH
+    const contractResult = await pool.query(
+      `SELECT cc.id
+       FROM company_contracts cc
+       JOIN company_employees ce ON ce.company_contract_id = cc.id
+       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+      [req.user.phone]
+    );
+
+    if (!contractResult.rows.length) {
+      return err(res, 404, 'Contrat d\'entreprise introuvable');
+    }
+
+    const contractId = contractResult.rows[0].id;
+
+    const result = await pool.query(
+      `SELECT categorie_rh, pourcentage_salarie, plafond_mensuel
+       FROM config_categories_rh
+       WHERE company_contract_id = $1
+       ORDER BY categorie_rh ASC`,
+      [contractId]
+    );
+
+    ok(res, result.rows);
+  } catch (error) {
+    console.error('[SmartFlow RH Config Categories]', error.message);
+    err(res, 500, 'Erreur serveur');
+  }
+});
+
+/**
+ * POST /api/v1/smartflow/rh/config/categories
+ * Mettre à jour la configuration des catégories RH
+ */
+router.post('/smartflow/rh/config/categories', authMiddleware, rhOnly, async (req, res) => {
+  const { categories } = req.body;
+
+  if (!Array.isArray(categories) || categories.length === 0) {
+    return err(res, 400, 'categories doit être un tableau non vide');
+  }
+
+  const pool = require('../config/db');
+  const client = await pool.connect();
+
+  try {
+    // Récupérer le contrat de l'entreprise du RH
+    const contractResult = await client.query(
+      `SELECT cc.id
+       FROM company_contracts cc
+       JOIN company_employees ce ON ce.company_contract_id = cc.id
+       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+      [req.user.phone]
+    );
+
+    if (!contractResult.rows.length) {
+      await client.query('ROLLBACK');
+      return err(res, 404, 'Contrat d\'entreprise introuvable');
+    }
+
+    const contractId = contractResult.rows[0].id;
+
+    await client.query('BEGIN');
+
+    for (const cat of categories) {
+      const { categorie_rh, pourcentage_salarie, plafond_mensuel } = cat;
+
+      if (!categorie_rh || pourcentage_salarie === undefined || plafond_mensuel === undefined) {
+        await client.query('ROLLBACK');
+        return err(res, 400, 'Champs manquants : categorie_rh, pourcentage_salarie, plafond_mensuel');
+      }
+
+      await client.query(
+        `INSERT INTO config_categories_rh (company_contract_id, categorie_rh, pourcentage_salarie, plafond_mensuel)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (company_contract_id, categorie_rh)
+         DO UPDATE SET
+           pourcentage_salarie = EXCLUDED.pourcentage_salarie,
+           plafond_mensuel = EXCLUDED.plafond_mensuel,
+           updated_at = NOW()`,
+        [contractId, categorie_rh, pourcentage_salarie, plafond_mensuel]
+      );
+    }
+
+    await client.query('COMMIT');
+    ok(res, null, 'Configuration des catégories mise à jour');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[SmartFlow RH Config Categories POST]', error.message);
+    err(res, 500, 'Erreur serveur');
+  } finally {
+    client.release();
   }
 });
 
