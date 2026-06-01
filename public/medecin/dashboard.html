@@ -18,6 +18,7 @@ if (typeof BarcodeDetector !== 'undefined') {
   try { QRDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
 }
 </script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <style>
     :root{
       --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
@@ -1713,15 +1714,15 @@ function demarrerScannerMedecin() {
     scanStream = stream;
     video.srcObject = stream;
     video.play().then(function() {
+      console.log('[SCANNER] vidéo en lecture');
       scannerActifMedecin = true;
+      var overlay = document.getElementById('qr-overlay');
       if (overlay) overlay.style.display = 'block';
       document.getElementById('scanner-status').textContent =
         'Pointez le QR code dans le cadre';
-      if (QRDetector) {
-        lancerDetectionNative(video);
-      } else {
-        lancerDetectionCanvas(video, canvas);
-      }
+      var canvas = document.getElementById('qr-canvas-medecin');
+      // Toujours utiliser canvas+jsQR, ignorer BarcodeDetector
+      lancerDetectionCanvas(video, canvas);
     });
   }).catch(function(err) {
     document.getElementById('scanner-status').textContent =
@@ -1746,14 +1747,31 @@ function lancerDetectionNative(video) {
 }
 
 function lancerDetectionCanvas(video, canvas) {
-  if (!scannerActifMedecin || !canvas) return;
-  if (video.readyState >= 2) {
+  if (!scannerActifMedecin) return;
+  if (!canvas) {
+    canvas = document.getElementById('qr-canvas-medecin');
+  }
+  if (video.readyState >= 2 && canvas) {
     var ctx = canvas.getContext('2d');
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    if (typeof jsQR !== 'undefined') {
+      var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      var code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'dontInvert'
+      });
+      if (code && code.data && scannerActifMedecin) {
+        console.log('[SCANNER] QR détecté:', code.data);
+        arreterScannerMedecin();
+        traiterPatientMedecin(code.data, 'qr');
+        return;
+      }
+    }
   }
-  scanAnimFrame = setTimeout(function() { lancerDetectionCanvas(video, canvas); }, 400);
+  scanAnimFrame = setTimeout(function() {
+    lancerDetectionCanvas(video, canvas);
+  }, 200);
 }
 
 function arreterScannerMedecin() {
