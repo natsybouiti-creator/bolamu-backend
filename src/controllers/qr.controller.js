@@ -15,7 +15,7 @@ const generateQRToken = async (req, res) => {
     const configRes = await pool.query(
       `SELECT config_value FROM platform_config WHERE config_key = 'qr_token_ttl_seconds'`
     );
-    const ttlSeconds = parseInt(configRes.rows[0]?.config_value || '60');
+    const ttlSeconds = parseInt(configRes.rows[0]?.config_value || '300');
     await pool.query(
       `UPDATE qr_tokens SET used_at = NOW() WHERE user_phone = $1 AND used_at IS NULL AND expires_at > NOW()`,
       [phone]
@@ -55,9 +55,6 @@ const verifyQRToken = async (req, res) => {
     if (new Date() > new Date(qrToken.expires_at)) {
       return res.status(410).json({ success: false, message: 'QR Code expiré. Demandez au patient d\'en générer un nouveau.' });
     }
-    if (qrToken.used_at) {
-      return res.status(409).json({ success: false, message: 'QR Code déjà utilisé.' });
-    }
     const subCheck = await pool.query(
       `SELECT s.id, s.plan, s.expires_at, pc.config_value as monthly_cap FROM subscriptions s LEFT JOIN platform_config pc ON pc.config_key = 'tiers_payant_monthly_cap' WHERE s.patient_phone = $1 AND s.status = 'active' AND s.expires_at >= NOW() LIMIT 1`,
       [qrToken.user_phone]
@@ -79,7 +76,6 @@ const verifyQRToken = async (req, res) => {
     );
     const totalConsumed = parseInt(consumptionRes.rows[0].total_consumed);
     const sub = subCheck.rows[0];
-    await pool.query(`UPDATE qr_tokens SET used_by = $1 WHERE token = $2`, [partnerPhone, token]);
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2)`,
       [partnerPhone, JSON.stringify({ patient_phone: qrToken.user_phone, token })]
