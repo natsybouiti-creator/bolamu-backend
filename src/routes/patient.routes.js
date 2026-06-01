@@ -121,16 +121,20 @@ router.get('/search', authMiddleware, async (req, res) => {
     }
 
     const query = q.trim();
+    const normalizedQuery = query.replace(/\+/g, '');
     const result = await pool.query(
       `SELECT u.phone, u.full_name, u.bolamu_id as account_number, 
-              s.plan as plan_nom, s.status as subscription_status, u.is_active
+              u.member_code, s.plan as plan_nom, s.status as subscription_status, u.is_active
        FROM users u
        LEFT JOIN subscriptions s ON u.phone = s.phone AND s.status = 'active' AND s.expires_at > NOW()
        WHERE u.role = 'patient' 
-         AND (u.phone ILIKE $1 OR u.full_name ILIKE $1 OR u.bolamu_id ILIKE $1)
+         AND (REPLACE(u.phone, '+', '') ILIKE $1 
+              OR u.full_name ILIKE $1 
+              OR u.bolamu_id ILIKE $1
+              OR u.member_code ILIKE $1)
        ORDER BY u.full_name
        LIMIT 10`,
-      [`%${query}%`]
+      [`%${normalizedQuery}%`]
     );
 
     res.json({ success: true, data: result.rows });
