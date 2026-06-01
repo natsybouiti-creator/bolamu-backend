@@ -1549,25 +1549,6 @@ function logout(){storage.removeItem('bolamu_medecin_token');storage.removeItem(
 // GÉOLOCALISATION
 let currentLat = null, currentLng = null;
 
-async function loadPosition() {
-  try {
-    const role = storage.getItem('bolamu_role');
-    const phone = storage.getItem(`bolamu_${role}_phone`);
-    const token = getAuthToken();
-    const res = await fetch(`${API}/auth/profile`, {
-      headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-    });
-    const data = await res.json();
-    if (data.user?.latitude) {
-      currentLat = data.user.latitude;
-      currentLng = data.user.longitude;
-      document.getElementById('gps-status').textContent = `✅ Position enregistrée${data.user.address ? ' — ' + data.user.address : ''}`;
-      document.getElementById('gps-status').style.color = '#00C9A7';
-      if (data.user.address) document.getElementById('gps-address').value = data.user.address;
-    }
-  } catch(e) { console.error('[loadPosition]', e); }
-}
-
 function detectPosition() {
   const btn = document.getElementById('btn-detect-pos');
   btn.textContent = '⏳ Détection…';
@@ -1907,7 +1888,7 @@ function afficherFichePatientMedecin(p, resultDiv) {
   resultDiv.innerHTML = html;
 }
 
-loadProfil();loadRdv();loadPosition();
+loadProfil();loadRdv();
 
 document.addEventListener('DOMContentLoaded', function() {
   // Logout
