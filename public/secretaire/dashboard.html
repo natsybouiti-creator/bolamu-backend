@@ -1623,26 +1623,43 @@
   </div>
 
   <script>
+    const safeStorage = () => {
+      try {
+        const test = '__storage_test__';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return localStorage;
+      } catch (e) {
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+          clear: () => {}
+        };
+      }
+    };
+    const storage = safeStorage();
+
     const API = 'https://bolamu-backend.onrender.com/api/v1';
     let currentTab = 'accueil';
     let currentDoctorId = null;
 
     function getToken() {
-      return localStorage.getItem('bolamu_secretaire_token');
+      return storage.getItem('bolamu_secretaire_token');
     }
 
     function getPhone() {
-      return localStorage.getItem('bolamu_secretaire_phone');
+      return storage.getItem('bolamu_secretaire_phone');
     }
 
     function getClinicId() {
-      return localStorage.getItem('bolamu_secretaire_clinic_id');
+      return storage.getItem('bolamu_secretaire_clinic_id');
     }
 
     function logout() {
-      localStorage.removeItem('bolamu_secretaire_token');
-      localStorage.removeItem('bolamu_secretaire_phone');
-      localStorage.removeItem('bolamu_secretaire_clinic_id');
+      storage.removeItem('bolamu_secretaire_token');
+      storage.removeItem('bolamu_secretaire_phone');
+      storage.removeItem('bolamu_secretaire_clinic_id');
       window.location.href = '/secretaire/login.html';
     }
 

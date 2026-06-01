@@ -611,9 +611,26 @@
 </div>
 
 <script>
+const safeStorage = () => {
+  try {
+    const test = '__storage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return localStorage;
+  } catch (e) {
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+      clear: () => {}
+    };
+  }
+};
+const storage = safeStorage();
+
 const API='https://bolamu-backend.onrender.com/api/v1';
-const phone=localStorage.getItem('bolamu_doctor_phone');
-const token=localStorage.getItem('bolamu_doctor_token');
+const phone=storage.getItem('bolamu_doctor_phone');
+const token=storage.getItem('bolamu_doctor_token');
 if(!token||!phone){window.location.href='/login.html';}
 document.getElementById('topbar-phone').textContent=phone;
 
@@ -651,7 +668,7 @@ async function loadProfil(){
     const data=await res.json();
     const d=data.data||{};
     if (d.banned) {
-      localStorage.clear();
+      storage.clear();
       window.location.href = '/login.html?reason=banned';
       return;
     }
@@ -1511,16 +1528,16 @@ function fermerModalQRPatient(){
   if(modal)modal.remove();
 }
 
-function logout(){localStorage.removeItem('bolamu_medecin_token');localStorage.removeItem('bolamu_medecin_phone');localStorage.removeItem('bolamu_role');window.location.href='/login.html';}
+function logout(){storage.removeItem('bolamu_medecin_token');storage.removeItem('bolamu_medecin_phone');storage.removeItem('bolamu_role');window.location.href='/login.html';}
 
 // GÉOLOCALISATION
 let currentLat = null, currentLng = null;
 
 async function loadPosition() {
   try {
-    const role = localStorage.getItem('bolamu_role');
-    const phone = localStorage.getItem(`bolamu_${role}_phone`);
-    const token = localStorage.getItem(`bolamu_${role}_token`);
+    const role = storage.getItem('bolamu_role');
+    const phone = storage.getItem(`bolamu_${role}_phone`);
+    const token = storage.getItem(`bolamu_${role}_token`);
     const res = await fetch(`${API}/auth/profile`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -1565,9 +1582,9 @@ function detectPosition() {
 }
 
 async function savePosition() {
-  const role = localStorage.getItem('bolamu_role');
-  const phone = localStorage.getItem(`bolamu_${role}_phone`);
-  const token = localStorage.getItem(`bolamu_${role}_token`);
+  const role = storage.getItem('bolamu_role');
+  const phone = storage.getItem(`bolamu_${role}_phone`);
+  const token = storage.getItem(`bolamu_${role}_token`);
   const address = document.getElementById('gps-address').value.trim();
   if (!currentLat || !currentLng) {
     alert('Détectez d\'abord votre position');
@@ -1595,7 +1612,7 @@ async function loadPatientConstantes() {
     alert('Numéro de téléphone du patient non disponible.');
     return;
   }
-  const token = localStorage.getItem('bolamu_doctor_token');
+  const token = storage.getItem('bolamu_doctor_token');
   try {
     const res = await fetch(`${API}/patients/constantes/${encodeURIComponent(_currentPatientPhone)}`, {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -1628,7 +1645,7 @@ async function savePatientConstantes() {
     alert('Numéro de téléphone du patient non disponible.');
     return;
   }
-  const token = localStorage.getItem('bolamu_doctor_token');
+  const token = storage.getItem('bolamu_doctor_token');
   const body = {
     patient_phone: _currentPatientPhone
   };
