@@ -760,4 +760,27 @@ router.get('/admin/smartflow/partenaire/:phone', authMiddleware, adminOnly, asyn
   ok(res, result);
 });
 
+/**
+ * GET /api/v1/smartflow/admin/transactions
+ * Lister toutes les transactions hors catalogue (admin)
+ */
+router.get('/smartflow/admin/transactions', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const result = await pool.query(
+      `SELECT hct.*, cc.company_name, u.full_name as employee_name
+       FROM hors_catalogue_transactions hct
+       LEFT JOIN company_contracts cc ON hct.company_contract_id = cc.id
+       LEFT JOIN users u ON hct.patient_phone = u.phone
+       ORDER BY hct.created_at DESC
+       LIMIT 100`
+    );
+
+    ok(res, result.rows, 'Transactions récupérées');
+  } catch (error) {
+    console.error('[SmartFlow Admin Transactions]', error.message);
+    err(res, 500, 'Erreur serveur');
+  }
+});
+
 module.exports = router;

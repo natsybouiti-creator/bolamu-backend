@@ -361,6 +361,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
     <button class="nav-btn" id="nav-conventions" data-panel="conventions"><span class="ni"></span>🤝 Conventions</button>
     <button class="nav-btn" id="nav-clearing" data-panel="clearing"><span class="ni"></span>🏦 Clearing CDR</button>
     <button class="nav-btn" id="nav-conflits" data-panel="conflits"><span class="ni"></span>⚖️ Conflits</button>
+    <button class="nav-btn" id="nav-smartflow" data-panel="smartflow"><span class="ni"></span>Smart Flow</button>
   </nav>
   <div class="sidebar-foot">
     <div class="user-row">
@@ -702,6 +703,54 @@ tr:hover td{background:rgba(255,255,255,.018);}
       </div>
     </div>
 
+    <!-- PANEL SMART FLOW -->
+    <div id="panel-smartflow" class="panel">
+      <div class="section-hd">
+        <div><h2>Smart Flow</h2><p>Gestion contrats entreprise et transactions hors catalogue</p></div>
+      </div>
+
+      <!-- SECTION 1: CONTRATS ENTREPRISE -->
+      <div style="margin-bottom:32px">
+        <div class="section-hd">
+          <div><h3>Contrats entreprise</h3></div>
+          <button class="primary-btn" data-ononclick="openNewContractModal">+ Nouveau contrat</button>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-head">
+            <span class="tbl-title">Contrats</span>
+            <span class="tbl-count" id="contracts-count">—</span>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Entreprise</th><th>Contact</th><th>Plan</th>
+              <th>Employés max</th><th>Mode paiement</th><th>Statut</th><th>Date</th>
+            </tr></thead>
+            <tbody id="tbody-contracts"><div class="loading">Chargement...</div></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECTION 2: TRANSACTIONS HORS CATALOGUE -->
+      <div>
+        <div class="section-hd">
+          <div><h3>Transactions hors catalogue</h3></div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-head">
+            <span class="tbl-title">Transactions</span>
+            <span class="tbl-count" id="transactions-count">—</span>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Entreprise</th><th>Employé</th><th>Prestataire</th>
+              <th>Acte</th><th>Montant</th><th>Date</th>
+            </tr></thead>
+            <tbody id="tbody-transactions"><div class="loading">Chargement...</div></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 
 <footer style="
@@ -804,7 +853,7 @@ function showBannerErr(msg){
 /* -----------------------------------
    NAVIGATION
 ----------------------------------- */
-const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits'};
+const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits',smartflow:'Smart Flow'};
 
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
@@ -831,7 +880,7 @@ function go(name){
   loadPanel(name);
 }
 function loadPanel(name){
-  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits};
+  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits,smartflow:loadSmartFlow};
   if(m[name])m[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
@@ -1208,6 +1257,55 @@ async function loadRatings() {
     `).join('') : '<div style="color:var(--muted);font-size:14px;">Aucune évaluation récente</div>';
 
   } catch(e) { console.error('[loadRatings]', e); }
+}
+
+/* -----------------------------------
+   SMART FLOW
+----------------------------------- */
+async function loadSmartFlow(){
+  loadContracts();
+  loadTransactions();
+}
+
+async function loadContracts(){
+  const el=document.getElementById('tbody-contracts');
+  try{
+    const res=await api('/admin/company-contracts');const rows=res.data||[];
+    const cnt=document.getElementById('contracts-count');if(cnt)cnt.textContent=rows.length+' contrats';
+    if(!rows.length){el.innerHTML='<tr><td colspan="7" class="empty">Aucun contrat</td></tr>';return;}
+    el.innerHTML=rows.map(c=>`<tr><td style="font-weight:500">${c.company_name||''}</td><td>${c.contact_name||''}<br><span style="font-size:10px;color:var(--muted)">${c.contact_phone||''}</span></td><td>${badge(c.plan)}</td><td style="font-family:'JetBrains Mono',monospace">${c.employee_count||0}</td><td>${c.billing_type==='monthly'?'Mensuel':'Annuel'}</td><td>${badge(c.status)}</td><td style="color:var(--muted)">${fs(c.created_at)}</td></tr>`).join('');
+  }catch(e){el.innerHTML='<tr><td colspan="7" class="empty">Erreur</td></tr>';}
+}
+
+async function loadTransactions(){
+  const el=document.getElementById('tbody-transactions');
+  try{
+    const res=await api('/smartflow/admin/transactions');const rows=res.data||[];
+    const cnt=document.getElementById('transactions-count');if(cnt)cnt.textContent=rows.length+' transactions';
+    if(!rows.length){el.innerHTML='<tr><td colspan="6" class="empty">Aucune transaction</td></tr>';return;}
+    el.innerHTML=rows.map(t=>`<tr><td>${t.company_name||''}</td><td>${t.employee_name||t.patient_phone||''}</td><td>${t.prestataire_type||''}<br><span style="font-size:10px;color:var(--muted)">${t.prestataire_phone||''}</span></td><td>${t.libelle||''}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fn(t.prix_plein)} F</td><td style="color:var(--muted)">${fs(t.created_at)}</td></tr>`).join('');
+  }catch(e){el.innerHTML='<tr><td colspan="6" class="empty">Erreur</td></tr>';}
+}
+
+function openNewContractModal(){
+  document.getElementById('modal-box').className='modal';
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Nouveau contrat entreprise</div><div class="modal-sub">Créer un contrat Smart Flow avec configuration RH automatique</div><div class="mf"><label>Nom entreprise</label><input class="mi" id="contract-company-name" placeholder="Ex: BRASCO"></div><div class="m2"><div class="mf"><label>Téléphone entreprise</label><input class="mi" id="contract-company-phone" placeholder="+242..."></div><div class="mf"><label>Nom contact</label><input class="mi" id="contract-contact-name" placeholder="Ex: Nives Ornella MALANDA"></div></div><div class="m2"><div class="mf"><label>Téléphone contact</label><input class="mi" id="contract-contact-phone" placeholder="+242..."></div><div class="mf"><label>Email contact (optionnel)</label><input class="mi" id="contract-contact-email" placeholder="contact@entreprise.com"></div></div><div class="m2"><div class="mf"><label>Plan</label><select class="msel" id="contract-plan"><option value="essentiel">Essentiel (1 pers.)</option><option value="standard">Standard (2 pers.)</option><option value="premium">Premium (5 pers.)</option></select></div><div class="mf"><label>Mode paiement</label><select class="msel" id="contract-payment-mode"><option value="monthly">Mensuel</option><option value="annual">Annuel</option></select></div></div><div class="mf"><label>Nombre d'employés max</label><input class="mi" type="number" id="contract-max-employees" value="10" min="1"></div><div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-blue" data-ononclick="createContract">Créer le contrat</button></div>`;
+  openModal();
+}
+
+async function createContract(){
+  const body={
+    company_name:document.getElementById('contract-company-name').value.trim(),
+    company_phone:document.getElementById('contract-company-phone').value.trim(),
+    contact_name:document.getElementById('contract-contact-name').value.trim(),
+    contact_phone:document.getElementById('contract-contact-phone').value.trim(),
+    contact_email:document.getElementById('contract-contact-email').value.trim()||null,
+    plan:document.getElementById('contract-plan').value,
+    payment_mode:document.getElementById('contract-payment-mode').value,
+    max_employees:parseInt(document.getElementById('contract-max-employees').value)
+  };
+  if(!body.company_name||!body.contact_name||!body.contact_phone||!body.max_employees){toast('Champs obligatoires manquants','err');return;}
+  try{const d=await api('/admin/company-contracts',{method:'POST',body:JSON.stringify(body)});if(d.success){closeModal();toast('Contrat créé avec config RH par défaut');loadContracts();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 
 /* -----------------------------------
