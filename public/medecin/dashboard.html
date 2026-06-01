@@ -12,16 +12,11 @@
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <script>
-  var ZXingReader = null;
-  document.addEventListener('DOMContentLoaded', function() {
-    try {
-      ZXingReader = new ZXing.BrowserQRCodeReader();
-    } catch(e) {
-      console.warn('ZXing non disponible:', e);
-    }
-  });
+var QRDetector = null;
+if (typeof BarcodeDetector !== 'undefined') {
+  try { QRDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
+}
 </script>
   <style>
     :root{
@@ -1708,65 +1703,63 @@ function demarrerScannerMedecin() {
   var video = document.getElementById('qr-video-medecin');
   var canvas = document.getElementById('qr-canvas-medecin');
   var overlay = document.getElementById('qr-overlay');
-  if (!video || !canvas) return;
+  if (!video) return;
   document.getElementById('btn-start-scanner').style.display = 'none';
   document.getElementById('btn-stop-scanner').style.display = 'block';
   document.getElementById('scanner-status').textContent = 'Activation caméra...';
+
   navigator.mediaDevices.getUserMedia({
     video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
   }).then(function(stream) {
     scanStream = stream;
     video.srcObject = stream;
-    video.play();
-    scannerActifMedecin = true;
-    if (overlay) overlay.style.display = 'block';
-    document.getElementById('scanner-status').textContent =
-      'Pointez le QR code dans le cadre';
-    scanQRFrame(video, canvas);
+    video.play().then(function() {
+      scannerActifMedecin = true;
+      if (overlay) overlay.style.display = 'block';
+      document.getElementById('scanner-status').textContent =
+        'Pointez le QR code dans le cadre';
+      if (QRDetector) {
+        lancerDetectionNative(video);
+      } else {
+        lancerDetectionCanvas(video, canvas);
+      }
+    });
   }).catch(function(err) {
     document.getElementById('scanner-status').textContent =
-      'Caméra refusée — autorisez l\'accès caméra dans le navigateur';
+      'Caméra refusée — autorisez dans les réglages du navigateur';
     document.getElementById('btn-start-scanner').style.display = 'block';
     document.getElementById('btn-stop-scanner').style.display = 'none';
   });
 }
 
-function scanQRFrame(video, canvas) {
-  if (!scannerActifMedecin) return;
-  if (video.readyState === video.HAVE_ENOUGH_DATA && ZXingReader) {
-    try {
-      var ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      ZXingReader.decodeFromCanvas(canvas).then(function(result) {
-        if (result && scannerActifMedecin) {
-          arreterScannerMedecin();
-          traiterPatientMedecin(result.getText(), 'qr');
-        }
-        scanAnimFrame = requestAnimationFrame(function() {
-          scanQRFrame(video, canvas);
-        });
-      }).catch(function() {
-        scanAnimFrame = requestAnimationFrame(function() {
-          scanQRFrame(video, canvas);
-        });
-      });
-    } catch(e) {
-      scanAnimFrame = requestAnimationFrame(function() {
-        scanQRFrame(video, canvas);
-      });
+function lancerDetectionNative(video) {
+  if (!scannerActifMedecin || !QRDetector) return;
+  QRDetector.detect(video).then(function(barcodes) {
+    if (barcodes && barcodes.length > 0 && scannerActifMedecin) {
+      arreterScannerMedecin();
+      traiterPatientMedecin(barcodes[0].rawValue, 'qr');
+      return;
     }
-  } else {
-    scanAnimFrame = requestAnimationFrame(function() {
-      scanQRFrame(video, canvas);
-    });
+    scanAnimFrame = setTimeout(function() { lancerDetectionNative(video); }, 300);
+  }).catch(function() {
+    scanAnimFrame = setTimeout(function() { lancerDetectionNative(video); }, 300);
+  });
+}
+
+function lancerDetectionCanvas(video, canvas) {
+  if (!scannerActifMedecin || !canvas) return;
+  if (video.readyState >= 2) {
+    var ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   }
+  scanAnimFrame = setTimeout(function() { lancerDetectionCanvas(video, canvas); }, 400);
 }
 
 function arreterScannerMedecin() {
   scannerActifMedecin = false;
-  if (scanAnimFrame) { cancelAnimationFrame(scanAnimFrame); scanAnimFrame = null; }
+  if (scanAnimFrame) { clearTimeout(scanAnimFrame); scanAnimFrame = null; }
   if (scanStream) {
     scanStream.getTracks().forEach(function(t) { t.stop(); });
     scanStream = null;

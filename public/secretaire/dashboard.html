@@ -12,16 +12,11 @@
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <script>
-  var ZXingReader = null;
-  document.addEventListener('DOMContentLoaded', function() {
-    try {
-      ZXingReader = new ZXing.BrowserQRCodeReader();
-    } catch(e) {
-      console.warn('ZXing non disponible:', e);
-    }
-  });
+var QRDetector = null;
+if (typeof BarcodeDetector !== 'undefined') {
+  try { QRDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
+}
 </script>
   <style>
     :root {
@@ -2244,7 +2239,9 @@
     }
 
     // ─── SCANNER QR CODE ADHÉRENT ───────────────────────────────────────
+    let scanStreamSec = null;
     let isScanningSec = false;
+    let scanAnimFrameSec = null;
 
     function openScannerModal() {
       document.getElementById('modal-scanner-qr').classList.add('open');
@@ -2256,29 +2253,66 @@
     }
 
     function startScannerSec() {
-      if (isScanningSec || !ZXingReader) return;
-      
+      if (isScanningSec) return;
+      const video = document.getElementById('qr-reader-secretaire');
+      const canvas = document.getElementById('qr-canvas-secretaire');
       const statusDiv = document.getElementById('scanner-sec-status');
       const startBtn = document.getElementById('btn-start-scanner-sec');
       const stopBtn = document.getElementById('btn-stop-scanner-sec');
       
-      isScanningSec = true;
-      statusDiv.textContent = 'Scanner actif — positionnez le QR Code devant la caméra';
-      statusDiv.style.color = '#00C9A7';
+      if (!video) return;
+      
+      statusDiv.textContent = 'Activation caméra...';
       startBtn.disabled = true;
       stopBtn.disabled = false;
       
-      ZXingReader.decodeFromVideoDevice(
-        undefined,
-        'qr-reader-secretaire',
-        function(result, err) {
-          if (result && isScanningSec) {
-            stopScannerSec().then(function() {
-              traiterAdherentSecretaire(result.getText(), 'qr');
-            });
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+      }).then(function(stream) {
+        scanStreamSec = stream;
+        video.srcObject = stream;
+        video.play().then(function() {
+          isScanningSec = true;
+          statusDiv.textContent = 'Scanner actif — positionnez le QR Code devant la caméra';
+          statusDiv.style.color = '#00C9A7';
+          if (QRDetector) {
+            lancerDetectionNativeSec(video);
+          } else {
+            lancerDetectionCanvasSec(video, canvas);
           }
+        });
+      }).catch(function(err) {
+        statusDiv.textContent = 'Caméra refusée — autorisez dans les réglages du navigateur';
+        statusDiv.style.color = '#ff4757';
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      });
+    }
+
+    function lancerDetectionNativeSec(video) {
+      if (!isScanningSec || !QRDetector) return;
+      QRDetector.detect(video).then(function(barcodes) {
+        if (barcodes && barcodes.length > 0 && isScanningSec) {
+          stopScannerSec().then(function() {
+            traiterAdherentSecretaire(barcodes[0].rawValue, 'qr');
+          });
+          return;
         }
-      );
+        scanAnimFrameSec = setTimeout(function() { lancerDetectionNativeSec(video); }, 300);
+      }).catch(function() {
+        scanAnimFrameSec = setTimeout(function() { lancerDetectionNativeSec(video); }, 300);
+      });
+    }
+
+    function lancerDetectionCanvasSec(video, canvas) {
+      if (!isScanningSec || !canvas) return;
+      if (video.readyState >= 2) {
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+      scanAnimFrameSec = setTimeout(function() { lancerDetectionCanvasSec(video, canvas); }, 400);
     }
 
     function stopScannerSec() {
@@ -2295,9 +2329,13 @@
       startBtn.disabled = false;
       stopBtn.disabled = true;
       
-      if (ZXingReader) {
-        try { ZXingReader.reset(); } catch(e) {}
+      if (scanAnimFrameSec) { clearTimeout(scanAnimFrameSec); scanAnimFrameSec = null; }
+      if (scanStreamSec) {
+        scanStreamSec.getTracks().forEach(function(t) { t.stop(); });
+        scanStreamSec = null;
       }
+      const video = document.getElementById('qr-reader-secretaire');
+      if (video) { video.srcObject = null; }
       
       return Promise.resolve();
     }
@@ -2447,41 +2485,79 @@
       loadDashboardStats();
     }
 
+  var scanStreamSecTab = null;
   var scannerActifSecTab = false;
+  var scanAnimFrameSecTab = null;
 
   function demarrerScannerSecTab() {
     if (scannerActifSecTab) return;
-    if (!ZXingReader) {
-      document.getElementById('scanner-status-sec-tab').textContent =
-        'Lecteur QR non disponible — rechargez la page';
-      return;
-    }
-    scannerActifSecTab = true;
+    var video = document.getElementById('qr-reader-sec-tab');
+    var canvas = document.getElementById('qr-canvas-sec-tab');
+    if (!video) return;
     document.getElementById('btn-start-scanner-sec-tab').style.display = 'none';
     document.getElementById('btn-stop-scanner-sec-tab').style.display = 'block';
-    document.getElementById('scanner-status-sec-tab').textContent = 
-      'Scanner actif — pointez vers le QR code';
+    document.getElementById('scanner-status-sec-tab').textContent = 'Activation caméra...';
     
-    ZXingReader.decodeFromVideoDevice(
-      undefined,
-      'qr-reader-sec-tab',
-      function(result, err) {
-        if (result && scannerActifSecTab) {
-          arreterScannerSecTab();
-          traiterPatientSecTab(result.getText(), 'qr');
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+    }).then(function(stream) {
+      scanStreamSecTab = stream;
+      video.srcObject = stream;
+      video.play().then(function() {
+        scannerActifSecTab = true;
+        document.getElementById('scanner-status-sec-tab').textContent = 
+          'Scanner actif — pointez vers le QR code';
+        if (QRDetector) {
+          lancerDetectionNativeSecTab(video);
+        } else {
+          lancerDetectionCanvasSecTab(video, canvas);
         }
+      });
+    }).catch(function(err) {
+      document.getElementById('scanner-status-sec-tab').textContent =
+        'Caméra refusée — autorisez dans les réglages du navigateur';
+      document.getElementById('btn-start-scanner-sec-tab').style.display = 'block';
+      document.getElementById('btn-stop-scanner-sec-tab').style.display = 'none';
+    });
+  }
+
+  function lancerDetectionNativeSecTab(video) {
+    if (!scannerActifSecTab || !QRDetector) return;
+    QRDetector.detect(video).then(function(barcodes) {
+      if (barcodes && barcodes.length > 0 && scannerActifSecTab) {
+        arreterScannerSecTab();
+        traiterPatientSecTab(barcodes[0].rawValue, 'qr');
+        return;
       }
-    );
+      scanAnimFrameSecTab = setTimeout(function() { lancerDetectionNativeSecTab(video); }, 300);
+    }).catch(function() {
+      scanAnimFrameSecTab = setTimeout(function() { lancerDetectionNativeSecTab(video); }, 300);
+    });
+  }
+
+  function lancerDetectionCanvasSecTab(video, canvas) {
+    if (!scannerActifSecTab || !canvas) return;
+    if (video.readyState >= 2) {
+      var ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
+    scanAnimFrameSecTab = setTimeout(function() { lancerDetectionCanvasSecTab(video, canvas); }, 400);
   }
 
   function arreterScannerSecTab() {
     scannerActifSecTab = false;
+    if (scanAnimFrameSecTab) { clearTimeout(scanAnimFrameSecTab); scanAnimFrameSecTab = null; }
+    if (scanStreamSecTab) {
+      scanStreamSecTab.getTracks().forEach(function(t) { t.stop(); });
+      scanStreamSecTab = null;
+    }
+    var video = document.getElementById('qr-reader-sec-tab');
+    if (video) { video.srcObject = null; }
     document.getElementById('btn-start-scanner-sec-tab').style.display = 'block';
     document.getElementById('btn-stop-scanner-sec-tab').style.display = 'none';
     document.getElementById('scanner-status-sec-tab').textContent = 'Scanner arrêté';
-    if (ZXingReader) {
-      try { ZXingReader.reset(); } catch(e) {}
-    }
   }
 
   function rechercherPatientSecTab() {
