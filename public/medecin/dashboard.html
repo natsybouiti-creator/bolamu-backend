@@ -12,7 +12,6 @@
   <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root{
       --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
@@ -237,20 +236,19 @@
     <div class="logo-name"><span class="b">Bola</span><span class="t">mu</span></div>
   </a>
   <div class="topbar-right">
-    <span class="role-pill">Médecin</span>
+    <span class="role-pill">🩺 Médecin</span>
     <span class="phone-pill" id="topbar-phone">—</span>
     <button class="logout-btn" id="btn-logout">Déconnexion</button>
   </div>
 </div>
 
 <div class="tabs-bar">
-  <button class="tab active" id="tab-accueil" data-tab="accueil">Tableau de bord</button>
-  <button class="tab" id="tab-rdv" data-tab="rdv">Mes RDV</button>
-  <button class="tab" id="tab-patients" data-tab="patients">Mes patients</button>
-  <button class="tab" id="tab-scanner" data-tab="scanner">Scanner patient</button>
-  <button class="tab" id="tab-smartflow" data-tab="smartflow">Smart Flow</button>
-  <button class="tab" id="tab-telemedicine" data-tab="telemedicine">Téléconsultation</button>
-  <button class="tab" id="tab-profil" data-tab="profil">Mon profil</button>
+  <button class="tab active" id="tab-accueil" data-tab="accueil">🏠 Tableau de bord</button>
+  <button class="tab" id="tab-rdv" data-tab="rdv">📅 Mes RDV</button>
+  <button class="tab" id="tab-patients" data-tab="patients">👥 Mes patients</button>
+  <button class="tab" id="tab-smartflow" data-tab="smartflow">📊 Smart Flow</button>
+  <button class="tab" id="tab-telemedicine" data-tab="telemedicine">📹 Téléconsultation</button>
+  <button class="tab" id="tab-profil" data-tab="profil">👤 Mon profil</button>
 </div>
 
 <nav class="bottom-nav">
@@ -261,14 +259,11 @@
     <button class="bnav-item" id="bnav-rdv" data-tab="rdv">
       <span class="bnav-icon">📅</span><span class="bnav-label">RDV</span>
     </button>
+    <button class="bnav-item" id="bnav-telemedicine" data-tab="telemedicine">
+      <span class="bnav-icon">📹</span><span class="bnav-label">Vidéo</span>
+    </button>
     <button class="bnav-item" id="bnav-patients" data-tab="patients">
       <span class="bnav-icon">👥</span><span class="bnav-label">Patients</span>
-    </button>
-    <button class="bnav-item" id="bnav-scanner" data-tab="scanner">
-      <span class="bnav-icon">�</span><span class="bnav-label">Scanner</span>
-    </button>
-    <button class="bnav-item" id="bnav-telemedicine" data-tab="telemedicine">
-      <span class="bnav-icon">�</span><span class="bnav-label">Vidéo</span>
     </button>
     <button class="bnav-item" id="bnav-profil" data-tab="profil">
       <span class="bnav-icon">👤</span><span class="bnav-label">Profil</span>
@@ -279,7 +274,7 @@
 <div class="main">
   <div class="panel active" id="panel-accueil">
     <div id="bandeau-attente" class="bandeau-attente" style="display:none;">
-      <div><strong>Compte en cours de vérification</strong> — Votre inscription est en cours de validation. SMS sous 24h.</div>
+      ⏳ <div><strong>Compte en cours de vérification</strong> — Votre inscription est en cours de validation. SMS sous 24h.</div>
     </div>
     <div class="top-grid">
       <div class="med-card">
@@ -295,7 +290,7 @@
       <div class="stat-grid">
         <div class="stat-card"><div class="stat-label">RDV aujourd'hui</div><div class="stat-value" id="s-today">0</div><div class="stat-sub">Consultations prévues</div></div>
         <div class="stat-card"><div class="stat-label">Ce mois</div><div class="stat-value" id="s-month">0</div><div class="stat-sub">Consultations totales</div></div>
-        <div class="stat-card"><div class="stat-label">Statut</div><div style="margin-top:6px" id="s-statut"><span class="badge badge-pending">En attente</span></div><div class="stat-sub" style="margin-top:8px">Vérification Bolamu</div></div>
+        <div class="stat-card"><div class="stat-label">Statut</div><div style="margin-top:6px" id="s-statut"><span class="badge badge-pending">⏳ En attente</span></div><div class="stat-sub" style="margin-top:8px">Vérification Bolamu</div></div>
         <div class="stat-card"><div class="stat-label">Patients suivis</div><div class="stat-value" id="s-patients">0</div><div class="stat-sub">Total cumulé</div></div>
       </div>
     </div>
@@ -310,23 +305,8 @@
     <div class="section-header"><h2 class="section-title">Mes patients</h2></div>
     <div id="patients-list"><div class="loading">Chargement…</div></div>
   </div>
-  <div class="panel" id="panel-scanner">
-    <div class="section-header"><h2 class="section-title">Scanner QR Code Patient</h2></div>
-    <div style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:20px;padding:28px;color:white;margin-bottom:24px;">
-      <div style="font-size:14px;line-height:1.6;">Scannez le QR Code du patient pour accéder rapidement à son dossier et vérifier sa couverture Bolamu.</div>
-    </div>
-    <div class="card" style="padding:24px;">
-      <div id="qr-reader-medecin" style="width:100%;min-height:300px;background:#f8fafc;border-radius:12px;display:flex;align-items:center;justify-content:center;"></div>
-      <div id="scanner-status" style="text-align:center;margin-top:16px;font-size:14px;color:var(--texte-doux);">Cliquez sur "Démarrer le scanner" pour commencer</div>
-      <div id="scanner-result" style="margin-top:20px;display:none;"></div>
-      <div style="display:flex;gap:12px;margin-top:20px;">
-        <button id="btn-start-scanner" style="flex:1;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Démarrer le scanner</button>
-        <button id="btn-stop-scanner" style="flex:1;padding:12px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;" disabled>Arrêter</button>
-      </div>
-    </div>
-  </div>
   <div class="panel" id="panel-telemedicine">
-    <div class="section-header"><h2 class="section-title">Téléconsultations</h2></div>
+    <div class="section-header"><h2 class="section-title">📹 Téléconsultations</h2></div>
     <div style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:20px;padding:28px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
       <div style="font-size:48px;">🩺</div>
       <div><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:6px;">Consultations vidéo sécurisées</div>
@@ -383,20 +363,20 @@
         <div class="detail-card">
           <h3>Sécurité & accès</h3>
           <div class="detail-row"><span class="info-label">Connexion</span><span class="info-value">Mot de passe permanent</span></div>
-          <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">AES-256</span></div>
+          <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">✅ AES-256</span></div>
           <div style="margin-top:16px;" id="pwd-form-container">
             <button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
-              Changer mon mot de passe
+              🔑 Changer mon mot de passe
             </button>
           </div>
         </div>
         <div class="detail-card">
-          <h3>Ma localisation</h3>
+          <h3>📍 Ma localisation</h3>
           <div id="gps-status" style="font-size:13px;color:var(--texte-doux);margin-bottom:10px;">Non définie</div>
           <input type="text" id="gps-address" placeholder="Adresse (ex: Avenue Foch, Brazzaville)" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--bg-input,#f8fafc);color:var(--text);margin-bottom:10px;box-sizing:border-box;">
           <div style="display:flex;gap:8px;">
-            <button id="btn-detect-pos" style="flex:1;padding:10px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">Détecter ma position</button>
-            <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">Enregistrer</button>
+            <button id="btn-detect-pos" style="flex:1;padding:10px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">📡 Détecter ma position</button>
+            <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">💾 Enregistrer</button>
           </div>
         </div>
       </div>
@@ -404,10 +384,10 @@
   </div>
 
   <div class="panel" id="panel-smartflow">
-    <div class="section-header"><h2 class="section-title">Smart Flow — Statistiques du mois</h2></div>
+    <div class="section-header"><h2 class="section-title">📊 Smart Flow — Statistiques du mois</h2></div>
     <div style="display:flex;gap:12px;margin-bottom:24px;">
       <input type="month" id="smartflow-mois" style="padding:10px 16px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);">
-      <button class="btn-primary" id="btn-load-smartflow-stats" style="padding:10px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Charger</button>
+      <button class="btn-primary" id="btn-load-smartflow-stats" style="padding:10px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔍 Charger</button>
     </div>
     <div class="top-grid">
       <div class="stat-card">
@@ -480,11 +460,6 @@ function generateMedCode(p){
 }
 
 function showTab(name,btn){
-  // Arrêter le scanner si on quitte l'onglet scanner
-  if (isScanning && name !== 'scanner') {
-    stopScanner();
-  }
-  
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -494,11 +469,6 @@ function showTab(name,btn){
   if(name==='patients')loadRdv();
 }
 function showTabMobile(name,btn){
-  // Arrêter le scanner si on quitte l'onglet scanner
-  if (isScanning && name !== 'scanner') {
-    stopScanner();
-  }
-  
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -531,7 +501,7 @@ async function loadProfil(){
     document.getElementById('d-spec').textContent=spec;
     document.getElementById('d-ordre').textContent=d.registration_number||'—';
     document.getElementById('d-phone').textContent=phone;
-    const statutHtml=statut==='verified'?'<span class="badge badge-actif">Vérifié</span>':'<span class="badge badge-pending">En attente</span>';
+    const statutHtml=statut==='verified'?'<span class="badge badge-actif">✅ Vérifié</span>':'<span class="badge badge-pending">⏳ En attente</span>';
     document.getElementById('s-statut').innerHTML=statutHtml;
     document.getElementById('d-statut').innerHTML=statutHtml;
     const banner = document.getElementById('bandeau-attente');
@@ -543,7 +513,7 @@ if (d.is_active && d.validated_at) {
   if (diffH < 48) {
     const t = document.createElement('div');
     t.style.cssText = 'position:fixed;top:20px;right:20px;background:#00C9A7;color:#fff;padding:14px 20px;border-radius:10px;font-weight:500;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15)';
-    t.textContent = 'Votre compte a été validé par l\'équipe Bolamu. Bienvenue !';
+    t.textContent = '✓ Votre compte a été validé par l\'équipe Bolamu. Bienvenue !';
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 6000);
   }
@@ -580,7 +550,7 @@ async function ajouterCreneau(){
     const res=await fetch(`${API}/doctors/slots`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({phone,day:jour,start_time:debut,end_time:fin})});
     const data=await res.json();
     if(!data.success){alert('Erreur : '+data.message);return;}
-    alert('Créneau ajouté !');
+    alert('✅ Créneau ajouté !');
     loadCreneaux();
     document.getElementById('creneau-debut').value='';
     document.getElementById('creneau-fin').value='';
@@ -593,7 +563,7 @@ async function supprimerCreneau(id){
     const res=await fetch(`${API}/doctors/slots/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token}`}});
     const data=await res.json();
     if(!data.success){alert('Erreur : '+data.message);return;}
-    alert('Créneau supprimé !');
+    alert('✅ Créneau supprimé !');
     loadCreneaux();
   }catch(e){alert('Erreur de connexion au serveur');}
 }
@@ -625,8 +595,8 @@ async function submitChangePwd(){
     });
     const data = await res.json();
     if (data.success) {
-      showToast('Mot de passe modifié','success');
-      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">Changer mon mot de passe</button>';
+      showToast('Mot de passe modifié ✅','success');
+      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
     } else {
       showToast(data.message || 'Erreur','error');
     }
@@ -676,15 +646,15 @@ function renderRdvList(rdvs,containerId){
     if(hasSymptoms){
       symptomsHtml=`
         <div style="margin-top:8px;padding:10px 12px;background:#f0fdf4;border-left:3px solid #10b981;border-radius:0 8px 8px 0;font-size:13px;">
-          <div style="font-weight:700;color:#065f46;margin-bottom:4px;">Bolamu IA Consult — Pré-consultation</div>
+          <div style="font-weight:700;color:#065f46;margin-bottom:4px;">🤖 Bolamu IA Consult — Pré-consultation</div>
           <div style="color:#047857;margin-bottom:6px;"><strong>Motif :</strong> ${r.symptomes_motif}</div>
           ${r.symptomes_liste&&r.symptomes_liste.length?
             `<div style="display:flex;flex-wrap:wrap;gap:4px;">
               ${(typeof r.symptomes_liste==='string'?JSON.parse(r.symptomes_liste):r.symptomes_liste)
                 .map(s=>`<span style="background:white;border:1px solid #10b981;color:#047857;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:600;">${s}</span>`).join('')}
             </div>`:''}
-          ${r.duree_symptomes?`<div style="margin-top:6px;font-size:12px;color:#6b7280;">Depuis : ${r.duree_symptomes.replace('_',' ').replace('moins 24h','moins de 24h')}</div>`:''}
-          ${r.intensite?`<div style="font-size:12px;color:#6b7280;">Intensité : ${r.intensite}/10</div>`:''}
+          ${r.duree_symptomes?`<div style="margin-top:6px;font-size:12px;color:#6b7280;">⏱ Depuis : ${r.duree_symptomes.replace('_',' ').replace('moins 24h','moins de 24h')}</div>`:''}
+          ${r.intensite?`<div style="font-size:12px;color:#6b7280;">📊 Intensité : ${r.intensite}/10</div>`:''}
         </div>
       `;
     }
@@ -695,18 +665,18 @@ function renderRdvList(rdvs,containerId){
           <div class="rdv-phone">Code : <strong style="font-family:'Fraunces',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code||'—'}</strong></div>
         </div></div>
         <div style="display:flex;align-items:center;gap:8px;">
-          ${hasSymptoms?`<span style="background:#d1fae5;color:#065f46;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:700;">IA Consult prêt</span>`:''}
-          <span class="badge ${termine?'badge-termine':'badge-confirme'}">${termine?'Terminé':'Confirmé'}</span>
+          ${hasSymptoms?`<span style="background:#d1fae5;color:#065f46;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:700;">🤖 IA Consult prêt</span>`:''}
+          <span class="badge ${termine?'badge-termine':'badge-confirme'}">${termine?'✅ Terminé':'📅 Confirmé'}</span>
         </div>
       </div>
       <div class="rdv-meta"><span>📅 <strong>${formatDate(dateRdv)}</strong></span><span>⏰ <strong>${heureRdv}</strong></span></div>
       ${symptomsHtml}
       <div class="rdv-actions">
         ${peutValider?`
-          <button class="btn-valider" data-action="ouvrir-validation" data-id="${r.id}" data-patient="${r.patient_phone}" data-session="${r.session_code}" data-date="${dateRdv}" data-heure="${heureRdv}" data-symptomes-motif="${r.symptomes_motif||''}">Valider</button>
-          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}">Téléconsultation</button>
-          <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}">Prescrire labo</button>`:''}
-        ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}">Prescrire labo</button>`:''}
+          <button class="btn-valider" data-action="ouvrir-validation" data-id="${r.id}" data-patient="${r.patient_phone}" data-session="${r.session_code}" data-date="${dateRdv}" data-heure="${heureRdv}" data-symptomes-motif="${r.symptomes_motif||''}">✅ Valider</button>
+          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}">📹 Téléconsultation</button>
+          <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}">🔬 Prescrire labo</button>`:''}
+        ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}">🔬 Prescrire labo</button>`:''}
       </div>
     </div>`;
   }).join('')}</div>`;
@@ -763,19 +733,19 @@ function afficherEtapeCompteRendu(){
   document.getElementById('modal-content').innerHTML=`
     <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step active">2</div><div class="step-line"></div><div class="step pending">3</div></div>
     <div class="modal-title">Compte rendu de consultation</div>
-    <div class="modal-sub">Code validé — Remplissez le compte rendu obligatoire avant de valider la consultation.</div>
+    <div class="modal-sub">Code validé ✅ — Remplissez le compte rendu obligatoire avant de valider la consultation.</div>
     
-    <!-- Briefing IA — Amina -->
+    <!-- 🤖 Briefing IA — Amina -->
     <div id="ai-briefing-section" style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:16px;padding:20px;margin-bottom:24px;color:white;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-size:24px;">🤖</span>
           <span style="font-size:16px;font-weight:700;">Briefing IA — Amina</span>
         </div>
-        <button type="button" id="btn-generate-briefing" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;">Générer le briefing</button>
+        <button type="button" id="btn-generate-briefing" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;">🔄 Générer le briefing</button>
       </div>
       <div id="briefing-result" style="display:none;">
-        <div id="briefing-loading" style="text-align:center;padding:12px;font-size:13px;">Analyse en cours...</div>
+        <div id="briefing-loading" style="text-align:center;padding:12px;font-size:13px;">⏳ Analyse en cours...</div>
         <div id="briefing-content" style="display:none;">
           <div id="tricolor-badge" style="display:inline-block;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;margin-bottom:12px;"></div>
           <div style="display:grid;gap:12px;font-size:13px;line-height:1.5;">
@@ -784,7 +754,7 @@ function afficherEtapeCompteRendu(){
             <div><strong>Alertes interactions :</strong> <span id="briefing-alertes">—</span></div>
             <div><strong>Symptômes déclarés :</strong> <span id="briefing-symptomes">—</span></div>
           </div>
-          <button type="button" id="btn-renewal" style="display:none;margin-top:16px;background:#00C9A7;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;">Renouvellement assisté</button>
+          <button type="button" id="btn-renewal" style="display:none;margin-top:16px;background:#00C9A7;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;">🔄 Renouvellement assisté</button>
         </div>
       </div>
     </div>
@@ -812,7 +782,7 @@ function afficherEtapeCompteRendu(){
     <div class="form-group" style="background:var(--bleu-pale);padding:16px;border-radius:12px;border:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <label class="form-label" style="margin:0;">Constantes médicales du patient</label>
-        <button type="button" data-action="load-constantes" style="background:var(--bleu-vif);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">Charger</button>
+        <button type="button" data-action="load-constantes" style="background:var(--bleu-vif);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">🔄 Charger</button>
       </div>
       <div id="constantes-fields" style="display:none;flex-direction:column;gap:12px;">
         <div>
@@ -863,8 +833,8 @@ function afficherEtapeCompteRendu(){
           <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Lien de parenté</label>
           <input type="text" id="edit-contact-lien" placeholder="Ex: Épouse, Père, Mère..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
         </div>
-        <button type="button" data-action="save-constantes" style="background:var(--vert);color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600;">Enregistrer les constantes</button>
-        <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;">Ces informations seront visibles par le patient dans son dossier médical.</p>
+        <button type="button" data-action="save-constantes" style="background:var(--vert);color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600;">💾 Enregistrer les constantes</button>
+        <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;">⚠️ Ces informations seront visibles par le patient dans son dossier médical.</p>
       </div>
     </div>
     <div class="modal-actions">
@@ -900,8 +870,8 @@ function afficherEtapeOrdonnance(){
   document.getElementById('modal-content').innerHTML=`
     <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step done">✓</div><div class="step-line done"></div><div class="step active">3</div></div>
     <div class="modal-title">Rédiger l'ordonnance</div>
-    <div class="modal-sub">Code validé — Rédigez l'ordonnance numérique pour ce patient.</div>
-    <div class="modal-hint">Listez un médicament par ligne. Ex :<br><em>Paracétamol 1000mg — 3x/jour pendant 5 jours</em></div>
+    <div class="modal-sub">Code validé ✅ — Rédigez l'ordonnance numérique pour ce patient.</div>
+    <div class="modal-hint">💡 Listez un médicament par ligne. Ex :<br><em>Paracétamol 1000mg — 3x/jour pendant 5 jours</em></div>
     <div class="form-group">
       <label class="form-label">Médicaments prescrits *</label>
       <textarea class="form-textarea" id="ord-medications" placeholder="Paracétamol 1000mg — 3x/jour pendant 5 jours&#10;Amoxicilline 500mg — 2x/jour pendant 7 jours"></textarea>
@@ -931,7 +901,7 @@ function afficherEtapeOrdonnance(){
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" data-action="retour-cr">← Retour</button>
-      <button class="btn-primary" id="btn-confirmer" data-action="confirmer-validation">Valider et créer l'ordonnance</button>
+      <button class="btn-primary" id="btn-confirmer" data-action="confirmer-validation">✅ Valider et créer l'ordonnance</button>
     </div>`;
   
   // Ajouter debounce pour vérification SSP
@@ -990,7 +960,7 @@ async function verifierMedicaments(){
   // Afficher badges
   badgesDiv.innerHTML = medicationsList.map((med, i) => {
     const isSSP = medicamentsData[i]?.isSSP;
-    return `<span style="display:inline-block;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:600;margin-right:6px;margin-bottom:6px;background:${isSSP ? 'var(--vert-clair)' : '#fef9ec'};color:${isSSP ? 'var(--emeraude)' : 'var(--amber)'};border:1px solid ${isSSP ? 'var(--vert)' : 'var(--amber)'};">${isSSP ? 'SSP' : 'Hors catalogue'}</span>`;
+    return `<span style="display:inline-block;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:600;margin-right:6px;margin-bottom:6px;background:${isSSP ? 'var(--vert-clair)' : '#fef9ec'};color:${isSSP ? 'var(--emeraude)' : 'var(--amber)'};border:1px solid ${isSSP ? 'var(--vert)' : 'var(--amber)'};">${isSSP ? '✅ SSP' : '💰 Hors catalogue'}</span>`;
   }).join('');
   
   // Afficher résumé
@@ -1071,7 +1041,7 @@ async function confirmerValidation(){
     const dataVal=await resVal.json();
     if(!resVal.ok){
       if(dataVal.message&&dataVal.message.includes('Compte rendu obligatoire')){
-        btn.disabled=false;btn.textContent='Valider et créer l\'ordonnance';
+        btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';
         alert('Erreur : '+dataVal.message+'\n\nLe compte rendu doit être soumis avant la validation.');
         afficherEtapeCompteRendu();
         return;
@@ -1105,7 +1075,7 @@ async function confirmerValidation(){
         <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Fraunces',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong><br><br>Ordonnance envoyée — patient notifié pour les hors catalogue</div>
         <button class="btn-primary" data-action="fermer-modal-load">Fermer</button>
       </div>`;
-  }catch(e){btn.disabled=false;btn.textContent='Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
+  }catch(e){btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
 }
 
 function fermerModal(){document.getElementById('modal-validation').classList.remove('open');}
@@ -1118,7 +1088,7 @@ async function generateBriefing(){
   const loadingDiv=document.getElementById('briefing-loading');
   const contentDiv=document.getElementById('briefing-content');
   
-  btn.disabled=true;btn.textContent='Analyse...';
+  btn.disabled=true;btn.textContent='⏳ Analyse...';
   resultDiv.style.display='block';
   loadingDiv.style.display='block';
   contentDiv.style.display='none';
@@ -1139,16 +1109,16 @@ async function generateBriefing(){
       
       // Badge feu tricolore par défaut (sera mis à jour après analyse tricolor)
       const badge=document.getElementById('tricolor-badge');
-      badge.textContent='Vert';
+      badge.textContent='🟢 Vert';
       badge.style.background='#00C9A7';
       
-      btn.textContent='Régénérer';
+      btn.textContent='🔄 Régénérer';
     }else{
-      contentDiv.innerHTML='<div style="padding:12px;font-size:13px;">'+ (data.message||'Analyse indisponible')+'</div>';
+      contentDiv.innerHTML='<div style="padding:12px;font-size:13px;">⚠️ '+ (data.message||'Analyse indisponible')+'</div>';
     }
   }catch(e){
     loadingDiv.style.display='none';
-    contentDiv.innerHTML='<div style="padding:12px;font-size:13px;">Erreur de connexion</div>';
+    contentDiv.innerHTML='<div style="padding:12px;font-size:13px;">⚠️ Erreur de connexion</div>';
   }
   
   btn.disabled=false;
@@ -1173,13 +1143,13 @@ async function analyzeTricolor(){
       const status=data.data.status;
       
       if(status==='green'){
-        badge.textContent='Vert';
+        badge.textContent='🟢 Vert';
         badge.style.background='#00C9A7';
       }else if(status==='orange'){
-        badge.textContent='Orange';
+        badge.textContent='🟠 Orange';
         badge.style.background='#f39c12';
       }else if(status==='red'){
-        badge.textContent='Rouge';
+        badge.textContent='🔴 Rouge';
         badge.style.background='#e74c3c';
       }
     }
@@ -1196,9 +1166,9 @@ async function generateRenewal(){
       if(renewal.eligible&&renewal.suggestion){
         document.getElementById('ord-medications').value=renewal.suggestion.medications||'';
         document.getElementById('ord-instructions').value=renewal.suggestion.instructions||'';
-        alert('Ordonnance suggérée chargée : '+renewal.reason);
+        alert('✅ Ordonnance suggérée chargée : '+renewal.reason);
       }else{
-        alert(''+renewal.reason);
+        alert('ℹ️ '+renewal.reason);
       }
     }
   }catch(e){alert('Erreur de connexion');}
@@ -1222,15 +1192,15 @@ async function loadTeleRdv(){
             <div class="rdv-name">${r.patient_phone}</div>
             <div class="rdv-phone">Code : <strong style="font-family:'Fraunces',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code}</strong></div>
           </div></div>
-          ${isEnCours?'<span style="background:rgba(0,201,167,0.15);color:#047857;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;">En cours</span>':'<span class="badge badge-confirme">Confirmé</span>'}
+          ${isEnCours?'<span style="background:rgba(0,201,167,0.15);color:#047857;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;">🔴 En cours</span>':'<span class="badge badge-confirme">📅 Confirmé</span>'}
         </div>
         <div class="rdv-meta"><span>📅 <strong>${formatDate(dateRdv)}</strong></span><span>⏰ <strong>${heureRdv}</strong></span></div>
         <div class="rdv-actions">
-          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}">${isEnCours?'Reprendre la session':'Démarrer la téléconsultation'}</button>
+          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}">📹 ${isEnCours?'Reprendre la session':'Démarrer la téléconsultation'}</button>
         </div>
       </div>`;
     }).join('')}</div>`;
-  }catch(e){document.getElementById('tele-rdv-list').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur de chargement.</p></div>`;
+  }catch(e){document.getElementById('tele-rdv-list').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur de chargement.</p></div>`;}
 }
 
 async function demarrerTeleconsultation(rdvId,sessionCode,patientPhone){
@@ -1317,7 +1287,7 @@ function ouvrirModalLabo(rdvId,patientPhone){
       </div>
       <div class="modal-actions" style="display:flex;gap:12px;margin-top:24px;">
         <button class="btn-cancel" data-action="fermer-modal-labo">Annuler</button>
-        <button class="btn-primary" id="btn-labo-envoyer" data-action="envoyer-labo" data-id="${rdvId}" data-patient="${patientPhone}">Envoyer</button>
+        <button class="btn-primary" id="btn-labo-envoyer" data-action="envoyer-labo" data-id="${rdvId}" data-patient="${patientPhone}">🔬 Envoyer</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -1343,8 +1313,8 @@ async function envoyerPrescriptionLabo(rdvId,patientPhone){
     if(!res.ok)throw new Error(data.message||'Erreur prescription');
     fermerModalLabo();
     const prescriptionCode=data.data?.prescription_code||'N/A';
-    alert(`Prescription créée.\n\nCode à donner au patient : ${prescriptionCode}`);
-  }catch(e){btn.disabled=false;btn.textContent='Envoyer';alert('Erreur : '+e.message);}
+    alert(`✅ Prescription créée.\n\nCode à donner au patient : ${prescriptionCode}`);
+  }catch(e){btn.disabled=false;btn.textContent='🔬 Envoyer';alert('Erreur : '+e.message);}
 }
 
 async function genererQRPatient(patientPhone){
@@ -1390,7 +1360,7 @@ async function loadPosition() {
     if (data.user?.latitude) {
       currentLat = data.user.latitude;
       currentLng = data.user.longitude;
-      document.getElementById('gps-status').textContent = `Position enregistrée${data.user.address ? ' — ' + data.user.address : ''}`;
+      document.getElementById('gps-status').textContent = `✅ Position enregistrée${data.user.address ? ' — ' + data.user.address : ''}`;
       document.getElementById('gps-status').style.color = '#00C9A7';
       if (data.user.address) document.getElementById('gps-address').value = data.user.address;
     }
@@ -1399,11 +1369,11 @@ async function loadPosition() {
 
 function detectPosition() {
   const btn = document.getElementById('btn-detect-pos');
-  btn.textContent = 'Détection…';
+  btn.textContent = '⏳ Détection…';
   btn.disabled = true;
   if (!navigator.geolocation) {
-    document.getElementById('gps-status').textContent = 'Géolocalisation non supportée';
-    btn.textContent = 'Détecter ma position';
+    document.getElementById('gps-status').textContent = '❌ Géolocalisation non supportée';
+    btn.textContent = '📡 Détecter ma position';
     btn.disabled = false;
     return;
   }
@@ -1411,15 +1381,15 @@ function detectPosition() {
     (pos) => {
       currentLat = pos.coords.latitude;
       currentLng = pos.coords.longitude;
-      document.getElementById('gps-status').textContent = `Position détectée — Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
+      document.getElementById('gps-status').textContent = `📍 Position détectée — Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
       document.getElementById('gps-status').style.color = '#00C9A7';
-      btn.textContent = 'Détecter ma position';
+      btn.textContent = '📡 Détecter ma position';
       btn.disabled = false;
     },
     (err) => {
-      document.getElementById('gps-status').textContent = 'Impossible de détecter — entrez l\'adresse manuellement';
+      document.getElementById('gps-status').textContent = '❌ Impossible de détecter — entrez l\'adresse manuellement';
       document.getElementById('gps-status').style.color = '#ef4444';
-      btn.textContent = 'Détecter ma position';
+      btn.textContent = '📡 Détecter ma position';
       btn.disabled = false;
     },
     { enableHighAccuracy: true, timeout: 10000 }
@@ -1443,8 +1413,8 @@ async function savePosition() {
     });
     const data = await res.json();
     if (data.success) {
-      alert('Position enregistrée');
-      document.getElementById('gps-status').textContent = `Position enregistrée${address ? ' — ' + address : ''}`;
+      alert('Position enregistrée ✅');
+      document.getElementById('gps-status').textContent = `✅ Position enregistrée${address ? ' — ' + address : ''}`;
     }
   } catch(e) { alert('Erreur serveur'); }
 }
@@ -1522,7 +1492,7 @@ async function savePatientConstantes() {
     });
     const data = await res.json();
     if (data.success) {
-      alert('Constantes médicales enregistrées avec succès.');
+      alert('✅ Constantes médicales enregistrées avec succès.');
     } else {
       alert('Erreur lors de la mise à jour: ' + (data.message || 'Erreur inconnue'));
     }
@@ -1530,128 +1500,6 @@ async function savePatientConstantes() {
     console.error('[savePatientConstantes]', e);
     alert('Erreur réseau.');
   }
-}
-
-// ─── SCANNER QR CODE PATIENT ───────────────────────────────────────
-let html5QrCode = null;
-let isScanning = false;
-
-function startScanner() {
-  if (isScanning) return;
-  
-  const qrReader = document.getElementById('qr-reader-medecin');
-  const statusDiv = document.getElementById('scanner-status');
-  const startBtn = document.getElementById('btn-start-scanner');
-  const stopBtn = document.getElementById('btn-stop-scanner');
-  
-  html5QrCode = new Html5Qrcode("qr-reader-medecin");
-  
-  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-  
-  html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
-    .then(() => {
-      isScanning = true;
-      statusDiv.textContent = 'Scanner actif — positionnez le QR Code devant la caméra';
-      statusDiv.style.color = '#00C9A7';
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-    })
-    .catch(err => {
-      statusDiv.textContent = 'Erreur: ' + err;
-      statusDiv.style.color = '#e74c3c';
-    });
-}
-
-function stopScanner() {
-  if (!isScanning || !html5QrCode) return;
-  
-  html5QrCode.stop().then(() => {
-    isScanning = false;
-    html5QrCode.clear();
-    html5QrCode = null;
-    
-    const statusDiv = document.getElementById('scanner-status');
-    const startBtn = document.getElementById('btn-start-scanner');
-    const stopBtn = document.getElementById('btn-stop-scanner');
-    
-    statusDiv.textContent = 'Scanner arrêté';
-    statusDiv.style.color = 'var(--texte-doux)';
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-  }).catch(err => {
-    console.error('Erreur arrêt scanner:', err);
-  });
-}
-
-async function onScanSuccess(decodedText, decodedResult) {
-  stopScanner();
-  
-  const resultDiv = document.getElementById('scanner-result');
-  const statusDiv = document.getElementById('scanner-status');
-  
-  statusDiv.textContent = 'QR Code détecté — vérification en cours...';
-  statusDiv.style.color = '#00C9A7';
-  
-  try {
-    const res = await fetch(`${API}/qr/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ qr_token: decodedText })
-    });
-    const data = await res.json();
-    
-    if (data.success && data.patient) {
-      const p = data.patient;
-      resultDiv.style.display = 'block';
-      resultDiv.innerHTML = `
-        <div style="background:var(--vert-clair);border-radius:12px;padding:20px;border:1px solid var(--vert);">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-            <div style="width:48px;height:48px;background:var(--vert);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:white;">✓</div>
-            <div>
-              <div style="font-size:16px;font-weight:700;color:var(--emeraude);">Patient identifié</div>
-              <div style="font-size:13px;color:#047857;">${p.full_name || p.phone}</div>
-            </div>
-          </div>
-          <div style="display:grid;gap:8px;font-size:13px;">
-            <div><strong>Téléphone:</strong> ${p.phone}</div>
-            <div><strong>Abonnement:</strong> ${p.statut_abonnement || '—'}</div>
-            <div><strong>Plan:</strong> ${p.plan_nom || '—'}</div>
-          </div>
-          <button onclick="showTab('patients', document.getElementById('tab-patients'))" style="margin-top:16px;width:100%;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Voir le dossier patient</button>
-        </div>
-      `;
-      statusDiv.textContent = 'QR Code vérifié avec succès';
-    } else {
-      resultDiv.style.display = 'block';
-      resultDiv.innerHTML = `
-        <div style="background:#fef2f2;border-radius:12px;padding:20px;border:1px solid #ef4444;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:48px;height:48px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:white;">✕</div>
-            <div>
-              <div style="font-size:16px;font-weight:700;color:#b91c1c;">QR Code invalide</div>
-              <div style="font-size:13px;color:#7f1d1d;">${data.message || 'Patient non trouvé'}</div>
-            </div>
-          </div>
-        </div>
-      `;
-      statusDiv.textContent = 'QR Code invalide';
-      statusDiv.style.color = '#ef4444';
-    }
-  } catch(e) {
-    resultDiv.style.display = 'block';
-    resultDiv.innerHTML = `
-      <div style="background:#fef2f2;border-radius:12px;padding:20px;border:1px solid #ef4444;">
-        <div style="font-size:16px;font-weight:700;color:#b91c1c;">Erreur de vérification</div>
-        <div style="font-size:13px;color:#7f1d1d;">Erreur de connexion au serveur</div>
-      </div>
-    `;
-    statusDiv.textContent = 'Erreur de connexion';
-    statusDiv.style.color = '#ef4444';
-  }
-}
-
-function onScanFailure(error) {
-  // Ignorer les erreurs de scan en cours (normal)
 }
 
 loadProfil();loadRdv();loadPosition();
@@ -1664,7 +1512,6 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-accueil').addEventListener('click', () => showTab('accueil', document.getElementById('tab-accueil')));
   document.getElementById('tab-rdv').addEventListener('click', () => showTab('rdv', document.getElementById('tab-rdv')));
   document.getElementById('tab-patients').addEventListener('click', () => showTab('patients', document.getElementById('tab-patients')));
-  document.getElementById('tab-scanner').addEventListener('click', () => showTab('scanner', document.getElementById('tab-scanner')));
   document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
   document.getElementById('tab-telemedicine').addEventListener('click', () => showTab('telemedicine', document.getElementById('tab-telemedicine')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
@@ -1672,9 +1519,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Tabs mobile
   document.getElementById('bnav-accueil').addEventListener('click', () => showTabMobile('accueil', document.getElementById('bnav-accueil')));
   document.getElementById('bnav-rdv').addEventListener('click', () => showTabMobile('rdv', document.getElementById('bnav-rdv')));
-  document.getElementById('bnav-patients').addEventListener('click', () => showTabMobile('patients', document.getElementById('bnav-patients')));
-  document.getElementById('bnav-scanner').addEventListener('click', () => showTabMobile('scanner', document.getElementById('bnav-scanner')));
   document.getElementById('bnav-telemedicine').addEventListener('click', () => showTabMobile('telemedicine', document.getElementById('bnav-telemedicine')));
+  document.getElementById('bnav-patients').addEventListener('click', () => showTabMobile('patients', document.getElementById('bnav-patients')));
   document.getElementById('bnav-profil').addEventListener('click', () => showTabMobile('profil', document.getElementById('bnav-profil')));
 
   // Jitsi buttons
@@ -1691,10 +1537,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Smart Flow
   document.getElementById('btn-load-smartflow-stats').addEventListener('click', loadSmartFlowStats);
-
-  // Scanner QR
-  document.getElementById('btn-start-scanner').addEventListener('click', startScanner);
-  document.getElementById('btn-stop-scanner').addEventListener('click', stopScanner);
 
   // Code boxes input handlers
   document.querySelectorAll('.code-box').forEach(box => {
@@ -1715,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (action === 'submit-pwd') submitChangePwd();
     if (action === 'cancel-pwd') {
-      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">Changer mon mot de passe</button>';
+      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
       document.getElementById('btn-change-pwd').addEventListener('click', () => {
         document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
       });
