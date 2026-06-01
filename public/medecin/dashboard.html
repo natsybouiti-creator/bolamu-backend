@@ -1765,6 +1765,28 @@ function traiterPatientMedecin(valeur, mode) {
         return;
       }
 
+      if (mode === 'qr' && data.data.patient && data.data.patient.phone) {
+        var phone = data.data.patient.phone;
+        fetch(API + '/patients/search?q=' + encodeURIComponent(phone), { headers: { 'Authorization': 'Bearer ' + token } })
+          .then(function(res) { return res.json(); })
+          .then(function(searchData) {
+            if (!searchData.success || !searchData.data || searchData.data.length === 0) {
+              resultDiv.innerHTML = '<div style="text-align:center;padding:24px;">'
+                + '<div style="font-size:14px;font-weight:700;color:var(--rouge);'
+                + 'margin-bottom:16px;">Aucun patient trouve</div>'
+                + '<button onclick="document.getElementById(\'search-patient-input\').focus()" '
+                + 'class="btn-valider">Nouvelle recherche</button></div>';
+              return;
+            }
+            afficherFichePatientMedecin(searchData.data[0], resultDiv);
+          })
+          .catch(function() {
+            resultDiv.innerHTML = '<div style="text-align:center;padding:24px;'
+              + 'color:var(--rouge);font-size:14px;">Erreur de connexion.</div>';
+          });
+        return;
+      }
+
       var patients = Array.isArray(data.data) ? data.data : [data.data];
 
       if (patients.length === 0) {
