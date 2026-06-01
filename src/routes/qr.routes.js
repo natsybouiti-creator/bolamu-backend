@@ -7,6 +7,7 @@ const { generateQRToken, verifyQRToken, generatePatientQR, accessEmergencyDossie
 router.get('/generate', authMiddleware, generateQRToken);
 
 // Partenaire : scanne et vérifie un QR Code (authentifié)
+router.get('/verify', authMiddleware, verifyQRToken);
 router.post('/verify', authMiddleware, verifyQRToken);
 
 // Patient : génère QR Code urgence (authentifié)
