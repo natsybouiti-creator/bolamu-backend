@@ -10,33 +10,36 @@ const { sendBolamuSms } = require('./sms.service');
 const { sendToUser } = require('./push.service');
 
 /**
- * Vérifie si un médicament est SSP (gratuit) ou hors catalogue (prix plein)
- * @param {string} nom_medicament - Nom du médicament à vérifier
- * @returns {Promise<{is_ssp: boolean, categorie: string, nom_generique: string}>}
+ * Vérifie si une prestation (médicament, examen ou acte) est SSP (gratuit)
+ * ou hors catalogue (prix plein). Source : ssp_catalog (migration 029).
+ * @param {string} nom_prestation - Nom de la prestation à vérifier
+ * @returns {Promise<{is_ssp: boolean, categorie: string, type: string, nom_generique: string}>}
  */
-async function isSSP(nom_medicament) {
+async function isSSP(nom_prestation) {
   try {
     const result = await pool.query(
-      `SELECT is_ssp, categorie, nom_generique 
-       FROM medicaments_catalogue 
-       WHERE nom_generique ILIKE $1 AND is_active = true 
+      `SELECT est_ssp, categorie, type, nom
+       FROM ssp_catalog
+       WHERE nom ILIKE $1
+       ORDER BY est_ssp DESC
        LIMIT 1`,
-      [`%${nom_medicament}%`]
+      [`%${nom_prestation}%`]
     );
     
     if (result.rows.length > 0) {
       return {
-        is_ssp: result.rows[0].is_ssp,
+        is_ssp: result.rows[0].est_ssp,
         categorie: result.rows[0].categorie,
-        nom_generique: result.rows[0].nom_generique
+        type: result.rows[0].type,
+        nom_generique: result.rows[0].nom
       };
     }
     
     // Hors catalogue par défaut si non trouvé
-    return { is_ssp: false, categorie: null, nom_generique: null };
+    return { is_ssp: false, categorie: null, type: null, nom_generique: null };
   } catch (error) {
     logger.error('[SmartFlow isSSP]', error.message);
-    return { is_ssp: false, categorie: null, nom_generique: null };
+    return { is_ssp: false, categorie: null, type: null, nom_generique: null };
   }
 }
 
