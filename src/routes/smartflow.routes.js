@@ -238,12 +238,12 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
   const pool = require('../config/db');
   
   try {
-    // Récupérer le contrat de l'entreprise du RH
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await pool.query(
       `SELECT cc.id, cc.company_name 
        FROM company_contracts cc
-       JOIN company_employees ce ON ce.company_contract_id = cc.id
-       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
       [req.user.phone]
     );
     
@@ -254,36 +254,78 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
     const contract = contractResult.rows[0];
     const contractId = contract.id;
     
-    // Statistiques employés actifs
+    // 1. Compter employés actifs
     const employeesResult = await pool.query(
       `SELECT COUNT(*) as total 
        FROM company_employees 
-       WHERE company_contract_id = $1 AND status = 'active'`,
+       WHERE contract_id = $1 AND status = 'active'`,
       [contractId]
     );
     
-    // Statistiques hors catalogue du mois courant
+    // 2. Compter actes SSP ce mois (appointments terminés des employés)
     const currentMonth = new Date().toISOString().slice(0, 7);
-    const horsCatResult = await pool.query(
-      `SELECT COUNT(*) as nb_transactions, 
-              COALESCE(SUM(prix_plein), 0) as total_montant,
-              COUNT(DISTINCT patient_phone) as nb_employes_concernes
-       FROM hors_catalogue_transactions
-       WHERE company_contract_id = $1 
-       AND TO_CHAR(created_at, 'YYYY-MM') = $2`,
-      [contractId, currentMonth]
-    );
-    
-    // Dernières transactions
-    const recentTransactionsResult = await pool.query(
-      `SELECT hct.*, u.full_name as employee_name
-       FROM hors_catalogue_transactions hct
-       LEFT JOIN users u ON hct.patient_phone = u.phone
-       WHERE hct.company_contract_id = $1
-       ORDER BY hct.created_at DESC
-       LIMIT 20`,
+    const sspResult = await pool.query(
+      `SELECT COUNT(*) as nb_actes_ssp
+       FROM appointments a
+       JOIN company_employees ce ON ce.employee_phone = a.patient_phone
+       WHERE ce.contract_id = $1
+       AND a.status = 'termine'
+       AND DATE_TRUNC('month', a.created_at) = DATE_TRUNC('month', NOW())`,
       [contractId]
     );
+    
+    // 3. Vérifier si hors_catalogue_transactions existe
+    const tableCheckResult = await pool.query(
+      `SELECT table_name FROM information_schema.tables 
+       WHERE table_name = 'hors_catalogue_transactions'`
+    );
+    
+    let horsCatResult = { nb_transactions: 0, total_montant: 0, nb_employes_concernes: 0 };
+    
+    if (tableCheckResult.rows.length > 0) {
+      // Table existe : compter hors catalogue ce mois
+      horsCatResult = await pool.query(
+        `SELECT COUNT(*) as nb_transactions, 
+                COALESCE(SUM(prix_plein), 0) as total_montant,
+                COUNT(DISTINCT patient_phone) as nb_employes_concernes
+         FROM hors_catalogue_transactions
+         WHERE contract_id = $1 
+         AND TO_CHAR(created_at, 'YYYY-MM') = $2`,
+        [contractId, currentMonth]
+      );
+      horsCatResult = horsCatResult.rows[0];
+    } else {
+      // Table n'existe pas : la créer
+      await pool.query(
+        `CREATE TABLE IF NOT EXISTS hors_catalogue_transactions (
+          id SERIAL PRIMARY KEY,
+          contract_id INTEGER REFERENCES company_contracts(id),
+          employee_phone VARCHAR(20) NOT NULL,
+          prestataire_phone VARCHAR(20),
+          prestataire_type VARCHAR(50),
+          libelle VARCHAR(255) NOT NULL,
+          prix_plein INTEGER NOT NULL DEFAULT 0,
+          date_acte TIMESTAMP DEFAULT NOW(),
+          source VARCHAR(50),
+          source_id INTEGER,
+          created_at TIMESTAMP DEFAULT NOW()
+        )`
+      );
+    }
+    
+    // Dernières transactions (si table existe)
+    let recentTransactionsResult = { rows: [] };
+    if (tableCheckResult.rows.length > 0) {
+      recentTransactionsResult = await pool.query(
+        `SELECT hct.*, u.full_name as employee_name
+         FROM hors_catalogue_transactions hct
+         LEFT JOIN users u ON hct.employee_phone = u.phone
+         WHERE hct.contract_id = $1
+         ORDER BY hct.created_at DESC
+         LIMIT 20`,
+        [contractId]
+      );
+    }
     
     ok(res, {
       company: {
@@ -293,10 +335,13 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
       employees: {
         total_actifs: parseInt(employeesResult.rows[0].total) || 0
       },
+      ssp_mois: {
+        nb_actes: parseInt(sspResult.rows[0].nb_actes_ssp) || 0
+      },
       hors_catalogue_mois: {
-        nb_transactions: parseInt(horsCatResult.rows[0].nb_transactions) || 0,
-        total_montant: parseFloat(horsCatResult.rows[0].total_montant) || 0,
-        nb_employes_concernes: parseInt(horsCatResult.rows[0].nb_employes_concernes) || 0
+        nb_transactions: parseInt(horsCatResult.nb_transactions) || 0,
+        total_montant: parseFloat(horsCatResult.total_montant) || 0,
+        nb_employes_concernes: parseInt(horsCatResult.nb_employes_concernes) || 0
       },
       recent_transactions: recentTransactionsResult.rows
     });
@@ -322,12 +367,12 @@ router.get('/smartflow/rh/export/:mois', authMiddleware, rhOnly, async (req, res
   const pool = require('../config/db');
 
   try {
-    // Récupérer le contrat de l'entreprise du RH
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await pool.query(
       `SELECT cc.id
        FROM company_contracts cc
-       JOIN company_employees ce ON ce.company_contract_id = cc.id
-       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
       [req.user.phone]
     );
 
@@ -364,12 +409,12 @@ router.get('/smartflow/rh/employe/:phone/actes', authMiddleware, rhOnly, async (
   const pool = require('../config/db');
 
   try {
-    // Récupérer le contrat de l'entreprise du RH
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await pool.query(
       `SELECT cc.id
        FROM company_contracts cc
-       JOIN company_employees ce ON ce.company_contract_id = cc.id
-       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
       [req.user.phone]
     );
 
@@ -383,8 +428,8 @@ router.get('/smartflow/rh/employe/:phone/actes', authMiddleware, rhOnly, async (
     const employeeResult = await pool.query(
       `SELECT ce.*, u.full_name
        FROM company_employees ce
-       LEFT JOIN users u ON ce.phone = u.phone
-       WHERE ce.phone = $1 AND ce.company_contract_id = $2 AND ce.status = 'active'`,
+       LEFT JOIN users u ON ce.employee_phone = u.phone
+       WHERE ce.employee_phone = $1 AND ce.contract_id = $2 AND ce.status = 'active'`,
       [phone, contractId]
     );
 
@@ -398,7 +443,7 @@ router.get('/smartflow/rh/employe/:phone/actes', authMiddleware, rhOnly, async (
     let query = `
       SELECT hct.*
       FROM hors_catalogue_transactions hct
-      WHERE hct.company_contract_id = $1 AND hct.patient_phone = $2
+      WHERE hct.contract_id = $1 AND hct.employee_phone = $2
     `;
     const params = [contractId, phone];
 
@@ -413,7 +458,7 @@ router.get('/smartflow/rh/employe/:phone/actes', authMiddleware, rhOnly, async (
 
     ok(res, {
       employee: {
-        phone: employee.phone,
+        phone: employee.employee_phone,
         name: employee.full_name,
         categorie_rh: employee.categorie_rh || 'employe'
       },
@@ -435,12 +480,12 @@ router.get('/smartflow/rh/retenues/provisoire', authMiddleware, rhOnly, async (r
   const pool = require('../config/db');
 
   try {
-    // Récupérer le contrat de l'entreprise du RH
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await pool.query(
       `SELECT cc.id
        FROM company_contracts cc
-       JOIN company_employees ce ON ce.company_contract_id = cc.id
-       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
       [req.user.phone]
     );
 
@@ -468,10 +513,10 @@ router.get('/smartflow/rh/retenues/provisoire', authMiddleware, rhOnly, async (r
 
     // Récupérer les employés actifs
     const employeesResult = await pool.query(
-      `SELECT ce.phone, ce.categorie_rh, u.full_name
+      `SELECT ce.employee_phone, ce.categorie_rh, u.full_name
        FROM company_employees ce
-       LEFT JOIN users u ON ce.phone = u.phone
-       WHERE ce.company_contract_id = $1 AND ce.status = 'active'`,
+       LEFT JOIN users u ON ce.employee_phone = u.phone
+       WHERE ce.contract_id = $1 AND ce.status = 'active'`,
       [contractId]
     );
 
@@ -485,9 +530,9 @@ router.get('/smartflow/rh/retenues/provisoire', authMiddleware, rhOnly, async (r
       let query = `
         SELECT COALESCE(SUM(prix_plein), 0) as total_montant, COUNT(*) as nb_actes
         FROM hors_catalogue_transactions
-        WHERE company_contract_id = $1 AND patient_phone = $2
+        WHERE contract_id = $1 AND employee_phone = $2
       `;
-      const params = [contractId, emp.phone];
+      const params = [contractId, emp.employee_phone];
 
       if (mois) {
         query += ` AND TO_CHAR(created_at, 'YYYY-MM') = $3`;
@@ -512,9 +557,9 @@ router.get('/smartflow/rh/retenues/provisoire', authMiddleware, rhOnly, async (r
                prix_plein as montant,
                prestataire_phone as prestataire
         FROM hors_catalogue_transactions
-        WHERE company_contract_id = $1 AND patient_phone = $2
+        WHERE contract_id = $1 AND employee_phone = $2
       `;
-      const actesParams = [contractId, emp.phone];
+      const actesParams = [contractId, emp.employee_phone];
 
       if (mois) {
         actesQuery += ` AND TO_CHAR(created_at, 'YYYY-MM') = $3`;
@@ -526,7 +571,7 @@ router.get('/smartflow/rh/retenues/provisoire', authMiddleware, rhOnly, async (r
       const actesDetailsResult = await pool.query(actesQuery, actesParams);
 
       retenues.push({
-        employee_phone: emp.phone,
+        employee_phone: emp.employee_phone,
         nom_complet: emp.full_name,
         categorie_rh: categorie,
         salaire_brut: 0, // À remplacer par le vrai salaire quand disponible
@@ -559,12 +604,12 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
   const client = await pool.connect();
 
   try {
-    // Récupérer le contrat de l'entreprise du RH
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await client.query(
       `SELECT cc.id
        FROM company_contracts cc
-       JOIN company_employees ce ON ce.company_contract_id = cc.id
-       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
       [req.user.phone]
     );
 
@@ -595,10 +640,10 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
 
     // Récupérer les employés actifs
     const employeesResult = await client.query(
-      `SELECT ce.phone, ce.categorie_rh, u.full_name
+      `SELECT ce.employee_phone, ce.categorie_rh, u.full_name
        FROM company_employees ce
-       LEFT JOIN users u ON ce.phone = u.phone
-       WHERE ce.company_contract_id = $1 AND ce.status = 'active'`,
+       LEFT JOIN users u ON ce.employee_phone = u.phone
+       WHERE ce.contract_id = $1 AND ce.status = 'active'`,
       [contractId]
     );
 
@@ -611,9 +656,9 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
       const actesResult = await client.query(
         `SELECT COALESCE(SUM(prix_plein), 0) as total_montant, COUNT(*) as nb_actes
          FROM hors_catalogue_transactions
-         WHERE company_contract_id = $1 AND patient_phone = $2
+         WHERE contract_id = $1 AND employee_phone = $2
          AND TO_CHAR(created_at, 'YYYY-MM') = $3`,
-        [contractId, emp.phone, mois]
+        [contractId, emp.employee_phone, mois]
       );
 
       const totalMontant = parseFloat(actesResult.rows[0].total_montant) || 0;
@@ -631,10 +676,10 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
                 prix_plein as montant,
                 prestataire_phone as prestataire
          FROM hors_catalogue_transactions
-         WHERE company_contract_id = $1 AND patient_phone = $2
+         WHERE contract_id = $1 AND employee_phone = $2
          AND TO_CHAR(created_at, 'YYYY-MM') = $3
          ORDER BY created_at DESC`,
-        [contractId, emp.phone, mois]
+        [contractId, emp.employee_phone, mois]
       );
 
       // Insérer dans retenues_validees
@@ -642,7 +687,7 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
         `INSERT INTO retenues_validees (company_contract_id, mois, employee_phone, nom_complet, categorie_rh, salaire_brut, montant_retenue, pourcentage_retenue, nombre_actes, actes_details, valide_par)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          ON CONFLICT (company_contract_id, mois, employee_phone) DO NOTHING`,
-        [contractId, mois, emp.phone, emp.full_name, categorie, 0, Math.round(montantRetenue), pourcentage, nbActes, JSON.stringify(actesDetailsResult.rows), req.user.phone]
+        [contractId, mois, emp.employee_phone, emp.full_name, categorie, 0, Math.round(montantRetenue), pourcentage, nbActes, JSON.stringify(actesDetailsResult.rows), req.user.phone]
       );
     }
 
@@ -665,12 +710,12 @@ router.get('/smartflow/rh/config/categories', authMiddleware, rhOnly, async (req
   const pool = require('../config/db');
 
   try {
-    // Récupérer le contrat de l'entreprise du RH
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await pool.query(
       `SELECT cc.id
        FROM company_contracts cc
-       JOIN company_employees ce ON ce.company_contract_id = cc.id
-       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
       [req.user.phone]
     );
 
@@ -710,12 +755,12 @@ router.post('/smartflow/rh/config/categories', authMiddleware, rhOnly, async (re
   const client = await pool.connect();
 
   try {
-    // Récupérer le contrat de l'entreprise du RH
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await client.query(
       `SELECT cc.id
        FROM company_contracts cc
-       JOIN company_employees ce ON ce.company_contract_id = cc.id
-       WHERE ce.phone = $1 AND ce.role = 'company_rh' AND ce.status = 'active'`,
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
       [req.user.phone]
     );
 
