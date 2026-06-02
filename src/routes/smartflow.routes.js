@@ -293,12 +293,12 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
       // Table existe : compter hors catalogue ce mois
       horsCatResult = await pool.query(
         `SELECT COUNT(*) as nb_transactions, 
-                COALESCE(SUM(prix_plein), 0) as total_montant,
-                COUNT(DISTINCT employee_phone) as nb_employes_concernes
-         FROM hors_catalogue_transactions
-         WHERE contract_id = $1 
-         AND TO_CHAR(created_at, 'YYYY-MM') = $2`,
-        [contractId, new Date().toISOString().slice(0, 7)]
+                COALESCE(SUM(hct.prix_plein), 0) as total_montant,
+                COUNT(DISTINCT hct.employee_phone) as nb_employes_concernes
+         FROM hors_catalogue_transactions hct
+         WHERE hct.contract_id = $1 
+         AND DATE_TRUNC('month', hct.date_acte) = DATE_TRUNC('month', NOW())`,
+        [contractId]
       );
       horsCatResult = horsCatResult.rows[0];
     } else {
