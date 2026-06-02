@@ -2093,18 +2093,29 @@ if (typeof BarcodeDetector !== 'undefined') {
     }
 
     function onAgendaDoctorSearch() {
-      const txt = (document.getElementById('agenda-doctor-search')?.value || '').trim();
+      const input = document.getElementById('agenda-doctor-search');
       const select = document.getElementById('agenda-doctor');
-      const found = agendaMedecins.find(m =>
-        `${m.full_name} — ${m.specialty || 'Généraliste'}` === txt ||
-        m.full_name === txt
-      );
-      if (found) {
-        select.value = found.id;
-        loadAgenda();
-      } else if (!txt) {
+      const val = (input?.value || '').trim().toLowerCase();
+
+      if (!val) {
         select.value = '';
         document.getElementById('agenda-table').innerHTML = '<tr><td colspan="5" class="empty-state">Sélectionnez un médecin pour voir son agenda</td></tr>';
+        return;
+      }
+
+      const found = (agendaMedecins || []).find(function(m) {
+        return (m.full_name || m.name || '').toLowerCase().includes(val)
+          || (m.phone || '').includes(val);
+      });
+
+      if (found) {
+        select.value = found.id || found.doctor_id;
+        // Date du jour par défaut si aucune date saisie
+        const dateInput = document.getElementById('agenda-date');
+        if (dateInput && !dateInput.value) {
+          dateInput.value = new Date().toISOString().split('T')[0];
+        }
+        loadAgenda();
       }
     }
 
