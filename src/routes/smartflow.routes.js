@@ -294,10 +294,10 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
       horsCatResult = await pool.query(
         `SELECT COUNT(*) as nb_transactions, 
                 COALESCE(SUM(hct.prix_plein), 0) as total_montant,
-                COUNT(DISTINCT hct.employee_phone) as nb_employes_concernes
+                COUNT(DISTINCT hct.patient_phone) as nb_employes_concernes
          FROM hors_catalogue_transactions hct
-         WHERE hct.contract_id = $1 
-         AND DATE_TRUNC('month', hct.date_acte) = DATE_TRUNC('month', NOW())`,
+         WHERE hct.company_contract_id = $1 
+         AND DATE_TRUNC('month', hct.created_at) = DATE_TRUNC('month', NOW())`,
         [contractId]
       );
       horsCatResult = horsCatResult.rows[0];
@@ -336,8 +336,8 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
          AND a.status = 'termine'
          AND DATE_TRUNC('month', a.created_at) = DATE_TRUNC('month', NOW())
        LEFT JOIN hors_catalogue_transactions hct 
-         ON hct.employee_phone = ce.employee_phone
-         AND DATE_TRUNC('month', hct.date_acte) = DATE_TRUNC('month', NOW())
+         ON hct.patient_phone = ce.employee_phone
+         AND DATE_TRUNC('month', hct.created_at) = DATE_TRUNC('month', NOW())
        WHERE ce.contract_id = $1
        GROUP BY ce.id, ce.employee_phone, ce.employee_name, 
                 ce.matricule, ce.categorie_rh, ce.status`,
@@ -358,11 +358,11 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
     // Calculer hors_count pour chaque employé
     if (tableCheckResult.rows.length > 0) {
       const horsCountResult = await pool.query(
-        `SELECT employee_phone, COUNT(*) as count
+        `SELECT patient_phone as employee_phone, COUNT(*) as count
          FROM hors_catalogue_transactions
-         WHERE contract_id = $1 
-         AND DATE_TRUNC('month', date_acte) = DATE_TRUNC('month', NOW())
-         GROUP BY employee_phone`,
+         WHERE company_contract_id = $1 
+         AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())
+         GROUP BY patient_phone`,
         [contractId]
       );
       
