@@ -122,12 +122,24 @@ async function submitLabResults(req, res) {
 
         console.log(`🔬 Résultats labo déposés pour patient ${patient_phone} par ${labPhone}`);
 
-        // Notification asynchrone au patient (ne bloque pas la réponse)
+        // Récupérer le code prescription pour la notification médecin
+        const prescriptionCode = prescCheck.rows[0].prescription_code;
+
+        // Notifications asynchrones (ne bloquent pas la réponse)
         setImmediate(async () => {
             try {
                 const { notify } = require('../services/notification.service');
-                await notify(patient_phone, 'message_recu', {
-                    message: `Vos résultats d'analyses sont disponibles sur Bolamu.`
+                
+                // Notification patient : disponibilité des résultats (conforme BHP)
+                await notify(patient_phone, 'labo_resultats_disponibles', {
+                    message: `Vos résultats d'examens sont disponibles. Consultez votre médecin pour l'interprétation.`
+                });
+
+                // Notification médecin prescripteur : résultats disponibles avec code
+                await notify(doctor_phone, 'labo_resultats_patient', {
+                    patient_phone: patient_phone,
+                    prescription_code: prescriptionCode,
+                    message: `Les résultats labo de votre patient ${patient_phone} sont disponibles — Code : ${prescriptionCode}`
                 });
             } catch (e) { console.error('[NOTIFY LABO]', e.message); }
         });

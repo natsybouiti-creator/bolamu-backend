@@ -16,7 +16,7 @@ async function notify(user_phone, type, data = {}) {
         // Toujours insérer dans table notifications
         await pool.query(`
             INSERT INTO notifications (user_phone, type, titre, message, data, canal, is_read, created_at)
-            VALUES ($1, $2, $3, $4, $5, 'pending', FALSE, NOW())
+            VALUES ($1, $2, $3, $4, $5, NULL, FALSE, NOW())
         `, [user_phone, type, titre, message, JSON.stringify(data)]);
 
         // Déterminer les canaux selon les préférences et disponibilité
@@ -132,6 +132,14 @@ function getNotificationContent(type, data) {
         whatsapp_message: {
             titre: 'Message WhatsApp',
             message: data.message || 'Message WhatsApp reçu.'
+        },
+        labo_resultats_disponibles: {
+            titre: 'Résultats d\'examens disponibles',
+            message: data.message || 'Vos résultats d\'examens sont disponibles. Consultez votre médecin pour l\'interprétation.'
+        },
+        labo_resultats_patient: {
+            titre: 'Résultats labo disponibles',
+            message: data.message || 'Les résultats labo de votre patient sont disponibles.'
         }
     };
 
