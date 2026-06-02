@@ -1273,7 +1273,7 @@ async function loadContracts(){
     const res=await api('/admin/company-contracts');const rows=res.data||[];
     const cnt=document.getElementById('contracts-count');if(cnt)cnt.textContent=rows.length+' contrats';
     if(!rows.length){el.innerHTML='<tr><td colspan="8" class="empty">Aucun contrat</td></tr>';return;}
-    el.innerHTML=rows.map(c=>`<tr><td style="font-weight:500">${c.company_name||''}</td><td>${c.contact_name||''}<br><span style="font-size:10px;color:var(--muted)">${c.contact_phone||''}</span></td><td>${badge(c.plan)}</td><td style="font-family:'JetBrains Mono',monospace">${c.employee_count||0}</td><td>${c.billing_type==='monthly'?'Mensuel':'Annuel'}</td><td>${badge(c.status)}</td><td style="color:var(--muted)">${fs(c.created_at)}</td><td class="acts"><button class="ab ab-red" data-onclick="deleteContract" data-arg="${c.id}">Supprimer</button></td></tr>`).join('');
+    el.innerHTML=rows.map(c=>`<tr><td style="font-weight:500">${c.company_name||''}</td><td>${c.contact_name||''}<br><span style="font-size:10px;color:var(--muted)">${c.contact_phone||''}</span></td><td>${badge(c.plan)}</td><td style="font-family:'JetBrains Mono',monospace">${c.employee_count||0}</td><td>${c.billing_type==='monthly'?'Mensuel':'Annuel'}</td><td>${badge(c.status)}</td><td style="color:var(--muted)">${fs(c.created_at)}</td><td class="acts"><button class="ab ab-blue" data-onclick="openAddEmployeeModal" data-arg="${c.id}" data-arg2="${c.company_name}">+ Employé</button><button class="ab ab-red" data-onclick="deleteContract" data-arg="${c.id}">Supprimer</button></td></tr>`).join('');
   }catch(e){el.innerHTML='<tr><td colspan="8" class="empty">Erreur</td></tr>';}
 }
 
@@ -1311,6 +1311,21 @@ async function createContract(){
 async function deleteContract(id){
   if(!confirm('Supprimer ce contrat et toutes ses configurations RH ? Cette action est irréversible.'))return;
   try{const d=await api(`/admin/company-contracts/${id}`,{method:'DELETE'});if(d.success){toast(d.message);loadContracts();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+}
+
+function openAddEmployeeModal(contractId,companyName){
+  document.getElementById('modal-box').className='modal';
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Ajouter un employé</div><div class="modal-sub">Entreprise : ${companyName}</div><div class="mf"><label>Téléphone employé</label><input class="mi" id="employee-phone" placeholder="+242 06 XXX XX XX" maxlength="15"></div><div class="mf"><label>Nom complet</label><input class="mi" id="employee-name" placeholder="Ex: Jean MOUKOKO"></div><div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-blue" data-onclick="addEmployee" data-arg="${contractId}">Ajouter</button></div>`;
+  openModal();
+}
+
+async function addEmployee(contractId){
+  const body={
+    employee_phone:document.getElementById('employee-phone').value.trim(),
+    employee_name:document.getElementById('employee-name').value.trim()
+  };
+  if(!body.employee_phone||!body.employee_name){toast('Champs obligatoires manquants','err');return;}
+  try{const d=await api(`/admin/company-contracts/${contractId}/employees`,{method:'POST',body:JSON.stringify(body)});if(d.success){closeModal();toast(d.message);loadContracts();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 
 /* -----------------------------------

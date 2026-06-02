@@ -1150,4 +1150,59 @@ router.delete('/company-contracts/:id', authMiddleware, adminOnly, async (req, r
   }
 });
 
+/**
+ * POST /api/v1/admin/company-contracts/:id/employees
+ * Ajouter un employé à un contrat entreprise
+ */
+router.post('/company-contracts/:id/employees', authMiddleware, adminOnly, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const { employee_phone, employee_name, status = 'pending' } = req.body;
+
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ success: false, message: 'ID contrat invalide' });
+    }
+
+    if (!employee_phone || !employee_name) {
+      return res.status(400).json({ success: false, message: 'Champs obligatoires manquants : employee_phone, employee_name' });
+    }
+
+    await client.query('BEGIN');
+
+    // Vérifier que le contrat existe
+    const contractResult = await client.query(
+      `SELECT id, company_name FROM company_contracts WHERE id = $1`,
+      [id]
+    );
+
+    if (!contractResult.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Contrat introuvable' });
+    }
+
+    // Insérer l'employé
+    const employeeResult = await client.query(
+      `INSERT INTO company_employees (contract_id, employee_phone, employee_name, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, NOW(), NOW())
+       RETURNING *`,
+      [id, employee_phone, employee_name, status]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      data: employeeResult.rows[0],
+      message: `Employé "${employee_name}" ajouté au contrat "${contractResult.rows[0].company_name}"`
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[addEmployee]', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur : ' + error.message });
+  } finally {
+    client.release();
+  }
+});
+
 module.exports = router;
