@@ -264,7 +264,7 @@ router.post('/:id/open', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
       `UPDATE appointments
-       SET status = 'en_cours', started_at = NOW(), updated_at = NOW()
+       SET status = 'en_cours', updated_at = NOW()
        WHERE id = $1
        RETURNING *`,
       [id]

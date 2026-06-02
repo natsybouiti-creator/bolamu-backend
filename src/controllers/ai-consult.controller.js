@@ -19,74 +19,21 @@ HTA, diabète type 2, drépanocytose, tuberculose, VIH.
 Catalogue SSP Bolamu : médicaments OMS liste modèle 23e édition.
 Tu réponds TOUJOURS en JSON valide uniquement, sans texte autour.`;
 
-/**
- * POST /api/v1/ai-consult/briefing
- * Génère un briefing de pré-consultation
- */
 exports.briefingConsultation = async (req, res) => {
-  const { appointment_id, patient_phone, doctor_phone } = req.body;
-
+  const { appointment_id, patient_phone } = req.body;
   try {
-    const [constantes, historique, rdvActuel] = await Promise.all([
-      pool.query(
-        `SELECT groupe_sanguin, allergies, maladies_chroniques,
-                traitements_en_cours, antecedents_medicaux
-         FROM patient_health_records WHERE patient_phone = $1`,
-        [patient_phone]
-      ),
-      pool.query(
-        `SELECT cr.motif, cr.diagnostic, cr.traitement, cr.created_at,
-                p.medications
-         FROM consultation_reports cr
-         LEFT JOIN prescriptions p ON p.appointment_id = cr.appointment_id
-         WHERE cr.patient_phone = $1
-         ORDER BY cr.created_at DESC LIMIT 5`,
-        [patient_phone]
-      ),
-      pool.query(
-        `SELECT symptomes_motif, symptomes_liste, duree_symptomes, intensite
-         FROM appointments WHERE id = $1`,
-        [appointment_id]
-      )
+    const [c, h, r] = await Promise.all([
+      pool.query(`SELECT groupe_sanguin,allergies,maladies_chroniques,traitements_en_cours,antecedents_medicaux FROM patient_health_records WHERE patient_phone=$1`, [patient_phone]),
+      pool.query(`SELECT cr.motif,cr.diagnostic,cr.traitement,cr.created_at,p.medications FROM consultation_reports cr LEFT JOIN prescriptions p ON p.appointment_id=cr.appointment_id WHERE cr.patient_phone=$1 ORDER BY cr.created_at DESC LIMIT 5`, [patient_phone]),
+      pool.query(`SELECT id,status,appointment_date,appointment_time,created_at FROM appointments WHERE id=$1`, [appointment_id])
     ]);
-
-    const c = constantes.rows[0] || {};
-    const h = historique.rows;
-    const rdv = rdvActuel.rows[0] || {};
-
-    const userPrompt = `Génère un briefing de pré-consultation.
-Patient : ${patient_phone}
-Constantes : groupe sanguin ${c.groupe_sanguin||'inconnu'}, 
-allergies : ${c.allergies||'aucune connue'}, 
-maladies chroniques : ${c.maladies_chroniques||'aucune'}, 
-traitements en cours : ${c.traitements_en_cours||'aucun'},
-antécédents : ${c.antecedents_medicaux||'aucun'}
-Historique (5 dernières consultations) : ${JSON.stringify(h)}
-Symptômes déclarés aujourd'hui : motif=${rdv.symptomes_motif||'non renseigné'}, 
-symptômes=${rdv.symptomes_liste||'[]'}, 
-durée=${rdv.duree_symptomes||'inconnue'}, 
-intensité=${rdv.intensite||'non renseignée'}/10
-
-Réponds UNIQUEMENT en JSON :
-{
-  "antecedents_pertinents": "string",
-  "derniere_consultation": "string",
-  "alertes_interactions": "string",
-  "symptomes_declares": "string",
-  "points_attention": ["string"],
-  "niveau_urgence": "vert" | "orange" | "rouge"
-}`;
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(SYSTEM_AMINA + '\n\n' + userPrompt);
-    const text = result.response.text();
-    const json = JSON.parse(text.replace(/```json|```/g, '').trim());
-
-    return res.json({ success: true, data: json });
-  } catch (error) {
-    console.error('[AI Consult briefingConsultation]', error.message);
-    return res.json({ success: false, message: 'IA temporairement indisponible' });
-  }
+    const constes = c.rows[0]||{}, hist = h.rows, rdv = r.rows[0]||{};
+    const prompt = `Patient:${patient_phone} GS:${constes.groupe_sanguin||'?'},allergies:${constes.allergies||'aucune'},chroniques:${constes.maladies_chroniques||'aucune'},traitements:${constes.traitements_en_cours||'aucun'},antécédents:${constes.antecedents_medicaux||'aucun'} Historique:${JSON.stringify(hist)} RDV:date=${rdv.appointment_date||'?'},heure=${rdv.appointment_time||'?'},statut=${rdv.status||'?'}. Réponds en JSON:{antecedents_pertinents,derniere_consultation,alertes_interactions,symptomes_declares,points_attention,niveau_urgence}`;
+    const model = genAI.getGenerativeModel({ model:'gemini-1.5-flash' });
+    const result = await model.generateContent(SYSTEM_AMINA+'\n\n'+prompt);
+    const json = JSON.parse(result.response.text().replace(/```json|```/g,'').trim());
+    return res.json({ success:true, data:json });
+  } catch(e) { console.error('[AI Consult briefing]',e.message); return res.json({ success:false, message:'IA indisponible' }); }
 };
 
 /**
