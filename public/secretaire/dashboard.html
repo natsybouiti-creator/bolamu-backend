@@ -1367,17 +1367,23 @@ if (typeof BarcodeDetector !== 'undefined') {
         <section id="tab-agenda" class="tab">
           <div class="card">
             <div class="card-header">
-              <div class="card-title">Agenda</div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Date</label>
-              <input type="date" id="agenda-date" class="form-input">
+              <div class="card-title">Rendez-vous</div>
             </div>
             <div class="form-group">
               <label class="form-label">Médecin</label>
-              <select id="agenda-doctor" class="form-select">
-                <option value="">Sélectionner un médecin</option>
-              </select>
+              <input type="text" id="agenda-doctor-search" class="form-input" list="agenda-doctor-list" placeholder="Rechercher un médecin de la clinique..." autocomplete="off">
+              <datalist id="agenda-doctor-list"></datalist>
+              <select id="agenda-doctor" style="display:none;"><option value=""></option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Jour</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <button type="button" id="agenda-btn-today" class="btn-secondary" onclick="setAgendaQuickDate(0)">Aujourd'hui</button>
+                <button type="button" id="agenda-btn-tomorrow" class="btn-secondary" onclick="setAgendaQuickDate(1)">Demain</button>
+                <button type="button" id="agenda-btn-pick" class="btn-secondary" onclick="toggleAgendaDatePicker()">Choisir date</button>
+                <input type="date" id="agenda-date" class="form-input" style="display:none;max-width:200px;">
+              </div>
+              <div id="agenda-date-label" style="margin-top:8px;font-size:13px;color:var(--texte-doux);"></div>
             </div>
           </div>
           <div class="card">
@@ -2051,12 +2057,64 @@ if (typeof BarcodeDetector !== 'undefined') {
       loadQueue();
     }
 
+    let agendaMedecins = [];
+
+    function getAgendaDate() {
+      return document.getElementById('agenda-date')?.value || new Date().toISOString().split('T')[0];
+    }
+
+    function updateAgendaDateLabel() {
+      const val = getAgendaDate();
+      const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+      let libelle = val;
+      if (val === today) libelle = "Aujourd'hui — " + val;
+      else if (val === tomorrow) libelle = 'Demain — ' + val;
+      const el = document.getElementById('agenda-date-label');
+      if (el) el.textContent = libelle;
+    }
+
+    function setAgendaQuickDate(offset) {
+      const d = new Date(Date.now() + offset * 86400000).toISOString().split('T')[0];
+      const input = document.getElementById('agenda-date');
+      if (input) { input.value = d; input.style.display = 'none'; }
+      updateAgendaDateLabel();
+      loadAgenda();
+    }
+
+    function toggleAgendaDatePicker() {
+      const input = document.getElementById('agenda-date');
+      if (!input) return;
+      input.style.display = input.style.display === 'none' ? 'block' : 'none';
+      if (input.style.display === 'block' && !input.value) {
+        input.value = new Date().toISOString().split('T')[0];
+      }
+      input.focus();
+    }
+
+    function onAgendaDoctorSearch() {
+      const txt = (document.getElementById('agenda-doctor-search')?.value || '').trim();
+      const select = document.getElementById('agenda-doctor');
+      const found = agendaMedecins.find(m =>
+        `${m.full_name} — ${m.specialty || 'Généraliste'}` === txt ||
+        m.full_name === txt
+      );
+      if (found) {
+        select.value = found.id;
+        loadAgenda();
+      } else if (!txt) {
+        select.value = '';
+        document.getElementById('agenda-table').innerHTML = '<tr><td colspan="5" class="empty-state">Sélectionnez un médecin pour voir son agenda</td></tr>';
+      }
+    }
+
     async function loadAgenda() {
       const token = getToken();
-      const date = document.getElementById('agenda-date')?.value || new Date().toISOString().split('T')[0];
+      const date = getAgendaDate();
       const doctorId = document.getElementById('agenda-doctor')?.value;
       
       console.log('[AGENDA FRONTEND] date:', date, 'doctorId:', doctorId);
+      updateAgendaDateLabel();
       
       if (!doctorId) {
         document.getElementById('agenda-table').innerHTML = '<tr><td colspan="5" class="empty-state">Sélectionnez un médecin pour voir son agenda</td></tr>';
@@ -2077,9 +2135,22 @@ if (typeof BarcodeDetector !== 'undefined') {
           tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun rendez-vous pour cette date.</td></tr>';
           return;
         }
+
+        // Trier par heure
+        const appointments = data.appointments.slice().sort((a, b) =>
+          (a.appointment_time || '').localeCompare(b.appointment_time || '')
+        );
         
-        data.appointments.forEach(apt => {
+        appointments.forEach(apt => {
           const time = apt.appointment_time ? apt.appointment_time.slice(0, 5) : '—';
+          const enAttente = apt.status === 'en_attente';
+          const annule = apt.status === 'annule' || apt.status === 'refuse';
+          const btnConfirmer = enAttente
+            ? `<button class="btn-secondary" onclick="confirmAppointment(${apt.id})">Confirmer</button>`
+            : '';
+          const btnAnnuler = annule
+            ? ''
+            : `<button class="btn-secondary" onclick="cancelAppointment(${apt.id})">Annuler</button>`;
           tbody.innerHTML += `
             <tr>
               <td data-label="Heure">${time}</td>
@@ -2096,8 +2167,8 @@ if (typeof BarcodeDetector !== 'undefined') {
               </td>
               <td data-label="Actions">
                 <div class="actions">
-                  <button class="btn-secondary" onclick="confirmAppointment(${apt.id})">Confirmer</button>
-                  <button class="btn-secondary" onclick="cancelAppointment(${apt.id})">Annuler</button>
+                  ${btnConfirmer}
+                  ${btnAnnuler}
                 </div>
               </td>
             </tr>
@@ -2105,6 +2176,41 @@ if (typeof BarcodeDetector !== 'undefined') {
         });
       } catch (e) {
         console.error('Erreur agenda:', e);
+      }
+    }
+
+    async function confirmAppointment(id) {
+      const token = getToken();
+      try {
+        const res = await fetch(`${API}/secretariat/rdv/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'confirme' })
+        });
+        const data = await res.json();
+        if (!data.success) { alert(data.message || 'Échec de la confirmation.'); return; }
+        loadAgenda();
+      } catch (e) {
+        console.error('[CONFIRM RDV]', e);
+        alert('Erreur réseau lors de la confirmation.');
+      }
+    }
+
+    async function cancelAppointment(id) {
+      if (!confirm('Confirmer l\'annulation de ce rendez-vous ?')) return;
+      const token = getToken();
+      try {
+        const res = await fetch(`${API}/secretariat/rdv/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'annule' })
+        });
+        const data = await res.json();
+        if (!data.success) { alert(data.message || 'Échec de l\'annulation.'); return; }
+        loadAgenda();
+      } catch (e) {
+        console.error('[CANCEL RDV]', e);
+        alert('Erreur réseau lors de l\'annulation.');
       }
     }
 
@@ -2151,11 +2257,22 @@ if (typeof BarcodeDetector !== 'undefined') {
         const data = await res.json();
         console.log('[MEDECINS FRONTEND]', data);
         
-        // Remplir le select dans l'onglet Agenda
+        // Stocker la liste pour l'autocomplete
+        agendaMedecins = data.medecins || [];
+
+        // Remplir le select caché (état) dans l'onglet Agenda
         const select = document.getElementById('agenda-doctor');
-        if (select && data.medecins && data.medecins.length) {
-          select.innerHTML = '<option value="">Sélectionner un médecin</option>' + data.medecins.map(m =>
+        if (select && agendaMedecins.length) {
+          select.innerHTML = '<option value="">Sélectionner un médecin</option>' + agendaMedecins.map(m =>
             `<option value="${m.id}">${m.full_name} — ${m.specialty || 'Généraliste'}</option>` 
+          ).join('');
+        }
+
+        // Remplir le datalist d'autocomplete
+        const datalist = document.getElementById('agenda-doctor-list');
+        if (datalist && agendaMedecins.length) {
+          datalist.innerHTML = agendaMedecins.map(m =>
+            `<option value="${m.full_name} — ${m.specialty || 'Généraliste'}"></option>`
           ).join('');
         }
         
@@ -2752,6 +2869,7 @@ if (typeof BarcodeDetector !== 'undefined') {
       // 3. Charger l'agenda avec le premier médecin disponible
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('agenda-date').value = today;
+      updateAgendaDateLabel();
       loadAgenda();
       
       // 4. Charger la file d'attente
@@ -2782,6 +2900,8 @@ if (typeof BarcodeDetector !== 'undefined') {
       
       document.getElementById('agenda-date').addEventListener('change', loadAgenda);
       document.getElementById('agenda-doctor').addEventListener('change', loadAgenda);
+      document.getElementById('agenda-doctor-search').addEventListener('input', onAgendaDoctorSearch);
+      document.getElementById('agenda-doctor-search').addEventListener('change', onAgendaDoctorSearch);
       document.getElementById('patient-search').addEventListener('input', loadPatients);
       
       // Charger les créneaux quand date ou médecin change dans le modal

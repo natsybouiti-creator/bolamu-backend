@@ -164,6 +164,51 @@ router.get('/agenda', authMiddleware, authMiddleware.requireSecretary, async (re
   }
 });
 
+// PATCH /api/v1/secretariat/rdv/:id/status
+// Confirmer ou annuler un rendez-vous (médecin rattaché à la clinique du secrétaire)
+router.patch('/rdv/:id/status', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const appointmentId = parseInt(req.params.id);
+    const { status } = req.body;
+    const clinicId = req.user.clinic_id;
+
+    if (!appointmentId) {
+      return res.status(400).json({ success: false, message: 'id requis' });
+    }
+    if (!['confirme', 'annule'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Statut invalide. Valeurs autorisées : confirme, annule.' });
+    }
+
+    // Vérifier que le RDV appartient à un médecin de la clinique du secrétaire
+    const check = await pool.query(
+      `SELECT a.id, a.patient_phone, a.appointment_date, a.appointment_time
+       FROM appointments a
+       JOIN doctors d ON d.id = a.doctor_id
+       WHERE a.id = $1 AND d.clinic_id = $2`,
+      [appointmentId, clinicId]
+    );
+    if (!check.rows.length) {
+      return res.status(403).json({ success: false, message: 'Accès non autorisé' });
+    }
+
+    const result = await pool.query(
+      `UPDATE appointments SET status = $1 WHERE id = $2 RETURNING *`,
+      [status, appointmentId]
+    );
+
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('appointment.status_updated', $1, 'appointments', $2, $3)`,
+      [req.user.phone, appointmentId, JSON.stringify({ status })]
+    ).catch(() => {});
+
+    res.json({ success: true, appointment: result.rows[0] });
+  } catch(err) {
+    console.error('[RDV STATUS]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // GET /api/v1/secretary/agenda/:doctor_id
 // Agenda d'un médecin pour une date
 router.get('/secretary/agenda/:doctor_id', authMiddleware, authMiddleware.requireSecretary, secretary.getAgenda);
