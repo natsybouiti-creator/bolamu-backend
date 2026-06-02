@@ -23,7 +23,7 @@ exports.briefingConsultation = async (req, res) => {
   const { appointment_id, patient_phone } = req.body;
   try {
     const [c, h, r] = await Promise.all([
-      pool.query(`SELECT groupe_sanguin,allergies,maladies_chroniques,traitements_en_cours,antecedents_medicaux FROM patient_health_records WHERE patient_phone=$1`, [patient_phone]),
+      pool.query(`SELECT groupe_sanguin,allergies,maladies_chroniques,traitements_en_cours,antecedents_medicaux FROM users WHERE phone=$1`, [patient_phone]),
       pool.query(`SELECT cr.motif,cr.diagnostic,cr.traitement,cr.created_at,p.medications FROM consultation_reports cr LEFT JOIN prescriptions p ON p.appointment_id=cr.appointment_id WHERE cr.patient_phone=$1 ORDER BY cr.created_at DESC LIMIT 5`, [patient_phone]),
       pool.query(`SELECT id,status,appointment_date,appointment_time,created_at FROM appointments WHERE id=$1`, [appointment_id])
     ]);
@@ -46,7 +46,7 @@ exports.redigerCompteRendu = async (req, res) => {
   try {
     const constantes = await pool.query(
       `SELECT allergies, maladies_chroniques, traitements_en_cours
-       FROM patient_health_records WHERE patient_phone = $1`,
+       FROM users WHERE phone = $1`,
       [patient_phone]
     );
     const c = constantes.rows[0] || {};
