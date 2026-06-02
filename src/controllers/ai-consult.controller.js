@@ -1,12 +1,12 @@
 // ============================================================
 // BOLAMU — AI Consult Controller (Amina)
-// Moteur IA pour médecins via Google Gemini API
+// Moteur IA pour médecins via Groq API
 // ============================================================
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 const pool = require('../config/db');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const SYSTEM_AMINA = `Tu es Amina, assistante médicale IA de Bolamu,
 plateforme de santé primaire au Congo-Brazzaville.
@@ -29,9 +29,8 @@ exports.briefingConsultation = async (req, res) => {
     ]);
     const constes = c.rows[0]||{}, hist = h.rows, rdv = r.rows[0]||{};
     const prompt = `Patient:${patient_phone} GS:${constes.groupe_sanguin||'?'},allergies:${constes.allergies||'aucune'},chroniques:${constes.maladies_chroniques||'aucune'},traitements:${constes.traitements_en_cours||'aucun'},antécédents:${constes.antecedents_medicaux||'aucun'} Historique:${JSON.stringify(hist)} RDV:date=${rdv.appointment_date||'?'},heure=${rdv.appointment_time||'?'},statut=${rdv.status||'?'}. Réponds en JSON:{antecedents_pertinents,derniere_consultation,alertes_interactions,symptomes_declares,points_attention,niveau_urgence}`;
-    const model = genAI.getGenerativeModel({ model:'gemini-2.0-flash' });
-    const result = await model.generateContent(SYSTEM_AMINA+'\n\n'+prompt);
-    const json = JSON.parse(result.response.text().replace(/```json|```/g,'').trim());
+    const completion = await groq.chat.completions.create({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:SYSTEM_AMINA},{role:'user',content:prompt}], max_tokens:1500 });
+    const json = JSON.parse(completion.choices[0].message.content.replace(/```json|```/g,'').trim());
     return res.json({ success:true, data:json });
   } catch(e) { console.error('[AI Consult briefing]',e.message); return res.json({ success:false, message:'IA indisponible' }); }
 };
@@ -82,10 +81,8 @@ Réponds UNIQUEMENT en JSON :
   ]
 }`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(SYSTEM_AMINA + '\n\n' + userPrompt);
-    const text = result.response.text();
-    const json = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const completion = await groq.chat.completions.create({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:SYSTEM_AMINA},{role:'user',content:userPrompt}], max_tokens:1500 });
+    const json = JSON.parse(completion.choices[0].message.content.replace(/```json|```/g,'').trim());
     return res.json({ success: true, data: json });
   } catch (error) {
     console.error('[AI Consult redigerCompteRendu]', error.message);
@@ -124,10 +121,8 @@ Réponds UNIQUEMENT en JSON :
   "orientation_necessaire": false
 }`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(SYSTEM_AMINA + '\n\n' + userPrompt);
-    const text = result.response.text();
-    const json = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const completion = await groq.chat.completions.create({ model:'llama-3.3-70b-versatile', messages:[{role:'system',content:SYSTEM_AMINA},{role:'user',content:userPrompt}], max_tokens:1500 });
+    const json = JSON.parse(completion.choices[0].message.content.replace(/```json|```/g,'').trim());
     return res.json({ success: true, data: json });
   } catch (error) {
     console.error('[AI Consult suggererOrdonnance]', error.message);
