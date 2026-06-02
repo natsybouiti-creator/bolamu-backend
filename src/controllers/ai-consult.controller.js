@@ -29,7 +29,7 @@ exports.briefingConsultation = async (req, res) => {
     ]);
     const constes = c.rows[0]||{}, hist = h.rows, rdv = r.rows[0]||{};
     const prompt = `Patient:${patient_phone} GS:${constes.groupe_sanguin||'?'},allergies:${constes.allergies||'aucune'},chroniques:${constes.maladies_chroniques||'aucune'},traitements:${constes.traitements_en_cours||'aucun'},antécédents:${constes.antecedents_medicaux||'aucun'} Historique:${JSON.stringify(hist)} RDV:date=${rdv.appointment_date||'?'},heure=${rdv.appointment_time||'?'},statut=${rdv.status||'?'}. Réponds en JSON:{antecedents_pertinents,derniere_consultation,alertes_interactions,symptomes_declares,points_attention,niveau_urgence}`;
-    const model = genAI.getGenerativeModel({ model:'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model:'gemini-2.0-flash' });
     const result = await model.generateContent(SYSTEM_AMINA+'\n\n'+prompt);
     const json = JSON.parse(result.response.text().replace(/```json|```/g,'').trim());
     return res.json({ success:true, data:json });
