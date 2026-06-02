@@ -254,16 +254,23 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
     const contract = contractResult.rows[0];
     const contractId = contract.id;
     
-    // 1. Compter employés actifs
-    const employeesResult = await pool.query(
+    // 1. Compter employés total
+    const employeesTotalResult = await pool.query(
+      `SELECT COUNT(*) as total 
+       FROM company_employees 
+       WHERE contract_id = $1`,
+      [contractId]
+    );
+    
+    // 2. Compter employés actifs
+    const employeesActifsResult = await pool.query(
       `SELECT COUNT(*) as total 
        FROM company_employees 
        WHERE contract_id = $1 AND status = 'active'`,
       [contractId]
     );
     
-    // 2. Compter actes SSP ce mois (appointments terminés des employés)
-    const currentMonth = new Date().toISOString().slice(0, 7);
+    // 3. Compter actes SSP ce mois (appointments terminés des employés)
     const sspResult = await pool.query(
       `SELECT COUNT(*) as nb_actes_ssp
        FROM appointments a
@@ -274,7 +281,7 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
       [contractId]
     );
     
-    // 3. Vérifier si hors_catalogue_transactions existe
+    // 4. Vérifier si hors_catalogue_transactions existe
     const tableCheckResult = await pool.query(
       `SELECT table_name FROM information_schema.tables 
        WHERE table_name = 'hors_catalogue_transactions'`
@@ -291,7 +298,7 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
          FROM hors_catalogue_transactions
          WHERE contract_id = $1 
          AND TO_CHAR(created_at, 'YYYY-MM') = $2`,
-        [contractId, currentMonth]
+        [contractId, new Date().toISOString().slice(0, 7)]
       );
       horsCatResult = horsCatResult.rows[0];
     } else {
@@ -313,37 +320,78 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
       );
     }
     
-    // Dernières transactions (si table existe)
-    let recentTransactionsResult = { rows: [] };
+    // 5. Liste détaillée des employés avec SSP et hors catalogue
+    const employesListResult = await pool.query(
+      `SELECT 
+         ce.employee_phone,
+         ce.employee_name,
+         ce.matricule,
+         ce.categorie_rh,
+         ce.status,
+         COUNT(a.id) as ssp_count,
+         COALESCE(SUM(hct.prix_plein), 0) as hors_montant
+       FROM company_employees ce
+       LEFT JOIN appointments a 
+         ON a.patient_phone = ce.employee_phone
+         AND a.status = 'termine'
+         AND DATE_TRUNC('month', a.created_at) = DATE_TRUNC('month', NOW())
+       LEFT JOIN hors_catalogue_transactions hct 
+         ON hct.employee_phone = ce.employee_phone
+         AND DATE_TRUNC('month', hct.date_acte) = DATE_TRUNC('month', NOW())
+       WHERE ce.contract_id = $1
+       GROUP BY ce.id, ce.employee_phone, ce.employee_name, 
+                ce.matricule, ce.categorie_rh, ce.status`,
+      [contractId]
+    );
+    
+    const employesList = employesListResult.rows.map(e => ({
+      phone: e.employee_phone,
+      name: e.employee_name,
+      matricule: e.matricule,
+      categorie_rh: e.categorie_rh,
+      status: e.status,
+      ssp_count: parseInt(e.ssp_count) || 0,
+      hors_montant: parseFloat(e.hors_montant) || 0,
+      hors_count: 0 // Calculé via group by hors catalogue si nécessaire
+    }));
+    
+    // Calculer hors_count pour chaque employé
     if (tableCheckResult.rows.length > 0) {
-      recentTransactionsResult = await pool.query(
-        `SELECT hct.*, u.full_name as employee_name
-         FROM hors_catalogue_transactions hct
-         LEFT JOIN users u ON hct.employee_phone = u.phone
-         WHERE hct.contract_id = $1
-         ORDER BY hct.created_at DESC
-         LIMIT 20`,
+      const horsCountResult = await pool.query(
+        `SELECT employee_phone, COUNT(*) as count
+         FROM hors_catalogue_transactions
+         WHERE contract_id = $1 
+         AND DATE_TRUNC('month', date_acte) = DATE_TRUNC('month', NOW())
+         GROUP BY employee_phone`,
         [contractId]
       );
+      
+      const horsCountMap = {};
+      horsCountResult.rows.forEach(row => {
+        horsCountMap[row.employee_phone] = parseInt(row.count);
+      });
+      
+      employesList.forEach(emp => {
+        emp.hors_count = horsCountMap[emp.phone] || 0;
+      });
     }
     
+    // Top 10 employés par activité (ssp_count + hors_montant)
+    const topEmployes = [...employesList]
+      .sort((a, b) => (b.ssp_count + b.hors_montant) - (a.ssp_count + a.hors_montant))
+      .slice(0, 10);
+    
     ok(res, {
-      company: {
-        id: contract.id,
-        name: contract.company_name
-      },
-      employees: {
-        total_actifs: parseInt(employeesResult.rows[0].total) || 0
-      },
-      ssp_mois: {
-        nb_actes: parseInt(sspResult.rows[0].nb_actes_ssp) || 0
-      },
-      hors_catalogue_mois: {
-        nb_transactions: parseInt(horsCatResult.nb_transactions) || 0,
-        total_montant: parseFloat(horsCatResult.total_montant) || 0,
-        nb_employes_concernes: parseInt(horsCatResult.nb_employes_concernes) || 0
-      },
-      recent_transactions: recentTransactionsResult.rows
+      company_name: contract.company_name,
+      contract_id: contract.id,
+      employes_actifs: parseInt(employeesActifsResult.rows[0].total) || 0,
+      employes_total: parseInt(employeesTotalResult.rows[0].total) || 0,
+      ssp_count: parseInt(sspResult.rows[0].nb_actes_ssp) || 0,
+      hors_catalogue_count: parseInt(horsCatResult.nb_transactions) || 0,
+      hors_catalogue_montant: parseFloat(horsCatResult.total_montant) || 0,
+      alertes: 0,
+      employes: employesList,
+      top_employes: topEmployes
     });
     
   } catch (error) {
