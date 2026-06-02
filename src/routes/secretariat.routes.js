@@ -128,35 +128,60 @@ router.post('/rh/login', async (req, res) => {
 // GET /api/v1/secretariat/agenda?doctor_id=X&date=YYYY-MM-DD
 router.get('/agenda', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   try {
-    const doctor_id = parseInt(req.query.doctor_id);
-    const date = req.query.date || new Date().toISOString().split('T')[0];
     const clinicId = req.user.clinic_id;
+    let doctorId = req.query.doctor_id ? parseInt(req.query.doctor_id) : null;
+    const doctorPhone = req.query.doctor_phone;
+    const date = req.query.date;
 
-    if (!doctor_id) {
-      return res.status(400).json({ success: false, message: 'doctor_id requis' });
+    // Résoudre doctor_id à partir du téléphone si fourni
+    if (!doctorId && doctorPhone) {
+      const docByPhone = await pool.query(
+        `SELECT id FROM doctors WHERE phone = $1`,
+        [doctorPhone]
+      );
+      if (docByPhone.rows.length) doctorId = docByPhone.rows[0].id;
+    }
+
+    if (!doctorId) {
+      return res.status(400).json({ success: false, message: 'doctor_id ou doctor_phone requis' });
     }
 
     const doctorCheck = await pool.query(
       `SELECT id FROM doctors WHERE id = $1 AND clinic_id = $2`,
-      [doctor_id, clinicId]
+      [doctorId, clinicId]
     );
     if (!doctorCheck.rows.length) {
       return res.status(403).json({ success: false, message: 'Accès non autorisé' });
     }
 
-    const result = await pool.query(
-      `SELECT a.id, a.patient_phone, a.appointment_date,
-              a.appointment_time, a.status, a.motif,
-              u.full_name as patient_name,
-              s.motif as symptomes_motif
-       FROM appointments a
-       LEFT JOIN users u ON u.phone = a.patient_phone
-       LEFT JOIN appointment_symptoms s ON s.appointment_id = a.id
-       WHERE a.doctor_id = $1 AND a.appointment_date = $2
-       ORDER BY a.appointment_time`,
-      [doctor_id, date]
-    );
+    let query, params;
+    if (date) {
+      // RDV d'une date précise, triés par heure
+      query = `SELECT a.id, a.patient_phone, a.appointment_date,
+                      a.appointment_time, a.status, a.motif,
+                      u.full_name as patient_name,
+                      s.motif as symptomes_motif
+               FROM appointments a
+               LEFT JOIN users u ON u.phone = a.patient_phone
+               LEFT JOIN appointment_symptoms s ON s.appointment_id = a.id
+               WHERE a.doctor_id = $1 AND a.appointment_date = $2
+               ORDER BY a.appointment_time`;
+      params = [doctorId, date];
+    } else {
+      // Tous les RDV du médecin, toutes dates, du plus récent au plus ancien
+      query = `SELECT a.id, a.patient_phone, a.appointment_date,
+                      a.appointment_time, a.status, a.motif,
+                      u.full_name as patient_name,
+                      s.motif as symptomes_motif
+               FROM appointments a
+               LEFT JOIN users u ON u.phone = a.patient_phone
+               LEFT JOIN appointment_symptoms s ON s.appointment_id = a.id
+               WHERE a.doctor_id = $1
+               ORDER BY a.appointment_date DESC, a.appointment_time DESC`;
+      params = [doctorId];
+    }
 
+    const result = await pool.query(query, params);
     res.json({ success: true, appointments: result.rows });
   } catch(err) {
     console.error('[AGENDA]', err.message);
@@ -401,7 +426,7 @@ router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (
     console.log('[MEDECINS] clinic_id:', clinicId);
     
     const result = await pool.query(
-      `SELECT d.id, d.full_name, d.specialty, d.is_active,
+      `SELECT d.id, d.phone, d.full_name, d.specialty, d.is_active,
         COUNT(a.id) FILTER (WHERE a.appointment_date = CURRENT_DATE AND a.status NOT IN ('annule','refuse')) as rdv_today
        FROM doctors d
        LEFT JOIN appointments a ON a.doctor_id = d.id
