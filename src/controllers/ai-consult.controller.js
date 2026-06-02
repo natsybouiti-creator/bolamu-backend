@@ -1,20 +1,20 @@
 // ============================================================
 // BOLAMU — AI Consult Controller (Amina)
-// Moteur IA pour médecins via Anthropic API
+// Moteur IA pour médecins via Google Gemini API
 // ============================================================
 
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const pool = require('../config/db');
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const SYSTEM_AMINA = `Tu es Amina, assistante médicale IA de Bolamu, 
-plateforme de santé primaire au Congo-Brazzaville. 
-Tu assistes les médecins en consultation — tu ne poses JAMAIS 
-de diagnostic toi-même, tu fournis uniquement des éléments 
+const SYSTEM_AMINA = `Tu es Amina, assistante médicale IA de Bolamu,
+plateforme de santé primaire au Congo-Brazzaville.
+Tu assistes les médecins en consultation — tu ne poses JAMAIS
+de diagnostic toi-même, tu fournis uniquement des éléments
 d'aide à la décision médicale.
-Contexte prioritaire : soins primaires Afrique centrale, 
-pathologies endémiques : paludisme, infections respiratoires, 
+Contexte prioritaire : soins primaires Afrique centrale,
+pathologies endémiques : paludisme, infections respiratoires,
 HTA, diabète type 2, drépanocytose, tuberculose, VIH.
 Catalogue SSP Bolamu : médicaments OMS liste modèle 23e édition.
 Tu réponds TOUJOURS en JSON valide uniquement, sans texte autour.`;
@@ -77,14 +77,9 @@ Réponds UNIQUEMENT en JSON :
   "niveau_urgence": "vert" | "orange" | "rouge"
 }`;
 
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system: SYSTEM_AMINA,
-      messages: [{ role: 'user', content: userPrompt }]
-    });
-
-    const text = message.content[0].text;
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(SYSTEM_AMINA + '\n\n' + userPrompt);
+    const text = result.response.text();
     const json = JSON.parse(text.replace(/```json|```/g, '').trim());
 
     return res.json({ success: true, data: json });
@@ -140,14 +135,9 @@ Réponds UNIQUEMENT en JSON :
   ]
 }`;
 
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
-      system: SYSTEM_AMINA,
-      messages: [{ role: 'user', content: userPrompt }]
-    });
-
-    const text = message.content[0].text;
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(SYSTEM_AMINA + '\n\n' + userPrompt);
+    const text = result.response.text();
     const json = JSON.parse(text.replace(/```json|```/g, '').trim());
     return res.json({ success: true, data: json });
   } catch (error) {
@@ -187,14 +177,9 @@ Réponds UNIQUEMENT en JSON :
   "orientation_necessaire": false
 }`;
 
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system: SYSTEM_AMINA,
-      messages: [{ role: 'user', content: userPrompt }]
-    });
-
-    const text = message.content[0].text;
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(SYSTEM_AMINA + '\n\n' + userPrompt);
+    const text = result.response.text();
     const json = JSON.parse(text.replace(/```json|```/g, '').trim());
     return res.json({ success: true, data: json });
   } catch (error) {
