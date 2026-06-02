@@ -96,6 +96,31 @@ async function registerDoctor(req, res) {
              autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || phone]
         );
 
+        // Création automatique des disponibilités par défaut (lun-ven 08h-17h)
+        const joursDefaut = [
+            { day_of_week: 1, label: 'lundi' },
+            { day_of_week: 2, label: 'mardi' },
+            { day_of_week: 3, label: 'mercredi' },
+            { day_of_week: 4, label: 'jeudi' },
+            { day_of_week: 5, label: 'vendredi' }
+        ];
+        for (const jour of joursDefaut) {
+            await client.query(
+                `INSERT INTO doctor_availabilities
+                 (doctor_id, day_of_week, start_time, end_time, slot_duration)
+                 SELECT id, $1, '08:00', '17:00', 30
+                 FROM users WHERE phone = $2
+                 ON CONFLICT (doctor_id, day_of_week) DO NOTHING`,
+                [jour.day_of_week, phone]
+            );
+            await client.query(
+                `INSERT INTO time_slots (doctor_phone, day, start_time, end_time)
+                 VALUES ($1, $2, '08:00', '17:00')
+                 ON CONFLICT DO NOTHING`,
+                [phone, jour.label]
+            );
+        }
+
         if (documentUrl) {
             await client.query(
                 `UPDATE users SET document_url = $1 WHERE phone = $2`,
@@ -295,6 +320,24 @@ async function createTimeSlot(req, res) {
              RETURNING *`,
             [doctorPhone, dayParam, startParam, endParam]
         );
+
+        // Synchroniser avec doctor_availabilities
+        const dayOfWeekMap = {
+            'dimanche': 0, 'lundi': 1, 'mardi': 2, 'mercredi': 3,
+            'jeudi': 4, 'vendredi': 5, 'samedi': 6
+        };
+        const dayOfWeek = dayOfWeekMap[dayParam.toLowerCase()];
+        if (dayOfWeek !== undefined) {
+            await pool.query(
+                `INSERT INTO doctor_availabilities
+                 (doctor_id, day_of_week, start_time, end_time, slot_duration)
+                 SELECT id, $1, $2, $3, 30
+                 FROM users WHERE phone = $4
+                 ON CONFLICT (doctor_id, day_of_week)
+                 DO UPDATE SET start_time = $2, end_time = $3`,
+                [dayOfWeek, startParam, endParam, doctorPhone]
+            ).catch(() => {});
+        }
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)

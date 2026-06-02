@@ -147,6 +147,16 @@ async function validateAppointment(req, res) {
 
         console.log(`✅ Consultation validée — RDV ${id} — délai: ${delayMinutes} min`);
 
+        // Notification asynchrone au patient (ne bloque pas la réponse)
+        setImmediate(async () => {
+            try {
+                const { notify } = require('../services/notification.service');
+                await notify(patientPhone, 'message_recu', {
+                    message: `Votre consultation du ${rdvDateStr} a été validée par votre médecin.`
+                });
+            } catch (e) { console.error('[NOTIFY VALIDATION]', e.message); }
+        });
+
         return res.json({
             success: true,
             message: 'Consultation validée avec succès.',

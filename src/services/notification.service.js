@@ -48,8 +48,8 @@ async function notify(user_phone, type, data = {}) {
             }
         }
 
-        // Canal fallback : SMS (toujours disponible)
-        if (sentChannels.length === 0 || hasSMS) {
+        // Canal fallback : SMS uniquement si WhatsApp ET Push ont échoué
+        if (sentChannels.length === 0) {
             try {
                 await sendBolamuSms(user_phone, message);
                 sentChannels.push('sms');

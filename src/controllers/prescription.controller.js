@@ -46,6 +46,16 @@ async function createPrescription(req, res) {
             [appointment_id || null, patient_phone, doctor_phone, medications, instructions || null, session_code]
         );
 
+        // Notification asynchrone au patient (ne bloque pas la réponse)
+        setImmediate(async () => {
+            try {
+                const { notify } = require('../services/notification.service');
+                await notify(patient_phone, 'message_recu', {
+                    message: `Votre ordonnance Bolamu est disponible. Présentez-la dans une pharmacie partenaire.`
+                });
+            } catch (e) { console.error('[NOTIFY PRESCRIPTION]', e.message); }
+        });
+
         return res.status(201).json({
             success: true,
             message: 'Ordonnance créée avec succès.',

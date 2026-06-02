@@ -13,8 +13,8 @@ try {
     authMiddleware = (req, res, next) => next();
 }
 
-// --- FONCTION SMS DE SECOURS ---
-const logSms = async (phone, msg) => console.log(`[SMS SIMULÉ] Pour ${phone} : ${msg}`);
+// --- SERVICE DE NOTIFICATION UNIFIÉ ---
+const { notify } = require('../services/notification.service');
 
 // --- ROUTES ---
 
@@ -147,7 +147,28 @@ router.post('/book', authMiddleware, async (req, res) => {
             [patient_phone, doctor_id, date, time, session_code]
         );
         
-        await logSms(patient_phone, `Bolamu : RDV confirme. Code : ${session_code}`);
+        // Notifications asynchrones (ne bloquent pas la réponse)
+        setImmediate(async () => {
+            try {
+                const docResult = await pool.query(
+                    `SELECT full_name, phone FROM doctors WHERE id = $1`,
+                    [doctor_id]
+                );
+                const doctorName = docResult.rows[0]?.full_name || 'votre médecin';
+                const doctorPhone = docResult.rows[0]?.phone;
+                await notify(patient_phone, 'rdv_confirme', {
+                    doctor_name: doctorName,
+                    date: date,
+                    heure: time
+                });
+                if (doctorPhone) {
+                    await notify(doctorPhone, 'message_recu', {
+                        message: `Nouveau RDV — Patient : ${patient_phone} le ${date} à ${time}`
+                    });
+                }
+            } catch (e) { console.error('[NOTIFY RDV]', e.message); }
+        });
+
         res.status(201).json({ success: true, appointment: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });

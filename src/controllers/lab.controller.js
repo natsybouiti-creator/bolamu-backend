@@ -122,6 +122,16 @@ async function submitLabResults(req, res) {
 
         console.log(`🔬 Résultats labo déposés pour patient ${patient_phone} par ${labPhone}`);
 
+        // Notification asynchrone au patient (ne bloque pas la réponse)
+        setImmediate(async () => {
+            try {
+                const { notify } = require('../services/notification.service');
+                await notify(patient_phone, 'message_recu', {
+                    message: `Vos résultats d'analyses sont disponibles sur Bolamu.`
+                });
+            } catch (e) { console.error('[NOTIFY LABO]', e.message); }
+        });
+
         return res.status(201).json({
             success: true,
             message: 'Résultats déposés avec succès.',
