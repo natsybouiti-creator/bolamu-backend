@@ -1329,14 +1329,24 @@ async function generateBriefing(){
   const resultDiv=document.getElementById('briefing-result');
   const loadingDiv=document.getElementById('briefing-loading');
   const contentDiv=document.getElementById('briefing-content');
-  
+
+  console.log('[BRIEFING] currentRdv =', currentRdv);
+
   btn.disabled=true;btn.textContent='⏳ Analyse...';
   resultDiv.style.display='block';
   loadingDiv.style.display='block';
   contentDiv.style.display='none';
-  
+
   try{
-    const res=await fetch(`${API}/ai-consult/briefing/${currentRdv.id}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
+    const res=await fetch(`${API}/ai-consult/briefing`,{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        appointment_id: currentRdv?.rdvId || currentRdv?.id || currentRdv?.appointment_id,
+        patient_phone: currentRdv?.patientPhone || currentRdv?.patient_phone,
+        doctor_phone: phone
+      })
+    });
     const data=await res.json();
     
     loadingDiv.style.display='none';

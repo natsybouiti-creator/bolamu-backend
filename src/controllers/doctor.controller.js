@@ -114,10 +114,10 @@ async function registerDoctor(req, res) {
                 [jour.day_of_week, phone]
             );
             await client.query(
-                `INSERT INTO time_slots (doctor_phone, day, start_time, end_time)
-                 VALUES ($1, $2, '08:00', '17:00')
+                `INSERT INTO time_slots (doctor_phone, date, heure_debut, heure_fin)
+                 VALUES ($1, CURRENT_DATE + INTERVAL '1 day' * $2, '08:00', '17:00')
                  ON CONFLICT DO NOTHING`,
-                [phone, jour.label]
+                [phone, jour.day_of_week - 1]
             );
         }
 
@@ -303,30 +303,29 @@ async function generatePatientQRCode(req, res) {
 // ─── CRÉER UN CRÉNEAU HORAIRE (POST /api/v1/doctor/slots) ───────────────────────
 async function createTimeSlot(req, res) {
     const doctorPhone = req.user.phone;
-    const { date, heure_debut, heure_fin, day, start_time, end_time } = req.body;
+    const { date, heure_debut, heure_fin } = req.body;
 
-    const dayParam = day || date;
-    const startParam = start_time || heure_debut;
-    const endParam = end_time || heure_fin;
+    const dateParam = date;
+    const startParam = heure_debut;
+    const endParam = heure_fin;
 
-    if (!dayParam || !startParam || !endParam) {
-        return res.status(400).json({ success: false, message: 'Champs requis : day/date, start_time/heure_debut, end_time/heure_fin.' });
+    if (!dateParam || !startParam || !endParam) {
+        return res.status(400).json({ success: false, message: 'Champs requis : date, heure_debut, heure_fin.' });
     }
 
     try {
         const result = await pool.query(
-            `INSERT INTO time_slots (doctor_phone, day, start_time, end_time, is_available)
+            `INSERT INTO time_slots (doctor_phone, date, heure_debut, heure_fin, is_available)
              VALUES ($1, $2, $3, $4, TRUE)
              RETURNING *`,
-            [doctorPhone, dayParam, startParam, endParam]
+            [doctorPhone, dateParam, startParam, endParam]
         );
 
         // Synchroniser avec doctor_availabilities
         const dayOfWeekMap = {
-            'dimanche': 0, 'lundi': 1, 'mardi': 2, 'mercredi': 3,
-            'jeudi': 4, 'vendredi': 5, 'samedi': 6
+            0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6
         };
-        const dayOfWeek = dayOfWeekMap[dayParam.toLowerCase()];
+        const dayOfWeek = dayOfWeekMap[new Date(dateParam).getDay()];
         if (dayOfWeek !== undefined) {
             await pool.query(
                 `INSERT INTO doctor_availabilities
@@ -342,7 +341,7 @@ async function createTimeSlot(req, res) {
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('timeslot.created', $1, 'time_slots', $2, $3)`,
-            [doctorPhone, result.rows[0].id, JSON.stringify({ day: dayParam, start_time: startParam, end_time: endParam })]
+            [doctorPhone, result.rows[0].id, JSON.stringify({ date: dateParam, heure_debut: startParam, heure_fin: endParam })]
         ).catch(() => {});
 
         return res.status(201).json({ success: true, data: result.rows[0] });
