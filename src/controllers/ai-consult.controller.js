@@ -105,6 +105,13 @@ Sur la base du catalogue SSP Bolamu (médicaments OMS liste modèle
 23e édition pour l'Afrique subsaharienne), suggère une ordonnance 
 adaptée aux soins primaires au Congo-Brazzaville.
 
+RÈGLES :
+1. EN PRIORITÉ les médicaments SSP Bolamu disponibles (est_ssp: true) 
+   avec justification clinique précise pourquoi ce médicament est indiqué
+2. SI NÉCESSAIRE les médicaments hors catalogue (est_ssp: false) avec :
+   - Justification clinique pourquoi le SSP ne suffit pas
+   - Justification détaillée dans le champ "justification"
+
 Réponds UNIQUEMENT en JSON :
 {
   "medicaments": [
@@ -113,7 +120,8 @@ Réponds UNIQUEMENT en JSON :
       "dosage": "string", 
       "posologie": "string",
       "duree": "string",
-      "est_ssp": true|false
+      "est_ssp": true|false,
+      "justification": "string"
     }
   ],
   "instructions_generales": "string",
