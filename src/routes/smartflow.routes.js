@@ -90,6 +90,40 @@ router.get('/smartflow/medicaments/check', authMiddleware, async (req, res) => {
 });
 
 /**
+ * GET /api/v1/smartflow/ssp/medicaments?q=XXX
+ * Liste des médicaments du catalogue SSP (autocomplete ordonnance médecin)
+ */
+router.get('/smartflow/ssp/medicaments', authMiddleware, async (req, res) => {
+  const pool = require('../config/db');
+  const q = (req.query.q || '').trim();
+
+  try {
+    let result;
+    if (q) {
+      result = await pool.query(
+        `SELECT nom, categorie, est_ssp
+         FROM ssp_catalog
+         WHERE type = 'medicament' AND nom ILIKE $1
+         ORDER BY nom ASC
+         LIMIT 50`,
+        [`%${q}%`]
+      );
+    } else {
+      result = await pool.query(
+        `SELECT nom, categorie, est_ssp
+         FROM ssp_catalog
+         WHERE type = 'medicament'
+         ORDER BY nom ASC`
+      );
+    }
+    ok(res, result.rows);
+  } catch (error) {
+    console.error('[SmartFlow SSP medicaments]', error.message);
+    err(res, 500, 'Erreur serveur');
+  }
+});
+
+/**
  * GET /api/v1/smartflow/stats/moi?mois=YYYY-MM
  * Statistiques du prestataire connecté
  */

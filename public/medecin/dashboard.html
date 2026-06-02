@@ -1115,130 +1115,149 @@ function afficherEtapeOrdonnance(){
   document.getElementById('modal-content').innerHTML=`
     <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step done">✓</div><div class="step-line done"></div><div class="step active">3</div></div>
     <div class="modal-title">Rédiger l'ordonnance</div>
-    <div class="modal-sub">Code validé ✅ — Rédigez l'ordonnance numérique pour ce patient.</div>
-    <div class="modal-hint">💡 Listez un médicament par ligne. Ex :<br><em>Paracétamol 1000mg — 3x/jour pendant 5 jours</em></div>
+    <div class="modal-sub">Code validé ✅ — Ajoutez les médicaments un par un. Le statut SSP est déterminé automatiquement.</div>
+    <div class="form-group" style="background:var(--bleu-pale);padding:16px;border-radius:12px;border:1px solid var(--border);">
+      <label class="form-label">Nom du médicament *</label>
+      <input class="form-input" id="ord-med-nom" list="ssp-datalist" autocomplete="off" placeholder="Commencez à taper… (ex : Paracétamol)">
+      <datalist id="ssp-datalist"></datalist>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <input class="form-input" id="ord-med-dosage" style="flex:1;min-width:120px;" placeholder="Dosage (ex : 500mg)">
+        <input class="form-input" id="ord-med-quantite" style="flex:1;min-width:120px;" placeholder="Quantité (ex : 1 boîte)">
+      </div>
+      <input class="form-input" id="ord-med-posologie" style="margin-top:10px;" placeholder="Posologie / instructions (ex : 3x/jour pendant 5 jours)">
+      <button type="button" class="btn-primary" data-action="ajouter-med" style="margin-top:12px;width:100%;">➕ Ajouter à l'ordonnance</button>
+    </div>
     <div class="form-group">
-      <label class="form-label">Médicaments prescrits *</label>
-      <textarea class="form-textarea" id="ord-medications" placeholder="Paracétamol 1000mg — 3x/jour pendant 5 jours&#10;Amoxicilline 500mg — 2x/jour pendant 7 jours"></textarea>
-      <div id="medicament-badges" style="margin-top:12px;"></div>
+      <label class="form-label">Médicaments de l'ordonnance</label>
+      <div id="ord-med-list" style="margin-top:8px;"></div>
+      <textarea id="ord-medications" style="display:none;"></textarea>
     </div>
     <div class="form-group">
       <label class="form-label">Instructions complémentaires</label>
       <input class="form-input" id="ord-instructions" placeholder="Ex : Prendre après les repas…">
     </div>
-    <div id="ordonnance-resume" style="display:none;margin-top:20px;">
-      <div style="background:var(--vert-clair);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--vert);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <span style="font-size:18px;">✅</span>
-          <span style="font-size:14px;font-weight:700;color:var(--emeraude);">SSP — Médicaments gratuits</span>
-        </div>
-        <div id="ssp-list" style="font-size:13px;"></div>
-      </div>
-      <div style="background:#fef9ec;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--amber);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <span style="font-size:18px;">💰</span>
-          <span style="font-size:14px;font-weight:700;color:var(--amber);">Hors Catalogue — Prix plein</span>
-        </div>
-        <div id="hors-list" style="font-size:13px;"></div>
-        <div id="hors-total" style="margin-top:8px;font-weight:700;"></div>
-      </div>
-      <div style="font-size:12px;color:var(--texte-doux);">Le patient sera notifié automatiquement des montants hors catalogue</div>
-    </div>
     <div class="modal-actions">
       <button class="btn-cancel" data-action="retour-cr">← Retour</button>
       <button class="btn-primary" id="btn-confirmer" data-action="confirmer-validation">✅ Valider et créer l'ordonnance</button>
     </div>`;
-  
-  // Ajouter debounce pour vérification SSP
+
+  medicamentsData = [];
+  renderOrdMedList();
+  loadSspDatalist();
+
+  // Autocomplete dynamique sur ssp_catalog
   let debounceTimer;
-  const medInput=document.getElementById('ord-medications');
-  medInput.addEventListener('input',function(){
+  const nomInput=document.getElementById('ord-med-nom');
+  nomInput.addEventListener('input',function(){
     clearTimeout(debounceTimer);
-    debounceTimer=setTimeout(verifierMedicaments,500);
+    debounceTimer=setTimeout(()=>loadSspDatalist(nomInput.value.trim()),300);
   });
-  
-  verifierMedicaments();
+  nomInput.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();ajouterMedicament();}
+  });
+}
+
+async function loadSspDatalist(q=''){
+  try{
+    const url = q ? `${API}/smartflow/ssp/medicaments?q=${encodeURIComponent(q)}` : `${API}/smartflow/ssp/medicaments`;
+    const res = await fetch(url,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
+    const data = await res.json();
+    const list = (data.success && data.data) ? data.data : [];
+    const dl = document.getElementById('ssp-datalist');
+    if(dl) dl.innerHTML = list.map(m=>`<option value="${m.nom}">`).join('');
+  }catch(e){/* autocomplete non bloquant */}
 }
 
 let medicamentsData = [];
 
-async function verifierMedicaments(){
-  const medicationsInput = document.getElementById('ord-medications').value.trim();
-  const badgesDiv = document.getElementById('medicament-badges');
-  const resumeDiv = document.getElementById('ordonnance-resume');
-  const sspList = document.getElementById('ssp-list');
-  const horsList = document.getElementById('hors-list');
-  const horsTotal = document.getElementById('hors-total');
-  
-  if(!medicationsInput){
-    badgesDiv.innerHTML = '';
-    resumeDiv.style.display = 'none';
-    medicamentsData = [];
-    return;
-  }
-  
-  const medicationsList = medicationsInput.split('\n').filter(m => m.trim());
-  medicamentsData = [];
-  const sspMeds = [];
-  const horsMeds = [];
-  
-  for(const med of medicationsList){
-    try{
-      const res = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(med.trim())}`,{
-        headers:{'Authorization':`Bearer ${getAuthToken()}`}
-      });
-      const data = await res.json();
-      const isSSP = data.success && data.data && data.data.is_ssp;
-      medicamentsData.push({nom: med.trim(), isSSP});
-      
-      if(isSSP){
-        sspMeds.push(med.trim());
-      }else{
-        horsMeds.push({nom: med.trim(), prix: 0});
-      }
-    }catch(e){
-      medicamentsData.push({nom: med.trim(), isSSP: false});
-      horsMeds.push({nom: med.trim(), prix: 0});
-    }
-  }
-  
-  // Afficher badges
-  badgesDiv.innerHTML = medicationsList.map((med, i) => {
-    const isSSP = medicamentsData[i]?.isSSP;
-    return `<span style="display:inline-block;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:600;margin-right:6px;margin-bottom:6px;background:${isSSP ? 'var(--vert-clair)' : '#fef9ec'};color:${isSSP ? 'var(--emeraude)' : 'var(--amber)'};border:1px solid ${isSSP ? 'var(--vert)' : 'var(--amber)'};">${isSSP ? '✅ SSP' : '💰 Hors catalogue'}</span>`;
-  }).join('');
-  
-  // Afficher résumé
-  if(medicationsList.length > 0){
-    resumeDiv.style.display = 'block';
-    sspList.innerHTML = sspMeds.length > 0 ? sspMeds.map(m => `<div style="padding:4px 0;border-bottom:1px solid rgba(0,201,167,0.2);">${m}</div>`).join('') : '<div style="color:var(--texte-doux);">Aucun médicament SSP</div>';
-    
-    horsList.innerHTML = horsMeds.length > 0 ? horsMeds.map((m, i) => `
-      <div style="padding:4px 0;border-bottom:1px solid rgba(243,156,18,0.2);display:flex;align-items:center;gap:8px;">
-        <span>${m.nom}</span>
-        <input type="number" class="hors-prix-input" data-index="${i}" placeholder="Prix FCFA" style="width:100px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
-      </div>
-    `).join('') : '<div style="color:var(--texte-doux);">Aucun médicament hors catalogue</div>';
-    
-    // Ajouter event listeners pour inputs prix
-    document.querySelectorAll('.hors-prix-input').forEach(input => {
-      input.addEventListener('input', function(){
-        const idx = parseInt(this.dataset.index);
-        medicamentsData.filter(m => !m.isSSP)[idx].prix = parseInt(this.value) || 0;
-        updateHorsTotal();
-      });
-    });
-    
-    updateHorsTotal();
-  }else{
-    resumeDiv.style.display = 'none';
-  }
+// Construit la ligne texte d'un médicament pour l'ordonnance (sans prix)
+function formatMedLine(m){
+  let ligne = m.nom;
+  if(m.dosage) ligne += ` ${m.dosage}`;
+  const details = [];
+  if(m.quantite) details.push(`Qté : ${m.quantite}`);
+  if(m.posologie) details.push(m.posologie);
+  if(details.length) ligne += ` — ${details.join(' — ')}`;
+  return ligne;
 }
 
-function updateHorsTotal(){
-  const horsMeds = medicamentsData.filter(m => !m.isSSP);
-  const total = horsMeds.reduce((sum, m) => sum + (m.prix || 0), 0);
-  document.getElementById('hors-total').textContent = total > 0 ? `Total : ${total.toLocaleString()} FCFA` : '';
+// Ajoute un médicament à l'ordonnance ; statut SSP déterminé automatiquement
+async function ajouterMedicament(){
+  const nomInput = document.getElementById('ord-med-nom');
+  const dosageInput = document.getElementById('ord-med-dosage');
+  const quantiteInput = document.getElementById('ord-med-quantite');
+  const posologieInput = document.getElementById('ord-med-posologie');
+
+  const nom = nomInput.value.trim();
+  if(!nom){ nomInput.style.borderColor = 'var(--rouge)'; nomInput.focus(); return; }
+  nomInput.style.borderColor = '';
+
+  const med = {
+    nom,
+    dosage: dosageInput.value.trim(),
+    quantite: quantiteInput.value.trim(),
+    posologie: posologieInput.value.trim(),
+    isSSP: false
+  };
+
+  // Détermination automatique SSP via ssp_catalog
+  try{
+    const res = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(nom)}`,{
+      headers:{'Authorization':`Bearer ${getAuthToken()}`}
+    });
+    const data = await res.json();
+    med.isSSP = !!(data.success && data.data && data.data.is_ssp);
+  }catch(e){ med.isSSP = false; }
+
+  medicamentsData.push(med);
+  renderOrdMedList();
+
+  // Réinitialiser les champs
+  nomInput.value = '';
+  dosageInput.value = '';
+  quantiteInput.value = '';
+  posologieInput.value = '';
+  nomInput.focus();
+}
+
+function supprimerMedicament(index){
+  medicamentsData.splice(index, 1);
+  renderOrdMedList();
+}
+
+// Affiche la liste des médicaments + met à jour le textarea caché (compat backend)
+function renderOrdMedList(){
+  const listDiv = document.getElementById('ord-med-list');
+  const hidden = document.getElementById('ord-medications');
+  if(!listDiv || !hidden) return;
+
+  if(!medicamentsData.length){
+    listDiv.innerHTML = '<div style="color:var(--texte-doux);font-size:13px;padding:8px 0;">Aucun médicament ajouté pour l\'instant.</div>';
+    hidden.value = '';
+    return;
+  }
+
+  listDiv.innerHTML = medicamentsData.map((m, i) => {
+    const badge = m.isSSP
+      ? `<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;background:var(--vert-clair);color:var(--emeraude);border:1px solid var(--vert);">✅ SSP gratuit</span>`
+      : `<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;background:#fef9ec;color:var(--amber);border:1px solid var(--amber);">💊 Hors catalogue</span>`;
+    const details = [];
+    if(m.dosage) details.push(m.dosage);
+    if(m.quantite) details.push(`Qté : ${m.quantite}`);
+    if(m.posologie) details.push(m.posologie);
+    return `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;">
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">${m.nom}</div>
+          ${details.length ? `<div style="font-size:12px;color:var(--texte-doux);margin-bottom:6px;">${details.join(' — ')}</div>` : ''}
+          ${badge}
+        </div>
+        <button type="button" data-action="retirer-med" data-index="${i}" style="background:var(--rouge);color:white;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:700;">✕</button>
+      </div>`;
+  }).join('');
+
+  // Textarea caché : une ligne par médicament (format texte lisible par la pharmacie)
+  hidden.value = medicamentsData.map(formatMedLine).join('\n');
 }
 
 async function loadSmartFlowStats(){
@@ -1267,17 +1286,11 @@ async function loadSmartFlowStats(){
 async function confirmerValidation(){
   const medications=document.getElementById('ord-medications').value.trim();
   const instructions=document.getElementById('ord-instructions').value.trim();
-  if(!medications){document.getElementById('ord-medications').style.borderColor='var(--rouge)';return;}
-  
-  // Vérifier que tous les médicaments hors catalogue ont un prix
-  const horsMeds = medicamentsData.filter(m => !m.isSSP);
-  for(const med of horsMeds){
-    if(!med.prix || med.prix <= 0){
-      alert('Veuillez entrer un prix pour tous les médicaments hors catalogue.');
-      return;
-    }
+  if(!medications){
+    alert('Ajoutez au moins un médicament à l\'ordonnance.');
+    return;
   }
-  
+
   const btn=document.getElementById('btn-confirmer');
   btn.disabled=true;btn.textContent='Validation en cours…';
   const dureeMinutes=Math.round((Date.now()-consultationStartTime)/60000);
@@ -1296,28 +1309,12 @@ async function confirmerValidation(){
     const resPres=await fetch(`${API}/prescriptions/create`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,medications,instructions:instructions||null})});
     const dataPres=await resPres.json();
     if(!resPres.ok)throw new Error(dataPres.message||'Erreur ordonnance');
-    
-    // Enregistrer les médicaments hors catalogue dans Smart Flow
-    for(const med of horsMeds){
-      await fetch(`${API}/smartflow/hors-catalogue`,{
-        method:'POST',
-        headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},
-        body:JSON.stringify({
-          patient_phone: currentRdv.patientPhone,
-          prestataire_phone: phone,
-          prestataire_type: 'doctor',
-          libelle: med.nom,
-          prix_plein: med.prix,
-          ssp_reference_type: 'prescription'
-        })
-      });
-    }
-    
+
     document.getElementById('modal-content').innerHTML=`
       <div class="validation-success">
         <div class="success-icon">✅</div>
         <div class="success-title">Consultation validée !</div>
-        <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Fraunces',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong><br><br>Ordonnance envoyée — patient notifié pour les hors catalogue</div>
+        <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Fraunces',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong></div>
         <button class="btn-primary" data-action="fermer-modal-load">Fermer</button>
       </div>`;
   }catch(e){btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
@@ -2072,6 +2069,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'retour-code') afficherEtapeCode();
     if (action === 'soumettre-cr') soumettreCompteRendu();
     if (action === 'retour-cr') afficherEtapeCompteRendu();
+    if (action === 'ajouter-med') ajouterMedicament();
+    if (action === 'retirer-med') supprimerMedicament(parseInt(btn.dataset.index));
     if (action === 'confirmer-validation') confirmerValidation();
     if (action === 'fermer-modal-load') { fermerModal(); loadRdv(); }
     if (action === 'fermer-modal-labo') fermerModalLabo();
