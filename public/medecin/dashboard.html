@@ -755,33 +755,39 @@ async function loadCreneaux(){
 }
 
 async function creerCreneauxParDefaut() {
-  const joursOuvrables = ['lundi','mardi','mercredi','jeudi','vendredi'];
-  const token = getAuthToken();
-  let created = 0;
-  for (const jour of joursOuvrables) {
-    try {
-      const res = await fetch(`${API}/doctors/slots`, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          phone: phone,
-          day: jour,
-          start_time: '08:00',
-          end_time: '17:00'
-        })
-      });
-      const data = await res.json();
-      if (data.success) created++;
-    } catch(e) {}
-  }
-  if (created > 0) {
-    loadCreneaux();
-  } else {
-    document.getElementById('creneaux-display').innerHTML =
-      '<div style="color:var(--texte-doux);font-size:13px;">Aucun créneau configuré.</div>';
+  if (window._creneauxEnCours) return;
+  window._creneauxEnCours = true;
+  try {
+    const joursOuvrables = ['lundi','mardi','mercredi','jeudi','vendredi'];
+    const token = getAuthToken();
+    let created = 0;
+    for (const jour of joursOuvrables) {
+      try {
+        const res = await fetch(`${API}/doctors/slots`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            phone: phone,
+            day: jour,
+            start_time: '08:00',
+            end_time: '17:00'
+          })
+        });
+        const data = await res.json();
+        if (data.success) created++;
+      } catch(e) {}
+    }
+    if (created > 0) {
+      loadCreneaux();
+    } else {
+      document.getElementById('creneaux-display').innerHTML =
+        '<div style="color:var(--texte-doux);font-size:13px;">Aucun créneau configuré.</div>';
+    }
+  } finally {
+    window._creneauxEnCours = false;
   }
 }
 
@@ -1354,10 +1360,11 @@ async function generateBriefing(){
     
     if(data.success&&data.data){
       const briefing=data.data;
-      document.getElementById('briefing-antecedents').textContent=briefing.antecedents_pertinents||'—';
-      document.getElementById('briefing-consultation').textContent=briefing.derniere_consultation||'—';
-      document.getElementById('briefing-alertes').textContent=briefing.alertes_interactions||'—';
-      document.getElementById('briefing-symptomes').textContent=briefing.symptomes_declares||'—';
+      const fmt=v=>typeof v==='object'?JSON.stringify(v,null,2):v;
+      document.getElementById('briefing-antecedents').textContent=fmt(briefing.antecedents_pertinents)||'—';
+      document.getElementById('briefing-consultation').textContent=fmt(briefing.derniere_consultation)||'—';
+      document.getElementById('briefing-alertes').textContent=fmt(briefing.alertes_interactions)||'—';
+      document.getElementById('briefing-symptomes').textContent=fmt(briefing.symptomes_declares)||'—';
       
       // Badge feu tricolore par défaut (sera mis à jour après analyse tricolor)
       const badge=document.getElementById('tricolor-badge');
