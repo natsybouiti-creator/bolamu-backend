@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#2E86FF">
 <link rel="manifest" href="/manifest.json">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
 .ni { font-family: 'Noto Color Emoji', sans-serif; }
 </style>
@@ -713,7 +714,10 @@ tr:hover td{background:rgba(255,255,255,.018);}
       <div style="margin-bottom:32px">
         <div class="section-hd">
           <div><h3>Contrats entreprise</h3></div>
-          <button class="primary-btn" data-ononclick="openNewContractModal">+ Nouveau contrat</button>
+          <div style="display:flex;gap:8px;">
+            <button class="primary-btn" data-ononclick="openImportEmployeesModal">📥 Import Excel</button>
+            <button class="primary-btn" data-ononclick="openNewContractModal">+ Nouveau contrat</button>
+          </div>
         </div>
         <div class="tbl-card">
           <div class="tbl-head">
@@ -1326,6 +1330,63 @@ async function addEmployee(contractId){
   };
   if(!body.employee_phone||!body.employee_name){toast('Champs obligatoires manquants','err');return;}
   try{const d=await api(`/admin/company-contracts/${contractId}/employees`,{method:'POST',body:JSON.stringify(body)});if(d.success){closeModal();toast(d.message);loadContracts();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+}
+
+function openImportEmployeesModal(){
+  document.getElementById('modal-box').className='modal';
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Import Excel employés</div><div class="modal-sub">Format attendu : téléphone, nom, matricule, catégorie RH (cadre_direction, cadre, agent_maitrise, employe, ouvrier)</div><div class="mf"><label>Contrat entreprise</label><select class="msel" id="import-contract-id"><option value="">Sélectionner un contrat...</option></select></div><div class="mf"><label>Fichier Excel (.xlsx, .xls, .csv)</label><input type="file" id="import-file" accept=".xlsx,.xls,.csv" class="mi"></div><div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-blue" data-onclick="importEmployees">Importer</button></div>`;
+  openModal();
+  loadContractsForImport();
+}
+
+async function loadContractsForImport(){
+  try{
+    const res=await api('/admin/company-contracts');
+    const sel=document.getElementById('import-contract-id');
+    if(sel&&res.data){
+      sel.innerHTML='<option value="">Sélectionner un contrat...</option>'+res.data.map(c=>`<option value="${c.id}">${c.company_name}</option>`).join('');
+    }
+  }catch(e){}
+}
+
+async function importEmployees(){
+  const contractId=document.getElementById('import-contract-id').value;
+  const fileInput=document.getElementById('import-file');
+  if(!contractId){toast('Sélectionnez un contrat','err');return;}
+  if(!fileInput.files.length){toast('Sélectionnez un fichier','err');return;}
+  const file=fileInput.files[0];
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      const data=new Uint8Array(e.target.result);
+      const workbook=XLSX.read(data,{type:'array'});
+      const sheetName=workbook.SheetNames[0];
+      const sheet=workbook.Sheets[sheetName];
+      const rows=XLSX.utils.sheet_to_json(sheet);
+      if(!rows.length){toast('Fichier vide','err');return;}
+      let success=0,fail=0;
+      for(const row of rows){
+        console.log('[IMPORT EXCEL] ligne =',row);
+        const body={
+          employee_phone:String(row['téléphone']||row['phone']||row['Téléphone']||'').trim(),
+          employee_name:String(row['nom']||row['name']||row['Nom']||'').trim(),
+          matricule:String(row['matricule']||row['Matricule']||'').trim()||null,
+          categorie_rh:String(row['catégorie_rh']||row['categorie_rh']||row['Catégorie RH']||'').trim()||null
+        };
+        if(!body.employee_phone||!body.employee_name){fail++;continue;}
+        try{
+          const d=await api(`/admin/company-contracts/${contractId}/employees`,{method:'POST',body:JSON.stringify(body)});
+          if(d.success)success++;else fail++;
+        }catch(err){fail++;}
+      }
+      closeModal();
+      toast(`${success} employés importés, ${fail} échecs`,success>0?'ok':'err');
+      loadContracts();
+    }catch(err){
+      toast('Erreur lecture fichier: '+err.message,'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 /* -----------------------------------

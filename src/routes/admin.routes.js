@@ -1158,7 +1158,7 @@ router.post('/company-contracts/:id/employees', authMiddleware, adminOnly, async
   const client = await pool.connect();
   try {
     const { id } = req.params;
-    const { employee_phone, employee_name, status = 'pending' } = req.body;
+    const { employee_phone, employee_name, matricule, categorie_rh, status = 'pending' } = req.body;
 
     if (!id || isNaN(parseInt(id))) {
       return res.status(400).json({ success: false, message: 'ID contrat invalide' });
@@ -1181,12 +1181,12 @@ router.post('/company-contracts/:id/employees', authMiddleware, adminOnly, async
       return res.status(404).json({ success: false, message: 'Contrat introuvable' });
     }
 
-    // Insérer l'employé
+    // Insérer l'employé avec matricule et categorie_rh
     const employeeResult = await client.query(
-      `INSERT INTO company_employees (contract_id, employee_phone, employee_name, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, NOW(), NOW())
+      `INSERT INTO company_employees (contract_id, employee_phone, employee_name, matricule, categorie_rh, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING *`,
-      [id, employee_phone, employee_name, status]
+      [id, employee_phone, employee_name, matricule || null, categorie_rh || null, status]
     );
 
     await client.query('COMMIT');
