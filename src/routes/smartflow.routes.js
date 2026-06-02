@@ -287,7 +287,7 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
       horsCatResult = await pool.query(
         `SELECT COUNT(*) as nb_transactions, 
                 COALESCE(SUM(prix_plein), 0) as total_montant,
-                COUNT(DISTINCT patient_phone) as nb_employes_concernes
+                COUNT(DISTINCT employee_phone) as nb_employes_concernes
          FROM hors_catalogue_transactions
          WHERE contract_id = $1 
          AND TO_CHAR(created_at, 'YYYY-MM') = $2`,
@@ -347,8 +347,8 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
     });
     
   } catch (error) {
-    console.error('[SmartFlow RH Dashboard]', error.message);
-    err(res, 500, 'Erreur serveur');
+    console.error('[RH DASHBOARD ERROR]', error.message, error.stack);
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
