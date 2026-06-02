@@ -222,7 +222,7 @@ app.use('/api/v1/agence',       agenceRoutes);
 app.use('/api/v1/pre-rdv',       preRdvRoutes);
 app.use('/api/v1',              smartflowRoutes);
 app.use('/api/v1',              symptomsRoutes);
-app.use('/api/v1',              aiConsultRoutes);
+app.use('/api/v1/ai-consult',   aiConsultRoutes);
 app.use('/api/v1/upload',       uploadRoutes);
 // ============================================================
 // 4. ROUTES WEB

@@ -258,6 +258,26 @@ router.post('/:id/validate', authMiddleware, async (req, res) => {
     }
 });
 
+// 5.5. Ouverture consultation (marque RDV en cours)
+router.post('/:id/open', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `UPDATE appointments
+       SET status = 'en_cours', started_at = NOW(), updated_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id]
+    );
+    if (!result.rows.length)
+      return res.status(404).json({ success: false, message: 'RDV introuvable' });
+    return res.json({ success: true, appointment: result.rows[0] });
+  } catch (e) {
+    console.error('[openConsultation]', e.message);
+    return res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // 6. Symptômes pre-RDV (alias vers appointment_symptoms)
 router.post('/:id/symptoms', authMiddleware, async (req, res) => {
   try {
