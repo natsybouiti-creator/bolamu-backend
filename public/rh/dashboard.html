@@ -580,21 +580,41 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('btn-logout').addEventListener('click', logout);
+      const btnLogout = document.getElementById('btn-logout');
+      if (btnLogout) btnLogout.addEventListener('click', logout);
 
-      document.getElementById('tab-overview').addEventListener('click', () => showTab('overview', document.getElementById('tab-overview')));
-      document.getElementById('tab-employes').addEventListener('click', () => showTab('employes', document.getElementById('tab-employes')));
-      document.getElementById('tab-retenues').addEventListener('click', () => { showTab('retenues', document.getElementById('tab-retenues')); loadCategoriesConfig(); });
-      document.getElementById('tab-export').addEventListener('click', () => showTab('export', document.getElementById('tab-export')));
-      document.getElementById('tab-config').addEventListener('click', () => { showTab('config', document.getElementById('tab-config')); loadCategoriesConfig(); });
+      const tabOverview = document.getElementById('tab-overview');
+      if (tabOverview) tabOverview.addEventListener('click', () => showTab('overview', tabOverview));
 
-      document.getElementById('employes-mois').addEventListener('change', loadEmployesByMonth);
-      document.getElementById('btn-generer-export').addEventListener('click', genererExport);
-      document.getElementById('btn-sauvegarder-config').addEventListener('click', sauvegarderConfig);
+      const tabEmployes = document.getElementById('tab-employes');
+      if (tabEmployes) tabEmployes.addEventListener('click', () => showTab('employes', tabEmployes));
 
-      document.getElementById('btn-charger-retenues').addEventListener('click', loadRetenues);
-      document.getElementById('btn-valider-retenues').addEventListener('click', validerRetenues);
-      document.getElementById('btn-sauvegarder-categories').addEventListener('click', sauvegarderCategoriesConfig);
+      const tabRetenues = document.getElementById('tab-retenues');
+      if (tabRetenues) tabRetenues.addEventListener('click', () => { showTab('retenues', tabRetenues); loadCategoriesConfig(); });
+
+      const tabExport = document.getElementById('tab-export');
+      if (tabExport) tabExport.addEventListener('click', () => showTab('export', tabExport));
+
+      const tabConfig = document.getElementById('tab-config');
+      if (tabConfig) tabConfig.addEventListener('click', () => { showTab('config', tabConfig); loadCategoriesConfig(); });
+
+      const employesMois = document.getElementById('employes-mois');
+      if (employesMois) employesMois.addEventListener('change', loadEmployesByMonth);
+
+      const btnGenererExport = document.getElementById('btn-generer-export');
+      if (btnGenererExport) btnGenererExport.addEventListener('click', genererExport);
+
+      const btnSauvegarderConfig = document.getElementById('btn-sauvegarder-config');
+      if (btnSauvegarderConfig) btnSauvegarderConfig.addEventListener('click', sauvegarderConfig);
+
+      const btnChargerRetenues = document.getElementById('btn-charger-retenues');
+      if (btnChargerRetenues) btnChargerRetenues.addEventListener('click', loadRetenues);
+
+      const btnValiderRetenues = document.getElementById('btn-valider-retenues');
+      if (btnValiderRetenues) btnValiderRetenues.addEventListener('click', validerRetenues);
+
+      const btnSauvegarderCategories = document.getElementById('btn-sauvegarder-categories');
+      if (btnSauvegarderCategories) btnSauvegarderCategories.addEventListener('click', sauvegarderCategoriesConfig);
     });
 
     // RETENUES DU MOIS

@@ -20,7 +20,7 @@ function prestataireOnly(req, res, next) {
 
 // Middleware pour vérifier que l'utilisateur est RH grand compte
 function rhOnly(req, res, next) {
-  if (req.user?.role !== 'company_rh') {
+  if (!['rh', 'company_rh'].includes(req.user?.role)) {
     return res.status(403).json({ success: false, message: 'Accès réservé aux RH grands comptes.' });
   }
   next();
