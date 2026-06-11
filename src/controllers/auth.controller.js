@@ -265,7 +265,11 @@ async function registerPatient(req, res) {
 
             await client.query('COMMIT');
 
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_patient', [initialPassword]);
+            try {
+                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_patient', [initialPassword]);
+            } catch (whatsappError) {
+                console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+            }
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
 
@@ -393,7 +397,11 @@ async function registerDoctor(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_medecin', [initialPassword]);
+        try {
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_medecin', [initialPassword]);
+        } catch (whatsappError) {
+            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+        }
         // TODO: supprimer sendBolamuSms après validation WhatsApp
         // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
@@ -493,7 +501,11 @@ async function registerPharmacie(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_pharmacie', [initialPassword]);
+        try {
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_pharmacie', [initialPassword]);
+        } catch (whatsappError) {
+            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+        }
         // TODO: supprimer sendBolamuSms après validation WhatsApp
         // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
@@ -593,7 +605,11 @@ async function registerLaboratoire(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_labo', [initialPassword]);
+        try {
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_labo', [initialPassword]);
+        } catch (whatsappError) {
+            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+        }
         // TODO: supprimer sendBolamuSms après validation WhatsApp
         // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
