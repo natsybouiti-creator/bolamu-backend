@@ -157,7 +157,6 @@ async function sendWhatsAppTemplate(to, templateName, params = []) {
     if (isDevelopment) {
         logger.info('[WhatsApp] Template simulé (développement)', { to: formattedPhone, templateName, params });
         console.log(`[WhatsApp SIMULÉ] Vers: ${formattedPhone} | Template: ${templateName} | Params: ${JSON.stringify(params)}`);
-    sendWhatsAppTemplate,
         return true;
     }
 
@@ -234,6 +233,7 @@ function verifyWebhook(mode, token, challenge) {
 
 module.exports = {
     sendMessage,
+    sendWhatsAppTemplate,
     handleWebhook,
     verifyWebhook,
     WHATSAPP_TEMPLATES
