@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const { sendBolamuSms } = require('../services/sms.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const { buildWameLink } = require('../services/wame.service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
 const ACCESS_TOKEN_EXPIRES = '7d';
@@ -262,6 +263,12 @@ async function registerPatient(req, res) {
 
             await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
 
+            const wameLink = buildWameLink(normalizedPhone, 'inscription_mdp', {
+              prenom: first_name,
+              phone: normalizedPhone,
+              mdp: initialPassword
+            });
+
             const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
             await pool.query(
@@ -269,7 +276,7 @@ async function registerPatient(req, res) {
                 [normalizedPhone, user.id, JSON.stringify({ member_code, photo_url: photoUrl })]
             ).catch(() => {});
 
-            return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: normalizedPhone, role: user.role, member_code: user.member_code });
+            return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: normalizedPhone, role: user.role, member_code: user.member_code, whatsapp_link: wameLink });
         } catch (e) {
             await client.query('ROLLBACK');
             throw e;

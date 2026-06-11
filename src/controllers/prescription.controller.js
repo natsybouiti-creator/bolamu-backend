@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { buildWameLink } = require('../services/wame.service');
 
 // ─── CRÉER UNE ORDONNANCE (médecin après validation consultation) ─────────────
 async function createPrescription(req, res) {
@@ -46,12 +47,25 @@ async function createPrescription(req, res) {
             [appointment_id || null, patient_phone, doctor_phone, medications, instructions || null, session_code]
         );
 
+        const prescriptionId = result.rows[0].id;
+
         // Notification asynchrone au patient (ne bloque pas la réponse)
         setImmediate(async () => {
             try {
                 const { notify } = require('../services/notification.service');
                 await notify(patient_phone, 'message_recu', {
                     message: `Votre ordonnance Bolamu est disponible. Présentez-la dans une pharmacie partenaire.`
+                });
+
+                const patientRowPres = await pool.query(
+                    `SELECT first_name FROM users WHERE phone = $1`,
+                    [patient_phone]
+                );
+                const patientFirstNamePres = patientRowPres.rows[0]?.first_name || patient_phone;
+
+                buildWameLink(patient_phone, 'ordonnance_creee', {
+                    prenom: patientFirstNamePres,
+                    ref_ordonnance: prescriptionId
                 });
             } catch (e) { console.error('[NOTIFY PRESCRIPTION]', e.message); }
         });

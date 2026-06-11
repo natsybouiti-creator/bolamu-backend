@@ -15,6 +15,7 @@ try {
 
 // --- SERVICE DE NOTIFICATION UNIFIÉ ---
 const { notify } = require('../services/notification.service');
+const { buildWameLink } = require('../services/wame.service');
 
 // --- ROUTES ---
 
@@ -156,6 +157,30 @@ router.post('/book', authMiddleware, async (req, res) => {
                 );
                 const doctorName = docResult.rows[0]?.full_name || 'votre médecin';
                 const doctorPhone = docResult.rows[0]?.phone;
+
+                const patientRowAppt = await pool.query(
+                    `SELECT first_name FROM users WHERE phone = $1`,
+                    [patient_phone]
+                );
+                const patientFirstNameAppt = patientRowAppt.rows[0]?.first_name || patient_phone;
+
+                buildWameLink(patient_phone, 'rdv_pris', {
+                    prenom: patientFirstNameAppt,
+                    medecin: doctorName,
+                    date: date,
+                    heure: time,
+                    clinique: 'Bolamu Hub'
+                });
+
+                if (doctorPhone) {
+                    buildWameLink(doctorPhone, 'medecin_nouveau_rdv', {
+                        patient_nom: patientFirstNameAppt,
+                        date: date,
+                        heure: time,
+                        motif: 'Consultation'
+                    });
+                }
+
                 await notify(patient_phone, 'rdv_confirme', {
                     doctor_name: doctorName,
                     date: date,

@@ -49,7 +49,7 @@ async function registerPatient(req, res) {
 
         try {
             await sendBolamuSms(phone,
-                `Bolamu : Bienvenue ${full_name} ! Votre ID Bolamu : ${bolamuId}. Connectez-vous sur bolamu-backend.onrender.com`
+                `Bolamu : Bienvenue ${full_name} ! Votre ID Bolamu : ${bolamuId}. Connectez-vous sur api.bolamu.co`
             );
         } catch (e) { console.log('⚠️ SMS non envoyé'); }
 

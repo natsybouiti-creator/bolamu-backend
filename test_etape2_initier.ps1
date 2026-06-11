@@ -2,7 +2,7 @@ $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwicGhvbmUiOiIrMjQyMDY2M
 $body = '{"patient_phone": "+242069735418", "montant_total": 10000}'
 
 try {
-    $response = Invoke-RestMethod -Uri "https://bolamu-backend.onrender.com/api/v1/tiers-payant/initier" -Method POST -ContentType "application/json" -Headers @{"Authorization" = "Bearer $token"} -Body $body
+    $response = Invoke-RestMethod -Uri "https://api.bolamu.co/api/v1/tiers-payant/initier" -Method POST -ContentType "application/json" -Headers @{"Authorization" = "Bearer $token"} -Body $body
     $response | ConvertTo-Json -Depth 4
     if ($response.data) {
         Write-Host "`nTRANSACTION_ID: $($response.data.transaction_id)"

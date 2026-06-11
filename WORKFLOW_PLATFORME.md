@@ -673,7 +673,7 @@ Exécution : 02h00 Brazzaville
 - LocalStorage (tokens)
 
 ### Déploiement
-- Render (bolamu-backend.onrender.com)
+- Render (api.bolamu.co)
 - Free plan (dort après inactivité)
 - Ping /api/v1/test avant démo
 - Repo GitHub : natsybouiti-creator/bolamu-backend

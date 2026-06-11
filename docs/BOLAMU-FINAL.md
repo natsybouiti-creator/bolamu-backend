@@ -411,7 +411,7 @@ PORT=3005
 - Africa's Talking en sandbox — OTPs visibles dans logs Render uniquement
 - Cloudinary cloud_name : dpxefz80w
 - Repo GitHub : natsybouiti-creator/bolamu-backend
-- Backend URL : bolamu-backend.onrender.com
+- Backend URL : api.bolamu.co
 - Après chaque push sur main, vérifier le déploiement automatique Render
 
 ---

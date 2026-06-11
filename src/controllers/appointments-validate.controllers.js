@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { buildWameLink } = require('../services/wame.service');
 
 // ─── OUVRIR UNE FICHE (mesure le début de consultation) ──────────────────────
 async function openAppointment(req, res) {
@@ -147,12 +148,36 @@ async function validateAppointment(req, res) {
 
         console.log(`✅ Consultation validée — RDV ${id} — délai: ${delayMinutes} min`);
 
+        const patientPhoneForWame = patientPhone;
+        const rdvDateForWame = rdvDateStr;
+        const rdvTimeForWame = rdvTimeStr;
+
         // Notification asynchrone au patient (ne bloque pas la réponse)
         setImmediate(async () => {
             try {
                 const { notify } = require('../services/notification.service');
                 await notify(patientPhone, 'message_recu', {
                     message: `Votre consultation du ${rdvDateStr} a été validée par votre médecin.`
+                });
+
+                const patientRowVal = await pool.query(
+                    `SELECT first_name FROM users WHERE phone = $1`,
+                    [patientPhoneForWame]
+                );
+                const patientFirstNameVal = patientRowVal.rows[0]?.first_name || patientPhoneForWame;
+
+                const doctorRowVal = await pool.query(
+                    `SELECT full_name FROM doctors WHERE phone = $1`,
+                    [doctorPhone]
+                );
+                const doctorNameVal = doctorRowVal.rows[0]?.full_name || 'votre médecin';
+
+                buildWameLink(patientPhoneForWame, 'rdv_confirme', {
+                    prenom: patientFirstNameVal,
+                    medecin: doctorNameVal,
+                    date: rdvDateForWame,
+                    heure: rdvTimeForWame,
+                    clinique: 'Bolamu Hub'
                 });
             } catch (e) { console.error('[NOTIFY VALIDATION]', e.message); }
         });

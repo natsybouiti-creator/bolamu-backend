@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const db = require('../config/db');
 const { notify } = require('../services/notification.service');
 const { addJob } = require('../queues/bolamu-queue');
+const { buildWameLink } = require('../services/wame.service');
 
 // Fonction helper pour envoyer SMS en batch via BullMQ
 // Non bloquant : si Redis est indisponible, le job est simplement ignoré
@@ -57,6 +58,12 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
           plan: row.plan,
           expires_at: row.expires_at
         });
+
+        buildWameLink(row.patient_phone, 'abonnement_expire', {
+          prenom: row.first_name,
+          date_expiration: new Date(row.expires_at).toLocaleDateString('fr-FR')
+        });
+
         nb_traites++;
         allDetails.push(`Notification expiration J-3 envoyée : ${row.patient_phone}`);
       } catch (notifyErr) {

@@ -2,7 +2,7 @@ $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwicGhvbmUiOiIrMjQyMDY2M
 $transactionId = 3
 
 try {
-    $response3 = Invoke-RestMethod -Uri "https://bolamu-backend.onrender.com/api/v1/tiers-payant/$transactionId/valider" -Method PATCH -Headers @{"Authorization" = "Bearer $token"}
+    $response3 = Invoke-RestMethod -Uri "https://api.bolamu.co/api/v1/tiers-payant/$transactionId/valider" -Method PATCH -Headers @{"Authorization" = "Bearer $token"}
     $response3 | ConvertTo-Json -Depth 4
 } catch {
     Write-Host "❌ ERREUR: $($_.Exception.Message)"

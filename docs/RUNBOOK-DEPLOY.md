@@ -41,7 +41,7 @@
    - Wait 30s (déploiement production)
 
 6. **Vérifier health check production**
-   - curl https://bolamu-backend.onrender.com/api/v1/test
+   - curl https://api.bolamu.co/api/v1/test
    - Vérifier que status = "ok"
    - Vérifier que checks.database = "ok"
 
@@ -60,7 +60,7 @@
 3. **"Rollback to this deploy"**
 4. **Wait 30s** (Render déploie automatiquement)
 5. **Vérifier health check après rollback**
-   - curl https://bolamu-backend.onrender.com/api/v1/test
+   - curl https://api.bolamu.co/api/v1/test
    - Vérifier que status = "ok"
 
 ### Notes
@@ -155,7 +155,7 @@ npm run format:check
 
 ### Health check
 ```bash
-curl https://bolamu-backend.onrender.com/api/v1/test
+curl https://api.bolamu.co/api/v1/test
 ```
 
 ### Logs Render

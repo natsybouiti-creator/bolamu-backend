@@ -137,7 +137,7 @@ async function registerDoctor(req, res) {
 
         try {
             const msg = autoStatus === 'verified'
-                ? `Bolamu : Bienvenue Dr. ${full_name} ! Compte validé. Code : ${memberCode}. Connectez-vous sur bolamu-backend.onrender.com`
+                ? `Bolamu : Bienvenue Dr. ${full_name} ! Compte validé. Code : ${memberCode}. Connectez-vous sur api.bolamu.co`
                 : `Bolamu : Inscription reçue Dr. ${full_name}. Vérification en cours (score: ${score}/100). Réponse sous 24h.`;
             await sendBolamuSms(phone, msg);
         } catch (e) { console.log('⚠️ SMS non envoyé'); }

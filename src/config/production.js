@@ -12,7 +12,7 @@ const helmetConfig = helmet({
             scriptSrc: ["'self'", "'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
-            connectSrc: ["'self'", "https://bolamu-backend.onrender.com"],
+            connectSrc: ["'self'", "https://api.bolamu.co"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             objectSrc: ["'none'"],
             mediaSrc: ["'self'"],
@@ -37,7 +37,7 @@ const corsConfig = {
             'https://bolamu.co',
             'https://app.bolamu.co',
             'https://www.bolamu.co',
-            'https://bolamu-backend.onrender.com'
+            'https://api.bolamu.co'
         ];
 
         // En développement, autoriser localhost

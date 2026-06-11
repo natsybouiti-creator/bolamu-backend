@@ -18,7 +18,7 @@ Mis à jour : 25 avril 2026
 
 ### Backend
 - **Framework** : Node.js + Express
-- **Hébergement** : Render (bolamu-backend.onrender.com) — Free plan
+- **Hébergement** : Render (api.bolamu.co) — Free plan
 - **Base de données** : PostgreSQL Neon (Frankfurt)
 - **Stockage fichiers** : Cloudinary (cloud_name: dpxefz80w)
 - **SMS** : Africa's Talking (sandbox — OTPs visibles dans logs Render)

@@ -9,7 +9,7 @@ Un déploiement cassé = plateforme indisponible pour les patients au Congo.
 
 ## INFRASTRUCTURE PRODUCTION
 
-- Backend : Node.js/Express sur Render (bolamu-backend.onrender.com)
+- Backend : Node.js/Express sur Render (api.bolamu.co)
 - Base de données : PostgreSQL Neon (Frankfurt)
 - Stockage : Cloudinary (cloud_name: dpxefz80w)
 - SMS : Africa's Talking

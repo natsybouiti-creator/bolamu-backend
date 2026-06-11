@@ -212,7 +212,7 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            const msg = `Bolamu : Félicitations ${name} ! Votre dossier a été validé. Connectez-vous sur bolamu-backend.onrender.com`;
+            const msg = `Bolamu : Félicitations ${name} ! Votre dossier a été validé. Connectez-vous sur api.bolamu.co`;
             await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
@@ -505,7 +505,7 @@ router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) 
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
         const u = result.rows[0];
-        try { await sendBolamuSms(phone, `Bolamu : Votre compte a été réactivé. Vous pouvez vous reconnecter sur bolamu-backend.onrender.com`); } catch(e) {}
+        try { await sendBolamuSms(phone, `Bolamu : Votre compte a été réactivé. Vous pouvez vous reconnecter sur api.bolamu.co`); } catch(e) {}
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.unbanned','admin','users',$1,$2)`,
             [u.id, JSON.stringify({ role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} réactivé ✅`, data: u });

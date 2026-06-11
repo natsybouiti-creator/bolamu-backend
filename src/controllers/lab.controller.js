@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const { buildWameLink } = require('../services/wame.service');
 
 // ─── CRÉER UNE PRESCRIPTION LABO (médecin) ───────────────────────────────
 async function createLabPrescription(req, res) {
@@ -140,6 +141,22 @@ async function submitLabResults(req, res) {
                     patient_phone: patient_phone,
                     prescription_code: prescriptionCode,
                     message: `Les résultats labo de votre patient ${patient_phone} sont disponibles — Code : ${prescriptionCode}`
+                });
+
+                const patientRowLab = await pool.query(
+                    `SELECT first_name FROM users WHERE phone = $1`,
+                    [patient_phone]
+                );
+                const patientFirstNameLab = patientRowLab.rows[0]?.first_name || patient_phone;
+
+                buildWameLink(patient_phone, 'resultats_disponibles', {
+                    prenom: patientFirstNameLab,
+                    ref_examen: prescriptionCode
+                });
+
+                buildWameLink(labPhone, 'labo_depot_confirme', {
+                    patient_nom: patientFirstNameLab,
+                    ref_examen: prescriptionCode
                 });
             } catch (e) { console.error('[NOTIFY LABO]', e.message); }
         });

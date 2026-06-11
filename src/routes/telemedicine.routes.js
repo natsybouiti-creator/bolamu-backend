@@ -95,7 +95,7 @@ router.post('/start', authMiddleware, async (req, res) => {
       const { sendBolamuSms } = require('../services/sms.service');
       await sendBolamuSms(
         appt.patient_phone,
-        `Bolamu : Dr. ${appt.doctor_name} vous attend en téléconsultation. Connectez-vous sur bolamu-backend.onrender.com — Code : ${appt.session_code}`
+        `Bolamu : Dr. ${appt.doctor_name} vous attend en téléconsultation. Connectez-vous sur api.bolamu.co — Code : ${appt.session_code}`
       );
     } catch (e) {
       console.log('SMS télémédecine non envoyé:', e.message);

@@ -103,7 +103,7 @@ async function registerLaboratoire(req, res) {
 
         try {
             const msg = autoStatus === 'verified'
-                ? `Bolamu : Bienvenue ${name} ! Laboratoire validé. Code : ${memberCode}. Connectez-vous sur bolamu-backend.onrender.com`
+                ? `Bolamu : Bienvenue ${name} ! Laboratoire validé. Code : ${memberCode}. Connectez-vous sur api.bolamu.co`
                 : `Bolamu : Inscription ${name} reçue (score: ${score}/100). Vérification sous 24h.`;
             await sendBolamuSms(normalizedPhone, msg);
         } catch (e) { console.log('⚠️ SMS non envoyé'); }

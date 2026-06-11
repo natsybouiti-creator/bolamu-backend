@@ -1,6 +1,6 @@
 # BOLAMU — CONTEXTE PROJET — v1.0.0
 Mis à jour : 27 mai 2026
-Statut : EN PRODUCTION — https://bolamu-backend.onrender.com
+Statut : EN PRODUCTION — https://api.bolamu.co
 Score Ayokai : 21/23 (91.3%)
 
 ## STACK TECHNIQUE

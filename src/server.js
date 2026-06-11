@@ -100,7 +100,9 @@ if (process.env.NODE_ENV === 'production') {
 } else {
     // Configuration développement
     const allowedOrigins = [
-        'https://bolamu-backend.onrender.com',
+        'https://api.bolamu.co',
+        'https://www.bolamu.co',
+        'https://bolamu.co',
         'http://localhost:3000',
         'http://localhost:10000'
     ];
