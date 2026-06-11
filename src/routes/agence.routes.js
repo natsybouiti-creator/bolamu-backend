@@ -9,6 +9,7 @@ const jwt       = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth.middleware');
 const crypto = require('crypto');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
 
@@ -329,7 +330,7 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
           (phone, full_name, first_name, last_name, date_of_birth, gender, city, address,
            role, is_active, statut_abonnement, member_code,
            doc_type, doc_numero, niu, rib, email, cgu_accepted_at, created_by, created_at, updated_at,
-           password, photo_url, temp_password_must_change, proche_number)
+           password_hash, photo_url, temp_password_must_change, proche_number)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'patient', true, 'en_attente', $9,
           $10, $11, $12, $13, $14, $15, $16, NOW(), NOW(),
           $17, $18, true, $19)`,
@@ -346,7 +347,7 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
         `UPDATE users SET
           full_name = $1, first_name = $2, last_name = $3, date_of_birth = $4, gender = $5,
           city = $6, address = $7, doc_type = $8, doc_numero = $9, niu = $10, rib = $11, email = $12,
-          password = $13, photo_url = COALESCE($14, users.photo_url), temp_password_must_change = true,
+          password_hash = $13, photo_url = COALESCE($14, users.photo_url), temp_password_must_change = true,
           proche_number = $15, updated_at = NOW()
          WHERE phone = $16`,
         [fullName, prenom, nom, dob, genre, ville, adresse || null,
@@ -394,6 +395,9 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
     );
 
     await client.query('COMMIT');
+
+    // Envoyer le mot de passe par WhatsApp
+    await sendWhatsAppTemplate(phone, 'bolamu_bienvenue_patient', [tempPassword]);
     res.json({
       success: true,
       subscription_id: sub.rows[0].id,
@@ -569,7 +573,7 @@ router.post('/import-employes', requireAgent, async (req, res) => {
           const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
           await client.query(
-            `INSERT INTO users (phone, full_name, first_name, last_name, role, is_active, statut_abonnement, member_code, password, temp_password_must_change)
+            `INSERT INTO users (phone, full_name, first_name, last_name, role, is_active, statut_abonnement, member_code, password_hash, temp_password_must_change)
              VALUES ($1, $2, $3, $4, 'patient', true, 'en_attente', $5, $6, true)`,
             [phone, fullName, prenom, nom, memberCode, hashedPassword]
           );

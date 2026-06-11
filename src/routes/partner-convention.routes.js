@@ -77,7 +77,7 @@ router.post('/secretaires', authMiddleware, partnerOnly, async (req, res) => {
         const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
         await client.query(`
-            INSERT INTO users (phone, password, role, full_name, is_active, created_at)
+            INSERT INTO users (phone, password_hash, role, full_name, is_active, created_at)
             VALUES ($1, $2, 'secretaire', $3, TRUE, NOW())
         `, [phone, hashedPassword, `${prenom} ${nom}`]);
 

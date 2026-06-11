@@ -106,9 +106,10 @@ async function login(req, res) {
         if (user.role === 'admin') return res.status(403).json({ success: false, message: 'Accès non autorisé. Utilisez le portail administrateur.', redirectUrl: '/admin/login.html' });
         if (user.banned) return res.status(403).json({ success: false, message: 'Compte suspendu. Contactez le support.' });
         
-        if (!user.password_hash) return res.status(401).json({ success: false, message: 'Mot de passe non configuré. Contactez votre agent Bolamu.' });
+        const storedHash = user.password_hash || user.password;
+        if (!storedHash) return res.status(401).json({ success: false, message: 'Mot de passe non configuré. Contactez votre agent Bolamu.' });
         
-        const validPassword = await bcrypt.compare(password, user.password_hash);
+        const validPassword = await bcrypt.compare(password, storedHash);
         if (!validPassword) return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });
 
         // Access token (15min)
@@ -392,7 +393,9 @@ async function registerDoctor(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
+        await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_medecin', [initialPassword]);
+        // TODO: supprimer sendBolamuSms après validation WhatsApp
+        // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
@@ -490,7 +493,9 @@ async function registerPharmacie(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
+        await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_pharmacie', [initialPassword]);
+        // TODO: supprimer sendBolamuSms après validation WhatsApp
+        // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
@@ -588,7 +593,9 @@ async function registerLaboratoire(req, res) {
 
         const user = newUser.rows[0];
         
-        await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
+        await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_labo', [initialPassword]);
+        // TODO: supprimer sendBolamuSms après validation WhatsApp
+        // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
