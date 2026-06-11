@@ -1,6 +1,7 @@
 const { Worker } = require('bullmq');
 const db = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { connection } = require('../config/redis');
 
 let smsWorker = null;
@@ -18,6 +19,8 @@ if (!connection) {
 
   for (const phone of phones) {
     try {
+      // TODO: Remplacer par template WhatsApp approprié après validation
+      // await sendWhatsAppTemplate(phone, 'bolamu_batch_notification', [message]);
       await sendBolamuSms(phone, message);
       itemsProcessed++;
     } catch (err) {

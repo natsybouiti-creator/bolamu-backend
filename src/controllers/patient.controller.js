@@ -3,6 +3,7 @@
 // ============================================================
 const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const bcrypt = require('bcrypt');
 
 const generateBolamuId = () => `BLM-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -48,10 +49,10 @@ async function registerPatient(req, res) {
         ).catch(() => {});
 
         try {
-            await sendBolamuSms(phone,
-                `Bolamu : Bienvenue ${full_name} ! Votre ID Bolamu : ${bolamuId}. Connectez-vous sur api.bolamu.co`
-            );
-        } catch (e) { console.log('⚠️ SMS non envoyé'); }
+            await sendWhatsAppTemplate(phone, 'bolamu_inscription_patient_id', [full_name, bolamuId]);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // await sendBolamuSms(phone, `Bolamu : Bienvenue ${full_name} ! Votre ID Bolamu : ${bolamuId}. Connectez-vous sur api.bolamu.co`);
+        } catch (e) { console.log('⚠️ WhatsApp non envoyé'); }
 
         return res.status(201).json({
             success: true,

@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const {
     createConvention,
     activateConvention,
@@ -96,9 +97,11 @@ router.post('/secretaires', authMiddleware, partnerOnly, async (req, res) => {
 
         // SMS bienvenue au secrétaire
         try {
-            await sendBolamuSms(phone, `Bolamu: Bienvenue! Mot de passe temp: ${tempPassword}. Changez-le dès connexion.`);
+            await sendWhatsAppTemplate(phone, 'bolamu_secretaire_bienvenue', [tempPassword]);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // await sendBolamuSms(phone, `Bolamu: Bienvenue! Mot de passe temp: ${tempPassword}. Changez-le dès connexion.`);
         } catch (smsErr) {
-            console.error('[Secretaire] Erreur SMS:', smsErr.message);
+            console.error('[Secretaire] Erreur WhatsApp:', smsErr.message);
         }
 
         res.json({ success: true, message: 'Secrétaire créé avec succès' });
@@ -173,10 +176,16 @@ router.patch('/secretaires/:phone/toggle', authMiddleware, partnerOnly, async (r
 
         // SMS notification
         try {
-            const message = newStatus ? 'Bolamu: Compte réactivé. Connectez-vous maintenant.' : 'Bolamu: Compte désactivé. Contactez votre partenaire.';
-            await sendBolamuSms(phone, message);
+            if (newStatus) {
+                await sendWhatsAppTemplate(phone, 'bolamu_secretaire_reactive', []);
+            } else {
+                await sendWhatsAppTemplate(phone, 'bolamu_secretaire_desactive', []);
+            }
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // const message = newStatus ? 'Bolamu: Compte réactivé. Connectez-vous maintenant.' : 'Bolamu: Compte désactivé. Contactez votre partenaire.';
+            // await sendBolamuSms(phone, message);
         } catch (smsErr) {
-            console.error('[Secretaire] Erreur SMS:', smsErr.message);
+            console.error('[Secretaire] Erreur WhatsApp:', smsErr.message);
         }
 
         res.json({ success: true, message: `Secrétaire ${newStatus ? 'activé' : 'désactivé'}` });

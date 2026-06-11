@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../../middleware/auth.middleware');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 
 // ─── GET /telemedicine/room/:appointmentId ────────────────────────────────────
 router.get('/room/:appointmentId', authMiddleware, async (req, res) => {
@@ -92,11 +93,17 @@ router.post('/start', authMiddleware, async (req, res) => {
     ).catch(() => {});
 
     try {
-      const { sendBolamuSms } = require('../services/sms.service');
-      await sendBolamuSms(
+      await sendWhatsAppTemplate(
         appt.patient_phone,
-        `Bolamu : Dr. ${appt.doctor_name} vous attend en téléconsultation. Connectez-vous sur api.bolamu.co — Code : ${appt.session_code}`
+        'bolamu_teleconsultation',
+        [appt.doctor_name, appt.session_code]
       );
+      // TODO: supprimer sendBolamuSms après validation WhatsApp
+      // const { sendBolamuSms } = require('../services/sms.service');
+      // await sendBolamuSms(
+      //   appt.patient_phone,
+      //   `Bolamu : Dr. ${appt.doctor_name} vous attend en téléconsultation. Connectez-vous sur api.bolamu.co — Code : ${appt.session_code}`
+      // );
     } catch (e) {
       console.log('SMS télémédecine non envoyé:', e.message);
     }

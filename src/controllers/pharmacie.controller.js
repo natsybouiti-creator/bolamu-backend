@@ -4,6 +4,7 @@
 
 const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 
 function generatePhmCode(phone) {
@@ -98,11 +99,17 @@ async function registerPharmacie(req, res) {
         await client.query('COMMIT');
 
         try {
-            const msg = autoStatus === 'verified'
-                ? `Bolamu : Bienvenue ${name} ! Pharmacie validée. Code : ${memberCode}. Connectez-vous sur api.bolamu.co`
-                : `Bolamu : Inscription ${name} reçue (score: ${score}/100). Vérification sous 24h.`;
-            await sendBolamuSms(phone, msg);
-        } catch (e) { console.log('⚠️ SMS non envoyé'); }
+            if (autoStatus === 'verified') {
+                await sendWhatsAppTemplate(phone, 'bolamu_bienvenue_pharmacie', [name, memberCode]);
+            } else {
+                await sendWhatsAppTemplate(phone, 'bolamu_inscription_pharmacie_pending', [name, score.toString()]);
+            }
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // const msg = autoStatus === 'verified'
+            //     ? `Bolamu : Bienvenue ${name} ! Pharmacie validée. Code : ${memberCode}. Connectez-vous sur api.bolamu.co`
+            //     : `Bolamu : Inscription ${name} reçue (score: ${score}/100). Vérification sous 24h.`;
+            // await sendBolamuSms(phone, msg);
+        } catch (e) { console.log('⚠️ WhatsApp non envoyé'); }
 
         return res.status(201).json({
             success: true,
@@ -152,12 +159,20 @@ async function updatePharmacieStatus(req, res) {
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Pharmacie introuvable.' });
         const p = result.rows[0];
         try {
-            const msgs = {
-                verified: `Bolamu : ${p.name} validée ! Code : ${p.member_code}.`,
-                rejected: `Bolamu : Inscription ${p.name} non validée. Motif : ${reason || 'Dossier incomplet'}.`,
-                suspended: `Bolamu : Compte ${p.name} suspendu.`
-            };
-            if (msgs[status]) await sendBolamuSms(p.phone, msgs[status]);
+            if (status === 'verified') {
+                await sendWhatsAppTemplate(p.phone, 'bolamu_pharmacie_validee', [p.name, p.member_code]);
+            } else if (status === 'rejected') {
+                await sendWhatsAppTemplate(p.phone, 'bolamu_pharmacie_rejetee', [p.name, reason || 'Dossier incomplet']);
+            } else if (status === 'suspended') {
+                await sendWhatsAppTemplate(p.phone, 'bolamu_pharmacie_suspendue', [p.name]);
+            }
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // const msgs = {
+            //     verified: `Bolamu : ${p.name} validée ! Code : ${p.member_code}.`,
+            //     rejected: `Bolamu : Inscription ${p.name} non validée. Motif : ${reason || 'Dossier incomplet'}.`,
+            //     suspended: `Bolamu : Compte ${p.name} suspendu.`
+            // };
+            // if (msgs[status]) await sendBolamuSms(p.phone, msgs[status]);
         } catch (e) {}
         return res.json({ success: true, data: p });
     } catch (error) {

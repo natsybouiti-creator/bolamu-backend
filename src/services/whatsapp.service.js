@@ -6,7 +6,7 @@ const logger = require('../config/logger');
 
 // Configuration depuis process.env uniquement
 const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
-const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_ID;
+const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
 // Templates WhatsApp
 const WHATSAPP_TEMPLATES = {
@@ -32,8 +32,8 @@ const WHATSAPP_TEMPLATES = {
 async function sendMessage(phone, templateName, parameters = {}) {
     const isDevelopment = process.env.NODE_ENV !== 'production';
 
-    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_ID) {
-        logger.warn('[WhatsApp] WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_ID non configuré');
+    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+        logger.warn('[WhatsApp] WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_NUMBER_ID non configuré');
         return { success: false, error: 'Configuration manquante' };
     }
 
@@ -54,7 +54,7 @@ async function sendMessage(phone, templateName, parameters = {}) {
     }
 
     try {
-        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_ID}/messages`;
+        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
         
         const body = {
             messaging_product: 'whatsapp',
@@ -134,6 +134,83 @@ async function handleWebhook(body) {
     } catch (error) {
         logger.error('[WhatsApp] Erreur handleWebhook:', error.message);
         return { success: false, error: error.message };
+    }
+}
+
+// Envoyer template WhatsApp avec tableau de params
+async function sendWhatsAppTemplate(to, templateName, params = []) {
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+
+    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+        logger.warn('[WhatsApp] WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_NUMBER_ID non configuré');
+        return false;
+    }
+
+    // Formater le numéro en +242XXXXXXXXX
+    let formattedPhone = to;
+    if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+' + formattedPhone;
+    }
+    // S'assurer que le format est +242XXXXXXXXX (12 chiffres après le +)
+    formattedPhone = formattedPhone.replace('+2420', '+242');
+
+    if (isDevelopment) {
+        logger.info('[WhatsApp] Template simulé (développement)', { to: formattedPhone, templateName, params });
+        console.log(`[WhatsApp SIMULÉ] Vers: ${formattedPhone} | Template: ${templateName} | Params: ${JSON.stringify(params)}`);
+    sendWhatsAppTemplate,
+        return true;
+    }
+
+    try {
+        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+        
+        const body = {
+            messaging_product: 'whatsapp',
+            to: formattedPhone.replace('+', ''),
+            type: 'template',
+            template: {
+                name: templateName,
+                language: { code: 'fr' },
+                components: [
+                    {
+                        type: 'body',
+                        parameters: params.map(param => ({
+                            type: 'text',
+                            text: param
+                        }))
+                    }
+                ]
+            }
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            logger.error('[WhatsApp] Erreur envoi template:', data);
+            return false;
+        }
+
+        logger.info('[WhatsApp] Template envoyé avec succès', { to: formattedPhone, templateName });
+
+        // INSERT dans notifications avec canal='whatsapp'
+        await pool.query(`
+            INSERT INTO notifications (user_phone, type, titre, message, data, canal, is_read, sent_at, created_at)
+            VALUES ($1, 'whatsapp_template', $2, $3, $4, 'whatsapp', FALSE, NOW(), NOW())
+        `, [to, templateName, `WhatsApp Template: ${templateName}`, JSON.stringify(params)]);
+
+        return true;
+    } catch (error) {
+        logger.error('[WhatsApp] Erreur sendWhatsAppTemplate:', error.message);
+        return false;
     }
 }
 

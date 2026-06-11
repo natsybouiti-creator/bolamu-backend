@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const { sendBolamuSms } = require('../services/sms.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { buildWameLink } = require('../services/wame.service');
 
@@ -176,9 +177,11 @@ async function forgotPassword(req, res) {
             [passwordHash, normalizedPhone]
         );
         
-        await sendBolamuSms(normalizedPhone, `Bolamu - Votre nouveau mot de passe temporaire : ${newPassword}. Connectez-vous et changez-le dans votre profil.`);
+        await sendWhatsAppTemplate(normalizedPhone, 'bolamu_mdp_oublie', [newPassword]);
+        // TODO: supprimer sendBolamuSms après validation WhatsApp
+        // await sendBolamuSms(normalizedPhone, `Bolamu - Votre nouveau mot de passe temporaire : ${newPassword}. Connectez-vous et changez-le dans votre profil.`);
         
-        return res.status(200).json({ success: true, message: 'Nouveau mot de passe envoyé par SMS.' });
+        return res.status(200).json({ success: true, message: 'Nouveau mot de passe envoyé par WhatsApp.' });
     } catch (err) {
         console.error('[forgotPassword]', err.message);
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });
@@ -261,7 +264,9 @@ async function registerPatient(req, res) {
 
             await client.query('COMMIT');
 
-            await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_patient', [initialPassword]);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
 
             const wameLink = buildWameLink(normalizedPhone, 'inscription_mdp', {
               prenom: first_name,

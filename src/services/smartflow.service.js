@@ -7,6 +7,7 @@
 const pool = require('../config/db');
 const logger = require('../config/logger');
 const { sendBolamuSms } = require('./sms.service');
+const { sendWhatsAppTemplate } = require('./whatsapp.service');
 const { sendToUser } = require('./push.service');
 
 /**
@@ -96,7 +97,9 @@ async function enregistrerHorsCatalogue(data) {
     // Notification patient
     const patientMessage = `Bolamu : Acte hors catalogue : ${libelle} — ${prix_plein} FCFA à régler directement au prestataire`;
     try {
-      await sendBolamuSms(patient_phone, patientMessage);
+      await sendWhatsAppTemplate(patient_phone, 'bolamu_hors_catalogue_patient', [libelle, prix_plein.toString()]);
+      // TODO: supprimer sendBolamuSms après validation WhatsApp
+      // await sendBolamuSms(patient_phone, patientMessage);
       await sendToUser(patient_phone, {
         titre: 'Acte hors catalogue',
         message: patientMessage,
@@ -118,8 +121,10 @@ async function enregistrerHorsCatalogue(data) {
         
         if (rhCheck.rows.length > 0) {
           const rhPhone = rhCheck.rows[0].phone;
-          const rhMessage = `Bolamu : Hors catalogue ${libelle} — ${prix_plein} FCFA pour employé ${patient_phone}`;
-          await sendBolamuSms(rhPhone, rhMessage);
+          await sendWhatsAppTemplate(rhPhone, 'bolamu_hors_catalogue_rh', [libelle, prix_plein.toString(), patient_phone]);
+          // TODO: supprimer sendBolamuSms après validation WhatsApp
+          // const rhMessage = `Bolamu : Hors catalogue ${libelle} — ${prix_plein} FCFA pour employé ${patient_phone}`;
+          // await sendBolamuSms(rhPhone, rhMessage);
           await sendToUser(rhPhone, {
             titre: 'Hors catalogue employé',
             message: rhMessage,

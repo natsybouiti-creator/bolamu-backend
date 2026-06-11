@@ -6,6 +6,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../../middleware/auth.middleware');
 const { sendBolamuSms } = require('../services/sms.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { ok, err } = require('../utils/apiResponse');
 const { ROLES, PRO_ROLES } = require('../utils/constants');
 
@@ -212,8 +213,10 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            const msg = `Bolamu : Félicitations ${name} ! Votre dossier a été validé. Connectez-vous sur api.bolamu.co`;
-            await sendBolamuSms(phone, msg);
+            await sendWhatsAppTemplate(phone, 'bolamu_compte_valide', [name]);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // const msg = `Bolamu : Félicitations ${name} ! Votre dossier a été validé. Connectez-vous sur api.bolamu.co`;
+            // await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
@@ -250,8 +253,10 @@ router.post('/reject-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            const msg = `Bolamu : Votre dossier n'a pas été validé. Motif : ${reason || 'Dossier incomplet'}. Contactez le support.`;
-            await sendBolamuSms(phone, msg);
+            await sendWhatsAppTemplate(phone, 'bolamu_compte_rejete', [reason || 'Dossier incomplet']);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // const msg = `Bolamu : Votre dossier n'a pas été validé. Motif : ${reason || 'Dossier incomplet'}. Contactez le support.`;
+            // await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
@@ -288,8 +293,10 @@ router.post('/suspend-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            const msg = `Bolamu : Votre compte a été suspendu. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`;
-            await sendBolamuSms(phone, msg);
+            await sendWhatsAppTemplate(phone, 'bolamu_compte_suspendu', [reason || 'Décision administrative']);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // const msg = `Bolamu : Votre compte a été suspendu. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`;
+            // await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
@@ -326,8 +333,10 @@ router.post('/ban-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            const msg = `Bolamu : Votre compte a été banni définitivement. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`;
-            await sendBolamuSms(phone, msg);
+            await sendWhatsAppTemplate(phone, 'bolamu_compte_banni', [reason || 'Décision administrative']);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // const msg = `Bolamu : Votre compte a été banni définitivement. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`;
+            // await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
@@ -386,7 +395,11 @@ router.patch('/fraud/:id/suspend', authMiddleware, adminOnly, async (req, res) =
         await pool.query(`UPDATE doctors SET is_active = FALSE, status = 'suspended' WHERE phone = $1`, [phone]).catch(() => {});
         await pool.query(`UPDATE pharmacies SET is_active = FALSE, status = 'suspended' WHERE phone = $1`, [phone]).catch(() => {});
         await pool.query(`UPDATE laboratories SET is_active = FALSE, status = 'suspended' WHERE phone = $1`, [phone]).catch(() => {});
-        try { await sendBolamuSms(phone, `Bolamu : Votre compte a été suspendu suite à une activité suspecte détectée. Contactez le support.`); } catch(e) {}
+        try { 
+            await sendWhatsAppTemplate(phone, 'bolamu_compte_suspendu_fraude', []);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // await sendBolamuSms(phone, `Bolamu : Votre compte a été suspendu suite à une activité suspecte détectée. Contactez le support.`); 
+        } catch(e) {}
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.banned.fraud','admin','fraud_signals',$1,$2)`,
             [parseInt(id), JSON.stringify({ phone })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} suspendu pour fraude 🔒` });
@@ -486,7 +499,11 @@ router.patch('/users/:phone/ban', authMiddleware, adminOnly, async (req, res) =>
         await pool.query(`UPDATE doctors SET is_active=FALSE, status='suspended' WHERE phone=$1`, [phone]).catch(() => {});
         await pool.query(`UPDATE pharmacies SET is_active=FALSE, status='suspended' WHERE phone=$1`, [phone]).catch(() => {});
         await pool.query(`UPDATE laboratories SET is_active=FALSE, status='suspended' WHERE phone=$1`, [phone]).catch(() => {});
-        try { await sendBolamuSms(phone, `Bolamu : Votre compte a été suspendu. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`); } catch(e) {}
+        try { 
+            await sendWhatsAppTemplate(phone, 'bolamu_compte_banni_admin', [reason || 'Décision administrative']);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // await sendBolamuSms(phone, `Bolamu : Votre compte a été suspendu. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`); 
+        } catch(e) {}
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.banned','admin','users',$1,$2)`,
             [u.id, JSON.stringify({ reason, role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} banni 🔒`, data: u });
@@ -505,7 +522,11 @@ router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) 
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
         const u = result.rows[0];
-        try { await sendBolamuSms(phone, `Bolamu : Votre compte a été réactivé. Vous pouvez vous reconnecter sur api.bolamu.co`); } catch(e) {}
+        try { 
+            await sendWhatsAppTemplate(phone, 'bolamu_compte_reactive', []);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // await sendBolamuSms(phone, `Bolamu : Votre compte a été réactivé. Vous pouvez vous reconnecter sur api.bolamu.co`); 
+        } catch(e) {}
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.unbanned','admin','users',$1,$2)`,
             [u.id, JSON.stringify({ role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} réactivé ✅`, data: u });
@@ -804,7 +825,11 @@ router.post('/credits/grant', authMiddleware, adminOnly, async (req, res) => {
         await pool.query(`UPDATE credits SET balance=balance+$1, total_earned=total_earned+$1, updated_at=NOW() WHERE phone=$2`, [parseInt(amount), phone]);
         await pool.query(`UPDATE users SET credits_balance=credits_balance+$1 WHERE phone=$2`, [parseInt(amount), phone]);
         await pool.query(`INSERT INTO credit_transactions (phone, type, amount, reason, balance_after) SELECT $1,'earn',$2,$3,(SELECT balance FROM credits WHERE phone=$1)`, [phone, parseInt(amount), reason]);
-        try { await sendBolamuSms(phone, `Bolamu Credits : +${amount} crédits ajoutés ! Motif : ${reason}. Consultez votre dashboard.`); } catch(e) {}
+        try { 
+            await sendWhatsAppTemplate(phone, 'bolamu_credits_ajoutes', [amount.toString(), reason]);
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // await sendBolamuSms(phone, `Bolamu Credits : +${amount} crédits ajoutés ! Motif : ${reason}. Consultez votre dashboard.`); 
+        } catch(e) {}
         await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('credits.granted','admin','credits',NULL,$1)`,
             [JSON.stringify({ phone, amount, reason })]).catch(() => {});
         res.json({ success: true, message: `${amount} crédits ajoutés à ${phone}` });

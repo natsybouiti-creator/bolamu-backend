@@ -4,6 +4,7 @@
 
 const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { normalizePhoneNumber } = require('../utils/phoneHelper');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 
@@ -102,11 +103,17 @@ async function registerLaboratoire(req, res) {
         await client.query('COMMIT');
 
         try {
-            const msg = autoStatus === 'verified'
-                ? `Bolamu : Bienvenue ${name} ! Laboratoire validé. Code : ${memberCode}. Connectez-vous sur api.bolamu.co`
-                : `Bolamu : Inscription ${name} reçue (score: ${score}/100). Vérification sous 24h.`;
-            await sendBolamuSms(normalizedPhone, msg);
-        } catch (e) { console.log('⚠️ SMS non envoyé'); }
+            if (autoStatus === 'verified') {
+                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_labo', [name, memberCode]);
+            } else {
+                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_inscription_labo_pending', [name, score.toString()]);
+            }
+            // TODO: supprimer sendBolamuSms après validation WhatsApp
+            // const msg = autoStatus === 'verified'
+            //     ? `Bolamu : Bienvenue ${name} ! Laboratoire validé. Code : ${memberCode}. Connectez-vous sur api.bolamu.co`
+            //     : `Bolamu : Inscription ${name} reçue (score: ${score}/100). Vérification sous 24h.`;
+            // await sendBolamuSms(normalizedPhone, msg);
+        } catch (e) { console.log('⚠️ WhatsApp non envoyé'); }
 
         return res.status(201).json({
             success: true,
