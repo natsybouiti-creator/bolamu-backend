@@ -42,6 +42,66 @@ router.post('/register/laboratoire', registerLaboratoire);
 router.post('/refresh', refreshToken);
 router.post('/logout', logout);
 
+// ─── MAGIC LINK ONBOARDING (première connexion automatique) ──────────────────
+router.get('/onboarding/:token', async (req, res) => {
+    const { token } = req.params;
+
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Lien invalide ou déjà utilisé' });
+    }
+
+    try {
+        const result = await pool.query(
+            `SELECT id, phone, role, full_name, first_login_done, onboarding_token_expires_at
+             FROM users
+             WHERE onboarding_token = $1`,
+            [token]
+        );
+
+        if (!result.rows.length) {
+            return res.status(401).json({ success: false, message: 'Lien invalide ou déjà utilisé' });
+        }
+
+        const user = result.rows[0];
+
+        if (new Date(user.onboarding_token_expires_at) < new Date()) {
+            return res.status(401).json({ success: false, message: 'Lien expiré. Contactez votre agent Bolamu.' });
+        }
+
+        // Génère un JWT normal (même logique que le login classique)
+        const jwtToken = jwt.sign(
+            { id: user.id, phone: user.phone, role: user.role },
+            JWT_SECRET,
+            { expiresIn: ACCESS_TOKEN_EXPIRES }
+        );
+
+        // Invalide le token onboarding (usage unique)
+        await pool.query(
+            `UPDATE users SET onboarding_token = NULL,
+                onboarding_token_expires_at = NULL,
+                first_login_done = TRUE
+             WHERE phone = $1`,
+            [user.phone]
+        );
+
+        // Audit log
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('auth.onboarding_login', $1, 'users', $2, $3::jsonb)`,
+            [user.phone, user.id, JSON.stringify({ role: user.role })]
+        ).catch(() => {});
+
+        return res.json({
+            success: true,
+            token: jwtToken,
+            user: { phone: user.phone, role: user.role, full_name: user.full_name }
+        });
+    } catch (err) {
+        console.error('[onboarding]', err.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+});
+
 // ─── LOGIN ADMIN SÉCURISÉ ─────────────────────────────────────────────────────
 router.post('/admin-login', async (req, res) => {
     const { phone, password } = req.body;

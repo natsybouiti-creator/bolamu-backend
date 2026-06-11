@@ -307,6 +307,11 @@ app.get('/urgence', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'public', 'urgence.html'));
 });
 
+// Servir login.html pour la route /login (magic link onboarding)
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'public', 'login.html'));
+});
+
 // ============================================================
 // 6. ROUTE 404
 // ============================================================

@@ -5,6 +5,7 @@ const pool = require('../config/db');
 const { sendBolamuSms } = require('../services/sms.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
+const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
 const {
     createConvention,
     activateConvention,
@@ -103,8 +104,9 @@ router.post('/secretaires', authMiddleware, partnerOnly, async (req, res) => {
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu: Bienvenue! Mot de passe temp: ${tempPassword}. Changez-le dès connexion.`);
         } catch (whatsappError) {
-            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone || phone, error: whatsappError.message });
+            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone, error: whatsappError.message });
         }
+        await sendOnboardingLink(normalizePhone(phone), `${prenom} ${nom}`.trim(), 'secretaire');
 
         res.json({ success: true, message: 'Secrétaire créé avec succès' });
     } catch (error) {

@@ -25,6 +25,14 @@ const WHATSAPP_TEMPLATES = {
     abonnement_expire: {
         name: 'abonnement_expire',
         language: 'fr'
+    },
+    bolamu_magic_link: {
+        name: 'bolamu_magic_link',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Lien de première connexion automatique',
+        params: ['nom_patient', 'lien_connexion'],
+        text: 'Bonjour {{1}}, votre compte Bolamu est prêt. Cliquez ici pour vous connecter automatiquement : {{2}} (lien valable 72h)'
     }
 };
 

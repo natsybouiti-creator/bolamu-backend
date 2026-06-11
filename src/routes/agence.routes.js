@@ -10,6 +10,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 const crypto = require('crypto');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
 
@@ -397,7 +398,12 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
     await client.query('COMMIT');
 
     // Envoyer le mot de passe par WhatsApp
-    await sendWhatsAppTemplate(phone, 'bolamu_bienvenue_patient', [tempPassword]);
+    try {
+      await sendWhatsAppTemplate(phone, 'bolamu_bienvenue_patient', [tempPassword]);
+    } catch (whatsappError) {
+      console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone, error: whatsappError.message });
+    }
+    await sendOnboardingLink(phone, `${prenom} ${nom}`.trim(), 'patient');
     res.json({
       success: true,
       subscription_id: sub.rows[0].id,
@@ -623,6 +629,12 @@ router.post('/import-employes', requireAgent, async (req, res) => {
     }
 
     await client.query('COMMIT');
+
+    // Envoyer les magic links de première connexion (non bloquant)
+    for (const r of results) {
+      await sendOnboardingLink(r.phone, `${r.prenom} ${r.nom}`.trim(), 'patient');
+    }
+
     res.json({
       success: true,
       imported: results.length,

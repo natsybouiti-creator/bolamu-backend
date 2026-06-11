@@ -1,6 +1,7 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 31 mai 2026
+Mis à jour : 12 juin 2026
 Statut : EN PRODUCTION — https://api.bolamu.co
+www.bolamu.co — domaine custom actif avec SSL ✅
 Score Ayokai : 21/23 (91.3%)
 
 ## VISION PRODUIT
@@ -13,10 +14,10 @@ Plateforme de santé numérique au Congo-Brazzaville. Connecte patients, médeci
 - Rate limiting : express-rate-limit (strict 5/15min sur auth)
 - Sécurité : Helmet + CORS whitelist + HMAC webhooks
 - Stockage : Cloudinary (cloud_name: dpxefz80w)
-- SMS : Africa's Talking (sandbox — Live en attente crédit)
+- WhatsApp : Meta Business API (migration complète juin 2026)
 - Email : Resend
 - Push : Web Push VAPID (optionnel)
-- WhatsApp : Meta Business API (optionnel)
+- SMS : Africa's Talking (sandbox — Live en attente crédit, remplacé par WhatsApp)
 - IA : Anthropic Claude — agent Amina (optionnel)
 - Monitoring : Winston + BetterStack + Prometheus /metrics
 - CI/CD : GitHub Actions 6 jobs + Docker multi-stage
@@ -124,8 +125,8 @@ notifications
 
 ## AUTHENTIFICATION — SYSTÈME ACTUEL (depuis 25 avril 2026)
 - Connexion : téléphone + mot de passe permanent (bcrypt) — plus d'OTP à chaque connexion
-- Inscription : OTP envoyé pour vérification du numéro, puis mot de passe généré automatiquement et envoyé par SMS
-- Mot de passe oublié : nouveau mot de passe généré et envoyé par SMS via POST /api/v1/auth/forgot-password
+- Inscription : OTP envoyé pour vérification du numéro, puis mot de passe généré automatiquement et envoyé par WhatsApp Business API
+- Mot de passe oublié : nouveau mot de passe généré et envoyé par WhatsApp via template bolamu_mdp_oublie (POST /api/v1/auth/forgot-password)
 - Changement de mot de passe : disponible depuis le profil pour tous les rôles
   - Patient : POST /api/v1/patients/change-password
   - Médecin : POST /api/v1/doctors/change-password
@@ -160,10 +161,10 @@ notifications
 - bolamu_rh_token / bolamu_rh_phone
 
 ## FLUX VALIDÉS EN PRODUCTION
-- Inscription patient (OTP vérification → mot de passe généré → SMS → compte actif)
+- Inscription patient (OTP vérification → mot de passe généré → WhatsApp → compte actif)
 - Inscription partenaire (OTP → INSERT users + table spécifique → validation admin)
 - Connexion (téléphone + mot de passe → JWT)
-- Mot de passe oublié (SMS nouveau mot de passe)
+- Mot de passe oublié (WhatsApp nouveau mot de passe via template bolamu_mdp_oublie)
 - Changement mot de passe depuis profil (tous les rôles)
 - Validation admin (PATCH /api/v1/admin/validate → is_active=true + validated_at)
 - Dashboard admin : comptes en attente, modal profil avec documents + carte d'identité patient
@@ -189,6 +190,8 @@ notifications
 - BHP v1.2 : health_records + consentements + access_log + purge cron ✅
 - Redis/BullMQ rendu optionnel (ne crashe plus les routes critiques) ✅
 - Dashboards RH et Secrétaire créés ✅
+- ✅ Domaine custom www.bolamu.co + api.bolamu.co avec SSL
+- ✅ Migration DNS Namecheap → Render (A record + CNAME)
 
 ## FLUX IMPLÉMENTÉS — EN ATTENTE DE TEST
 - Virements bancaires individuels (patient → Bolamu) et B2B (entreprise → Bolamu)
@@ -217,7 +220,7 @@ notifications
 13. Taux répartition partenaires : TOUJOURS depuis platform_config (partner_rate_*) — jamais hardcodés
 14. Prix abonnements : TOUJOURS depuis platform_config (price_*) — jamais hardcodés
 15. Calcul forfait partenaire : adherents × price_essentiel × partner_rate
-16. SMS : TOUJOURS via src/services/sms.service.js (sendBolamuSms) — jamais réinitialiser AfricasTalking directement
+16. Notifications : TOUJOURS via sendWhatsAppTemplate() dans src/services/whatsapp.service.js — sendBolamuSms() gardé en commentaire en attente suppression définitive après validation WhatsApp
 17. La table prescriptions labo s'appelle lab_prescriptions (pas lab_orders)
 18. refresh_tokens table existe pour JWT refresh tokens 7 jours
 19. Middleware : rateLimiter (strict 5/15min, standard 30/min, webhook 100/min)
@@ -259,6 +262,10 @@ notifications
 - Enum canal_paiement_enum : 'admin' invalide — valeurs réelles : ovp_bancaire/momo_annuel/familial/sepa_diaspora
 - + dans numéro de téléphone en path param URL → Express 404 — corrigé : query param ?phone=encodeURIComponent(phone)
 - Fonction api() dans dashboard admin préfixe déjà /api/v1 — ne pas le répéter dans les URLs
+- Colonne password vs password_hash incohérente pour secrétaire et agent_bolamu — uniformisé : login accepte password_hash || password, INSERT utilise password_hash partout (juin 2026)
+- SyntaxError whatsapp.service.js ligne 161 (return orphelin) — corrigé (juin 2026)
+- Numéro téléphone secrétaire non normalisé avant envoi WhatsApp — corrigé (juin 2026)
+- Envoi WhatsApp bloquant à l'inscription (sans try/catch) — rendu non bloquant sur tous les rôles (juin 2026)
 
 ## TRAVAUX EN COURS — SUITE IMMÉDIATE
 Mis à jour : 28 avril 2026
@@ -558,6 +565,17 @@ sms.service.js — Service SMS Africa's Talking
 triage.service.js — Service triage feu tricolore
 whatsapp.service.js — Service WhatsApp Business API
 
+## WHATSAPP BUSINESS API — ÉTAT (juin 2026)
+- Migration SMS → WhatsApp : ✅ complète (13 fichiers, 30+ templates)
+- Meta Business Suite : Bolamu Santé ✅ créé
+- App Meta Developers : ✅ créée (cas d'utilisation WhatsApp)
+- Vérification entreprise Meta : 🔄 en cours (~45h, soumise le 11 juin 2026)
+- Numéro dédié notifications : ✅ puce achetée (en attente enregistrement)
+- Numéro service client : 🔄 à acheter (prévu 12 juin 2026)
+- Templates à créer dans Meta (30+) : en attente validation entreprise
+- Variables Render à configurer : WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_VERIFY_TOKEN
+- Magic link onboarding : ✅ planifié (à implémenter prochaine session)
+
 ## MIDDLEWARE DISPONIBLES (src/middleware/)
 auth.middleware.js — Middleware authentification JWT (requireAdmin, requireSecretary, requireRH, requireOpsAdmin)
 errorHandler.js — Gestion erreurs globale
@@ -597,7 +615,7 @@ migration_026_smart_flow.sql
 migration_027_symptoms.sql
 
 ## ACTIONS HUMAINES RESTANTES
-- Domaine bolamu.co — achat + DNS Cloudflare → Render
+- ✅ Domaine bolamu.co — acheté, DNS configuré, SSL actif (Namecheap + Render)
 - VAPID keys — npx web-push generate-vapid-keys → Render
 - ANTHROPIC_API_KEY — console.anthropic.com → Render
 - Africa's Talking Live — activer avec crédit

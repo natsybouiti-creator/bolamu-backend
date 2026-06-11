@@ -247,12 +247,56 @@ async function doForgotPassword() {
   btn.disabled = false; btn.textContent = 'Recevoir mon mot de passe →';
 }
 
+async function checkMagicLink() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  if (!token) return;
+
+  // Nettoie l'URL immédiatement
+  history.replaceState({}, document.title, window.location.pathname);
+
+  showMsg('Connexion en cours...', 'success');
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`/api/v1/auth/onboarding/${token}`);
+    const data = await res.json();
+
+    if (data.success) {
+      const role = data.user.role;
+      localStorage.setItem(`bolamu_${role}_token`, data.token);
+      localStorage.setItem(`bolamu_${role}_phone`, data.user.phone);
+      localStorage.setItem('bolamu_role', role);
+
+      const dashboards = {
+        patient: '/patient/dashboard.html',
+        doctor: '/medecin/dashboard.html',
+        pharmacie: '/pharmacie/dashboard.html',
+        laboratoire: '/laboratoire/dashboard.html',
+        secretaire: '/secretaire/dashboard.html',
+        company_rh: '/rh/dashboard.html'
+      };
+      showMsg('Connexion réussie ! Redirection…', 'success');
+      setTimeout(() => { window.location.href = dashboards[role] || '/'; }, 1000);
+    } else {
+      btn.disabled = false;
+      showMsg(data.message || 'Lien invalide. Veuillez vous connecter normalement.', 'error');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    showMsg('Erreur de connexion. Veuillez réessayer.', 'error');
+    console.error('[MagicLink]', err);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('eye-icon').addEventListener('click', togglePassword);
   document.getElementById('btn-login').addEventListener('click', doLogin);
   document.getElementById('forgot-link').addEventListener('click', showForgot);
   document.getElementById('btn-forgot').addEventListener('click', doForgotPassword);
   document.getElementById('back-login-link').addEventListener('click', showLogin);
+  checkMagicLink();
 });
 </script>
 </body>
