@@ -16,6 +16,7 @@ try {
 // --- SERVICE DE NOTIFICATION UNIFIÉ ---
 const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 
 // --- ROUTES ---
 
@@ -164,6 +165,13 @@ router.post('/book', authMiddleware, async (req, res) => {
                 );
                 const patientFirstNameAppt = patientRowAppt.rows[0]?.first_name || patient_phone;
 
+                // Récupérer adresse établissement du médecin
+                const userResult = await pool.query(
+                    `SELECT etablissement_adresse FROM users WHERE phone = $1`,
+                    [doctorPhone]
+                );
+                const etablissementAdresse = userResult.rows[0]?.etablissement_adresse || 'Bolamu Hub';
+
                 buildWameLink(patient_phone, 'rdv_pris', {
                     prenom: patientFirstNameAppt,
                     medecin: doctorName,
@@ -190,6 +198,32 @@ router.post('/book', authMiddleware, async (req, res) => {
                     await notify(doctorPhone, 'message_recu', {
                         message: `Nouveau RDV — Patient : ${patient_phone} le ${date} à ${time}`
                     });
+                }
+
+                // Notifications WhatsApp templates (non bloquant)
+                try {
+                    // Patient
+                    sendWhatsAppTemplate(patient_phone, 'bolamu_rdv_confirme', [
+                        patientFirstNameAppt,
+                        date,
+                        time,
+                        doctorName,
+                        etablissementAdresse,
+                        session_code
+                    ]);
+                    // Médecin
+                    if (doctorPhone) {
+                        sendWhatsAppTemplate(doctorPhone, 'bolamu_rdv_confirme', [
+                            doctorName,
+                            date,
+                            time,
+                            patientFirstNameAppt,
+                            etablissementAdresse,
+                            session_code
+                        ]);
+                    }
+                } catch (whatsappErr) {
+                    console.error('[WHATSAPP RDV]', whatsappErr.message);
                 }
             } catch (e) { console.error('[NOTIFY RDV]', e.message); }
         });

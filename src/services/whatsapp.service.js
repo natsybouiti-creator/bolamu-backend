@@ -75,6 +75,13 @@ const WHATSAPP_TEMPLATES = {
         language: 'fr',
         description: 'Bienvenue secrétaire (sans credentials)',
         params: ['nom']
+    },
+    bolamu_rdv_confirme: {
+        name: 'bolamu_rdv_confirme',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Confirmation RDV patient/médecin',
+        params: ['nom_patient', 'date_rdv', 'heure_rdv', 'nom_medecin', 'adresse_etablissement', 'code_session']
     }
 };
 
