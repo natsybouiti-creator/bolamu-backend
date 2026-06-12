@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { requireAuth } = require('../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 
 // POST — Accorder un consentement
-router.post('/:type', requireAuth, async (req, res) => {
+router.post('/:type', authMiddleware, async (req, res) => {
   try {
     const validTypes = [
       'ordonnances', 'prescriptions_labo', 
@@ -32,7 +32,7 @@ router.post('/:type', requireAuth, async (req, res) => {
 });
 
 // DELETE — Révoquer un consentement (effet immédiat)
-router.delete('/:type', requireAuth, async (req, res) => {
+router.delete('/:type', authMiddleware, async (req, res) => {
   try {
     await db.query(
       `UPDATE patient_consents 
@@ -48,7 +48,7 @@ router.delete('/:type', requireAuth, async (req, res) => {
 });
 
 // GET — Lire ses consentements
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const result = await db.query(
       `SELECT * FROM patient_consents WHERE patient_id=$1`,
