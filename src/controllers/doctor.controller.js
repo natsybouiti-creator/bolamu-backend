@@ -169,8 +169,11 @@ async function getDoctors(req, res) {
         params.push(parseInt(limit));
         params.push(offset);
         const result = await pool.query(
-            `SELECT d.id, d.full_name, d.specialty, d.city, d.neighborhood, d.bio, d.availability_schedule, d.total_consultations, d.member_code
-             FROM doctors d WHERE ${whereClause} ORDER BY d.total_consultations DESC, d.created_at ASC
+            `SELECT d.id, d.full_name, d.specialty, d.city, d.neighborhood, d.bio, d.availability_schedule, d.total_consultations, d.member_code,
+                    u.etablissement_nom, u.etablissement_adresse, u.etablissement_ville
+             FROM doctors d
+             LEFT JOIN users u ON u.phone = d.phone
+             WHERE ${whereClause} ORDER BY d.total_consultations DESC, d.created_at ASC
              LIMIT $${params.length - 1} OFFSET $${params.length}`, params
         );
         const countResult = await pool.query(`SELECT COUNT(*) FROM doctors d WHERE ${whereClause}`, params.slice(0, params.length - 2));

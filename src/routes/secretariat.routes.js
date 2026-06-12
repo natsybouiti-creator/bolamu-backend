@@ -427,11 +427,13 @@ router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (
     
     const result = await pool.query(
       `SELECT d.id, d.phone, d.full_name, d.specialty, d.is_active,
+        u.etablissement_nom, u.etablissement_adresse, u.etablissement_ville,
         COUNT(a.id) FILTER (WHERE a.appointment_date = CURRENT_DATE AND a.status NOT IN ('annule','refuse')) as rdv_today
        FROM doctors d
+       LEFT JOIN users u ON u.phone = d.phone
        LEFT JOIN appointments a ON a.doctor_id = d.id
        WHERE d.clinic_id = $1
-       GROUP BY d.id ORDER BY d.full_name`,
+       GROUP BY d.id, u.etablissement_nom, u.etablissement_adresse, u.etablissement_ville ORDER BY d.full_name`,
       [clinicId]
     );
     
