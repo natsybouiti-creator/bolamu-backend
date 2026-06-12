@@ -179,7 +179,11 @@ async function forgotPassword(req, res) {
             [passwordHash, normalizedPhone]
         );
         
-        await sendWhatsAppTemplate(normalizedPhone, 'bolamu_mdp_oublie', [newPassword]);
+        try {
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_code_acces', [newPassword]);
+        } catch (whatsappError) {
+            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+        }
         // TODO: supprimer sendBolamuSms après validation WhatsApp
         // await sendBolamuSms(normalizedPhone, `Bolamu - Votre nouveau mot de passe temporaire : ${newPassword}. Connectez-vous et changez-le dans votre profil.`);
         
@@ -267,9 +271,10 @@ async function registerPatient(req, res) {
             await client.query('COMMIT');
 
             try {
-                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_patient', [initialPassword]);
+                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_patient_v4', [`${first_name} ${last_name}`.trim()]);
+                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_code_acces', [initialPassword]);
             } catch (whatsappError) {
-                console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+                console.warn('[WhatsApp] Envoi bienvenue/mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
             }
             await sendOnboardingLink(normalizedPhone, `${first_name} ${last_name}`.trim(), 'patient');
             // TODO: supprimer sendBolamuSms après validation WhatsApp
@@ -400,9 +405,10 @@ async function registerDoctor(req, res) {
         const user = newUser.rows[0];
         
         try {
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_medecin', [initialPassword]);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_medecin_v4', [user.full_name || '']);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_code_acces', [initialPassword]);
         } catch (whatsappError) {
-            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+            console.warn('[WhatsApp] Envoi bienvenue/mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
         }
         await sendOnboardingLink(normalizedPhone, user.full_name || '', 'doctor');
         // TODO: supprimer sendBolamuSms après validation WhatsApp
@@ -505,9 +511,10 @@ async function registerPharmacie(req, res) {
         const user = newUser.rows[0];
         
         try {
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_pharmacie', [initialPassword]);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_pharmacie_v3', [user.full_name || '']);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_code_acces', [initialPassword]);
         } catch (whatsappError) {
-            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+            console.warn('[WhatsApp] Envoi bienvenue/mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
         }
         await sendOnboardingLink(normalizedPhone, user.full_name || '', 'pharmacie');
         // TODO: supprimer sendBolamuSms après validation WhatsApp
@@ -610,9 +617,10 @@ async function registerLaboratoire(req, res) {
         const user = newUser.rows[0];
         
         try {
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_labo', [initialPassword]);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_labo_v4', [user.full_name || '']);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_code_acces', [initialPassword]);
         } catch (whatsappError) {
-            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
+            console.warn('[WhatsApp] Envoi bienvenue/mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
         }
         await sendOnboardingLink(normalizedPhone, user.full_name || '', 'laboratoire');
         // TODO: supprimer sendBolamuSms après validation WhatsApp

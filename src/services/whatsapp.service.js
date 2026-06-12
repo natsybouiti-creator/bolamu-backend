@@ -33,8 +33,53 @@ const WHATSAPP_TEMPLATES = {
         description: 'Lien de première connexion automatique',
         params: ['nom_patient', 'lien_connexion'],
         text: 'Bonjour {{1}}, votre compte Bolamu est prêt. Cliquez ici pour vous connecter automatiquement : {{2}} (lien valable 72h)'
+    },
+    bolamu_code_acces: {
+        name: 'bolamu_code_acces',
+        category: 'AUTHENTICATION',
+        language: 'fr',
+        description: 'Envoi mot de passe / code d\'accès (format Meta imposé + bouton copier)',
+        params: ['code']
+    },
+    bolamu_bienvenue_patient_v4: {
+        name: 'bolamu_bienvenue_patient_v4',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Bienvenue patient (sans credentials)',
+        params: ['nom']
+    },
+    bolamu_bienvenue_medecin_v4: {
+        name: 'bolamu_bienvenue_medecin_v4',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Bienvenue médecin (sans credentials)',
+        params: ['nom']
+    },
+    bolamu_bienvenue_pharmacie_v3: {
+        name: 'bolamu_bienvenue_pharmacie_v3',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Bienvenue pharmacie (sans credentials)',
+        params: ['nom']
+    },
+    bolamu_bienvenue_labo_v4: {
+        name: 'bolamu_bienvenue_labo_v4',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Bienvenue laboratoire (sans credentials)',
+        params: ['nom']
+    },
+    bolamu_secretaire_bienvenue_v4: {
+        name: 'bolamu_secretaire_bienvenue_v4',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Bienvenue secrétaire (sans credentials)',
+        params: ['nom']
     }
 };
+
+// Templates AUTHENTICATION : nécessitent un composant bouton copy_code à l'envoi
+const AUTH_TEMPLATES = ['bolamu_code_acces'];
 
 // Envoyer message WhatsApp
 async function sendMessage(phone, templateName, parameters = {}) {
@@ -171,6 +216,26 @@ async function sendWhatsAppTemplate(to, templateName, params = []) {
     try {
         const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
         
+        const components = [
+            {
+                type: 'body',
+                parameters: params.map(param => ({
+                    type: 'text',
+                    text: param
+                }))
+            }
+        ];
+
+        // Format AUTHENTICATION : le bouton copy_code doit recevoir le code en paramètre
+        if (AUTH_TEMPLATES.includes(templateName)) {
+            components.push({
+                type: 'button',
+                sub_type: 'url',
+                index: '0',
+                parameters: [{ type: 'text', text: params[0] }]
+            });
+        }
+
         const body = {
             messaging_product: 'whatsapp',
             to: formattedPhone.replace('+', ''),
@@ -178,15 +243,7 @@ async function sendWhatsAppTemplate(to, templateName, params = []) {
             template: {
                 name: templateName,
                 language: { code: 'fr' },
-                components: [
-                    {
-                        type: 'body',
-                        parameters: params.map(param => ({
-                            type: 'text',
-                            text: param
-                        }))
-                    }
-                ]
+                components
             }
         };
 

@@ -97,14 +97,15 @@ router.post('/secretaires', authMiddleware, partnerOnly, async (req, res) => {
 
         await client.query('COMMIT');
 
-        // SMS bienvenue au secrétaire
+        // WhatsApp bienvenue + mot de passe au secrétaire
         try {
             const normalizedPhone = normalizePhone(phone);
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_secretaire_bienvenue', [tempPassword]);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_secretaire_bienvenue_v4', [`${prenom} ${nom}`.trim()]);
+            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_code_acces', [tempPassword]);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu: Bienvenue! Mot de passe temp: ${tempPassword}. Changez-le dès connexion.`);
         } catch (whatsappError) {
-            console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone, error: whatsappError.message });
+            console.warn('[WhatsApp] Envoi bienvenue/mot de passe échoué (non bloquant)', { phone, error: whatsappError.message });
         }
         await sendOnboardingLink(normalizePhone(phone), `${prenom} ${nom}`.trim(), 'secretaire');
 
