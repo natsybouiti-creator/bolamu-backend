@@ -624,6 +624,8 @@ migration_024_secretariat.sql
 migration_025_pre_rdv.sql
 migration_026_smart_flow.sql
 migration_027_symptoms.sql
+migration_028_onboarding_token.sql
+migration_029_etablissement.sql
 
 ## ACTIONS HUMAINES RESTANTES
 - ✅ Domaine bolamu.co — acheté, DNS configuré, SSL actif (Namecheap + Render)
