@@ -629,15 +629,16 @@ migration_029_etablissement.sql
 
 ## ACTIONS HUMAINES RESTANTES
 - ✅ Domaine bolamu.co — acheté, DNS configuré, SSL actif (Namecheap + Render)
-- VAPID keys — npx web-push generate-vapid-keys → Render
-- ANTHROPIC_API_KEY — console.anthropic.com → Render
-- Africa's Talking Live — activer avec crédit
+- ✅ Render plan payant — activé
+- ✅ Africa's Talking Live — SUPPRIMÉ (remplacé définitivement par WhatsApp Business API)
+- ✅ VAPID keys — SUPPRIMÉ (redondant avec WhatsApp, non prioritaire)
+- ⏳ Clé API LLM moins cher (à identifier) → Render
 - Test MTN MoMo réel
 - Test SMS réel
-- ⏳ Vérification entreprise Meta : revenir dans ~2 jours (vers le 
+- ⏳ Vérification entreprise Meta : revenir dans ~2 jours (vers le
   14 juin), vérifier business.facebook.com/settings/security
 - ⏳ Une fois vérifié : créer bolamu_code_acces (AUTHENTICATION)
-- ⏳ Acheter numéro service client + installer WhatsApp Business app 
+- ⏳ Acheter numéro service client + installer WhatsApp Business app
   (stories, communication directe)
 
 ## MIGRATIONS AJOUTÉES — 28 MAI 2026
