@@ -687,6 +687,20 @@ async function finalRegister(){
     else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;payload.document_file_id=state.docs.rccm||null;}
     else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;payload.document_file_id=state.docs.agrement||null;}
 
+    // Champs établissement géolocalisé — partenaires professionnels uniquement
+    if(['doctor','pharmacie','laboratoire'].includes(state.role)){
+      const etabNom=document.getElementById('reg-etab-nom');
+      const etabAdresse=document.getElementById('reg-etab-adresse');
+      const etabVille=document.getElementById('reg-etab-ville');
+      const etabLat=document.getElementById('reg-etab-lat');
+      const etabLng=document.getElementById('reg-etab-lng');
+      payload.etablissement_nom=etabNom&&etabNom.value.trim()?etabNom.value.trim():null;
+      payload.etablissement_adresse=etabAdresse&&etabAdresse.value.trim()?etabAdresse.value.trim():null;
+      payload.etablissement_ville=etabVille&&etabVille.value?etabVille.value:null;
+      payload.etablissement_lat=etabLat&&etabLat.value?parseFloat(etabLat.value):null;
+      payload.etablissement_lng=etabLng&&etabLng.value?parseFloat(etabLng.value):null;
+    }
+
     const endpoint={patient:'/auth/register/patient',doctor:'/auth/register/doctor',pharmacie:'/auth/register/pharmacie',laboratoire:'/auth/register/laboratoire'}[state.role];
     const res=await fetch(`${API}${endpoint}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json();
