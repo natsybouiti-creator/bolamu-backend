@@ -121,7 +121,7 @@ appointment_symptoms, secretary_assignments, agenda_blocks, queue_entries
 - canal_paiement_enum : {ovp_bancaire, momo_annuel, familial, sepa_diaspora}
 
 ### Tables manquantes (roadmap)
-notifications
+(Aucune table manquante — toutes les tables requises sont créées)
 
 ## AUTHENTIFICATION — SYSTÈME ACTUEL (depuis 25 avril 2026)
 - Connexion : téléphone + mot de passe permanent (bcrypt) — plus d'OTP à chaque connexion
@@ -303,9 +303,9 @@ l'abonnement depuis le dashboard.
 Variables MTN_* et AIRTEL_* optionnelles dans .env.
 
 ## MODÈLE TARIFAIRE — DÉFINITIF
-- Bronze/MOTO : 1 personne — 2 000 FCFA/mois
-- Silver/NDEKO : 2 personnes — 5 000 FCFA/mois
-- Gold/LIBOTA : 5 personnes — 10 000 FCFA/mois
+- Essentiel : 1 personne — 2 000 FCFA/mois / 24 000 FCFA/an
+- Standard : 2 personnes — 4 000 FCFA/mois / 48 000 FCFA/an
+- Premium : 5 personnes — 10 000 FCFA/mois / 120 000 FCFA/an
 Toujours depuis platform_config — jamais hardcodé.
 
 ## RÉMUNÉRATION PARTENAIRES CDR
@@ -403,7 +403,7 @@ admin, content_admin, secretaire, company_rh
 - Airtel Money — en attente credentials API
 
 ## TABLES EXISTANTES — LISTE COMPLÈTE
-users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, doctor_payouts (obsolète — non utilisée), bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts, ovp_documents, beneficiaires_familiaux, cron_logs, conflicts, conflict_messages, conflict_actions, coupons, coupon_usages, idempotency_keys, push_subscriptions, notifications, secretaires, file_attente, agenda_blocs, pre_rdv_formulaires, ai_consult_sessions, renouvellement_demandes, hors_catalogue_transactions, medicaments_catalogue, export_paie_mensuel, appointment_symptoms, secretary_assignments, queue_entries, health_records, consentements, documents
+users, doctors, pharmacies, laboratories, appointments, prescriptions, payments, subscriptions, credits, credit_transactions, credit_partners, fraud_signals, audit_log, platform_config, articles, content_blocks, qr_tokens, lab_prescriptions, lab_results, consultation_reports, dossier_access_log, partner_conventions, transactions_tiers_payant, otp_codes, ratings, bolamu_accounts, bank_transfer_requests, company_contracts, company_employees, partner_zones, partner_payouts, ovp_documents, beneficiaires_familiaux, cron_logs, conflicts, conflict_messages, conflict_actions, coupons, coupon_usages, idempotency_keys, push_subscriptions, notifications, secretaires, file_attente, agenda_blocs, pre_rdv_formulaires, ai_consult_sessions, renouvellement_demandes, hors_catalogue_transactions, medicaments_catalogue, export_paie_mensuel, appointment_symptoms, secretary_assignments, queue_entries, health_records, consentements, documents
 
 ## COLONNES GPS AJOUTÉES — 25 AVRIL 2026
 Tables users, doctors, pharmacies, laboratories — latitude DECIMAL(10,7), longitude DECIMAL(10,7), address TEXT
