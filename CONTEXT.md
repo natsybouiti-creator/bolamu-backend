@@ -565,16 +565,27 @@ sms.service.js — Service SMS Africa's Talking
 triage.service.js — Service triage feu tricolore
 whatsapp.service.js — Service WhatsApp Business API
 
-## WHATSAPP BUSINESS API — ÉTAT (juin 2026)
-- Migration SMS → WhatsApp : ✅ complète (13 fichiers, 30+ templates)
-- Meta Business Suite : Bolamu Santé ✅ créé
-- App Meta Developers : ✅ créée (cas d'utilisation WhatsApp)
-- Vérification entreprise Meta : 🔄 en cours (~45h, soumise le 11 juin 2026)
-- Numéro dédié notifications : ✅ puce achetée (en attente enregistrement)
-- Numéro service client : 🔄 à acheter (prévu 12 juin 2026)
-- Templates à créer dans Meta (30+) : en attente validation entreprise
-- Variables Render à configurer : WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_VERIFY_TOKEN
-- Magic link onboarding : ✅ planifié (à implémenter prochaine session)
+## WHATSAPP BUSINESS API — ÉTAT (12 juin 2026)
+- Migration SMS → WhatsApp : ✅ complète
+- Numéro "Bolamu Notifications" (+242 06 520 7273) : ✅ connecté et actif sur API Cloud
+  → Ce numéro est "headless" : piloté uniquement par l'API, invisible 
+  dans l'app WhatsApp classique (incompatible avec usage app/stories)
+- WHATSAPP_ACCESS_TOKEN + WHATSAPP_PHONE_NUMBER_ID + 
+  WHATSAPP_BUSINESS_ACCOUNT_ID (1711743636911331) : ✅ configurés sur Render
+- Templates créés : 22 PENDING (validation Meta en cours), 
+  1 APPROVED (hello_world), ~10 REJECTED/obsolètes (v2/v3 à ignorer)
+- bolamu_code_acces (AUTHENTICATION, pour mot de passe/code) : 
+  ❌ BLOQUÉ — nécessite vérification entreprise Meta terminée
+- Vérification entreprise Meta (NBA Gestion SARLU, type "Entreprise 
+  privée") : 🔄 soumise le 12 juin 2026, ~2 jours ouvrés
+- Flux actuel d'inscription : double envoi WhatsApp 
+  (bolamu_bienvenue_xxx_v4 + bolamu_code_acces) — le 2e échoue 
+  silencieusement (non bloquant) jusqu'à validation entreprise
+- Magic link onboarding : ✅ opérationnel, reste le chemin principal 
+  de première connexion en attendant bolamu_code_acces
+- Numéro service client séparé : 🔄 à acheter, prévu pour usage 
+  WhatsApp Business app classique (stories, contact direct adhérents) 
+  — distinct du numéro API "Bolamu Notifications"
 
 ## MIDDLEWARE DISPONIBLES (src/middleware/)
 auth.middleware.js — Middleware authentification JWT (requireAdmin, requireSecretary, requireRH, requireOpsAdmin)
@@ -621,6 +632,11 @@ migration_027_symptoms.sql
 - Africa's Talking Live — activer avec crédit
 - Test MTN MoMo réel
 - Test SMS réel
+- ⏳ Vérification entreprise Meta : revenir dans ~2 jours (vers le 
+  14 juin), vérifier business.facebook.com/settings/security
+- ⏳ Une fois vérifié : créer bolamu_code_acces (AUTHENTICATION)
+- ⏳ Acheter numéro service client + installer WhatsApp Business app 
+  (stories, communication directe)
 
 ## MIGRATIONS AJOUTÉES — 28 MAI 2026
 - migration_026_smart_flow.sql : tables hors_catalogue_transactions, medicaments_catalogue, export_paie_mensuel
