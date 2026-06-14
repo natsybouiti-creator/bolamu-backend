@@ -29,47 +29,9 @@ app.set('trust proxy', 1);
 // Cookie parser pour lire les cookies
 app.use(cookieParser());
 
-// Route GET '/' avec injection footer pour liens secrétariat/RH/admin
+// Route GET '/' sert landing.html
 app.get('/', (req, res) => {
-  let html = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
-  const injection = `
-<style>
-  .bolamu-pro-links a {
-    color: rgba(255,255,255,0.28) !important;
-    text-decoration: none !important;
-    font-size: 11px !important;
-    font-family: sans-serif !important;
-    margin-left: 16px !important;
-  }
-  .bolamu-pro-links a:hover {
-    color: rgba(255,255,255,0.5) !important;
-  }
-</style>
-<script>
-  function injectProLinks() {
-    // Cherche avec un interval car Next.js rend le DOM après le chargement
-    const interval = setInterval(() => {
-      const all = document.querySelectorAll('*');
-      for (const el of all) {
-        if (el.children.length === 0 && el.textContent.trim().includes('2026 Bolamu')) {
-          if (document.querySelector('.bolamu-pro-links')) return clearInterval(interval);
-          const links = document.createElement('span');
-          links.className = 'bolamu-pro-links';
-          links.innerHTML = ' · <a href="/secretaire/login.html">Secrétariat</a> · <a href="/rh/login.html">Espace RH</a> · <a href="/agence/login.html">Espace Agent</a> · <a href="/admin/login.html">Admin</a>';
-          el.parentNode.insertBefore(links, el.nextSibling);
-          clearInterval(interval);
-          break;
-        }
-      }
-    }, 300);
-    // Stop après 10 secondes si rien trouvé
-    setTimeout(() => clearInterval(interval), 10000);
-  }
-  window.addEventListener('load', injectProLinks);
-</script>
-</body>`;
-  html = html.replace('</body>', injection);
-  res.send(html);
+  res.sendFile(path.join(__dirname, '../public/landing.html'));
 });
 
 // No-cache headers pour fichiers HTML — éviter cache navigateur
