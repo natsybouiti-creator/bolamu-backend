@@ -45,7 +45,10 @@ app.use(function(req, res, next) {
 });
 
 // Servir les fichiers statiques (images, css, js du dossier public) - APRÈS la route GET '/'
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public'), {
+  maxAge: '7d',
+  etag: true
+}));
 
 // ============================================================
 // 1. MIDDLEWARES & CORS CONFIGURATION
