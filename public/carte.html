@@ -210,8 +210,8 @@
       
       <!-- En-tête panneau -->
       <div style="padding:20px; border-bottom:1px solid #C3C5D7;
-                  background:#1B4FD8; position:sticky; top:0; z-index:10;">
-        <h1 style="color:#fff; font-size:1.125rem; font-weight:800; margin-bottom:12px;">
+                  background:#0A2463; position:sticky; top:0; z-index:10;">
+        <h1 style="color:#ffffff; font-size:1.125rem; font-weight:800; margin-bottom:12px;">
           Réseau Bolamu
         </h1>
         
@@ -219,13 +219,13 @@
         <div style="display:flex; background:rgba(255,255,255,0.1); 
                     border-radius:9999px; padding:3px; margin-bottom:12px;">
           <button id="btn-brazza" onclick="filterCity('brazza')"
-            style="flex:1; padding:6px 12px; border-radius:9999px; border:none;
-                   font-weight:700; font-size:0.75rem; cursor:pointer;
+            style="flex:1; padding:6px 16px; border-radius:9999px; border:none;
+                   font-weight:800; font-size:0.75rem; cursor:pointer;
                    background:#00C9A7; color:#0A2463; transition:all 0.2s;">
             Brazzaville
           </button>
           <button id="btn-pnr" onclick="filterCity('pnr')"
-            style="flex:1; padding:6px 12px; border-radius:9999px; border:none;
+            style="flex:1; padding:6px 16px; border-radius:9999px; border:none;
                    font-weight:700; font-size:0.75rem; cursor:pointer;
                    background:transparent; color:rgba(255,255,255,0.7); transition:all 0.2s;">
             Pointe-Noire
@@ -235,26 +235,26 @@
         <!-- Filtres type -->
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
           <button class="filter-btn active" data-type="all" onclick="filterType('all')"
-            style="padding:4px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,0.3);
+            style="padding:4px 12px; border-radius:9999px; border:none;
                    background:#00C9A7; color:#0A2463; font-size:0.625rem; font-weight:800;
                    text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;">
             Tous
           </button>
           <button class="filter-btn" data-type="clinique" onclick="filterType('clinique')"
-            style="padding:4px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,0.3);
-                   background:transparent; color:rgba(255,255,255,0.7); font-size:0.625rem; 
+            style="padding:4px 12px; border-radius:9999px; border:none;
+                   background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); font-size:0.625rem; 
                    font-weight:800; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;">
             Cliniques
           </button>
           <button class="filter-btn" data-type="pharmacie" onclick="filterType('pharmacie')"
-            style="padding:4px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,0.3);
-                   background:transparent; color:rgba(255,255,255,0.7); font-size:0.625rem; 
+            style="padding:4px 12px; border-radius:9999px; border:none;
+                   background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); font-size:0.625rem; 
                    font-weight:800; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;">
             Pharmacies
           </button>
           <button class="filter-btn" data-type="laboratoire" onclick="filterType('laboratoire')"
-            style="padding:4px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,0.3);
-                   background:transparent; color:rgba(255,255,255,0.7); font-size:0.625rem; 
+            style="padding:4px 12px; border-radius:9999px; border:none;
+                   background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); font-size:0.625rem; 
                    font-weight:800; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;">
             Labos
           </button>
@@ -262,8 +262,8 @@
       </div>
       
       <!-- Compteur résultats -->
-      <div style="padding:12px 20px; font-size:0.75rem; font-weight:700; 
-                  color:#434654; border-bottom:1px solid #C3C5D7;">
+      <div style="background:#FAF8FF; padding:10px 20px; font-size:0.75rem; font-weight:700; 
+                  color:#0A2463; border-bottom:1px solid #C3C5D7;">
         <span id="count">11</span> établissements
       </div>
       
@@ -485,7 +485,7 @@ function initMap() {
       <div style="font-weight:800;color:#0A2463;margin-bottom:8px;font-size:0.625rem;
                   text-transform:uppercase;letter-spacing:0.1em;">Légende</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <span style="background:#1B4FD8;color:#ffffff;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">Clinique</span>
+        <span style="background:#0A2463;color:#ffffff;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">Clinique</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
         <span style="background:#00C9A7;color:#0A2463;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">Pharmacie</span>
@@ -572,7 +572,7 @@ function renderAll() {
     card.innerHTML = `
       <div style="width:80px;min-width:80px;align-self:stretch;overflow:hidden;flex-shrink:0;">
         <img src="${e.photo}" alt="${e.nom}"
-             style="width:100%;height:100%;object-fit:cover;"
+             style="width:100%;height:100%;object-fit:cover;display:block;"
              onerror="this.style.background='#F3F3FE'">
       </div>
       <div style="padding:10px 12px;flex:1;min-width:0;">
@@ -581,7 +581,7 @@ function renderAll() {
             <span style="background:#FF6B35;color:#ffffff;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">
               Partenaire Bolamu
             </span>` : ''}
-          <span style="background:${e.type === 'clinique' ? '#1B4FD8' : e.type === 'pharmacie' ? '#00C9A7' : '#FF6B35'};color:${e.type === 'pharmacie' ? '#0A2463' : '#ffffff'};font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">
+          <span style="background:${e.type === 'clinique' ? '#0A2463' : e.type === 'pharmacie' ? '#00C9A7' : '#FF6B35'};color:${e.type === 'pharmacie' ? '#0A2463' : '#ffffff'};font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">
             ${e.type}
           </span>
         </div>
@@ -707,7 +707,7 @@ function filterType(type) {
   // Update boutons type
   document.querySelectorAll('.filter-btn').forEach(btn => {
     const isActive = btn.dataset.type === type;
-    btn.style.background = isActive ? '#00C9A7' : 'transparent';
+    btn.style.background = isActive ? '#00C9A7' : 'rgba(255,255,255,0.1)';
     btn.style.color = isActive ? '#0A2463' : 'rgba(255,255,255,0.7)';
   });
   
