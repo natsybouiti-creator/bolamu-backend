@@ -120,6 +120,21 @@
         ::-webkit-scrollbar-track { background: #faf8ff; }
         ::-webkit-scrollbar-thumb { background: #c3c5d7; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #737686; }
+        .zora-deco {
+          position: absolute;
+          pointer-events: none;
+          z-index: 0;
+          animation: zora-float 3s ease-in-out infinite;
+        }
+        .zora-deco:nth-child(2) { animation-delay: 0.5s; }
+        .zora-deco:nth-child(3) { animation-delay: 1s; }
+        .zora-deco:nth-child(4) { animation-delay: 1.5s; }
+        .zora-deco:nth-child(5) { animation-delay: 2s; }
+        .zora-deco:nth-child(6) { animation-delay: 2.5s; }
+        @keyframes zora-float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-8px) rotate(5deg); }
+        }
     </style>
 </head>
 <body class="overflow-x-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
@@ -419,8 +434,71 @@
 </div>
 </div>
 <!-- ZORA REWARDS BANNER -->
-<div class="bg-brand-orange/5 border border-brand-orange/20 rounded-[2.5rem] p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between gap-8">
-<div class="flex items-center gap-8 text-center lg:text-left flex-col lg:flex-row">
+<div class="bg-brand-orange/5 border border-brand-orange/20 rounded-[2.5rem] p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-visible">
+<!-- Éclair haut gauche -->
+<svg class="zora-deco" style="top:-20px;left:2%;width:32px;height:32px;" viewBox="0 0 32 32">
+  <defs>
+    <filter id="shadow-bolt1" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#FF6B35" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <polygon points="18,2 8,18 15,18 14,30 24,14 17,14" 
+           fill="#FF6B35" filter="url(#shadow-bolt1)"
+           style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.5))"/>
+</svg>
+<!-- Pièce or haut droit -->
+<svg class="zora-deco" style="top:-10px;right:3%;width:36px;height:36px;" viewBox="0 0 36 36">
+  <defs>
+    <radialGradient id="coin-grad" cx="35%" cy="35%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="60%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#C8780A"/>
+    </radialGradient>
+  </defs>
+  <circle cx="18" cy="18" r="16" fill="url(#coin-grad)"
+          style="filter:drop-shadow(0 6px 12px rgba(245,166,35,0.5))"/>
+  <circle cx="18" cy="18" r="11" fill="none" stroke="#FFD700" stroke-width="1.5" opacity="0.5"/>
+  <text x="18" y="23" text-anchor="middle" font-size="12" font-weight="800" 
+        fill="#8B5E00" font-family="sans-serif">Z</text>
+</svg>
+<!-- Étoile milieu gauche -->
+<svg class="zora-deco" style="top:40%;left:1%;width:28px;height:28px;" viewBox="0 0 28 28">
+  <polygon points="14,2 17,10 26,10 19,15 22,24 14,19 6,24 9,15 2,10 11,10"
+           fill="#F5A623"
+           style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
+</svg>
+<!-- Éclair bas droit -->
+<svg class="zora-deco" style="bottom:10%;right:2%;width:28px;height:28px;" viewBox="0 0 32 32">
+  <defs>
+    <filter id="shadow-bolt2">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#FF6B35" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <polygon points="18,2 8,18 15,18 14,30 24,14 17,14" 
+           fill="#FF6B35" filter="url(#shadow-bolt2)"
+           style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.5))"/>
+</svg>
+<!-- Pièce or bas gauche -->
+<svg class="zora-deco" style="bottom:15%;left:3%;width:30px;height:30px;" viewBox="0 0 36 36">
+  <defs>
+    <radialGradient id="coin-grad2" cx="35%" cy="35%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="60%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#C8780A"/>
+    </radialGradient>
+  </defs>
+  <circle cx="18" cy="18" r="16" fill="url(#coin-grad2)"
+          style="filter:drop-shadow(0 6px 12px rgba(245,166,35,0.5))"/>
+  <text x="18" y="23" text-anchor="middle" font-size="12" font-weight="800" 
+        fill="#8B5E00" font-family="sans-serif">Z</text>
+</svg>
+<!-- Étoile haut centre -->
+<svg class="zora-deco" style="top:-15px;left:48%;width:22px;height:22px;" viewBox="0 0 28 28">
+  <polygon points="14,2 17,10 26,10 19,15 22,24 14,19 6,24 9,15 2,10 11,10"
+           fill="#FF6B35" opacity="0.7"
+           style="filter:drop-shadow(0 3px 6px rgba(255,107,53,0.5))"/>
+</svg>
+<div class="flex items-center gap-8 text-center lg:text-left flex-col lg:flex-row relative z-10">
 <div class="w-20 h-20 bg-brand-orange/15 rounded-3xl flex items-center justify-center shrink-0">
 <span class="material-symbols-outlined text-brand-orange text-4xl" style="font-variation-settings: 'FILL' 1;">stars</span>
 </div>
@@ -429,7 +507,7 @@
 <p class="text-on-surface-variant font-medium leading-relaxed max-w-xl">Collectez des points Bolamu à chaque check-up, test de dépistage ou marche quotidienne et échangez-les chez nos partenaires lifestyle.</p>
 </div>
 </div>
-<a href="/zora/recompenses.html" class="bg-brand-orange text-white px-10 py-4 rounded-full font-black text-sm whitespace-nowrap hover:scale-105 transition-transform active:scale-95 shadow-xl shadow-brand-orange/20 inline-block text-center">Voir les récompenses</a>
+<a href="/zora/recompenses.html" class="bg-brand-orange text-white px-10 py-4 rounded-full font-black text-sm whitespace-nowrap hover:scale-105 transition-transform active:scale-95 shadow-xl shadow-brand-orange/20 inline-block text-center relative z-10">Voir les récompenses</a>
 </div>
 </div>
 </section>
@@ -465,13 +543,13 @@
 <span class="bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-3">Disponible avec Zora</span>
 <p class="text-[11px] text-on-surface-variant font-bold opacity-60">Nuitées et séjours spa bien-être</p>
 </a>
-<a href="/zora/partenaires/sport.html" class="soft-card p-6 rounded-[2rem] flex flex-col items-center text-center group hover:border-brand-orange transition-colors">
+<a href="/zora/partenaires/lifestyle.html" class="soft-card p-6 rounded-[2rem] flex flex-col items-center text-center group hover:border-brand-orange transition-colors">
 <div class="w-full h-44 rounded-2xl overflow-hidden mb-6 border border-outline-variant/10">
-<img alt="Équipements Sportifs" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="/images/landing/13-zora-sport.jpg">
+<img alt="Lifestyle & Bien-être" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="/images/landing/54-zora-beaute.jpg">
 </div>
-<h4 class="text-lg font-bold text-brand-navy mb-2">Équipements Sportifs</h4>
-<span class="bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-3">Disponible avec Zora</span>
-<p class="text-[11px] text-on-surface-variant font-bold opacity-60">Articles de sport haute performance</p>
+<h4 class="text-lg font-bold text-brand-navy mb-2">Lifestyle &amp; Bien-être</h4>
+<span class="bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-3">LIFESTYLE</span>
+<p class="text-[11px] text-on-surface-variant font-bold opacity-60">Massages, soins spa, kits beauté, parfumerie et réductions en boutique chez nos partenaires bien-être.</p>
 </a>
 </div>
 </div>
