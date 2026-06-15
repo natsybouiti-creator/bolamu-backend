@@ -113,18 +113,64 @@
         @media (max-width: 768px) {
           body > div:last-child {
             flex-direction: column !important;
+            height: auto !important;
+          }
+          #map {
+            height: 45vh !important;
+            order: 1;
+            width: 100% !important;
           }
           #sidebar {
             width: 100% !important;
             min-width: 100% !important;
-            max-height: 45vh;
+            max-height: none !important;
             border-right: none !important;
             border-top: 1px solid #C3C5D7;
             order: 2;
+            flex: 1;
           }
-          #map {
-            height: 55vh;
-            order: 1;
+          #sidebar > div:first-child {
+            position: sticky;
+            top: 0;
+            padding: 12px 16px !important;
+            z-index: 20;
+          }
+          #sidebar h1 {
+            font-size: 1rem !important;
+            margin-bottom: 8px !important;
+          }
+          #btn-brazza, #btn-pnr {
+            padding: 10px 12px !important;
+            font-size: 0.8125rem !important;
+            min-height: 40px;
+          }
+          .filter-btn {
+            padding: 8px 14px !important;
+            font-size: 0.6875rem !important;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+          }
+          #sidebar > div:first-child > div:last-child {
+            overflow-x: auto;
+            flex-wrap: nowrap !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 4px;
+          }
+          #sidebar > div:first-child > div:last-child::-webkit-scrollbar {
+            display: none;
+          }
+          #list-container { padding: 8px !important; }
+          #list-container > div { margin-bottom: 8px !important; }
+          #list-container > div > div:first-child {
+            width: 70px !important; min-width: 70px !important; height: 70px !important;
+          }
+          #list-container > div > div:last-child { padding: 8px 10px !important; }
+          .leaflet-bottom.leaflet-right .leaflet-control {
+            font-size: 0.625rem !important;
+            padding: 8px 10px !important;
+            min-width: auto !important;
           }
         }
     </style>
@@ -236,122 +282,94 @@ const etablissements = [
   // ===== BRAZZAVILLE — CLINIQUES =====
   {
     id: 1,
-    nom: "Clinique Securex (SAMU)",
+    nom: "Clinique Médicale Securex (SAMU)",
     type: "clinique",
     ville: "brazza",
-    adresse: "33 rue Amilcar Cabral, Centre-ville, Brazzaville",
-    tel: "+242 06 664 00 00",
-    horaires: "24h/24 — 7j/7",
+    adresse: "33 Avenue Amilcar Cabral, Centre-ville (angle avenue Alphonse Fondère), Brazzaville",
+    tel: "+242 05 548 59 95",
+    horaires: "24h/24 — 7j/7 (SAMU)",
     partenaire: true,
-    lat: -4.2634,
-    lng: 15.2832,
-    photo: "/images/landing/16-reseau-cliniques.jpg",
-    description: "Clinique privée avec SAMU intégré. 20 lits. Urgences 24h/24."
+    lat: -4.2665,
+    lng: 15.2825,
+    photo: "/images/landing/68-securex.jpg",
+    description: "Clinique privée avec SAMU intégré, 20 lits, urgences 24h/24. Partenaire Bolamu."
   },
   {
     id: 2,
     nom: "Clinique Internationale de Brazzaville",
     type: "clinique",
     ville: "brazza",
-    adresse: "Boulevard du Maréchal Lyautey, en face du CHU-B, Brazzaville",
-    tel: "+242 06 679 59 11",
+    adresse: "Boulevard du Maréchal Lyautey, en face du CHU-B (à côté Pâtisserie Parfaite), Brazzaville",
+    tel: "+242 05 699 44 44",
     horaires: "Lun–Sam 07h–19h",
     partenaire: false,
-    lat: -4.2580,
-    lng: 15.2750,
-    photo: "/images/landing/16-reseau-cliniques.jpg",
-    description: "Clinique privée pluridisciplinaire. Consultations spécialisées."
+    lat: -4.2735,
+    lng: 15.2685,
+    photo: "/images/landing/66-clinique-internationale.jpg",
+    description: "Clinique privée pluridisciplinaire : pédiatrie, dermatologie, dentisterie, kinésithérapie."
   },
   {
     id: 3,
-    nom: "Clinique Médicale COGEMO",
+    nom: "Clinique COGEMO",
     type: "clinique",
     ville: "brazza",
-    adresse: "8 rue Albert Bassandza, OCH, Brazzaville",
-    tel: "+242 05 599 20 17",
+    adresse: "8 rue Albert Bassandza, OCH, face CHU, Brazzaville",
+    tel: "+242 06 665 60 46",
     horaires: "Lun–Sam 07h30–19h",
     partenaire: false,
-    lat: -4.2700,
-    lng: 15.2900,
+    lat: -4.2728,
+    lng: 15.2698,
     photo: "/images/landing/16-reseau-cliniques.jpg",
-    description: "Clinique médicale générale avec plateau technique complet."
+    description: "Clinique médico-chirurgicale, IRM, scanner, radiographie. Face au CHU."
   },
   {
     id: 4,
     nom: "Clinique Les Rosiers",
     type: "clinique",
     ville: "brazza",
-    adresse: "3 case J 416 V, Moungali, Brazzaville",
-    tel: "+242 06 670 00 00",
+    adresse: "OCH, Moungali 3, Case J416V, non loin de l'hôtel du boulevard, Brazzaville",
+    tel: "+242 06 666 44 57",
     horaires: "Lun–Sam 07h–18h",
     partenaire: false,
-    lat: -4.2550,
-    lng: 15.2800,
-    photo: "/images/landing/16-reseau-cliniques.jpg",
-    description: "Soins généraux et maternité."
-  },
-  {
-    id: 5,
-    nom: "Clinique Pasteur",
-    type: "clinique",
-    ville: "brazza",
-    adresse: "88 rue de Djambala, Moungali, Brazzaville",
-    tel: "+242 06 662 00 00",
-    horaires: "Lun–Sam 07h–19h",
-    partenaire: false,
-    lat: -4.2520,
-    lng: 15.2770,
-    photo: "/images/landing/16-reseau-cliniques.jpg",
-    description: "Médecine générale et spécialisée."
+    lat: -4.2715,
+    lng: 15.2710,
+    photo: "/images/landing/65-rosiers.jpg",
+    description: "Clinique générale, soins et maternité, quartier OCH."
   },
 
   // ===== BRAZZAVILLE — PHARMACIES =====
   {
-    id: 6,
+    id: 5,
     nom: "Pharmacie Daffé",
     type: "pharmacie",
     ville: "brazza",
-    adresse: "Avenue de la Paix, Bacongo, Brazzaville",
-    tel: "+242 06 650 00 00",
+    adresse: "111 Avenue des Trois Martyrs, Moungali, Brazzaville",
+    tel: "+242 05 697 19 20",
     horaires: "Lun–Sam 07h30–20h | Dim 09h–13h",
     partenaire: true,
-    lat: -4.2900,
-    lng: 15.2650,
-    photo: "/images/landing/17-reseau-pharmacies.jpg",
-    description: "Pharmacie partenaire Bolamu. Large gamme médicaments essentiels OMS."
+    lat: -4.2615,
+    lng: 15.2735,
+    photo: "/images/landing/67-pharmacie-daffe.jpg",
+    description: "Pharmacie partenaire Bolamu, avenue des Trois Martyrs à Moungali. Médicaments essentiels OMS."
   },
   {
-    id: 7,
-    nom: "Pharmacie Mavre",
+    id: 6,
+    nom: "Pharmacie Mavré",
     type: "pharmacie",
     ville: "brazza",
-    adresse: "Avenue Félix Eboué, Centre-ville, Brazzaville",
-    tel: "+242 06 660 00 00",
-    horaires: "Lun–Sam 07h30–20h",
+    adresse: "Avenue Alphonse Fondère, Immeuble CNSS, Centre-ville (face siège ARC), Brazzaville",
+    tel: "+242 22 283 53 20",
+    horaires: "Lun–Ven 08h–18h30 | Sam 08h–12h",
     partenaire: false,
     lat: -4.2660,
-    lng: 15.2820,
-    photo: "/images/landing/17-reseau-pharmacies.jpg",
-    description: "Pharmacie centrale bien approvisionnée."
-  },
-  {
-    id: 8,
-    nom: "Pharmacie Poto-Poto",
-    type: "pharmacie",
-    ville: "brazza",
-    adresse: "80 Avenue Lénine, Poto-Poto, Brazzaville",
-    tel: "+242 82 60 41",
-    horaires: "Lun–Sam 07h30–20h",
-    partenaire: false,
-    lat: -4.2480,
-    lng: 15.2860,
-    photo: "/images/landing/17-reseau-pharmacies.jpg",
-    description: "Pharmacie de quartier, médicaments courants."
+    lng: 15.2818,
+    photo: "/images/landing/64-mavre-brazza.jpg",
+    description: "Pharmacie historique (1948), la plus ancienne de Brazzaville, large inventaire de médicaments."
   },
 
   // ===== BRAZZAVILLE — LABORATOIRES =====
   {
-    id: 9,
+    id: 7,
     nom: "Laboratoire 3A Brazzaville",
     type: "laboratoire",
     ville: "brazza",
@@ -362,31 +380,17 @@ const etablissements = [
     lat: -4.2640,
     lng: 15.2810,
     photo: "/images/landing/18-reseau-laboratoires.jpg",
-    description: "Analyses biologiques complètes. NFS, glycémie, bilan lipidique, PCR paludisme."
-  },
-  {
-    id: 10,
-    nom: "Centre de consultations et Labo d'analyses",
-    type: "laboratoire",
-    ville: "brazza",
-    adresse: "N1, Brazzaville",
-    tel: "+242 06 640 00 00",
-    horaires: "Lun–Sam 07h–17h",
-    partenaire: false,
-    lat: -4.2610,
-    lng: 15.2790,
-    photo: "/images/landing/18-reseau-laboratoires.jpg",
-    description: "Analyses médicales et consultations associées."
+    description: "Partenaire Bolamu. Analyses biologiques complètes : NFS, glycémie, bilan lipidique, PCR paludisme."
   },
 
   // ===== POINTE-NOIRE — CLINIQUES =====
   {
-    id: 11,
+    id: 8,
     nom: "Clinique Louise Michel",
     type: "clinique",
     ville: "pnr",
-    adresse: "Pointe-Noire, République du Congo",
-    tel: "+242 06 822 11 47",
+    adresse: "Avenue Maréchal Lyautey, Pointe-Noire",
+    tel: "+242 06 622 11 47",
     horaires: "Lun–Sam 07h–20h | Urgences 24h/24",
     partenaire: true,
     lat: -4.7761,
@@ -395,81 +399,53 @@ const etablissements = [
     description: "Clinique partenaire Bolamu. Médecine générale, maternité, chirurgie. Urgences 24h/24."
   },
   {
-    id: 12,
-    nom: "Clinique Netcare Pointe-Noire",
+    id: 9,
+    nom: "Clinique Netcare (CMC Médico)",
     type: "clinique",
     ville: "pnr",
-    adresse: "Avenue Marien Ngouabi, OCH, Pointe-Noire",
-    tel: "+242 06 674 16 94",
+    adresse: "Avenue du Dr Moé-Poaty, Centre-ville, Pointe-Noire",
+    tel: "+242 22 294 00 00",
     horaires: "Lun–Sam 07h–19h",
     partenaire: false,
-    lat: -4.7850,
-    lng: 11.8700,
-    photo: "/images/landing/16-reseau-cliniques.jpg",
-    description: "Clinique privée pluridisciplinaire."
-  },
-  {
-    id: 13,
-    nom: "Clinique La Colombe",
-    type: "clinique",
-    ville: "pnr",
-    adresse: "168 Avenue Félix Tchicaya, Lumumba, Pointe-Noire",
-    tel: "+242 04 438 10 93",
-    horaires: "Lun–Sam 07h–19h",
-    partenaire: false,
-    lat: -4.7700,
-    lng: 11.8580,
-    photo: "/images/landing/16-reseau-cliniques.jpg",
-    description: "Soins généraux et spécialisés."
+    lat: -4.7795,
+    lng: 11.8665,
+    photo: "/images/landing/63-netcare.jpg",
+    description: "Cabinets de consultations en médecine générale et spécialistes : dentiste, pédiatre."
   },
 
   // ===== POINTE-NOIRE — PHARMACIES =====
   {
-    id: 14,
+    id: 10,
     nom: "Pharmacie Maria",
     type: "pharmacie",
     ville: "pnr",
-    adresse: "Rond Point Ilama, Pointe-Noire",
+    adresse: "Pointe-Noire, République du Congo",
     tel: "+242 06 436 78 47",
     horaires: "Lun–Sam 07h30–20h | Dim 09h–13h",
     partenaire: true,
-    lat: -4.7720,
-    lng: 11.8620,
-    photo: "/images/landing/17-reseau-pharmacies.jpg",
+    lat: -4.7745,
+    lng: 11.8625,
+    photo: "/images/landing/62-mavre-pnr.jpg",
     description: "Pharmacie partenaire Bolamu. Médicaments essentiels OMS disponibles."
   },
   {
-    id: 15,
-    nom: "Pharmacie Mavré",
+    id: 11,
+    nom: "Pharmacie Croix du Sud",
     type: "pharmacie",
     ville: "pnr",
-    adresse: "Pointe-Noire",
-    tel: "+242 22 294 04 46",
+    adresse: "91 Avenue Charles-de-Gaulle, Pointe-Noire",
+    tel: "+242 05 541 74 29",
     horaires: "Lun–Sam 07h30–20h",
     partenaire: false,
-    lat: -4.7800,
-    lng: 11.8680,
-    photo: "/images/landing/17-reseau-pharmacies.jpg",
-    description: "Pharmacie bien approvisionnée."
-  },
-  {
-    id: 16,
-    nom: "Pharmacie La Croix du Sud",
-    type: "pharmacie",
-    ville: "pnr",
-    adresse: "Pointe-Noire",
-    tel: "+242 06 652 73 73",
-    horaires: "Lun–Sam 07h30–20h",
-    partenaire: false,
-    lat: -4.7850,
-    lng: 11.8550,
-    photo: "/images/landing/17-reseau-pharmacies.jpg",
-    description: "Pharmacie généraliste."
+    lat: -4.7820,
+    lng: 11.8560,
+    photo: "/images/landing/61-croix-du-sud.jpg",
+    description: "Pharmacie généraliste, avenue Charles de Gaulle, quartier Losange."
   },
 
   // ===== POINTE-NOIRE — LABORATOIRES =====
   {
-    id: 17,
+    id: 12,
     nom: "Laboratoire 3A Pointe-Noire",
     type: "laboratoire",
     ville: "pnr",
@@ -492,7 +468,7 @@ let map, markers = [], currentMarkers = [];
 const typeColors = {
   clinique: '#003FB1',
   pharmacie: '#00C9A7', 
-  laboratoire: '#FF6B35'
+  laboratoire: '#434654'
 };
 
 const typeIcons = {
@@ -519,7 +495,7 @@ function initMap() {
     div.style.cssText = `
       background:white;padding:12px 16px;border-radius:12px;
       font-family:'Plus Jakarta Sans',sans-serif;font-size:0.75rem;
-      box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:140px;
+      box-shadow:0 4px 16px rgba(0, 63, 177, 0.10);min-width:140px;
     `;
     div.innerHTML = `
       <div style="font-weight:800;color:#0A2463;margin-bottom:8px;font-size:0.625rem;
@@ -533,7 +509,7 @@ function initMap() {
         <span style="color:#434654;font-weight:600;">Pharmacie</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div style="width:12px;height:12px;border-radius:50%;background:#FF6B35;"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#434654;"></div>
         <span style="color:#434654;font-weight:600;">Laboratoire</span>
       </div>
       <div style="border-top:1px solid #C3C5D7;padding-top:8px;
@@ -600,10 +576,18 @@ function renderAll() {
     card.style.cssText = `
       background:#fff; border:1px solid #C3C5D7; border-radius:16px; 
       margin-bottom:10px; overflow:hidden; cursor:pointer;
-      transition:all 0.2s; display:flex;
+      transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display:flex;
     `;
-    card.onmouseenter = () => card.style.borderColor = typeColors[e.type];
-    card.onmouseleave = () => card.style.borderColor = e.partenaire ? '#FF6B35' : '#C3C5D7';
+    card.onmouseenter = () => {
+      card.style.borderColor = typeColors[e.type];
+      card.style.transform = 'translateY(-2px)';
+      card.style.boxShadow = '0 12px 40px rgba(0, 63, 177, 0.08)';
+    };
+    card.onmouseleave = () => {
+      card.style.borderColor = e.partenaire ? '#FF6B35' : '#C3C5D7';
+      card.style.transform = 'none';
+      card.style.boxShadow = 'none';
+    };
     if(e.partenaire) card.style.borderColor = '#FF6B35';
     
     card.innerHTML = `
@@ -615,14 +599,14 @@ function renderAll() {
       <div style="padding:10px 12px;flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
           ${e.partenaire ? `
-            <span style="background:rgba(255,107,53,0.1);color:#FF6B35;font-size:0.5rem;
+            <span style="background:rgba(255,107,53,0.10);color:#FF6B35;font-size:0.625rem;
                          font-weight:800;text-transform:uppercase;letter-spacing:0.1em;
-                         padding:2px 6px;border-radius:9999px;white-space:nowrap;">
+                         padding:4px 12px;border-radius:9999px;white-space:nowrap;">
               Partenaire Bolamu
             </span>` : ''}
-          <span style="background:${typeColors[e.type]}20;color:${typeColors[e.type]};
-                       font-size:0.5rem;font-weight:800;text-transform:uppercase;
-                       letter-spacing:0.1em;padding:2px 6px;border-radius:9999px;white-space:nowrap;">
+          <span style="background:${typeColors[e.type]}1A;color:${typeColors[e.type]};
+                       font-size:0.625rem;font-weight:800;text-transform:uppercase;
+                       letter-spacing:0.1em;padding:4px 12px;border-radius:9999px;white-space:nowrap;">
             ${e.type}
           </span>
         </div>
@@ -647,12 +631,13 @@ function renderAll() {
     const marker = L.marker([e.lat, e.lng], { icon: createIcon(e.type, e.partenaire) });
     
     // Popup
+    const popupMaxWidth = window.innerWidth < 400 ? Math.min(240, window.innerWidth - 40) : 260;
     const popupContent = `
-      <div style="font-family:'Plus Jakarta Sans',sans-serif;min-width:220px;">
+      <div style="font-family:'Plus Jakarta Sans',sans-serif;min-width:min(220px, calc(100vw - 60px));">
         ${e.partenaire ? `
-          <div style="background:#FF6B35;color:#fff;font-size:0.625rem;font-weight:800;
-                      text-transform:uppercase;letter-spacing:0.1em;padding:4px 8px;
-                      border-radius:4px;margin-bottom:8px;display:inline-block;">
+          <div style="background:rgba(255,107,53,0.10);color:#FF6B35;font-size:0.625rem;font-weight:800;
+                      text-transform:uppercase;letter-spacing:0.1em;padding:4px 12px;
+                      border-radius:9999px;margin-bottom:8px;display:inline-block;">
             Partenaire Bolamu
           </div>` : ''}
         <img src="${e.photo}" alt="${e.nom}" 
@@ -671,14 +656,14 @@ function renderAll() {
         </div>
         <a href="tel:${e.tel}" 
            style="display:block;background:#003FB1;color:#fff;text-align:center;
-                  padding:8px;border-radius:8px;font-size:0.75rem;font-weight:700;
+                  padding:8px;border-radius:9999px;font-size:0.75rem;font-weight:700;
                   text-decoration:none;">
           Appeler ${e.tel}
         </a>
       </div>
     `;
     
-    marker.bindPopup(popupContent, { maxWidth: 260 });
+    marker.bindPopup(popupContent, { maxWidth: popupMaxWidth, autoPan: true });
     marker.addTo(map);
     
     marker.on('click', () => {
@@ -696,6 +681,9 @@ function renderAll() {
 }
 
 function focusEtablissement(e) {
+  if (window.innerWidth <= 768) {
+    document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
   map.setView([e.lat, e.lng], 16);
   const marker = currentMarkers.find((m,i) => {
     const filtered = etablissements.filter(et => 
@@ -716,7 +704,7 @@ function highlightCard(id) {
   const card = document.getElementById('card-' + id);
   if(card) {
     card.style.transform = 'translateX(4px)';
-    card.style.boxShadow = '0 4px 16px rgba(0,63,177,0.15)';
+    card.style.boxShadow = '0 4px 16px rgba(0, 63, 177, 0.10)';
     card.scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
 }
