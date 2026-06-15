@@ -124,16 +124,29 @@
           position: absolute;
           pointer-events: none;
           z-index: 0;
-          animation: zora-float 3s ease-in-out infinite;
         }
+        .zora-deco:nth-child(odd) { animation: zora-float-1 5s ease-in-out infinite; }
+        .zora-deco:nth-child(even) { animation: zora-float-2 6s ease-in-out infinite; }
+        .zora-deco:nth-child(3n) { animation: zora-float-3 7s ease-in-out infinite; }
         .zora-deco:nth-child(2) { animation-delay: 0.5s; }
         .zora-deco:nth-child(3) { animation-delay: 1s; }
         .zora-deco:nth-child(4) { animation-delay: 1.5s; }
         .zora-deco:nth-child(5) { animation-delay: 2s; }
         .zora-deco:nth-child(6) { animation-delay: 2.5s; }
-        @keyframes zora-float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(5deg); }
+        @keyframes zora-float-1 {
+          0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+          33% { transform: translate(6px, -10px) rotate(8deg); }
+          66% { transform: translate(-5px, -4px) rotate(-6deg); }
+        }
+        @keyframes zora-float-2 {
+          0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+          33% { transform: translate(-7px, -8px) rotate(-10deg); }
+          66% { transform: translate(5px, 6px) rotate(7deg); }
+        }
+        @keyframes zora-float-3 {
+          0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+          33% { transform: translate(8px, 6px) rotate(6deg); }
+          66% { transform: translate(-6px, -9px) rotate(-9deg); }
         }
     </style>
 </head>
@@ -436,67 +449,108 @@
 <!-- ZORA REWARDS BANNER -->
 <div class="bg-brand-orange/5 border border-brand-orange/20 rounded-[2.5rem] p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-visible">
 <!-- Éclair haut gauche -->
-<svg class="zora-deco" style="top:-20px;left:2%;width:32px;height:32px;" viewBox="0 0 32 32">
+<svg class="zora-deco" style="top:-20px;left:2%;width:40px;height:40px;" viewBox="0 0 40 40">
   <defs>
-    <filter id="shadow-bolt1" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#FF6B35" flood-opacity="0.4"/>
-    </filter>
+    <linearGradient id="boltGrad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFB199"/>
+      <stop offset="50%" stop-color="#FF6B35"/>
+      <stop offset="100%" stop-color="#D6481A"/>
+    </linearGradient>
   </defs>
-  <polygon points="18,2 8,18 15,18 14,30 24,14 17,14" 
-           fill="#FF6B35" filter="url(#shadow-bolt1)"
-           style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.5))"/>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" 
+        fill="url(#boltGrad-1)"
+        style="filter:drop-shadow(0 8px 14px rgba(255,107,53,0.55))"/>
+  <path d="M22 2 L16 14 L21 14 Z" fill="#FFD9CC" opacity="0.7"/>
 </svg>
 <!-- Pièce or haut droit -->
-<svg class="zora-deco" style="top:-10px;right:3%;width:36px;height:36px;" viewBox="0 0 36 36">
+<svg class="zora-deco" style="top:-10px;right:3%;width:44px;height:44px;" viewBox="0 0 44 44">
   <defs>
-    <radialGradient id="coin-grad" cx="35%" cy="35%">
-      <stop offset="0%" stop-color="#FFD700"/>
-      <stop offset="60%" stop-color="#F5A623"/>
-      <stop offset="100%" stop-color="#C8780A"/>
+    <radialGradient id="coinFace-1" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#FFE9A8"/>
+      <stop offset="45%" stop-color="#F5C84A"/>
+      <stop offset="100%" stop-color="#D89A1E"/>
+    </radialGradient>
+    <radialGradient id="coinShine-1" cx="32%" cy="25%" r="35%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <circle cx="18" cy="18" r="16" fill="url(#coin-grad)"
-          style="filter:drop-shadow(0 6px 12px rgba(245,166,35,0.5))"/>
-  <circle cx="18" cy="18" r="11" fill="none" stroke="#FFD700" stroke-width="1.5" opacity="0.5"/>
-  <text x="18" y="23" text-anchor="middle" font-size="12" font-weight="800" 
-        fill="#8B5E00" font-family="sans-serif">Z</text>
+  <ellipse cx="22" cy="22" rx="20" ry="20" fill="url(#coinFace-1)"
+           style="filter:drop-shadow(0 8px 14px rgba(216,154,30,0.55))"/>
+  <ellipse cx="22" cy="22" rx="20" ry="20" fill="none" 
+           stroke="#B97D0F" stroke-width="1" opacity="0.4"/>
+  <path d="M22 10 L19 18 L22 18 L25 18 Z" fill="#B97D0F" opacity="0.55"/>
+  <circle cx="16" cy="22" r="3.5" fill="none" stroke="#B97D0F" stroke-width="1.4" opacity="0.55"/>
+  <circle cx="28" cy="22" r="3.5" fill="none" stroke="#B97D0F" stroke-width="1.4" opacity="0.55"/>
+  <path d="M22 24 L19 30 L25 30 Z" fill="#B97D0F" opacity="0.45"/>
+  <ellipse cx="22" cy="34" rx="5" ry="2" fill="none" stroke="#B97D0F" stroke-width="1.4" opacity="0.5"/>
+  <ellipse cx="15" cy="12" rx="9" ry="6" fill="url(#coinShine-1)"/>
 </svg>
 <!-- Étoile milieu gauche -->
-<svg class="zora-deco" style="top:40%;left:1%;width:28px;height:28px;" viewBox="0 0 28 28">
-  <polygon points="14,2 17,10 26,10 19,15 22,24 14,19 6,24 9,15 2,10 11,10"
-           fill="#F5A623"
-           style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
-</svg>
-<!-- Éclair bas droit -->
-<svg class="zora-deco" style="bottom:10%;right:2%;width:28px;height:28px;" viewBox="0 0 32 32">
+<svg class="zora-deco" style="top:40%;left:1%;width:38px;height:38px;" viewBox="0 0 38 38">
   <defs>
-    <filter id="shadow-bolt2">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#FF6B35" flood-opacity="0.4"/>
-    </filter>
-  </defs>
-  <polygon points="18,2 8,18 15,18 14,30 24,14 17,14" 
-           fill="#FF6B35" filter="url(#shadow-bolt2)"
-           style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.5))"/>
-</svg>
-<!-- Pièce or bas gauche -->
-<svg class="zora-deco" style="bottom:15%;left:3%;width:30px;height:30px;" viewBox="0 0 36 36">
-  <defs>
-    <radialGradient id="coin-grad2" cx="35%" cy="35%">
-      <stop offset="0%" stop-color="#FFD700"/>
-      <stop offset="60%" stop-color="#F5A623"/>
-      <stop offset="100%" stop-color="#C8780A"/>
+    <radialGradient id="starGrad-1" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#FFE9A8"/>
+      <stop offset="50%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#C97D0F"/>
     </radialGradient>
   </defs>
-  <circle cx="18" cy="18" r="16" fill="url(#coin-grad2)"
-          style="filter:drop-shadow(0 6px 12px rgba(245,166,35,0.5))"/>
-  <text x="18" y="23" text-anchor="middle" font-size="12" font-weight="800" 
-        fill="#8B5E00" font-family="sans-serif">Z</text>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13"
+           fill="url(#starGrad-1)"
+           style="filter:drop-shadow(0 6px 12px rgba(245,166,35,0.55))"/>
+  <ellipse cx="14" cy="9" rx="5" ry="3" fill="#FFFFFF" opacity="0.5"/>
+</svg>
+<!-- Éclair bas droit -->
+<svg class="zora-deco" style="bottom:10%;right:2%;width:40px;height:40px;" viewBox="0 0 40 40">
+  <defs>
+    <linearGradient id="boltGrad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFB199"/>
+      <stop offset="50%" stop-color="#FF6B35"/>
+      <stop offset="100%" stop-color="#D6481A"/>
+    </linearGradient>
+  </defs>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" 
+        fill="url(#boltGrad-2)"
+        style="filter:drop-shadow(0 8px 14px rgba(255,107,53,0.55))"/>
+  <path d="M22 2 L16 14 L21 14 Z" fill="#FFD9CC" opacity="0.7"/>
+</svg>
+<!-- Pièce or bas gauche -->
+<svg class="zora-deco" style="bottom:15%;left:3%;width:44px;height:44px;" viewBox="0 0 44 44">
+  <defs>
+    <radialGradient id="coinFace-2" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#FFE9A8"/>
+      <stop offset="45%" stop-color="#F5C84A"/>
+      <stop offset="100%" stop-color="#D89A1E"/>
+    </radialGradient>
+    <radialGradient id="coinShine-2" cx="32%" cy="25%" r="35%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="22" cy="22" rx="20" ry="20" fill="url(#coinFace-2)"
+           style="filter:drop-shadow(0 8px 14px rgba(216,154,30,0.55))"/>
+  <ellipse cx="22" cy="22" rx="20" ry="20" fill="none" 
+           stroke="#B97D0F" stroke-width="1" opacity="0.4"/>
+  <path d="M22 10 L19 18 L22 18 L25 18 Z" fill="#B97D0F" opacity="0.55"/>
+  <circle cx="16" cy="22" r="3.5" fill="none" stroke="#B97D0F" stroke-width="1.4" opacity="0.55"/>
+  <circle cx="28" cy="22" r="3.5" fill="none" stroke="#B97D0F" stroke-width="1.4" opacity="0.55"/>
+  <path d="M22 24 L19 30 L25 30 Z" fill="#B97D0F" opacity="0.45"/>
+  <ellipse cx="22" cy="34" rx="5" ry="2" fill="none" stroke="#B97D0F" stroke-width="1.4" opacity="0.5"/>
+  <ellipse cx="15" cy="12" rx="9" ry="6" fill="url(#coinShine-2)"/>
 </svg>
 <!-- Étoile haut centre -->
-<svg class="zora-deco" style="top:-15px;left:48%;width:22px;height:22px;" viewBox="0 0 28 28">
-  <polygon points="14,2 17,10 26,10 19,15 22,24 14,19 6,24 9,15 2,10 11,10"
-           fill="#FF6B35" opacity="0.7"
-           style="filter:drop-shadow(0 3px 6px rgba(255,107,53,0.5))"/>
+<svg class="zora-deco" style="top:-15px;left:48%;width:38px;height:38px;" viewBox="0 0 38 38">
+  <defs>
+    <radialGradient id="starGrad-2" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#FFE9A8"/>
+      <stop offset="50%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#C97D0F"/>
+    </radialGradient>
+  </defs>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13"
+           fill="url(#starGrad-2)"
+           style="filter:drop-shadow(0 6px 12px rgba(245,166,35,0.55))"/>
+  <ellipse cx="14" cy="9" rx="5" ry="3" fill="#FFFFFF" opacity="0.5"/>
 </svg>
 <div class="flex items-center gap-8 text-center lg:text-left flex-col lg:flex-row relative z-10">
 <div class="w-20 h-20 bg-brand-orange/15 rounded-3xl flex items-center justify-center shrink-0">
