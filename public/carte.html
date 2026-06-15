@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Réseau Bolamu — Carte Interactive</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#00174d",
+                        "inverse-primary": "#b5c4ff",
+                        "surface-container-low": "#f3f3fe",
+                        "primary-container": "#1a56db",
+                        "on-secondary-fixed-variant": "#2e4382",
+                        "on-primary-container": "#d4dcff",
+                        "tertiary-container": "#006e5a",
+                        "secondary-container": "#a2b6fd",
+                        "on-tertiary-fixed-variant": "#005142",
+                        "on-tertiary-container": "#58f5d1",
+                        "surface-bright": "#faf8ff",
+                        "on-tertiary-fixed": "#002019",
+                        "surface-dim": "#d9d9e4",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#dce1ff",
+                        "inverse-on-surface": "#f0f0fb",
+                        "tertiary-fixed-dim": "#38debb",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#faf8ff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#00164d",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#314685",
+                        "surface-container-high": "#e7e7f3",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#191b23",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container": "#ededf8",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#003dab",
+                        "tertiary": "#005344",
+                        "outline": "#737686",
+                        "surface-variant": "#e2e1ed",
+                        "background": "#faf8ff",
+                        "on-background": "#191b23",
+                        "surface-tint": "#1353d8",
+                        "surface-container-highest": "#e2e1ed",
+                        "primary-fixed-dim": "#b5c4ff",
+                        "outline-variant": "#c3c5d7",
+                        "tertiary-fixed": "#5ffbd6",
+                        "on-surface-variant": "#434654",
+                        "primary": "#003fb1",
+                        "inverse-surface": "#2e3039",
+                        "secondary-fixed-dim": "#b5c4ff",
+                        "secondary": "#475b9c",
+                        "brand-navy": "#0A2463",
+                        "brand-turquoise": "#00C9A7",
+                        "brand-orange": "#FF6B35"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "container-margin": "20px",
+                        "md": "24px",
+                        "gutter": "16px",
+                        "base": "8px",
+                        "xl": "64px",
+                        "lg": "40px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "sans": ["Plus Jakarta Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+  <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #faf8ff;
+            color: #191b23;
+        }
+        .soft-card {
+            background: #ffffff;
+            border: 1px solid #c3c5d7;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .soft-card:hover {
+            border-color: #003fb1;
+            box-shadow: 0 12px 40px rgba(0, 63, 177, 0.08);
+            transform: translateY(-4px);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #faf8ff; }
+        ::-webkit-scrollbar-thumb { background: #c3c5d7; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #737686; }
+        
+        @media (max-width: 768px) {
+          body > div:last-child {
+            flex-direction: column !important;
+          }
+          #sidebar {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-height: 45vh;
+            border-right: none !important;
+            border-top: 1px solid #C3C5D7;
+            order: 2;
+          }
+          #map {
+            height: 55vh;
+            order: 1;
+          }
+        }
+    </style>
+</head>
+<body style="height:100vh; overflow:hidden;">
+
+<!-- NAVBAR -->
+<nav class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 py-4 px-container-margin">
+<div class="max-w-7xl mx-auto flex justify-between items-center">
+<a class="flex items-center gap-3 group" href="/landing.html">
+<img alt="Bolamu Logo" class="h-12 w-12 object-contain transition-transform group-hover:scale-110" src="/images/landing/01-logo-navbar.png">
+<div class="flex flex-col leading-none">
+<span class="text-xl font-extrabold text-brand-navy tracking-tight">Bolamu</span>
+<span class="text-[10px] font-bold text-on-surface-variant opacity-70 uppercase tracking-widest">la santé simple et accessible</span>
+</div>
+</a>
+<div class="hidden lg:flex items-center gap-x-8">
+<a class="text-sm font-bold text-primary relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-primary" href="/landing.html">Accueil</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#how">Comment ça marche</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#pricing">Formules</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#network">Réseau</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#blog">Blog</a>
+</div>
+<div class="flex items-center gap-x-4">
+<a class="text-sm font-bold text-brand-navy hover:text-primary transition-colors px-4 py-2" href="/login.html">Connexion</a>
+<button onclick="window.location.href='/register.html'" class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-primary/20 hover:bg-brand-navy transition-all active:scale-95">S'abonner</button>
+</div>
+</div>
+</nav>
+
+<div style="height: calc(100vh - 64px); display: flex;">
+    
+    <!-- PANNEAU GAUCHE — liste + filtres -->
+    <div id="sidebar" style="width:384px; min-width:384px; 
+         overflow-y:auto; background:#FAF8FF; 
+         border-right:1px solid #C3C5D7; display:flex; flex-direction:column;">
+      
+      <!-- En-tête panneau -->
+      <div style="padding:20px; border-bottom:1px solid #C3C5D7; 
+                  background:#0A2463; position:sticky; top:0; z-index:10;">
+        <h1 style="color:#fff; font-size:1.125rem; font-weight:800; margin-bottom:12px;">
+          Réseau Bolamu
+        </h1>
+        
+        <!-- Switch Brazzaville / Pointe-Noire -->
+        <div style="display:flex; background:rgba(255,255,255,0.1); 
+                    border-radius:9999px; padding:3px; margin-bottom:12px;">
+          <button id="btn-brazza" onclick="filterCity('brazza')"
+            style="flex:1; padding:6px 12px; border-radius:9999px; border:none;
+                   font-weight:700; font-size:0.75rem; cursor:pointer;
+                   background:#00C9A7; color:#0A2463; transition:all 0.2s;">
+            Brazzaville
+          </button>
+          <button id="btn-pnr" onclick="filterCity('pnr')"
+            style="flex:1; padding:6px 12px; border-radius:9999px; border:none;
+                   font-weight:700; font-size:0.75rem; cursor:pointer;
+                   background:transparent; color:rgba(255,255,255,0.7); transition:all 0.2s;">
+            Pointe-Noire
+          </button>
+        </div>
+        
+        <!-- Filtres type -->
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="filter-btn active" data-type="all" onclick="filterType('all')"
+            style="padding:4px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,0.3);
+                   background:#00C9A7; color:#0A2463; font-size:0.625rem; font-weight:800;
+                   text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;">
+            Tous
+          </button>
+          <button class="filter-btn" data-type="clinique" onclick="filterType('clinique')"
+            style="padding:4px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,0.3);
+                   background:transparent; color:rgba(255,255,255,0.7); font-size:0.625rem; 
+                   font-weight:800; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;">
+            Cliniques
+          </button>
+          <button class="filter-btn" data-type="pharmacie" onclick="filterType('pharmacie')"
+            style="padding:4px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,0.3);
+                   background:transparent; color:rgba(255,255,255,0.7); font-size:0.625rem; 
+                   font-weight:800; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;">
+            Pharmacies
+          </button>
+          <button class="filter-btn" data-type="laboratoire" onclick="filterType('laboratoire')"
+            style="padding:4px 10px; border-radius:9999px; border:1px solid rgba(255,255,255,0.3);
+                   background:transparent; color:rgba(255,255,255,0.7); font-size:0.625rem; 
+                   font-weight:800; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;">
+            Labos
+          </button>
+        </div>
+      </div>
+      
+      <!-- Compteur résultats -->
+      <div style="padding:12px 20px; font-size:0.75rem; font-weight:700; 
+                  color:#434654; border-bottom:1px solid #C3C5D7;">
+        <span id="count">14</span> établissements
+      </div>
+      
+      <!-- Liste établissements -->
+      <div id="list-container" style="padding:12px; flex:1;"></div>
+      
+    </div>
+    
+    <!-- CARTE LEAFLET -->
+    <div id="map" style="flex:1; z-index:1;"></div>
+    
+  </div>
+
+<script>
+const etablissements = [
+  // ===== BRAZZAVILLE — CLINIQUES =====
+  {
+    id: 1,
+    nom: "Clinique Securex (SAMU)",
+    type: "clinique",
+    ville: "brazza",
+    adresse: "33 rue Amilcar Cabral, Centre-ville, Brazzaville",
+    tel: "+242 06 664 00 00",
+    horaires: "24h/24 — 7j/7",
+    partenaire: true,
+    lat: -4.2634,
+    lng: 15.2832,
+    photo: "/images/landing/16-reseau-cliniques.jpg",
+    description: "Clinique privée avec SAMU intégré. 20 lits. Urgences 24h/24."
+  },
+  {
+    id: 2,
+    nom: "Clinique Internationale de Brazzaville",
+    type: "clinique",
+    ville: "brazza",
+    adresse: "Boulevard du Maréchal Lyautey, en face du CHU-B, Brazzaville",
+    tel: "+242 06 679 59 11",
+    horaires: "Lun–Sam 07h–19h",
+    partenaire: false,
+    lat: -4.2580,
+    lng: 15.2750,
+    photo: "/images/landing/16-reseau-cliniques.jpg",
+    description: "Clinique privée pluridisciplinaire. Consultations spécialisées."
+  },
+  {
+    id: 3,
+    nom: "Clinique Médicale COGEMO",
+    type: "clinique",
+    ville: "brazza",
+    adresse: "8 rue Albert Bassandza, OCH, Brazzaville",
+    tel: "+242 05 599 20 17",
+    horaires: "Lun–Sam 07h30–19h",
+    partenaire: false,
+    lat: -4.2700,
+    lng: 15.2900,
+    photo: "/images/landing/16-reseau-cliniques.jpg",
+    description: "Clinique médicale générale avec plateau technique complet."
+  },
+  {
+    id: 4,
+    nom: "Clinique Les Rosiers",
+    type: "clinique",
+    ville: "brazza",
+    adresse: "3 case J 416 V, Moungali, Brazzaville",
+    tel: "+242 06 670 00 00",
+    horaires: "Lun–Sam 07h–18h",
+    partenaire: false,
+    lat: -4.2550,
+    lng: 15.2800,
+    photo: "/images/landing/16-reseau-cliniques.jpg",
+    description: "Soins généraux et maternité."
+  },
+  {
+    id: 5,
+    nom: "Clinique Pasteur",
+    type: "clinique",
+    ville: "brazza",
+    adresse: "88 rue de Djambala, Moungali, Brazzaville",
+    tel: "+242 06 662 00 00",
+    horaires: "Lun–Sam 07h–19h",
+    partenaire: false,
+    lat: -4.2520,
+    lng: 15.2770,
+    photo: "/images/landing/16-reseau-cliniques.jpg",
+    description: "Médecine générale et spécialisée."
+  },
+
+  // ===== BRAZZAVILLE — PHARMACIES =====
+  {
+    id: 6,
+    nom: "Pharmacie Daffé",
+    type: "pharmacie",
+    ville: "brazza",
+    adresse: "Avenue de la Paix, Bacongo, Brazzaville",
+    tel: "+242 06 650 00 00",
+    horaires: "Lun–Sam 07h30–20h | Dim 09h–13h",
+    partenaire: true,
+    lat: -4.2900,
+    lng: 15.2650,
+    photo: "/images/landing/17-reseau-pharmacies.jpg",
+    description: "Pharmacie partenaire Bolamu. Large gamme médicaments essentiels OMS."
+  },
+  {
+    id: 7,
+    nom: "Pharmacie Mavre",
+    type: "pharmacie",
+    ville: "brazza",
+    adresse: "Avenue Félix Eboué, Centre-ville, Brazzaville",
+    tel: "+242 06 660 00 00",
+    horaires: "Lun–Sam 07h30–20h",
+    partenaire: false,
+    lat: -4.2660,
+    lng: 15.2820,
+    photo: "/images/landing/17-reseau-pharmacies.jpg",
+    description: "Pharmacie centrale bien approvisionnée."
+  },
+  {
+    id: 8,
+    nom: "Pharmacie Poto-Poto",
+    type: "pharmacie",
+    ville: "brazza",
+    adresse: "80 Avenue Lénine, Poto-Poto, Brazzaville",
+    tel: "+242 82 60 41",
+    horaires: "Lun–Sam 07h30–20h",
+    partenaire: false,
+    lat: -4.2480,
+    lng: 15.2860,
+    photo: "/images/landing/17-reseau-pharmacies.jpg",
+    description: "Pharmacie de quartier, médicaments courants."
+  },
+
+  // ===== BRAZZAVILLE — LABORATOIRES =====
+  {
+    id: 9,
+    nom: "Laboratoire 3A Brazzaville",
+    type: "laboratoire",
+    ville: "brazza",
+    adresse: "Centre-ville, Brazzaville",
+    tel: "+242 06 655 00 00",
+    horaires: "Lun–Sam 07h–17h",
+    partenaire: true,
+    lat: -4.2640,
+    lng: 15.2810,
+    photo: "/images/landing/18-reseau-laboratoires.jpg",
+    description: "Analyses biologiques complètes. NFS, glycémie, bilan lipidique, PCR paludisme."
+  },
+  {
+    id: 10,
+    nom: "Centre de consultations et Labo d'analyses",
+    type: "laboratoire",
+    ville: "brazza",
+    adresse: "N1, Brazzaville",
+    tel: "+242 06 640 00 00",
+    horaires: "Lun–Sam 07h–17h",
+    partenaire: false,
+    lat: -4.2610,
+    lng: 15.2790,
+    photo: "/images/landing/18-reseau-laboratoires.jpg",
+    description: "Analyses médicales et consultations associées."
+  },
+
+  // ===== POINTE-NOIRE — CLINIQUES =====
+  {
+    id: 11,
+    nom: "Clinique Louise Michel",
+    type: "clinique",
+    ville: "pnr",
+    adresse: "Pointe-Noire, République du Congo",
+    tel: "+242 06 822 11 47",
+    horaires: "Lun–Sam 07h–20h | Urgences 24h/24",
+    partenaire: true,
+    lat: -4.7761,
+    lng: 11.8635,
+    photo: "/images/landing/59-clinique-louise-michel.jpg",
+    description: "Clinique partenaire Bolamu. Médecine générale, maternité, chirurgie. Urgences 24h/24."
+  },
+  {
+    id: 12,
+    nom: "Clinique Netcare Pointe-Noire",
+    type: "clinique",
+    ville: "pnr",
+    adresse: "Avenue Marien Ngouabi, OCH, Pointe-Noire",
+    tel: "+242 06 674 16 94",
+    horaires: "Lun–Sam 07h–19h",
+    partenaire: false,
+    lat: -4.7850,
+    lng: 11.8700,
+    photo: "/images/landing/16-reseau-cliniques.jpg",
+    description: "Clinique privée pluridisciplinaire."
+  },
+  {
+    id: 13,
+    nom: "Clinique La Colombe",
+    type: "clinique",
+    ville: "pnr",
+    adresse: "168 Avenue Félix Tchicaya, Lumumba, Pointe-Noire",
+    tel: "+242 04 438 10 93",
+    horaires: "Lun–Sam 07h–19h",
+    partenaire: false,
+    lat: -4.7700,
+    lng: 11.8580,
+    photo: "/images/landing/16-reseau-cliniques.jpg",
+    description: "Soins généraux et spécialisés."
+  },
+
+  // ===== POINTE-NOIRE — PHARMACIES =====
+  {
+    id: 14,
+    nom: "Pharmacie Maria",
+    type: "pharmacie",
+    ville: "pnr",
+    adresse: "Rond Point Ilama, Pointe-Noire",
+    tel: "+242 06 436 78 47",
+    horaires: "Lun–Sam 07h30–20h | Dim 09h–13h",
+    partenaire: true,
+    lat: -4.7720,
+    lng: 11.8620,
+    photo: "/images/landing/17-reseau-pharmacies.jpg",
+    description: "Pharmacie partenaire Bolamu. Médicaments essentiels OMS disponibles."
+  },
+  {
+    id: 15,
+    nom: "Pharmacie Mavré",
+    type: "pharmacie",
+    ville: "pnr",
+    adresse: "Pointe-Noire",
+    tel: "+242 22 294 04 46",
+    horaires: "Lun–Sam 07h30–20h",
+    partenaire: false,
+    lat: -4.7800,
+    lng: 11.8680,
+    photo: "/images/landing/17-reseau-pharmacies.jpg",
+    description: "Pharmacie bien approvisionnée."
+  },
+  {
+    id: 16,
+    nom: "Pharmacie La Croix du Sud",
+    type: "pharmacie",
+    ville: "pnr",
+    adresse: "Pointe-Noire",
+    tel: "+242 06 652 73 73",
+    horaires: "Lun–Sam 07h30–20h",
+    partenaire: false,
+    lat: -4.7850,
+    lng: 11.8550,
+    photo: "/images/landing/17-reseau-pharmacies.jpg",
+    description: "Pharmacie généraliste."
+  },
+
+  // ===== POINTE-NOIRE — LABORATOIRES =====
+  {
+    id: 17,
+    nom: "Laboratoire 3A Pointe-Noire",
+    type: "laboratoire",
+    ville: "pnr",
+    adresse: "Avenue Marien Ngouabi, Pointe-Noire",
+    tel: "+242 06 673 47 86",
+    horaires: "Lun–Sam 07h–17h",
+    partenaire: true,
+    lat: -4.7760,
+    lng: 11.8660,
+    photo: "/images/landing/18-reseau-laboratoires.jpg",
+    description: "Partenaire Bolamu. Analyses biologiques complètes. Résultats en 24h."
+  }
+];
+
+let currentCity = 'brazza';
+let currentType = 'all';
+let map, markers = [], currentMarkers = [];
+
+// Couleurs par type
+const typeColors = {
+  clinique: '#003FB1',
+  pharmacie: '#00C9A7', 
+  laboratoire: '#FF6B35'
+};
+
+const typeIcons = {
+  clinique: 'local_hospital',
+  pharmacie: 'medication',
+  laboratoire: 'biotech'
+};
+
+// Init carte
+function initMap() {
+  map = L.map('map', { zoomControl: true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 18
+  }).addTo(map);
+  
+  // Centrer sur Brazzaville par défaut
+  map.setView([-4.2634, 15.2832], 13);
+  
+  // Légende
+  const legend = L.control({ position: 'bottomright' });
+  legend.onAdd = function() {
+    const div = L.DomUtil.create('div');
+    div.style.cssText = `
+      background:white;padding:12px 16px;border-radius:12px;
+      font-family:'Plus Jakarta Sans',sans-serif;font-size:0.75rem;
+      box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:140px;
+    `;
+    div.innerHTML = `
+      <div style="font-weight:800;color:#0A2463;margin-bottom:8px;font-size:0.625rem;
+                  text-transform:uppercase;letter-spacing:0.1em;">Légende</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:#003FB1;"></div>
+        <span style="color:#434654;font-weight:600;">Clinique</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:#00C9A7;"></div>
+        <span style="color:#434654;font-weight:600;">Pharmacie</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:#FF6B35;"></div>
+        <span style="color:#434654;font-weight:600;">Laboratoire</span>
+      </div>
+      <div style="border-top:1px solid #C3C5D7;padding-top:8px;
+                  display:flex;align-items:center;gap:8px;">
+        <div style="width:12px;height:12px;border-radius:50%;
+                    background:#FF6B35;border:2px solid #FF6B35;"></div>
+        <span style="color:#FF6B35;font-weight:700;font-size:0.625rem;">Partenaire Bolamu</span>
+      </div>
+      <div style="margin-top:8px;font-size:0.625rem;color:#434654;font-style:italic;">
+        Carte non exhaustive. D'autres établissements seront ajoutés.
+      </div>
+    `;
+    return div;
+  };
+  legend.addTo(map);
+  
+  renderAll();
+}
+
+// Créer icône marker custom
+function createIcon(type, isPartenaire) {
+  const color = typeColors[type];
+  const border = isPartenaire ? '#FF6B35' : color;
+  const svg = `
+    <svg width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 26 18 26S36 31.5 36 18C36 8.06 27.94 0 18 0z" 
+            fill="${color}" stroke="${border}" stroke-width="${isPartenaire ? 3 : 1}"/>
+      <circle cx="18" cy="18" r="10" fill="white" opacity="0.95"/>
+    </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: '',
+    iconSize: [36, 44],
+    iconAnchor: [18, 44],
+    popupAnchor: [0, -44]
+  });
+}
+
+// Render markers et liste
+function renderAll() {
+  // Clear markers
+  currentMarkers.forEach(m => map.removeLayer(m));
+  currentMarkers = [];
+  
+  const filtered = etablissements.filter(e => 
+    e.ville === currentCity && 
+    (currentType === 'all' || e.type === currentType)
+  );
+  
+  // Update compteur
+  document.getElementById('count').textContent = filtered.length;
+  
+  // Render liste
+  const container = document.getElementById('list-container');
+  container.innerHTML = '';
+  
+  // Partenaires en premier
+  const sorted = [...filtered].sort((a,b) => b.partenaire - a.partenaire);
+  
+  sorted.forEach(e => {
+    // Carte liste
+    const card = document.createElement('div');
+    card.id = 'card-' + e.id;
+    card.style.cssText = `
+      background:#fff; border:1px solid #C3C5D7; border-radius:16px; 
+      margin-bottom:10px; overflow:hidden; cursor:pointer;
+      transition:all 0.2s; display:flex;
+    `;
+    card.onmouseenter = () => card.style.borderColor = typeColors[e.type];
+    card.onmouseleave = () => card.style.borderColor = e.partenaire ? '#FF6B35' : '#C3C5D7';
+    if(e.partenaire) card.style.borderColor = '#FF6B35';
+    
+    card.innerHTML = `
+      <div style="width:80px;min-width:80px;height:80px;overflow:hidden;">
+        <img src="${e.photo}" alt="${e.nom}" 
+             style="width:100%;height:100%;object-fit:cover;"
+             onerror="this.style.background='#F3F3FE'">
+      </div>
+      <div style="padding:10px 12px;flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          ${e.partenaire ? `
+            <span style="background:rgba(255,107,53,0.1);color:#FF6B35;font-size:0.5rem;
+                         font-weight:800;text-transform:uppercase;letter-spacing:0.1em;
+                         padding:2px 6px;border-radius:9999px;white-space:nowrap;">
+              Partenaire Bolamu
+            </span>` : ''}
+          <span style="background:${typeColors[e.type]}20;color:${typeColors[e.type]};
+                       font-size:0.5rem;font-weight:800;text-transform:uppercase;
+                       letter-spacing:0.1em;padding:2px 6px;border-radius:9999px;white-space:nowrap;">
+            ${e.type}
+          </span>
+        </div>
+        <div style="font-size:0.8125rem;font-weight:700;color:#0A2463;
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${e.nom}
+        </div>
+        <div style="font-size:0.6875rem;color:#434654;margin-top:2px;
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${e.adresse}
+        </div>
+        <div style="font-size:0.6875rem;color:#00C9A7;font-weight:600;margin-top:2px;">
+          ${e.horaires}
+        </div>
+      </div>
+    `;
+    
+    card.onclick = () => focusEtablissement(e);
+    container.appendChild(card);
+    
+    // Marker carte
+    const marker = L.marker([e.lat, e.lng], { icon: createIcon(e.type, e.partenaire) });
+    
+    // Popup
+    const popupContent = `
+      <div style="font-family:'Plus Jakarta Sans',sans-serif;min-width:220px;">
+        ${e.partenaire ? `
+          <div style="background:#FF6B35;color:#fff;font-size:0.625rem;font-weight:800;
+                      text-transform:uppercase;letter-spacing:0.1em;padding:4px 8px;
+                      border-radius:4px;margin-bottom:8px;display:inline-block;">
+            Partenaire Bolamu
+          </div>` : ''}
+        <img src="${e.photo}" alt="${e.nom}" 
+             style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:8px;">
+        <div style="font-size:0.875rem;font-weight:800;color:#0A2463;margin-bottom:4px;">
+          ${e.nom}
+        </div>
+        <div style="font-size:0.75rem;color:#434654;margin-bottom:4px;">
+          ${e.adresse}
+        </div>
+        <div style="font-size:0.75rem;color:#00C9A7;font-weight:600;margin-bottom:4px;">
+          ${e.horaires}
+        </div>
+        <div style="font-size:0.75rem;color:#434654;margin-bottom:8px;">
+          ${e.description}
+        </div>
+        <a href="tel:${e.tel}" 
+           style="display:block;background:#003FB1;color:#fff;text-align:center;
+                  padding:8px;border-radius:8px;font-size:0.75rem;font-weight:700;
+                  text-decoration:none;">
+          Appeler ${e.tel}
+        </a>
+      </div>
+    `;
+    
+    marker.bindPopup(popupContent, { maxWidth: 260 });
+    marker.addTo(map);
+    
+    marker.on('click', () => {
+      highlightCard(e.id);
+    });
+    
+    currentMarkers.push(marker);
+  });
+  
+  // Fit bounds si markers
+  if(currentMarkers.length > 0) {
+    const group = L.featureGroup(currentMarkers);
+    map.fitBounds(group.getBounds().pad(0.1));
+  }
+}
+
+function focusEtablissement(e) {
+  map.setView([e.lat, e.lng], 16);
+  const marker = currentMarkers.find((m,i) => {
+    const filtered = etablissements.filter(et => 
+      et.ville === currentCity && (currentType === 'all' || et.type === currentType)
+    );
+    const sorted = [...filtered].sort((a,b) => b.partenaire - a.partenaire);
+    return sorted[i] && sorted[i].id === e.id;
+  });
+  if(marker) marker.openPopup();
+  highlightCard(e.id);
+}
+
+function highlightCard(id) {
+  document.querySelectorAll('[id^="card-"]').forEach(c => {
+    c.style.transform = 'none';
+    c.style.boxShadow = 'none';
+  });
+  const card = document.getElementById('card-' + id);
+  if(card) {
+    card.style.transform = 'translateX(4px)';
+    card.style.boxShadow = '0 4px 16px rgba(0,63,177,0.15)';
+    card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+}
+
+function filterCity(city) {
+  currentCity = city;
+  
+  // Update boutons ville
+  document.getElementById('btn-brazza').style.background = city === 'brazza' ? '#00C9A7' : 'transparent';
+  document.getElementById('btn-brazza').style.color = city === 'brazza' ? '#0A2463' : 'rgba(255,255,255,0.7)';
+  document.getElementById('btn-pnr').style.background = city === 'pnr' ? '#00C9A7' : 'transparent';
+  document.getElementById('btn-pnr').style.color = city === 'pnr' ? '#0A2463' : 'rgba(255,255,255,0.7)';
+  
+  // Centre carte
+  const centers = {
+    brazza: [-4.2634, 15.2832],
+    pnr: [-4.7761, 11.8635]
+  };
+  map.setView(centers[city], 13);
+  
+  renderAll();
+}
+
+function filterType(type) {
+  currentType = type;
+  
+  // Update boutons type
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    const isActive = btn.dataset.type === type;
+    btn.style.background = isActive ? '#00C9A7' : 'transparent';
+    btn.style.color = isActive ? '#0A2463' : 'rgba(255,255,255,0.7)';
+  });
+  
+  renderAll();
+}
+
+// Init au chargement
+window.addEventListener('load', initMap);
+</script>
+
+</body>
+</html>
