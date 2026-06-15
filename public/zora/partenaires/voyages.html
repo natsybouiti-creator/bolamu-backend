@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Bolamu — Zora Voyages & Transport</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f3f3fe",
+                        "primary-container": "#1a56db",
+                        "surface-bright": "#faf8ff",
+                        "surface-dim": "#d9d9e4",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#faf8ff",
+                        "error": "#ba1a1a",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e7e7f3",
+                        "on-surface": "#191b23",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container": "#ededf8",
+                        "outline": "#737686",
+                        "surface-variant": "#e2e1ed",
+                        "background": "#faf8ff",
+                        "surface-container-highest": "#e2e1ed",
+                        "outline-variant": "#c3c5d7",
+                        "on-surface-variant": "#434654",
+                        "primary": "#003fb1",
+                        "secondary": "#475b9c",
+                        "brand-navy": "#0A2463",
+                        "brand-turquoise": "#00C9A7",
+                        "brand-orange": "#FF6B35"
+                    },
+                    "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px" },
+                    "spacing": { "xs": "4px", "container-margin": "20px", "md": "24px", "gutter": "16px", "base": "8px", "xl": "64px", "lg": "40px", "sm": "12px" },
+                    "fontFamily": { "sans": ["Plus Jakarta Sans", "sans-serif"] }
+                }
+            }
+        }
+    </script>
+  <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #faf8ff;
+            color: #191b23;
+        }
+        .soft-card {
+            background: #ffffff;
+            border: 1px solid #c3c5d7;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .soft-card:hover {
+            border-color: #003fb1;
+            box-shadow: 0 12px 40px rgba(0, 63, 177, 0.08);
+            transform: translateY(-4px);
+        }
+        .virtual-card {
+            aspect-ratio: 16 / 10;
+            background: linear-gradient(135deg, #0A2463 0%, #003FB1 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.12);
+        }
+        .virtual-card::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            background: rgba(255, 107, 53, 0.14);
+            border-radius: 50%;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #faf8ff; }
+        ::-webkit-scrollbar-thumb { background: #c3c5d7; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #737686; }
+        .zora-deco {
+          position: absolute;
+          pointer-events: none;
+          z-index: 10;
+          height: auto;
+        }
+        @keyframes zora-float-1 {
+          0%, 100% { transform: translate(0px, 0px) rotate(-8deg); }
+          33% { transform: translate(6px, -12px) rotate(2deg); }
+          66% { transform: translate(-4px, -5px) rotate(-14deg); }
+        }
+        @keyframes zora-float-2 {
+          0%, 100% { transform: translate(0px, 0px) rotate(10deg); }
+          33% { transform: translate(-8px, -10px) rotate(0deg); }
+          66% { transform: translate(5px, 6px) rotate(18deg); }
+        }
+        @keyframes zora-float-3 {
+          0%, 100% { transform: translate(0px, 0px) rotate(-5deg); }
+          33% { transform: translate(9px, 7px) rotate(5deg); }
+          66% { transform: translate(-5px, -11px) rotate(-12deg); }
+        }
+  </style>
+</head>
+<body class="overflow-x-hidden">
+
+<!-- NAVBAR -->
+<nav class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 py-4 px-container-margin">
+<div class="max-w-7xl mx-auto flex justify-between items-center">
+<a class="flex items-center gap-3 group" href="/landing.html">
+<img alt="Bolamu Logo" class="h-12 w-12 object-contain transition-transform group-hover:scale-110" src="/images/landing/01-logo-navbar.png">
+<div class="flex flex-col leading-none">
+<span class="text-xl font-extrabold text-brand-navy tracking-tight">Bolamu</span>
+<span class="text-[10px] font-bold text-on-surface-variant opacity-70 uppercase tracking-widest">la santé simple et accessible</span>
+</div>
+</a>
+<div class="hidden lg:flex items-center gap-x-8">
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html">Accueil</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/zora/recompenses.html">Récompenses</a>
+<a class="text-sm font-bold text-primary relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-primary" href="/zora/recompenses.html">Partenaires</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#pricing">Formules</a>
+</div>
+<div class="flex items-center gap-x-4">
+<a class="text-sm font-bold text-brand-navy hover:text-primary transition-colors px-4 py-2" href="/login.html">Connexion</a>
+<button onclick="window.location.href='/register.html'" class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-primary/20 hover:bg-brand-navy transition-all active:scale-95">S'abonner</button>
+</div>
+</div>
+</nav>
+
+<!-- CONTENU PAGE -->
+<main id="page-content">
+
+<!-- SECTION 1 — HERO -->
+<section class="bg-brand-navy py-20">
+<div class="max-w-7xl mx-auto px-container-margin grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div>
+<div class="inline-flex items-center gap-2 bg-brand-orange/10 text-brand-orange px-4 py-1.5 rounded-full font-bold text-xs mb-8 uppercase tracking-widest">VOYAGES &amp; TRANSPORT</div>
+<h1 class="text-white mb-8 leading-[1.1] font-extrabold text-4xl lg:text-5xl tracking-tight">Voyagez plus, dépensez moins</h1>
+<p class="text-lg text-white/75 max-w-xl mb-12 font-medium leading-relaxed">Avec votre carte virtuelle Bolamu et vos Zora, accédez à des réductions exclusives ou des prestations gratuites chez nos partenaires, selon votre niveau (Bronze à Platine).</p>
+<div class="flex flex-col sm:flex-row gap-4">
+<a href="/zora/recompenses.html" class="inline-block bg-brand-orange text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-brand-orange/25 hover:bg-white hover:text-brand-orange transition-all text-center">Voir mon solde Zora</a>
+<a href="/zora/recompenses.html" class="inline-block border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-brand-navy transition-all text-center">Retour aux récompenses</a>
+</div>
+</div>
+<div>
+<div class="rounded-3xl p-6 relative overflow-visible" style="background: rgba(219, 225, 255, 0.12); backdrop-filter: blur(8px); position:relative;">
+<!-- PIÈCES — 6 tailles variées -->
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco"
+  style="top:-28px;left:-14px;width:64px;mix-blend-mode:screen;filter:brightness(1.25) saturate(1.3) drop-shadow(0 4px 12px rgba(255,200,0,0.4));animation:zora-float-1 4.5s ease-in-out infinite;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco"
+  style="top:-20px;right:-14px;width:72px;mix-blend-mode:screen;filter:brightness(1.25) saturate(1.3) drop-shadow(0 4px 12px rgba(255,200,0,0.4));animation:zora-float-2 5s ease-in-out infinite;animation-delay:0.5s;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco"
+  style="bottom:-24px;left:-10px;width:50px;mix-blend-mode:screen;filter:brightness(1.25) saturate(1.3) drop-shadow(0 4px 12px rgba(255,200,0,0.4));animation:zora-float-3 5.5s ease-in-out infinite;animation-delay:1s;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco"
+  style="bottom:-18px;right:-10px;width:58px;mix-blend-mode:screen;filter:brightness(1.25) saturate(1.3) drop-shadow(0 4px 12px rgba(255,200,0,0.4));animation:zora-float-1 6s ease-in-out infinite;animation-delay:1.5s;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco"
+  style="top:40%;left:-18px;width:42px;mix-blend-mode:screen;filter:brightness(1.25) saturate(1.3) drop-shadow(0 4px 12px rgba(255,200,0,0.4));animation:zora-float-2 4s ease-in-out infinite;animation-delay:2s;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco"
+  style="top:32%;right:-16px;width:46px;mix-blend-mode:screen;filter:brightness(1.25) saturate(1.3) drop-shadow(0 4px 12px rgba(255,200,0,0.4));animation:zora-float-3 5.2s ease-in-out infinite;animation-delay:0.8s;">
+<!-- ÉCLAIRS -->
+<svg class="zora-deco" style="top:-20px;left:22%;width:34px;height:34px;animation:zora-float-1 5s ease-in-out infinite;animation-delay:1.2s;" viewBox="0 0 40 40">
+  <defs><linearGradient id="boltV1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#FFB199"/><stop offset="50%" stop-color="#FF6B35"/><stop offset="100%" stop-color="#D6481A"/>
+  </linearGradient></defs>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" fill="url(#boltV1)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.6))"/>
+</svg>
+<svg class="zora-deco" style="bottom:-14px;right:22%;width:26px;height:26px;animation:zora-float-2 6s ease-in-out infinite;animation-delay:2.5s;" viewBox="0 0 40 40">
+  <defs><linearGradient id="boltV2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#FFB199"/><stop offset="50%" stop-color="#FF6B35"/><stop offset="100%" stop-color="#D6481A"/>
+  </linearGradient></defs>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" fill="url(#boltV2)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.6))"/>
+</svg>
+<!-- ÉTOILES -->
+<svg class="zora-deco" style="top:-16px;left:55%;width:30px;height:30px;animation:zora-float-3 5.5s ease-in-out infinite;animation-delay:0.3s;" viewBox="0 0 38 38">
+  <defs><radialGradient id="starV1" cx="35%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#FFE9A8"/><stop offset="50%" stop-color="#F5A623"/><stop offset="100%" stop-color="#C97D0F"/>
+  </radialGradient></defs>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13" fill="url(#starV1)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
+</svg>
+<svg class="zora-deco" style="bottom:-12px;left:38%;width:24px;height:24px;animation:zora-float-1 4.8s ease-in-out infinite;animation-delay:1.8s;" viewBox="0 0 38 38">
+  <defs><radialGradient id="starV2" cx="35%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#FFE9A8"/><stop offset="50%" stop-color="#F5A623"/><stop offset="100%" stop-color="#C97D0F"/>
+  </radialGradient></defs>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13" fill="url(#starV2)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
+</svg>
+<!-- CŒURS -->
+<svg class="zora-deco" style="top:-12px;left:36%;width:28px;height:28px;animation:zora-float-2 5.3s ease-in-out infinite;animation-delay:0.6s;" viewBox="0 0 40 40">
+  <defs><radialGradient id="heartV1" cx="40%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#FF9EBB"/><stop offset="50%" stop-color="#FF4D7D"/><stop offset="100%" stop-color="#CC1A4E"/>
+  </radialGradient></defs>
+  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8 C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z" fill="url(#heartV1)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.6))"/>
+</svg>
+<svg class="zora-deco" style="bottom:-10px;right:35%;width:22px;height:22px;animation:zora-float-3 6.2s ease-in-out infinite;animation-delay:2.2s;" viewBox="0 0 40 40">
+  <defs><radialGradient id="heartV2" cx="40%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#FF9EBB"/><stop offset="50%" stop-color="#FF4D7D"/><stop offset="100%" stop-color="#CC1A4E"/>
+  </radialGradient></defs>
+  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8 C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z" fill="url(#heartV2)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.6))"/>
+</svg>
+
+<img src="/images/landing/10-zora-voyages.jpg" alt="Voyages et transport partenaires Bolamu" class="w-full h-72 object-cover rounded-2xl">
+</div>
+<div class="flex justify-center gap-8 mt-6 text-white text-sm font-medium">
+<span>Vols &amp; transport</span>
+<span>·</span>
+<span>Réductions Bronze à Platine</span>
+<span>·</span>
+<span>Carte virtuelle Bolamu</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 2 — CARTE VIRTUELLE BOLAMU -->
+<section class="py-xl bg-white">
+<div class="max-w-7xl mx-auto px-container-margin">
+<div class="text-center mb-16">
+<h2 class="text-3xl lg:text-4xl font-extrabold text-brand-navy mb-4 tracking-tight">Votre carte Bolamu, votre passe-partout</h2>
+<p class="text-on-surface-variant font-medium text-lg max-w-2xl mx-auto">Présentez votre QR code ou votre carte virtuelle chez nos partenaires pour activer vos avantages instantanément.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div class="virtual-card p-8 flex flex-col justify-between">
+<div class="flex justify-between items-start relative z-10">
+<span class="text-brand-turquoise text-2xl font-extrabold tracking-tight">Bolamu</span>
+<span class="bg-white/15 text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full">Carte Zora</span>
+</div>
+<div class="relative z-10">
+<p class="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-1">Adhérent</p>
+<p class="text-white text-xl font-extrabold tracking-tight">Mavoungou Pierre</p>
+</div>
+<div class="flex justify-between items-end relative z-10">
+<div>
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-extrabold text-xs" style="background:#F5A623;color:#0A2463;">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">workspace_premium</span>OR
+</span>
+<p class="text-white/80 text-sm font-bold tracking-[0.2em] mt-3">•••• •••• •••• 4521</p>
+</div>
+<div class="bg-white rounded-xl p-2 shrink-0">
+<svg width="56" height="56" viewBox="0 0 56 56" fill="#0A2463">
+<rect x="4" y="4" width="14" height="14"/><rect x="38" y="4" width="14" height="14"/><rect x="4" y="38" width="14" height="14"/>
+<rect x="24" y="4" width="5" height="5"/><rect x="24" y="14" width="5" height="5"/><rect x="24" y="24" width="5" height="5"/>
+<rect x="34" y="24" width="5" height="5"/><rect x="44" y="24" width="5" height="5"/><rect x="24" y="34" width="5" height="5"/>
+<rect x="34" y="34" width="5" height="5"/><rect x="44" y="44" width="8" height="8"/><rect x="34" y="44" width="5" height="5"/>
+<rect x="9" y="9" width="4" height="4" fill="#ffffff"/><rect x="43" y="9" width="4" height="4" fill="#ffffff"/><rect x="9" y="43" width="4" height="4" fill="#ffffff"/>
+</svg>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+<div class="soft-card rounded-3xl p-6 text-center">
+<div class="w-12 h-12 rounded-2xl bg-brand-orange/10 flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-brand-orange">qr_code_scanner</span>
+</div>
+<h4 class="font-extrabold text-brand-navy mb-2">1. Scannez</h4>
+<p class="text-on-surface-variant text-sm font-medium">votre QR code chez le partenaire</p>
+</div>
+<div class="soft-card rounded-3xl p-6 text-center">
+<div class="w-12 h-12 rounded-2xl bg-brand-orange/10 flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-brand-orange">verified</span>
+</div>
+<h4 class="font-extrabold text-brand-navy mb-2">2. Validez</h4>
+<p class="text-on-surface-variant text-sm font-medium">l'avantage s'applique automatiquement</p>
+</div>
+<div class="soft-card rounded-3xl p-6 text-center">
+<div class="w-12 h-12 rounded-2xl bg-brand-orange/10 flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined text-brand-orange">celebration</span>
+</div>
+<h4 class="font-extrabold text-brand-navy mb-2">3. Profitez</h4>
+<p class="text-on-surface-variant text-sm font-medium">réduction ou prestation immédiate</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION 3 — COMPAGNIES PARTENAIRES -->
+<section class="py-xl bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-container-margin">
+<div class="text-center mb-16">
+<h2 class="text-3xl lg:text-4xl font-extrabold text-brand-navy mb-4 tracking-tight">Nos compagnies aériennes partenaires</h2>
+<p class="text-on-surface-variant font-medium text-lg max-w-2xl mx-auto">Réductions sur vols internationaux et régionaux, selon votre niveau Zora.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="soft-card rounded-3xl overflow-hidden">
+<img alt="Air France" class="w-full h-44 object-cover" src="/images/landing/43-zora-avion.jpg">
+<div class="p-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-xs mb-4 uppercase tracking-widest" style="background:linear-gradient(135deg, #0A2463, #1a3a7a); color:#ffffff;">Platine</div>
+<h3 class="text-lg font-extrabold text-brand-navy mb-2">Air France</h3>
+<p class="text-on-surface-variant text-sm font-medium mb-4">Vols internationaux Brazzaville / Pointe-Noire ↔ Paris. Jusqu'à -27% sur le billet en cumulant Zora Cash et remise compagnie.</p>
+<div class="flex items-center gap-2 text-brand-orange font-bold text-sm"><span class="material-symbols-outlined text-lg">flight_takeoff</span>Long-courrier international</div>
+</div>
+</div>
+<div class="soft-card rounded-3xl overflow-hidden">
+<img alt="ASKY Airlines" class="w-full h-44 object-cover" src="/images/landing/51-zora-aeroport.jpg">
+<div class="p-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-xs mb-4 uppercase tracking-widest" style="background:#F5A623; color:#0A2463;">Or</div>
+<h3 class="text-lg font-extrabold text-brand-navy mb-2">ASKY Airlines</h3>
+<p class="text-on-surface-variant text-sm font-medium mb-4">Liaisons régionales Afrique centrale et de l'Ouest. Remises sur vos vols Brazzaville ↔ Lomé, Douala, Abidjan.</p>
+<div class="flex items-center gap-2 text-brand-orange font-bold text-sm"><span class="material-symbols-outlined text-lg">public</span>Régional Afrique</div>
+</div>
+</div>
+<div class="soft-card rounded-3xl overflow-hidden">
+<img alt="Ethiopian Airlines" class="w-full h-44 object-cover" src="/images/landing/10-zora-voyages.jpg">
+<div class="p-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-xs mb-4 uppercase tracking-widest" style="background:#F5A623; color:#0A2463;">Or</div>
+<h3 class="text-lg font-extrabold text-brand-navy mb-2">Ethiopian Airlines</h3>
+<p class="text-on-surface-variant text-sm font-medium mb-4">Le plus grand réseau africain. Avantages sur vos correspondances via Addis-Abeba vers l'Afrique, l'Europe et l'Asie.</p>
+<div class="flex items-center gap-2 text-brand-orange font-bold text-sm"><span class="material-symbols-outlined text-lg">connecting_airports</span>Hub continental</div>
+</div>
+</div>
+<div class="soft-card rounded-3xl overflow-hidden">
+<img alt="Trans Air Congo" class="w-full h-44 object-cover" src="/images/landing/43-zora-avion.jpg">
+<div class="p-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-xs mb-4 uppercase tracking-widest" style="background:#9EA3B2; color:#434654;">Argent</div>
+<h3 class="text-lg font-extrabold text-brand-navy mb-2">Trans-Air Congo</h3>
+<p class="text-on-surface-variant text-sm font-medium mb-4">Vols domestiques Brazzaville ↔ Pointe-Noire ↔ Ollombo. Réductions sur la navette intérieure la plus empruntée du pays.</p>
+<div class="flex items-center gap-2 text-brand-orange font-bold text-sm"><span class="material-symbols-outlined text-lg">flight</span>Domestique Congo</div>
+</div>
+</div>
+<div class="soft-card rounded-3xl overflow-hidden">
+<img alt="Taxi et VTC partenaires" class="w-full h-44 object-cover" src="/images/landing/57-zora-africain.jpg">
+<div class="p-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-xs mb-4 uppercase tracking-widest" style="background:rgba(255,107,53,0.1); color:#FF6B35;">Bronze</div>
+<h3 class="text-lg font-extrabold text-brand-navy mb-2">VTC &amp; Taxis partenaires</h3>
+<p class="text-on-surface-variant text-sm font-medium mb-4">Courses urbaines à Brazzaville et Pointe-Noire avec remise MFR 10% dès le niveau Bronze, sans Zora Cash requis.</p>
+<div class="flex items-center gap-2 text-brand-orange font-bold text-sm"><span class="material-symbols-outlined text-lg">local_taxi</span>Mobilité urbaine</div>
+</div>
+</div>
+<div class="soft-card rounded-3xl overflow-hidden">
+<img alt="Location de véhicules" class="w-full h-44 object-cover" src="/images/landing/51-zora-aeroport.jpg">
+<div class="p-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-xs mb-4 uppercase tracking-widest" style="background:#9EA3B2; color:#434654;">Argent</div>
+<h3 class="text-lg font-extrabold text-brand-navy mb-2">Location de véhicules</h3>
+<p class="text-on-surface-variant text-sm font-medium mb-4">Agences de location partenaires pour vos déplacements professionnels ou familiaux. Tarif préférentiel adhérent.</p>
+<div class="flex items-center gap-2 text-brand-orange font-bold text-sm"><span class="material-symbols-outlined text-lg">car_rental</span>Location longue durée</div>
+</div>
+</div>
+</div>
+<div class="soft-card p-6 rounded-3xl mt-8 text-center" style="background: rgba(255, 107, 53, 0.05);">
+<p class="text-on-surface-variant font-medium text-sm">Les vols internationaux Platine se débloquent en cumulant votre Zora Cash sur plusieurs trimestres consécutifs. Plus votre niveau est élevé, plus votre réduction est importante.</p>
+</div>
+</div>
+</section>
+
+<!-- SECTION CTA FINALE -->
+<section class="py-xl bg-brand-navy">
+<div class="max-w-4xl mx-auto px-container-margin text-center">
+<h2 class="text-3xl lg:text-4xl font-extrabold text-white mb-6 tracking-tight">Activez votre carte Bolamu dès maintenant</h2>
+<p class="text-lg text-white/75 mb-12 font-medium leading-relaxed max-w-2xl mx-auto">Inscrivez-vous, accumulez vos premiers Zora et accédez à l'ensemble de nos avantages partenaires.</p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<a href="/register.html" class="inline-block bg-brand-orange text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-brand-orange/25 hover:bg-white hover:text-brand-orange transition-all text-center">S'abonner</a>
+<a href="/zora/recompenses.html" class="inline-block border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-brand-navy transition-all text-center">Voir toutes les récompenses</a>
+</div>
+</div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-brand-navy pt-24 pb-12 px-container-margin text-white">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl mb-20">
+<div class="lg:col-span-4">
+<a class="flex items-center gap-3 mb-8" href="/landing.html">
+<img alt="Bolamu Logo" class="h-12 w-12 object-contain" src="/images/landing/23-logo-footer.png">
+<div class="flex flex-col leading-none">
+<span class="text-xl font-extrabold text-white tracking-tight">Bolamu</span>
+<span class="text-[10px] font-bold text-brand-turquoise uppercase tracking-widest">la santé simple et accessible</span>
+</div>
+</a>
+<p class="text-white/70 text-sm font-medium leading-relaxed mb-8 max-w-sm">
+                Bolamu réinvente l'accès aux soins au Congo grâce à une plateforme connectée et humaine. Nous rendons la santé de qualité accessible à tous, partout.
+            </p>
+</div>
+<div class="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-8">
+<div>
+<h5 class="font-black text-brand-turquoise text-sm uppercase tracking-widest mb-8">Produit</h5>
+<ul class="space-y-4">
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html">Accueil</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/zora/recompenses.html">Récompenses Zora</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html#pricing">Formules</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html#network">Réseau de soins</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-black text-brand-turquoise text-sm uppercase tracking-widest mb-8">Partenaires Zora</h5>
+<ul class="space-y-4">
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/zora/partenaires/voyages.html">Voyages &amp; Transport</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/zora/partenaires/telecom.html">Télécom</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/zora/partenaires/hotels.html">Hôtels &amp; Séjours</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/zora/partenaires/lifestyle.html">Lifestyle</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-black text-brand-turquoise text-sm uppercase tracking-widest mb-8">Support</h5>
+<ul class="space-y-4">
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">Centre d'aide</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">Contact</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/confidentialite.html">Confidentialité</a></li>
+<li><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/cgu.html">CGU</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="text-white/50 text-xs font-medium">© 2026 Bolamu. Tous droits réservés. La santé pour tous au Congo.</p>
+<div class="flex items-center gap-6">
+<span class="text-white/50 text-[10px] font-bold uppercase tracking-widest">Brazzaville</span>
+<span class="text-white/30">•</span>
+<span class="text-white/50 text-[10px] font-bold uppercase tracking-widest">Pointe-Noire</span>
+</div>
+</div>
+</div>
+</footer>
+
+</body>
+</html>
