@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 12 juin 2026
+Mis à jour : 15 juin 2026
 Statut : EN PRODUCTION — https://api.bolamu.co
 www.bolamu.co — domaine custom actif avec SSL ✅
 Score Ayokai : 21/23 (91.3%)
@@ -863,3 +863,149 @@ Total rôles : 9 (patient, doctor, pharmacie, laboratoire, admin, content_admin,
   (date, heure, motif, adresse clinique, code session)
 - Affichage établissement partout où un médecin apparaît
   (compte patient, confirmation RDV, historique)
+
+---
+
+## FRONTEND PUBLIC — LANDING & PAGES OFFRES
+
+### Landing page (public/landing.html) — EN PRODUCTION
+- Remplace public/index.html comme page d'accueil (route GET '/' dans server.js)
+- Design system Stitch / Material You : navy #0A2463, turquoise #00C9A7,
+  Plus Jakarta Sans, soft-card, Tailwind CDN
+- 12 sections : Navbar, Hero, Stats Bar, Étapes, Partenaires, Solutions,
+  Formules (MOTO/NDEKO/LIBOTA), Zora Rewards, Elonga, Réseau, Blog, Footer
+- 59 images optimisées dans public/images/landing/ (compression sharp, <200KB)
+- Cache statique 7 jours activé (express.static maxAge: '7d')
+- Template de base : public/templates/page-base.html (navbar + footer réutilisables)
+
+### Pages offres — EN PRODUCTION (public/offres/)
+- particuliers.html : Bolamu Care ADSP — soins SSP gratuits, formules MOTO/NDEKO/LIBOTA,
+  système de paiement MoMo, programme Elonga, dossier médical numérique
+- syndicats.html : Bolamu Care Collectif — associations, tontines, églises,
+  groupements sportifs, formulaire de contact HTML pur
+- pme.html : Bolamu Care PME — 2000 FCFA/employé/mois, 4 bénéfices,
+  conformité Art.142 Code du Travail congolais
+- entreprises.html : Bolamu Wellness — programme 4 modules (Elonga, Amina,
+  Dashboard RH, Zora), modèle J&J / Discovery Health, ROI absentéisme/
+  présentéisme, section Zora récompenses avec photo avion
+
+### Liens connectés dans landing.html
+- Solutions → /offres/particuliers.html, /offres/syndicats.html,
+  /offres/pme.html, /offres/entreprises.html
+- Connexion → /login.html | S'abonner → /register.html
+- Footer institutionnel : secrétaire, RH, admin, agence, CGU, confidentialité
+
+### Liens encore en href="#" (à connecter quand pages créées)
+Zora : /zora/recompenses.html, /zora/partenaires/voyages.html,
+       /zora/partenaires/telecom.html, /zora/partenaires/hotels.html,
+       /zora/partenaires/sport.html
+Elonga : /elonga/nutrition.html, /elonga/sport.html, /elonga/bilans.html
+Blog : /blog/index.html, /blog/nutrition-congolaise.html,
+       /blog/stress-travail.html, /blog/grossesse-bolamu.html
+Carte : /carte.html
+Réseau : /reseau/partenaires.html
+Footer : /a-propos.html, /faq.html, /aide.html, /carrieres.html,
+         /presse.html, /mentions-legales.html
+
+---
+
+## SYSTÈME ZORA — DOCUMENT DE RÉFÉRENCE
+
+Fichier de référence : docs/zora_system.md (V3 — juin 2026)
+
+### Nature
+- Programme de bien-être lifestyle — pas un programme de fidélité classique
+- Infrastructure comportementale : acte santé → Zora Points → Zora Cash → récompenses
+- Modèle de référence : Aquitai (data fidélité) + Vitality (Discovery) + Virgin Pulse
+
+### Mécanique
+- Zora Points : compteur d'activité trimestriel, reset à zéro chaque trimestre
+- Zora Cash : valeur FCFA réelle, versée via MTN MoMo ou Airtel Money en fin de trimestre
+- Valeur interne : 1 Zora ≈ 0,8 FCFA en cash MoMo / 2-3 FCFA en valeur catalogue partenaire
+- Règle de communication : jamais "1 Zora = X FCFA" — toujours la récompense concrète
+
+### Paliers trimestriels (loi de Pareto)
+- Bronze 0-499 pts (60% adhérents) → 0 FCFA — coût pool = 0
+- Argent 500-2999 pts (20%) → 2 500 FCFA Zora Cash MoMo
+- Or 3000-6999 pts (15%) → 5 000 FCFA Zora Cash MoMo
+- Platine 7000+ pts (5%) → 10 000 FCFA Zora Cash MoMo
+- Breakage naturel 15-25% (non réclamés) = réduction automatique du coût pool
+
+### Catégories d'actes générateurs (plafonnement anti-manipulation)
+- Santé 60% max : consultation préventive, bilan sanguin, dépistage HTA/diabète,
+  CPN, vaccination, renouvellement ordonnance — QR scan obligatoire + enregistrement praticien
+- Activité physique 25% max : séance Elonga (check-in coach), wearable Apple Santé/
+  Google Fit (seuil 30min / >100bpm ou 7000 pas), événements sportifs
+- Engagement plateforme 10% max : connexion hebdomadaire, MAJ dossier, parrainage validé à J+30
+- Lifestyle partenaires 5% max : achat QR scan chez partenaire (bonus uniquement)
+
+### Catalogue récompenses
+- Beauté/bien-être = récompenses en priorité (pas actes majeurs générateurs)
+- Bronze : remises MFR 10% (partenaire finance, Bolamu ne sort rien)
+- Argent : 2500 FCFA MoMo + remises MFR (crédit MTN/Airtel, supermarché, restaurant)
+- Or : 5000 FCFA MoMo + remises (nuitée hôtel partielle, plein essence, panier courses, massage)
+- Platine : 10000 FCFA MoMo + récompenses premium (billet aérien intérieur, spa, hôtel complet)
+
+### Modèle financier (MFR — Merchant Funded Rewards)
+Phase 1 lancement : partenaire reçoit 100% prix normal — Bolamu absorbe la subvention Zora
+Phase 2 (6-18 mois) : partenaire absorbe 10-20% après preuve de trafic réel
+Phase 3 (18 mois+) : partenaire absorbe 50%+ — modèle Vitality atteint
+
+Sources financement pool Zora :
+1. Marketing partenaires (principale source Care) : forfaits Bronze 150k / Silver 300k /
+   Gold 500k FCFA/mois — 10 partenaires = 3,15M FCFA/mois
+2. Wellness B2B : 30-50% économies absentéisme/présentéisme entreprises → pool récompenses premium
+3. Pareto : 60% Bronze = 0 coût pool
+4. Commission transactions : 2% sur chaque transaction Zora chez partenaire
+5. Breakage 15-25% non consommés
+
+Simulation 1000 adhérents :
+- Pool Zora trimestriel = 1 750 000 FCFA
+- Revenus marketing 10 partenaires = 9 450 000 FCFA/trimestre
+- Marge nette = ~7 200 000 FCFA/trimestre ✅ viable
+
+### Architecture wallet (partenariat MTN obligatoire)
+- Bolamu n'est pas établissement de paiement (agrément BEAC requis)
+- MTN MoMo = rail financier obligatoire (déjà agréé BEAC/CEMAC)
+- Flux : Bolamu calcule Zora Cash → instruction MTN → MTN crédite wallet adhérent/partenaire
+- Partenaire reçoit FCFA cash sur son MoMo (pas des Zora)
+- Bolamu prélève commission 2% sur la transaction
+- API MTN Disbursement déjà configurée dans le projet
+
+### Interdictions strictes
+- Pas de détention de fonds (agrément BEAC)
+- Pas de valeur FCFA publique du point
+- Pas de points sans preuve système automatique
+- Pas de pool illimité (plafonné % revenus trimestriels)
+- Pas de vente données personnelles individuelles (CNPD Congo)
+
+### Partenaires cibles Congo (à prospecter)
+Voyage/transport : Asky, Air Congo, Trans Air Congo, Nzoko, Océan du Nord
+Télécom : MTN Congo, Airtel Congo
+Hôtellerie : Ledger/Maya-Maya/Azur (Brazza), Atlantic Palace/Manzia (PNR), spas
+Alimentation : Franprix Congo, Score, Casino, restaurants partenaires
+Énergie/services : Total, Puma, SNDE
+Sport/loisirs : boutiques sportives, salles de sport, spas massage
+Beauté/bien-être : Alima et boutiques parfumerie/skincare
+Logement : agences immobilières, aide loyer
+
+---
+
+## PAGES À CRÉER (ROADMAP FRONTEND)
+
+Pages restantes à créer (dans l'ordre) :
+1. Zora : /zora/recompenses.html, /zora/partenaires/voyages.html,
+          /zora/partenaires/telecom.html, /zora/partenaires/hotels.html,
+          /zora/partenaires/sport.html
+2. Elonga : /elonga/nutrition.html, /elonga/sport.html, /elonga/bilans.html
+3. Blog : /blog/index.html, /blog/nutrition-congolaise.html,
+          /blog/stress-travail.html, /blog/grossesse-bolamu.html
+4. Réseau & Carte : /reseau/partenaires.html, /carte.html
+5. Institutionnelles : /a-propos.html, /faq.html, /aide.html,
+                       /carrieres.html, /presse.html, /mentions-legales.html
+
+Dashboards à améliorer (design system) :
+patient, medecin, pharmacie, laboratoire, admin, secretaire, rh, agence
+
+Tests Playwright : à implémenter après déploiement complet
+(workflows : inscription, connexion multi-rôles, RDV, QR scan, paiement MoMo)
