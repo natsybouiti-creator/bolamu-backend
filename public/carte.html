@@ -209,8 +209,8 @@
          border-right:1px solid #C3C5D7; display:flex; flex-direction:column;">
       
       <!-- En-tête panneau -->
-      <div style="padding:20px; border-bottom:1px solid #C3C5D7; 
-                  background:#0A2463; position:sticky; top:0; z-index:10;">
+      <div style="padding:20px; border-bottom:1px solid #C3C5D7;
+                  background:#003FB1; position:sticky; top:0; z-index:10;">
         <h1 style="color:#fff; font-size:1.125rem; font-weight:800; margin-bottom:12px;">
           Réseau Bolamu
         </h1>
@@ -485,22 +485,17 @@ function initMap() {
       <div style="font-weight:800;color:#0A2463;margin-bottom:8px;font-size:0.625rem;
                   text-transform:uppercase;letter-spacing:0.1em;">Légende</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <div style="width:12px;height:12px;border-radius:50%;background:#003FB1;"></div>
-        <span style="color:#434654;font-weight:600;">Clinique</span>
+        <span style="background:#003FB1;color:#ffffff;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">Clinique</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <div style="width:12px;height:12px;border-radius:50%;background:#00C9A7;"></div>
-        <span style="color:#434654;font-weight:600;">Pharmacie</span>
+        <span style="background:#00C9A7;color:#0A2463;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">Pharmacie</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div style="width:12px;height:12px;border-radius:50%;background:#434654;"></div>
-        <span style="color:#434654;font-weight:600;">Laboratoire</span>
+        <span style="background:#FF6B35;color:#ffffff;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">Laboratoire</span>
       </div>
       <div style="border-top:1px solid #C3C5D7;padding-top:8px;
                   display:flex;align-items:center;gap:8px;">
-        <div style="width:12px;height:12px;border-radius:50%;
-                    background:#FF6B35;border:2px solid #FF6B35;"></div>
-        <span style="color:#FF6B35;font-weight:700;font-size:0.625rem;">Partenaire Bolamu</span>
+        <span style="background:#FF6B35;color:#ffffff;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">Partenaire Bolamu</span>
       </div>
       <div style="margin-top:8px;font-size:0.625rem;color:#434654;font-style:italic;">
         Carte non exhaustive. D'autres établissements seront ajoutés.
@@ -583,14 +578,10 @@ function renderAll() {
       <div style="padding:10px 12px;flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
           ${e.partenaire ? `
-            <span style="background:rgba(255,107,53,0.10);color:#FF6B35;font-size:0.625rem;
-                         font-weight:800;text-transform:uppercase;letter-spacing:0.1em;
-                         padding:4px 12px;border-radius:9999px;white-space:nowrap;">
+            <span style="background:#FF6B35;color:#ffffff;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">
               Partenaire Bolamu
             </span>` : ''}
-          <span style="background:${typeColors[e.type]}1A;color:${typeColors[e.type]};
-                       font-size:0.625rem;font-weight:800;text-transform:uppercase;
-                       letter-spacing:0.1em;padding:4px 12px;border-radius:9999px;white-space:nowrap;">
+          <span style="background:${e.type === 'clinique' ? '#003FB1' : e.type === 'pharmacie' ? '#00C9A7' : '#FF6B35'};color:${e.type === 'pharmacie' ? '#0A2463' : '#ffffff'};font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;white-space:nowrap;">
             ${e.type}
           </span>
         </div>
@@ -619,9 +610,7 @@ function renderAll() {
     const popupContent = `
       <div style="font-family:'Plus Jakarta Sans',sans-serif;min-width:min(220px, calc(100vw - 60px));">
         ${e.partenaire ? `
-          <div style="background:rgba(255,107,53,0.10);color:#FF6B35;font-size:0.625rem;font-weight:800;
-                      text-transform:uppercase;letter-spacing:0.1em;padding:4px 12px;
-                      border-radius:9999px;margin-bottom:8px;display:inline-block;">
+          <div style="background:#FF6B35;color:#ffffff;font-size:0.5rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:9999px;border:none;margin-bottom:8px;display:inline-block;">
             Partenaire Bolamu
           </div>` : ''}
         <img src="${e.photo}" alt="${e.nom}" 
