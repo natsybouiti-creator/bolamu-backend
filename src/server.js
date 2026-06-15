@@ -50,6 +50,9 @@ app.use(express.static(path.join(__dirname, '../public'), {
   etag: true
 }));
 
+// Servir explicitement les pages statiques Zora sous /zora (AVANT les routes API et le catch-all)
+app.use('/zora', express.static(path.join(__dirname, '../public/zora')));
+
 // ============================================================
 // 1. MIDDLEWARES & CORS CONFIGURATION
 // ============================================================
@@ -280,8 +283,13 @@ app.get('/login', (req, res) => {
 // ============================================================
 // 6. ROUTE 404
 // ============================================================
-app.use((req, res) => {
-    res.status(404).json({ success: false, message: 'Route introuvable' });
+app.use((req, res, next) => {
+    const filePath = path.join(__dirname, '../public', req.path);
+    const fs = require('fs');
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      return res.sendFile(filePath);
+    }
+    return res.status(404).json({ success: false, message: 'Route introuvable' });
 });
 
 // ============================================================
