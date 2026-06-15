@@ -124,21 +124,20 @@
           position: absolute;
           pointer-events: none;
           z-index: 0;
-          width: 56px;
           height: auto;
-          opacity: 0.92;
-          mix-blend-mode: multiply;
+          opacity: 0.95;
+          mix-blend-mode: screen;
         }
-        .zora-deco:nth-child(1) { animation: zora-float-1 5s ease-in-out infinite; }
-        .zora-deco:nth-child(2) { animation: zora-float-2 6s ease-in-out infinite; animation-delay: 0.5s; }
-        .zora-deco:nth-child(3) { animation: zora-float-3 7s ease-in-out infinite; animation-delay: 1s; }
-        .zora-deco:nth-child(4) { animation: zora-float-1 5.5s ease-in-out infinite; animation-delay: 1.5s; }
-        .zora-deco:nth-child(5) { animation: zora-float-2 6.5s ease-in-out infinite; animation-delay: 2s; }
-        .zora-deco:nth-child(6) { animation: zora-float-3 4.5s ease-in-out infinite; animation-delay: 2.5s; }
-        .zora-deco:nth-child(7) { animation: zora-float-1 6s ease-in-out infinite; animation-delay: 0.8s; }
-        .zora-deco:nth-child(8) { animation: zora-float-2 5.5s ease-in-out infinite; animation-delay: 1.8s; }
-        .zora-deco:nth-child(9) { animation: zora-float-3 6.5s ease-in-out infinite; animation-delay: 2.2s; }
-        .zora-deco:nth-child(10) { animation: zora-float-1 7s ease-in-out infinite; animation-delay: 2.8s; }
+        .zora-deco:nth-child(1)  { animation: zora-float-1 5s   ease-in-out infinite; animation-delay: 0s; }
+        .zora-deco:nth-child(2)  { animation: zora-float-2 6s   ease-in-out infinite; animation-delay: 0.5s; }
+        .zora-deco:nth-child(3)  { animation: zora-float-3 7s   ease-in-out infinite; animation-delay: 1s; }
+        .zora-deco:nth-child(4)  { animation: zora-float-1 5.5s ease-in-out infinite; animation-delay: 1.5s; }
+        .zora-deco:nth-child(5)  { animation: zora-float-2 6.5s ease-in-out infinite; animation-delay: 2s; }
+        .zora-deco:nth-child(6)  { animation: zora-float-3 4.5s ease-in-out infinite; animation-delay: 2.5s; }
+        .zora-deco:nth-child(7)  { animation: zora-float-1 5.2s ease-in-out infinite; animation-delay: 0.8s; }
+        .zora-deco:nth-child(8)  { animation: zora-float-2 6.8s ease-in-out infinite; animation-delay: 1.8s; }
+        .zora-deco:nth-child(9)  { animation: zora-float-3 5.6s ease-in-out infinite; animation-delay: 2.2s; }
+        .zora-deco:nth-child(10) { animation: zora-float-1 7.2s ease-in-out infinite; animation-delay: 2.8s; }
         .zora-deco:nth-child(11) { animation: zora-float-2 5.8s ease-in-out infinite; animation-delay: 3.2s; }
         .zora-deco:nth-child(12) { animation: zora-float-3 6.2s ease-in-out infinite; animation-delay: 3.8s; }
         @keyframes zora-float-1 {
@@ -456,72 +455,70 @@
 </div>
 <!-- ZORA REWARDS BANNER -->
 <div class="bg-brand-orange/5 border border-brand-orange/20 rounded-[2.5rem] p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-visible">
-<!-- Pièce haut gauche -->
-<img src="/images/landing/masque-zora-coin.png" alt="" class="zora-deco" style="top:-24px;left:2%;width:52px;">
-<!-- Pièce haut droit -->
-<img src="/images/landing/masque-zora-coin.png" alt="" class="zora-deco" style="top:-16px;right:3%;width:60px;">
-<!-- Pièce milieu gauche -->
-<img src="/images/landing/masque-zora-coin.png" alt="" class="zora-deco" style="top:38%;left:0.5%;width:44px;">
-<!-- Pièce bas droit -->
-<img src="/images/landing/masque-zora-coin.png" alt="" class="zora-deco" style="bottom:8%;right:2%;width:50px;">
-<!-- Pièce bas gauche -->
-<img src="/images/landing/masque-zora-coin.png" alt="" class="zora-deco" style="bottom:12%;left:3%;width:48px;">
-<!-- Pièce haut centre -->
-<img src="/images/landing/masque-zora-coin.png" alt="" class="zora-deco" style="top:-18px;left:47%;width:42px;">
-<!-- Éclair haut gauche -->
-<svg class="zora-deco" style="top:-20px;left:12%;width:32px;height:32px;mix-blend-mode:normal;" viewBox="0 0 40 40">
+<!-- PIÈCES — tailles variées -->
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="top:-28px;left:2%;width:64px;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="top:-14px;right:3%;width:72px;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="top:35%;left:0.5%;width:40px;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="bottom:6%;right:2%;width:56px;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="bottom:14%;left:3%;width:48px;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="top:-20px;left:46%;width:36px;">
+
+<!-- ÉCLAIRS — tailles variées -->
+<svg class="zora-deco" style="top:-22px;left:15%;width:38px;height:38px;mix-blend-mode:normal;" viewBox="0 0 40 40">
   <defs><linearGradient id="boltA" x1="0%" y1="0%" x2="100%" y2="100%">
     <stop offset="0%" stop-color="#FFB199"/>
     <stop offset="50%" stop-color="#FF6B35"/>
     <stop offset="100%" stop-color="#D6481A"/>
   </linearGradient></defs>
-  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" fill="url(#boltA)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.5))"/>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" fill="url(#boltA)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.6))"/>
 </svg>
-<!-- Éclair bas droit -->
-<svg class="zora-deco" style="bottom:10%;right:12%;width:32px;height:32px;mix-blend-mode:normal;" viewBox="0 0 40 40">
+
+<svg class="zora-deco" style="bottom:9%;right:14%;width:28px;height:28px;mix-blend-mode:normal;" viewBox="0 0 40 40">
   <defs><linearGradient id="boltB" x1="0%" y1="0%" x2="100%" y2="100%">
     <stop offset="0%" stop-color="#FFB199"/>
     <stop offset="50%" stop-color="#FF6B35"/>
     <stop offset="100%" stop-color="#D6481A"/>
   </linearGradient></defs>
-  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" fill="url(#boltB)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.5))"/>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" fill="url(#boltB)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.6))"/>
 </svg>
-<!-- Étoile milieu gauche -->
-<svg class="zora-deco" style="top:40%;left:8%;width:30px;height:30px;mix-blend-mode:normal;" viewBox="0 0 38 38">
+
+<!-- ÉTOILES — tailles variées -->
+<svg class="zora-deco" style="top:44%;left:10%;width:34px;height:34px;mix-blend-mode:normal;" viewBox="0 0 38 38">
   <defs><radialGradient id="starA" cx="35%" cy="30%" r="75%">
     <stop offset="0%" stop-color="#FFE9A8"/>
     <stop offset="50%" stop-color="#F5A623"/>
     <stop offset="100%" stop-color="#C97D0F"/>
   </radialGradient></defs>
-  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13" fill="url(#starA)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.5))"/>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13" fill="url(#starA)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
 </svg>
-<!-- Étoile haut centre-droit -->
-<svg class="zora-deco" style="top:-15px;left:62%;width:28px;height:28px;mix-blend-mode:normal;" viewBox="0 0 38 38">
+
+<svg class="zora-deco" style="top:-16px;left:64%;width:24px;height:24px;mix-blend-mode:normal;" viewBox="0 0 38 38">
   <defs><radialGradient id="starB" cx="35%" cy="30%" r="75%">
     <stop offset="0%" stop-color="#FFE9A8"/>
     <stop offset="50%" stop-color="#F5A623"/>
     <stop offset="100%" stop-color="#C97D0F"/>
   </radialGradient></defs>
-  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13" fill="url(#starB)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.5))"/>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13" fill="url(#starB)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
 </svg>
-<!-- Cœur haut milieu-gauche -->
-<svg class="zora-deco" style="top:-10px;left:28%;width:30px;height:30px;mix-blend-mode:normal;" viewBox="0 0 40 40">
+
+<!-- CŒURS — tailles variées -->
+<svg class="zora-deco" style="top:-12px;left:30%;width:34px;height:34px;mix-blend-mode:normal;" viewBox="0 0 40 40">
   <defs><radialGradient id="heartA" cx="40%" cy="30%" r="70%">
     <stop offset="0%" stop-color="#FF9EBB"/>
     <stop offset="50%" stop-color="#FF4D7D"/>
     <stop offset="100%" stop-color="#CC1A4E"/>
   </radialGradient></defs>
-  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8 C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z" fill="url(#heartA)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.55))"/>
+  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8 C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z" fill="url(#heartA)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.6))"/>
   <path d="M13 7 C11 7 9 9 9 11" fill="none" stroke="#FFD0E0" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
 </svg>
-<!-- Cœur bas milieu-droit -->
-<svg class="zora-deco" style="bottom:14%;right:18%;width:26px;height:26px;mix-blend-mode:normal;" viewBox="0 0 40 40">
+
+<svg class="zora-deco" style="bottom:16%;right:19%;width:24px;height:24px;mix-blend-mode:normal;" viewBox="0 0 40 40">
   <defs><radialGradient id="heartB" cx="40%" cy="30%" r="70%">
     <stop offset="0%" stop-color="#FF9EBB"/>
     <stop offset="50%" stop-color="#FF4D7D"/>
     <stop offset="100%" stop-color="#CC1A4E"/>
   </radialGradient></defs>
-  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8 C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z" fill="url(#heartB)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.55))"/>
+  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8 C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z" fill="url(#heartB)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.6))"/>
   <path d="M13 7 C11 7 9 9 9 11" fill="none" stroke="#FFD0E0" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
 </svg>
 <div class="flex items-center gap-8 text-center lg:text-left flex-col lg:flex-row relative z-10">
