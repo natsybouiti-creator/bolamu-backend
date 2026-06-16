@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 15 juin 2026
+Mis à jour : 16 juin 2026
 Statut : EN PRODUCTION — https://api.bolamu.co
 www.bolamu.co — domaine custom actif avec SSL ✅
 Score Ayokai : 21/23 (91.3%)
@@ -387,7 +387,7 @@ admin, content_admin, secretaire, company_rh
 - Routes secretariat alignées frontend/backend ✅
 
 ### Partiel ⚠️
-- Africa's Talking (sandbox — activation Live en attente crédit)
+- Africa's Talking : SUPPRIMÉ ✅ — remplacé définitivement par WhatsApp Business API
 - Partner conventions ✅ IMPLÉMENTÉ — src/controllers/partner-convention.controller.js — routes POST/GET/PATCH /api/v1/admin/conventions — 3 conventions actives en base
 - Transactions tiers payant ✅ IMPLÉMENTÉ ET TESTÉ EN PRODUCTION — src/controllers/tiers-payant.controller.js — routes /api/v1/tiers-payant et /api/v1/admin/tiers-payant — test validé : 10 000 FCFA → remise 1 500 FCFA → patient paie 8 500 FCFA
 - Workflows agents Windsurf — 9 agents créés dans .windsurf/workflows/
@@ -398,7 +398,7 @@ admin, content_admin, secretaire, company_rh
 - rib_france_qonto dans platform_config — à renseigner dès ouverture compte
 
 ### Absent ❌
-- Notifications push
+- Notifications push : COMPLÉTÉ ✅ (Service Worker + BullMQ, déployé 28-30 mai 2026)
 - Domaine custom — bolamu.co disponible, achat en attente
 - Airtel Money — en attente credentials API
 
@@ -896,9 +896,12 @@ Total rôles : 9 (patient, doctor, pharmacie, laboratoire, admin, content_admin,
 - Footer institutionnel : secrétaire, RH, admin, agence, CGU, confidentialité
 
 ### Liens encore en href="#" (à connecter quand pages créées)
-Zora : /zora/recompenses.html, /zora/partenaires/voyages.html,
-       /zora/partenaires/telecom.html, /zora/partenaires/hotels.html,
-       /zora/partenaires/sport.html
+Zora partenaires : COMPLÉTÉ ✅ — 4 pages créées et déployées en production :
+       public/zora/partenaires/voyages.html
+       public/zora/partenaires/telecom.html
+       public/zora/partenaires/hotels.html
+       public/zora/partenaires/lifestyle.html
+       Restantes à créer : /zora/recompenses.html, /zora/partenaires/sport.html
 Elonga : /elonga/nutrition.html, /elonga/sport.html, /elonga/bilans.html
 Blog : /blog/index.html, /blog/nutrition-congolaise.html,
        /blog/stress-travail.html, /blog/grossesse-bolamu.html
@@ -994,9 +997,12 @@ Logement : agences immobilières, aide loyer
 ## PAGES À CRÉER (ROADMAP FRONTEND)
 
 Pages restantes à créer (dans l'ordre) :
-1. Zora : /zora/recompenses.html, /zora/partenaires/voyages.html,
-          /zora/partenaires/telecom.html, /zora/partenaires/hotels.html,
-          /zora/partenaires/sport.html
+1. Zora partenaires : COMPLÉTÉ ✅ — 4 pages créées et déployées en production :
+   public/zora/partenaires/voyages.html
+   public/zora/partenaires/telecom.html
+   public/zora/partenaires/hotels.html
+   public/zora/partenaires/lifestyle.html
+   Restantes à créer : /zora/recompenses.html, /zora/partenaires/sport.html
 2. Elonga : /elonga/nutrition.html, /elonga/sport.html, /elonga/bilans.html
 3. Blog : /blog/index.html, /blog/nutrition-congolaise.html,
           /blog/stress-travail.html, /blog/grossesse-bolamu.html
@@ -1009,3 +1015,115 @@ patient, medecin, pharmacie, laboratoire, admin, secretaire, rh, agence
 
 Tests Playwright : à implémenter après déploiement complet
 (workflows : inscription, connexion multi-rôles, RDV, QR scan, paiement MoMo)
+
+---
+
+# MISE À JOUR 16 juin 2026
+
+## FRONTEND LANDING & PAGES PARTENAIRES ZORA
+
+### Landing page (public/index.html)
+- ZORA REWARDS BANNER : 12 éléments décoratifs animés
+  (6 pièces PNG zora-coin-gold.png + 2 éclairs + 2 étoiles
+  + 2 cœurs) avec animations float désynchronisées
+- mix-blend-mode: multiply + filter brightness/saturate/drop-shadow
+- Liens vers 4 pages partenaires fonctionnels
+
+### Pages partenaires Zora (public/zora/partenaires/)
+Toutes créées, déployées, photos réelles intégrées :
+
+voyages.html :
+- Air France, Ethiopian Airlines, ASKY, ECAir
+- VTC & Taxi Bolamu, Location de Véhicule
+- Photo hero : femme heureuse (zora-telephone-heureux.png)
+- Déco gamification : pièces + éclairs + étoiles + cœurs animés
+- 2 étoiles supplémentaires autour carte hero
+
+telecom.html :
+- MTN Congo, Airtel Congo
+- Congo Telecom & CanalBox, FNAC & High-Tech
+- Boutique Accessoires & High-Tech, Zora Cash sur MoMo
+- Photo hero : retrait MoMo (zora-retrait-momo.png)
+- Déco pièces + étoiles autour carte virtuelle Bolamu
+
+hotels.html :
+- Kempinski (Brazzaville) → zora-kempinski.png
+- Hilton Pointe-Noire → zora-hilton-pnr.png
+- Villa Antonetti (Pointe-Noire) → zora-villa-antonetti.jpg
+
+lifestyle.html :
+- Titre neutre : "Faites-vous belle et beau, récompensé"
+- Salon beauté/coiffure → zora-salon-beaute.jpg
+- Box Beauté & Skincare (réduction uniquement, jamais offerte)
+  → zora-box-beaute.png
+- Salle de Sport & Fitness → zora-salle-sport.jpg
+- Station TotalEnergies → zora-station.png
+- Déco pièces + étoiles autour carte virtuelle Bolamu
+
+### RÈGLE CONTENU ZORA (permanente)
+Dans toutes les pages partenaires Zora, les avantages sont
+toujours des RÉDUCTIONS. Jamais "offert", "gratuit" ou
+"box offerte" sauf validation explicite.
+
+### IMAGES ZORA — inventaire /images/landing/
+zora-coin-gold.png (fond transparent, blend screen/multiply)
+zora-airfrance.jpg, zora-ethiopian.jpg, zora-asky.jpg,
+zora-ecair.jpg, zora-vtc-taxi.jpg, zora-location-voiture.jpg,
+zora-telephone-heureux.png, zora-mtn.png, zora-airtel.jpg,
+zora-congotelecom.jpg, zora-canalbox.jpg, zora-accessoires.jpg,
+zora-fnac.jpg, zora-retrait-momo.png, zora-kempinski.png,
+zora-hilton-pnr.png, zora-villa-antonetti.jpg,
+zora-salon-beaute.jpg, zora-box-beaute.png,
+zora-salle-sport.jpg, zora-station.png
+
+## SERVEUR
+
+Fix server.js (16 juin 2026) :
+- Mount explicite : app.use('/zora', express.static(...))
+  ajouté AVANT les routes API
+- Catch-all 404 modifié : vérifie fs.existsSync avant de
+  renvoyer JSON {success:false, message:'Route introuvable'}
+- Résultat : pages HTML statiques sous /zora/* servies
+  correctement sans être interceptées par les routes API
+
+## CARTE BOLAMU — DESIGN (16 juin 2026)
+
+Design carte adhérent Bolamu défini (pas encore codé) :
+
+RECTO :
+- Logo Bolamu (cercle turquoise #00C9A7 + B blanc)
+  + "BOLAMU · SANTÉ · CONGO"
+- Icône NFC haut droit (discret)
+- Photo adhérent (rectangle arrondi portrait)
+- Nom prénom en majuscules
+- Numéro adhérent format BLM-XXXX-XXXX
+- Badge DMN turquoise "Dossier Médical Numérique"
+- Badge niveau abonnement bas gauche
+- QR code bas droit (accès compte adhérent)
+- Fond dégradé navy #0A2463 → #003FB1
+- PAS de puce bancaire, PAS de CVV,
+  PAS de solde Zora visible, PAS de logo Mastercard/Visa
+
+VERSO :
+- Piste magnétique décorative
+- Zone signature
+- QR code "ACCÈS DMN" (dossier médical chiffré BHS/HMAC)
+- Bloc urgences : SAMU 15 / Pompiers 18 / Police 117 /
+  Bolamu (numéro à définir)
+- Mention légale NBA Gestion SARLU
+
+VARIANTES PRÉVUES (à coder) :
+- MOTO (2 000 FCFA) — accent gris/argent
+- NDEKO (5 000 FCFA) — accent turquoise #00C9A7
+- LIBOTA (10 000 FCFA) — accent or #F5A623
+- Bolamu Wellness (employés entreprises) — accent violet/premium
+- BolamuCare — profil à définir
+Police : Plus Jakarta Sans
+
+## WALLET DIGITAL (décision 16 juin 2026)
+- Apple Wallet (.pkpass) et Google Wallet Pass identifiés
+  comme cibles pour la carte virtuelle
+- Librairie Node.js : passkit-generator
+- Endpoint prévu : /api/v1/patient/wallet-pass
+- Bloqué : compte Apple Developer (99$/an) non encore souscrit
+- Status : PLANIFIÉ, pas encore implémenté
