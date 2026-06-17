@@ -17,22 +17,21 @@
       extend: {
         colors: {
           'brand-navy': '#0A2463',
-          'primary': '#003FB1',
           'brand-turquoise': '#00C9A7',
-          'surface': '#faf8ff',
-          'outline-variant': '#c3c5d7',
-          'on-surface': '#191b23',
+          'brand-orange': '#FF6B35',
+          'primary': '#003FB1',
+          'primary-fixed': '#DBE1FF',
+          'surface': '#FAF8FF',
+          'surface-container-low': '#F3F3FE',
+          'surface-container': '#EDEDF8',
+          'on-surface': '#191B23',
           'on-surface-variant': '#434654',
-          'error': '#ba1a1a',
-          'zora-gold': '#F59E0B',
+          'outline-variant': '#C3C5D7',
+          'error': '#BA1A1A',
+          'zora-gold': '#F5A623',
         },
-        fontFamily: {
-          sans: ['Plus Jakarta Sans', 'sans-serif'],
-        },
-        borderRadius: {
-          '3xl': '2rem',
-          'full': '9999px',
-        }
+        fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+        borderRadius: { '3xl': '2rem', 'full': '9999px' }
       }
     }
   }
@@ -68,9 +67,9 @@
     .bottom-nav{display:none;}
 
     /* ── MAIN ── */
-    .main{padding:80px 40px 80px 280px;max-width:1200px;margin:0 auto;}
-    @media(max-width:1024px){.main{padding:80px 20px 80px 20px;}}
-    @media(max-width:768px){.main{padding:72px 16px 80px 16px;}}
+    .main{padding:96px 40px 80px;max-width:1200px;margin:0 auto;}
+    @media(max-width:1024px){.main{padding:96px 20px 80px;}}
+    @media(max-width:768px){.main{padding:88px 16px 80px;}}
     .panel{display:none;}.panel.active{display:block;}
 
     /* ── HERO CARDS ── */
@@ -108,7 +107,24 @@
     .alert-warning{background:#fef9ec;border:1px solid #fcd34d;color:#92400e;}
     .alert-danger{background:#fde8e8;border:1px solid #fca5a5;color:#991b1b;}
     .alert-zora{background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(0,201,167,0.1));border:1px solid rgba(245,158,11,0.3);color:#92400e;display:flex;align-items:center;gap:0.75rem;padding:1rem 1.25rem;border-radius:1rem;}
-    .alert-zora .material-symbols-outlined{color:#F59E0B;font-size:1.5rem;}
+    .alert-zora .material-symbols-outlined{color:#F5A623;font-size:1.5rem;}
+
+    /* ── ZORA COMPONENTS ── */
+    .zora-balance-card{background:#0A2463;border-radius:24px;padding:24px;color:#ffffff;position:relative;overflow:hidden;}
+    .zora-balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,107,53,0.12);border-radius:50%;pointer-events:none;}
+    .zora-balance-card__header{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+    .zora-balance-card__label{font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.6);}
+    .zora-balance-card__amount{display:flex;align-items:baseline;gap:6px;margin-bottom:4px;}
+    .zora-balance-card__number{font-size:2.5rem;font-weight:800;color:#ffffff;letter-spacing:-0.02em;}
+    .zora-balance-card__unit{font-size:1rem;font-weight:600;color:rgba(255,255,255,0.5);}
+    .zora-balance-card__sub{font-size:0.75rem;color:#00C9A7;font-weight:600;margin-bottom:20px;}
+    .zora-balance-card__bar-wrap{background:rgba(255,255,255,0.10);border-radius:9999px;height:6px;margin-bottom:8px;}
+    .zora-balance-card__bar{height:100%;width:var(--progress,0%);background:#FF6B35;border-radius:9999px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+    .zora-balance-card__bar-labels{display:flex;justify-content:space-between;font-size:0.625rem;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+    .elonga-rank{display:inline-flex;align-items:center;gap:10px;background:rgba(245,166,35,0.10);border:1px solid rgba(245,166,35,0.30);border-radius:14px;padding:10px 16px;}
+    .elonga-rank__icon{color:#F5A623;font-size:24px;display:flex;}
+    .elonga-rank__name{font-size:0.875rem;font-weight:800;color:#0A2463;}
+    .elonga-rank__sub{font-size:0.6875rem;font-weight:600;color:#434654;}
 
     /* ── SECTION HEADER ── */
     .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
@@ -438,7 +454,7 @@
     <div class="bg-gradient-to-r from-zora-gold/20 to-brand-turquoise/20 border border-zora-gold/30 rounded-xl p-4 mb-6 flex items-center gap-3">
       <span class="material-symbols-outlined text-zora-gold text-2xl">stars</span>
       <div>
-        <div class="font-black text-brand-navy text-sm">Zora Points</div>
+        <div class="font-extrabold text-brand-navy text-sm">Zora Points</div>
         <div class="text-xs text-on-surface-variant/60">+50 points pour chaque consultation complétée</div>
       </div>
     </div>
@@ -554,7 +570,7 @@
       <div style="background:var(--bleu-pale);border-radius:16px;padding:20px;margin-bottom:20px;">
         <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:16px;">Récapitulatif de votre RDV</div>
         <div id="recap-medecin" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-          <div style="width:40px;height:40px;border-radius:12px;background:var(--grad-btn);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">👨‍⚕️</div>
+          <div style="width:40px;height:40px;border-radius:12px;background:var(--grad-btn);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;"><span class="material-symbols-outlined">stethoscope</span></div>
           <div><div style="font-weight:700;" id="recap-doctor-name">—</div><div style="font-size:13px;color:var(--texte-doux);" id="recap-datetime">—</div></div>
         </div>
         <div style="margin-bottom:10px;">
@@ -571,7 +587,7 @@
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="btn-back-step2">← Modifier</button>
-        <button class="btn-confirm" id="btn-confirm-final">✅ Confirmer mon RDV</button>
+        <button class="btn-confirm" id="btn-confirm-final">Confirmer mon RDV</button>
       </div>
     </div>
   </div>
@@ -584,17 +600,17 @@
     <div class="bg-gradient-to-r from-zora-gold/20 to-brand-turquoise/20 border border-zora-gold/30 rounded-xl p-4 mb-6 flex items-center justify-center gap-3">
       <span class="material-symbols-outlined text-zora-gold text-2xl">stars</span>
       <div>
-        <div class="font-black text-brand-navy text-sm">+50 Zora Points</div>
+        <div class="font-extrabold text-brand-navy text-sm">+50 Zora Points</div>
         <div class="text-xs text-on-surface-variant/60">Points ajoutés après consultation</div>
       </div>
     </div>
     
-    <div style="font-size:52px;margin-bottom:12px;">✅</div>
+    <div style="font-size:52px;margin-bottom:12px;"><span class="material-symbols-outlined text-brand-turquoise" style="font-size:52px;">check_circle</span></div>
     <h2 style="margin-bottom:8px;">RDV confirmé !</h2>
     <p style="color:var(--texte-doux);font-size:14px;margin-bottom:8px;">Présentez ce code au médecin lors de votre consultation.</p>
     <div class="code-display" id="success-code">—</div>
     <p style="font-size:13px;color:var(--texte-doux);margin-bottom:8px;" id="success-details"></p>
-    <p style="font-size:13px;color:var(--vert);font-weight:600;margin-bottom:24px;">📲 Un SMS de confirmation a été envoyé.</p>
+    <p style="font-size:13px;color:var(--vert);font-weight:600;margin-bottom:24px;">Un SMS de confirmation a été envoyé.</p>
     <button class="btn-confirm" id="btn-close-success">Fermer</button>
   </div>
 </div>
@@ -613,64 +629,52 @@
   </div>
 </div>
 
-<!-- TOPBAR -->
-<header class="fixed top-0 left-[240px] right-0 h-16 bg-white/80 backdrop-blur-md border-b border-outline-variant/30 flex items-center justify-between px-8 z-40">
+<!-- NAVBAR STICKY -->
+<header class="sticky top-0 z-50 bg-[rgba(250,248,255,0.80)] backdrop-blur-md border-b border-outline-variant/30 px-5 py-4 flex items-center justify-between">
   <div class="flex items-center gap-3">
-    <img src="/assets/images/bolamu-logo-final.png" class="h-9 w-9 rounded-full" alt="Bolamu"/>
-    <span class="font-extrabold text-brand-navy text-lg">Bolamu</span>
+    <img src="/images/landing/bolamu-logo-512.png" class="h-12 w-12 object-contain rounded-full" alt="Bolamu"/>
+    <span class="font-extrabold text-brand-navy text-lg hidden md:inline">Bolamu</span>
   </div>
-  <div id="topbar-zora-badge" class="flex items-center gap-2 bg-zora-gold/10 border border-zora-gold/30 rounded-full px-4 py-1.5">
-    <span class="material-symbols-outlined text-zora-gold text-base">stars</span>
-    <span id="topbar-zora-points" class="text-zora-gold font-black text-xs">— pts</span>
-    <span id="topbar-zora-tier" class="text-zora-gold font-black text-xs"></span>
-  </div>
-  <div class="flex items-center gap-4">
-    <span id="topbar-phone" class="text-on-surface-variant font-bold text-sm"></span>
-    <span id="topbar-plan" class="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-black"></span>
-    <button id="btn-logout" onclick="logout()" class="border border-outline-variant text-on-surface-variant text-xs font-black rounded-full px-4 py-1.5 hover:bg-surface transition">
+
+  <nav class="hidden md:flex items-center gap-1">
+    <a id="tab-accueil" class="tab active flex items-center gap-2 px-4 py-2 rounded-full text-primary font-bold bg-primary/10 cursor-pointer" onclick="showTab('accueil', this)">
+      <span class="material-symbols-outlined text-[20px]">home</span><span class="text-sm">Accueil</span>
+    </a>
+    <a id="tab-medecins" class="tab flex items-center gap-2 px-4 py-2 rounded-full text-on-surface-variant font-bold hover:bg-surface-container cursor-pointer transition" onclick="showTab('medecins', this)">
+      <span class="material-symbols-outlined text-[20px]">stethoscope</span><span class="text-sm">Médecins</span>
+    </a>
+    <a id="tab-dossier" class="tab flex items-center gap-2 px-4 py-2 rounded-full text-on-surface-variant font-bold hover:bg-surface-container cursor-pointer transition" onclick="showTab('dossier', this)">
+      <span class="material-symbols-outlined text-[20px]">folder_shared</span><span class="text-sm">Dossier</span>
+    </a>
+    <a id="tab-credits" class="tab relative flex items-center gap-2 px-4 py-2 rounded-full text-on-surface-variant font-bold hover:bg-surface-container cursor-pointer transition" onclick="showTab('credits', this)">
+      <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1; color:#FF6B35;">stars</span>
+      <span class="text-sm">Zora</span>
+      <span class="absolute top-1 right-1 w-2 h-2 bg-brand-orange rounded-full animate-pulse"></span>
+    </a>
+    <a id="tab-carte" class="tab flex items-center gap-2 px-4 py-2 rounded-full text-on-surface-variant font-bold hover:bg-surface-container cursor-pointer transition" onclick="showTab('carte', this)">
+      <span class="material-symbols-outlined text-[20px]">map</span><span class="text-sm">Partenaires</span>
+    </a>
+    <a id="tab-conflits" class="tab flex items-center gap-2 px-4 py-2 rounded-full text-on-surface-variant font-bold hover:bg-surface-container cursor-pointer transition" onclick="showTab('conflits', this)">
+      <span class="material-symbols-outlined text-[20px]">support_agent</span><span class="text-sm">Conflits</span>
+    </a>
+    <a id="tab-profil" class="tab flex items-center gap-2 px-4 py-2 rounded-full text-on-surface-variant font-bold hover:bg-surface-container cursor-pointer transition" onclick="showTab('profil', this)">
+      <span class="material-symbols-outlined text-[20px]">account_circle</span><span class="text-sm">Profil</span>
+    </a>
+  </nav>
+
+  <div class="flex items-center gap-3">
+    <div id="topbar-elonga-rank" class="elonga-rank hidden lg:inline-flex">
+      <span class="elonga-rank__icon material-symbols-outlined" style="font-variation-settings:'FILL' 1;">workspace_premium</span>
+      <div>
+        <div id="topbar-zora-tier" class="elonga-rank__name">—</div>
+      </div>
+    </div>
+    <span id="topbar-phone" class="text-on-surface-variant font-bold text-sm hidden md:inline"></span>
+    <button id="btn-logout" onclick="logout()" class="border border-outline-variant text-on-surface-variant text-xs font-bold rounded-full px-4 py-2 hover:bg-surface-container transition">
       <span class="material-symbols-outlined text-sm align-middle mr-1">logout</span>Déconnexion
     </button>
   </div>
 </header>
-
-<!-- TABS DESKTOP (SIDEBAR) -->
-<aside class="fixed left-0 top-0 h-screen w-[240px] bg-white border-r border-outline-variant/30 flex flex-col z-50 pt-0">
-  <div class="flex items-center gap-3 px-6 h-16 border-b border-outline-variant/30">
-    <img src="/assets/images/bolamu-logo-final.png" class="h-9 w-9 rounded-full" alt="Bolamu"/>
-    <span class="font-extrabold text-brand-navy text-lg">Bolamu</span>
-  </div>
-  <nav class="flex-1 py-4 px-3 space-y-1">
-    <a id="tab-accueil" class="tab active flex items-center gap-3 px-4 py-3.5 text-primary font-bold bg-primary/10 border-l-4 border-primary rounded-r-2xl cursor-pointer" onclick="showTab('accueil', this)">
-      <span class="material-symbols-outlined text-[22px]">home</span>
-      <span class="text-sm">Accueil</span>
-    </a>
-    <a id="tab-medecins" class="tab flex items-center gap-3 px-4 py-3.5 text-on-surface-variant font-bold hover:bg-surface rounded-r-2xl cursor-pointer transition" onclick="showTab('medecins', this)">
-      <span class="material-symbols-outlined text-[22px]">stethoscope</span>
-      <span class="text-sm">Médecins</span>
-    </a>
-    <a id="tab-dossier" class="tab flex items-center gap-3 px-4 py-3.5 text-on-surface-variant font-bold hover:bg-surface rounded-r-2xl cursor-pointer transition" onclick="showTab('dossier', this)">
-      <span class="material-symbols-outlined text-[22px]">folder_shared</span>
-      <span class="text-sm">Dossier</span>
-    </a>
-    <a id="tab-credits" class="tab relative flex items-center gap-3 px-4 py-3.5 text-on-surface-variant font-bold hover:bg-surface rounded-r-2xl cursor-pointer transition" onclick="showTab('credits', this)">
-      <span class="material-symbols-outlined text-[22px]">stars</span>
-      <span class="absolute top-3 left-7 w-2 h-2 bg-zora-gold rounded-full animate-pulse"></span>
-      <span class="text-sm">Zora</span>
-    </a>
-    <a id="tab-carte" class="tab flex items-center gap-3 px-4 py-3.5 text-on-surface-variant font-bold hover:bg-surface rounded-r-2xl cursor-pointer transition" onclick="showTab('carte', this)">
-      <span class="material-symbols-outlined text-[22px]">map</span>
-      <span class="text-sm">Partenaires</span>
-    </a>
-    <a id="tab-conflits" class="tab flex items-center gap-3 px-4 py-3.5 text-on-surface-variant font-bold hover:bg-surface rounded-r-2xl cursor-pointer transition" onclick="showTab('conflits', this)">
-      <span class="material-symbols-outlined text-[22px]">support_agent</span>
-      <span class="text-sm">Conflits</span>
-    </a>
-    <a id="tab-profil" class="tab flex items-center gap-3 px-4 py-3.5 text-on-surface-variant font-bold hover:bg-surface rounded-r-2xl cursor-pointer transition" onclick="showTab('profil', this)">
-      <span class="material-symbols-outlined text-[22px]">account_circle</span>
-      <span class="text-sm">Profil</span>
-    </a>
-  </nav>
-</aside>
 
 <!-- BOTTOM NAV MOBILE -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-outline-variant/30 flex items-center justify-around py-2 z-40 md:hidden">
@@ -711,12 +715,20 @@
   <div class="panel active" id="panel-accueil">
     <div id="alert-box"></div>
     
-    <!-- Bandeau Zora -->
-    <div class="bg-gradient-to-r from-zora-gold/20 to-brand-turquoise/20 border border-zora-gold/30 rounded-2xl p-6 mb-6 flex items-center gap-4">
-      <span class="material-symbols-outlined text-zora-gold text-4xl">stars</span>
-      <div>
-        <h3 class="font-black text-brand-navy text-lg">Bienvenue sur Zora</h3>
-        <p class="text-on-surface-variant text-sm">Gagnez des points à chaque consultation et débloquez des avantages exclusifs</p>
+    <!-- Bandeau Zora avec badge elonga-rank -->
+    <div class="bg-gradient-to-r from-zora-gold/20 to-brand-turquoise/20 border border-zora-gold/30 rounded-2xl p-6 mb-6 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <span class="material-symbols-outlined text-zora-gold text-4xl">stars</span>
+        <div>
+          <h3 class="font-extrabold text-brand-navy text-lg">Bienvenue sur Zora</h3>
+          <p class="text-on-surface-variant text-sm">Gagnez des points à chaque consultation et débloquez des avantages exclusifs</p>
+        </div>
+      </div>
+      <div id="accueil-elonga-rank" class="elonga-rank">
+        <span class="elonga-rank__icon material-symbols-outlined" style="font-variation-settings:'FILL' 1;">workspace_premium</span>
+        <div>
+          <div id="accueil-zora-tier" class="elonga-rank__name">—</div>
+        </div>
       </div>
     </div>
 
@@ -735,7 +747,7 @@
       </div>
       <div class="qr-card" style="text-align:center;padding:32px 20px;">
         <div id="qrcode" style="display:flex;justify-content:center;"></div>
-        <p style="margin-top:12px;font-size:14px;">📱 Montrez ce QR à votre partenaire Bolamu</p>
+        <p style="margin-top:12px;font-size:14px;">Montrez ce QR à votre partenaire Bolamu</p>
         <span id="qr-countdown" style="font-size:11px;color:var(--vert);font-weight:600;"></span>
         <button id="btn-refresh-qr" onclick="initQR()" style="display:none;margin-top:12px;padding:8px 16px;background:var(--grad-btn);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Actualiser mon QR</button>
       </div>
@@ -767,7 +779,7 @@
       <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:900;margin-bottom:8px;">Accédez à tous les services de santé</div>
       <div style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;line-height:1.6;">Consultations illimitées, ordonnances numériques, laboratoires partenaires et bien plus.</div>
       <button id="btn-abonner-accueil" data-plan="essentiel" style="padding:14px 32px;background:var(--grad-btn);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:52px;">
-        💳 S'abonner via MTN MoMo →
+        S'abonner via MTN MoMo →
       </button>
     </div>
   </div>
@@ -800,7 +812,7 @@
         <div class="info-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <h3 style="margin:0;">Constantes médicales</h3>
-            <button id="btn-edit-constantes" style="background:var(--turquoise,#00C9A7);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">✏️ Modifier</button>
+            <button id="btn-edit-constantes" style="background:var(--turquoise,#00C9A7);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">edit</span> Modifier</button>
           </div>
           <div class="info-row"><span class="info-label">Groupe sanguin</span><span class="info-value" id="dos-groupe-sanguin">—</span></div>
           <div class="info-row"><span class="info-label">Allergies</span><span class="info-value" id="dos-allergies">—</span></div>
@@ -815,7 +827,7 @@
         <div class="info-card">
           <h3>Code QR d'urgence</h3>
           <p style="font-size:13px;color:var(--texte-doux);margin-bottom:12px;line-height:1.6;">En cas d'urgence, ce QR code permet au médecin d'accéder à vos informations vitales.</p>
-          <button class="btn-rdv" id="btn-generer-qr">🔬 Générer mon QR d'urgence</button>
+          <button class="btn-rdv" id="btn-generer-qr">Générer mon QR d'urgence</button>
         </div>
         <div class="info-card">
           <h3>Historique des accès</h3>
@@ -831,12 +843,12 @@
 
   <!-- CARTE -->
   <div class="panel" id="panel-carte">
-    <div class="section-header"><h2 class="section-title-dash">🗺️ Trouver un intervenant</h2></div>
+    <div class="section-header"><h2 class="section-title-dash">Trouver un intervenant</h2></div>
     <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
       <button id="filter-all" data-filter="all" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--vert,#00C9A7);color:white;font-size:13px;cursor:pointer;font-weight:600;">Tous</button>
-      <button id="filter-doctor" data-filter="doctor" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">🩺 Médecins</button>
-      <button id="filter-pharmacie" data-filter="pharmacie" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">💊 Pharmacies</button>
-      <button id="filter-laboratoire" data-filter="laboratoire" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;">🔬 Labos</button>
+      <button id="filter-doctor" data-filter="doctor" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">stethoscope</span> Médecins</button>
+      <button id="filter-pharmacie" data-filter="pharmacie" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">medication</span> Pharmacies</button>
+      <button id="filter-laboratoire" data-filter="laboratoire" style="padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px;cursor:pointer;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">science</span> Labos</button>
     </div>
     <div id="map-container" style="height:400px;border-radius:16px;overflow:hidden;border:1px solid var(--border);"></div>
     <div id="map-list" style="margin-top:16px;"></div>
@@ -844,16 +856,23 @@
 
   <!-- CRÉDITS (ZORA) -->
   <div class="panel" id="panel-credits">
-    <!-- Hero Zora -->
-    <div class="bg-gradient-to-br from-zora-gold to-amber-600 rounded-3xl p-8 mb-6 text-white relative overflow-hidden">
-      <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-      <div class="relative z-10">
-        <div class="flex items-center gap-3 mb-4">
-          <span class="material-symbols-outlined text-5xl">stars</span>
-          <h2 class="font-black text-3xl">Zora Points</h2>
-        </div>
-        <div class="font-black text-6xl mb-2" id="cr-balance">—</div>
-        <p class="text-white/80 font-medium">points disponibles</p>
+    <!-- Zora Balance Card (composant canonique) -->
+    <div class="zora-balance-card">
+      <div class="zora-balance-card__header">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1; color:#FF6B35; font-size:28px;">stars</span>
+        <span class="zora-balance-card__label">Vos Zora</span>
+      </div>
+      <div class="zora-balance-card__amount">
+        <span id="cr-balance" class="zora-balance-card__number">0</span>
+        <span class="zora-balance-card__unit">pts</span>
+      </div>
+      <div id="zora-cash-projected" class="zora-balance-card__sub"></div>
+      <div class="zora-balance-card__bar-wrap">
+        <div id="zora-tier-bar" class="zora-balance-card__bar" style="--progress:0%"></div>
+      </div>
+      <div class="zora-balance-card__bar-labels">
+        <span id="zora-tier-label">—</span>
+        <span id="zora-tier-next">—</span>
       </div>
     </div>
 
@@ -885,15 +904,15 @@
     <div class="grid grid-cols-3 gap-4 mb-6">
       <div class="bg-white border border-outline-variant/30 rounded-2xl p-4">
         <div class="text-xs font-bold text-on-surface-variant/60 uppercase tracking-wider mb-1">Mois consécutifs</div>
-        <div class="font-black text-2xl text-brand-navy" id="cr-months">—</div>
+        <div class="font-extrabold text-2xl text-brand-navy" id="cr-months">—</div>
       </div>
       <div class="bg-white border border-outline-variant/30 rounded-2xl p-4">
         <div class="text-xs font-bold text-on-surface-variant/60 uppercase tracking-wider mb-1">Total gagné</div>
-        <div class="font-black text-2xl text-brand-turquoise" id="cr-earned">—</div>
+        <div class="font-extrabold text-2xl text-brand-turquoise" id="cr-earned">—</div>
       </div>
       <div class="bg-white border border-outline-variant/30 rounded-2xl p-4">
         <div class="text-xs font-bold text-on-surface-variant/60 uppercase tracking-wider mb-1">Total dépensé</div>
-        <div class="font-black text-2xl text-error" id="cr-spent">—</div>
+        <div class="font-extrabold text-2xl text-error" id="cr-spent">—</div>
       </div>
     </div>
 
@@ -946,7 +965,7 @@
   <!-- CONFLITS -->
   <div class="panel" id="panel-conflits">
     <div class="section-header">
-      <h2 class="section-title-dash">⚖️ Mes conflits</h2>
+      <h2 class="section-title-dash">Mes conflits</h2>
       <button class="btn-filter" data-action="open-nouveau-conflit">+ Nouveau conflit</button>
     </div>
     <div id="conflits-list"><div class="loading">Chargement…</div></div>
@@ -957,7 +976,7 @@
     <div class="section-header"><h2 class="section-title-dash">Mon profil</h2></div>
     <div class="profil-layout">
       <div class="profil-card-main">
-        <div class="profil-avatar-big">👤</div>
+        <div class="profil-avatar-big"><span class="material-symbols-outlined" style="font-size:48px;">person</span></div>
         <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:900;color:white;margin-bottom:4px;" id="profil-fullname">—</div>
         <div class="profil-phone" id="profil-phone">—</div>
         <div class="profil-plan-badge" id="profil-plan-badge">—</div>
@@ -984,14 +1003,14 @@
           <div class="detail-row"><span class="info-label">Statut</span><span id="d-statut">—</span></div>
           <div style="margin-top:16px;">
             <button id="btn-renouveler" data-plan="essentiel" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
-              💳 Renouveler via MoMo →
+              Renouveler via MoMo →
             </button>
           </div>
         </div>
         <div class="detail-card">
           <h3>Sécurité & accès</h3>
           <div class="detail-row"><span class="info-label">Connexion</span><span class="info-value">Mot de passe permanent</span></div>
-          <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">✅ AES-256</span></div>
+          <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;color:var(--vert);">check_circle</span> AES-256</span></div>
           <div class="detail-row"><span class="info-label">Paiement</span><span class="info-value">MTN MoMo / Airtel Money</span></div>
           <div style="margin-top:16px;" id="pwd-form-container">
             <button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
