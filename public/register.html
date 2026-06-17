@@ -94,10 +94,228 @@
         }
     </script>
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #faf8ff; }
-    .soft-card { background: #ffffff; border: 1px solid #c3c5d7; }
-    .alert-error { background: #ffdad6; color: #93000a; border: 1px solid #ba1a1a; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; }
-    .alert-success { background: #d4f5ee; color: #005344; border: 1px solid #00C9A7; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; }
+    /* BASE */
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #faf8ff; margin: 0; }
+
+    /* ALERTS */
+    .alert-error { background: #ffdad6; color: #93000a; border: 1px solid #ba1a1a; padding: 14px 18px; border-radius: 16px; font-weight: 700; font-size: 14px; margin-bottom: 16px; }
+    .alert-success { background: #d4f5ee; color: #005344; border: 1px solid #00C9A7; padding: 14px 18px; border-radius: 16px; font-weight: 700; font-size: 14px; margin-bottom: 16px; }
+
+    /* ── ROLE CARDS (renderStep1) ── */
+    .role-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .role-card {
+      background: #ffffff;
+      border: 2px solid #c3c5d7;
+      border-radius: 20px;
+      padding: 24px 20px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .role-card:hover {
+      border-color: #003fb1;
+      box-shadow: 0 8px 24px rgba(0,63,177,0.10);
+      transform: translateY(-2px);
+    }
+    .role-card.selected {
+      border-color: #003fb1;
+      background: #f0f4ff;
+      box-shadow: 0 8px 24px rgba(0,63,177,0.15);
+    }
+    .role-card .role-icon {
+      width: 48px; height: 48px;
+      background: rgba(0,63,177,0.08);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: #003fb1;
+      font-size: 24px;
+    }
+    .role-card.selected .role-icon {
+      background: #003fb1;
+      color: #ffffff;
+    }
+    .role-card .role-name {
+      font-size: 15px; font-weight: 800; color: #0A2463; line-height: 1.2;
+    }
+    .role-card .role-desc {
+      font-size: 12px; font-weight: 500; color: #434654; line-height: 1.4;
+    }
+    .role-card .role-check {
+      position: absolute; top: 12px; right: 12px;
+      width: 22px; height: 22px;
+      background: #003fb1; border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+    }
+    .role-card.selected .role-check { display: flex; }
+    .role-card .role-check::after {
+      content: '✓'; color: white; font-size: 12px; font-weight: 800;
+    }
+
+    /* ── STEP BUTTON ── */
+    .btn-step {
+      width: 100%; padding: 16px;
+      background: #003fb1; color: white;
+      border-radius: 9999px; font-weight: 800; font-size: 16px;
+      cursor: pointer; border: none;
+      transition: all 0.2s;
+      box-shadow: 0 8px 24px rgba(0,63,177,0.25);
+    }
+    .btn-step:hover { background: #0A2463; transform: translateY(-2px); }
+    .btn-step:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-step-outline {
+      width: 100%; padding: 14px;
+      background: transparent; color: #003fb1;
+      border-radius: 9999px; font-weight: 700; font-size: 15px;
+      cursor: pointer; border: 2px solid #003fb1;
+      transition: all 0.2s; margin-top: 12px;
+    }
+    .btn-step-outline:hover { background: #003fb1; color: white; }
+
+    /* ── FORM FIELDS (steps 2-3-4) ── */
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 700; color: #0A2463; margin-bottom: 8px; }
+    .form-input {
+      width: 100%; padding: 14px 18px;
+      border-radius: 16px; border: 2px solid #c3c5d7;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px; font-weight: 500; color: #191b23;
+      background: #ffffff; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box;
+    }
+    .form-input:focus { border-color: #003fb1; box-shadow: 0 0 0 4px rgba(0,63,177,0.08); }
+    .form-input::placeholder { color: rgba(67,70,84,0.4); }
+    .form-select {
+      width: 100%; padding: 14px 18px;
+      border-radius: 16px; border: 2px solid #c3c5d7;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px; font-weight: 500; color: #191b23;
+      background: #ffffff; outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23434654' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 16px center;
+      padding-right: 44px;
+    }
+    .form-select:focus { border-color: #003fb1; }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border: 2px dashed #c3c5d7; border-radius: 20px;
+      padding: 32px 20px; text-align: center;
+      cursor: pointer; transition: all 0.2s;
+      background: #faf8ff;
+    }
+    .upload-zone:hover { border-color: #003fb1; background: #f0f4ff; }
+    .upload-zone.uploaded { border-color: #00C9A7; background: #f0fdf9; border-style: solid; }
+    .upload-zone .upload-icon { font-size: 40px; color: #c3c5d7; margin-bottom: 12px; }
+    .upload-zone.uploaded .upload-icon { color: #00C9A7; }
+    .upload-zone .upload-text { font-size: 14px; font-weight: 700; color: #434654; margin-bottom: 4px; }
+    .upload-zone .upload-sub { font-size: 12px; color: #737686; font-weight: 500; }
+
+    /* ── SCORE BAR ── */
+    .score-bar-wrap { background: #ededf8; border-radius: 9999px; height: 8px; margin: 8px 0; overflow: hidden; }
+    .score-bar { height: 100%; border-radius: 9999px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+    .score-bar.low { background: #ba1a1a; }
+    .score-bar.medium { background: #FF6B35; }
+    .score-bar.high { background: #00C9A7; }
+
+    /* ── LANG CHIPS ── */
+    .lang-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .lang-chip {
+      padding: 6px 14px; border-radius: 9999px;
+      font-size: 12px; font-weight: 700;
+      border: 2px solid #c3c5d7; cursor: pointer;
+      transition: all 0.15s; color: #434654; background: #ffffff;
+    }
+    .lang-chip.active { background: #003fb1; color: #ffffff; border-color: #003fb1; }
+
+    /* ── CHECKBOX CGU ── */
+    .checkbox-group { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: #f3f3fe; border-radius: 16px; margin-bottom: 20px; }
+    .checkbox-group input[type=checkbox] { width: 20px; height: 20px; accent-color: #003fb1; flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+    .checkbox-group label { font-size: 13px; font-weight: 600; color: #434654; line-height: 1.5; cursor: pointer; }
+    .checkbox-group label a { color: #003fb1; font-weight: 700; }
+
+    /* ── CONFIRMATION ── */
+    .confirm-card {
+      background: #ffffff; border: 1px solid #c3c5d7;
+      border-radius: 20px; padding: 24px; margin-bottom: 16px;
+    }
+    .confirm-card .confirm-label { font-size: 11px; font-weight: 800; color: #737686; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .confirm-card .confirm-value { font-size: 15px; font-weight: 700; color: #0A2463; }
+
+    /* ── CAMERA / PHOTO ── */
+    .camera-preview { width: 100%; border-radius: 20px; overflow: hidden; background: #191b23; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; }
+    .photo-preview { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #00C9A7; margin: 0 auto 16px; display: block; }
+
+    /* ── FORM ROW ── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── PHONE GROUP ── */
+    .phone-group { display: flex; gap: 10px; }
+    .country-code {
+      width: 110px; flex-shrink: 0;
+      border: 2px solid #c3c5d7; border-radius: 16px;
+      padding: 14px 12px; font-size: 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif; color: #191b23;
+      outline: none; background: white; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23434654' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      transition: border-color 0.2s;
+    }
+    .country-code:focus { border-color: #003fb1; }
+
+    /* ── HINT ── */
+    .hint { font-size: 12px; color: #737686; margin-top: 6px; line-height: 1.5; }
+
+    /* ── INTL INFO ── */
+    .intl-info {
+      background: linear-gradient(135deg, rgba(46,134,255,0.08), rgba(124,58,237,0.08));
+      border: 1px solid rgba(46,134,255,0.2);
+      border-radius: 16px; padding: 14px 16px;
+      margin-bottom: 18px; font-size: 13px; color: #434654; line-height: 1.6;
+    }
+
+    /* ── PHOTO CAPTURE ── */
+    .photo-capture-bloc {
+      border: 2px dashed #c3c5d7; border-radius: 20px;
+      padding: 20px; text-align: center;
+    }
+    .photo-placeholder { font-size: 40px; color: #c3c5d7; }
+    .photo-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+
+    /* ── SCORE BAR ── */
+    .score-bar-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+    .score-bar-bg { background: #c3c5d7; border-radius: 9999px; height: 8px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 9999px; background: linear-gradient(90deg, #003fb1, #00C9A7); transition: width 0.5s; }
+    .score-label { font-weight: 700; color: #003fb1; }
+
+    /* ── CGU BOX ── */
+    .cgu-box {
+      background: #f3f3fe; border-radius: 16px;
+      padding: 16px; max-height: 120px; overflow-y: auto;
+      font-size: 12px; color: #434654; line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .checkbox-row { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; cursor: pointer; }
+    .checkbox-row input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; flex-shrink: 0; margin-top: 2px; accent-color: #003fb1; }
+
+    /* ── PILLS PROGRESS ── */
+    .pill-active { background: #003fb1 !important; color: #ffffff !important; }
+    .pill-done { background: #00C9A7 !important; color: #ffffff !important; }
+    .pill-inactive { background: rgba(195,197,215,0.3) !important; color: #434654 !important; }
   </style>
 </head>
 <body>
@@ -215,12 +433,14 @@ function updateHeader(label,title,sub){
   document.getElementById('step-sub').textContent=sub;
   for(let i=1;i<=4;i++){
     const pill=document.getElementById('pill-'+i);
-    pill.className='step-pill'+(i<state.step?' done':i===state.step?' active':'');
+    if(i<state.step){pill.className='w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all pill-done';}
+    else if(i===state.step){pill.className='w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all pill-active';}
+    else{pill.className='w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all pill-inactive';}
   }
 }
 
 function showAlert(msg,type='error'){
-  document.getElementById('alert-box').innerHTML=`<div class="alert alert-${type}">${msg}</div>`;
+  document.getElementById('alert-box').innerHTML=`<div class="alert-${type}">${msg}</div>`;
   setTimeout(()=>{document.getElementById('alert-box').innerHTML='';},5000);
 }
 
@@ -228,30 +448,41 @@ function renderStep1(){
   state.step=1;
   updateHeader('Étape 1 sur 4','Choisissez votre rôle','Bolamu s\'adapte à votre profil pour vous offrir la meilleure expérience.');
   document.getElementById('step-content').innerHTML=`
-    <div class="role-grid">
+    <div class="role-cards-grid">
       <div class="role-card ${state.role==='patient'?'selected':''}" id="role-patient">
-        <div class="role-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-        <div class="role-name">Patient</div>
-        <div class="role-desc">Accédez aux soins facilement</div>
+        <div class="role-check"></div>
+        <div class="role-icon"><span class="material-symbols-outlined">person</span></div>
+        <div>
+          <div class="role-name">Patient</div>
+          <div class="role-desc">Accédez aux soins facilement</div>
+        </div>
       </div>
       <div class="role-card ${state.role==='doctor'?'selected':''}" id="role-doctor">
-        <div class="role-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M8 21h8"/></svg></div>
-        <div class="role-name">Médecin</div>
-        <div class="role-desc">Congo ou international</div>
-        <div class="intl-badge">International</div>
+        <div class="role-check"></div>
+        <div class="role-icon"><span class="material-symbols-outlined">medical_services</span></div>
+        <div>
+          <div class="role-name">Médecin</div>
+          <div class="role-desc">Congo ou international</div>
+        </div>
       </div>
       <div class="role-card ${state.role==='pharmacie'?'selected':''}" id="role-pharmacie">
-        <div class="role-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
-        <div class="role-name">Pharmacie</div>
-        <div class="role-desc">Partenaire ordonnances</div>
+        <div class="role-check"></div>
+        <div class="role-icon"><span class="material-symbols-outlined">local_pharmacy</span></div>
+        <div>
+          <div class="role-name">Pharmacie</div>
+          <div class="role-desc">Partenaire ordonnances</div>
+        </div>
       </div>
       <div class="role-card ${state.role==='laboratoire'?'selected':''}" id="role-laboratoire">
-        <div class="role-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5A6E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-        <div class="role-name">Laboratoire</div>
-        <div class="role-desc">Analyses médicales</div>
+        <div class="role-check"></div>
+        <div class="role-icon"><span class="material-symbols-outlined">biotech</span></div>
+        <div>
+          <div class="role-name">Laboratoire</div>
+          <div class="role-desc">Analyses médicales</div>
+        </div>
       </div>
     </div>
-    <button class="btn-primary" ${!state.role?'disabled':''} id="btn-step1">Continuer →</button>`;
+    <button class="btn-step" ${!state.role?'disabled':''} id="btn-step1">Continuer →</button>`;
 }
 
 function selectRole(role){state.role=role;renderStep1();}
@@ -337,8 +568,8 @@ function renderStep2(){
     </div>
     ${extraFields}
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" id="btn-back-step2" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" id="btn-step2" style="flex:1;margin-top:0;">Continuer →</button>
+      <button class="btn-step-outline" id="btn-back-step2">← Retour</button>
+      <button class="btn-step" id="btn-step2">Continuer →</button>
     </div>`;
 
   detectInternational();
@@ -403,7 +634,7 @@ function renderStep3(){
   if(isDoctor){
     const specOptions=SPECIALTIES.map(s=>`<option value="${s}" ${s===state.specialty?'selected':''}>${s}</option>`).join('');
     const orderCountryOptions=COUNTRIES.map(c=>`<option value="${c.name}" ${c.name===state.orderCountry?'selected':''}>${c.flag} ${c.name}</option>`).join('');
-    const langChips=LANGUAGES.map(l=>`<div class="lang-chip ${state.consultationLanguages.includes(l)?'selected':''}" data-lang="${l}">${l}</div>`).join('');
+    const langChips=LANGUAGES.map(l=>`<div class="lang-chip ${state.consultationLanguages.includes(l)?'active':''}" data-lang="${l}">${l}</div>`).join('');
     proFields=`
       <div class="form-group" style="margin-top:20px;">
         <label class="form-label">Spécialité <span class="required">*</span></label>
@@ -461,8 +692,8 @@ function renderStep3(){
           <div class="photo-placeholder">📷</div>
         </div>
         <div class="photo-actions">
-          <button type="button" class="btn-secondary" onclick="regOpenCamera()">📷 Prendre photo</button>
-          <button type="button" class="btn-secondary" onclick="document.getElementById('reg-photo-input').click()">📁 Choisir fichier</button>
+          <button type="button" class="btn-step-outline" onclick="regOpenCamera()">📷 Prendre photo</button>
+          <button type="button" class="btn-step-outline" onclick="document.getElementById('reg-photo-input').click()">📁 Choisir fichier</button>
           <input type="file" id="reg-photo-input" accept="image/*" style="display:none" onchange="regHandlePhotoUpload(this)" />
         </div>
         <video id="reg-camera" autoplay playsinline style="display:none;width:100%;max-width:320px;border-radius:14px;margin-top:12px;"></video>
@@ -483,19 +714,19 @@ function renderStep3(){
         <label for="reg-etab-nom">Nom de l'établissement *</label>
         <input type="text" id="reg-etab-nom" name="etablissement_nom"
                placeholder="Ex : Clinique Médicale Securex, Pharmacie de la Paix..."
-               class="form-control" />
+               class="form-input" />
       </div>
       <div class="form-group">
         <label for="reg-etab-adresse">Adresse de l'établissement *</label>
         <input type="text" id="reg-etab-adresse" name="etablissement_adresse"
                placeholder="Ex : Avenue du Havre, Face Base Total, Pointe-Noire"
-               class="form-control"
+               class="form-input"
                oninput="debounceGeocodeRegister()" />
         <div id="reg-geocode-result" style="font-size:11px;color:#636e72;margin-top:4px;"></div>
       </div>
       <div class="form-group">
         <label for="reg-etab-ville">Ville *</label>
-        <select id="reg-etab-ville" name="etablissement_ville" class="form-control">
+        <select id="reg-etab-ville" name="etablissement_ville" class="form-select">
           <option value="Brazzaville">Brazzaville</option>
           <option value="Pointe-Noire">Pointe-Noire</option>
           <option value="Dolisie">Dolisie</option>
@@ -517,8 +748,8 @@ function renderStep3(){
       <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;">Plus votre profil est complet, plus vous serez mis en avant.</p>
     </div>`:''}
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" id="btn-back-step3" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" id="btn-step3" style="flex:1;margin-top:0;">Continuer →</button>
+      <button class="btn-step-outline" id="btn-back-step3">← Retour</button>
+      <button class="btn-step" id="btn-step3">Continuer →</button>
     </div>`;
 
   calcScore();
@@ -529,7 +760,7 @@ function toggleLang(lang){
   if(idx>=0)state.consultationLanguages.splice(idx,1);
   else state.consultationLanguages.push(lang);
   document.querySelectorAll('.lang-chip').forEach(el=>{
-    el.className='lang-chip'+(state.consultationLanguages.includes(el.textContent)?' selected':'');
+    el.className='lang-chip'+(state.consultationLanguages.includes(el.textContent)?' active':'');
   });
 }
 
@@ -638,15 +869,13 @@ function renderStep4(){
       <strong>5. Médecins internationaux</strong> — Les médecins étrangers certifient être en règle avec l'ordre de leur pays.<br><br>
       <strong>6. Droit applicable</strong> — Ces CGU sont soumises au droit de la République du Congo.
     </div>
-    <div style="margin-bottom:20px;">
-      <label class="checkbox-row">
-        <input type="checkbox" id="cgu-check">
-        <span>J'ai lu et j'accepte les Conditions Générales d'Utilisation de Bolamu</span>
-      </label>
+    <div class="checkbox-group">
+      <input type="checkbox" id="cgu-check">
+      <label>J'ai lu et j'accepte les Conditions Générales d'Utilisation de Bolamu</label>
     </div>
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" id="btn-back-step4" style="flex:0.4;">← Retour</button>
-      <button class="btn-primary" id="btn-register" style="flex:1;margin-top:0;">Créer mon compte Bolamu</button>
+      <button class="btn-step-outline" id="btn-back-step4">← Retour</button>
+      <button class="btn-step" id="btn-register">Créer mon compte Bolamu</button>
     </div>`;
 }
 
