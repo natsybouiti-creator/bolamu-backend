@@ -6,7 +6,7 @@
 const Groq = require('groq-sdk');
 const pool = require('../config/db');
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null;
 
 const SYSTEM_AMINA = `Tu es Amina, assistante médicale IA de Bolamu,
 plateforme de santé primaire au Congo-Brazzaville.

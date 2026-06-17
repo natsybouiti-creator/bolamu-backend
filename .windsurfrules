@@ -99,3 +99,29 @@ Après lecture, résume en 3 points ce que tu as retenu avant toute action.
 - Repo GitHub : natsybouiti-creator/bolamu-backend
 - Backend URL : api.bolamu.co
 - Après chaque push sur main, vérifier le déploiement automatique Render
+
+---
+
+## DESIGN SYSTEM — OBLIGATOIRE
+Avant toute modification ou création d'un fichier HTML/CSS dans public/, lis docs/design_system.md
+N'utilise JAMAIS une couleur, police, ombre ou border-radius non définis dans docs/design_system.md
+Toutes les interfaces utilisent la soft-card, btn-primary, et les tokens de couleur Bolamu définis dans ce fichier
+Le fond global est toujours #FAF8FF (var surface), jamais blanc pur ni gris générique
+La police est TOUJOURS Plus Jakarta Sans — aucune exception
+
+## ARCHITECTURE FICHIERS
+Les dashboards et pages statiques sont dans public/
+Ne modifie jamais les fichiers Next.js générés automatiquement (404.html, index.html racine, _not-found/)
+Limite de croissance : max 3% de taille par commit sur les fichiers existants
+
+## SÉCURITÉ ET DONNÉES
+Aucune donnée de santé individuelle ne doit apparaître dans les dashboards RH ou Agence
+Les dashboards RH affichent uniquement des scores agrégés (ICP équipe), jamais par individu
+Respecte le BHP (Bolamu Health Protocol) : consentement tracé, accès need-to-know, logs immutables
+
+## STACK TECHNIQUE
+Backend : Node.js / Express sur Render Pro
+Base de données : PostgreSQL sur Neon
+Frontend statique : HTML/CSS/JS vanilla dans public/
+Tailwind CSS via CDN avec tailwind.config inline dans chaque fichier HTML
+Icônes : Material Symbols Outlined uniquement

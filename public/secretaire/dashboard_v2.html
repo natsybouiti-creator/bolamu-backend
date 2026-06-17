@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bolamu — Secrétariat</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<meta name="theme-color" content="#003fb1">
+<link rel="manifest" href="/manifest.json">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface": "#faf8ff",
+        "surface-dim": "#d9d9e4",
+        "surface-bright": "#faf8ff",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f3f3fe",
+        "surface-container": "#ededf8",
+        "surface-container-high": "#e7e7f3",
+        "surface-container-highest": "#e2e1ed",
+        "on-surface": "#191b23",
+        "on-surface-variant": "#434654",
+        "inverse-surface": "#2e3039",
+        "inverse-on-surface": "#f0f0fb",
+        "outline": "#737686",
+        "outline-variant": "#c3c5d7",
+        "primary": "#003fb1",
+        "primary-container": "#1a56db",
+        "primary-fixed": "#dbe1ff",
+        "primary-fixed-dim": "#b5c4ff",
+        "on-primary": "#ffffff",
+        "on-primary-container": "#d4dcff",
+        "on-primary-fixed": "#00174d",
+        "on-primary-fixed-variant": "#003dab",
+        "inverse-primary": "#b5c4ff",
+        "secondary": "#475b9c",
+        "secondary-container": "#a2b6fd",
+        "secondary-fixed": "#dce1ff",
+        "secondary-fixed-dim": "#b5c4ff",
+        "on-secondary": "#ffffff",
+        "on-secondary-container": "#314685",
+        "on-secondary-fixed": "#00164d",
+        "on-secondary-fixed-variant": "#2e4382",
+        "tertiary": "#005344",
+        "tertiary-container": "#006e5a",
+        "tertiary-fixed": "#5ffbd6",
+        "tertiary-fixed-dim": "#38debb",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-container": "#58f5d1",
+        "on-tertiary-fixed": "#002019",
+        "on-tertiary-fixed-variant": "#005142",
+        "error": "#ba1a1a",
+        "error-container": "#ffdad6",
+        "on-error": "#ffffff",
+        "on-error-container": "#93000a",
+        "background": "#faf8ff",
+        "on-background": "#191b23",
+        "surface-tint": "#1353d8",
+        "surface-variant": "#e2e1ed",
+        "gamify-streak": "#F59E0B",
+        "gamify-points": "#2E86FF",
+        "gamify-progress": "#00C9A7"
+      },
+      borderRadius: {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px",
+        "card": "20px"
+      },
+      spacing: {
+        "gutter": "16px",
+        "base": "8px",
+        "xs": "4px",
+        "sm": "12px",
+        "md": "24px",
+        "lg": "40px",
+        "xl": "64px",
+        "container-margin": "20px"
+      },
+      fontFamily: {
+        "sans": ["Plus Jakarta Sans", "sans-serif"],
+        "label-md": ["Plus Jakarta Sans"],
+        "label-sm": ["Plus Jakarta Sans"],
+        "body-md": ["Plus Jakarta Sans"],
+        "body-lg": ["Plus Jakarta Sans"],
+        "headline-md": ["Plus Jakarta Sans"],
+        "headline-lg": ["Plus Jakarta Sans"],
+        "display-lg": ["Plus Jakarta Sans"]
+      }
+    }
+  }
+}
+</script>
+<style>
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+.soft-shadow { box-shadow: 0px 10px 30px rgba(26, 86, 219, 0.08); }
+.soft-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #c3c5d7;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.soft-card:hover { box-shadow: 0px 10px 30px rgba(26, 86, 219, 0.08); }
+.pulse-dot { animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+@keyframes pulse-ring {
+  0% { transform: scale(.33); opacity: 1; }
+  80%, 100% { opacity: 0; }
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #e2e1ed; border-radius: 10px; }
+.tab { display: none; }
+.tab.active { display: block; }
+.nav-item { transition: all 0.2s; }
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,36,99,0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+/* Mobile bottom nav */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid #c3c5d7;
+  height: 64px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@media (max-width: 768px) {
+  aside { display: none !important; }
+  .bottom-nav { display: flex; }
+  .main-content { margin-left: 0 !important; padding-bottom: 72px; }
+  table thead { display: none; }
+  table tbody tr {
+    display: block;
+    background: white;
+    border: 1px solid #c3c5d7;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+  }
+  table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 5px 0;
+    border: none;
+    font-size: 13px;
+    gap: 8px;
+  }
+  table tbody td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #434654;
+    white-space: nowrap;
+    min-width: 90px;
+  }
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+var QRDetector = null;
+if (typeof BarcodeDetector !== 'undefined') {
+  try { QRDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head>
+<body class="bg-surface text-on-surface font-sans min-h-screen flex overflow-hidden">
+
+<!-- SIDEBAR -->
+<aside class="w-64 bg-surface-container-lowest border-r border-outline-variant flex flex-col h-screen fixed left-0 top-0 z-50">
+  <div class="p-md space-y-md">
+    <div class="flex items-center gap-sm">
+      <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-on-primary font-extrabold text-xl">B</div>
+      <div>
+        <h1 class="font-bold text-[18px] text-primary leading-none">Bola<span style="color:#00C9A7">mu</span></h1>
+        <p class="text-[10px] uppercase tracking-wider text-outline font-bold">ADSP · Congo</p>
+      </div>
+    </div>
+  </div>
+  
+  <nav class="flex-1 px-sm space-y-xs overflow-y-auto">
+    <button class="nav-item flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg w-full text-left transition-all" data-tab="accueil">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="font-semibold text-sm">Accueil</span>
+    </button>
+    <button class="nav-item flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg w-full text-left transition-all" data-tab="agenda">
+      <span class="material-symbols-outlined">calendar_today</span>
+      <span class="font-semibold text-sm">Agenda</span>
+    </button>
+    <button class="nav-item flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg w-full text-left transition-all" data-tab="patients">
+      <span class="material-symbols-outlined">group</span>
+      <span class="font-semibold text-sm">Patients</span>
+    </button>
+    <button class="nav-item flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg w-full text-left transition-all" data-tab="verifier">
+      <span class="material-symbols-outlined">verified_user</span>
+      <span class="font-semibold text-sm">Vérifier adhérent</span>
+    </button>
+    <button class="nav-item flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg w-full text-left transition-all" data-tab="medecins">
+      <span class="material-symbols-outlined">medical_services</span>
+      <span class="font-semibold text-sm">Médecins</span>
+    </button>
+    <button class="nav-item flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg w-full text-left transition-all" data-tab="clinique">
+      <span class="material-symbols-outlined">apartment</span>
+      <span class="font-semibold text-sm">Ma Clinique</span>
+    </button>
+  </nav>
+  
+  <div class="mt-auto pt-md border-t border-outline-variant space-y-xs">
+    <div class="px-sm py-xs">
+      <p class="font-bold text-sm text-on-surface" id="sidebar-clinic-name">...</p>
+      <p class="text-[11px] text-outline" id="sidebar-clinic-city">...</p>
+    </div>
+    <button onclick="logout()" class="nav-item flex items-center gap-sm px-md py-sm text-error hover:bg-error-container/20 rounded-lg w-full text-left transition-all">
+      <span class="material-symbols-outlined">logout</span>
+      <span class="font-semibold text-sm">Déconnexion</span>
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 flex flex-col min-w-0 relative h-screen overflow-hidden main-content ml-64">
+  
+  <!-- TOPBAR -->
+  <header class="sticky top-0 z-40 flex justify-between items-center w-full px-lg h-16 backdrop-blur-xl border-b border-outline-variant bg-surface/80">
+    <div class="flex items-center gap-md">
+      <h2 class="font-bold text-[20px] text-primary" id="page-title">Accueil</h2>
+      <div class="h-6 w-px bg-outline-variant/50"></div>
+      <div class="hidden md:flex items-center gap-2 text-on-surface-variant font-medium text-sm" id="topbar-date"></div>
+    </div>
+    <div class="flex items-center gap-md">
+      <!-- Gamification pills -->
+      <div class="hidden lg:flex items-center gap-sm bg-surface-container-low px-sm py-xs rounded-full border border-outline-variant">
+        <div class="flex items-center gap-1">
+          <span class="material-symbols-outlined text-[#F59E0B]" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+          <span class="font-bold text-sm text-on-surface">14 jours</span>
+        </div>
+        <div class="w-px h-4 bg-outline-variant"></div>
+        <div class="flex items-center gap-1">
+          <span class="material-symbols-outlined text-[#FFD700]" style="font-variation-settings:'FILL' 1">monetization_on</span>
+          <span class="font-bold text-sm text-on-surface">450 pts</span>
+        </div>
+      </div>
+      <div class="w-px h-6 bg-outline-variant/30"></div>
+      <div class="flex items-center gap-sm">
+        <div class="text-right hidden xl:block">
+          <p class="font-bold text-sm text-on-surface" id="user-name">—</p>
+          <p class="text-[11px] text-outline">Secrétaire</p>
+        </div>
+        <div>
+          <p class="font-bold text-sm text-on-surface hidden md:block" id="clinic-name">—</p>
+          <p class="text-[11px] text-outline hidden md:block" id="clinic-city">—</p>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <!-- CANVAS -->
+  <div class="flex-1 overflow-y-auto bg-surface p-lg space-y-lg">
+    
+    <!-- TAB ACCUEIL -->
+    <section id="tab-accueil" class="tab active">
+      <!-- Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+        <div class="bg-surface-container-lowest border border-outline-variant p-md rounded-card flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-outline text-[10px] font-bold uppercase tracking-wider">En attente</p>
+            <h3 class="font-extrabold text-[28px] text-on-surface" id="stat-en-attente">—</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-error-container/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-error">pending</span>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest border border-outline-variant p-md rounded-card flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-outline text-[10px] font-bold uppercase tracking-wider">En consultation</p>
+            <h3 class="font-extrabold text-[28px] text-on-surface" id="stat-en-consultation">—</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-[#E6FAF7] flex items-center justify-center">
+            <span class="material-symbols-outlined text-tertiary">stethoscope</span>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest border border-outline-variant p-md rounded-card flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-outline text-[10px] font-bold uppercase tracking-wider">RDV aujourd'hui</p>
+            <h3 class="font-extrabold text-[28px] text-on-surface" id="stat-rdv-aujourd-hui">—</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-primary-fixed/30 flex items-center justify-center">
+            <span class="material-symbols-outlined text-primary">event_available</span>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest border border-outline-variant p-md rounded-card flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-outline text-[10px] font-bold uppercase tracking-wider">Médecins actifs</p>
+            <h3 class="font-extrabold text-[28px] text-on-surface" id="stat-medecins-actifs">—</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-secondary-fixed/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-secondary">medical_services</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Vérification adhérent -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-card p-md">
+        <h4 class="font-bold text-[16px] text-on-surface mb-sm">Vérifier un adhérent</h4>
+        <div class="flex gap-sm">
+          <div class="relative flex-1">
+            <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input type="text" id="verify-input"
+              placeholder="Numéro ou nom du patient..."
+              class="w-full pl-xl pr-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+            />
+          </div>
+          <button onclick="verifierAdherent()"
+            class="px-md py-sm bg-tertiary text-on-tertiary rounded-xl font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">verified_user</span>
+            Vérifier
+          </button>
+          <button onclick="openScannerModal()"
+            class="px-md py-sm bg-primary-container text-on-primary rounded-xl font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+            Scanner
+          </button>
+        </div>
+        <div id="verify-result" class="mt-sm"></div>
+      </div>
+      
+      <!-- File d'attente -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-card">
+        <div class="p-md flex justify-between items-center border-b border-outline-variant/30">
+          <h4 class="font-bold text-[18px] text-on-surface">File d'attente</h4>
+          <div class="flex gap-sm">
+            <button onclick="openRdvManuel()"
+              class="flex items-center gap-1 px-md py-sm bg-primary text-on-primary rounded-full font-bold text-sm hover:opacity-90 transition-opacity">
+              <span class="material-symbols-outlined text-[18px]">add</span>
+              Nouveau RDV
+            </button>
+            <button onclick="openUrgence()"
+              class="flex items-center gap-1 px-md py-sm bg-error text-on-error rounded-full font-bold text-sm hover:opacity-90 transition-opacity">
+              <span class="material-symbols-outlined text-[18px]">warning</span>
+              Urgence
+            </button>
+          </div>
+        </div>
+        <div class="divide-y divide-outline-variant/20" id="queue-table-wrapper">
+          <table class="w-full">
+            <thead class="bg-surface-container-low/50">
+              <tr>
+                <th class="px-md py-3 text-left text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Patient</th>
+                <th class="px-md py-3 text-left text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Heure</th>
+                <th class="px-md py-3 text-left text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Médecin</th>
+                <th class="px-md py-3 text-left text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Statut</th>
+                <th class="px-md py-3 text-right text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="queue-table"></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Rewards banner -->
+      <section class="bg-gradient-to-r from-primary to-secondary rounded-card p-xl relative overflow-hidden text-on-primary">
+        <div class="relative z-10 space-y-md max-w-lg">
+          <div class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[12px] font-bold uppercase tracking-wider">
+            Mission du jour
+          </div>
+          <h2 class="font-bold text-[20px] leading-tight">Validez 5 rendez-vous de plus pour gagner 500 Bolamu Coins !</h2>
+          <div class="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+            <div class="w-[60%] h-full bg-[#FF6B35] rounded-full"></div>
+          </div>
+          <p class="text-sm opacity-80 italic">"Votre efficacité améliore les soins de nos patients."</p>
+        </div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 right-12 -translate-y-1/2 hidden md:block">
+          <span class="material-symbols-outlined text-[120px] text-white/10">military_tech</span>
+        </div>
+      </section>
+    </section>
+    
+    <!-- TAB AGENDA -->
+    <section id="tab-agenda" class="tab space-y-lg">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+        <div class="space-y-xs">
+          <p class="text-primary font-bold tracking-widest uppercase text-[12px]">Rendez-vous</p>
+          <h1 class="font-bold text-[28px] text-on-surface leading-tight">Agenda médecin</h1>
+          <p class="text-outline">Consultez et gérez les rendez-vous par médecin.</p>
+        </div>
+        <div class="flex flex-col gap-xs w-full md:w-72">
+          <label class="text-[11px] text-primary uppercase tracking-wider font-bold">Sélectionner un médecin</label>
+          <div class="relative">
+            <select id="rdv-select-medecin" onchange="chargerRdvMedecin()"
+              class="w-full appearance-none bg-surface-container-low border border-outline-variant rounded-xl px-md py-sm font-semibold text-sm text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer">
+              <option value="">-- Sélectionner un médecin --</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+          </div>
+        </div>
+      </div>
+      <div id="rdv-liste-container" class="space-y-sm">
+        <div class="text-center text-on-surface-variant text-sm py-10">
+          Sélectionnez un médecin pour voir ses rendez-vous.
+        </div>
+      </div>
+    </section>
+    
+    <!-- TAB PATIENTS -->
+    <section id="tab-patients" class="tab space-y-lg">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+        <div class="space-y-xs">
+          <p class="text-primary font-bold tracking-widest uppercase text-[12px]">Annuaire</p>
+          <h1 class="font-bold text-[28px] text-on-surface">Patients</h1>
+        </div>
+        <div class="relative w-full md:w-80">
+          <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+          <input type="text" id="patient-search"
+            placeholder="Rechercher par nom ou téléphone..."
+            class="w-full pl-xl pr-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+          />
+        </div>
+      </div>
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-card overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-surface-container-low/50">
+            <tr>
+              <th class="px-md py-3 text-left text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Nom</th>
+              <th class="px-md py-3 text-left text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Téléphone</th>
+              <th class="px-md py-3 text-left text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Abonnement</th>
+              <th class="px-md py-3 text-right text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="patients-table" class="divide-y divide-outline-variant/20"></tbody>
+        </table>
+      </div>
+    </section>
+    
+    <!-- TAB VERIFIER -->
+    <section id="tab-verifier" class="tab space-y-lg">
+      <div class="space-y-xs">
+        <p class="text-primary font-bold tracking-widest uppercase text-[12px]">Accueil</p>
+        <h1 class="font-bold text-[28px] text-on-surface">Vérifier un adhérent</h1>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-card p-md space-y-sm">
+          <h4 class="font-bold text-[16px]">Recherche manuelle</h4>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input type="text" id="search-patient-input-sec-tab"
+              placeholder="Téléphone, nom..."
+              class="w-full pl-xl pr-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+            />
+          </div>
+          <button id="btn-search-patient-sec-tab"
+            class="w-full py-sm bg-primary text-on-primary rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">
+            Rechercher
+          </button>
+        </div>
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-card p-md space-y-sm">
+          <h4 class="font-bold text-[16px]">Scanner QR Code</h4>
+          <div id="qr-reader-sec-tab" class="w-full rounded-xl overflow-hidden"></div>
+          <p id="scanner-status-sec-tab" class="text-center text-[12px] text-outline">Pointez la caméra vers le QR code</p>
+          <div class="flex gap-sm">
+            <button id="btn-start-scanner-sec-tab"
+              class="flex-1 py-sm bg-primary-container text-on-primary rounded-xl font-bold text-sm hover:opacity-90">
+              Activer la caméra
+            </button>
+            <button id="btn-stop-scanner-sec-tab" style="display:none"
+              class="flex-1 py-sm bg-surface-container text-on-surface-variant rounded-xl font-bold text-sm">
+              Arrêter
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="scanner-result-sec-tab" style="display:none"
+        class="bg-surface-container-lowest border border-outline-variant rounded-card p-md">
+      </div>
+    </section>
+    
+    <!-- TAB MEDECINS -->
+    <section id="tab-medecins" class="tab space-y-lg">
+      <div class="space-y-xs">
+        <p class="text-primary font-bold tracking-widest uppercase text-[12px]">Équipe médicale</p>
+        <h1 class="font-bold text-[28px] text-on-surface">Médecins de la clinique</h1>
+      </div>
+      <div id="medecins-list" class="space-y-sm">
+        <div class="text-center text-on-surface-variant text-sm py-10">Chargement...</div>
+      </div>
+    </section>
+    
+    <!-- TAB CLINIQUE -->
+    <section id="tab-clinique" class="tab space-y-lg">
+      <div class="space-y-xs">
+        <p class="text-primary font-bold tracking-widest uppercase text-[12px]">Profil</p>
+        <h1 class="font-bold text-[28px] text-on-surface">Ma Clinique</h1>
+      </div>
+      <div id="clinic-profile-card" class="bg-surface-container-lowest border border-outline-variant rounded-card p-md">
+        <div class="text-on-surface-variant text-sm">Chargement...</div>
+      </div>
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-card p-md space-y-md">
+        <div>
+          <h3 class="font-bold text-[18px] text-on-surface">Catalogue des soins SSP Bolamu</h3>
+          <p class="text-outline text-sm mt-1">Soins couverts pour tout abonné actif</p>
+        </div>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+          <input type="text" id="catalogue-search"
+            placeholder="Rechercher un soin, médicament ou examen..."
+            oninput="filterCatalogue(this.value)"
+            class="w-full pl-xl pr-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+          />
+        </div>
+        <div id="catalogue-filters" class="flex flex-wrap gap-xs"></div>
+        <div id="catalogue-list" class="space-y-xs"></div>
+      </div>
+    </section>
+    
+  </div>
+</main>
+
+<!-- BOTTOM NAV MOBILE -->
+<nav class="bottom-nav" id="secretaire-bottom-nav">
+  <div class="flex h-full items-center justify-around px-1">
+    <button class="bnav-item flex flex-col items-center justify-center gap-1 flex-1 py-2 border-none bg-transparent cursor-pointer" data-tab="accueil">
+      <span class="material-symbols-outlined text-[20px] text-on-surface-variant">dashboard</span>
+      <span class="text-[10px] font-semibold text-on-surface-variant">Accueil</span>
+    </button>
+    <button class="bnav-item flex flex-col items-center justify-center gap-1 flex-1 py-2 border-none bg-transparent cursor-pointer" data-tab="agenda">
+      <span class="material-symbols-outlined text-[20px] text-on-surface-variant">calendar_today</span>
+      <span class="text-[10px] font-semibold text-on-surface-variant">Agenda</span>
+    </button>
+    <button class="bnav-item flex flex-col items-center justify-center gap-1 flex-1 py-2 border-none bg-transparent cursor-pointer" data-tab="patients">
+      <span class="material-symbols-outlined text-[20px] text-on-surface-variant">group</span>
+      <span class="text-[10px] font-semibold text-on-surface-variant">Patients</span>
+    </button>
+    <button class="bnav-item flex flex-col items-center justify-center gap-1 flex-1 py-2 border-none bg-transparent cursor-pointer" data-tab="verifier">
+      <span class="material-symbols-outlined text-[20px] text-on-surface-variant">verified_user</span>
+      <span class="text-[10px] font-semibold text-on-surface-variant">Vérifier</span>
+    </button>
+    <button class="bnav-item flex flex-col items-center justify-center gap-1 flex-1 py-2 border-none bg-transparent cursor-pointer" data-tab="medecins">
+      <span class="material-symbols-outlined text-[20px] text-on-surface-variant">medical_services</span>
+      <span class="text-[10px] font-semibold text-on-surface-variant">Médecins</span>
+    </button>
+    <button onclick="logout()" class="flex flex-col items-center justify-center gap-1 flex-1 py-2 border-none bg-transparent cursor-pointer">
+      <span class="material-symbols-outlined text-[20px] text-error">logout</span>
+      <span class="text-[10px] font-semibold text-error">Quitter</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MODALS (copiés depuis dashboard.html avec classes Tailwind mises à jour) -->
+<div class="modal-overlay" id="modal-emploi-du-temps">
+  <div class="modal">
+    <h3 class="font-bold text-[20px] text-on-surface mb-md">Emploi du temps</h3>
+    <div id="emploi-du-temps-content"></div>
+    <button onclick="closeModal('modal-emploi-du-temps')" class="mt-md w-full py-sm bg-surface-container text-on-surface-variant rounded-full font-bold text-sm border border-outline-variant">Fermer</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-rdv-manuel">
+  <div class="modal">
+    <h3 class="font-bold text-[20px] text-on-surface mb-md">Nouveau rendez-vous</h3>
+    <div class="space-y-sm">
+      <div>
+        <label class="text-[11px] text-primary uppercase tracking-wider font-bold">Téléphone patient</label>
+        <input type="text" id="rdv-phone" class="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="+242..." />
+      </div>
+      <div>
+        <label class="text-[11px] text-primary uppercase tracking-wider font-bold">Médecin</label>
+        <select id="rdv-doctor" class="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20">
+          <option value="">-- Sélectionner --</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-sm">
+        <div>
+          <label class="text-[11px] text-primary uppercase tracking-wider font-bold">Date</label>
+          <input type="date" id="rdv-date" class="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20" />
+        </div>
+        <div>
+          <label class="text-[11px] text-primary uppercase tracking-wider font-bold">Heure</label>
+          <input type="time" id="rdv-time" class="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20" />
+        </div>
+      </div>
+      <div>
+        <label class="text-[11px] text-primary uppercase tracking-wider font-bold">Motif</label>
+        <input type="text" id="rdv-motif" class="w-full px-md py-sm bg-surface-container-low border border-outline-variant rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="Consultation générale..." />
+      </div>
+    </div>
+    <div class="flex gap-sm mt-md">
+      <button onclick="closeModal('modal-rdv-manuel')" class="flex-1 py-sm bg-surface-container text-on-surface-variant rounded-full font-bold text-sm border border-outline-variant">Annuler</button>
+      <button onclick="creerRdvManuel()" class="flex-1 py-sm bg-primary text-on-primary rounded-full font-bold text-sm">Créer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-scanner-qr">
+  <div class="modal">
+    <h3 class="font-bold text-[20px] text-on-surface mb-md">Scanner QR Code</h3>
+    <div class="relative w-full aspect-square bg-surface-container-low rounded-xl overflow-hidden mb-sm">
+      <video id="qr-video-secretaire" class="w-full h-full object-cover" playsinline autoplay muted></video>
+      <canvas id="qr-canvas-secretaire" style="display:none;"></canvas>
+    </div>
+    <div id="qr-result-secretaire" class="text-center text-sm text-on-surface-variant"></div>
+    <div class="flex gap-sm mt-md">
+      <button id="btn-start-scanner-sec" class="flex-1 py-sm bg-primary text-on-primary rounded-full font-bold text-sm">Démarrer</button>
+      <button id="btn-stop-scanner-sec" class="flex-1 py-sm bg-surface-container text-on-surface-variant rounded-full font-bold text-sm border border-outline-variant" disabled>Arrêter</button>
+    </div>
+    <button onclick="closeModal('modal-scanner-qr')" class="mt-sm w-full py-sm bg-surface-container text-on-surface-variant rounded-full font-bold text-sm border border-outline-variant">Fermer</button>
+  </div>
+</div>
+
+<!-- SCRIPT ORIGINAL (copié depuis dashboard.html) -->
+<script>
+const API_BASE = 'https://api.bolamu.co/api/v1';
+const storage = localStorage;
+
+function getToken() {
+  return storage.getItem('bolamu_secretaire_token');
+}
+
+function getPhone() {
+  return storage.getItem('bolamu_secretaire_phone');
+}
+
+function getClinicId() {
+  return storage.getItem('bolamu_secretaire_clinic_id');
+}
+
+function logout() {
+  storage.removeItem('bolamu_secretaire_token');
+  storage.removeItem('bolamu_secretaire_phone');
+  storage.removeItem('bolamu_secretaire_clinic_id');
+  // window.location.href = '/secretaire/login.html'; // Désactivé pour test local
+}
+
+async function api(endpoint, options = {}) {
+  const token = getToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers
+  });
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  return response.json();
+}
+
+function showTab(tabId) {
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+  
+  const titles = {
+    'accueil': 'Accueil',
+    'agenda': 'Agenda',
+    'patients': 'Patients',
+    'verifier': 'Vérifier adhérent',
+    'medecins': 'Médecins',
+    'clinique': 'Ma Clinique'
+  };
+  document.getElementById('page-title').textContent = titles[tabId] || 'Accueil';
+  
+  if (tabId === 'agenda') chargerRdvMedecin();
+}
+
+async function chargerStats() {
+  try {
+    const data = await api('/secretariat/dashboard/stats');
+    if (data.success) {
+      document.getElementById('stat-en-attente').textContent = data.stats.en_attente || 0;
+      document.getElementById('stat-en-consultation').textContent = data.stats.en_consultation || 0;
+      document.getElementById('stat-rdv-aujourd-hui').textContent = data.stats.rdv_aujourd_hui || 0;
+      document.getElementById('stat-medecins-actifs').textContent = data.stats.medecins_actifs || 0;
+    }
+  } catch (error) {
+    console.error('Erreur chargement stats:', error);
+  }
+}
+
+async function chargerFileAttente() {
+  try {
+    const data = await api('/secretariat/file-attente');
+    if (data.success) {
+      const tbody = document.getElementById('queue-table');
+      tbody.innerHTML = '';
+      data.file_attente.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="px-md py-3 text-sm" data-label="Patient">${item.patient_name}</td>
+          <td class="px-md py-3 text-sm" data-label="Heure">${item.heure}</td>
+          <td class="px-md py-3 text-sm" data-label="Médecin">${item.doctor_name}</td>
+          <td class="px-md py-3 text-sm" data-label="Statut">${item.statut}</td>
+          <td class="px-md py-3 text-right" data-label="Actions">
+            <button onclick="demarrerConsultation('${item.id}')" class="px-sm py-xs bg-primary text-on-primary rounded-full text-xs font-bold">Démarrer</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  } catch (error) {
+    console.error('Erreur chargement file d\'attente:', error);
+  }
+}
+
+async function verifierAdherent() {
+  const input = document.getElementById('verify-input').value.trim();
+  if (!input) return;
+  
+  const resultDiv = document.getElementById('verify-result');
+  resultDiv.innerHTML = '<p class="text-sm text-on-surface-variant">Recherche en cours...</p>';
+  
+  try {
+    const data = await api(`/secretariat/verifier-adherent?query=${encodeURIComponent(input)}`);
+    if (data.success && data.adherent) {
+      const a = data.adherent;
+      resultDiv.innerHTML = `
+        <div class="bg-surface-container-low rounded-xl p-md mt-sm">
+          <div class="flex items-center gap-sm mb-sm">
+            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold">${a.nom.charAt(0)}</div>
+            <div>
+              <p class="font-bold text-sm text-on-surface">${a.nom}</p>
+              <p class="text-xs text-outline">${a.phone}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-xs text-xs">
+            <div><span class="text-outline">Abonnement:</span> <span class="font-semibold text-on-surface">${a.abonnement || 'N/A'}</span></div>
+            <div><span class="text-outline">Statut:</span> <span class="font-semibold ${a.actif ? 'text-tertiary' : 'text-error'}">${a.actif ? 'Actif' : 'Inactif'}</span></div>
+          </div>
+        </div>
+      `;
+    } else {
+      resultDiv.innerHTML = '<p class="text-sm text-error mt-sm">Adhérent non trouvé</p>';
+    }
+  } catch (error) {
+    resultDiv.innerHTML = '<p class="text-sm text-error mt-sm">Erreur de recherche</p>';
+  }
+}
+
+async function chargerRdvMedecin() {
+  const doctorId = document.getElementById('rdv-select-medecin').value;
+  if (!doctorId) return;
+  
+  const container = document.getElementById('rdv-liste-container');
+  container.innerHTML = '<p class="text-center text-sm text-on-surface-variant py-10">Chargement...</p>';
+  
+  try {
+    const data = await api(`/secretariat/rdv-medecin?doctor_id=${doctorId}`);
+    if (data.success) {
+      if (data.rdv.length === 0) {
+        container.innerHTML = '<p class="text-center text-sm text-on-surface-variant py-10">Aucun rendez-vous</p>';
+        return;
+      }
+      container.innerHTML = '';
+      data.rdv.forEach(rdv => {
+        const card = document.createElement('div');
+        card.className = 'bg-surface-container-lowest border border-outline-variant rounded-xl p-md';
+        card.innerHTML = `
+          <div class="flex justify-between items-start mb-sm">
+            <div>
+              <p class="font-bold text-sm text-on-surface">${rdv.patient_name}</p>
+              <p class="text-xs text-outline">${rdv.phone}</p>
+            </div>
+            <span class="px-2 py-1 rounded-full text-xs font-bold ${rdv.statut === 'confirmé' ? 'bg-tertiary-container/30 text-tertiary' : 'bg-surface-container text-on-surface-variant'}">${rdv.statut}</span>
+          </div>
+          <div class="flex items-center gap-xs text-xs text-outline">
+            <span class="material-symbols-outlined text-[14px]">schedule</span>
+            <span>${rdv.date} à ${rdv.heure}</span>
+          </div>
+          <div class="mt-sm flex gap-sm">
+            <button onclick="confirmerRdv('${rdv.id}')" class="flex-1 py-xs bg-primary text-on-primary rounded-full text-xs font-bold">Confirmer</button>
+            <button onclick="annulerRdv('${rdv.id}')" class="flex-1 py-xs bg-error text-on-error rounded-full text-xs font-bold">Annuler</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+  } catch (error) {
+    container.innerHTML = '<p class="text-center text-sm text-error py-10">Erreur de chargement</p>';
+  }
+}
+
+async function chargerPatients() {
+  const search = document.getElementById('patient-search').value.trim();
+  try {
+    const data = await api(`/secretariat/patients?search=${encodeURIComponent(search)}`);
+    if (data.success) {
+      const tbody = document.getElementById('patients-table');
+      tbody.innerHTML = '';
+      data.patients.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="px-md py-3 text-sm" data-label="Nom">${p.nom}</td>
+          <td class="px-md py-3 text-sm" data-label="Téléphone">${p.phone}</td>
+          <td class="px-md py-3 text-sm" data-label="Abonnement">${p.abonnement || 'N/A'}</td>
+          <td class="px-md py-3 text-right" data-label="Actions">
+            <button onclick="voirPatient('${p.phone}')" class="px-sm py-xs bg-primary text-on-primary rounded-full text-xs font-bold">Voir</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  } catch (error) {
+    console.error('Erreur chargement patients:', error);
+  }
+}
+
+async function chargerMedecins() {
+  try {
+    const data = await api('/secretariat/medecins');
+    if (data.success) {
+      const container = document.getElementById('medecins-list');
+      container.innerHTML = '';
+      data.medecins.forEach(m => {
+        const card = document.createElement('div');
+        card.className = 'bg-surface-container-lowest border border-outline-variant rounded-xl p-md';
+        card.innerHTML = `
+          <div class="flex items-center gap-sm mb-sm">
+            <div class="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center text-secondary font-bold text-lg">${m.nom.charAt(0)}</div>
+            <div>
+              <p class="font-bold text-sm text-on-surface">Dr. ${m.nom}</p>
+              <p class="text-xs text-outline">${m.specialite || 'Généraliste'}</p>
+            </div>
+          </div>
+          <button onclick="voirEmploiDuTemps('${m.id}')" class="w-full py-xs bg-surface-container text-on-surface-variant rounded-full text-xs font-bold border border-outline-variant">Voir emploi du temps</button>
+        `;
+        container.appendChild(card);
+      });
+      
+      // Populate select in modal
+      const select = document.getElementById('rdv-doctor');
+      const agendaSelect = document.getElementById('rdv-select-medecin');
+      select.innerHTML = '<option value="">-- Sélectionner --</option>';
+      agendaSelect.innerHTML = '<option value="">-- Sélectionner un médecin --</option>';
+      data.medecins.forEach(m => {
+        select.innerHTML += `<option value="${m.id}">Dr. ${m.nom}</option>`;
+        agendaSelect.innerHTML += `<option value="${m.id}">Dr. ${m.nom}</option>`;
+      });
+    }
+  } catch (error) {
+    console.error('Erreur chargement médecins:', error);
+  }
+}
+
+async function chargerClinique() {
+  try {
+    const data = await api('/secretariat/clinique');
+    if (data.success) {
+      const c = data.clinique;
+      document.getElementById('clinic-profile-card').innerHTML = `
+        <div class="space-y-sm">
+          <div class="flex items-center gap-sm">
+            <div class="w-16 h-16 rounded-xl bg-primary-container flex items-center justify-center text-on-primary font-extrabold text-2xl">${c.nom.charAt(0)}</div>
+            <div>
+              <h3 class="font-bold text-lg text-on-surface">${c.nom}</h3>
+              <p class="text-sm text-outline">${c.ville}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-xs text-sm">
+            <div><span class="text-outline">Téléphone:</span> <span class="font-semibold text-on-surface">${c.phone}</span></div>
+            <div><span class="text-outline">Email:</span> <span class="font-semibold text-on-surface">${c.email || 'N/A'}</span></div>
+          </div>
+        </div>
+      `;
+      document.getElementById('sidebar-clinic-name').textContent = c.nom;
+      document.getElementById('sidebar-clinic-city').textContent = c.ville;
+      document.getElementById('clinic-name').textContent = c.nom;
+      document.getElementById('clinic-city').textContent = c.ville;
+    }
+  } catch (error) {
+    console.error('Erreur chargement clinique:', error);
+  }
+}
+
+async function chargerCatalogue() {
+  try {
+    const data = await api('/smartflow/catalogue');
+    if (data.success) {
+      const container = document.getElementById('catalogue-list');
+      const filters = document.getElementById('catalogue-filters');
+      container.innerHTML = '';
+      filters.innerHTML = '';
+      
+      const categories = [...new Set(data.catalogue.map(item => item.categorie))];
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'px-sm py-xs bg-surface-container text-on-surface-variant rounded-full text-xs font-bold border border-outline-variant hover:bg-primary hover:text-on-primary transition-colors';
+        btn.textContent = cat;
+        btn.onclick = () => filterCatalogueByCategory(cat);
+        filters.appendChild(btn);
+      });
+      
+      data.catalogue.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-surface-container-low rounded-lg p-sm flex justify-between items-center';
+        card.dataset.category = item.categorie;
+        card.innerHTML = `
+          <div>
+            <p class="font-semibold text-sm text-on-surface">${item.nom}</p>
+            <p class="text-xs text-outline">${item.categorie}</p>
+          </div>
+          <span class="text-xs font-bold text-primary">${item.prix || 'Gratuit'}</span>
+        `;
+        container.appendChild(card);
+      });
+    }
+  } catch (error) {
+    console.error('Erreur chargement catalogue:', error);
+  }
+}
+
+function filterCatalogue(query) {
+  const cards = document.querySelectorAll('#catalogue-list > div');
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(query.toLowerCase()) ? 'flex' : 'none';
+  });
+}
+
+function filterCatalogueByCategory(category) {
+  const cards = document.querySelectorAll('#catalogue-list > div');
+  cards.forEach(card => {
+    card.style.display = card.dataset.category === category ? 'flex' : 'none';
+  });
+}
+
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add('open');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('open');
+}
+
+function openRdvManuel() {
+  openModal('modal-rdv-manuel');
+}
+
+function openScannerModal() {
+  openModal('modal-scanner-qr');
+}
+
+function openUrgence() {
+  alert('Fonction urgence à implémenter');
+}
+
+async function creerRdvManuel() {
+  const phone = document.getElementById('rdv-phone').value.trim();
+  const doctorId = document.getElementById('rdv-doctor').value;
+  const date = document.getElementById('rdv-date').value;
+  const time = document.getElementById('rdv-time').value;
+  const motif = document.getElementById('rdv-motif').value.trim();
+  
+  if (!phone || !doctorId || !date || !time) {
+    alert('Veuillez remplir tous les champs obligatoires');
+    return;
+  }
+  
+  try {
+    const data = await api('/secretariat/rdv-manuel', {
+      method: 'POST',
+      body: JSON.stringify({ phone, doctor_id: doctorId, date, time, motif })
+    });
+    if (data.success) {
+      alert('Rendez-vous créé avec succès');
+      closeModal('modal-rdv-manuel');
+      chargerFileAttente();
+    } else {
+      alert('Erreur: ' + (data.message || 'Création échouée'));
+    }
+  } catch (error) {
+    alert('Erreur de création');
+  }
+}
+
+async function confirmerRdv(rdvId) {
+  try {
+    const data = await api(`/secretariat/rdv/${rdvId}/confirmer`, { method: 'POST' });
+    if (data.success) {
+      chargerRdvMedecin();
+    }
+  } catch (error) {
+    alert('Erreur de confirmation');
+  }
+}
+
+async function annulerRdv(rdvId) {
+  if (!confirm('Annuler ce rendez-vous ?')) return;
+  try {
+    const data = await api(`/secretariat/rdv/${rdvId}/annuler`, { method: 'POST' });
+    if (data.success) {
+      chargerRdvMedecin();
+    }
+  } catch (error) {
+    alert('Erreur d\'annulation');
+  }
+}
+
+async function demarrerConsultation(queueId) {
+  try {
+    const data = await api(`/secretariat/file-attente/${queueId}/demarrer`, { method: 'POST' });
+    if (data.success) {
+      chargerFileAttente();
+      chargerStats();
+    }
+  } catch (error) {
+    alert('Erreur de démarrage');
+  }
+}
+
+function voirPatient(phone) {
+  alert('Détails patient: ' + phone);
+}
+
+function voirEmploiDuTemps(doctorId) {
+  openModal('modal-emploi-du-temps');
+  document.getElementById('emploi-du-temps-content').innerHTML = '<p class="text-sm text-on-surface-variant">Chargement...</p>';
+  // TODO: Load emploi du temps
+}
+
+// QR Scanner
+let qrStream = null;
+let qrScanning = false;
+
+document.getElementById('btn-start-scanner-sec').addEventListener('click', async () => {
+  const video = document.getElementById('qr-video-secretaire');
+  try {
+    qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = qrStream;
+    qrScanning = true;
+    document.getElementById('btn-start-scanner-sec').disabled = true;
+    document.getElementById('btn-stop-scanner-sec').disabled = false;
+    scanQRCode();
+  } catch (error) {
+    alert('Erreur d\'accès caméra: ' + error.message);
+  }
+});
+
+document.getElementById('btn-stop-scanner-sec').addEventListener('click', () => {
+  if (qrStream) {
+    qrStream.getTracks().forEach(track => track.stop());
+    qrStream = null;
+  }
+  qrScanning = false;
+  document.getElementById('btn-start-scanner-sec').disabled = false;
+  document.getElementById('btn-stop-scanner-sec').disabled = true;
+});
+
+function scanQRCode() {
+  if (!qrScanning) return;
+  
+  const video = document.getElementById('qr-video-secretaire');
+  const canvas = document.getElementById('qr-canvas-secretaire');
+  const ctx = canvas.getContext('2d');
+  
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    
+    if (code) {
+      document.getElementById('qr-result-secretaire').textContent = 'QR Code détecté: ' + code.data;
+      qrScanning = false;
+      if (qrStream) {
+        qrStream.getTracks().forEach(track => track.stop());
+        qrStream = null;
+      }
+      verifierAdherentFromQR(code.data);
+      return;
+    }
+  }
+  
+  requestAnimationFrame(scanQRCode);
+}
+
+function verifierAdherentFromQR(qrData) {
+  const resultDiv = document.getElementById('verify-result');
+  resultDiv.innerHTML = '<p class="text-sm text-on-surface-variant">Vérification du QR code...</p>';
+  
+  try {
+    api(`/secretariat/verifier-adherent?query=${encodeURIComponent(qrData)}`).then(data => {
+      if (data.success && data.adherent) {
+        const a = data.adherent;
+        resultDiv.innerHTML = `
+          <div class="bg-surface-container-low rounded-xl p-md mt-sm">
+            <div class="flex items-center gap-sm mb-sm">
+              <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold">${a.nom.charAt(0)}</div>
+              <div>
+                <p class="font-bold text-sm text-on-surface">${a.nom}</p>
+                <p class="text-xs text-outline">${a.phone}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-xs text-xs">
+              <div><span class="text-outline">Abonnement:</span> <span class="font-semibold text-on-surface">${a.abonnement || 'N/A'}</span></div>
+              <div><span class="text-outline">Statut:</span> <span class="font-semibold ${a.actif ? 'text-tertiary' : 'text-error'}">${a.actif ? 'Actif' : 'Inactif'}</span></div>
+            </div>
+          </div>
+        `;
+        closeModal('modal-scanner-qr');
+      } else {
+        resultDiv.innerHTML = '<p class="text-sm text-error mt-sm">QR code invalide</p>';
+      }
+    });
+  } catch (error) {
+    resultDiv.innerHTML = '<p class="text-sm text-error mt-sm">Erreur de vérification</p>';
+  }
+}
+
+// Tab navigation
+document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
+    showTab(tabId);
+  });
+});
+
+document.querySelectorAll('.bnav-item[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
+    showTab(tabId);
+  });
+});
+
+// Patient search
+document.getElementById('patient-search').addEventListener('input', () => {
+  chargerPatients();
+});
+
+// Verify input enter key
+document.getElementById('verify-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') verifierAdherent();
+});
+
+// Tab verifier search
+document.getElementById('btn-search-patient-sec-tab').addEventListener('click', () => {
+  const input = document.getElementById('search-patient-input-sec-tab').value.trim();
+  // TODO: Implement tab verifier search
+});
+
+// Tab verifier scanner
+document.getElementById('btn-start-scanner-sec-tab').addEventListener('click', async () => {
+  const reader = document.getElementById('qr-reader-sec-tab');
+  // TODO: Implement tab verifier scanner
+});
+
+document.getElementById('btn-stop-scanner-sec-tab').addEventListener('click', () => {
+  // TODO: Stop tab verifier scanner
+});
+
+// Init
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = getToken();
+  const phone = getPhone();
+  const clinicId = getClinicId();
+
+  if (!token || !phone) {
+    // window.location.href = '/secretaire/login.html'; // Désactivé pour test local
+    return;
+  }
+
+  document.getElementById('user-name').textContent = phone;
+
+  // Initialiser le titre mobile avec l'onglet par défaut
+  const titleEl = document.getElementById('mobile-tab-title');
+  if (titleEl) {
+    titleEl.textContent = 'Accueil';
+  }
+
+  await Promise.all([
+    chargerStats(),
+    chargerFileAttente(),
+    chargerMedecins(),
+    chargerClinique(),
+    chargerCatalogue()
+  ]);
+});
+</script>
+
+<!-- SCRIPT AJUSTEMENTS TAILWIND -->
+<script>
+// Date topbar
+(function() {
+  const el = document.getElementById('topbar-date');
+  if (el) {
+    const now = new Date();
+    el.textContent = now.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+})();
+
+// Surcharge showTab pour gérer les classes Tailwind nav-item
+const _originalShowTab = window.showTab;
+window.showTab = function(tabId) {
+  _originalShowTab && _originalShowTab(tabId);
+  // Sidebar nav
+  document.querySelectorAll('.nav-item[data-tab]').forEach(el => {
+    el.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'font-bold');
+    el.classList.add('text-on-surface-variant');
+  });
+  const activeNav = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+  if (activeNav) {
+    activeNav.classList.add('bg-secondary-container', 'text-on-secondary-container', 'font-bold');
+    activeNav.classList.remove('text-on-surface-variant');
+  }
+  // Bottom nav
+  document.querySelectorAll('.bnav-item[data-tab]').forEach(el => {
+    el.querySelectorAll('.material-symbols-outlined, span:last-child').forEach(s => {
+      s.classList.remove('text-primary-container');
+      s.classList.add('text-on-surface-variant');
+    });
+  });
+  const activeBnav = document.querySelector(`.bnav-item[data-tab="${tabId}"]`);
+  if (activeBnav) {
+    activeBnav.querySelectorAll('.material-symbols-outlined, span:last-child').forEach(s => {
+      s.classList.add('text-primary-container');
+      s.classList.remove('text-on-surface-variant');
+    });
+  }
+};
+// Init active state
+document.addEventListener('DOMContentLoaded', () => {
+  const activeNav = document.querySelector('.nav-item[data-tab="accueil"]');
+  if (activeNav) {
+    activeNav.classList.add('bg-secondary-container', 'text-on-secondary-container', 'font-bold');
+    activeNav.classList.remove('text-on-surface-variant');
+  }
+});
+</script>
+
+</body>
+</html>
