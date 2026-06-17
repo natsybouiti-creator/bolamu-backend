@@ -10,101 +10,191 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta name="theme-color" content="#2E86FF">
   <link rel="manifest" href="/manifest.json">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#00174d",
+                        "inverse-primary": "#b5c4ff",
+                        "surface-container-low": "#f3f3fe",
+                        "primary-container": "#1a56db",
+                        "on-secondary-fixed-variant": "#2e4382",
+                        "on-primary-container": "#d4dcff",
+                        "tertiary-container": "#006e5a",
+                        "secondary-container": "#a2b6fd",
+                        "on-tertiary-fixed-variant": "#005142",
+                        "on-tertiary-container": "#58f5d1",
+                        "surface-bright": "#faf8ff",
+                        "on-tertiary-fixed": "#002019",
+                        "surface-dim": "#d9d9e4",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#dce1ff",
+                        "inverse-on-surface": "#f0f0fb",
+                        "tertiary-fixed-dim": "#38debb",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#faf8ff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#00164d",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#314685",
+                        "surface-container-high": "#e7e7f3",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#191b23",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container": "#ededf8",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#003dab",
+                        "tertiary": "#005344",
+                        "outline": "#737686",
+                        "surface-variant": "#e2e1ed",
+                        "background": "#faf8ff",
+                        "on-background": "#191b23",
+                        "surface-tint": "#1353d8",
+                        "surface-container-highest": "#e2e1ed",
+                        "primary-fixed-dim": "#b5c4ff",
+                        "outline-variant": "#c3c5d7",
+                        "tertiary-fixed": "#5ffbd6",
+                        "on-surface-variant": "#434654",
+                        "primary": "#003fb1",
+                        "inverse-surface": "#2e3039",
+                        "secondary-fixed-dim": "#b5c4ff",
+                        "secondary": "#475b9c",
+                        "brand-navy": "#0A2463",
+                        "brand-turquoise": "#00C9A7",
+                        "brand-orange": "#FF6B35"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "container-margin": "20px",
+                        "md": "24px",
+                        "gutter": "16px",
+                        "base": "8px",
+                        "xl": "64px",
+                        "lg": "40px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "sans": ["Plus Jakarta Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
   <style>
-    :root {
-      --noir:#0a0a0f;--noir2:#12121a;--noir3:#1a1a26;
-      --bleu:#2E86FF;--vert:#00C9A7;--rouge:#ff4757;--amber:#ffa502;
-      --texte:#f0f0f8;--texte-doux:#8888aa;--border:rgba(255,255,255,0.07);
-      --grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);
-      --grad-bg:linear-gradient(135deg,#0a0a0f 0%,#12121a 50%,#0a0a0f 100%);
-    }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--grad-bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,201,167,0.05) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(46,134,255,0.08) 0%,transparent 50%);pointer-events:none;}
-    .wrap{width:100%;max-width:420px;position:relative;z-index:1;}
-    .logo-area{text-align:center;margin-bottom:32px;}
-    .logo-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
-    .logo-name{font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:var(--texte);}
-    .logo-name .t{color:var(--vert);}
-    .admin-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.3);color:var(--rouge);padding:4px 14px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:1.5px;}
-    .card{background:var(--noir2);border:1px solid var(--border);border-radius:24px;padding:36px;box-shadow:0 40px 80px rgba(0,0,0,0.5);}
-    .card-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--texte);margin-bottom:6px;}
-    .card-sub{font-size:14px;color:var(--texte-doux);margin-bottom:28px;line-height:1.6;}
-    .field{margin-bottom:18px;}
-    .field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--texte-doux);margin-bottom:8px;}
-    .field input{width:100%;background:var(--noir3);border:1px solid var(--border);border-radius:12px;padding:13px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--texte);outline:none;transition:border-color 0.2s;}
-    .field input:focus{border-color:var(--bleu);}
-    .field input::placeholder{color:var(--texte-doux);}
-    .field .input-wrap{position:relative;}
-    .field .toggle-pw{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texte-doux);cursor:pointer;font-size:16px;padding:0;}
-    .btn-primary{width:100%;padding:15px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;margin-top:4px;}
-    .btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
-    .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-    .msg-box{padding:13px 16px;border-radius:10px;font-size:13px;margin-bottom:18px;display:none;align-items:center;gap:8px;}
-    .msg-box.show{display:flex;}
-    .msg-box.error{background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.25);color:var(--rouge);}
-    .msg-box.success{background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.25);color:var(--vert);}
-
-    /* ── Indicateur de rôle détecté ── */
-    .role-indicator{display:none;margin-bottom:18px;padding:11px 14px;border-radius:10px;font-size:12px;font-weight:600;align-items:center;gap:8px;}
-    .role-indicator.show{display:flex;}
-    .role-indicator.ops{background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--rouge);}
-    .role-indicator.content{background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#9f7aea;}
-
-    .security-note{margin-top:20px;padding:12px 16px;background:rgba(255,165,2,0.08);border:1px solid rgba(255,165,2,0.15);border-radius:10px;font-size:12px;color:var(--texte-doux);display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
-    .security-note .icon{font-size:14px;flex-shrink:0;margin-top:1px;}
-    .attempts{font-size:12px;color:var(--texte-doux);text-align:center;margin-top:14px;}
-    .attempts span{color:var(--rouge);font-weight:700;}
-
-    @media(max-width:480px){
-      body{padding:16px;}
-      .wrap{max-width:100%;}
-      .logo-area{margin-bottom:20px;}
-      .logo-name{font-size:22px;}
-      .card{padding:24px 18px;border-radius:18px;}
-      .card-title{font-size:18px;}
-      .field input{font-size:16px;padding:12px 14px;}
-      .btn-primary{font-size:14px;padding:14px;}
-    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #faf8ff; margin: 0; }
+    .msg-box { display: none; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; margin-bottom: 20px; }
+    .msg-box.show.error { background: #ffdad6; color: #93000a; border: 1px solid #ba1a1a; display: flex; }
+    .msg-box.show.success { background: #d4f5ee; color: #005344; border: 1px solid #00C9A7; display: flex; }
+    .btn-login { width: 100%; padding: 16px; background: #DC2626; color: white; border-radius: 9999px; font-weight: 800; font-size: 16px; cursor: pointer; border: none; transition: all 0.2s; box-shadow: 0 8px 24px rgba(220,38,38,0.25); }
+    .btn-login:hover { background: #b91c1c; transform: translateY(-2px); }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .role-indicator { display: none; margin-bottom: 18px; padding: 11px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; align-items: center; gap: 8px; }
+    .role-indicator.show { display: flex; }
+    .role-indicator.ops { background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.2); color: #DC2626; }
+    .role-indicator.content { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); color: #9f7aea; }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="logo-area">
-    <div class="logo-row">
-      <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#2E86FF"/><text x="22" y="30" text-anchor="middle" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="26" fill="white">B</text><ellipse cx="34" cy="9" rx="4.5" ry="6" fill="#00C9A7" transform="rotate(-20 34 9)"/></svg>
-      <div class="logo-name">Bola<span class="t">mu</span></div>
+
+<div class="min-h-screen flex flex-col lg:flex-row">
+
+  <!-- COLONNE GAUCHE -->
+  <div class="hidden lg:flex lg:w-1/2 bg-[#1a0000] relative overflow-hidden flex-col justify-between p-16">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#1a0000] via-[#2d0000] to-[#1a0000]"></div>
+    
+    <!-- Logo -->
+    <div class="relative z-10 flex items-center gap-3">
+      <img src="/images/landing/bolamu-logo-final.png" class="h-12 w-12 rounded-full" alt="Bolamu">
+      <span class="text-white font-extrabold text-xl">Bolamu</span>
     </div>
-    <div class="admin-pill">🛡️ ESPACE ADMINISTRATION</div>
-  </div>
-  <div class="card" autocomplete="off">
-    <div class="card-title">Connexion sécurisée</div>
-    <div class="card-sub">Accès réservé aux administrateurs Bolamu. Toute tentative non autorisée est enregistrée.</div>
-    <div class="msg-box" id="msg"></div>
-    <div class="role-indicator" id="role-indicator"></div>
-    <div class="field">
-      <label>Numéro de téléphone</label>
-      <input type="tel" id="phone" placeholder="+242 06 XXX XX XX" maxlength="15" autocomplete="off">
+
+    <!-- Contenu central -->
+    <div class="relative z-10">
+      <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-8">
+        <span class="material-symbols-outlined text-[#DC2626] text-4xl">admin_panel_settings</span>
+      </div>
+      <h2 class="text-4xl font-extrabold text-white leading-tight mb-4">Administration</h2>
+      <p class="text-white/60 font-medium text-lg leading-relaxed">Accès sécurisé au panneau de contrôle Bolamu.</p>
     </div>
-    <div class="field">
-      <label>Mot de passe administrateur</label>
-      <div class="input-wrap">
-        <input type="password" id="password" placeholder="••••••••••" autocomplete="new-password">
-        <button class="toggle-pw" id="toggle-btn" type="button">👁</button>
+
+    <!-- Badge bas -->
+    <div class="relative z-10">
+      <div class="inline-flex items-center gap-2 bg-white/5 border border-red-500/30 px-4 py-2 rounded-full">
+        <span class="material-symbols-outlined text-red-400 text-sm">lock</span>
+        <span class="text-red-400 text-xs font-bold">Accès non référencé publiquement</span>
       </div>
     </div>
-    <button class="btn-primary" id="btn-login">Accéder au panneau de contrôle →</button>
-    <div class="security-note">
-      <span class="icon">🔒</span>
-      <span>Cette page n'est pas référencée publiquement. Les tentatives de connexion échouées sont enregistrées avec l'adresse IP.</span>
+  </div>
+
+  <!-- COLONNE DROITE -->
+  <div class="flex-1 flex flex-col bg-[#faf8ff]">
+    <!-- Topbar mobile -->
+    <nav class="lg:hidden py-4 px-6 border-b border-outline-variant/30 bg-white/80 backdrop-blur-md flex items-center gap-3">
+      <img src="/images/landing/bolamu-logo-final.png" class="h-9 w-9 rounded-full" alt="Bolamu">
+      <span class="font-extrabold text-brand-navy">Bolamu</span>
+    </nav>
+    <!-- Formulaire -->
+    <div class="flex-1 flex items-center justify-center px-6 py-12">
+      <div class="w-full max-w-md">
+        <!-- Pill identité -->
+        <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-red-500/10 text-red-600 border border-red-500/20 text-xs font-black uppercase tracking-widest mb-8">
+          ESPACE ADMINISTRATION
+        </div>
+        <!-- Titre -->
+        <h1 class="text-3xl font-extrabold text-brand-navy mb-2">Connexion sécurisée</h1>
+        <p class="text-on-surface-variant font-medium mb-10">Toute tentative non autorisée est enregistrée.</p>
+        <!-- msg-box -->
+        <div class="msg-box" id="msg"></div>
+        <!-- role-indicator -->
+        <div class="role-indicator" id="role-indicator"></div>
+        <!-- Champs -->
+        <div class="mb-5">
+          <label class="block text-sm font-bold text-brand-navy mb-2">Numéro de téléphone</label>
+          <input type="tel" id="phone" placeholder="+242 06 XXX XX XX" maxlength="15"
+            class="w-full px-5 py-4 rounded-2xl border-2 border-outline-variant focus:border-[#DC2626] focus:ring-4 focus:ring-[#DC2626]/10 outline-none font-medium text-on-surface bg-white placeholder:text-on-surface-variant/40 transition-all text-base">
+        </div>
+        <div class="mb-8">
+          <label class="block text-sm font-bold text-brand-navy mb-2">Mot de passe</label>
+          <div class="relative">
+            <input type="password" id="password" placeholder="••••••••••"
+              class="w-full px-5 py-4 pr-14 rounded-2xl border-2 border-outline-variant focus:border-[#DC2626] focus:ring-4 focus:ring-[#DC2626]/10 outline-none font-medium text-on-surface bg-white placeholder:text-on-surface-variant/40 transition-all text-base">
+            <button id="toggle-btn" type="button" class="absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-[#DC2626] transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <!-- Bouton -->
+        <button class="btn-login" id="btn-login">Accéder au panneau de contrôle →</button>
+        <!-- Note sécurité -->
+        <p class="text-center text-xs text-on-surface-variant/50 font-medium mt-6 px-4 leading-relaxed">
+          Les tentatives de connexion échouées sont enregistrées avec l'adresse IP.
+        </p>
+        <!-- attempts-info -->
+        <div class="text-center text-xs text-on-surface-variant/50 font-medium mt-4" id="attempts-info" style="display:none">
+          Tentatives échouées : <span id="attempts-count" class="text-red-600 font-bold">0</span>/5
+        </div>
+      </div>
     </div>
-    <div class="attempts" id="attempts-info" style="display:none">
-      Tentatives échouées : <span id="attempts-count">0</span>/5
+    <!-- Footer mini -->
+    <div class="py-5 px-6 border-t border-outline-variant/20 flex justify-center">
+      <a href="/" class="text-xs font-bold text-on-surface-variant/50 hover:text-primary transition-colors">← Retour à l'accueil</a>
     </div>
   </div>
 </div>
+
 <script>
   /* ── Vérification session existante ── */
   (async function checkExistingSession() {
@@ -137,8 +227,8 @@
   function togglePw() {
     const inp = document.getElementById('password');
     const btn = document.getElementById('toggle-btn');
-    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
-    else { inp.type = 'password'; btn.textContent = '👁'; }
+    if (inp.type === 'password') { inp.type = 'text'; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'; }
+    else { inp.type = 'password'; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'; }
   }
 
   /* ── Redirection selon le rôle reçu du backend ── */
@@ -180,10 +270,10 @@ const phone = document.getElementById('phone').value.trim().replace(/\s+/g, '');
         const ri = document.getElementById('role-indicator');
         if (data.role === 'admin') {
           ri.className = 'role-indicator show ops';
-          ri.innerHTML = '🔴 Espace Opérationnel — Redirection...';
+          ri.innerHTML = '<span class="material-symbols-outlined text-sm">admin_panel_settings</span> Espace Opérationnel — Redirection...';
         } else {
           ri.className = 'role-indicator show content';
-          ri.innerHTML = '🎨 Espace Éditorial — Redirection...';
+          ri.innerHTML = '<span class="material-symbols-outlined text-sm">edit</span> Espace Éditorial — Redirection...';
         }
 
         showMsg('✅ Connexion réussie !', 'success');
