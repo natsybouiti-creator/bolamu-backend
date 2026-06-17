@@ -120,6 +120,39 @@
         ::-webkit-scrollbar-track { background: #faf8ff; }
         ::-webkit-scrollbar-thumb { background: #c3c5d7; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #737686; }
+        .zora-deco {
+          position: absolute;
+          pointer-events: none;
+          z-index: 0;
+          height: auto;
+          opacity: 0.95;
+          mix-blend-mode: multiply;
+          filter: brightness(1.25) saturate(1.3)
+                  drop-shadow(0 4px 12px rgba(255,200,0,0.4));
+        }
+        .zora-deco:nth-child(1) { animation: zd-float-1 5s   ease-in-out infinite; }
+        .zora-deco:nth-child(2) { animation: zd-float-2 6s   ease-in-out infinite; animation-delay:0.5s; }
+        .zora-deco:nth-child(3) { animation: zd-float-3 7s   ease-in-out infinite; animation-delay:1s; }
+        .zora-deco:nth-child(4) { animation: zd-float-1 5.5s ease-in-out infinite; animation-delay:1.5s; }
+        .zora-deco:nth-child(5) { animation: zd-float-2 6.5s ease-in-out infinite; animation-delay:2s; }
+        .zora-deco:nth-child(6) { animation: zd-float-3 4.5s ease-in-out infinite; animation-delay:2.5s; }
+        .zora-deco:nth-child(7) { animation: zd-float-1 5.2s ease-in-out infinite; animation-delay:0.8s; }
+        .zora-deco:nth-child(8) { animation: zd-float-2 6.8s ease-in-out infinite; animation-delay:1.8s; }
+        @keyframes zd-float-1 {
+          0%,100% { transform: translate(0px,0px) rotate(-8deg); }
+          33% { transform: translate(6px,-12px) rotate(2deg); }
+          66% { transform: translate(-4px,-5px) rotate(-14deg); }
+        }
+        @keyframes zd-float-2 {
+          0%,100% { transform: translate(0px,0px) rotate(10deg); }
+          33% { transform: translate(-8px,-10px) rotate(0deg); }
+          66% { transform: translate(5px,6px) rotate(18deg); }
+        }
+        @keyframes zd-float-3 {
+          0%,100% { transform: translate(0px,0px) rotate(-5deg); }
+          33% { transform: translate(9px,7px) rotate(5deg); }
+          66% { transform: translate(-5px,-11px) rotate(-12deg); }
+        }
     </style>
 </head>
 <body class="overflow-x-hidden">
@@ -212,27 +245,76 @@
 <p class="text-on-surface-variant font-medium text-lg max-w-2xl mx-auto">Un accompagnement nutritionnel adapté au mode de vie congolais.</p>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-<div class="soft-card rounded-[2rem] p-8">
-<div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
-<span class="material-symbols-outlined text-3xl text-brand-turquoise">restaurant</span>
-</div>
-<h3 class="font-black text-brand-navy text-xl mb-4">Plans alimentaires personnalisés</h3>
-<p class="text-on-surface-variant font-medium leading-relaxed">Notre nutritionniste partenaire Loboko élabore des plans alimentaires basés sur le safou, le manioc, le poisson fumé et les légumes de saison. Des recettes adaptées à votre budget et à vos habitudes alimentaires congolaises.</p>
-</div>
-<div class="soft-card rounded-[2rem] p-8">
-<div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
-<span class="material-symbols-outlined text-3xl text-brand-turquoise">groups</span>
-</div>
-<h3 class="font-black text-brand-navy text-xl mb-4">Ateliers cuisine & nutrition</h3>
-<p class="text-on-surface-variant font-medium leading-relaxed">Deux fois par mois, des ateliers pratiques animés dans nos zones Elonga pour apprendre à cuisiner sainement avec les produits du marché local. Ouverts à tous les membres et à leur famille.</p>
-</div>
-<div class="soft-card rounded-[2rem] p-8">
-<div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
-<span class="material-symbols-outlined text-3xl text-brand-turquoise">smart_toy</span>
-</div>
-<h3 class="font-black text-brand-navy text-xl mb-4">Conseils Amina au quotidien</h3>
-<p class="text-on-surface-variant font-medium leading-relaxed">Votre assistant WhatsApp Amina vous envoie chaque semaine des conseils nutrition personnalisés, des rappels d'hydratation et des alertes sur les produits de saison disponibles près de chez vous.</p>
-</div>
+
+  <!-- CARD 1 -->
+  <div class="soft-card rounded-[2rem] overflow-hidden flex flex-col
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="h-52 overflow-hidden">
+      <img src="/images/landing/plan-alimentaire.png"
+           alt="Plans alimentaires personnalisés"
+           class="w-full h-full object-cover
+                  group-hover:scale-105 transition-transform duration-500">
+    </div>
+    <div class="p-6">
+      <h3 class="font-black text-brand-navy text-lg mb-3">
+        Plans alimentaires personnalisés
+      </h3>
+      <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+        Notre nutritionniste partenaire Loboko élabore des plans
+        alimentaires basés sur le safou, le manioc, le poisson fumé
+        et les légumes de saison. Des recettes adaptées à votre budget
+        et à vos habitudes alimentaires congolaises.
+      </p>
+    </div>
+  </div>
+
+  <!-- CARD 2 -->
+  <div class="soft-card rounded-[2rem] overflow-hidden flex flex-col
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="h-52 overflow-hidden">
+      <img src="/images/landing/atelier-cuisine.png"
+           alt="Ateliers cuisine et nutrition"
+           class="w-full h-full object-cover
+                  group-hover:scale-105 transition-transform duration-500">
+    </div>
+    <div class="p-6">
+      <h3 class="font-black text-brand-navy text-lg mb-3">
+        Ateliers cuisine & nutrition
+      </h3>
+      <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+        Deux fois par mois, des ateliers pratiques animés dans nos
+        zones Elonga pour apprendre à cuisiner sainement avec les
+        produits du marché local. Ouverts à tous les membres et à
+        leur famille.
+      </p>
+    </div>
+  </div>
+
+  <!-- CARD 3 -->
+  <div class="soft-card rounded-[2rem] overflow-hidden flex flex-col
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="h-52 overflow-hidden">
+      <img src="/images/landing/panier-healthy.webp"
+           alt="Panier alimentaire sain"
+           class="w-full h-full object-cover
+                  group-hover:scale-105 transition-transform duration-500">
+    </div>
+    <div class="p-6">
+      <h3 class="font-black text-brand-navy text-lg mb-3">
+        Panier alimentaire sain
+      </h3>
+      <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+        Chaque semaine, Amina vous suggère un panier de courses adapté
+        aux produits de saison disponibles dans vos marchés locaux.
+        Des achats simples, équilibrés et abordables pour toute la
+        famille.
+      </p>
+    </div>
+  </div>
+
 </div>
 </div>
 </section>
@@ -242,7 +324,7 @@
 <div class="max-w-7xl mx-auto px-container-margin">
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
 <div class="relative">
-<img src="/images/landing/26-elonga-nutrition.jpg" alt="Nutrition Intelligente" class="w-full h-auto rounded-[2.5rem] shadow-2xl">
+<img src="/images/landing/aliment-medicaments.png" alt="L'alimentation est le premier médicament" class="w-full h-auto rounded-[2.5rem] shadow-2xl">
 </div>
 <div>
 <div class="inline-flex bg-brand-orange/10 text-brand-orange px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8">POURQUOI C'EST IMPORTANT</div>
@@ -268,13 +350,97 @@
 </section>
 
 <!-- SECTION ZORA -->
-<section class="py-xl bg-brand-navy text-white">
-<div class="max-w-7xl mx-auto px-container-margin">
-<div class="text-center mb-12">
+<section class="py-xl bg-brand-navy text-white relative overflow-visible">
+<div class="max-w-7xl mx-auto px-container-margin relative z-10">
+<!-- PIÈCES -->
+<img src="/images/landing/zora-coin-gold.png" alt=""
+  class="zora-deco" style="top:-24px;left:3%;width:58px;">
+<img src="/images/landing/zora-coin-gold.png" alt=""
+  class="zora-deco" style="top:-18px;right:4%;width:68px;">
+<img src="/images/landing/zora-coin-gold.png" alt=""
+  class="zora-deco" style="bottom:8%;left:2%;width:44px;">
+<img src="/images/landing/zora-coin-gold.png" alt=""
+  class="zora-deco" style="bottom:12%;right:3%;width:52px;">
+
+<!-- ÉCLAIR gauche -->
+<svg class="zora-deco" style="top:-18px;left:18%;width:34px;height:34px;mix-blend-mode:normal;"
+  viewBox="0 0 40 40">
+  <defs><linearGradient id="boltN1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#FFB199"/>
+    <stop offset="50%" stop-color="#FF6B35"/>
+    <stop offset="100%" stop-color="#D6481A"/>
+  </linearGradient></defs>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z"
+    fill="url(#boltN1)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.6))"/>
+</svg>
+
+<!-- ÉCLAIR droit -->
+<svg class="zora-deco" style="bottom:10%;right:16%;width:26px;height:26px;mix-blend-mode:normal;"
+  viewBox="0 0 40 40">
+  <defs><linearGradient id="boltN2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#FFB199"/>
+    <stop offset="50%" stop-color="#FF6B35"/>
+    <stop offset="100%" stop-color="#D6481A"/>
+  </linearGradient></defs>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z"
+    fill="url(#boltN2)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.6))"/>
+</svg>
+
+<!-- ÉTOILE gauche -->
+<svg class="zora-deco" style="top:-14px;left:38%;width:28px;height:28px;mix-blend-mode:normal;"
+  viewBox="0 0 38 38">
+  <defs><radialGradient id="starN1" cx="35%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#FFE9A8"/>
+    <stop offset="50%" stop-color="#F5A623"/>
+    <stop offset="100%" stop-color="#C97D0F"/>
+  </radialGradient></defs>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13"
+    fill="url(#starN1)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
+</svg>
+
+<!-- ÉTOILE droite -->
+<svg class="zora-deco" style="top:-10px;right:28%;width:22px;height:22px;mix-blend-mode:normal;"
+  viewBox="0 0 38 38">
+  <defs><radialGradient id="starN2" cx="35%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#FFE9A8"/>
+    <stop offset="50%" stop-color="#F5A623"/>
+    <stop offset="100%" stop-color="#C97D0F"/>
+  </radialGradient></defs>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13"
+    fill="url(#starN2)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
+</svg>
+
+<!-- CŒUR gauche -->
+<svg class="zora-deco" style="top:-12px;left:55%;width:30px;height:30px;mix-blend-mode:normal;"
+  viewBox="0 0 40 40">
+  <defs><radialGradient id="heartN1" cx="40%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#FF9EBB"/>
+    <stop offset="50%" stop-color="#FF4D7D"/>
+    <stop offset="100%" stop-color="#CC1A4E"/>
+  </radialGradient></defs>
+  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8
+    C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z"
+    fill="url(#heartN1)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.6))"/>
+</svg>
+
+<!-- CŒUR droit -->
+<svg class="zora-deco" style="bottom:14%;right:22%;width:22px;height:22px;mix-blend-mode:normal;"
+  viewBox="0 0 40 40">
+  <defs><radialGradient id="heartN2" cx="40%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#FF9EBB"/>
+    <stop offset="50%" stop-color="#FF4D7D"/>
+    <stop offset="100%" stop-color="#CC1A4E"/>
+  </radialGradient></defs>
+  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8
+    C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z"
+    fill="url(#heartN2)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.6))"/>
+</svg>
+
+<div class="text-center mb-12 relative z-10">
 <h2 class="text-3xl lg:text-4xl font-extrabold mb-4 tracking-tight">Mangez bien, gagnez des Zora</h2>
 <p class="text-white/70 font-medium text-lg max-w-2xl mx-auto">Accumulez des points à chaque action nutrition.</p>
 </div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 relative z-10">
 <div class="bg-white/10 rounded-[2rem] p-8 text-center backdrop-blur-sm">
 <div class="w-16 h-16 bg-brand-turquoise/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
 <span class="material-symbols-outlined text-3xl text-brand-turquoise">restaurant</span>
@@ -297,7 +463,7 @@
 <span class="text-white/80 font-medium">Recette saine partagée</span>
 </div>
 </div>
-<div class="text-center">
+<div class="text-center relative z-10">
 <a href="/zora/recompenses.html" class="inline-flex items-center gap-2 bg-brand-turquoise text-brand-navy px-8 py-4 rounded-full font-bold text-sm hover:bg-white transition-all active:scale-95">
 Voir toutes les récompenses Zora
 <span class="material-symbols-outlined">arrow_forward</span>
