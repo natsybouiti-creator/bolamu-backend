@@ -94,95 +94,79 @@
         }
     </script>
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #faf8ff; margin: 0; }
-    .msg-box { display: none; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; margin-bottom: 20px; }
-    .msg-box.show.error { background: #ffdad6; color: #93000a; border: 1px solid #ba1a1a; display: flex; }
-    .msg-box.show.success { background: #d4f5ee; color: #005344; border: 1px solid #00C9A7; display: flex; }
-    .btn-login { width: 100%; padding: 16px; background: #F59E0B; color: #1a1200; border-radius: 9999px; font-weight: 800; font-size: 16px; cursor: pointer; border: none; transition: all 0.2s; box-shadow: 0 8px 24px rgba(245,158,11,0.25); }
-    .btn-login:hover { background: #d97706; transform: translateY(-2px); }
-    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
+    .msg-box { display: none; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 13px; margin-bottom: 16px; }
+    .msg-box.show.error { background: #ffdad6; color: #93000a; border: 1px solid #ba1a1a; display: block; }
+    .msg-box.show.success { background: #d4f5ee; color: #005344; border: 1px solid #00C9A7; display: block; }
+    .btn-login { width: 100%; padding: 16px; border-radius: 9999px; font-weight: 800; font-size: 15px; cursor: pointer; border: none; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; background: #F59E0B; color: #1a1200; box-shadow: 0 8px 24px rgba(245,158,11,0.3); }
+    .btn-login:hover { transform: translateY(-2px); opacity: 0.92; }
+    .btn-login:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center px-4 py-12 bg-[#92400e]">
 
-<div class="min-h-screen flex flex-col lg:flex-row">
+<div class="w-full max-w-sm">
 
-  <!-- COLONNE GAUCHE -->
-  <div class="hidden lg:flex lg:w-1/2 bg-[#1a1200] relative overflow-hidden flex-col justify-between p-16">
-    <div class="absolute inset-0 bg-gradient-to-br from-[#1a1200] via-[#2d1f00] to-[#1a1200]"></div>
-    
-    <!-- Logo -->
-    <div class="relative z-10 flex items-center gap-3">
-      <img src="/images/landing/bolamu-logo-final.png" class="h-12 w-12 rounded-full" alt="Bolamu">
-      <span class="text-white font-extrabold text-xl">Bolamu</span>
-    </div>
-
-    <!-- Contenu central -->
-    <div class="relative z-10">
-      <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-8">
-        <span class="material-symbols-outlined text-[#F59E0B] text-4xl">groups</span>
-      </div>
-      <h2 class="text-4xl font-extrabold text-white leading-tight mb-4">SmartFlow RH</h2>
-      <p class="text-white/60 font-medium text-lg leading-relaxed">Pilotez la santé de vos collaborateurs depuis un seul tableau de bord.</p>
-    </div>
-
-    <!-- Badge bas -->
-    <div class="relative z-10">
-      <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
-        <span class="material-symbols-outlined text-white/60 text-sm">lock</span>
-        <span class="text-white/70 text-xs font-bold">Espace entreprises — CEMAC</span>
-      </div>
+  <!-- LOGO + IDENTITÉ -->
+  <div class="text-center mb-8">
+    <img src="/images/landing/bolamu-logo-final.png" class="h-14 w-14 rounded-full mx-auto mb-4" alt="Bolamu">
+    <h1 class="text-xl font-extrabold text-white mb-2">Bolamu</h1>
+    <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-white/15 border border-white/20">
+      <span class="text-white/90 text-xs font-black uppercase tracking-widest">ESPACE RH ENTREPRISE</span>
     </div>
   </div>
 
-  <!-- COLONNE DROITE -->
-  <div class="flex-1 flex flex-col bg-[#faf8ff]">
-    <!-- Topbar mobile -->
-    <nav class="lg:hidden py-4 px-6 border-b border-outline-variant/30 bg-white/80 backdrop-blur-md flex items-center gap-3">
-      <img src="/images/landing/bolamu-logo-final.png" class="h-9 w-9 rounded-full" alt="Bolamu">
-      <span class="font-extrabold text-brand-navy">Bolamu</span>
-    </nav>
-    <!-- Formulaire -->
-    <div class="flex-1 flex items-center justify-center px-6 py-12">
-      <div class="w-full max-w-md">
-        <!-- Pill identité -->
-        <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20 text-xs font-black uppercase tracking-widest mb-8">
-          ESPACE RH ENTREPRISE
-        </div>
-        <!-- Titre -->
-        <h1 class="text-3xl font-extrabold text-brand-navy mb-2">Accès RH Entreprise</h1>
-        <p class="text-on-surface-variant font-medium mb-10">Gérez les abonnements santé et le suivi de vos collaborateurs.</p>
-        <!-- msg-box -->
-        <div class="msg-box" id="msg"></div>
-        <!-- Champs -->
-        <div class="mb-5">
-          <label class="block text-sm font-bold text-brand-navy mb-2">Numéro de téléphone</label>
-          <input type="tel" id="phone" placeholder="+242 06 XXX XX XX" maxlength="15"
-            class="w-full px-5 py-4 rounded-2xl border-2 border-outline-variant focus:border-[#F59E0B] focus:ring-4 focus:ring-[#F59E0B]/10 outline-none font-medium text-on-surface bg-white placeholder:text-on-surface-variant/40 transition-all text-base">
-        </div>
-        <div class="mb-8">
-          <label class="block text-sm font-bold text-brand-navy mb-2">Mot de passe</label>
-          <div class="relative">
-            <input type="password" id="password" placeholder="••••••••••"
-              class="w-full px-5 py-4 pr-14 rounded-2xl border-2 border-outline-variant focus:border-[#F59E0B] focus:ring-4 focus:ring-[#F59E0B]/10 outline-none font-medium text-on-surface bg-white placeholder:text-on-surface-variant/40 transition-all text-base">
-            <button id="toggle-btn" type="button" class="absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-[#F59E0B] transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-        </div>
-        <!-- Bouton -->
-        <button class="btn-login" id="btn-login">Accéder à l'espace RH →</button>
-        <!-- Note sécurité -->
-        <p class="text-center text-xs text-on-surface-variant/50 font-medium mt-6 px-4 leading-relaxed">
-          Accès réservé aux responsables RH des entreprises partenaires Bolamu.
-        </p>
+  <!-- CARD -->
+  <div class="bg-white rounded-[2rem] p-8 shadow-2xl">
+    <h2 class="text-xl font-extrabold text-brand-navy mb-1">Accès RH Entreprise</h2>
+    <p class="text-sm text-on-surface-variant font-medium mb-6">Gérez les abonnements santé de vos collaborateurs.</p>
+
+    <!-- msg-box -->
+    <div class="msg-box" id="msg"></div>
+
+    <!-- Champ téléphone -->
+    <div class="mb-4">
+      <label class="block text-xs font-black text-brand-navy uppercase tracking-wider mb-2">Numéro de téléphone</label>
+      <input type="tel" id="phone" placeholder="+242 06 XXX XX XX" maxlength="15"
+        class="w-full px-4 py-3.5 rounded-2xl border-2 border-outline-variant
+               focus:border-[#F59E0B] focus:ring-4 focus:ring-[#F59E0B]/10
+               outline-none font-medium text-on-surface bg-white
+               placeholder:text-on-surface-variant/40 transition-all">
+    </div>
+
+    <!-- Champ mot de passe -->
+    <div class="mb-6">
+      <label class="block text-xs font-black text-brand-navy uppercase tracking-wider mb-2">Mot de passe</label>
+      <div class="relative">
+        <input type="password" id="password" placeholder="••••••••••"
+          class="w-full px-4 py-3.5 pr-12 rounded-2xl border-2 border-outline-variant
+                 focus:border-[#F59E0B] focus:ring-4 focus:ring-[#F59E0B]/10
+                 outline-none font-medium text-on-surface bg-white
+                 placeholder:text-on-surface-variant/40 transition-all">
+        <button id="toggle-btn" type="button"
+          class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-[#F59E0B] transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
       </div>
     </div>
-    <!-- Footer mini -->
-    <div class="py-5 px-6 border-t border-outline-variant/20 flex justify-center">
-      <a href="/" class="text-xs font-bold text-on-surface-variant/50 hover:text-primary transition-colors">← Retour à l'accueil</a>
-    </div>
+
+    <!-- Bouton -->
+    <button class="btn-login w-full py-4 rounded-full font-black text-base cursor-pointer border-none transition-all" id="btn-login">
+      Accéder à l'espace RH →
+    </button>
+
+    <!-- Note sécurité -->
+    <p class="text-center text-xs text-on-surface-variant/50 font-medium mt-5 leading-relaxed">
+      Accès réservé aux responsables RH des entreprises partenaires Bolamu.
+    </p>
+
   </div>
+
+  <!-- Lien retour -->
+  <p class="text-center mt-6">
+    <a href="/" class="text-xs font-bold text-white/50 hover:text-white transition-colors">← Retour à l'accueil</a>
+  </p>
+
 </div>
 
 <script>
@@ -202,8 +186,8 @@
   function togglePw() {
     const inp = document.getElementById('password');
     const btn = document.getElementById('toggle-btn');
-    if (inp.type === 'password') { inp.type = 'text'; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'; }
-    else { inp.type = 'password'; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'; }
+    if (inp.type === 'password') { inp.type = 'text'; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'; }
+    else { inp.type = 'password'; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'; }
   }
 
   async function doLogin() {
