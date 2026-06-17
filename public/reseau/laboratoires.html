@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Bolamu — Laboratoires</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#00174d",
+                        "inverse-primary": "#b5c4ff",
+                        "surface-container-low": "#f3f3fe",
+                        "primary-container": "#1a56db",
+                        "on-secondary-fixed-variant": "#2e4382",
+                        "on-primary-container": "#d4dcff",
+                        "tertiary-container": "#006e5a",
+                        "secondary-container": "#a2b6fd",
+                        "on-tertiary-fixed-variant": "#005142",
+                        "on-tertiary-container": "#58f5d1",
+                        "surface-bright": "#faf8ff",
+                        "on-tertiary-fixed": "#002019",
+                        "surface-dim": "#d9d9e4",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#dce1ff",
+                        "inverse-on-surface": "#f0f0fb",
+                        "tertiary-fixed-dim": "#38debb",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#faf8ff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#00164d",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#314685",
+                        "surface-container-high": "#e7e7f3",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#191b23",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container": "#ededf8",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#003dab",
+                        "tertiary": "#005344",
+                        "outline": "#737686",
+                        "surface-variant": "#e2e1ed",
+                        "background": "#faf8ff",
+                        "on-background": "#191b23",
+                        "surface-tint": "#1353d8",
+                        "surface-container-highest": "#e2e1ed",
+                        "primary-fixed-dim": "#b5c4ff",
+                        "outline-variant": "#c3c5d7",
+                        "tertiary-fixed": "#5ffbd6",
+                        "on-surface-variant": "#434654",
+                        "primary": "#003fb1",
+                        "inverse-surface": "#2e3039",
+                        "secondary-fixed-dim": "#b5c4ff",
+                        "secondary": "#475b9c",
+                        "brand-navy": "#0A2463",
+                        "brand-turquoise": "#00C9A7",
+                        "brand-orange": "#FF6B35"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "container-margin": "20px",
+                        "md": "24px",
+                        "gutter": "16px",
+                        "base": "8px",
+                        "xl": "64px",
+                        "lg": "40px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "sans": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    "animation": {
+                        "infinite-scroll": "infinite-scroll 40s linear infinite",
+                    },
+                    "keyframes": {
+                        "infinite-scroll": {
+                            "from": { transform: "translateX(0)" },
+                            "to": { transform: "translateX(-50%)" },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+  <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #faf8ff;
+            color: #191b23;
+        }
+        .soft-card {
+            background: #ffffff;
+            border: 1px solid #c3c5d7;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .soft-card:hover {
+            border-color: #003fb1;
+            box-shadow: 0 12px 40px rgba(0, 63, 177, 0.08);
+            transform: translateY(-4px);
+        }
+        .logo-scroll-container {
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #faf8ff; }
+        ::-webkit-scrollbar-thumb { background: #c3c5d7; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #737686; }
+        .zora-deco {
+          position: absolute;
+          pointer-events: none;
+          z-index: 0;
+          height: auto;
+          opacity: 0.95;
+          mix-blend-mode: multiply;
+          filter: brightness(1.25) saturate(1.3)
+                  drop-shadow(0 4px 12px rgba(255,200,0,0.4));
+        }
+        .zora-deco:nth-child(1) { animation: zd-float-1 5s   ease-in-out infinite; }
+        .zora-deco:nth-child(2) { animation: zd-float-2 6s   ease-in-out infinite; animation-delay:0.5s; }
+        .zora-deco:nth-child(3) { animation: zd-float-3 7s   ease-in-out infinite; animation-delay:1s; }
+        .zora-deco:nth-child(4) { animation: zd-float-1 5.5s ease-in-out infinite; animation-delay:1.5s; }
+        .zora-deco:nth-child(5) { animation: zd-float-2 6.5s ease-in-out infinite; animation-delay:2s; }
+        .zora-deco:nth-child(6) { animation: zd-float-3 4.5s ease-in-out infinite; animation-delay:2.5s; }
+        .zora-deco:nth-child(7) { animation: zd-float-1 5.2s ease-in-out infinite; animation-delay:0.8s; }
+        .zora-deco:nth-child(8) { animation: zd-float-2 6.8s ease-in-out infinite; animation-delay:1.8s; }
+        @keyframes zd-float-1 {
+          0%,100% { transform: translate(0px,0px) rotate(-8deg); }
+          33% { transform: translate(6px,-12px) rotate(2deg); }
+          66% { transform: translate(-4px,-5px) rotate(-14deg); }
+        }
+        @keyframes zd-float-2 {
+          0%,100% { transform: translate(0px,0px) rotate(10deg); }
+          33% { transform: translate(-8px,-10px) rotate(0deg); }
+          66% { transform: translate(5px,6px) rotate(18deg); }
+        }
+        @keyframes zd-float-3 {
+          0%,100% { transform: translate(0px,0px) rotate(-5deg); }
+          33% { transform: translate(9px,7px) rotate(5deg); }
+          66% { transform: translate(-5px,-11px) rotate(-12deg); }
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+<!-- NAVBAR -->
+<nav class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 py-4 px-container-margin">
+<div class="max-w-7xl mx-auto flex justify-between items-center">
+<a class="flex items-center gap-3 group" href="/landing.html">
+<img alt="Bolamu Logo" class="h-12 w-12 object-contain transition-transform group-hover:scale-110" src="/images/landing/01-logo-navbar.png">
+<div class="flex flex-col leading-none">
+<span class="text-xl font-extrabold text-brand-navy tracking-tight">Bolamu</span>
+<span class="text-[10px] font-bold text-on-surface-variant opacity-70 uppercase tracking-widest">la santé simple et accessible</span>
+</div>
+</a>
+<div class="hidden lg:flex items-center gap-x-8">
+<a class="text-sm font-bold text-primary relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-primary" href="/landing.html">Accueil</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#how">Comment ça marche</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#pricing">Formules</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#network">Réseau</a>
+<a class="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors" href="/landing.html#blog">Blog</a>
+</div>
+<div class="flex items-center gap-x-4">
+<a class="text-sm font-bold text-brand-navy hover:text-primary transition-colors px-4 py-2" href="/login.html">Connexion</a>
+<button onclick="window.location.href='/register.html'" class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-primary/20 hover:bg-brand-navy transition-all active:scale-95">S'abonner</button>
+</div>
+</div>
+</nav>
+
+<!-- CONTENU PAGE -->
+<main id="page-content">
+
+<!-- BREADCRUMB -->
+<section class="py-6 bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-container-margin">
+<nav class="flex items-center gap-2 text-sm">
+<a href="/landing.html" class="text-on-surface-variant hover:text-primary transition-colors font-medium">Accueil</a>
+<span class="text-on-surface-variant/50">→</span>
+<a href="/landing.html#network" class="text-on-surface-variant hover:text-primary transition-colors font-medium">Réseau d'excellence</a>
+<span class="text-on-surface-variant/50">→</span>
+<span class="text-primary font-bold">Laboratoires</span>
+</nav>
+</div>
+</section>
+
+<!-- HERO -->
+<section class="py-xl bg-white">
+<div class="max-w-7xl mx-auto px-container-margin">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div>
+<div class="inline-flex bg-brand-turquoise text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8">RÉSEAU D'EXCELLENCE • LABORATOIRES</div>
+<h1 class="text-3xl lg:text-5xl font-extrabold text-brand-navy mb-6 tracking-tight leading-tight">Analyses médicales de pointe<br>dans des centres modernes</h1>
+<p class="text-on-surface-variant mb-10 font-medium leading-relaxed text-lg">Nos laboratoires partenaires disposent d'équipements de diagnostic de dernière génération. Prises de sang, imagerie, bilans complets : des résultats fiables et rapides pour une prise en charge optimale.</p>
+<div class="flex flex-col sm:flex-row gap-4">
+<a href="/register.html" class="bg-primary text-on-primary px-8 py-4 rounded-full font-bold text-sm shadow-lg shadow-primary/20 hover:bg-brand-navy transition-all active:scale-95 text-center">S'abonner pour en bénéficier</a>
+<a href="#nos-services" class="border-2 border-primary text-primary px-8 py-4 rounded-full font-bold text-sm hover:bg-primary hover:text-on-primary transition-all active:scale-95 text-center">Découvrir nos services ↓</a>
+</div>
+</div>
+<div class="relative">
+<img src="/images/landing/18-reseau-laboratoires.jpg" alt="Laboratoires Bolamu" class="w-full h-auto rounded-[2.5rem] shadow-2xl">
+</div>
+</div>
+</div>
+</section>
+
+<!-- STATS MINI BAR -->
+<section class="bg-brand-turquoise py-6">
+<div class="max-w-7xl mx-auto px-container-margin">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-white text-center">
+<div>
+<span class="block text-2xl font-extrabold mb-1">25+</span>
+<span class="text-sm font-medium opacity-90">laboratoires partenaires</span>
+</div>
+<div>
+<span class="block text-2xl font-extrabold mb-1">24h</span>
+<span class="text-sm font-medium opacity-90">délai résultats urgents</span>
+</div>
+<div>
+<span class="block text-2xl font-extrabold mb-1">100%</span>
+<span class="text-sm font-medium opacity-90">équipements certifiés</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION NOS SERVICES -->
+<section class="py-xl bg-surface-container-low" id="nos-services">
+<div class="max-w-7xl mx-auto px-container-margin">
+<div class="text-center mb-16">
+<h2 class="text-3xl lg:text-4xl font-extrabold text-brand-navy mb-4 tracking-tight">Nos services d'analyses</h2>
+<p class="text-on-surface-variant font-medium text-lg max-w-2xl mx-auto">Un diagnostic précis pour une prise en charge adaptée.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+  <!-- CARD 1 -->
+  <div class="soft-card rounded-[2rem] p-8
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
+      <span class="material-symbols-outlined text-3xl text-brand-turquoise">water_drop</span>
+    </div>
+    <h3 class="font-black text-brand-navy text-lg mb-3">
+      Analyses sanguines
+    </h3>
+    <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+      Bilan sanguin complet, NFS, plaquettes, glycémie, cholestérol et tous les examens biologiques essentiels.
+    </p>
+  </div>
+
+  <!-- CARD 2 -->
+  <div class="soft-card rounded-[2rem] p-8
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
+      <span class="material-symbols-outlined text-3xl text-brand-turquoise">biotech</span>
+    </div>
+    <h3 class="font-black text-brand-navy text-lg mb-3">
+      Bactériologie
+    </h3>
+    <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+      Analyses bactériologiques pour identifier les infections et orienter le traitement antibiotique adapté.
+    </p>
+  </div>
+
+  <!-- CARD 3 -->
+  <div class="soft-card rounded-[2rem] p-8
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
+      <span class="material-symbols-outlined text-3xl text-brand-turquoise">coronavirus</span>
+    </div>
+    <h3 class="font-black text-brand-navy text-lg mb-3">
+      Virologie
+    </h3>
+    <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+      Tests PCR et sérologiques pour les maladies virales, y compris paludisme, VIH, hépatites et COVID-19.
+    </p>
+  </div>
+
+  <!-- CARD 4 -->
+  <div class="soft-card rounded-[2rem] p-8
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
+      <span class="material-symbols-outlined text-3xl text-brand-turquoise">pregnant_woman</span>
+    </div>
+    <h3 class="font-black text-brand-navy text-lg mb-3">
+      Suivi grossesse
+    </h3>
+    <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+      Bilans prénataux complets, sérologies, groupe sanguin et suivi régulier pour les futures mamans.
+    </p>
+  </div>
+
+  <!-- CARD 5 -->
+  <div class="soft-card rounded-[2rem] p-8
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
+      <span class="material-symbols-outlined text-3xl text-brand-turquoise">science</span>
+    </div>
+    <h3 class="font-black text-brand-navy text-lg mb-3">
+      Bilans de santé
+    </h3>
+    <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+      Bilans complets personnalisés selon votre âge et vos antécédents, avec interprétation des résultats.
+    </p>
+  </div>
+
+  <!-- CARD 6 -->
+  <div class="soft-card rounded-[2rem] p-8
+              shadow-md shadow-black/[0.06]
+              hover:shadow-lg hover:shadow-black/[0.10] transition-shadow group">
+    <div class="w-16 h-16 bg-brand-turquoise/10 rounded-2xl flex items-center justify-center mb-6">
+      <span class="material-symbols-outlined text-3xl text-brand-turquoise">schedule</span>
+    </div>
+    <h3 class="font-black text-brand-navy text-lg mb-3">
+      Résultats rapides
+    </h3>
+    <p class="text-sm text-on-surface-variant font-medium leading-relaxed">
+      Résultats disponibles en 24 à 48h pour la plupart des analyses, avec notification par SMS sur votre espace.
+    </p>
+  </div>
+
+</div>
+</div>
+</section>
+
+<!-- SECTION POURQUOI CHOISIR -->
+<section class="py-xl bg-white">
+<div class="max-w-7xl mx-auto px-container-margin">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div class="relative">
+<img src="/images/landing/18-reseau-laboratoires.jpg" alt="Laboratoire partenaire Bolamu" class="w-full h-auto rounded-[2.5rem] shadow-2xl">
+</div>
+<div>
+<div class="inline-flex bg-brand-orange/10 text-brand-orange px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8">POURQUOI CHOISIR BOLAMU</div>
+<h2 class="text-3xl lg:text-4xl font-extrabold text-brand-navy mb-6 tracking-tight leading-tight">Des diagnostics fiables,<br>des traitements adaptés</h2>
+<p class="text-on-surface-variant mb-8 font-medium leading-relaxed text-lg">Nos laboratoires partenaires respectent les normes internationales de qualité et de sécurité. Chaque analyse est réalisée par des techniciens qualifiés sur des équipements modernes pour garantir des résultats fiables.</p>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-brand-turquoise text-xl">check_circle</span>
+<span class="text-on-surface-variant font-medium">Équipements de dernière génération</span>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-brand-turquoise text-xl">check_circle</span>
+<span class="text-on-surface-variant font-medium">Techniciens et biologistes certifiés</span>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-brand-turquoise text-xl">check_circle</span>
+<span class="text-on-surface-variant font-medium">Résultats traçables et sécurisés</span>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-brand-turquoise text-xl">check_circle</span>
+<span class="text-on-surface-variant font-medium">Prise en charge directe pour les abonnés</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- SECTION ZORA -->
+<section class="py-xl bg-brand-navy text-white relative overflow-visible">
+<div class="max-w-7xl mx-auto px-container-margin relative z-10">
+<!-- PIÈCES -->
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="top:-24px;left:3%;width:58px;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="top:-18px;right:4%;width:68px;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="bottom:8%;left:2%;width:44px;">
+<img src="/images/landing/zora-coin-gold.png" alt="" class="zora-deco" style="bottom:12%;right:3%;width:52px;">
+
+<!-- ÉCLAIR gauche -->
+<svg class="zora-deco" style="top:-18px;left:18%;width:34px;height:34px;mix-blend-mode:normal;" viewBox="0 0 40 40">
+  <defs><linearGradient id="boltZ1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#FFB199"/>
+    <stop offset="50%" stop-color="#FF6B35"/>
+    <stop offset="100%" stop-color="#D6481A"/>
+  </linearGradient></defs>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" fill="url(#boltZ1)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.6))"/>
+</svg>
+
+<!-- ÉCLAIR droit -->
+<svg class="zora-deco" style="bottom:10%;right:16%;width:26px;height:26px;mix-blend-mode:normal;" viewBox="0 0 40 40">
+  <defs><linearGradient id="boltZ2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#FFB199"/>
+    <stop offset="50%" stop-color="#FF6B35"/>
+    <stop offset="100%" stop-color="#D6481A"/>
+  </linearGradient></defs>
+  <path d="M22 2 L10 22 L18 22 L16 38 L30 16 L21 16 Z" fill="url(#boltZ2)" style="filter:drop-shadow(0 4px 8px rgba(255,107,53,0.6))"/>
+</svg>
+
+<!-- ÉTOILE gauche -->
+<svg class="zora-deco" style="top:-14px;left:38%;width:28px;height:28px;mix-blend-mode:normal;" viewBox="0 0 38 38">
+  <defs><radialGradient id="starZ1" cx="35%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#FFE9A8"/>
+    <stop offset="50%" stop-color="#F5A623"/>
+    <stop offset="100%" stop-color="#C97D0F"/>
+  </radialGradient></defs>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13" fill="url(#starZ1)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
+</svg>
+
+<!-- ÉTOILE droite -->
+<svg class="zora-deco" style="top:-10px;right:28%;width:22px;height:22px;mix-blend-mode:normal;" viewBox="0 0 38 38">
+  <defs><radialGradient id="starZ2" cx="35%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#FFE9A8"/>
+    <stop offset="50%" stop-color="#F5A623"/>
+    <stop offset="100%" stop-color="#C97D0F"/>
+  </radialGradient></defs>
+  <polygon points="19,2 23,13 35,13 25,20 29,32 19,25 9,32 13,20 3,13 15,13" fill="url(#starZ2)" style="filter:drop-shadow(0 4px 8px rgba(245,166,35,0.6))"/>
+</svg>
+
+<!-- CŒUR gauche -->
+<svg class="zora-deco" style="top:-12px;left:55%;width:30px;height:30px;mix-blend-mode:normal;" viewBox="0 0 40 40">
+  <defs><radialGradient id="heartZ1" cx="40%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#FF9EBB"/>
+    <stop offset="50%" stop-color="#FF4D7D"/>
+    <stop offset="100%" stop-color="#CC1A4E"/>
+  </radialGradient></defs>
+  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8
+    C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z" fill="url(#heartZ1)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.6))"/>
+</svg>
+
+<!-- CŒUR droit -->
+<svg class="zora-deco" style="bottom:14%;right:22%;width:22px;height:22px;mix-blend-mode:normal;" viewBox="0 0 40 40">
+  <defs><radialGradient id="heartZ2" cx="40%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#FF9EBB"/>
+    <stop offset="50%" stop-color="#FF4D7D"/>
+    <stop offset="100%" stop-color="#CC1A4E"/>
+  </radialGradient></defs>
+  <path d="M20 34 C20 34 4 22 4 13 C4 7.5 8.5 4 13 4 C16 4 18.5 5.5 20 8
+    C21.5 5.5 24 4 27 4 C31.5 4 36 7.5 36 13 C36 22 20 34 20 34 Z" fill="url(#heartZ2)" style="filter:drop-shadow(0 4px 10px rgba(255,77,125,0.6))"/>
+</svg>
+
+<div class="text-center mb-12 relative z-10">
+<h2 class="text-3xl lg:text-4xl font-extrabold mb-4 tracking-tight">Surveillez votre santé — gagnez des Zora</h2>
+<p class="text-white/70 font-medium text-lg max-w-2xl mx-auto">Accumulez des points à chaque analyse dans nos laboratoires partenaires.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 relative z-10">
+<div class="bg-white/10 rounded-[2rem] p-8 text-center backdrop-blur-sm">
+<div class="w-16 h-16 bg-brand-turquoise/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-3xl text-brand-turquoise">water_drop</span>
+</div>
+<span class="block text-4xl font-extrabold text-brand-turquoise mb-2">+50 pts</span>
+<span class="text-white/80 font-medium">Analyse sanguine réalisée</span>
+</div>
+<div class="bg-white/10 rounded-[2rem] p-8 text-center backdrop-blur-sm">
+<div class="w-16 h-16 bg-brand-turquoise/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-3xl text-brand-turquoise">science</span>
+</div>
+<span class="block text-4xl font-extrabold text-brand-turquoise mb-2">+100 pts</span>
+<span class="text-white/80 font-medium">Bilan de santé complet</span>
+</div>
+<div class="bg-white/10 rounded-[2rem] p-8 text-center backdrop-blur-sm">
+<div class="w-16 h-16 bg-brand-turquoise/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-3xl text-brand-turquoise">assignment_turned_in</span>
+</div>
+<span class="block text-4xl font-extrabold text-brand-turquoise mb-2">+75 pts</span>
+<span class="text-white/80 font-medium">Suivi de grossesse</span>
+</div>
+</div>
+<div class="text-center relative z-10">
+<a href="/zora/recompenses.html" class="inline-flex items-center gap-2 bg-brand-turquoise text-brand-navy px-8 py-4 rounded-full font-bold text-sm hover:bg-white transition-all active:scale-95">
+Voir toutes les récompenses Zora
+<span class="material-symbols-outlined">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+
+<!-- TÉMOIGNAGE -->
+<section class="py-xl bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-container-margin">
+<div class="bg-brand-navy rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+<div class="absolute -right-10 -bottom-10 opacity-5">
+<span class="material-symbols-outlined text-[180px]">format_quote</span>
+</div>
+<p class="text-blue-100 italic text-xl mb-8 leading-relaxed relative z-10 font-medium">"Mon médecin m'a prescrit un bilan complet. Grâce à Bolamu, j'ai pu le faire dans un laboratoire moderne sans avancer les frais. Les résultats sont arrivés rapidement et tout était clair."</p>
+<div class="flex items-center gap-5 relative z-10">
+<div class="w-14 h-14 rounded-2xl bg-brand-turquoise/20 flex items-center justify-center overflow-hidden border-2 border-brand-turquoise">
+<img alt="Christian M." class="w-full h-full object-cover" src="/images/landing/portrait-homme-africain.jpg">
+</div>
+<div>
+<span class="font-black text-white block text-lg">Christian M.</span>
+<span class="text-brand-turquoise text-xs font-bold uppercase tracking-widest">Membre Bolamu depuis 2025 · Brazzaville</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="py-xl bg-white">
+<div class="max-w-7xl mx-auto px-container-margin text-center">
+<h2 class="text-3xl lg:text-4xl font-extrabold text-brand-navy mb-6 tracking-tight">Accédez aux meilleurs laboratoires du Congo</h2>
+<p class="text-on-surface-variant mb-10 font-medium text-lg max-w-2xl mx-auto">25+ laboratoires partenaires acceptent déjà la prise en charge Bolamu.</p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<a href="/register.html" class="bg-primary text-on-primary px-8 py-4 rounded-full font-bold text-sm shadow-lg shadow-primary/20 hover:bg-brand-navy transition-all active:scale-95 text-center">S'abonner maintenant</a>
+<a href="/carte.html" class="border-2 border-primary text-primary px-8 py-4 rounded-full font-bold text-sm hover:bg-primary hover:text-on-primary transition-all active:scale-95 text-center">Voir la carte des partenaires</a>
+</div>
+</div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-brand-navy pt-24 pb-12 px-container-margin text-white">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl mb-20">
+<div class="lg:col-span-4">
+<a class="flex items-center gap-3 mb-8" href="/landing.html">
+<img alt="Bolamu Logo" class="h-12 w-12 object-contain" src="/images/landing/23-logo-footer.png">
+<div class="flex flex-col leading-none">
+<span class="text-xl font-extrabold text-white tracking-tight">Bolamu</span>
+<span class="text-[10px] font-bold text-brand-turquoise uppercase tracking-widest">la santé simple et accessible</span>
+</div>
+</a>
+<p class="text-white/70 text-sm font-medium leading-relaxed mb-8 max-w-sm">
+                Bolamu réinvente l'accès aux soins au Congo grâce à une plateforme connectée et humaine. Nous rendons la santé de qualité accessible à tous, partout.
+            </p>
+<div class="flex flex-wrap gap-4">
+<a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-turquoise transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.395 0 .01 5.388 0 12.044c0 2.129.555 4.207 1.608 6.031L0 24l6.105-1.602a11.832 11.832 0 005.937 1.606h.005c6.654 0 12.04-5.388 12.045-12.044a11.82 11.82 0 00-3.48-8.513z"/></svg>
+</a>
+<a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-turquoise transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+</a>
+<a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-turquoise transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+</a>
+<a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-turquoise transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+</a>
+<a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-turquoise transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 0 006.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
+</a>
+<a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-turquoise transition-colors" href="#">
+<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+</a>
+</div>
+</div>
+<div class="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-8">
+<div>
+<h5 class="font-black text-brand-turquoise text-sm uppercase tracking-widest mb-8">Produit</h5>
+<ul class="space-y-4">
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html">Accueil</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html#how">Comment ça marche</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html#pricing">Formules</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html#network">Réseau de soins</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html#prevention">Prévention Elonga</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-black text-brand-turquoise text-sm uppercase tracking-widest mb-8">Entreprise</h5>
+<ul class="space-y-4">
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">À propos</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/landing.html#blog">Blog Santé</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">Carrières</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">Partenaires</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">Presse</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-black text-brand-turquoise text-sm uppercase tracking-widest mb-8">Support</h5>
+<ul class="space-y-4">
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">Centre d'aide</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">Contact</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">FAQ</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/confidentialite.html">Confidentialité</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="#">Mentions légales</a></li>
+<li class=""><a class="text-white/70 hover:text-white transition-colors text-sm font-medium" href="/cgu.html">CGU</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="mb-12 pt-8 border-t border-white/5">
+<h5 class="font-black text-brand-turquoise text-[10px] uppercase tracking-widest mb-6 opacity-50">Espaces Institutionnels</h5>
+<div class="flex flex-wrap gap-x-8 gap-y-4">
+<a class="text-white/60 hover:text-brand-turquoise transition-colors text-xs font-bold uppercase tracking-wider" href="/secretaire/login.html">Secrétariat</a>
+<a class="text-white/60 hover:text-brand-turquoise transition-colors text-xs font-bold uppercase tracking-wider" href="/rh/login.html">Espace RH</a>
+<a class="text-white/60 hover:text-brand-turquoise transition-colors text-xs font-bold uppercase tracking-wider" href="/agence/login.html">Espace Agent</a>
+<a class="text-white/60 hover:text-brand-turquoise transition-colors text-xs font-bold uppercase tracking-wider" href="/admin/login.html">Admin</a>
+</div>
+</div>
+<div class="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="text-white/50 text-xs font-medium">© 2026 Bolamu. Tous droits réservés. La santé pour tous au Congo.</p>
+<div class="flex items-center gap-6">
+<span class="text-white/50 text-[10px] font-bold uppercase tracking-widest">Brazzaville</span>
+<span class="text-white/30">•</span>
+<span class="text-white/50 text-[10px] font-bold uppercase tracking-widest">Pointe-Noire</span>
+</div>
+</div>
+</div>
+</footer>
+
+</body>
+</html>
