@@ -8,8 +8,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 <style>
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23;min-height:100vh;width:100%;margin:0 auto;overflow-x:hidden}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160deg,#FAF8FF 0%,#F0F4FF 40%,#FFF0F8 70%,#F0FFFA 100%);background-size:400% 400%;animation:gradientShift 12s ease infinite;color:#191B23;min-height:100vh;width:100%;margin:0 auto;overflow-x:hidden}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .soft-card{background:#ffffff;border:1px solid #C3C5D7;border-radius:24px;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);padding:24px;width:100%;height:100%;cursor:pointer}
 .soft-card:hover{border-color:#003FB1;box-shadow:0 16px 48px rgba(0,63,177,0.12);transform:translateY(-6px)}
 .btn-primary{background:#003FB1;color:#ffffff;padding:14px 32px;border-radius:9999px;font-weight:700;font-size:1rem;box-shadow:0 8px 24px rgba(0,63,177,0.25);transition:all 0.2s ease;cursor:pointer;border:none}
@@ -74,6 +83,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 .ranking-item:nth-child(3){animation-delay:0.3s}
 .reveal-card{opacity:0;transform:translateY(24px);transition:opacity 0.5s ease,transform 0.5s ease}
 .reveal-card.visible{opacity:1;transform:translateY(0)}
+.card-peach{background:linear-gradient(135deg,#FFF5F0 0%,#FFE8DC 100%);border-color:#FFCBB4}
+.card-sky{background:linear-gradient(135deg,#F0F8FF 0%,#DCF0FF 100%);border-color:#B4DCFF}
+.card-violet{background:linear-gradient(135deg,#F5F0FF 0%,#EAE0FF 100%);border-color:#C9B4FF}
+.card-mint{background:linear-gradient(135deg,#F0FFF8 0%,#DCFFF0 100%);border-color:#B4FFD4}
+.card-gold{background:linear-gradient(135deg,#FFFBF0 0%,#FFF3DC 100%);border-color:#FFE4B4}
+.card-peach:hover{box-shadow:0 16px 48px rgba(255,107,53,0.15);border-color:#FF6B35}
+.card-sky:hover{box-shadow:0 16px 48px rgba(0,63,177,0.15);border-color:#003FB1}
+.card-violet:hover{box-shadow:0 16px 48px rgba(120,80,220,0.15);border-color:#7850DC}
+.card-mint:hover{box-shadow:0 16px 48px rgba(0,201,167,0.15);border-color:#00C9A7}
+.card-gold:hover{box-shadow:0 16px 48px rgba(245,166,35,0.15);border-color:#F5A623}
+.gradient-title{background:linear-gradient(135deg,#0A2463 0%,#003FB1 50%,#7850DC 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800}
 }
 </style>
 </head>
@@ -118,7 +138,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 <main class="w-full px-8 pt-32 pb-12">
 <div id="panel-accueil" class="panel active">
 <div class="grid grid-cols-12 gap-6" style="align-items:stretch;">
-<div class="col-span-7 soft-card card-animate">
+<div class="col-span-6 soft-card card-animate">
 <div style="background:#0A2463;border-radius:20px;padding:24px;color:#ffffff;margin-bottom:24px;">
 <div class="flex justify-between items-start mb-4">
 <div class="flex items-center gap-4">
@@ -140,7 +160,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 </div>
-<div class="col-span-5">
+<div class="col-span-3">
 <div class="zora-balance-card card-animate">
 <div class="zora-balance-card__header">
 <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;color:#FF6B35;font-size:28px;">stars</span>
@@ -163,7 +183,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 </div>
-<div class="col-span-4 soft-card reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+<div class="col-span-3">
+<div id="avatar-accueil" style="width:100%;height:320px;border-radius:24px;overflow:hidden;position:relative;">
+<canvas id="canvas-garcon" style="width:100%;height:100%;"></canvas>
+<div style="position:absolute;bottom:12px;left:0;right:0;text-align:center;">
+<span style="color:#0A2463;font-weight:800;font-size:0.85rem;">Votre coach Bolamu</span>
+</div>
+</div>
+</div>
+<div class="col-span-4 soft-card card-sky reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Prochain RDV</h3>
 <div class="mb-4 p-3 rounded-xl" style="background:#F3F3FE;">
 <p class="font-bold text-sm">Dr. Marc Ntolo</p>
@@ -172,7 +200,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 <button class="btn-primary w-full" onclick="showPanel('medecins')">Prendre un RDV</button>
 </div>
-<div class="col-span-4 soft-card reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+<div class="col-span-4 soft-card card-peach reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Défis du jour</h3>
 <div class="space-y-3">
 <div class="zora-challenge">
@@ -211,7 +239,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 </div>
-<div class="col-span-4 soft-card reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+<div class="col-span-4 soft-card card-violet reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Chat Amina</h3>
 <div class="space-y-3 mb-4">
 <div class="p-3 rounded-xl" style="background:#F3F3FE;">
@@ -232,7 +260,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 <button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">Envoyer</button>
 </div>
 </div>
-<div class="col-span-5 soft-card reveal-card">
+<div class="col-span-5 soft-card card-mint reveal-card">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Classement global</h3>
 <div class="space-y-3">
 <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-colors ranking-item">
@@ -261,7 +289,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 </div>
-<div class="col-span-7 soft-card reveal-card">
+<div class="col-span-7 soft-card card-gold reveal-card">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Événements Elonga</h3>
 <div class="space-y-3 mb-6">
 <div class="p-3 rounded-xl" style="background:#F3F3FE;">
@@ -291,7 +319,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 <div id="panel-medecins" class="panel">
-<h2 class="font-bold text-2xl mb-6" style="color:#0A2463;">Médecins disponibles</h2>
+<h2 class="font-bold text-2xl mb-6 gradient-title">Médecins disponibles</h2>
 <div class="flex gap-4 mb-6">
 <input type="text" placeholder="Rechercher par spécialité, ville..." class="flex-1 px-4 py-3 rounded-xl" style="border:2px solid #C3C5D7;outline:none;"/>
 <select class="px-4 py-3 rounded-xl" style="border:2px solid #C3C5D7;outline:none;">
@@ -370,7 +398,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 <div id="panel-zora" class="panel">
-<h2 class="font-bold text-2xl mb-6" style="color:#0A2463;">Programme Zora</h2>
+<h2 class="font-bold text-2xl mb-6 gradient-title">Programme Zora</h2>
 <div class="zora-balance-card mb-8">
 <div class="zora-balance-card__header">
 <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;color:#FF6B35;font-size:28px;">stars</span>
@@ -470,7 +498,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 <div id="panel-dossier" class="panel">
-<h2 class="font-bold text-2xl mb-6" style="color:#0A2463;">Dossier médical</h2>
+<h2 class="font-bold text-2xl mb-6 gradient-title">Dossier médical</h2>
 <div class="grid grid-cols-3 gap-6 mb-8">
 <div class="soft-card">
 <h3 class="font-bold text-sm mb-4" style="color:#434654;text-transform:uppercase;letter-spacing:1px;">Informations générales</h3>
@@ -544,7 +572,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 <button class="btn-primary">Partager mon dossier</button>
 </div>
 <div id="panel-marketplace" class="panel">
-<h2 class="font-bold text-2xl mb-6" style="color:#0A2463;">Récompenses & Partenaires</h2>
+<h2 class="font-bold text-2xl mb-6 gradient-title">Récompenses & Partenaires</h2>
 <div class="flex gap-3 mb-6">
 <button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">Tout</button>
 <button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#F3F3FE;color:#434654;border:none;cursor:pointer;">Santé</button>
@@ -854,6 +882,63 @@ header.style.boxShadow = 'none';
 });
 }
 });
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+function initAvatar(canvasId, modelPath, bgColor = null) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  const scene = new THREE.Scene();
+  if (bgColor) scene.background = new THREE.Color(bgColor);
+
+  const camera = new THREE.PerspectiveCamera(45, canvas.offsetWidth / canvas.offsetHeight, 0.1, 100);
+  camera.position.set(0, 1.2, 3.5);
+
+  const ambient = new THREE.AmbientLight(0xffffff, 1.2);
+  scene.add(ambient);
+  const dirLight = new THREE.DirectionalLight(0x003FB1, 2);
+  dirLight.position.set(2, 4, 3);
+  scene.add(dirLight);
+  const rimLight = new THREE.DirectionalLight(0x00C9A7, 1);
+  rimLight.position.set(-2, 2, -2);
+  scene.add(rimLight);
+  const warmLight = new THREE.DirectionalLight(0xFF6B35, 0.8);
+  warmLight.position.set(0, -1, 2);
+  scene.add(warmLight);
+
+  const loader = new GLTFLoader();
+  loader.load(modelPath, (gltf) => {
+    const model = gltf.scene;
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    model.position.sub(center);
+    model.position.y += size.y * 0.1;
+    const scale = 2.0 / size.y;
+    model.scale.setScalar(scale);
+    scene.add(model);
+
+    let t = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      t += 0.01;
+      model.rotation.y = Math.sin(t * 0.5) * 0.15;
+      model.position.y += Math.sin(t) * 0.0008;
+      renderer.render(scene, camera);
+    }
+    animate();
+  });
+}
+
+initAvatar('canvas-garcon', '/models/garçonsmask.glb');
 </script>
 </body>
 </html>
