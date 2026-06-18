@@ -7,14 +7,6 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
   <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -226,12 +218,9 @@
 </div>
 </div>
 </div>
-<div class="lg:col-span-5 relative flex items-center justify-center gap-6">
+<div class="lg:col-span-5 relative">
 <div class="relative z-10 rounded-[2rem] overflow-hidden shadow-2xl">
 <img alt="Femme souriante" class="w-full h-[550px] object-cover" src="/images/landing/02-hero-femme.jpg">
-</div>
-<div id="avatar-landing" style="width:320px;height:420px;flex-shrink:0;position:relative;">
-<canvas id="canvas-fille" style="width:100%;height:100%;"></canvas>
 </div>
 </div>
 </div>
@@ -985,62 +974,5 @@
 </div>
 </div>
 </footer>
-<script type="module">
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
-function initAvatar(canvasId, modelPath, bgColor = null) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-  const scene = new THREE.Scene();
-  if (bgColor) scene.background = new THREE.Color(bgColor);
-
-  const camera = new THREE.PerspectiveCamera(45, canvas.offsetWidth / canvas.offsetHeight, 0.1, 100);
-  camera.position.set(0, 1.2, 3.5);
-
-  const ambient = new THREE.AmbientLight(0xffffff, 1.2);
-  scene.add(ambient);
-  const dirLight = new THREE.DirectionalLight(0x003FB1, 2);
-  dirLight.position.set(2, 4, 3);
-  scene.add(dirLight);
-  const rimLight = new THREE.DirectionalLight(0x00C9A7, 1);
-  rimLight.position.set(-2, 2, -2);
-  scene.add(rimLight);
-  const warmLight = new THREE.DirectionalLight(0xFF6B35, 0.8);
-  warmLight.position.set(0, -1, 2);
-  scene.add(warmLight);
-
-  const loader = new GLTFLoader();
-  loader.load(modelPath, (gltf) => {
-    const model = gltf.scene;
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    model.position.sub(center);
-    model.position.y += size.y * 0.1;
-    const scale = 2.0 / size.y;
-    model.scale.setScalar(scale);
-    scene.add(model);
-
-    let t = 0;
-    function animate() {
-      requestAnimationFrame(animate);
-      t += 0.01;
-      model.rotation.y = Math.sin(t * 0.5) * 0.15;
-      model.position.y += Math.sin(t) * 0.0008;
-      renderer.render(scene, camera);
-    }
-    animate();
-  });
-}
-
-initAvatar('canvas-fille', '/models/texturized-new.glb');
-</script>
 </body>
 </html>
