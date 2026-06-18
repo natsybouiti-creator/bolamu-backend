@@ -9,14 +9,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23;min-height:100vh;width:1280px;margin:0 auto;overflow-x:hidden}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23;min-height:100vh;width:100%;margin:0 auto;overflow-x:hidden}
 .soft-card{background:#ffffff;border:1px solid #C3C5D7;border-radius:24px;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);padding:24px;width:100%;height:100%}
 .soft-card:hover{border-color:#003FB1;box-shadow:0 12px 40px rgba(0,63,177,0.08);transform:translateY(-4px)}
 .btn-primary{background:#003FB1;color:#ffffff;padding:14px 32px;border-radius:9999px;font-weight:700;font-size:1rem;box-shadow:0 8px 24px rgba(0,63,177,0.25);transition:all 0.2s ease;cursor:pointer;border:none}
 .btn-primary:hover{background:#0A2463;transform:translateY(-2px)}
 .btn-primary:active{transform:scale(0.95)}
-.zora-balance-card{background:#0A2463;border-radius:24px;padding:24px;color:#ffffff;position:relative;overflow:hidden}
-.zora-balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,107,53,0.12);border-radius:50%;pointer-events:none}
+.zora-balance-card{background:#0A2463;border-radius:24px;padding:24px;color:#ffffff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}
 .zora-balance-card__header{display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .zora-balance-card__label{font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.6)}
 .zora-balance-card__amount{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}
@@ -64,9 +63,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </head>
 <body class="min-h-screen">
 <header class="fixed top-0 w-full z-50" style="background:rgba(250,248,255,0.80);backdrop-filter:blur(12px);border-bottom:1px solid rgba(195,197,215,0.30);">
-<nav class="max-w-[1280px] mx-auto px-8 flex justify-between items-center h-20">
+<nav class="w-full px-8 flex justify-between items-center h-20">
 <div class="flex items-center gap-8">
-<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-extrabold text-lg">B</div>
+<div style="width:40px;height:40px;border-radius:9999px;background:#003FB1;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.1rem;flex-shrink:0;">B</div>
 <div class="flex gap-2">
 <div class="nav-tab active" onclick="showPanel('accueil')" data-panel="accueil">
 <span class="material-symbols-outlined" style="color:#003FB1;font-size:20px;">home</span>
@@ -100,9 +99,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </nav>
 </header>
-<main class="max-w-[1280px] mx-auto px-8 pt-32 pb-12">
+<main class="w-full px-8 pt-32 pb-12">
 <div id="panel-accueil" class="panel active">
-<div class="grid grid-cols-12 gap-6">
+<div class="grid grid-cols-12 gap-6" style="align-items:stretch;">
 <div class="col-span-7 soft-card">
 <div style="background:#0A2463;border-radius:20px;padding:24px;color:#ffffff;margin-bottom:24px;">
 <div class="flex justify-between items-start mb-4">
@@ -145,7 +144,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 </div>
-<div class="col-span-4 soft-card" style="min-height:280px;">
+<div class="col-span-4 soft-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Prochain RDV</h3>
 <div class="mb-4 p-3 rounded-xl" style="background:#F3F3FE;">
 <p class="font-bold text-sm">Dr. Marc Ntolo</p>
@@ -154,7 +153,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 <button class="btn-primary w-full" onclick="showPanel('medecins')">Prendre un RDV</button>
 </div>
-<div class="col-span-4 soft-card" style="min-height:280px;">
+<div class="col-span-4 soft-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Défis du jour</h3>
 <div class="space-y-3">
 <div class="zora-challenge">
@@ -193,17 +192,26 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 </div>
-<div class="col-span-4 soft-card" style="min-height:280px;">
+<div class="col-span-4 soft-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Chat Amina</h3>
-<div class="p-4 rounded-xl mb-4" style="background:#F3F3FE;">
-<p class="text-sm mb-3">Bonjour Sarah, comment vous sentez-vous aujourd'hui ?</p>
+<div class="space-y-3 mb-4">
+<div class="p-3 rounded-xl" style="background:#F3F3FE;">
+<p class="text-sm mb-1">Amina</p>
+<p class="text-xs" style="color:#434654;">Bonjour Sarah, comment vous sentez-vous aujourd'hui ?</p>
+</div>
+<div class="p-3 rounded-xl ml-8" style="background:#0A2463;color:#ffffff;">
+<p class="text-sm mb-1">Vous</p>
+<p class="text-xs opacity-80">Bien, merci !</p>
+</div>
+<div class="p-3 rounded-xl" style="background:#F3F3FE;">
+<p class="text-sm mb-1">Amina</p>
+<p class="text-xs" style="color:#434654;">Avez-vous pris vos médicaments ce matin ?</p>
+</div>
+</div>
 <div class="flex gap-2">
-<button class="px-3 py-2 rounded-full text-xs font-bold" style="background:#00C9A7;color:#ffffff;border:none;cursor:pointer;">Bien</button>
-<button class="px-3 py-2 rounded-full text-xs font-bold" style="background:#FF6B35;color:#ffffff;border:none;cursor:pointer;">Fatigué</button>
-<button class="px-3 py-2 rounded-full text-xs font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">J'ai mal</button>
+<input type="text" placeholder="Décrivez vos symptômes..." class="flex-1 px-3 py-2 rounded-lg text-sm" style="border:2px solid #C3C5D7;outline:none;"/>
+<button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">Envoyer</button>
 </div>
-</div>
-<a href="#" class="text-sm font-bold" style="color:#003FB1;text-decoration:none;">Démarrer une consultation IA →</a>
 </div>
 <div class="col-span-5 soft-card">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Classement global</h3>
@@ -670,9 +678,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </main>
 <footer class="w-full py-8 mt-12 border-t" style="border-color:rgba(195,197,215,0.20);background:#FAF8FF;">
-<div class="max-w-[1280px] mx-auto px-8 flex justify-between items-center">
+<div class="w-full px-8 flex justify-between items-center">
 <div class="flex items-center gap-3">
-<img src="/images/landing/bolamu-logo-512.png" class="h-10 w-10 object-contain rounded-full" alt="Bolamu"/>
+<div style="width:40px;height:40px;border-radius:9999px;background:#003FB1;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.1rem;flex-shrink:0;">B</div>
 <span style="color:#0A2463;font-weight:800;font-size:1rem;">Bolamu Health</span>
 </div>
 <p style="color:#434654;font-size:0.875rem;">© 2026 NBA Gestion SARLU. Tous droits réservés.</p>
