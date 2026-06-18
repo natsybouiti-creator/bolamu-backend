@@ -10,8 +10,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23;min-height:100vh;width:100%;margin:0 auto;overflow-x:hidden}
-.soft-card{background:#ffffff;border:1px solid #C3C5D7;border-radius:24px;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);padding:24px;width:100%;height:100%;cursor:pointer}
-.soft-card:hover{border-color:#003FB1;box-shadow:0 12px 40px rgba(0,63,177,0.10);transform:translateY(-6px)}
+.soft-card{background:#ffffff;border:1px solid #C3C5D7;border-radius:24px;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);padding:24px;width:100%;height:100%;cursor:pointer}
+.soft-card:hover{border-color:#003FB1;box-shadow:0 16px 48px rgba(0,63,177,0.12);transform:translateY(-6px)}
 .btn-primary{background:#003FB1;color:#ffffff;padding:14px 32px;border-radius:9999px;font-weight:700;font-size:1rem;box-shadow:0 8px 24px rgba(0,63,177,0.25);transition:all 0.2s ease;cursor:pointer;border:none}
 .btn-primary:hover{background:#0A2463;transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,63,177,0.30)}
 .btn-primary:active{transform:scale(0.96)}
@@ -66,11 +66,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 .zora-bar{animation:glow-bar 2s ease-in-out infinite}
 @keyframes fade-in-up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slide-in-left{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-10px)}}
 .card-animate{opacity:0;animation:fade-in-up 0.6s cubic-bezier(0.4,0,0.2,1) forwards}
 .ranking-item{opacity:0;animation:slide-in-left 0.5s cubic-bezier(0.4,0,0.2,1) forwards}
 .ranking-item:nth-child(1){animation-delay:0.1s}
 .ranking-item:nth-child(2){animation-delay:0.2s}
 .ranking-item:nth-child(3){animation-delay:0.3s}
+.reveal-card{opacity:0;transform:translateY(24px);transition:opacity 0.5s ease,transform 0.5s ease}
+.reveal-card.visible{opacity:1;transform:translateY(0)}
 }
 </style>
 </head>
@@ -104,7 +107,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 <div class="flex items-center gap-4">
 <div class="px-4 py-2 rounded-full flex items-center gap-2" style="background:#DBE1FF;color:#003DAB;border-radius:9999px;font-weight:800;">
-<span class="material-symbols-outlined text-sm badge-pts-icon" style="color:#F5A623;font-variation-settings:'FILL' 1;">stars</span>1,250 pts
+<span class="material-symbols-outlined text-sm badge-pts-icon" style="color:#F5A623;font-variation-settings:'FILL' 1;">stars</span><span id="zora-counter-nav">1,250</span> pts
 </div>
 <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-outline-variant hover:border-primary transition-all cursor-pointer" onclick="showPanel('profil')">
 <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAR0n9O0QPPEvmJ_53SuoIsBTUMUN-Lt7MGWO1UVKZQ9SyTswoUi3mVYqxAhuIcfnv_ITBkPrRvMjdtf3ZLUBoLXcgNxq9p1pHjja-22e83C5Tgz-CrHsFoV98gEm8pdEO-g55LKaYYgpWwbbdR7qSigH-ptNydyjjpkXltNeJ7taH7hUkH-Fq7A_2_m6DM8BZ_ov3iEDl5gx07ngktsc43bpVnDKKDAPE264HlooNQEYshoa0XSzl8nheInjZnQGq_rN0NAMkJvtKQ" alt="Avatar"/>
@@ -144,7 +147,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 <span class="zora-balance-card__label">Vos Zora</span>
 </div>
 <div class="zora-balance-card__amount">
-<span class="zora-balance-card__number">1 250</span>
+<span class="zora-balance-card__number" id="zora-counter">1 250</span>
 <span class="zora-balance-card__unit">pts</span>
 </div>
 <div class="zora-balance-card__sub">≈ 1 250 FCFA échangeables</div>
@@ -155,9 +158,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 <span>0</span>
 <span>Prochain niveau: 2 000 pts</span>
 </div>
+<div class="flex justify-center mt-4">
+<img src="/images/landing/zora-coin-gold.png" style="width:80px;height:80px;object-fit:contain;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 16px rgba(245,166,35,0.4));" alt="Zora">
 </div>
 </div>
-<div class="col-span-4 soft-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+</div>
+<div class="col-span-4 soft-card reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Prochain RDV</h3>
 <div class="mb-4 p-3 rounded-xl" style="background:#F3F3FE;">
 <p class="font-bold text-sm">Dr. Marc Ntolo</p>
@@ -166,7 +172,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 <button class="btn-primary w-full" onclick="showPanel('medecins')">Prendre un RDV</button>
 </div>
-<div class="col-span-4 soft-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+<div class="col-span-4 soft-card reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Défis du jour</h3>
 <div class="space-y-3">
 <div class="zora-challenge">
@@ -205,7 +211,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 </div>
-<div class="col-span-4 soft-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+<div class="col-span-4 soft-card reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Chat Amina</h3>
 <div class="space-y-3 mb-4">
 <div class="p-3 rounded-xl" style="background:#F3F3FE;">
@@ -226,7 +232,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 <button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">Envoyer</button>
 </div>
 </div>
-<div class="col-span-5 soft-card">
+<div class="col-span-5 soft-card reveal-card">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Classement global</h3>
 <div class="space-y-3">
 <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-colors ranking-item">
@@ -255,7 +261,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 </div>
 </div>
 </div>
-<div class="col-span-7 soft-card">
+<div class="col-span-7 soft-card reveal-card">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Événements Elonga</h3>
 <div class="space-y-3 mb-6">
 <div class="p-3 rounded-xl" style="background:#F3F3FE;">
@@ -545,38 +551,47 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 <button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#F3F3FE;color:#434654;border:none;cursor:pointer;">Sport</button>
 <button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#F3F3FE;color:#434654;border:none;cursor:pointer;">Alimentation</button>
 <button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#F3F3FE;color:#434654;border:none;cursor:pointer;">Voyage</button>
-<button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#F3F3FE;color:#434654;border:none;cursor-pointer;">Beauté</button>
+<button class="px-4 py-2 rounded-full text-sm font-bold" style="background:#F3F3FE;color:#434654;border:none;cursor:pointer;">Beauté</button>
 </div>
-<div class="grid grid-cols-4 gap-6 mb-8">
-<div class="soft-card flex flex-col items-center text-center">
-<div class="w-full h-24 rounded-xl mb-4 flex items-center justify-center" style="background:#F3F3FE;">
-<span class="material-symbols-outlined" style="font-size:48px;color:#003FB1;">local_gas_station</span>
-</div>
-<h3 class="font-bold mb-1">Carte Total</h3>
-<p class="text-sm mb-2" style="color:#434654;">Carburant & Services</p>
-<span class="font-bold px-4 py-2 rounded-full text-sm" style="background:#DBE1FF;color:#003DAB;">500 pts</span>
-<button class="btn-primary w-full mt-4">Échanger</button>
-</div>
-<div class="soft-card flex flex-col items-center text-center">
-<div class="w-full h-24 rounded-xl mb-4 flex items-center justify-center" style="background:#F3F3FE;">
-<span class="material-symbols-outlined" style="font-size:48px;color:#003FB1;">shopping_bag</span>
+<div style="display:flex;gap:20px;overflow-x:auto;padding-bottom:16px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;" class="rewards-carousel">
+<div class="soft-card flex flex-col items-center text-center reveal-card" style="flex-shrink:0;width:280px;scroll-snap-align:start;">
+<div style="width:100%;height:120px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+<img src="/images/landing/actif-sport.png" style="max-height:80px;max-width:80%;object-fit:contain;" alt="Puma">
 </div>
 <h3 class="font-bold mb-1">Bon Puma</h3>
 <p class="text-sm mb-2" style="color:#434654;">Équipement Sportif</p>
 <span class="font-bold px-4 py-2 rounded-full text-sm" style="background:#DBE1FF;color:#003DAB;">1 000 pts</span>
 <button class="btn-primary w-full mt-4">Échanger</button>
 </div>
-<div class="soft-card flex flex-col items-center text-center" style="border:2px solid #F5A623;">
-<div class="w-full h-24 rounded-xl mb-4 flex items-center justify-center" style="background:#F3F3FE;">
-<span class="material-symbols-outlined" style="font-size:48px;color:#003FB1;">medication</span>
+<div class="soft-card flex flex-col items-center text-center reveal-card" style="flex-shrink:0;width:280px;scroll-snap-align:start;border:2px solid #F5A623;">
+<div style="width:100%;height:120px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+<img src="/images/landing/pharmacie.png" style="max-height:80px;max-width:80%;object-fit:contain;" alt="Pharmacie">
 </div>
 <h3 class="font-bold mb-1">Pharmacie</h3>
 <p class="text-sm mb-2" style="color:#434654;">Bon d'Achat Médical</p>
 <span class="font-bold px-4 py-2 rounded-full text-sm" style="background:#DBE1FF;color:#003DAB;">250 pts</span>
 <button class="btn-primary w-full mt-4">Échanger</button>
 </div>
-<div class="soft-card flex flex-col items-center text-center opacity-50 grayscale">
-<div class="w-full h-24 rounded-xl mb-4 flex items-center justify-center" style="background:#F3F3FE;">
+<div class="soft-card flex flex-col items-center text-center reveal-card" style="flex-shrink:0;width:280px;scroll-snap-align:start;">
+<div style="width:100%;height:120px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+<img src="/images/landing/zora-mtn.png" style="max-height:80px;max-width:80%;object-fit:contain;" alt="MTN">
+</div>
+<h3 class="font-bold mb-1">Crédit MTN</h3>
+<p class="text-sm mb-2" style="color:#434654;">Recharge Mobile</p>
+<span class="font-bold px-4 py-2 rounded-full text-sm" style="background:#DBE1FF;color:#003DAB;">500 pts</span>
+<button class="btn-primary w-full mt-4">Échanger</button>
+</div>
+<div class="soft-card flex flex-col items-center text-center reveal-card" style="flex-shrink:0;width:280px;scroll-snap-align:start;">
+<div style="width:100%;height:120px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+<img src="/images/landing/zora-airtel.jpg" style="max-height:80px;max-width:80%;object-fit:contain;" alt="Airtel">
+</div>
+<h3 class="font-bold mb-1">Crédit Airtel</h3>
+<p class="text-sm mb-2" style="color:#434654;">Recharge Mobile</p>
+<span class="font-bold px-4 py-2 rounded-full text-sm" style="background:#DBE1FF;color:#003DAB;">500 pts</span>
+<button class="btn-primary w-full mt-4">Échanger</button>
+</div>
+<div class="soft-card flex flex-col items-center text-center reveal-card opacity-50 grayscale" style="flex-shrink:0;width:280px;scroll-snap-align:start;">
+<div style="width:100%;height:120px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
 <span class="material-symbols-outlined" style="font-size:48px;color:#434654;">home</span>
 </div>
 <h3 class="font-bold mb-1">Loyer Aide</h3>
@@ -585,35 +600,43 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#FAF8FF;color:#191B23
 <button class="btn-primary w-full mt-4" disabled style="opacity:0.5;cursor:not-allowed;">Échanger</button>
 </div>
 </div>
+<div style="display:flex;justify-content:center;gap:12px;margin-bottom:24px;">
+<button onclick="document.querySelector('.rewards-carousel').scrollBy({left:-300,behavior:'smooth'})" style="background:#003FB1;color:white;border-radius:9999px;width:40px;height:40px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button onclick="document.querySelector('.rewards-carousel').scrollBy({left:300,behavior:'smooth'})" style="background:#003FB1;color:white;border-radius:9999px;width:40px;height:40px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Partenaires Bolamu</h3>
 <div class="grid grid-cols-4 gap-6">
-<div class="soft-card flex flex-col items-center text-center">
-<div class="w-full h-20 rounded-xl mb-3 flex items-center justify-center" style="background:#F3F3FE;">
-<span class="material-symbols-outlined" style="font-size:40px;color:#00C9A7;">local_hospital</span>
+<div class="soft-card flex flex-col items-center text-center reveal-card">
+<div style="width:100%;height:80px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+<img src="/images/landing/croix-du-sud.jpg" style="max-height:60px;max-width:80%;object-fit:contain;" alt="Hôpital Central">
 </div>
 <h3 class="font-bold text-sm mb-1">Hôpital Central</h3>
 <p class="text-xs mb-2" style="color:#434654;">Santé</p>
 <button class="px-4 py-2 rounded-full text-xs font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">Réserver RDV</button>
 </div>
-<div class="soft-card flex flex-col items-center text-center">
-<div class="w-full h-20 rounded-xl mb-3 flex items-center justify-center" style="background:#F3F3FE;">
-<span class="material-symbols-outlined" style="font-size:40px;color:#00C9A7;">pharmacy</span>
+<div class="soft-card flex flex-col items-center text-center reveal-card">
+<div style="width:100%;height:80px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+<img src="/images/landing/pharmacie-daffe.jpg" style="max-height:60px;max-width:80%;object-fit:contain;" alt="Pharmacie Soleil">
 </div>
-<h3 class="font-bold text-sm mb-1">Pharmacie Soleil</h3>
+<h3 class="font-bold text-sm mb-1">Pharmacie Daffé</h3>
 <p class="text-xs mb-2" style="color:#434654;">Santé</p>
 <button class="px-4 py-2 rounded-full text-xs font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">Réserver RDV</button>
 </div>
-<div class="soft-card flex flex-col items-center text-center">
-<div class="w-full h-20 rounded-xl mb-3 flex items-center justify-center" style="background:#F3F3FE;">
-<span class="material-symbols-outlined" style="font-size:40px;color:#00C9A7;">biotech</span>
+<div class="soft-card flex flex-col items-center text-center reveal-card">
+<div style="width:100%;height:80px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+<img src="/images/landing/securex.jpg" style="max-height:60px;max-width:80%;object-fit:contain;" alt="Laboratoire">
 </div>
-<h3 class="font-bold text-sm mb-1">Laboratoire Bio</h3>
+<h3 class="font-bold text-sm mb-1">Laboratoire Securex</h3>
 <p class="text-xs mb-2" style="color:#434654;">Santé</p>
 <button class="px-4 py-2 rounded-full text-xs font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">Réserver RDV</button>
 </div>
-<div class="soft-card flex flex-col items-center text-center">
-<div class="w-full h-20 rounded-xl mb-3 flex items-center justify-center" style="background:#F3F3FE;">
-<span class="material-symbols-outlined" style="font-size:40px;color:#00C9A7;">fitness_center</span>
+<div class="soft-card flex flex-col items-center text-center reveal-card">
+<div style="width:100%;height:80px;border-radius:16px;overflow:hidden;background:#F0F2FF;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+<img src="/images/landing/salledesport.jpg" style="max-height:60px;max-width:80%;object-fit:contain;" alt="Fit Center">
 </div>
 <h3 class="font-bold text-sm mb-1">Fit Center</h3>
 <p class="text-xs mb-2" style="color:#434654;">Sport</p>
@@ -768,6 +791,21 @@ height: 80
 document.addEventListener('DOMContentLoaded', function() {
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: no-preference)');
 if (prefersReducedMotion.matches) {
+function animateCounter(el, target, duration) {
+let start = 0;
+const step = timestamp => {
+if (!start) start = timestamp;
+const progress = Math.min((timestamp - start) / duration, 1);
+const ease = 1 - Math.pow(1 - progress, 3);
+el.textContent = Math.floor(ease * target).toLocaleString('fr-FR');
+if (progress < 1) requestAnimationFrame(step);
+};
+requestAnimationFrame(step);
+}
+const zoraCounter = document.getElementById('zora-counter');
+const zoraCounterNav = document.getElementById('zora-counter-nav');
+if (zoraCounter) animateCounter(zoraCounter, 1250, 1500);
+if (zoraCounterNav) animateCounter(zoraCounterNav, 1250, 1500);
 const zoraNumbers = document.querySelectorAll('.zora-balance-card__number');
 zoraNumbers.forEach(el => {
 const target = parseInt(el.textContent.replace(/\s/g, ''));
@@ -797,18 +835,13 @@ bar.style.width = targetWidth;
 });
 }, 300);
 const observer = new IntersectionObserver((entries) => {
-entries.forEach(entry => {
-if (entry.isIntersecting) {
-entry.target.classList.add('card-animate');
-observer.unobserve(entry.target);
+entries.forEach((e, i) => {
+if (e.isIntersecting) {
+setTimeout(() => e.target.classList.add('visible'), i * 80);
 }
 });
 }, { threshold: 0.1 });
-document.querySelectorAll('.soft-card').forEach(card => {
-if (!card.classList.contains('card-animate')) {
-observer.observe(card);
-}
-});
+document.querySelectorAll('.reveal-card').forEach(c => observer.observe(c));
 const header = document.querySelector('header');
 window.addEventListener('scroll', () => {
 if (window.scrollY > 20) {
