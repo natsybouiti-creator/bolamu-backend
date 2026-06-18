@@ -8,14 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
 <style>
 body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160deg,#FAF8FF 0%,#F0F4FF 40%,#FFF0F8 70%,#F0FFFA 100%);background-size:400% 400%;animation:gradientShift 12s ease infinite;color:#191B23;min-height:100vh;width:100%;margin:0 auto;overflow-x:hidden}
 @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
@@ -96,6 +88,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160de
 .gradient-title{background:linear-gradient(135deg,#0A2463 0%,#003FB1 50%,#7850DC 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800}
 @keyframes floatDeco{0%,100%{transform:translateY(0px) rotate(0deg)}33%{transform:translateY(-8px) rotate(5deg)}66%{transform:translateY(-4px) rotate(-3deg)}}
 .zora-deco{pointer-events:none}
+@keyframes avatarFloat{0%,100%{transform:translateY(0px)}50%{transform:translateY(-12px)}}
+@keyframes avatarEntrance{from{opacity:0;transform:translateY(30px) scale(0.9)}to{opacity:1;transform:translateY(0px) scale(1)}}
+#avatar-garcon{animation:avatarEntrance 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards,avatarFloat 3s ease-in-out 0.8s infinite}
 }
 </style>
 </head>
@@ -194,13 +189,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160de
 </div>
 </div>
 <div class="col-span-3">
-<div id="avatar-accueil" style="width:100%;height:320px;border-radius:24px;overflow:hidden;position:relative;">
-<div id="avatar-loading" style="width:100%;height:320px;border-radius:24px;background:linear-gradient(135deg,#0A2463,#003FB1);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1rem;">
-<span class="material-symbols-outlined" style="font-size:3rem;color:#F5A623;">person</span>
-</div>
-<canvas id="canvas-garcon" style="width:100%;height:100%;"></canvas>
+<div id="avatar-accueil" style="position:relative;width:100%;height:320px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border-radius:24px;background:linear-gradient(135deg,#0A2463 0%,#1a3a7a 100%);">
+<img src="/models/avatar-garcon-tr.png" id="avatar-garcon" style="height:290px;width:auto;object-fit:contain;filter:drop-shadow(0 16px 32px rgba(0,0,0,0.4));transform-origin:bottom center;" alt="Coach Bolamu">
+<span style="position:absolute;top:12px;left:16px;font-size:1.3rem;animation:floatDeco 2.5s ease-in-out infinite;">⭐</span>
+<span style="position:absolute;top:28px;right:12px;font-size:1.1rem;animation:floatDeco 3s ease-in-out infinite 0.5s;">⚡</span>
+<span style="position:absolute;bottom:50px;left:8px;font-size:1rem;animation:floatDeco 3.5s ease-in-out infinite 1s;">🪙</span>
+<span style="position:absolute;bottom:30px;right:16px;font-size:1rem;animation:floatDeco 2.8s ease-in-out infinite 0.3s;">❤️</span>
 <div style="position:absolute;bottom:12px;left:0;right:0;text-align:center;">
-<span style="color:#0A2463;font-weight:800;font-size:0.85rem;">Votre coach Bolamu</span>
+<span style="color:rgba(255,255,255,0.8);font-size:0.8rem;font-weight:700;">Votre coach Bolamu</span>
 </div>
 </div>
 </div>
@@ -1016,79 +1012,6 @@ header.style.boxShadow = 'none';
 }
 });
 }
-});
-</script>
-<script type="module">
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
-function initAvatar(canvasId, modelPath, bgColor = null) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  
-  const container = canvas.parentElement;
-  const w = container.offsetWidth || 300;
-  const h = container.offsetHeight || 320;
-  canvas.width = w;
-  canvas.height = h;
-  
-  const renderer = new THREE.WebGLRenderer({ 
-    canvas, 
-    antialias: true, 
-    alpha: true,
-    powerPreference: "high-performance"
-  });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(w, h);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-  const scene = new THREE.Scene();
-  if (bgColor) scene.background = new THREE.Color(bgColor);
-
-  const camera = new THREE.PerspectiveCamera(45, canvas.offsetWidth / canvas.offsetHeight, 0.1, 100);
-  camera.position.set(0, 1.2, 3.5);
-
-  const ambient = new THREE.AmbientLight(0xffffff, 1.2);
-  scene.add(ambient);
-  const dirLight = new THREE.DirectionalLight(0x003FB1, 2);
-  dirLight.position.set(2, 4, 3);
-  scene.add(dirLight);
-  const rimLight = new THREE.DirectionalLight(0x00C9A7, 1);
-  rimLight.position.set(-2, 2, -2);
-  scene.add(rimLight);
-  const warmLight = new THREE.DirectionalLight(0xFF6B35, 0.8);
-  warmLight.position.set(0, -1, 2);
-  scene.add(warmLight);
-
-  const loader = new GLTFLoader();
-  loader.load(modelPath, (gltf) => {
-    document.getElementById('avatar-loading')?.remove();
-    const model = gltf.scene;
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    model.position.sub(center);
-    model.position.y += size.y * 0.1;
-    const scale = 2.0 / size.y;
-    model.scale.setScalar(scale);
-    scene.add(model);
-
-    let t = 0;
-    function animate() {
-      requestAnimationFrame(animate);
-      t += 0.01;
-      model.rotation.y = Math.sin(t * 0.5) * 0.15;
-      model.position.y += Math.sin(t) * 0.0008;
-      renderer.render(scene, camera);
-    }
-    animate();
-  });
-}
-
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    initAvatar('canvas-garcon', '/models/garcon-mask.glb');
-  }, 300);
 });
 </script>
 </body>
