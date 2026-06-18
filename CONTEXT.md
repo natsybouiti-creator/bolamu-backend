@@ -1,5 +1,5 @@
 # BOLAMU — CONTEXTE PROJET
-Mis à jour : 16 juin 2026
+Mis à jour : 18 juin 2026
 Statut : EN PRODUCTION — https://api.bolamu.co
 www.bolamu.co — domaine custom actif avec SSL ✅
 Score Ayokai : 21/23 (91.3%)
@@ -286,7 +286,7 @@ Mis à jour : 28 avril 2026
 🔴 Renseigner rib_france_qonto dans platform_config
    (attente ouverture compte Qonto/Revolut Business France)
 🔴 Finaliser ouverture compte Ecobank Congo NBA Gestion SARLU
-� Négociation MTN Congo Entreprises — API Subscriptions + taux préférentiel
+🟠 Négociation MTN Congo Entreprises — API Subscriptions + taux préférentiel
    (document de négociation produit — Bolamu_MTN_Negociation.docx)
 🟠 Activer Airtel Money API — credentials attendus 29 avril 2026
 🟠 Activer Africa's Talking Live (en attente crédit)
@@ -294,6 +294,109 @@ Mis à jour : 28 avril 2026
 🟡 Audit /subscriptions — vérifier accès conditionnel par plan
 🟡 Passer Render au plan payant avant lancement
 🟡 Acheter domaine bolamu.co
+
+## MISE À JOUR 18 JUIN 2026
+
+### FRONTEND PATIENT — DASHBOARD ZORA EDITION
+
+#### public/patient/dashboard-v2.html ✅ TERMINÉ (3 itérations)
+Nouveau dashboard patient parallèle — dashboard.html original intact.
+
+**Commit aa2046f** : Création initiale Zora Edition
+- Material Symbols (remplacement Lucide), sidebar desktop 240px,
+  badge Zora points topbar, paliers Bronze/Argent/Or/Platine,
+  masquage montants FCFA
+
+**Commit 48f97e5** : Correction navbar (v3)
+- Suppression sidebar → navbar horizontale sticky (design.md)
+- Config Tailwind alignée sur tokens design.md
+- Couleurs corrigées : brand-orange #FF6B35, zora-gold #F5A623
+- font-black → font-extrabold (font-weight:900 interdit design.md)
+- Logo → /images/landing/bolamu-logo-final.png (h-12 w-12)
+- Composants canoniques zora-balance-card, elonga-rank
+- Suppression emojis HTML statiques
+
+**Commit 5183040** : Corrections legacy V4
+- Remap variables CSS :root : --bleu-vif #003FB1, --rouge #BA1A1A,
+  --amber #FF6B35 (plus de #2E86FF)
+- Suppression gradients décoratifs → couleurs pleines
+- font-weight:900 en dur dans <style> → 800
+- Emojis HTML statiques → Material Symbols :
+  tags symptômes (15 tags), bandeau IA smart_toy,
+  bouton mot de passe key, étoiles notation star FILL=1
+- Nettoyage CSS mort (.logo, .logo-icon, .logo-name)
+- meta theme-color #2E86FF → #0A2463
+
+⚠️ **RÉSIDUEL NON CORRIGÉ (par choix)** :
+- Emojis dans template strings JavaScript (règle : bloc <script> non modifié)
+- Gradient dans template string bouton Jitsi (même raison)
+
+#### public/patient/dashboard.html
+- Commit 48c836 : Mise à jour logo + portraits témoignages +
+  photo pharmacie + fix lien pharmacie
+
+### FRONTEND ZORA — PAGES PARTENAIRES
+
+#### public/zora/partenaires/voyages.html ✅
+- Décor gamification complet : pièces/étoiles/cœurs/éclairs animés
+- carte-bolamu-transparant.png (illustration officielle)
+- Ajustements scale carte (0.85 → 0.95 → full)
+- Correction mix-blend-mode screen → supprimé
+
+#### public/zora/partenaires/hotels.html, lifestyle.html, telecom.html ✅
+- Remplacement cartes virtuelles par illustration officielle Bolamu
+- Synchronisation décor depuis voyages.html
+
+#### public/zora/recompenses.html ✅
+- Logo fond transparent final
+
+### FRONTEND ELONGA — NOUVELLES PAGES ✅
+
+4 nouvelles pages créées dans public/elonga/ :
+- maternite-enfant.html
+- nutrition.html
+- activite-physique.html
+- examens.html
+
+Contenu : photos réelles, cartes horizontales, décor Zora,
+portrait Fatou 2025, panier card, actif sport
+
+### FRONTEND LANDING
+
+#### public/landing.html ✅
+- Harmonisation 4 cartes Elonga (hauteur uniforme, suppression icônes,
+  soft shadow, chevron, justify-between)
+- Ajout 4e carte maternite-enfant
+- Cartes liées + flèche indicateur + alignement self-start
+
+### ASSETS — 70+ IMAGES AJOUTÉES
+
+public/images/landing/ :
+- Portraits : Fatou 2025, adrien-sante, alain-sport, femme-nutrition
+- Santé : 80maladies.png, bilan-sante.jpg, depistage.png, rappel-suivi.png
+- Sport : actif-sport.png, panier-healthy.webp, planalimentaire.png
+- Partenaires : MTN.png, Ecobank, Congo Telecom, Airtel, Air France,
+  Ethiopian, Hilton, Kempinski, Securex, Netcare, Croix du Sud, etc.
+- Zora : carte-bolamu-transparant.png, carte-bolamu-illustration.png
+- Renommage systématique : espaces → underscores
+
+### BUGS INFRA CONNUS (non bloquants)
+
+- ⚠️ Redis ECONNREFUSED 127.0.0.1:6379 : workers SMS/notifications
+  BullMQ non fonctionnels (ignoré au démarrage — non bloquant)
+  → Résoudre : configurer REDIS_URL sur Render vers instance externe
+- ⚠️ Double log connexion Neon DB au démarrage (plusieurs workers)
+- ⚠️ Encodage UTF-8 cassé sur un log Neon (ðŸ"¡)
+  → Vérifier encoding du process Render
+
+### RÈGLES DESIGN.MD — RAPPEL CRITIQUE
+(violations corrigées dans dashboard-v2, à ne pas reproduire)
+- font-weight:900 interdit — jamais en CSS statique ni classe font-black
+- Gradients interdits sauf barre de progression Zora
+- #2E86FF n'existe pas dans la charte — utiliser #003FB1 (--primary)
+- Sidebar gauche fixe absente du design.md — navbar horizontale uniquement
+- Logo : /images/landing/bolamu-logo-final.png, h-12 w-12, rounded-full
+- Composants canoniques : zora-balance-card, elonga-rank (pas de Tailwind ad-hoc)
 
 ## PAIEMENTS — MODÈLE MANUEL (DÉCISION DÉFINITIVE)
 Pas d'API MTN MoMo ni Airtel Money.
