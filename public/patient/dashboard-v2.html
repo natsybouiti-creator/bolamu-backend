@@ -1,1 +1,291 @@
-<!DOCTYPE html><html class="light" lang="fr"><head><meta charset="utf-8"/><meta content="width=1280" name="viewport"/><title>Bolamu - Tableau de Bord Patient (Zora Edition)</title><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/><script id="tailwind-config">tailwind.config = {darkMode: "class",theme: {extend: {"colors": {"on-primary-fixed": "#00174c","surface-bright": "#faf8ff","primary-fixed": "#dbe1ff","on-secondary-container": "#00725e","outline-variant": "#C3C5D7","tertiary-fixed-dim": "#ffb95f","on-secondary": "#ffffff","on-background": "#191b23","secondary-container": "#5ffbd6","primary-fixed-dim": "##b5c4ff","surface-container-high": "#e7e7f3","on-tertiary": "#ffffff","outline": "#747685","on-tertiary-container": "#ffa61a","secondary": "#006b58","on-secondary-fixed-variant": "#005142","zora-gold": "#F5A623","secondary-fixed": "#5ffbd6","on-error-container": "#93000a","surface-container-highest": "#e1e1ed","on-tertiary-fixed-variant": "#653e00","primary-container": "#003fb1","surface-tint": "#2a56c7","inverse-on-surface": "#f0f0fb","on-tertiary-fixed": "#2a1700","on-error": "#ffffff","on-primary-fixed-variant": "#003dab","brand-navy": "#0A2463","surface-container-lowest": "##ffffff","on-primary": "#ffffff","error": "#BA1A1A","surface-dim": "#d9d9e4","on-primary-container": "#a1b6ff","on-secondary-fixed": "#002019","inverse-surface": "#2e3039","surface-variant": "#e1e1ed","inverse-primary": "#b5c4ff","background": "#faf8ff","tertiary": "#4b2d00","on-surface": "#191b23","surface-container": "#ededf8","secondary-fixed-dim": "#38debb","on-surface-variant": "#434653","surface": "#FAF8FF","error-container": "#ffdad6","surface-container-low": "#f3f3fe","primary": "#002b80","tertiary-fixed": "#ffddb8","tertiary-container": "#694100"},"borderRadius": {"DEFAULT": "0.25rem","lg": "0.5rem","xl": "0.75rem","2xl": "16px","3xl": "32px","full": "9999px"},"spacing": {"stack-sm": "8px","stack-lg": "24px","gutter": "24px","component-padding": "16px","stack-md": "16px","section-gap": "48px","page-margin-mobile": "20px","page-margin-desktop": "80px"},"fontFamily": {"body-lg": ["Plus Jakarta Sans"],"display-lg": ["Plus Jakarta Sans"],"headline-md": ["Plus Jakarta Sans"],"title-md": ["Plus Jakarta Sans"],"headline-lg": ["Plus Jakarta Sans"],"label-md": ["Plus Jakarta Sans"],"title-lg": ["Plus Jakarta Sans"],"label-lg": ["Plus Jakarta Sans"],"body-md": ["Plus Jakarta Sans"]},"fontSize": {"body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "500"}],"display-lg": ["56px", {"lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "800"}],"headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],"title-md": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],"headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "800"}],"label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],"title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],"label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],"body-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}]}}}};</script><style>body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#FAF8FF;color:#191B23;width:1280px;margin:0 auto;overflow-x:hidden}.bento-card{background-color:#FFFFFF;border:1px solid #C3C5D7;border-radius:32px;box-shadow:0px 4px 20px rgba(10,36,99,0.04);padding:32px;transition:all 0.3s ease}.bento-card:hover{box-shadow:0px 10px 30px rgba(10,36,99,0.08)}.progress-track{background-color:#E7E7F3;border-radius:9999px;height:12px;width:100%;overflow:hidden}.zora-gradient{background:linear-gradient(135deg,#0A2463 0%,#1e3a8a 100%)}.custom-scroll::-webkit-scrollbar{width:6px}.custom-scroll::-webkit-scrollbar-track{background:transparent}.custom-scroll::-webkit-scrollbar-thumb{background:#C3C5D7;border-radius:10px}</style></head><body class="min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm"><nav class="max-w-[1280px] mx-auto px-page-margin-desktop flex justify-between items-center h-20"><div class="flex items-center gap-8"><span class="font-headline-md text-headline-md font-extrabold text-primary">Bolamu</span><div class="flex gap-6"><a class="font-body-md text-body-md text-primary font-bold border-b-2 border-primary pb-1 active:scale-95 transition-all" href="#">Accueil</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95" href="#">Médecins</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95" href="#">Zora</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95" href="#">Dossier</a></div></div><div class="flex items-center gap-4"><div class="px-4 py-2 bg-surface-container rounded-full text-primary font-bold flex items-center gap-2"><span class="material-symbols-outlined text-sm">stars</span>1,250 pts</div><div class="flex items-center gap-3"><button class="p-2 hover:bg-surface-container-low rounded-lg transition-all active:scale-95"><span class="material-symbols-outlined text-on-surface-variant">notifications</span></button><div class="w-10 h-10 rounded-full overflow-hidden border-2 border-outline-variant hover:border-primary transition-all cursor-pointer"><img class="w-full h-full object-cover" data-alt="A clean, high-end professional headshot of a healthy smiling person in their 30s, bright natural daylight, minimalist white background, soft editorial lighting, premium healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAR0n9O0QPPEvmJ_53SuoIsBTUMUN-Lt7MGWO1UVKZQ9SyTswoUi3mVYqxAhuIcfnv_ITBkPrRvMjdtf3ZLUBoLXcgNxq9p1pHjja-22e83C5Tgz-CrHsFoV98gEm8pdEO-g55LKaYYgpWwbbdR7qSigH-ptNydyjjpkXltNeJ7taH7hUkH-Fq7A_2_m6DM8BZ_ov3iEDl5gx07ngktsc43bpVnDKKDAPE264HlooNQEYshoa0XSzl8nheInjZnQGq_rN0NAMkJvtKQ"/></div></div></div></nav></header><main class="max-w-[1280px] mx-auto px-page-margin-desktop pt-32 pb-12"><div class="grid grid-cols-12 gap-gutter"><div class="col-span-8 bento-card flex flex-col justify-between min-h-[300px]"><div class="flex justify-between items-start mb-6"><div><h2 class="font-headline-md text-headline-md text-brand-navy mb-1">Tâches du jour</h2><p class="font-body-md text-body-md text-on-surface-variant">Maintenez votre rythme pour débloquer plus de points Zora.</p></div><span class="material-symbols-outlined text-outline">more_horiz</span></div><div class="space-y-6"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600"><span class="material-symbols-outlined">directions_walk</span></div><div class="flex-1"><div class="flex justify-between mb-2"><span class="font-title-md text-title-md">Marche quotidienne</span><span class="font-label-lg text-label-lg text-on-surface-variant">7 000 / 10 000 pas</span></div><div class="progress-track"><div class="bg-orange-500 h-full rounded-full" style="width: 70%"></div></div></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600"><span class="material-symbols-outlined">medical_services</span></div><div class="flex-1"><div class="flex justify-between mb-2"><span class="font-title-md text-title-md">Suivi Consultation</span><span class="font-label-lg text-label-lg text-on-surface-variant">En attente</span></div><div class="progress-track"><div class="bg-pink-500 h-full rounded-full" style="width: 20%"></div></div></div></div><div class="flex items-center gap-4"><div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600"><span class="material-symbols-outlined">psychology</span></div><div class="flex-1"><div class="flex justify-between mb-2"><span class="font-title-md text-title-md">Séance Coaching Zora</span><span class="material-symbols-outlined text-blue-600" style="font-variation-settings: 'FILL' 1;">check_circle</span></div><div class="progress-track"><div class="bg-blue-600 h-full rounded-full" style="width: 100%"></div></div></div></div></div></div><div class="col-span-4 bento-card zora-gradient text-white flex flex-col justify-between border-none"><div><div class="flex justify-between items-center mb-6"><h2 class="font-title-lg text-title-lg opacity-90">Solde Zora</h2><span class="bg-white/20 px-3 py-1 rounded-full text-label-md font-bold uppercase tracking-wider">Bronze Rank</span></div><div class="flex items-end gap-2 mb-8"><span class="text-5xl font-extrabold">1 250</span><span class="text-2xl font-bold opacity-70 mb-1">pts</span></div></div><div class="relative flex items-center justify-center h-32"><svg class="w-28 h-28 transform -rotate-90" viewbox="0 0 36 36"><path class="text-white/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path><path class="text-secondary-fixed" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="82, 100" stroke-linecap="round" stroke-width="3"></path></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-extrabold">82%</span><span class="text-[10px] opacity-60">OBJECTIF</span></div></div><p class="text-[11px] opacity-60 leading-tight mt-4">Les points Zora sont calculés sur la base de vos activités certifiées et de votre régularité.</p></div><div class="col-span-4 bento-card"><h2 class="font-title-lg text-title-lg text-brand-navy mb-6">Classement Brasco</h2><div class="space-y-4"><div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-surface-container-low transition-colors"><span class="w-6 font-bold text-outline">1</span><div class="w-10 h-10 rounded-full bg-surface-dim overflow-hidden"><img class="w-full h-full object-cover" data-alt="A small circular avatar of a professional African man, clean background, medical app profile style, warm lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOi5qgJQLfiF4vBZnDABaE2bgZRZzT-w8W7DxN7HhKfAc2SugMxzPzv-cgDRPs3LXn-v7x0PTdP8odb6s2xRSB8kyzBoXv1f9XTcWxQ07Yi5sdYEKtNA11lgZGMaGwZoKI0iYVdIJjAheDune__cjimnOuQkpfRIzS8--l71h3Sx3EfWtb8TMQIzXXEu5XaxqUWeo8rCM_u4bIFM2inciXIa4nWZz-UHewk8WkZuOMYIjqNdqSX_YEbSzqv7vWYo2r2ffwuWbxPtN0"/></div><span class="flex-1 font-body-md text-body-md">Jean-Paul M.</span><div class="flex gap-2"><button class="material-symbols-outlined text-outline hover:text-primary transition-colors">thumb_up</button><button class="material-symbols-outlined text-outline hover:text-amber-500 transition-colors">bolt</button></div></div><div class="flex items-center gap-4 p-3 rounded-2xl bg-brand-navy text-white shadow-lg"><span class="w-6 font-bold">2</span><div class="w-10 h-10 rounded-full border-2 border-white/20 overflow-hidden"><img class="w-full h-full object-cover" data-alt="A close up avatar portrait of a beautiful smiling young professional woman, soft lighting, minimalist healthcare dashboard theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEXOwIEiHLdaHhrBlM1ZVxHk2q7QmSYhfENINtNiSia_0Uq4tiHF-z3cZ1ddNye7Hi-OZUL3hFC7UrLQ1lEcLciRF58U0PuvSv1hvA38CXcH5RzwXwPUFF4ddgrN70bmKox1u2umlD0hNTlY_hu-pfomRV4rKsA-e5AW9UoRmPthkD5Zksvvv_qN-ewAG271jvK0m6BN5KoOFN16vinWyV81hcIn1eowLL_8L2slXsWYqS70VsScHBvKIAIIz-c5oJWh87_Zf8yL5u"/></div><span class="flex-1 font-body-md text-body-md font-bold">Sarah B. (Vous)</span><span class="material-symbols-outlined text-zora-gold" style="font-variation-settings: 'FILL' 1;">stars</span></div><div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-surface-container-low transition-colors"><span class="w-6 font-bold text-outline">3</span><div class="w-10 h-10 rounded-full bg-surface-dim overflow-hidden"><img class="w-full h-full object-cover" data-alt="Small circular profile picture of a cheerful senior man, professional studio lighting, serene background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnmZHlGScY_fCNixTSdjfFUg_6SuJHg1to0IKmcF_48ZjjUjMrB-qMiN2gS_Ry2S2ONd0vGgLlidli7__9kElGsTTtGBJ3ALdDUeU0phY03qSrxemUlm0nylaLDwzKmOczHo4FFwGi0nrpocPfmAmRSJWYhbAzbEqzzZ5JFXgoddOC_uBajO2Xu2aELUPQW8XNxD_J0wma5Dw64YMjl0wEEFYU1KZsJ8NLQJV1tTSAEHyChjZYaiKODtPZqpc2AP3iST12DGW3hIFN"/></div><span class="flex-1 font-body-md text-body-md">Michel K.</span><div class="flex gap-2"><button class="material-symbols-outlined text-outline hover:text-primary transition-colors">thumb_up</button><button class="material-symbols-outlined text-outline hover:text-amber-500 transition-colors">bolt</button></div></div></div></div><div class="col-span-4 bento-card"><h2 class="font-title-lg text-title-lg text-brand-navy mb-6">Historique Vérifié</h2><div class="space-y-4"><div class="flex items-center justify-between p-3 border border-outline-variant/50 rounded-2xl"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">qr_code_2</span><div><p class="font-title-md text-sm">Hôpital Central</p><p class="text-xs text-outline">12 Oct 2024</p></div></div><span class="px-3 py-1 bg-secondary-container/20 text-secondary font-bold rounded-full text-xs">+150 pts</span></div><div class="flex items-center justify-between p-3 border border-outline-variant/50 rounded-2xl"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">qr_code_2</span><div><p class="font-title-md text-sm">Pharmacie Soleil</p><p class="text-xs text-outline">10 Oct 2024</p></div></div><span class="px-3 py-1 bg-secondary-container/20 text-secondary font-bold rounded-full text-xs">+45 pts</span></div><div class="flex items-center justify-between p-3 border border-outline-variant/50 rounded-2xl"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">qr_code_2</span><div><p class="font-title-md text-sm">Laboratoire Bio</p><p class="text-xs text-outline">08 Oct 2024</p></div></div><span class="px-3 py-1 bg-secondary-container/20 text-secondary font-bold rounded-full text-xs">+80 pts</span></div></div></div><div class="col-span-4 bento-card flex flex-col justify-between"><div><h2 class="font-title-lg text-title-lg text-brand-navy mb-4">Équipe Disponible</h2><div class="space-y-4 mb-6"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-full overflow-hidden"><img class="w-full h-full object-cover" data-alt="A portrait of a male cardiologist in a white coat, friendly professional expression, soft clinical environment, premium high-fidelity healthcare UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAAa6VPTn7GWRxk2_gDjm4eyuIabL3U8y7TLnIlcYAPpXHb9plafMzU952awMat4rnTROykvwvl7xkxnavkg7GjBb2PG1AQKvofV_V5V3TIh8zM4WWTTIIJzVdbuJfn89LA2kC02P2wsjVONCdrCoIeED4BrDZIE9J88uH14MmTBA_xgTwjNuloJ8-5zJuTKJ0ua_gZGdbVkKvOx93FZdJcBFw7ongyptzXvyweGo2n6jic3lTLLl7n2oWQiUiHx31m81TFsrl_Tsg"/></div><div class="flex-1"><p class="font-title-md text-sm">Dr. Marc Ntolo</p><p class="text-xs text-outline">Cardiologue • Attente 15min</p></div><div class="w-2 h-2 rounded-full bg-emerald-500"></div></div><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-full overflow-hidden"><img class="w-full h-full object-cover" data-alt="A portrait of a female nutritionist, professional attire, soft warm lighting, minimalist medical backdrop, high-end wellness aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBew2lQzM3WIvfqmuO_nddCgGbIwty28JVDAKdZqoyRE3jfB1_GOAAaCNlwvcBo2aD-u_59o3A2sMyWUnvgjAfGy8eYT_XPHjmh_XghWpxH5iIQX6KztzGw0ujDLLOEf6XG3JL5PfjkbiHPIsk0YGTJlALlV_j6Q785QbQTKuCMbSLjoN8xzOnvIUEWsIJxMGejQnSE6vUFQ1XruVXGRf5-hS3eMU29cSnhqMD_ZJdwyx2quz5Cfp0LVljtFhPYgYdcL7B_PTv0JCHs"/></div><div class="flex-1"><p class="font-title-md text-sm">Dr. Alice Bekono</p><p class="text-xs text-outline">Nutritionniste • Attente 5min</p></div><div class="w-2 h-2 rounded-full bg-emerald-500"></div></div></div></div><button class="w-full py-4 bg-brand-navy text-white rounded-full font-bold flex items-center justify-center gap-2 hover:bg-primary transition-all active:scale-95 shadow-lg"><span class="material-symbols-outlined">qr_code_scanner</span>Prendre RDV</button></div><div class="col-span-12 mt-4"><h2 class="font-headline-md text-headline-md text-brand-navy mb-6">Marketplace Rewards</h2><div class="grid grid-cols-4 gap-gutter"><div class="bento-card p-6 flex flex-col items-center text-center"><div class="w-full h-24 bg-surface-container rounded-2xl mb-4 flex items-center justify-center overflow-hidden"><img class="w-full h-full object-cover" data-alt="A high-end graphic design for a Total energy gift card, sleek corporate aesthetic, brand navy and red accents, minimalist 3D rendering on white surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzBcujP-CB6qm3A9n6z2Zi7hX6sTdDvFnqwwJSAmUJpOemW30iGs43EbfVc5uqYd4tuMUNpOzq1JrUxs8j3DAX5YbvYL_RcacmbJRmlC5VYQ4NRf03bLnAc-XCvgf2Z0y_QWvhXIORJD3B2xv8fA60SAQVwpMnyx1SWNP8zz3cFC8WI4pV-ByzJ-mias__x9BZLDnlceEcZww1VNdU7ktHjN3tJs_P9XKF5Tg6ZlFXnEonSUg8Kx9h9lqX4CCUNbJOEMyQliVzTGUq"/></div><h3 class="font-title-md text-title-md mb-2">Carte Total</h3><p class="font-body-md text-on-surface-variant mb-4">Carburant & Services</p><span class="font-bold text-primary px-4 py-2 bg-primary-fixed rounded-full">500 pts</span></div><div class="bento-card p-6 flex flex-col items-center text-center"><div class="w-full h-24 bg-surface-container rounded-2xl mb-4 flex items-center justify-center overflow-hidden"><img class="w-full h-full object-cover" data-alt="A stylish lifestyle photograph of a Puma sneaker against a clean background, minimalist product photography, bright lighting, high-end commercial aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-No3KoGsElvmr9WzxMzNbejxnFMN3S7gBuvtdb4l9B1h0WjZU5oiopujrlQwrqHHO8fnnNShInT7TG5NyIrjsGF5dC7LW7yo_YbZqfEJ6Uh0-8W_kIU6_vjGqZlhLuKMQnFHAuv_2Oj1pTMGLWyKOPWidrLo2RrpV1vHcEVxUD-KOmevJwZiDFau8XeeqX2gXCSuShBQCOfbcC5RvcWG2H2P2EA4iXdSh-l7LifMYlWQ7e5IGGnHuFM7gvrD29koaS1qwXxgcUOnU"/></div><h3 class="font-title-md text-title-md mb-2">Bon Puma</h3><p class="font-body-md text-on-surface-variant mb-4">Équipement Sportif</p><span class="font-bold text-primary px-4 py-2 bg-primary-fixed rounded-full">1 000 pts</span></div><div class="bento-card p-6 flex flex-col items-center text-center border-zora-gold border-2"><div class="w-full h-24 bg-surface-container rounded-2xl mb-4 flex items-center justify-center overflow-hidden"><img class="w-full h-full object-cover" data-alt="A minimalist professional presentation of health supplements and skincare bottles, premium pharmaceutical aesthetic, clean bright lighting, white and teal color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBabT4wkgmNxPc0UaVg1LyPH2iR8gUQwEzFjP_E6mX9A6KkEKyNGDJ41ab9P8t59fhCoakE5qqQRcVbgbAsvXfntZLI4Q0DJGPdJBf8EP5kWEUjAC4v6fTeLXy98n_NV5v85emQk7cvUo0pFqPe28ullMiLXzYVhr_nd7MxhaTep27hSS9Ikq0MKQubkDBfaKLSeNBc0ynJ-j0vljSLOEmVWII50OOE-hZy-tTf_NyYIGKNcgyHhDT56NQOXBOBIhw-7KQOW2U-SIcc"/></div><h3 class="font-title-md text-title-md mb-2">Pharmacie</h3><p class="font-body-md text-on-surface-variant mb-4">Bon d'Achat Médical</p><span class="font-bold text-primary px-4 py-2 bg-primary-fixed rounded-full">250 pts</span></div><div class="bento-card p-6 flex flex-col items-center text-center opacity-60 grayscale relative"><div class="absolute top-4 right-4 bg-on-surface/10 p-1 rounded-full"><span class="material-symbols-outlined text-outline">lock</span></div><div class="w-full h-24 bg-surface-container rounded-2xl mb-4 flex items-center justify-center overflow-hidden"><img class="w-full h-full object-cover" data-alt="A minimalist architectural 3D rendering of a modern apartment building, soft evening lighting, premium real estate aesthetic, clean lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2vsDsGlUQF3jsNSHeHrde3HYfdq6q3TtO_RBfJLK-zk15hjx0Oo6BFhWDyuKk0OMrVhcVXc5rNiNa2JkEUg1_tVzCEPlPOqELz7xup8c2NvUn-yviFN6VenJUvZqddC-xGIGqK3hGPv94yOpGDg5pDWvMvTPueJ4UC_JQ5Kv_UKy_G3EN9KOgae6LgWFWeuwnxFfaMh-4L6Jli3W4DltpYXWBJ1iV32H0bGEeRSDYDIQTkkQANnXv6pxWaohnLREpIGSJG6fnIJj"/></div><h3 class="font-title-md text-title-md mb-2">Loyer Aide</h3><p class="font-body-md text-on-surface-variant mb-4">Assistance Mensuelle</p><span class="font-bold text-outline px-4 py-2 bg-surface-variant rounded-full">2 500 pts</span></div></div></div></div></main><footer class="w-full py-8 mt-section-gap border-t border-outline-variant/20 bg-surface"><div class="max-w-[1280px] mx-auto px-page-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4"><p class="font-label-md text-label-md text-on-surface-variant">© 2024 Bolamu Health. Tous droits réservés.</p><div class="flex gap-8"><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Confidentialité</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Conditions</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Support</a></div></div></footer><script>document.querySelectorAll('.bento-card').forEach(card => {card.addEventListener('mouseenter', () => {card.style.transform = 'translateY(-4px)';});card.addEventListener('mouseleave', () => {card.style.transform = 'translateY(0)';});});const progressBars = document.querySelectorAll('.bg-orange-500, .bg-pink-500, .bg-blue-600');progressBars.forEach(bar => {const targetWidth = bar.style.width;bar.style.width = '0%';setTimeout(() => {bar.style.transition = 'width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)';bar.style.width = targetWidth;}, 300);});</script></body></html>
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=1280" name="viewport"/>
+<title>Bolamu - Tableau de Bord Patient (Zora Edition)</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries">
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+<script id="tailwind-config">tailwind.config = {darkMode: "class",theme: {extend: {"colors": {"on-primary-fixed": "#00174c","surface-bright": "#faf8ff","primary-fixed": "#dbe1ff","on-secondary-container": "#00725e","outline-variant": "#C3C5D7","tertiary-fixed-dim": "#ffb95f","on-secondary": "#ffffff","on-background": "#191b23","secondary-container": "#5ffbd6","primary-fixed-dim": "##b5c4ff","surface-container-high": "#e7e7f3","on-tertiary": "#ffffff","outline": "#747685","on-tertiary-container": "#ffa61a","secondary": "#006b58","on-secondary-fixed-variant": "#005142","zora-gold": "#F5A623","secondary-fixed": "#5ffbd6","on-error-container": "#93000a","surface-container-highest": "#e1e1ed","on-tertiary-fixed-variant": "#653e00","primary-container": "#003fb1","surface-tint": "#2a56c7","inverse-on-surface": "#f0f0fb","on-tertiary-fixed": "#2a1700","on-error": "#ffffff","on-primary-fixed-variant": "#003dab","brand-navy": "#0A2463","surface-container-lowest": "##ffffff","on-primary": "#ffffff","error": "#BA1A1A","surface-dim": "#d9d9e4","on-primary-container": "#a1b6ff","on-secondary-fixed": "#002019","inverse-surface": "#2e3039","surface-variant": "#e1e1ed","inverse-primary": "#b5c4ff","background": "#faf8ff","tertiary": "#4b2d00","on-surface": "#191b23","surface-container": "#ededf8","secondary-fixed-dim": "#38debb","on-surface-variant": "#434653","surface": "#FAF8FF","error-container": "#ffdad6","surface-container-low": "#f3f3fe","primary": "#002b80","tertiary-fixed": "#ffddb8","tertiary-container": "#694100"},"borderRadius": {"DEFAULT": "0.25rem","lg": "0.5rem","xl": "0.75rem","2xl": "16px","3xl": "32px","full": "9999px"},"spacing": {"stack-sm": "8px","stack-lg": "24px","gutter": "24px","component-padding": "16px","stack-md": "16px","section-gap": "48px","page-margin-mobile": "20px","page-margin-desktop": "80px"},"fontFamily": {"body-lg": ["Plus Jakarta Sans"],"display-lg": ["Plus Jakarta Sans"],"headline-md": ["Plus Jakarta Sans"],"title-md": ["Plus Jakarta Sans"],"headline-lg": ["Plus Jakarta Sans"],"label-md": ["Plus Jakarta Sans"],"title-lg": ["Plus Jakarta Sans"],"label-lg": ["Plus Jakarta Sans"],"body-md": ["Plus Jakarta Sans"]},"fontSize": {"body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "500"}],"display-lg": ["56px", {"lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "800"}],"headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],"title-md": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],"headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "800"}],"label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],"title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],"label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],"body-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}]}}}};</script>
+
+
+<style>body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#FAF8FF;color:#191B23;width:1280px;margin:0 auto;overflow-x:hidden}.bento-card{background-color:#FFFFFF;border:1px solid #C3C5D7;border-radius:32px;box-shadow:0px 4px 20px rgba(10,36,99,0.04);padding:32px;transition:all 0.3s ease}.bento-card:hover{box-shadow:0px 10px 30px rgba(10,36,99,0.08)}.progress-track{background-color:#E7E7F3;border-radius:9999px;height:12px;width:100%;overflow:hidden}.zora-gradient{background:linear-gradient(135deg,#0A2463 0%,#1e3a8a 100%)}.custom-scroll::-webkit-scrollbar{width:6px}.custom-scroll::-webkit-scrollbar-track{background:transparent}.custom-scroll::-webkit-scrollbar-thumb{background:#C3C5D7;border-radius:10px}</style>
+
+</head>
+<body class="min-h-screen">
+<header class="fixed top-0 w-full z-50" style="background: rgba(250, 248, 255, 0.80); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(195, 197, 215, 0.30);">
+<nav class="max-w-[1280px] mx-auto px-page-margin-desktop flex justify-between items-center h-20">
+<div class="flex items-center gap-8">
+<img src="/images/landing/bolamu-logo-512.png" class="h-12 w-12 object-contain rounded-full" alt="Bolamu">
+<div class="flex gap-6">
+<a class="font-body-md text-body-md text-primary font-bold border-b-2 border-primary pb-1 active:scale-95 transition-all" href="#">Accueil</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95" href="#">Médecins</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95" href="#">Zora</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95" href="#">Dossier</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="px-4 py-2 rounded-full flex items-center gap-2" style="background: #DBE1FF; color: #003DAB; border-radius: 9999px; font-weight: 800;">
+<span class="material-symbols-outlined text-sm" style="color: #F5A623; font-variation-settings: 'FILL' 1;">stars</span>1,250 pts</div>
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-surface-container-low rounded-lg transition-all active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-outline-variant hover:border-primary transition-all cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A clean, high-end professional headshot of a healthy smiling person in their 30s, bright natural daylight, minimalist white background, soft editorial lighting, premium healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAR0n9O0QPPEvmJ_53SuoIsBTUMUN-Lt7MGWO1UVKZQ9SyTswoUi3mVYqxAhuIcfnv_ITBkPrRvMjdtf3ZLUBoLXcgNxq9p1pHjja-22e83C5Tgz-CrHsFoV98gEm8pdEO-g55LKaYYgpWwbbdR7qSigH-ptNydyjjpkXltNeJ7taH7hUkH-Fq7A_2_m6DM8BZ_ov3iEDl5gx07ngktsc43bpVnDKKDAPE264HlooNQEYshoa0XSzl8nheInjZnQGq_rN0NAMkJvtKQ"/>
+</div>
+</div>
+</div>
+</nav>
+</header>
+<main class="max-w-[1280px] mx-auto px-page-margin-desktop pt-32 pb-12">
+<div class="grid grid-cols-12 gap-gutter">
+<div class="col-span-8 bento-card flex flex-col justify-between min-h-[300px]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="font-headline-md text-headline-md text-brand-navy mb-1">Tâches du jour</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Maintenez votre rythme pour débloquer plus de points Zora.</p>
+</div>
+<span class="material-symbols-outlined text-outline">more_horiz</span>
+</div>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600">
+<span class="material-symbols-outlined">directions_walk</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-2">
+<span class="font-title-md text-title-md">Marche quotidienne</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">7 000 / 10 000 pas</span>
+</div>
+<div class="progress-track">
+<div class="bg-orange-500 h-full rounded-full" style="width: 70%">
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600">
+<span class="material-symbols-outlined">medical_services</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-2">
+<span class="font-title-md text-title-md">Suivi Consultation</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">En attente</span>
+</div>
+<div class="progress-track">
+<div class="bg-pink-500 h-full rounded-full" style="width: 20%">
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between mb-2">
+<span class="font-title-md text-title-md">Séance Coaching Zora</span>
+<span class="material-symbols-outlined text-blue-600" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="progress-track">
+<div class="bg-blue-600 h-full rounded-full" style="width: 100%">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-4 bento-card zora-gradient text-white flex flex-col justify-between border-none">
+<div>
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-title-lg text-title-lg opacity-90">Solde Zora</h2>
+<span class="bg-white/20 px-3 py-1 rounded-full text-label-md font-bold uppercase tracking-wider">Bronze Rank</span>
+</div>
+<div class="flex items-end gap-2 mb-8">
+<span class="text-5xl font-extrabold">1 250</span>
+<span class="text-2xl font-bold opacity-70 mb-1">pts</span>
+</div>
+</div>
+<div class="relative flex items-center justify-center h-32">
+<svg class="w-28 h-28 transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-white/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3">
+</path>
+<path class="text-secondary-fixed" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="82, 100" stroke-linecap="round" stroke-width="3">
+</path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-xl font-extrabold">82%</span>
+<span class="text-[10px] opacity-60">OBJECTIF</span>
+</div>
+</div>
+<p class="text-[11px] opacity-60 leading-tight mt-4">Les points Zora sont calculés sur la base de vos activités certifiées et de votre régularité.</p>
+</div>
+<div class="col-span-4 bento-card">
+<h2 class="font-title-lg text-title-lg text-brand-navy mb-6">Classement Brasco</h2>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-surface-container-low transition-colors">
+<span class="w-6 font-bold text-outline">1</span>
+<div class="w-10 h-10 rounded-full bg-surface-dim overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A small circular avatar of a professional African man, clean background, medical app profile style, warm lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOi5qgJQLfiF4vBZnDABaE2bgZRZzT-w8W7DxN7HhKfAc2SugMxzPzv-cgDRPs3LXn-v7x0PTdP8odb6s2xRSB8kyzBoXv1f9XTcWxQ07Yi5sdYEKtNA11lgZGMaGwZoKI0iYVdIJjAheDune__cjimnOuQkpfRIzS8--l71h3Sx3EfWtb8TMQIzXXEu5XaxqUWeo8rCM_u4bIFM2inciXIa4nWZz-UHewk8WkZuOMYIjqNdqSX_YEbSzqv7vWYo2r2ffwuWbxPtN0"/>
+</div>
+<span class="flex-1 font-body-md text-body-md">Jean-Paul M.</span>
+<div class="flex gap-2">
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">thumb_up</button>
+<button class="material-symbols-outlined text-outline hover:text-amber-500 transition-colors">bolt</button>
+</div>
+</div>
+<div class="flex items-center gap-4 p-3 rounded-2xl bg-brand-navy text-white shadow-lg">
+<span class="w-6 font-bold">2</span>
+<div class="w-10 h-10 rounded-full border-2 border-white/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A close up avatar portrait of a beautiful smiling young professional woman, soft lighting, minimalist healthcare dashboard theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEXOwIEiHLdaHhrBlM1ZVxHk2q7QmSYhfENINtNiSia_0Uq4tiHF-z3cZ1ddNye7Hi-OZUL3hFC7UrLQ1lEcLciRF58U0PuvSv1hvA38CXcH5RzwXwPUFF4ddgrN70bmKox1u2umlD0hNTlY_hu-pfomRV4rKsA-e5AW9UoRmPthkD5Zksvvv_qN-ewAG271jvK0m6BN5KoOFN16vinWyV81hcIn1eowLL_8L2slXsWYqS70VsScHBvKIAIIz-c5oJWh87_Zf8yL5u"/>
+</div>
+<span class="flex-1 font-body-md text-body-md font-bold">Sarah B. (Vous)</span>
+<span class="material-symbols-outlined text-zora-gold" style="font-variation-settings: 'FILL' 1;">stars</span>
+</div>
+<div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-surface-container-low transition-colors">
+<span class="w-6 font-bold text-outline">3</span>
+<div class="w-10 h-10 rounded-full bg-surface-dim overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Small circular profile picture of a cheerful senior man, professional studio lighting, serene background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnmZHlGScY_fCNixTSdjfFUg_6SuJHg1to0IKmcF_48ZjjUjMrB-qMiN2gS_Ry2S2ONd0vGgLlidli7__9kElGsTTtGBJ3ALdDUeU0phY03qSrxemUlm0nylaLDwzKmOczHo4FFwGi0nrpocPfmAmRSJWYhbAzbEqzzZ5JFXgoddOC_uBajO2Xu2aELUPQW8XNxD_J0wma5Dw64YMjl0wEEFYU1KZsJ8NLQJV1tTSAEHyChjZYaiKODtPZqpc2AP3iST12DGW3hIFN"/>
+</div>
+<span class="flex-1 font-body-md text-body-md">Michel K.</span>
+<div class="flex gap-2">
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">thumb_up</button>
+<button class="material-symbols-outlined text-outline hover:text-amber-500 transition-colors">bolt</button>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-4 bento-card">
+<h2 class="font-title-lg text-title-lg text-brand-navy mb-6">Historique Vérifié</h2>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 border border-outline-variant/50 rounded-2xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">qr_code_2</span>
+<div>
+<p class="font-title-md text-sm">Hôpital Central</p>
+<p class="text-xs text-outline">12 Oct 2024</p>
+</div>
+</div>
+<span class="px-3 py-1 bg-secondary-container/20 text-secondary font-bold rounded-full text-xs">+150 pts</span>
+</div>
+<div class="flex items-center justify-between p-3 border border-outline-variant/50 rounded-2xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">qr_code_2</span>
+<div>
+<p class="font-title-md text-sm">Pharmacie Soleil</p>
+<p class="text-xs text-outline">10 Oct 2024</p>
+</div>
+</div>
+<span class="px-3 py-1 bg-secondary-container/20 text-secondary font-bold rounded-full text-xs">+45 pts</span>
+</div>
+<div class="flex items-center justify-between p-3 border border-outline-variant/50 rounded-2xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">qr_code_2</span>
+<div>
+<p class="font-title-md text-sm">Laboratoire Bio</p>
+<p class="text-xs text-outline">08 Oct 2024</p>
+</div>
+</div>
+<span class="px-3 py-1 bg-secondary-container/20 text-secondary font-bold rounded-full text-xs">+80 pts</span>
+</div>
+</div>
+</div>
+<div class="col-span-4 bento-card flex flex-col justify-between">
+<div>
+<h2 class="font-title-lg text-title-lg text-brand-navy mb-4">Équipe Disponible</h2>
+<div class="space-y-4 mb-6">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male cardiologist in a white coat, friendly professional expression, soft clinical environment, premium high-fidelity healthcare UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAAa6VPTn7GWRxk2_gDjm4eyuIabL3U8y7TLnIlcYAPpXHb9plafMzU952awMat4rnTROykvwvl7xkxnavkg7GjBb2PG1AQKvofV_V5V3TIh8zM4WWTTIIJzVdbuJfn89LA2kC02P2wsjVONCdrCoIeED4BrDZIE9J88uH14MmTBA_xgTwjNuloJ8-5zJuTKJ0ua_gZGdbVkKvOx93FZdJcBFw7ongyptzXvyweGo2n6jic3lTLLl7n2oWQiUiHx31m81TFsrl_Tsg"/>
+</div>
+<div class="flex-1">
+<p class="font-title-md text-sm">Dr. Marc Ntolo</p>
+<p class="text-xs text-outline">Cardiologue • Attente 15min</p>
+</div>
+<div class="w-2 h-2 rounded-full bg-emerald-500">
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a female nutritionist, professional attire, soft warm lighting, minimalist medical backdrop, high-end wellness aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBew2lQzM3WIvfqmuO_nddCgGbIwty28JVDAKdZqoyRE3jfB1_GOAAaCNlwvcBo2aD-u_59o3A2sMyWUnvgjAfGy8eYT_XPHjmh_XghWpxH5iIQX6KztzGw0ujDLLOEf6XG3JL5PfjkbiHPIsk0YGTJlALlV_j6Q785QbQTKuCMbSLjoN8xzOnvIUEWsIJxMGejQnSE6vUFQ1XruVXGRf5-hS3eMU29cSnhqMD_ZJdwyx2quz5Cfp0LVljtFhPYgYdcL7B_PTv0JCHs"/>
+</div>
+<div class="flex-1">
+<p class="font-title-md text-sm">Dr. Alice Bekono</p>
+<p class="text-xs text-outline">Nutritionniste • Attente 5min</p>
+</div>
+<div class="w-2 h-2 rounded-full bg-emerald-500">
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-4 bg-brand-navy text-white rounded-full font-bold flex items-center justify-center gap-2 hover:bg-primary transition-all active:scale-95 shadow-lg">
+<span class="material-symbols-outlined">qr_code_scanner</span>Prendre RDV</button>
+</div>
+<div class="col-span-12 mt-4">
+<h2 class="font-headline-md text-headline-md text-brand-navy mb-6">Marketplace Rewards</h2>
+<div class="grid grid-cols-4 gap-gutter">
+<div class="bento-card p-6 flex flex-col items-center text-center">
+<div class="w-full h-24 bg-surface-container rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A high-end graphic design for a Total energy gift card, sleek corporate aesthetic, brand navy and red accents, minimalist 3D rendering on white surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzBcujP-CB6qm3A9n6z2Zi7hX6sTdDvFnqwwJSAmUJpOemW30iGs43EbfVc5uqYd4tuMUNpOzq1JrUxs8j3DAX5YbvYL_RcacmbJRmlC5VYQ4NRf03bLnAc-XCvgf2Z0y_QWvhXIORJD3B2xv8fA60SAQVwpMnyx1SWNP8zz3cFC8WI4pV-ByzJ-mias__x9BZLDnlceEcZww1VNdU7ktHjN3tJs_P9XKF5Tg6ZlFXnEonSUg8Kx9h9lqX4CCUNbJOEMyQliVzTGUq"/>
+</div>
+<h3 class="font-title-md text-title-md mb-2">Carte Total</h3>
+<p class="font-body-md text-on-surface-variant mb-4">Carburant & Services</p>
+<span class="font-bold text-primary px-4 py-2 bg-primary-fixed rounded-full">500 pts</span>
+</div>
+<div class="bento-card p-6 flex flex-col items-center text-center">
+<div class="w-full h-24 bg-surface-container rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A stylish lifestyle photograph of a Puma sneaker against a clean background, minimalist product photography, bright lighting, high-end commercial aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-No3KoGsElvmr9WzxMzNbejxnFMN3S7gBuvtdb4l9B1h0WjZU5oiopujrlQwrqHHO8fnnNShInT7TG5NyIrjsGF5dC7LW7yo_YbZqfEJ6Uh0-8W_kIU6_vjGqZlhLuKMQnFHAuv_2Oj1pTMGLWyKOPWidrLo2RrpV1vHcEVxUD-KOmevJwZiDFau8XeeqX2gXCSuShBQCOfbcC5RvcWG2H2P2EA4iXdSh-l7LifMYlWQ7e5IGGnHuFM7gvrD29koaS1qwXxgcUOnU"/>
+</div>
+<h3 class="font-title-md text-title-md mb-2">Bon Puma</h3>
+<p class="font-body-md text-on-surface-variant mb-4">Équipement Sportif</p>
+<span class="font-bold text-primary px-4 py-2 bg-primary-fixed rounded-full">1 000 pts</span>
+</div>
+<div class="bento-card p-6 flex flex-col items-center text-center border-zora-gold border-2">
+<div class="w-full h-24 bg-surface-container rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A minimalist professional presentation of health supplements and skincare bottles, premium pharmaceutical aesthetic, clean bright lighting, white and teal color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBabT4wkgmNxPc0UaVg1LyPH2iR8gUQwEzFjP_E6mX9A6KkEKyNGDJ41ab9P8t59fhCoakE5qqQRcVbgbAsvXfntZLI4Q0DJGPdJBf8EP5kWEUjAC4v6fTeLXy98n_NV5v85emQk7cvUo0pFqPe28ullMiLXzYVhr_nd7MxhaTep27hSS9Ikq0MKQubkDBfaKLSeNBc0ynJ-j0vljSLOEmVWII50OOE-hZy-tTf_NyYIGKNcgyHhDT56NQOXBOBIhw-7KQOW2U-SIcc"/>
+</div>
+<h3 class="font-title-md text-title-md mb-2">Pharmacie</h3>
+<p class="font-body-md text-on-surface-variant mb-4">Bon d'Achat Médical</p>
+<span class="font-bold text-primary px-4 py-2 bg-primary-fixed rounded-full">250 pts</span>
+</div>
+<div class="bento-card p-6 flex flex-col items-center text-center opacity-60 grayscale relative">
+<div class="absolute top-4 right-4 bg-on-surface/10 p-1 rounded-full">
+<span class="material-symbols-outlined text-outline">lock</span>
+</div>
+<div class="w-full h-24 bg-surface-container rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A minimalist architectural 3D rendering of a modern apartment building, soft evening lighting, premium real estate aesthetic, clean lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2vsDsGlUQF3jsNSHeHrde3HYfdq6q3TtO_RBfJLK-zk15hjx0Oo6BFhWDyuKk0OMrVhcVXc5rNiNa2JkEUg1_tVzCEPlPOqELz7xup8c2NvUn-yviFN6VenJUvZqddC-xGIGqK3hGPv94yOpGDg5pDWvMvTPueJ4UC_JQ5Kv_UKy_G3EN9KOgae6LgWFWeuwnxFfaMh-4L6Jli3W4DltpYXWBJ1iV32H0bGEeRSDYDIQTkkQANnXv6pxWaohnLREpIGSJG6fnIJj"/>
+</div>
+<h3 class="font-title-md text-title-md mb-2">Loyer Aide</h3>
+<p class="font-body-md text-on-surface-variant mb-4">Assistance Mensuelle</p>
+<span class="font-bold text-outline px-4 py-2 bg-surface-variant rounded-full">2 500 pts</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="w-full py-8 mt-12 border-t border-outline-variant/20 bg-surface">
+<div class="max-w-[1280px] mx-auto px-20 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<img src="/images/landing/bolamu-logo-512.png" class="h-10 w-10 object-contain rounded-full" alt="Bolamu">
+<span style="color:#0A2463; font-weight:800; font-size:1rem;">Bolamu Health</span>
+</div>
+<p style="color:#434654; font-size:0.875rem;">© 2026 NBA Gestion SARLU. Tous droits réservés.</p>
+<div class="flex gap-8">
+<a href="/cgu.html" style="color:#434654; font-size:0.875rem;">CGU</a>
+<a href="#" style="color:#434654; font-size:0.875rem;">Confidentialité</a>
+<a href="#" style="color:#434654; font-size:0.875rem;">Support</a>
+</div>
+</div>
+</footer>
+
+<script>document.querySelectorAll('.bento-card').forEach(card => {card.addEventListener('mouseenter', () => {card.style.transform = 'translateY(-4px)';});card.addEventListener('mouseleave', () => {card.style.transform = 'translateY(0)';});});const progressBars = document.querySelectorAll('.bg-orange-500, .bg-pink-500, .bg-blue-600');progressBars.forEach(bar => {const targetWidth = bar.style.width;bar.style.width = '0%';setTimeout(() => {bar.style.transition = 'width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)';bar.style.width = targetWidth;}, 300);});</script>
+
+</body>
+</html>
