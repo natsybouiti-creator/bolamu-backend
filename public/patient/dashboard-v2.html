@@ -190,7 +190,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160de
 </div>
 <div class="col-span-3">
 <div id="avatar-accueil" style="position:relative;width:100%;height:320px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border-radius:24px;background:linear-gradient(135deg,#0A2463 0%,#1a3a7a 100%);">
-<img src="/images/landing/garcons3Dbleu.png" id="avatar-garcon" style="height:290px;width:auto;object-fit:contain;filter:drop-shadow(0 16px 32px rgba(0,0,0,0.4));transform-origin:bottom center;" alt="Coach Bolamu">
+<img src="/images/landing/garcons3Dbleu.png" id="avatar-garcon" onerror="this.style.display='none'" style="height:290px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 16px 32px rgba(0,0,0,0.4));transform-origin:bottom center;" alt="Coach Bolamu">
 <span style="position:absolute;top:12px;left:16px;font-size:1.3rem;animation:floatDeco 2.5s ease-in-out infinite;">⭐</span>
 <span style="position:absolute;top:28px;right:12px;font-size:1.1rem;animation:floatDeco 3s ease-in-out infinite 0.5s;">⚡</span>
 <span style="position:absolute;bottom:50px;left:8px;font-size:1rem;animation:floatDeco 3.5s ease-in-out infinite 1s;">🪙</span>
@@ -203,7 +203,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160de
 <div class="col-span-4 soft-card card-sky reveal-card" style="height:100%;display:flex;flex-direction:column;justify-content:space-between;">
 <h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Prochain RDV</h3>
 <div style="border-radius:16px;overflow:hidden;background:#F8F9FF;border:1px solid #E8EAF6;">
-<img src="/images/landing/croix-du-sud.jpg" style="width:100%;height:80px;object-fit:cover;" alt="Clinique">
+<div style="width:100%;height:80px;border-radius:12px;background:linear-gradient(135deg,#0A2463,#003FB1);display:flex;align-items:center;justify-content:center;">
+<span class="material-symbols-outlined" style="color:white;font-size:2rem;">local_hospital</span>
+</div>
 <div style="padding:12px;">
 <div style="font-weight:800;color:#0A2463;">Dr. Marc Ntolo</div>
 <div style="color:#434654;font-size:0.85rem;">Cardiologie • 18 juin 2026 à 14h30</div>
@@ -947,6 +949,13 @@ width: 80,
 height: 80
 });
 }
+window.addEventListener('load', () => {
+const img = document.getElementById('avatar-garcon');
+if(img) {
+img.addEventListener('error', () => console.error('Avatar image failed:', img.src));
+img.addEventListener('load', () => console.log('Avatar loaded OK'));
+}
+});
 document.addEventListener('DOMContentLoaded', function() {
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: no-preference)');
 if (prefersReducedMotion.matches) {
@@ -993,14 +1002,9 @@ bar.style.width = targetWidth;
 }, 50);
 });
 }, 300);
-const observer = new IntersectionObserver((entries) => {
-entries.forEach((e, i) => {
-if (e.isIntersecting) {
-setTimeout(() => e.target.classList.add('visible'), i * 80);
-}
+document.querySelectorAll('.reveal-card').forEach(c => {
+  c.classList.add('visible');
 });
-}, { threshold: 0.1 });
-document.querySelectorAll('.reveal-card').forEach(c => observer.observe(c));
 const header = document.querySelector('header');
 window.addEventListener('scroll', () => {
 if (window.scrollY > 20) {
