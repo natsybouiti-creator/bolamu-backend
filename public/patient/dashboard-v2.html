@@ -75,16 +75,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160de
 .ranking-item:nth-child(3){animation-delay:0.3s}
 .reveal-card{opacity:0;transform:translateY(24px);transition:opacity 0.5s ease,transform 0.5s ease}
 .reveal-card.visible{opacity:1;transform:translateY(0)}
-.card-peach{background:linear-gradient(135deg,#FFF5F0 0%,#FFE8DC 100%);border-color:#FFCBB4}
-.card-sky{background:linear-gradient(135deg,#F0F8FF 0%,#DCF0FF 100%);border-color:#B4DCFF}
-.card-violet{background:linear-gradient(135deg,#F5F0FF 0%,#EAE0FF 100%);border-color:#C9B4FF}
-.card-mint{background:linear-gradient(135deg,#F0FFF8 0%,#DCFFF0 100%);border-color:#B4FFD4}
-.card-gold{background:linear-gradient(135deg,#FFFBF0 0%,#FFF3DC 100%);border-color:#FFE4B4}
-.card-peach:hover{box-shadow:0 16px 48px rgba(255,107,53,0.15);border-color:#FF6B35}
-.card-sky:hover{box-shadow:0 16px 48px rgba(0,63,177,0.15);border-color:#003FB1}
-.card-violet:hover{box-shadow:0 16px 48px rgba(120,80,220,0.15);border-color:#7850DC}
-.card-mint:hover{box-shadow:0 16px 48px rgba(0,201,167,0.15);border-color:#00C9A7}
-.card-gold:hover{box-shadow:0 16px 48px rgba(245,166,35,0.15);border-color:#F5A623}
+.card-blue{background:linear-gradient(135deg,#F0F4FF 0%,#DCE8FF 100%);border:1px solid #B4CCFF}
+.card-blue:hover{box-shadow:0 16px 48px rgba(0,63,177,0.15);border-color:#003FB1;transform:translateY(-6px)}
+.card-violet{background:linear-gradient(135deg,#F5F0FF 0%,#E8D8FF 100%);border:1px solid #C4A0FF}
+.card-violet:hover{box-shadow:0 16px 48px rgba(120,60,220,0.15);border-color:#7C3AED;transform:translateY(-6px)}
+.card-peach{background:linear-gradient(135deg,#FFF5F0 0%,#FFE4D4 100%);border:1px solid #FFBB99}
+.card-peach:hover{box-shadow:0 16px 48px rgba(255,107,53,0.15);border-color:#FF6B35;transform:translateY(-6px)}
 .gradient-title{background:linear-gradient(135deg,#0A2463 0%,#003FB1 50%,#7850DC 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800}
 @keyframes floatDeco{0%,100%{transform:translateY(0px) rotate(0deg)}33%{transform:translateY(-8px) rotate(5deg)}66%{transform:translateY(-4px) rotate(-3deg)}}
 .zora-deco{pointer-events:none}
@@ -120,6 +116,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160de
 <div class="nav-tab" onclick="showPanel('marketplace')" data-panel="marketplace">
 <span class="material-symbols-outlined" style="color:#F5A623;font-size:20px;">storefront</span>
 <span>Marketplace</span>
+</div>
+<div class="nav-tab" onclick="showPanel('defis')" data-panel="defis">
+<span class="material-symbols-outlined" style="color:#FF6B35;font-size:20px;">emoji_events</span>
+<span>Défis</span>
 </div>
 </div>
 </div>
@@ -207,8 +207,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160de
 </div>
 </div>
 </div>
-<div class="col-span-4 soft-card card-sky reveal-card" style="height:auto;display:flex;flex-direction:column;justify-content:space-between;">
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Prochain RDV</h3>
+<div class="col-span-4 soft-card card-blue reveal-card" style="height:auto;display:flex;flex-direction:column;justify-content:space-between;">
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Prochain RDV</h3>
 <div style="border-radius:16px;overflow:hidden;background:#F8F9FF;border:1px solid #E8EAF6;">
 <div style="width:100%;height:80px;border-radius:12px;background:linear-gradient(135deg,#0A2463,#003FB1);display:flex;align-items:center;justify-content:center;">
 <span class="material-symbols-outlined" style="color:white;font-size:2rem;">local_hospital</span>
@@ -225,8 +225,8 @@ Hôpital Central, Av. de l'Indépendance, Brazzaville
 </div>
 <button class="btn-primary w-full" onclick="showPanel('medecins')">Prendre un RDV</button>
 </div>
-<div class="col-span-4 soft-card card-peach reveal-card" style="height:auto;display:flex;flex-direction:column;justify-content:space-between;">
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Défis du jour</h3>
+<div class="col-span-4 soft-card card-violet reveal-card" style="height:auto;display:flex;flex-direction:column;justify-content:space-between;">
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Défis du jour</h3>
 <div class="space-y-3">
 <div class="zora-challenge">
 <div class="zora-challenge__top">
@@ -264,8 +264,8 @@ Hôpital Central, Av. de l'Indépendance, Brazzaville
 </div>
 </div>
 </div>
-<div class="col-span-4 soft-card card-violet reveal-card" style="height:auto;display:flex;flex-direction:column;justify-content:space-between;">
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Chat</h3>
+<div class="col-span-4 soft-card card-peach reveal-card" style="height:auto;display:flex;flex-direction:column;justify-content:space-between;">
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Chat</h3>
 <div style="display:flex;gap:8px;margin-bottom:12px;">
 <button onclick="switchChat('amina')" id="chat-tab-amina" style="background:#003FB1;color:white;border:none;border-radius:9999px;padding:4px 14px;font-size:0.8rem;font-weight:700;cursor:pointer;">Amina IA</button>
 <button onclick="switchChat('adherents')" id="chat-tab-adherents" style="background:#F0F2FF;color:#003FB1;border:none;border-radius:9999px;padding:4px 14px;font-size:0.8rem;font-weight:700;cursor:pointer;">Adhérents</button>
@@ -313,8 +313,8 @@ Hôpital Central, Av. de l'Indépendance, Brazzaville
 <input placeholder="Poser une question médicale..." style="width:100%;border:1px solid #C3C5D7;border-radius:9999px;padding:8px 16px;font-size:0.85rem;outline:none;margin-top:8px;">
 </div>
 </div>
-<div class="col-span-5 soft-card card-mint reveal-card">
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Classement global</h3>
+<div class="col-span-5 soft-card card-blue reveal-card">
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Classement global</h3>
 <div class="space-y-3">
 <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-colors ranking-item">
 <span class="w-6 font-bold" style="color:#434654;">1</span>
@@ -342,8 +342,8 @@ Hôpital Central, Av. de l'Indépendance, Brazzaville
 </div>
 </div>
 </div>
-<div class="col-span-7 soft-card card-gold reveal-card">
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Événements Elonga</h3>
+<div class="col-span-7 soft-card card-violet reveal-card">
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Événements Elonga</h3>
 <div class="space-y-3 mb-6">
 <div style="border-radius:16px;overflow:hidden;background:white;border:1px solid #E8EAF6;margin-bottom:12px;">
 <img src="/images/landing/25-elonga-bilans.jpg" style="width:100%;height:100px;object-fit:cover;" alt="Journée prévention">
@@ -403,7 +403,7 @@ Centre Santé Moungali, Rue Bouenza, Brazzaville
 </select>
 </div>
 <div class="grid grid-cols-3 gap-6 mb-8">
-<div class="soft-card card-sky">
+<div class="soft-card card-blue">
 <div class="flex items-center gap-4 mb-4">
 <div style="width:64px;height:64px;border-radius:9999px;background:linear-gradient(135deg,#003FB1,#00C9A7);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.3rem;flex-shrink:0;">
 MN
@@ -419,7 +419,7 @@ MN
 </div>
 <button class="btn-primary w-full" onclick="openRdvModal('Dr. Marc Ntolo')">Prendre RDV</button>
 </div>
-<div class="soft-card card-mint">
+<div class="soft-card card-violet">
 <div class="flex items-center gap-4 mb-4">
 <div style="width:64px;height:64px;border-radius:9999px;background:linear-gradient(135deg,#003FB1,#00C9A7);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.3rem;flex-shrink:0;">
 AB
@@ -435,7 +435,7 @@ AB
 </div>
 <button class="btn-primary w-full" onclick="openRdvModal('Dr. Alice Bekono')">Prendre RDV</button>
 </div>
-<div class="soft-card card-sky">
+<div class="soft-card card-blue">
 <div class="flex items-center gap-4 mb-4">
 <div style="width:64px;height:64px;border-radius:9999px;background:linear-gradient(135deg,#003FB1,#00C9A7);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.3rem;flex-shrink:0;">
 PM
@@ -453,7 +453,7 @@ PM
 </div>
 </div>
 <div style="margin:24px 0;">
-<h3 style="color:#0A2463;font-weight:800;margin-bottom:12px;">Carte des établissements</h3>
+<h3 style="color:#0A2463;font-weight:800;text-align:center;width:100%;display:block;margin-bottom:12px;">Carte des établissements</h3>
 <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d15930.5!2d15.2663!3d-4.2634!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sfr!2scg!4v1718000000000!5m2!1sfr!2scg" style="width:100%;height:300px;border-radius:16px;border:none;filter:saturate(0.9);" allowfullscreen loading="lazy"></iframe>
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;">
 <div style="background:white;border-radius:16px;overflow:hidden;border:1px solid #C3C5D7;">
@@ -482,7 +482,7 @@ PM
 </div>
 </div>
 </div>
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Historique des RDV</h3>
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Historique des RDV</h3>
 <div class="space-y-3">
 <div class="soft-card flex justify-between items-center">
 <div class="flex items-center gap-4">
@@ -514,22 +514,29 @@ PM
 <span style="position:absolute;bottom:-4px;right:-20px;font-size:1rem;animation:floatDeco 3.5s ease-in-out infinite 0.8s;">🪙</span>
 </div>
 <div style="position:relative;">
-<div class="zora-balance-card mb-8">
-<div class="zora-balance-card__header">
-<span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;color:#FF6B35;font-size:28px;">stars</span>
-<span class="zora-balance-card__label">Vos Zora</span>
+<div class="zora-balance-card mb-8" style="background:linear-gradient(135deg,#0A2463 0%,#1a3a7a 100%);border-radius:32px;padding:32px;color:#ffffff;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(10,36,99,0.3),0 0 100px rgba(0,201,167,0.15);">
+<div style="position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(0,201,167,0.1) 0%,transparent 60%);pointer-events:none;"></div>
+<div class="zora-balance-card__header" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+<span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;color:#FF6B35;font-size:32px;">stars</span>
+<span class="zora-balance-card__label" style="font-size:0.8rem;font-weight:800;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.7);">Vos Zora</span>
 </div>
-<div class="zora-balance-card__amount">
-<span class="zora-balance-card__number">1 250</span>
-<span class="zora-balance-card__unit">pts</span>
+<div class="zora-balance-card__amount" style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+<span class="zora-balance-card__number" style="font-size:5rem;font-weight:800;color:#ffffff;letter-spacing:-0.03em;text-shadow:0 4px 20px rgba(0,0,0,0.3);">1 250</span>
+<span class="zora-balance-card__unit" style="font-size:1.1rem;font-weight:600;color:rgba(255,255,255,0.6);">pts</span>
 </div>
-<div class="zora-balance-card__sub">≈ 1 250 FCFA échangeables</div>
-<div class="zora-balance-card__bar-wrap">
-<div class="zora-balance-card__bar zora-bar" style="--progress:62%"></div>
+<div class="zora-balance-card__sub" style="font-size:0.85rem;color:#00C9A7;font-weight:700;margin-bottom:24px;display:flex;align-items:center;gap:6px;">
+<span style="font-size:1.2rem;">📈</span>
+<span>+125 pts cette semaine</span>
 </div>
-<div class="zora-balance-card__bar-labels">
+<div class="zora-balance-card__bar-wrap" style="background:rgba(255,255,255,0.15);border-radius:9999px;height:16px;margin-bottom:12px;overflow:hidden;">
+<div class="zora-balance-card__bar zora-bar" style="height:100%;width:var(--progress,62%);background:linear-gradient(90deg,#00C9A7 0%,#FF6B35 100%);border-radius:9999px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);box-shadow:0 0 20px rgba(0,201,167,0.5);"></div>
+</div>
+<div class="zora-balance-card__bar-labels" style="display:flex;justify-content:space-between;font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">
 <span>0</span>
 <span>Prochain niveau: 2 000 pts</span>
+</div>
+<div style="display:flex;justify-content:center;margin-top:28px;">
+<img src="/images/landing/zora-coin-gold.png" style="width:90px;height:90px;object-fit:contain;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 12px 24px rgba(245,166,35,0.5));" alt="Zora">
 </div>
 </div>
 <div class="zora-deco" style="position:absolute;top:-14px;left:10px;font-size:1.5rem;animation:floatDeco 2.5s ease-in-out infinite;">⭐</div>
@@ -541,14 +548,14 @@ PM
 <div class="zora-deco" style="position:absolute;top:40px;left:-10px;font-size:0.9rem;animation:floatDeco 2.9s ease-in-out infinite 0.7s;">⚡</div>
 <div class="zora-deco" style="position:absolute;top:60px;right:-10px;font-size:0.9rem;animation:floatDeco 3.1s ease-in-out infinite 1s;">🪙</div>
 </div>
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Paliers de rang</h3>
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Paliers de rang</h3>
 <div class="grid grid-cols-4 gap-4 mb-8">
-<div class="soft-card card-gold text-center">
+<div class="soft-card card-peach text-center">
 <div class="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#CD7F32,#F5A623);box-shadow:0 8px 24px rgba(205,127,50,0.4);transform:scale(1.1);color:#ffffff;font-weight:800;">B</div>
 <h4 class="font-bold mb-1">Bronze</h4>
 <p class="text-sm" style="color:#434654;">0 - 1 000 pts</p>
 </div>
-<div class="soft-card card-sky text-center">
+<div class="soft-card card-blue text-center">
 <div class="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#E8EAF6,#C3C5D7);opacity:0.6;color:#ffffff;font-weight:800;">A</div>
 <h4 class="font-bold mb-1">Argent</h4>
 <p class="text-sm" style="color:#434654;">1 001 - 5 000 pts</p>
@@ -564,7 +571,7 @@ PM
 <p class="text-sm" style="color:#434654;">10 001+ pts</p>
 </div>
 </div>
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Historique d'activités</h3>
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Historique d'activités</h3>
 <div class="space-y-3 mb-8">
 <div class="zora-activity">
 <div class="zora-activity__icon">
@@ -597,14 +604,14 @@ PM
 <div class="zora-activity__points">+15 pts</div>
 </div>
 </div>
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Comment gagner des points</h3>
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Comment gagner des points</h3>
 <div class="grid grid-cols-2 gap-4">
 <div class="soft-card card-peach">
 <h4 class="font-bold mb-2" style="color:#00C9A7;">Santé</h4>
 <p class="text-sm mb-2" style="color:#434654;">Consultations, examens, vaccinations</p>
 <p class="text-xs font-bold" style="color:#FF6B35;">Plafond: 500 pts/mois</p>
 </div>
-<div class="soft-card card-sky">
+<div class="soft-card card-blue">
 <h4 class="font-bold mb-2" style="color:#00C9A7;">Sport</h4>
 <p class="text-sm mb-2" style="color:#434654;">Marche, course, activités physiques</p>
 <p class="text-xs font-bold" style="color:#FF6B35;">Plafond: 300 pts/mois</p>
@@ -614,7 +621,7 @@ PM
 <p class="text-sm mb-2" style="color:#434654;">Défis quotidiens, événements Elonga</p>
 <p class="text-xs font-bold" style="color:#FF6B35;">Plafond: 400 pts/mois</p>
 </div>
-<div class="soft-card card-sky">
+<div class="soft-card card-blue">
 <h4 class="font-bold mb-2" style="color:#00C9A7;">Partenaires</h4>
 <p class="text-sm mb-2" style="color:#434654;">Scans QR chez partenaires</p>
 <p class="text-xs font-bold" style="color:#FF6B35;">Plafond: 200 pts/mois</p>
@@ -624,7 +631,7 @@ PM
 <div id="panel-dossier" class="panel">
 <h2 class="font-bold text-2xl mb-6 gradient-title" style="text-align:center;">Dossier médical</h2>
 <div class="grid grid-cols-3 gap-6 mb-8">
-<div class="soft-card card-sky">
+<div class="soft-card card-blue">
 <h3 class="font-bold text-sm mb-4" style="color:#434654;text-transform:uppercase;letter-spacing:1px;">Informations générales</h3>
 <div class="space-y-2">
 <div class="flex justify-between py-2 border-b" style="border-color:#F3F3FE;">
@@ -682,7 +689,7 @@ PM
 </div>
 </div>
 </div>
-<div class="soft-card card-sky">
+<div class="soft-card card-blue">
 <h3 class="font-bold text-sm mb-4" style="color:#434654;text-transform:uppercase;letter-spacing:1px;">Résultats laboratoire</h3>
 <div class="space-y-3">
 <div class="p-3 rounded-xl" style="background:#F3F3FE;">
@@ -795,9 +802,9 @@ PM
 <button class="reward-dot" data-index="3" style="width:10px;height:10px;border-radius:9999px;border:none;background:#C3C5D7;cursor:pointer;"></button>
 <button class="reward-dot" data-index="4" style="width:10px;height:10px;border-radius:9999px;border:none;background:#C3C5D7;cursor:pointer;"></button>
 </div>
-<h3 class="font-bold text-lg mb-4" style="color:#0A2463;">Partenaires Bolamu</h3>
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Partenaires Bolamu</h3>
 <div class="grid grid-cols-4 gap-6">
-<div class="soft-card card-sky flex flex-col items-center text-center reveal-card">
+<div class="soft-card card-blue flex flex-col items-center text-center reveal-card">
 <div style="width:100%;height:100px;overflow:hidden;border-radius:12px 12px 0 0;">
 <img src="/images/landing/croix-du-sud.jpg" style="width:100%;height:100%;object-fit:cover;" alt="Hôpital Central">
 </div>
@@ -807,7 +814,7 @@ PM
 <button class="px-4 py-2 rounded-full text-xs font-bold" style="background:#003FB1;color:#ffffff;border:none;cursor:pointer;">Réserver RDV</button>
 </div>
 </div>
-<div class="soft-card card-mint flex flex-col items-center text-center reveal-card">
+<div class="soft-card card-violet flex flex-col items-center text-center reveal-card">
 <div style="width:100%;height:100px;overflow:hidden;border-radius:12px 12px 0 0;">
 <img src="/images/landing/pharmacie-daffe.jpg" style="width:100%;height:100%;object-fit:cover;" alt="Pharmacie Soleil">
 </div>
@@ -839,10 +846,147 @@ PM
 </div>
 </div>
 </div>
+<div id="panel-defis" class="panel">
+<h2 class="font-bold text-2xl mb-6 gradient-title" style="text-align:center;">Défis & Clubs</h2>
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Défis en cours</h3>
+<div class="grid grid-cols-2 gap-6 mb-8">
+<div class="soft-card card-blue reveal-card" style="border-radius:24px;overflow:hidden;">
+<div style="position:relative;height:180px;overflow:hidden;">
+<img src="/images/landing/27-elonga-sport.jpg" style="width:100%;height:100%;object-fit:cover;" alt="Défi marche">
+<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,36,99,0.9) 0%,transparent 60%);"></div>
+<div style="position:absolute;top:12px;left:12px;background:rgba(255,107,53,0.9);color:white;border-radius:9999px;padding:4px 12px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">En cours</div>
+<div style="position:absolute;bottom:12px;left:12px;right:12px;">
+<h4 class="font-bold text-white text-lg mb-1">Marche 10K</h4>
+<p class="text-white text-sm opacity-80">10 000 pas par jour</p>
+</div>
+</div>
+<div style="padding:16px;">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+<span class="material-symbols-outlined" style="color:#FF6B35;font-size:20px;">stars</span>
+<span style="font-weight:800;color:#FF6B35;">+25 pts/jour</span>
+</div>
+<div style="background:#EDEDF8;border-radius:9999px;height:10px;margin-bottom:8px;overflow:hidden;">
+<div style="height:100%;width:70%;background:linear-gradient(90deg,#00C9A7,#FF6B35);border-radius:9999px;"></div>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:0.8rem;font-weight:600;color:#434654;">
+<span>7 000 / 10 000 pas</span>
+<span>70%</span>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+<span style="font-size:0.8rem;color:#434654;">👥 124 participants</span>
+<button style="background:#003FB1;color:white;border:none;border-radius:9999px;padding:6px 16px;font-weight:700;font-size:0.8rem;cursor:pointer;">Continuer</button>
+</div>
+</div>
+</div>
+<div class="soft-card card-violet reveal-card" style="border-radius:24px;overflow:hidden;">
+<div style="position:relative;height:180px;overflow:hidden;">
+<img src="/images/landing/26-elonga-nutrition.jpg" style="width:100%;height:100%;object-fit:cover;" alt="Défi nutrition">
+<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,36,99,0.9) 0%,transparent 60%);"></div>
+<div style="position:absolute;top:12px;left:12px;background:rgba(0,201,167,0.9);color:white;border-radius:9999px;padding:4px 12px;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Nouveau</div>
+<div style="position:absolute;bottom:12px;left:12px;right:12px;">
+<h4 class="font-bold text-white text-lg mb-1">Défi Nutrition</h4>
+<p class="text-white text-sm opacity-80">5 fruits & légumes/jour</p>
+</div>
+</div>
+<div style="padding:16px;">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+<span class="material-symbols-outlined" style="color:#FF6B35;font-size:20px;">stars</span>
+<span style="font-weight:800;color:#FF6B35;">+50 pts/jour</span>
+</div>
+<div style="background:#EDEDF8;border-radius:9999px;height:10px;margin-bottom:8px;overflow:hidden;">
+<div style="height:100%;width:20%;background:linear-gradient(90deg,#00C9A7,#FF6B35);border-radius:9999px;"></div>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:0.8rem;font-weight:600;color:#434654;">
+<span>1 / 5 portions</span>
+<span>20%</span>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+<span style="font-size:0.8rem;color:#434654;">👥 89 participants</span>
+<button style="background:#003FB1;color:white;border:none;border-radius:9999px;padding:6px 16px;font-weight:700;font-size:0.8rem;cursor:pointer;">Rejoindre</button>
+</div>
+</div>
+</div>
+</div>
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Clubs Sport</h3>
+<div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;margin-bottom:24px;">
+<div class="soft-card card-peach reveal-card" style="flex-shrink:0;width:220px;border-radius:20px;overflow:hidden;">
+<div style="height:120px;background:linear-gradient(135deg,#0A2463,#003FB1);display:flex;align-items:center;justify-content:center;">
+<span class="material-symbols-outlined" style="color:white;font-size:48px;">directions_run</span>
+</div>
+<div style="padding:16px;">
+<h4 class="font-bold mb-1" style="color:#0A2463;">Runners Brazza</h4>
+<p class="text-sm mb-2" style="color:#434654;">Course à pied</p>
+<div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+<span class="material-symbols-outlined" style="font-size:16px;color:#00C9A7;">person</span>
+<span class="text-sm font-bold" style="color:#00C9A7;">45 membres</span>
+</div>
+<button class="btn-primary w-full" style="padding:8px 16px;font-size:0.8rem;">Rejoindre</button>
+</div>
+</div>
+<div class="soft-card card-blue reveal-card" style="flex-shrink:0;width:220px;border-radius:20px;overflow:hidden;">
+<div style="height:120px;background:linear-gradient(135deg,#00C9A7,#FF6B35);display:flex;align-items:center;justify-content:center;">
+<span class="material-symbols-outlined" style="color:white;font-size:48px;">self_improvement</span>
+</div>
+<div style="padding:16px;">
+<h4 class="font-bold mb-1" style="color:#0A2463;">Yoga Zen</h4>
+<p class="text-sm mb-2" style="color:#434654;">Yoga & Méditation</p>
+<div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+<span class="material-symbols-outlined" style="font-size:16px;color:#00C9A7;">person</span>
+<span class="text-sm font-bold" style="color:#00C9A7;">32 membres</span>
+</div>
+<button class="btn-primary w-full" style="padding:8px 16px;font-size:0.8rem;">Rejoindre</button>
+</div>
+</div>
+<div class="soft-card card-violet reveal-card" style="flex-shrink:0;width:220px;border-radius:20px;overflow:hidden;">
+<div style="height:120px;background:linear-gradient(135deg,#FF6B35,#F5A623);display:flex;align-items:center;justify-content:center;">
+<span class="material-symbols-outlined" style="color:white;font-size:48px;">fitness_center</span>
+</div>
+<div style="padding:16px;">
+<h4 class="font-bold mb-1" style="color:#0A2463;">Fit Squad</h4>
+<p class="text-sm mb-2" style="color:#434654;">Musculation</p>
+<div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+<span class="material-symbols-outlined" style="font-size:16px;color:#00C9A7;">person</span>
+<span class="text-sm font-bold" style="color:#00C9A7;">28 membres</span>
+</div>
+<button class="btn-primary w-full" style="padding:8px 16px;font-size:0.8rem;">Rejoindre</button>
+</div>
+</div>
+<div class="soft-card card-peach reveal-card" style="flex-shrink:0;width:220px;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-center;">
+<span class="material-symbols-outlined" style="font-size:48px;color:#003FB1;margin-bottom:12px;">add_circle</span>
+<h4 class="font-bold mb-2" style="color:#0A2463;">Créer un club</h4>
+<p class="text-sm mb-4" style="color:#434654;">Lancez votre propre club sport</p>
+<button class="btn-primary" onclick="showCreateClub()" style="padding:8px 16px;font-size:0.8rem;">Créer</button>
+</div>
+</div>
+<h3 class="font-bold text-lg mb-4" style="color:#0A2463;text-align:center;width:100%;display:block;">Classement Amis</h3>
+<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="soft-card card-blue reveal-card" style="text-align:center;padding:20px;">
+<div style="width:60px;height:60px;margin:0 auto 12px;border-radius:9999px;background:linear-gradient(135deg,#003FB1,#00C9A7);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.2rem;">JP</div>
+<h4 class="font-bold mb-1" style="color:#0A2463;">Jean-Paul M.</h4>
+<p class="text-sm mb-2" style="color:#434654;">🥇 1er</p>
+<span class="font-bold" style="color:#FF6B35;">2 450 pts</span>
+</div>
+<div class="soft-card card-violet reveal-card" style="text-align:center;padding:20px;border:2px solid #00C9A7;">
+<div style="width:60px;height:60px;margin:0 auto 12px;border-radius:9999px;background:linear-gradient(135deg,#003FB1,#00C9A7);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.2rem;">SB</div>
+<h4 class="font-bold mb-1" style="color:#0A2463;">Sarah B. (Vous)</h4>
+<p class="text-sm mb-2" style="color:#434654;">🥈 2e</p>
+<span class="font-bold" style="color:#FF6B35;">1 250 pts</span>
+</div>
+<div class="soft-card card-peach reveal-card" style="text-align:center;padding:20px;">
+<div style="width:60px;height:60px;margin:0 auto 12px;border-radius:9999px;background:linear-gradient(135deg,#003FB1,#00C9A7);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.2rem;">MK</div>
+<h4 class="font-bold mb-1" style="color:#0A2463;">Michel K.</h4>
+<p class="text-sm mb-2" style="color:#434654;">🥉 3e</p>
+<span class="font-bold" style="color:#FF6B35;">980 pts</span>
+</div>
+</div>
+<div style="text-align:center;">
+<button class="btn-primary" onclick="showInviteFriends()" style="padding:12px 32px;">📱 Inviter des amis</button>
+</div>
+</div>
 <div id="panel-profil" class="panel">
 <h2 class="font-bold text-2xl mb-6" style="color:#0A2463;text-align:center;">Mon Profil</h2>
 <div class="grid grid-cols-3 gap-6 mb-8">
-<div class="soft-card card-sky text-center">
+<div class="soft-card card-blue text-center">
 <div class="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4" style="border-color:#003FB1;">
 <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAR0n9O0QPPEvmJ_53SuoIsBTUMUN-Lt7MGWO1UVKZQ9SyTswoUi3mVYqxAhuIcfnv_ITBkPrRvMjdtf3ZLUBoLXcgNxq9p1pHjja-22e83C5Tgz-CrHsFoV98gEm8pdEO-g55LKaYYgpWwbbdR7qSigH-ptNydyjjpkXltNeJ7taH7hUkH-Fq7A_2_m6DM8BZ_ov3iEDl5gx07ngktsc43bpVnDKKDAPE264HlooNQEYshoa0XSzl8nheInjZnQGq_rN0NAMkJvtKQ" alt="Avatar"/>
 </div>
@@ -896,7 +1040,7 @@ PM
 <button class="btn-primary">Mettre à jour</button>
 </div>
 </div>
-<div class="soft-card card-sky">
+<div class="soft-card card-blue">
 <h3 class="font-bold text-sm mb-4" style="color:#434654;text-transform:uppercase;letter-spacing:1px;">Mon abonnement</h3>
 <div class="p-4 rounded-xl mb-4" style="background:#F3F3FE;">
 <p class="font-bold mb-1">Plan Standard</p>
@@ -952,6 +1096,36 @@ PM
 </div>
 </div>
 </div>
+<div class="modal-overlay" id="modal-club">
+<div class="modal">
+<h2 class="font-bold text-xl mb-1" style="color:#0A2463;">Créer un club sport</h2>
+<p class="text-sm mb-6" style="color:#434654;">Lancez votre propre communauté sportive</p>
+<div class="modal-field">
+<label>Nom du club</label>
+<input type="text" id="club-name" placeholder="Ex: Runners Brazza"/>
+</div>
+<div class="modal-field">
+<label>Type d'activité</label>
+<select id="club-type">
+<option value="">Sélectionner...</option>
+<option value="running">Course à pied</option>
+<option value="yoga">Yoga</option>
+<option value="fitness">Musculation</option>
+<option value="cycling">Cyclisme</option>
+<option value="swimming">Natation</option>
+<option value="other">Autre</option>
+</select>
+</div>
+<div class="modal-field">
+<label>Description</label>
+<textarea id="club-desc" rows="3" placeholder="Décrivez votre club..."></textarea>
+</div>
+<div class="modal-actions">
+<button class="btn-cancel" onclick="closeClubModal()">Annuler</button>
+<button class="btn-confirm" onclick="closeClubModal();alert('Club créé avec succès !');">Créer</button>
+</div>
+</div>
+</div>
 <script>
 const token = 'test';
 const phone = '+242065458932';
@@ -962,7 +1136,8 @@ function showPanel(panelName) {
 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 document.getElementById('panel-' + panelName).classList.add('active');
-document.querySelector(`[data-panel="${panelName}"]`).classList.add('active');
+const navTab = document.querySelector(`[data-panel="${panelName}"]`);
+if (navTab) navTab.classList.add('active');
 }
 function switchChat(tab) {
 ['amina','adherents','medecins'].forEach(t => {
@@ -1000,6 +1175,17 @@ document.getElementById('modal-rdv').classList.remove('open');
 function confirmRdv() {
 alert('Rendez-vous confirmé !');
 closeRdvModal();
+}
+function showCreateClub() {
+document.getElementById('modal-club').classList.add('open');
+}
+function closeClubModal() {
+document.getElementById('modal-club').classList.remove('open');
+}
+function showInviteFriends() {
+const message = 'Rejoins-moi sur Bolamu ! Gagne des points Zora en restant en bonne santé. 🏃‍♂️💪';
+const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+window.open(url, '_blank');
 }
 const qrContainer = document.getElementById('qr-code-accueil');
 if (qrContainer && typeof QRCode !== 'undefined') {
