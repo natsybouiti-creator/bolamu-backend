@@ -57,9 +57,52 @@ async function runTests() {
     console.log(`  Raison : ${result3.reason || 'N/A'}`);
     
     // SCÉNARIO 3 — Plafond catégorie santé
-    console.log('\n📋 SCÉNARIO 3 : Plafond catégorie santé (SKIPPÉ - complexité des plafonds multiples)');
-    console.log('  ⚠️  Ce test nécessite une refonte pour gérer les plafonds croisés');
-    console.log('  Résultat : ⏭️  SKIPPÉ');
+    console.log('\n📋 SCÉNARIO 3 : Plafond catégorie santé');
+    // Réinitialiser le solde pour ce test
+    await pool.query('UPDATE zora_points SET balance = 0, total_earned = 0 WHERE phone = $1', [testPhone]);
+    await pool.query('DELETE FROM zora_ledger WHERE phone = $1', [testPhone]);
+    
+    // Test 1 : Sous 500 points → pas de blocage
+    console.log('  Test 1 : Sous 500 pts (accumulation libre)');
+    const timestamp3a = Date.now();
+    for (let i = 0; i < 6; i++) {
+      await awardZora({
+        phone: testPhone,
+        action_type: 'analyse_labo',
+        proof_class: 'system_event',
+        proof_source: 'test',
+        recording_method: null,
+        proof_reference: `test_cat_under_${i}_${timestamp3a}`
+      });
+    }
+    const balanceUnder = await getZoraBalance(testPhone);
+    console.log(`    Total gagné : ${balanceUnder.total_earned} pts`);
+    console.log(`    Résultat : ${balanceUnder.total_earned === 450 ? '✅ VALIDÉ (pas de blocage)' : '❌ ÉCHEC'}`);
+    
+    // Test 2 : Au-dessus de 500 points → blocage à 60% santé
+    console.log('  Test 2 : Au-dessus de 500 pts (plafond 60% santé)');
+    // Ajouter 100 points engagement pour atteindre 550 total
+    await awardZora({
+      phone: testPhone,
+      action_type: 'parrainage',
+      proof_class: 'system_event',
+      proof_source: 'test',
+      recording_method: null,
+      proof_reference: `test_cat_eng_${Date.now()}`
+    });
+    
+    // Essayer d'ajouter 75 points santé (total serait 625, plafond santé = 375)
+    // On a 450 santé, +75 = 525, au-dessus du plafond de 375 → devrait bloquer
+    const resultCap = await awardZora({
+      phone: testPhone,
+      action_type: 'analyse_labo',
+      proof_class: 'system_event',
+      proof_source: 'test',
+      recording_method: null,
+      proof_reference: `test_cat_final_${Date.now()}`
+    });
+    console.log(`    Résultat : ${resultCap.success ? '❌ ÉCHEC (aurait dû bloquer)' : '✅ VALIDÉ (bloqué)'}`);
+    console.log(`    Raison : ${resultCap.reason || 'N/A'}`);
     
     // SCÉNARIO 4 — Recalcul de palier
     console.log('\n📋 SCÉNARIO 4 : Recalcul de palier');
@@ -124,13 +167,17 @@ async function runTests() {
     
     // SCÉNARIO 6 — Clause d'activité
     console.log('\n📋 SCÉNARIO 6 : Clause d\'activité');
+    // Réinitialiser pour éviter les conflits de plafond
+    await pool.query('UPDATE zora_points SET balance = 0, total_earned = 0, tier = \'kimia\' WHERE phone = $1', [testPhone]);
+    await pool.query('DELETE FROM zora_ledger WHERE phone = $1', [testPhone]);
+    
     const beforeActivity = await pool.query('SELECT last_activity_at FROM zora_points WHERE phone = $1', [testPhone]);
     console.log(`  last_activity_at avant : ${beforeActivity.rows[0]?.last_activity_at}`);
     
     const timestamp6 = Date.now();
     await awardZora({
       phone: testPhone,
-      action_type: 'parrainage',
+      action_type: 'bilan_annuel',
       proof_class: 'system_event',
       proof_source: 'test',
       recording_method: null,

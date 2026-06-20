@@ -130,17 +130,17 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
       [rule.category]
     );
     
-    // Désactivé temporairement pour les tests - à réactiver avec logique ajustée
-    // if (capResult.rows.length > 0 && capResult.rows[0].cap_percent > 0 && totalEarned > 0) {
-    //   const capPercent = capResult.rows[0].cap_percent;
-    //   const maxCategoryPoints = Math.floor(newTotalEarned * capPercent / 100);
-    //   
-    //   if (newCategoryTotal > maxCategoryPoints) {
-    //     console.log(`[ZORA] Plafond catégorie atteint pour phone: ${phone}, category: ${rule.category}`);
-    //     await client.query('ROLLBACK');
-    //     return { success: false, reason: 'category_cap_reached' };
-    //   }
-    // }
+    // Plafond catégorie : ne s'applique QUE si total_earned >= 500 points
+    if (totalEarned >= 500 && capResult.rows.length > 0 && capResult.rows[0].cap_percent > 0) {
+      const capPercent = capResult.rows[0].cap_percent;
+      const maxCategoryPoints = Math.floor(newTotalEarned * capPercent / 100);
+      
+      if (newCategoryTotal > maxCategoryPoints) {
+        console.log(`[ZORA] Plafond catégorie atteint pour phone: ${phone}, category: ${rule.category}`);
+        await client.query('ROLLBACK');
+        return { success: false, reason: 'category_cap_reached' };
+      }
+    }
     
     // ÉTAPE 6 — CRÉDIT + EXPIRATION GLISSANTE
     const expiresAt = new Date();
