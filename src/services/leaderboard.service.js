@@ -74,7 +74,7 @@ async function getLeaderboard({ phone, limit = 10 }) {
     // Top N
     const topResult = await pool.query(
       `SELECT lw.phone, lw.points_earned, lw.rank,
-              u.first_name, u.last_name
+              COALESCE(u.full_name, u.first_name || ' ' || u.last_name, 'Anonyme') as full_name
        FROM leaderboard_weekly lw
        JOIN users u ON u.phone = lw.phone
        WHERE lw.week_start = $1
@@ -84,11 +84,16 @@ async function getLeaderboard({ phone, limit = 10 }) {
     );
     
     // Masquer les noms (Jean-Paul M. au lieu de Jean-Paul Martin)
-    const top = topResult.rows.map(row => ({
-      rank: row.rank,
-      points_earned: row.points_earned,
-      display_name: `${row.first_name} ${row.last_name ? row.last_name.charAt(0) + '.' : ''}`
-    }));
+    const top = topResult.rows.map(row => {
+      const parts = row.full_name.trim().split(' ');
+      const firstName = parts[0] || 'Anonyme';
+      const lastNameInitial = parts.length > 1 ? parts[parts.length - 1].charAt(0) + '.' : '';
+      return {
+        rank: row.rank,
+        points_earned: row.points_earned,
+        display_name: `${firstName} ${lastNameInitial}`.trim()
+      };
+    });
     
     // Position du demandeur
     let myPosition = null;
@@ -128,7 +133,7 @@ async function getTop3() {
     
     const result = await pool.query(
       `SELECT lw.rank, lw.points_earned,
-              u.first_name, u.last_name
+              COALESCE(u.full_name, u.first_name || ' ' || u.last_name, 'Anonyme') as full_name
        FROM leaderboard_weekly lw
        JOIN users u ON u.phone = lw.phone
        WHERE lw.week_start = $1
@@ -137,11 +142,16 @@ async function getTop3() {
       [weekStart]
     );
     
-    const top3 = result.rows.map(row => ({
-      rank: row.rank,
-      points_earned: row.points_earned,
-      display_name: `${row.first_name} ${row.last_name ? row.last_name.charAt(0) + '.' : ''}`
-    }));
+    const top3 = result.rows.map(row => {
+      const parts = row.full_name.trim().split(' ');
+      const firstName = parts[0] || 'Anonyme';
+      const lastNameInitial = parts.length > 1 ? parts[parts.length - 1].charAt(0) + '.' : '';
+      return {
+        rank: row.rank,
+        points_earned: row.points_earned,
+        display_name: `${firstName} ${lastNameInitial}`.trim()
+      };
+    });
     
     return { success: true, data: top3 };
     
