@@ -162,6 +162,9 @@ try {
 // Appliquer le rate limiting standard sur toutes les routes API (sauf webhook)
 app.use('/api/v1', standardLimiter);
 
+// Enregistrer sport-groups AVANT les autres routes pour éviter les conflits
+app.use('/api/v1/sport-groups', require('./routes/sport-groups.routes'));
+
 app.use('/api/v1/auth',          authRoutes);
 app.use('/api/v1/patients',      patientRoutes);
 app.use('/api/v1/doctors',       doctorRoutes);
@@ -191,25 +194,25 @@ app.use('/api/v1/reports',       reportRoutes);
 app.use('/api/v1/lab',           labRoutes);
 app.use('/api/v1/ratings',      ratingsRoutes);
 app.use('/api/v1/map',           require('./routes/map.routes'));
-app.use('/api/v1',              conflictRoutes);
-app.use('/api/v1',              couponRoutes);
+app.use('/api/v1/events',       require('./routes/elonga-events.routes'));
+app.use('/api/v1/leaderboard',  require('./routes/leaderboard.routes'));
+app.use('/api/v1/streaks',      require('./routes/streak.routes'));
+// app.use('/api/v1/sport-groups', require('./routes/sport-groups.routes'));
+app.use('/api/v1/chat',         chatRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/push',         pushRoutes);
 app.use('/api/v1/secretariat',  secretariatRoutes);
 app.use('/api/v1/agence',       agenceRoutes);
 app.use('/api/v1/pre-rdv',       preRdvRoutes);
-app.use('/api/v1',              smartflowRoutes);
-app.use('/api/v1',              symptomsRoutes);
 app.use('/api/v1/ai-consult',   aiConsultRoutes);
 app.use('/api/v1/upload',       uploadRoutes);
 app.use('/api/v1/zora',         zoraRoutes);
 app.use('/api/v1/zora',         zoraMarketplaceRoutes);
 app.use('/api/v1/zora',         zoraGamesRoutes);
-app.use('/api/v1/events',       require('./routes/elonga-events.routes'));
-app.use('/api/v1/leaderboard',  require('./routes/leaderboard.routes'));
-app.use('/api/v1/streaks',      require('./routes/streak.routes'));
-app.use('/api/v1/sport-groups', sportGroupsRoutes);
-app.use('/api/v1/chat',         chatRoutes);
+// app.use('/api/v1',              conflictRoutes);
+// app.use('/api/v1',              couponRoutes);
+// app.use('/api/v1',              smartflowRoutes);
+// app.use('/api/v1',              symptomsRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================

@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
     
     res.json({ success: true, data: groups });
   } catch (error) {
-    console.error('Error getting sport groups:', error);
+    console.error('[SPORT-GROUPS] Error getting sport groups:', error.message);
     res.status(500).json({ success: false, message: 'Erreur lors de la récupération des groupes' });
   }
 });
