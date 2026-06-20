@@ -529,6 +529,7 @@
           {profileOpen && <ProfileModal user={user} subscription={subscription} onClose={() => setProfileOpen(false)} />}
           {rdvModalOpen && <RdvModal onClose={() => setRdvModalOpen(false)} />}
           {ratingModalOpen && <RatingModal pendingRating={pendingRating} onSubmit={submitRating} onClose={() => setRatingModalOpen(false)} />}
+          {chatOpen && <ChatDrawer onClose={() => setChatOpen(false)} />}
         </div>
       );
     }
@@ -767,6 +768,59 @@
               )}
             </div>
           )}
+          
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0A2463' }}>Groupes de sport</h3>
+              <button onClick={() => setChatOpen(true)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                <span className="material-symbols-outlined" style={{ color: '#003FB1', fontSize: '24px' }}>forum</span>
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+              {sportGroups.map(group => (
+                <div key={group.id} style={{
+                  flex: '0 0 auto',
+                  width: '140px',
+                  background: '#fff',
+                  border: '1px solid #EDEDF8',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0, 201, 167, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ color: '#00C9A7', fontSize: '24px' }}>{group.icon_name}</span>
+                  </div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463', textAlign: 'center' }}>{group.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#434654' }}>{group.member_count} membres</div>
+                  {group.is_member ? (
+                    <button onClick={() => leaveGroup(group.id)} style={{ width: '100%', background: '#EDEDF8', color: '#434654', border: 'none', padding: '8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Quitter</button>
+                  ) : (
+                    <button onClick={() => joinGroup(group.id)} style={{ width: '100%', background: '#003FB1', color: '#fff', border: 'none', padding: '8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Rejoindre</button>
+                  )}
+                </div>
+              ))}
+              <div style={{
+                flex: '0 0 auto',
+                width: '140px',
+                background: 'rgba(0, 201, 167, 0.08)',
+                border: '2px dashed #00C9A7',
+                borderRadius: '16px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                cursor: 'pointer'
+              }}>
+                <span className="material-symbols-outlined" style={{ color: '#00C9A7', fontSize: '32px' }}>add</span>
+                <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#00C9A7' }}>Créer</div>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }
@@ -2671,6 +2725,194 @@
             >
               {submitting ? 'Envoi...' : 'Envoyer la note'}
             </button>
+          </div>
+        </div>
+      );
+    }
+    
+    function ChatDrawer({ onClose }) {
+      const [messageInput, setMessageInput] = useState('');
+      
+      useEffect(() => {
+        loadChatMessages(chatTab);
+      }, [chatTab]);
+      
+      const handleSendMessage = () => {
+        if (messageInput.trim()) {
+          sendChatMessage(messageInput);
+          setMessageInput('');
+        }
+      };
+      
+      return (
+        <div style={{
+          display: 'flex',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 100,
+          backgroundColor: 'rgba(0,0,0,0.5)'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '420px',
+            background: '#fff',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{
+              padding: '16px',
+              borderBottom: '1px solid #EDEDF8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#0A2463' }}>Chat</h3>
+              <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                <span className="material-symbols-outlined" style={{ color: '#434654', fontSize: '24px' }}>close</span>
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', borderBottom: '1px solid #EDEDF8' }}>
+              <button 
+                onClick={() => setChatTab('community')}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: chatTab === 'community' ? '#003FB1' : 'transparent',
+                  color: chatTab === 'community' ? '#fff' : '#434654',
+                  border: 'none',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Communauté
+              </button>
+              <button 
+                onClick={() => setChatTab('medecin')}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: chatTab === 'medecin' ? '#003FB1' : 'transparent',
+                  color: chatTab === 'medecin' ? '#fff' : '#434654',
+                  border: 'none',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Médecins
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+              {chatMessages.map(msg => (
+                <div key={msg.id} style={{ marginBottom: '16px' }}>
+                  {msg.message_type === 'achievement' ? (
+                    <div style={{
+                      background: 'rgba(245, 166, 35, 0.12)',
+                      border: '1px solid rgba(245, 166, 35, 0.3)',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <span className="material-symbols-outlined" style={{ color: '#F5A623', fontSize: '20px' }}>workspace_premium</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463' }}>{msg.content}</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{ 
+                        width: '36px', 
+                        height: '36px', 
+                        borderRadius: '50%', 
+                        background: '#EDEDF8', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        fontSize: '0.875rem',
+                        fontWeight: 700,
+                        color: '#0A2463'
+                      }}>
+                        {msg.sender_name}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ 
+                          background: '#FAF8FF', 
+                          borderRadius: '12px', 
+                          padding: '10px 14px',
+                          marginBottom: '4px'
+                        }}>
+                          <div style={{ fontSize: '0.875rem', color: '#191B23' }}>{msg.content}</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.625rem', color: '#9498a8' }}>
+                            {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <button 
+                            onClick={() => addReaction(msg.id)}
+                            style={{ 
+                              background: 'transparent', 
+                              border: 'none', 
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#00C9A7' }}>thumb_up</span>
+                            <span style={{ fontSize: '0.625rem', color: '#9498a8' }}>{msg.reaction_count || 0}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {chatTab === 'medecin' && (
+              <div style={{ padding: '12px', background: '#FAF8FF', fontSize: '0.75rem', color: '#434654', textAlign: 'center' }}>
+                Pour une urgence, appelez le 15
+              </div>
+            )}
+            
+            <div style={{ padding: '16px', borderTop: '1px solid #EDEDF8', display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={messageInput}
+                onChange={(e) => setMessageInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Écrire un message..."
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '9999px',
+                  border: '1px solid #EDEDF8',
+                  fontSize: '0.875rem',
+                  outline: 'none'
+                }}
+              />
+              <button 
+                onClick={handleSendMessage}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: '#003FB1',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>send</span>
+              </button>
+            </div>
           </div>
         </div>
       );
