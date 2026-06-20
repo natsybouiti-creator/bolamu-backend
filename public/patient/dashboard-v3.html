@@ -502,7 +502,7 @@
           </nav>
           
           <main style={{ padding: '20px', paddingBottom: '100px' }}>
-            {panel === 'accueil' && <Accueil user={user} subscription={subscription} zora={zora} zoraTiers={zoraTiers} steps={steps} paymentStatus={paymentStatus} initiatePayment={initiatePayment} />}
+            {panel === 'accueil' && <Accueil user={user} subscription={subscription} zora={zora} zoraTiers={zoraTiers} steps={steps} paymentStatus={paymentStatus} initiatePayment={initiatePayment} setRdvModalOpen={setRdvModalOpen} setPanel={setPanel} sportGroups={sportGroups} setChatOpen={setChatOpen} leaveGroup={leaveGroup} joinGroup={joinGroup} />}
             {panel === 'gagner' && <Gagner />}
             {panel === 'suivre' && <Suivre user={user} zora={zora} />}
             {panel === 'reward' && <Recompenses zora={zora} zoraTier={zoraTier} />}
@@ -556,7 +556,7 @@
       );
     }
     
-    function Accueil({ user, subscription, zora, zoraTiers, steps, paymentStatus, initiatePayment }) {
+    function Accueil({ user, subscription, zora, zoraTiers, steps, paymentStatus, initiatePayment, setRdvModalOpen, setPanel, sportGroups, setChatOpen, leaveGroup, joinGroup }) {
       const [credits, setCredits] = useState(null);
       
       useEffect(() => {
