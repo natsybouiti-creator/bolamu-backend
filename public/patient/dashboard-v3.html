@@ -149,12 +149,16 @@
       const [zora, setZora] = useState(null);
       const [zoraTiers, setZoraTiers] = useState([]);
       const [steps, setSteps] = useState(7432);
+      const [events, setEvents] = useState([]);
+      const [myRegistrations, setMyRegistrations] = useState([]);
       
       useEffect(() => {
         loadConflict();
         loadPendingRating();
         loadZoraBalance();
         loadZoraTiers();
+        loadEvents();
+        loadMyRegistrations();
       }, []);
       
       const loadZoraBalance = async () => {
@@ -178,6 +182,79 @@
           }
         } catch (e) {
           console.error('Error loading Zora tiers:', e);
+        }
+      };
+      
+      const loadEvents = async () => {
+        try {
+          const res = await authFetch(`${API}/events`);
+          if (res.ok) {
+            const data = await res.json();
+            setEvents(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading events:', e);
+        }
+      };
+      
+      const loadMyRegistrations = async () => {
+        try {
+          const res = await authFetch(`${API}/events/my/registrations`);
+          if (res.ok) {
+            const data = await res.json();
+            setMyRegistrations(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading my registrations:', e);
+        }
+      };
+      
+      const registerForEvent = async (eventId) => {
+        try {
+          const res = await authFetch(`${API}/events/${eventId}/register`, { method: 'POST' });
+          if (res.ok) {
+            const data = await res.json();
+            loadEvents();
+            loadMyRegistrations();
+            alert('Inscription confirmée · QR disponible dans Suivre > Mon dossier');
+          } else {
+            const err = await res.json();
+            alert(err.reason === 'event_full' ? 'Événement complet' : 'Erreur inscription');
+          }
+        } catch (e) {
+          console.error('Error registering for event:', e);
+          alert('Erreur inscription');
+        }
+      };
+      
+      const generateQR = async (eventId) => {
+        try {
+          const res = await authFetch(`${API}/events/${eventId}/checkin-token`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+              // Ouvrir modal QR avec le token
+              const qrModal = document.createElement('div');
+              qrModal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+              qrModal.innerHTML = `
+                <div style="background:#fff;padding:24px;border-radius:16px;max-width:320px;text-align:center">
+                  <h3 style="font-size:18px;font-weight:700;color:#0A2463;margin-bottom:16px">QR de check-in</h3>
+                  <div id="qrcode-${eventId}" style="margin:16px auto"></div>
+                  <p style="font-size:12px;color:#666;margin-bottom:16px">Présentez ce QR à l'organisateur</p>
+                  <button onclick="this.closest('div').parentElement.remove()" style="background:#0A2463;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer">Fermer</button>
+                </div>
+              `;
+              document.body.appendChild(qrModal);
+              new QRCode(document.getElementById(`qrcode-${eventId}`), {
+                text: data.data.token,
+                width: 180,
+                height: 180
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error generating QR:', e);
+          alert('Erreur génération QR');
         }
       };
       
@@ -725,11 +802,7 @@
               rule.action_type === 'parrainage' ? 'Inviter via WhatsApp' : 'Voir'
       }));
       
-      const events = [
-        { id: 1, title: 'Marche collective Elonga', loc: 'Parc de la Loire, Brazzaville', date: '20 juin 2026', places: 45, registered: false },
-        { id: 2, title: 'Atelier nutrition Loboko', loc: 'Centre-ville, Brazzaville', date: '22 juin 2026', places: 20, registered: false },
-        { id: 3, title: 'Dépistage diabète gratuit', loc: 'Polyclinique Marie Curie', date: '25 juin 2026', places: 100, registered: false },
-      ];
+      const homeEvents = events.slice(0, 3); // 3 premiers événements pour panel Accueil
       
       const filteredPartners = mapFilter === 'tout' 
         ? partners 
@@ -820,7 +893,7 @@
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
                 {events.map((e) => (
-                  <EventCard key={e.id} {...e} />
+                  <EventCard key={e.id} {...e} onRegister={() => registerForEvent(e.id)} />
                 ))}
               </div>
             </div>
@@ -890,7 +963,12 @@
       );
     }
     
-    function EventCard({ title, loc, date, places, registered }) {
+    function EventCard({ title, location_name, starts_at, places_restantes, is_registered, zora_reward, onRegister }) {
+      const formatDate = (dateStr) => {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      };
+      
       return (
         <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -899,16 +977,30 @@
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#F5A623', fontSize: '0.78rem', fontWeight: 800 }}>
               <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1', fontSize: '14px' }}>star</span>
-              +50
+              +{zora_reward || 50}
             </span>
           </div>
           <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#0A2463', marginBottom: '8px' }}>{title}</div>
-          <div style={{ fontSize: '0.75rem', color: '#434654', marginBottom: '4px' }}>{loc}</div>
-          <div style={{ fontSize: '0.75rem', color: '#434654', marginBottom: '12px' }}>{date}</div>
+          <div style={{ fontSize: '0.75rem', color: '#434654', marginBottom: '4px' }}>{location_name}</div>
+          <div style={{ fontSize: '0.75rem', color: '#434654', marginBottom: '12px' }}>{formatDate(starts_at)}</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.75rem', color: '#9498a8' }}>{places} places</span>
-            <button style={{ background: registered ? '#EDEDF8' : '#003FB1', color: registered ? '#9498a8' : '#fff', border: 'none', padding: '8px 16px', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700, cursor: registered ? 'default' : 'pointer' }}>
-              {registered ? 'Inscrit' : 'Participer'}
+            <span style={{ fontSize: '0.75rem', color: '#9498a8' }}>{places_restantes !== null ? `${places_restantes} places` : 'Illimité'}</span>
+            <button 
+              onClick={onRegister}
+              disabled={is_registered || places_restantes === 0}
+              style={{ 
+                background: is_registered ? '#EDEDF8' : (places_restantes === 0 ? '#ccc' : '#003FB1'), 
+                color: is_registered ? '#9498a8' : '#fff', 
+                border: 'none', 
+                padding: '8px 16px', 
+                borderRadius: '9999px', 
+                fontSize: '0.8rem', 
+                fontWeight: 700, 
+                cursor: is_registered || places_restantes === 0 ? 'default' : 'pointer',
+                opacity: places_restantes === 0 ? 0.5 : 1
+              }}
+            >
+              {is_registered ? 'Inscrit' : (places_restantes === 0 ? 'Complet' : 'Participer')}
             </button>
           </div>
         </div>
@@ -1543,6 +1635,44 @@
                 <p style={{ fontSize: '0.75rem', color: '#BA1A1A', fontWeight: 600 }}>
                   À montrer en cas d'urgence médicale
                 </p>
+              </div>
+              
+              <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '22px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#003FB1', fontSize: '22px' }}>event</span>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0A2463' }}>Événements Elonga</h3>
+                </div>
+                {myRegistrations.length === 0 ? (
+                  <p style={{ fontSize: '0.85rem', color: '#9498a8', textAlign: 'center', padding: '20px 0' }}>
+                    Aucune inscription à venir
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {myRegistrations.map((reg) => {
+                      const isPast = new Date(reg.starts_at) < new Date();
+                      return (
+                        <div key={reg.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: '#FAF8FF', borderRadius: '12px' }}>
+                          <div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0A2463', marginBottom: '4px' }}>{reg.title}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#434654' }}>{new Date(reg.starts_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</div>
+                          </div>
+                          {isPast ? (
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: reg.status === 'checked_in' ? '#00C9A7' : '#9498a8' }}>
+                              {reg.status === 'checked_in' ? `Présent +${reg.zora_reward} Zora` : 'Absent'}
+                            </span>
+                          ) : (
+                            <button 
+                              onClick={() => generateQR(reg.event_id)}
+                              style={{ background: '#003FB1', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                              QR check-in
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               
               <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '22px' }}>

@@ -152,6 +152,34 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       allDetails.push(`Bénéficiaires suspendus : ${beneficiaires.length}`);
     }
 
+    // 5. Nettoyage événements Elonga — Sprint 5
+    // Marquer les événements terminés comme 'completed'
+    const eventsCompletedResult = await db.query(
+      `UPDATE elonga_events 
+       SET status = 'completed', updated_at = NOW()
+       WHERE status = 'published' AND ends_at < NOW()
+       RETURNING id`
+    );
+    
+    if (eventsCompletedResult.rows.length > 0) {
+      nb_traites += eventsCompletedResult.rows.length;
+      allDetails.push(`Événements terminés : ${eventsCompletedResult.rows.length}`);
+    }
+    
+    // Marquer les inscriptions non check-in comme 'no_show'
+    const noShowResult = await db.query(
+      `UPDATE elonga_registrations 
+       SET status = 'no_show'
+       WHERE status = 'registered' 
+       AND event_id IN (SELECT id FROM elonga_events WHERE status = 'completed')
+       RETURNING id`
+    );
+    
+    if (noShowResult.rows.length > 0) {
+      nb_traites += noShowResult.rows.length;
+      allDetails.push(`No-shows marqués : ${noShowResult.rows.length}`);
+    }
+
   } catch (globalErr) {
     nb_erreurs++;
     allDetails.push(`Erreur globale : ${globalErr.message}`);

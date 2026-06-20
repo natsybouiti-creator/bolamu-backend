@@ -203,6 +203,7 @@ app.use('/api/v1/upload',       uploadRoutes);
 app.use('/api/v1/zora',         zoraRoutes);
 app.use('/api/v1/zora',         zoraMarketplaceRoutes);
 app.use('/api/v1/zora',         zoraGamesRoutes);
+app.use('/api/v1/events',       require('./routes/elonga-events.routes'));
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================

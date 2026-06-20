@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bolamu — Check-in Événements</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet">
+  
+  <!-- Design System CSS -->
+  <link rel="stylesheet" href="/css/bolamu-ds.css">
+  
+  <!-- jsQR pour scan QR -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #FAF8FF;
+      color: #191B23;
+      min-height: 100vh;
+    }
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+    }
+    #video-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+    }
+    #video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    #canvas {
+      display: none;
+    }
+    .scan-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      border: 2px solid rgba(0, 201, 167, 0.5);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+    .scan-overlay::before,
+    .scan-overlay::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #00C9A7;
+    }
+    .scan-overlay::before {
+      top: -3px;
+      left: -3px;
+      border-right: none;
+      border-bottom: none;
+    }
+    .scan-overlay::after {
+      bottom: -3px;
+      right: -3px;
+      border-left: none;
+      border-top: none;
+    }
+    .result-success { background: rgba(0, 201, 167, 0.1); border-color: #00C9A7; color: #00C9A7; }
+    .result-expired { background: rgba(245, 166, 35, 0.1); border-color: #F5A623; color: #F5A623; }
+    .result-used { background: rgba(148, 152, 168, 0.1); border-color: #9498a8; color: #9498a8; }
+    .result-invalid { background: rgba(186, 26, 26, 0.1); border-color: #BA1A1A; color: #BA1A1A; }
+  </style>
+</head>
+<body>
+  <div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <!-- Header -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="/images/landing/bolamu-logo-final.png" alt="Bolamu" style="width: 48px; height: 48px; border-radius: 50%;" />
+        <div>
+          <h1 style="font-size: 1.5rem; font-weight: 800; color: #0A2463; margin: 0;">Check-in Événements</h1>
+          <p style="font-size: 0.85rem; color: #9498a8; margin: 0;">Scanner les QR codes des participants</p>
+        </div>
+      </div>
+      <button onclick="window.location.href='/admin/dashboard.html'" style="background: #EDEDF8; color: #0A2463; border: none; padding: 10px 20px; border-radius: 9999px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+        Retour
+      </button>
+    </div>
+    
+    <!-- Liste événements du jour -->
+    <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+      <h2 style="font-size: 1.1rem; font-weight: 700; color: #0A2463; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="font-size: 22px;">event</span>
+        Événements du jour
+      </h2>
+      <div id="events-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <p style="color: #9498a8; text-align: center; padding: 20px;">Chargement...</p>
+      </div>
+    </div>
+    
+    <!-- Scanner QR -->
+    <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+      <h2 style="font-size: 1.1rem; font-weight: 700; color: #0A2463; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="font-size: 22px;">qr_code_scanner</span>
+        Scanner QR Code
+      </h2>
+      <div id="video-container">
+        <video id="video" playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div class="scan-overlay"></div>
+      </div>
+      <p style="font-size: 0.85rem; color: #9498a8; text-align: center; margin-top: 12px;">
+        Positionnez le QR code dans le cadre
+      </p>
+    </div>
+    
+    <!-- Résultat scan -->
+    <div id="scan-result" style="display: none; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+      <div id="result-content"></div>
+    </div>
+    
+    <!-- Historique check-ins -->
+    <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px;">
+      <h2 style="font-size: 1.1rem; font-weight: 700; color: #0A2463; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="font-size: 22px;">history</span>
+        Historique check-ins
+      </h2>
+      <div id="checkin-history" style="display: flex; flex-direction: column; gap: 8px;">
+        <p style="color: #9498a8; text-align: center; padding: 20px;">Aucun check-in aujourd'hui</p>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const API = 'https://api.bolamu.co/api/v1';
+    const token = localStorage.getItem('bolamu_admin_token');
+    const phone = localStorage.getItem('bolamu_admin_phone');
+    
+    if (!token) {
+      window.location.href = '/admin/login.html';
+    }
+    
+    let selectedEventId = null;
+    let video = null;
+    let canvas = null;
+    let context = null;
+    let scanning = false;
+    
+    // Charger les événements du jour
+    async function loadEvents() {
+      try {
+        const res = await fetch(`${API}/events?city=brazzaville`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (data.success && data.data) {
+          const today = new Date().toDateString();
+          const todayEvents = data.data.filter(e => new Date(e.starts_at).toDateString() === today);
+          
+          const container = document.getElementById('events-list');
+          
+          if (todayEvents.length === 0) {
+            container.innerHTML = '<p style="color: #9498a8; text-align: center; padding: 20px;">Aucun événement aujourd\'hui</p>';
+            return;
+          }
+          
+          container.innerHTML = todayEvents.map(e => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: ${selectedEventId === e.id ? '#EDEDF8' : '#FAF8FF'}; border-radius: 12px; cursor: pointer; border: 2px solid ${selectedEventId === e.id ? '#003FB1' : 'transparent'};" onclick="selectEvent(${e.id})">
+              <div>
+                <div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">${e.title}</div>
+                <div style="font-size: 0.75rem; color: #434654;">${e.location_name}</div>
+              </div>
+              <div style="font-size: 0.75rem; color: #9498a8;">${e.participants_count}/${e.max_participants || '∞'}</div>
+            </div>
+          `).join('');
+          
+          if (todayEvents.length > 0 && !selectedEventId) {
+            selectEvent(todayEvents[0].id);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading events:', e);
+      }
+    }
+    
+    function selectEvent(eventId) {
+      selectedEventId = eventId;
+      loadEvents();
+      loadCheckinHistory();
+    }
+    
+    // Charger historique check-ins
+    async function loadCheckinHistory() {
+      if (!selectedEventId) return;
+      
+      try {
+        const res = await fetch(`${API}/events/my/registrations`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (data.success && data.data) {
+          const eventCheckins = data.data.filter(r => r.event_id === selectedEventId && r.status === 'checked_in');
+          
+          const container = document.getElementById('checkin-history');
+          
+          if (eventCheckins.length === 0) {
+            container.innerHTML = '<p style="color: #9498a8; text-align: center; padding: 20px;">Aucun check-in aujourd\'hui</p>';
+            return;
+          }
+          
+          container.innerHTML = eventCheckins.map(r => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #FAF8FF; border-radius: 12px;">
+              <div>
+                <div style="font-size: 0.85rem; font-weight: 700; color: #0A2463;">${r.phone}</div>
+                <div style="font-size: 0.75rem; color: #434654;">${new Date(r.checkin_at).toLocaleTimeString('fr-FR')}</div>
+              </div>
+              <span style="font-size: 0.75rem; font-weight: 700; color: #00C9A7;">+${r.zora_reward} Zora</span>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Error loading checkin history:', e);
+      }
+    }
+    
+    // Initialiser caméra
+    async function initCamera() {
+      video = document.getElementById('video');
+      canvas = document.getElementById('canvas');
+      context = canvas.getContext('2d');
+      
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = stream;
+        video.setAttribute('playsinline', true);
+        video.play();
+        requestAnimationFrame(tick);
+        scanning = true;
+      } catch (e) {
+        console.error('Camera error:', e);
+        alert('Impossible d\'accéder à la caméra');
+      }
+    }
+    
+    // Boucle de scan
+    function tick() {
+      if (!scanning) return;
+      
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        
+        if (code) {
+          processQRCode(code.data);
+          scanning = false;
+          setTimeout(() => { scanning = true; requestAnimationFrame(tick); }, 3000);
+        }
+      }
+      
+      requestAnimationFrame(tick);
+    }
+    
+    // Traiter QR code
+    async function processQRCode(token) {
+      if (!selectedEventId) {
+        showResult('error', 'Sélectionnez un événement d\'abord');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${API}/events/${selectedEventId}/checkin`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ token })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          showResult('success', `Check-in réussi · +${data.points_credited} Zora crédités`);
+          loadCheckinHistory();
+        } else {
+          if (data.reason === 'token_expired') {
+            showResult('expired', 'Token expiré');
+          } else if (data.reason === 'token_already_used') {
+            showResult('used', 'Token déjà scanné');
+          } else if (data.reason === 'token_invalid') {
+            showResult('invalid', 'Token invalide ou non inscrit');
+          } else {
+            showResult('error', 'Erreur check-in');
+          }
+        }
+      } catch (e) {
+        console.error('Check-in error:', e);
+        showResult('error', 'Erreur réseau');
+      }
+    }
+    
+    function showResult(type, message) {
+      const resultDiv = document.getElementById('scan-result');
+      const contentDiv = document.getElementById('result-content');
+      
+      resultDiv.style.display = 'block';
+      resultDiv.className = `result-${type}`;
+      
+      contentDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.5);">
+          <span class="material-symbols-outlined" style="font-size: 24px;">
+            ${type === 'success' ? 'check_circle' : type === 'expired' ? 'schedule' : type === 'used' ? 'block' : 'error'}
+          </span>
+          <span style="font-size: 0.9rem; font-weight: 700;">${message}</span>
+        </div>
+      `;
+      
+      setTimeout(() => {
+        resultDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Initialisation
+    loadEvents();
+    initCamera();
+  </script>
+</body>
+</html>

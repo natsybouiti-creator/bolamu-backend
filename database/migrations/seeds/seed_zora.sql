@@ -37,7 +37,7 @@ INSERT INTO zora_earn_rules
   (action_type, label_fr, category, points, required_proof_class,
    daily_cap, is_active, phase) VALUES
   ('event_checkin', 'Participation événement Elonga', 
-   'activite', 50, 'ground_truth', NULL, FALSE, 'sprint5'),
+   'activite', 50, 'ground_truth', NULL, TRUE, 'sprint5'),
   ('sport_session', 'Séance groupe de sport', 
    'activite', 30, 'ground_truth', NULL, FALSE, 'sprint5');
 
