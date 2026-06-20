@@ -2,7 +2,6 @@
 // BOLAMU — Sprint 6A : Service Streaks
 // ============================================================
 const pool = require('../config/db');
-const { awardZora } = require('./zora.service');
 
 /**
  * Mettre à jour le streak d'un utilisateur
@@ -84,6 +83,7 @@ async function updateStreak({ phone }) {
     let bonusAwarded = null;
     setImmediate(async () => {
       try {
+        const { awardZora } = require('./zora.service');
         if (currentStreak === 7) {
           const result = await awardZora({
             phone,

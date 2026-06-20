@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { getWeeklyLeaderboard, getWeeklyTop3 } = require('../controllers/leaderboard.controller');
-const { authMiddleware } = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth.middleware');
 
 // GET /api/v1/leaderboard/weekly - Top 10 + ma position (auth requise)
 router.get('/weekly', authMiddleware, getWeeklyLeaderboard);
