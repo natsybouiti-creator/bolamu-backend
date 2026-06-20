@@ -15,6 +15,9 @@ const logger = require('./config/logger');
 // Validation des secrets (fail-fast en production)
 require('./config/secrets');
 
+// Système de migration automatique
+const { runMigrations } = require('./db/migrate');
+
 // Configuration push notifications (VAPID)
 const { configurePush } = require('./services/push.service');
 configurePush();
@@ -374,14 +377,29 @@ const initializeApp = async () => {
     }
 };
 
-const server = app.listen(PORT, '0.0.0.0', async () => {
-    console.log(`âœ… Bolamu server running on port ${PORT}`);
-    await initializeApp();
-});
+// Exécuter les migrations automatiques avant de démarrer le serveur
+async function startServer() {
+    try {
+        await runMigrations();
+        console.log('✅ Migrations terminées, démarrage du serveur...\n');
+        
+        const server = app.listen(PORT, '0.0.0.0', async () => {
+            console.log(`✅ Bolamu server running on port ${PORT}`);
+            await initializeApp();
+        });
+        
+        // Gestion du timeout pour Render
+        server.keepAliveTimeout = 120 * 1000; 
+        server.headersTimeout = 125 * 1000;
+        
+        return server;
+    } catch (error) {
+        console.error('❌ Erreur lors du démarrage du serveur:', error.message);
+        process.exit(1);
+    }
+}
 
-// Gestion du timeout pour Render
-server.keepAliveTimeout = 120 * 1000; 
-server.headersTimeout = 125 * 1000;
+startServer();
 
 // Test de connexion DB après le lancement du serveur
 // Test de connexion DB aprÃ¨s le lancement du serveur
