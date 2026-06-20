@@ -2,7 +2,7 @@
 // Service : Groupes de sport
 // ============================================================
 
-const { pool } = require('../config/db');
+const pool = require('../config/db');
 
 /**
  * Rejoindre un groupe de sport
