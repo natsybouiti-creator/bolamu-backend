@@ -298,6 +298,13 @@ if (typeof BarcodeDetector !== 'undefined') {
       <line x1="3" y1="12" x2="21" y2="12"/>
     </svg>Scanner patient
   </button>
+  <button class="tab" id="tab-zora" data-tab="zora">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+      <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
+      <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/>
+    </svg>Scanner Zora
+  </button>
   <button class="tab" id="tab-smartflow" data-tab="smartflow">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
       <line x1="18" y1="20" x2="18" y2="10"/>
@@ -583,6 +590,48 @@ if (typeof BarcodeDetector !== 'undefined') {
         </div>
       </div>
     </div>
+  </div>
+  <div class="panel" id="panel-zora">
+    <div class="section-header"><h2 class="section-title">Scanner Voucher Zora</h2></div>
+    <div style="background:white;border-radius:24px;padding:28px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);margin-bottom:20px;">
+      <div style="font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--bleu);margin-bottom:16px;">
+        Validation de récompense Zora
+      </div>
+      <div style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;line-height:1.6;">
+        Le patient vous présente son <strong>QR Code voucher</strong>. Scannez-le pour valider la remise à appliquer.
+      </div>
+
+      <!-- Bouton caméra -->
+      <button class="btn-primary" id="btn-zora-camera" style="margin-bottom:16px;">
+        Scanner avec la caméra
+      </button>
+
+      <!-- Viewfinder caméra -->
+      <div id="zora-camera-container" style="display:none;position:relative;margin-bottom:16px;">
+        <div id="zora-qr-reader" style="width:100%;border-radius:16px;overflow:hidden;"></div>
+        <button id="btn-stop-zora-camera" style="margin-top:10px;width:100%;padding:10px;background:#fde8e8;border:none;border-radius:10px;color:#991b1b;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+          Fermer la caméra
+        </button>
+      </div>
+
+      <!-- Saisie manuelle -->
+      <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:12px;color:var(--texte-doux);font-weight:600;">OU SAISIE MANUELLE</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <input type="text" id="zora-uuid-input" placeholder="UUID du voucher" style="flex:1;padding:12px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);letter-spacing:1px;" onfocus="this.style.borderColor='var(--bleu)'" onblur="this.style.borderColor='var(--border)'" />
+        <button class="btn-primary" id="btn-verifier-zora" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Vérifier</button>
+      </div>
+      <div id="zora-result" style="display:none;margin-top:20px;"></div>
+    </div>
+    
+    <!-- Historique des vouchers Zora -->
+    <div class="section-header" style="margin-top:32px;">
+      <h2 class="section-title">Historique des vouchers Zora</h2>
+    </div>
+    <div id="zora-histo"><div class="loading">Chargement...</div></div>
   </div>
 
   <div class="panel" id="panel-smartflow">
@@ -2031,6 +2080,138 @@ function afficherFichePatientMedecin(p, resultDiv) {
   resultDiv.innerHTML = html;
 }
 
+// Zora Voucher Scanner Functions
+let zoraCameraStream = null;
+let zoraHtml5QrCode = null;
+
+async function toggleZoraCamera() {
+  const container = document.getElementById('zora-camera-container');
+  const reader = document.getElementById('zora-qr-reader');
+  
+  if (zoraCameraStream) {
+    stopZoraCamera();
+    return;
+  }
+  
+  try {
+    zoraCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.createElement('video');
+    video.srcObject = zoraCameraStream;
+    video.setAttribute('playsinline', true);
+    video.play();
+    
+    container.style.display = 'block';
+    reader.innerHTML = '';
+    reader.appendChild(video);
+    
+    zoraHtml5QrCode = new Html5Qrcode(reader);
+    await zoraHtml5QrCode.start(
+      video,
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        stopZoraCamera();
+        document.getElementById('zora-uuid-input').value = decodedText;
+        verifyZoraVoucher();
+      },
+      (errorMessage) => {}
+    );
+  } catch(e) {
+    alert('Erreur d\'accès à la caméra : ' + e.message);
+  }
+}
+
+function stopZoraCamera() {
+  if (zoraHtml5QrCode) {
+    zoraHtml5QrCode.stop().catch(() => {});
+    zoraHtml5QrCode = null;
+  }
+  if (zoraCameraStream) {
+    zoraCameraStream.getTracks().forEach(track => track.stop());
+    zoraCameraStream = null;
+  }
+  document.getElementById('zora-camera-container').style.display = 'none';
+}
+
+async function verifyZoraVoucher() {
+  const uuid = document.getElementById('zora-uuid-input').value.trim();
+  const resultEl = document.getElementById('zora-result');
+  
+  if (!uuid) {
+    alert('Veuillez entrer l\'UUID du voucher');
+    return;
+  }
+  
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--texte-doux);">Vérification en cours...</div>';
+  
+  try {
+    const res = await fetch(API + '/zora/vouchers/' + uuid + '/consume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAuthToken() }
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      resultEl.innerHTML = '<div style="background:#e8f5e9;border:2px solid #2e7d32;border-radius:16px;padding:24px;">'
+        + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+        + '<div style="font-size:32px;">✅</div>'
+        + '<div><div style="font-size:16px;font-weight:700;color:var(--texte);">Voucher validé !</div>'
+        + '<div style="font-size:14px;color:var(--texte-doux);">Remise à appliquer : ' + data.data.discount_value + '</div></div></div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'
+        + '<div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Patient</div><div style="font-size:14px;font-weight:700;color:var(--texte);">' + data.data.patient_phone + '</div></div>'
+        + '<div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Récompense</div><div style="font-size:14px;font-weight:700;color:var(--texte);">' + data.data.reward_title + '</div></div>'
+        + '<div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Consommé le</div><div style="font-size:14px;font-weight:700;color:var(--texte);">' + new Date(data.data.consumed_at).toLocaleString('fr-FR') + '</div></div>'
+        + '</div>'
+        + '<button onclick="document.getElementById(\'zora-uuid-input\').value=\'\';document.getElementById(\'zora-result\').style.display=\'none\';loadZoraHistory();" style="width:100%;padding:12px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">Scanner un autre voucher</button></div>';
+      loadZoraHistory();
+    } else {
+      resultEl.innerHTML = '<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">'
+        + '<div style="display:flex;align-items:center;gap:12px;">'
+        + '<div style="font-size:32px;">❌</div>'
+        + '<div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur</div>'
+        + '<div style="font-size:14px;color:var(--texte-doux);">' + (data.error === 'voucher_not_found' ? 'Voucher introuvable' : data.error === 'voucher_already_used' ? 'Voucher déjà utilisé' : data.error === 'voucher_expired' ? 'Voucher expiré' : data.error) + '</div></div></div></div>';
+    }
+  } catch(e) {
+    resultEl.innerHTML = '<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">'
+      + '<div style="display:flex;align-items:center;gap:12px;">'
+      + '<div style="font-size:32px;">⚠️</div>'
+      + '<div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur de connexion</div></div></div></div>';
+  }
+}
+
+async function loadZoraHistory() {
+  const histoEl = document.getElementById('zora-histo');
+  histoEl.innerHTML = '<div class="loading">Chargement...</div>';
+  
+  try {
+    const res = await fetch(API + '/zora/partner/vouchers', {
+      headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+    });
+    const data = await res.json();
+    
+    if (data.success && data.data.length > 0) {
+      histoEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:12px;">' + data.data.map(v => `
+        <div style="background:white;border-radius:16px;padding:20px 24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(10,36,99,0.04);">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:var(--emeraude-clair);display:flex;align-items:center;justify-content:center;font-size:20px;">🎁</div>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:var(--texte);margin-bottom:3px;">${v.reward_title}</div>
+              <div style="font-size:13px;color:var(--texte-doux);">${new Date(v.consumed_at).toLocaleString('fr-FR')}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:14px;font-weight:700;color:var(--emeraude);">${v.discount_value}</div>
+          </div>
+        </div>
+      `).join('') + '</div>';
+    } else {
+      histoEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--texte-doux);">Aucun voucher consommé</div>';
+    }
+  } catch(e) {
+    histoEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--rouge);">Erreur de chargement</div>';
+  }
+}
+
 loadProfil();loadRdv();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -2042,6 +2223,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-rdv').addEventListener('click', () => showTab('rdv', document.getElementById('tab-rdv')));
   document.getElementById('tab-patients').addEventListener('click', () => showTab('patients', document.getElementById('tab-patients')));
   document.getElementById('tab-scanner').addEventListener('click', () => showTab('scanner', document.getElementById('tab-scanner')));
+  document.getElementById('tab-zora').addEventListener('click', () => { showTab('zora', document.getElementById('tab-zora')); loadZoraHistory(); });
   document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
   document.getElementById('tab-telemedicine').addEventListener('click', () => showTab('telemedicine', document.getElementById('tab-telemedicine')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
@@ -2061,6 +2243,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('search-patient-input').addEventListener('keypress', function(e) { 
     if (e.key === 'Enter') rechercherPatientMedecin(); 
   });
+  
+  // Zora scanner buttons
+  document.getElementById('btn-zora-camera').addEventListener('click', toggleZoraCamera);
+  document.getElementById('btn-stop-zora-camera').addEventListener('click', stopZoraCamera);
+  document.getElementById('btn-verifier-zora').addEventListener('click', verifyZoraVoucher);
 
   // Jitsi buttons
   document.getElementById('btn-close-jitsi').addEventListener('click', closeJitsi);

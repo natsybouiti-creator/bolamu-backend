@@ -167,6 +167,7 @@
   <button class="tab" id="tab-smartflow" data-tab="smartflow">📊 Smart Flow</button>
   <button class="tab" id="tab-profil" data-tab="profil">🏥 Mon profil</button>
   <button class="tab" id="tab-qr" data-tab="qr">📱 Scanner QR Bolamu</button>
+  <button class="tab" id="tab-zora" data-tab="zora">🎁 Scanner Zora</button>
 </div>
 <div class="main">
   <div class="panel active" id="panel-accueil">
@@ -233,6 +234,36 @@
       </div>
       <div id="qr-result" style="display:none;margin-top:20px;"></div>
     </div>
+  </div>
+  <div class="panel" id="panel-zora">
+    <div class="section-header"><h2 class="section-title-dash">Scanner Voucher Zora</h2></div>
+    <div class="scanner-card" style="background:white;border-radius:24px;padding:32px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);max-width:600px;">
+      <h3 style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">🎁 Validation de récompense Zora</h3>
+      <p style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;">Le patient vous présente son <strong>QR Code voucher</strong>. Scannez-le pour valider la remise à appliquer.</p>
+      <button id="btn-zora-camera" style="width:100%;padding:14px;background:var(--grad-labo);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:16px;">
+        📷 Scanner avec la caméra
+      </button>
+      <div id="zora-camera-container" style="display:none;margin-bottom:16px;">
+        <div id="zora-qr-reader" style="width:100%;border-radius:16px;overflow:hidden;"></div>
+        <button id="btn-stop-zora-camera" style="margin-top:10px;width:100%;padding:10px;background:#fde8e8;border:none;border-radius:10px;color:#991b1b;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+          ✕ Fermer la caméra
+        </button>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:12px;color:var(--texte-doux);font-weight:600;">OU SAISIE MANUELLE</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <input type="text" id="zora-uuid-input" placeholder="UUID du voucher" style="flex:1;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);letter-spacing:1px;">
+        <button id="btn-verifier-zora" style="padding:12px 20px;background:var(--grad-labo);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔍 Vérifier</button>
+      </div>
+      <div id="zora-result" style="display:none;margin-top:20px;"></div>
+    </div>
+    <div class="section-header" style="margin-top:32px;">
+      <h2 class="section-title-dash">Historique des vouchers Zora</h2>
+    </div>
+    <div id="zora-histo"><div class="loading">Chargement...</div></div>
   </div>
   <div class="panel" id="panel-profil">
     <div class="section-header"><h2 class="section-title-dash">Mon profil laboratoire</h2></div>
@@ -453,6 +484,142 @@ async function verifierQR() {
     </div>`;
   }
 }
+
+// Zora Voucher Scanner Functions
+let zoraCameraStream = null;
+let zoraHtml5QrCode = null;
+
+async function toggleZoraCamera() {
+  const container = document.getElementById('zora-camera-container');
+  const reader = document.getElementById('zora-qr-reader');
+  
+  if (zoraCameraStream) {
+    stopZoraCamera();
+    return;
+  }
+  
+  try {
+    zoraCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.createElement('video');
+    video.srcObject = zoraCameraStream;
+    video.setAttribute('playsinline', true);
+    video.play();
+    
+    container.style.display = 'block';
+    reader.innerHTML = '';
+    reader.appendChild(video);
+    
+    zoraHtml5QrCode = new Html5Qrcode(reader);
+    await zoraHtml5QrCode.start(
+      video,
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        stopZoraCamera();
+        document.getElementById('zora-uuid-input').value = decodedText;
+        verifyZoraVoucher();
+      },
+      (errorMessage) => {}
+    );
+  } catch(e) {
+    alert('Erreur d\'accès à la caméra : ' + e.message);
+  }
+}
+
+function stopZoraCamera() {
+  if (zoraHtml5QrCode) {
+    zoraHtml5QrCode.stop().catch(() => {});
+    zoraHtml5QrCode = null;
+  }
+  if (zoraCameraStream) {
+    zoraCameraStream.getTracks().forEach(track => track.stop());
+    zoraCameraStream = null;
+  }
+  document.getElementById('zora-camera-container').style.display = 'none';
+}
+
+async function verifyZoraVoucher() {
+  const uuid = document.getElementById('zora-uuid-input').value.trim();
+  const resultEl = document.getElementById('zora-result');
+  
+  if (!uuid) {
+    alert('Veuillez entrer l\'UUID du voucher');
+    return;
+  }
+  
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--texte-doux);">Vérification en cours...</div>';
+  
+  try {
+    const res = await fetch(`${API}/zora/vouchers/${uuid}/consume`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      resultEl.innerHTML = `<div style="background:#e8f5e9;border:2px solid #2e7d32;border-radius:16px;padding:24px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="font-size:32px;">✅</div>
+          <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Voucher validé !</div>
+          <div style="font-size:14px;color:var(--texte-doux);">Remise à appliquer : ${data.data.discount_value}</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Patient</div><div style="font-size:14px;font-weight:700;">${data.data.patient_phone}</div></div>
+          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Récompense</div><div style="font-size:14px;font-weight:700;">${data.data.reward_title}</div></div>
+          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Consommé le</div><div style="font-size:14px;font-weight:700;">${new Date(data.data.consumed_at).toLocaleString('fr-FR')}</div></div>
+        </div>
+        <button data-action="reset-zora" style="width:100%;padding:12px;background:var(--grad-labo);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Scanner un autre voucher</button>
+      </div>`;
+      loadZoraHistory();
+    } else {
+      resultEl.innerHTML = `<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:32px;">❌</div>
+          <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur</div>
+          <div style="font-size:14px;color:var(--texte-doux);">${data.error === 'voucher_not_found' ? 'Voucher introuvable' : data.error === 'voucher_already_used' ? 'Voucher déjà utilisé' : data.error === 'voucher_expired' ? 'Voucher expiré' : data.error}</div></div></div>
+      </div>`;
+    }
+  } catch(e) {
+    resultEl.innerHTML = `<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:32px;">⚠️</div>
+        <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur de connexion</div></div></div>
+    </div>`;
+  }
+}
+
+async function loadZoraHistory() {
+  const histoEl = document.getElementById('zora-histo');
+  histoEl.innerHTML = '<div class="loading">Chargement...</div>';
+  
+  try {
+    const res = await fetch(`${API}/zora/partner/vouchers`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    
+    if (data.success && data.data.length > 0) {
+      histoEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:12px;">' + data.data.map(v => `
+        <div style="background:white;border-radius:16px;padding:20px 24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(10,36,99,0.04);">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:var(--vert-clair);display:flex;align-items:center;justify-content:center;font-size:20px;">🎁</div>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:var(--texte);margin-bottom:3px;">${v.reward_title}</div>
+              <div style="font-size:13px;color:var(--texte-doux);">${new Date(v.consumed_at).toLocaleString('fr-FR')}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:14px;font-weight:700;color:var(--vert);">${v.discount_value}</div>
+          </div>
+        </div>
+      `).join('') + '</div>';
+    } else {
+      histoEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--texte-doux);">Aucun voucher consommé</div>';
+    }
+  } catch(e) {
+    histoEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--rouge);">Erreur de chargement</div>';
+  }
+}
+
 async function loadProfil() {
   try {
     const res = await fetch(`${API}/laboratories/profil?phone=${encodeURIComponent(phone)}`, {
@@ -935,12 +1102,18 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
   document.getElementById('tab-qr').addEventListener('click', () => showTab('qr', document.getElementById('tab-qr')));
+  document.getElementById('tab-zora').addEventListener('click', () => { showTab('zora', document.getElementById('tab-zora')); loadZoraHistory(); });
 
   // Scanner buttons
   document.getElementById('btn-search-prescription').addEventListener('click', searchPrescriptionByCode);
   document.getElementById('btn-camera').addEventListener('click', toggleCamera);
   document.getElementById('btn-stop-camera').addEventListener('click', stopCamera);
   document.getElementById('btn-verifier-qr').addEventListener('click', verifierQR);
+  
+  // Zora scanner buttons
+  document.getElementById('btn-zora-camera').addEventListener('click', toggleZoraCamera);
+  document.getElementById('btn-stop-zora-camera').addEventListener('click', stopZoraCamera);
+  document.getElementById('btn-verifier-zora').addEventListener('click', verifyZoraVoucher);
 
   // Profil
   document.getElementById('btn-change-pwd').addEventListener('click', () => {
@@ -965,6 +1138,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'reset-qr') {
       document.getElementById('qr-token-input').value = '';
       document.getElementById('qr-result').style.display = 'none';
+    }
+    if (action === 'reset-zora') {
+      document.getElementById('zora-uuid-input').value = '';
+      document.getElementById('zora-result').style.display = 'none';
     }
     if (action === 'submit-pwd') submitChangePwd();
     if (action === 'cancel-pwd') {
