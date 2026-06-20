@@ -344,7 +344,7 @@
             {panel === 'accueil' && <Accueil user={user} subscription={subscription} zora={zora} zoraTiers={zoraTiers} steps={steps} />}
             {panel === 'gagner' && <Gagner />}
             {panel === 'suivre' && <Suivre user={user} zora={zora} />}
-            {panel === 'reward' && <Recompenses zora={zora} />}
+            {panel === 'reward' && <Recompenses zora={zora} zoraTier={zoraTier} />}
           </main>
           
           <nav style={{
@@ -941,6 +941,8 @@
     
     function Suivre({ user, zora }) {
       const [suivreTab, setSuivreTab] = useState('zora');
+      const [vouchers, setVouchers] = useState([]);
+      const [vouchersTab, setVouchersTab] = useState('active');
       const [zoraLedger, setZoraLedger] = useState([]);
       const [qrCode, setQrCode] = useState(null);
       const [emergencyQr, setEmergencyQr] = useState(null);
@@ -950,6 +952,7 @@
       useEffect(() => {
         if (suivreTab === 'zora') {
           loadZoraLedger();
+          loadVouchers();
         } else if (suivreTab === 'dossier') {
           loadQrCode();
           loadEmergencyQr();
@@ -967,6 +970,18 @@
           }
         } catch (e) {
           console.error('Error loading Zora ledger:', e);
+        }
+      };
+      
+      const loadVouchers = async () => {
+        try {
+          const res = await authFetch(`${API}/zora/vouchers`);
+          if (res.ok) {
+            const data = await res.json();
+            setVouchers(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading vouchers:', e);
         }
       };
       
@@ -1137,6 +1152,165 @@
                   </div>
                 )}
               </div>
+              
+              {/* Section Mes Vouchers */}
+              <div style={{ marginTop: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0A2463' }}>
+                    Mes Vouchers
+                  </h3>
+                </div>
+                
+                <div style={{ display: 'inline-flex', gap: '4px', background: '#EDEDF8', padding: '4px', borderRadius: '9999px', marginBottom: '16px' }}>
+                  <button
+                    onClick={() => setVouchersTab('active')}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '9999px',
+                      border: 'none',
+                      background: vouchersTab === 'active' ? '#003FB1' : 'transparent',
+                      color: vouchersTab === 'active' ? '#fff' : '#434654',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Actifs
+                  </button>
+                  <button
+                    onClick={() => setVouchersTab('consumed')}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '9999px',
+                      border: 'none',
+                      background: vouchersTab === 'consumed' ? '#003FB1' : 'transparent',
+                      color: vouchersTab === 'consumed' ? '#fff' : '#434654',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Utilisés
+                  </button>
+                  <button
+                    onClick={() => setVouchersTab('expired')}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '9999px',
+                      border: 'none',
+                      background: vouchersTab === 'expired' ? '#003FB1' : 'transparent',
+                      color: vouchersTab === 'expired' ? '#fff' : '#434654',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Expirés
+                  </button>
+                </div>
+                
+                <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '18px', overflow: 'hidden' }}>
+                  {vouchers.filter(v => v.status === vouchersTab).length > 0 ? (
+                    vouchers.filter(v => v.status === vouchersTab).map((voucher, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          padding: '16px',
+                          borderBottom: i === vouchers.filter(v => v.status === vouchersTab).length - 1 ? 'none' : '1px solid #EDEDF8',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px'
+                        }}
+                      >
+                        <div style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '8px',
+                          background: '#F5F5F5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden'
+                        }}>
+                          {voucher.logo_path ? (
+                            <img src={voucher.logo_path} alt={voucher.partner_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#9498a8' }}>store</span>
+                          )}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0A2463', marginBottom: '2px' }}>
+                            {voucher.reward_title}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#9498a8', marginBottom: '4px' }}>
+                            {voucher.partner_name}
+                          </div>
+                          <div style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            color: voucher.status === 'active' ? '#00C9A7' : 
+                                   voucher.status === 'consumed' ? '#2E7D32' : '#BA1A1A'
+                          }}>
+                            {voucher.status === 'active' ? `Valable jusqu'au ${new Date(voucher.expires_at).toLocaleDateString('fr-FR')}` :
+                             voucher.status === 'consumed' ? `Utilisé le ${new Date(voucher.consumed_at).toLocaleDateString('fr-FR')}` :
+                             'Expiré'}
+                          </div>
+                        </div>
+                        {voucher.status === 'active' && (
+                          <button
+                            onClick={() => {
+                              // Afficher le QR code plein écran
+                              const qrModal = document.createElement('div');
+                              qrModal.style.cssText = `
+                                position: fixed; inset: 0; z-index: 200;
+                                display: flex; align-items: center; justify-content: center;
+                                background: rgba(10,36,99,0.9); backdrop-filter: blur(8px);
+                              `;
+                              qrModal.innerHTML = `
+                                <div style="background: #fff; border-radius: 24px; padding: 32px; max-width: 400px; width: 100%; text-align: center;">
+                                  <h3 style="font-size: 1.25rem; font-weight: 800; color: #0A2463; margin-bottom: 16px;">Voucher Zora</h3>
+                                  <div id="voucher-qr-${voucher.uuid}" style="margin-bottom: 16px;"></div>
+                                  <div style="font-size: 0.875rem; color: #434654; margin-bottom: 8px;">${voucher.reward_title}</div>
+                                  <div style="font-size: 0.75rem; color: #9498a8; margin-bottom: 20px;">${voucher.partner_name}</div>
+                                  <div style="font-size: 0.75rem; color: #BA1A1A; margin-bottom: 20px;">Valable jusqu'au ${new Date(voucher.expires_at).toLocaleDateString('fr-FR')}</div>
+                                  <button onclick="this.parentElement.parentElement.remove()" style="padding: 12px 24px; border-radius: 9999px; border: none; background: #003FB1; color: #fff; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Fermer</button>
+                                </div>
+                              `;
+                              document.body.appendChild(qrModal);
+                              setTimeout(() => {
+                                const qrContainer = document.getElementById(`voucher-qr-${voucher.uuid}`);
+                                if (qrContainer) {
+                                  new QRCode(qrContainer, {
+                                    text: voucher.uuid,
+                                    width: 200,
+                                    height: 200
+                                  });
+                                }
+                              }, 100);
+                            }}
+                            style={{
+                              padding: '8px 16px',
+                              borderRadius: '9999px',
+                              border: 'none',
+                              background: '#003FB1',
+                              color: '#fff',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Voir QR
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '40px', textAlign: 'center', color: '#9498a8', fontSize: '0.875rem' }}>
+                      Aucun voucher {vouchersTab === 'active' ? 'actif' : vouchersTab === 'consumed' ? 'utilisé' : 'expiré'}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           
@@ -1244,27 +1418,399 @@
       );
     }
     
-    function Recompenses({ zora }) {
+    function Recompenses({ zora, zoraTier }) {
+      const [rewards, setRewards] = useState([]);
+      const [category, setCategory] = useState('all');
+      const [loading, setLoading] = useState(true);
+      const [selectedReward, setSelectedReward] = useState(null);
+      const [showRedeemModal, setShowRedeemModal] = useState(false);
+      const [redeemSuccess, setRedeemSuccess] = useState(false);
+      const [voucherData, setVoucherData] = useState(null);
+      
+      useEffect(() => {
+        loadRewards();
+      }, [category]);
+      
+      const loadRewards = async () => {
+        setLoading(true);
+        try {
+          const url = category === 'all' 
+            ? `${API}/zora/rewards`
+            : `${API}/zora/rewards?category=${category}`;
+          const res = await authFetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            setRewards(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading rewards:', e);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      const handleRedeem = async (reward) => {
+        setSelectedReward(reward);
+        setShowRedeemModal(true);
+        setRedeemSuccess(false);
+        setVoucherData(null);
+      };
+      
+      const confirmRedeem = async () => {
+        if (!selectedReward) return;
+        
+        try {
+          const res = await authFetch(`${API}/zora/redeem`, {
+            method: 'POST',
+            body: JSON.stringify({ reward_id: selectedReward.id })
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            setVoucherData(data.data);
+            setRedeemSuccess(true);
+            // Recharger les données Zora
+            window.location.reload();
+          } else {
+            const errorData = await res.json();
+            alert(errorData.error || 'Erreur lors de l\'échange');
+          }
+        } catch (e) {
+          alert('Erreur de connexion');
+        }
+      };
+      
+      const categories = [
+        { id: 'all', label: 'Tout' },
+        { id: 'sante', label: 'Santé' },
+        { id: 'telecom', label: 'Télécom' },
+        { id: 'lifestyle', label: 'Lifestyle' },
+        { id: 'hotel', label: 'Hôtels' }
+      ];
+      
       return (
         <div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0A2463', marginBottom: '20px' }}>
             Récompenses
           </h2>
-          <div style={{
-            background: '#fff',
-            border: '1px solid #EDEDF8',
-            borderRadius: '20px',
-            padding: '40px',
-            textAlign: 'center'
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#9498a8', marginBottom: '16px' }}>card_giftcard</span>
-            <p style={{ fontSize: '1rem', color: '#434654', marginBottom: '8px' }}>
-              Catalogue de récompenses en développement
-            </p>
-            <p style={{ fontSize: '0.875rem', color: '#9498a8' }}>
-              Solde actuel : {zora.toLocaleString('fr-FR')} Zora
-            </p>
+          
+          {/* Filtres par catégorie */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setCategory(cat.id)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '9999px',
+                  border: category === cat.id ? '2px solid #003FB1' : '1px solid #EDEDF8',
+                  background: category === cat.id ? '#003FB1' : '#fff',
+                  color: category === cat.id ? '#fff' : '#434654',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
+          
+          {/* Solde actuel */}
+          <div style={{
+            background: 'linear-gradient(135deg, #003FB1 0%, #00C9A7 100%)',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '20px',
+            color: '#fff'
+          }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '4px' }}>
+              Solde Zora
+            </div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800 }}>
+              {zora.toLocaleString('fr-FR')} <span style={{ fontSize: '1rem', fontWeight: 600 }}>points</span>
+            </div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600, marginTop: '4px' }}>
+              Palier : {zoraTier}
+            </div>
+          </div>
+          
+          {/* Liste des récompenses */}
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#9498a8', animation: 'spin 1s linear infinite' }}>refresh</span>
+            </div>
+          ) : rewards.length === 0 ? (
+            <div style={{
+              background: '#fff',
+              border: '1px solid #EDEDF8',
+              borderRadius: '20px',
+              padding: '40px',
+              textAlign: 'center'
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#9498a8', marginBottom: '16px' }}>card_giftcard</span>
+              <p style={{ fontSize: '1rem', color: '#434654' }}>
+                Aucune récompense disponible
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {rewards.map(reward => (
+                <div
+                  key={reward.id}
+                  style={{
+                    background: '#fff',
+                    border: '1px solid #EDEDF8',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  {/* Logo partenaire */}
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    background: '#F5F5F5',
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden'
+                  }}>
+                    {reward.logo_path ? (
+                      <img src={reward.logo_path} alt={reward.partner_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#9498a8' }}>store</span>
+                    )}
+                  </div>
+                  
+                  {/* Titre et description */}
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0A2463', marginBottom: '4px' }}>
+                    {reward.title}
+                  </h3>
+                  <p style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '12px', flex: 1 }}>
+                    {reward.description}
+                  </p>
+                  
+                  {/* Partenaire */}
+                  <div style={{ fontSize: '0.75rem', color: '#9498a8', marginBottom: '12px' }}>
+                    {reward.partner_name}
+                  </div>
+                  
+                  {/* Coût et remise */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#003FB1' }}>
+                        {reward.points_cost}
+                      </span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#434654' }}>
+                        points
+                      </span>
+                    </div>
+                    <div style={{
+                      background: '#E8F5E9',
+                      color: '#2E7D32',
+                      padding: '4px 8px',
+                      borderRadius: '9999px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700
+                    }}>
+                      {reward.discount_value}
+                    </div>
+                  </div>
+                  
+                  {/* Badge palier requis */}
+                  {reward.min_tier !== 'kimia' && (
+                    <div style={{
+                      background: '#FFF3E0',
+                      color: '#E65100',
+                      padding: '4px 8px',
+                      borderRadius: '9999px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      marginBottom: '12px',
+                      display: 'inline-block'
+                    }}>
+                      Palier {reward.min_tier} requis
+                    </div>
+                  )}
+                  
+                  {/* Stock restant */}
+                  {reward.stock_remaining !== null && reward.stock_remaining <= 10 && (
+                    <div style={{
+                      background: '#FFEBEE',
+                      color: '#C62828',
+                      padding: '4px 8px',
+                      borderRadius: '9999px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      marginBottom: '12px',
+                      display: 'inline-block'
+                    }}>
+                      Plus que {reward.stock_remaining} disponibles
+                    </div>
+                  )}
+                  
+                  {/* Bouton échanger */}
+                  <button
+                    onClick={() => handleRedeem(reward)}
+                    disabled={!reward.can_afford}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '9999px',
+                      border: 'none',
+                      background: reward.can_afford ? '#003FB1' : '#EDEDF8',
+                      color: reward.can_afford ? '#fff' : '#9498a8',
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
+                      cursor: reward.can_afford ? 'pointer' : 'not-allowed',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {reward.tier_insufficient ? 'Palier insuffisant' : 
+                     !reward.can_afford ? 'Solde insuffisant' : 'Échanger'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Modal d'échange */}
+          {showRedeemModal && selectedReward && (
+            <div style={{
+              display: 'flex',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 100,
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+              background: 'rgba(10,36,99,0.55)',
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)'
+            }}>
+              <div style={{
+                background: '#fff',
+                borderRadius: '24px',
+                padding: '24px',
+                maxWidth: '400px',
+                width: '100%'
+              }}>
+                {!redeemSuccess ? (
+                  <>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0A2463', marginBottom: '16px' }}>
+                      Confirmer l'échange
+                    </h3>
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '8px' }}>
+                        Dépenser <strong>{selectedReward.points_cost} Zora</strong> pour :
+                      </div>
+                      <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0A2463' }}>
+                        {selectedReward.title}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: '#434654', marginTop: '4px' }}>
+                        Remise : {selectedReward.discount_value}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button
+                        onClick={() => setShowRedeemModal(false)}
+                        style={{
+                          flex: 1,
+                          padding: '12px',
+                          borderRadius: '9999px',
+                          border: '1px solid #EDEDF8',
+                          background: '#fff',
+                          color: '#434654',
+                          fontSize: '0.9rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        onClick={confirmRedeem}
+                        style={{
+                          flex: 1,
+                          padding: '12px',
+                          borderRadius: '9999px',
+                          border: 'none',
+                          background: '#003FB1',
+                          color: '#fff',
+                          fontSize: '0.9rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Confirmer
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#00C9A7', marginBottom: '16px' }}>
+                      Échange réussi !
+                    </h3>
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '8px' }}>
+                        Votre voucher est prêt
+                      </div>
+                      {voucherData && (
+                        <div style={{
+                          background: '#F5F5F5',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          textAlign: 'center'
+                        }}>
+                          <div id={`qrcode-${voucherData.voucher_uuid}`} style={{ marginBottom: '12px' }}></div>
+                          <div style={{ fontSize: '0.75rem', color: '#9498a8' }}>
+                            Valable jusqu'au {new Date(voucherData.expires_at).toLocaleDateString('fr-FR')}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowRedeemModal(false);
+                        // Générer le QR code
+                        if (voucherData) {
+                          setTimeout(() => {
+                            const qrContainer = document.getElementById(`qrcode-${voucherData.voucher_uuid}`);
+                            if (qrContainer) {
+                              qrContainer.innerHTML = '';
+                              new QRCode(qrContainer, {
+                                text: voucherData.voucher_uuid,
+                                width: 128,
+                                height: 128
+                              });
+                            }
+                          }, 100);
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        borderRadius: '9999px',
+                        border: 'none',
+                        background: '#003FB1',
+                        color: '#fff',
+                        fontSize: '0.9rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Fermer
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       );
     }

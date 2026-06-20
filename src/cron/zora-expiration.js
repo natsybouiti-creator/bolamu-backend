@@ -18,7 +18,17 @@ async function runExpiration() {
     console.log('[ZORA CRON] Début expiration à', new Date().toISOString());
     await client.query('BEGIN');
     
-    // ÉTAPE 1 — Expirer les lignes ledger échues
+    // ÉTAPE 1 — Expirer les vouchers échus
+    const voucherExpireResult = await client.query(
+      `UPDATE zora_vouchers 
+       SET status = 'expired' 
+       WHERE status = 'active' AND expires_at < NOW()
+       RETURNING id, phone`
+    );
+    
+    console.log(`[ZORA CRON] ${voucherExpireResult.rows.length} vouchers expirés`);
+    
+    // ÉTAPE 2 — Expirer les lignes ledger échues
     const expireResult = await client.query(
       `UPDATE zora_ledger 
        SET verified = FALSE 
@@ -28,7 +38,7 @@ async function runExpiration() {
     
     console.log(`[ZORA CRON] ${expireResult.rows.length} lignes ledger expirées`);
     
-    // ÉTAPE 2 — Recalculer le solde réel pour chaque utilisateur affecté
+    // ÉTAPE 3 — Recalculer le solde réel pour chaque utilisateur affecté
     const affectedPhones = new Set(expireResult.rows.map(r => r.phone));
     
     for (const phone of affectedPhones) {
@@ -51,7 +61,7 @@ async function runExpiration() {
         const points = balanceResult.rows[0];
         console.log(`[ZORA CRON] Solde recalculé pour ${phone}: ${points.balance} (total_earned: ${points.total_earned})`);
         
-        // ÉTAPE 3 — Recalculer le tier après expiration
+        // ÉTAPE 4 — Recalculer le tier après expiration
         const tiers = await getZoraTiers();
         let newTier = 'kimia';
         
