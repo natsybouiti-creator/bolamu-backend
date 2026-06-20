@@ -69,3 +69,13 @@ INSERT INTO zora_earn_rules
 INSERT INTO zora_category_caps (category, cap_percent) VALUES 
   ('jeux', 15)
 ON CONFLICT (category) DO NOTHING;
+
+-- Règles de gain - Phase 'now' : streaks (Sprint 6A)
+INSERT INTO zora_earn_rules 
+  (action_type, label_fr, category, points, required_proof_class, 
+   daily_cap, is_active, phase) VALUES
+  ('streak_7', 'Streak 7 jours consécutifs',
+   'engagement', 100, 'system_event', NULL, TRUE, 'now'),
+  ('streak_30', 'Streak 30 jours consécutifs',
+   'engagement', 500, 'system_event', NULL, TRUE, 'now')
+ON CONFLICT (action_type) DO NOTHING;

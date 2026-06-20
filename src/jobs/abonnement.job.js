@@ -4,6 +4,7 @@ const { notify } = require('../services/notification.service');
 const { addJob } = require('../queues/bolamu-queue');
 const { buildWameLink } = require('../services/wame.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { computeWeeklyLeaderboard } = require('../services/leaderboard.service');
 
 // Fonction helper pour envoyer SMS en batch via BullMQ
 // Non bloquant : si Redis est indisponible, le job est simplement ignoré
@@ -257,6 +258,16 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
         nb_erreurs++;
         allDetails.push(`Erreur rappel RDV ${row.patient_phone}`);
       }
+    }
+
+    // 9. Calculer classement hebdo — Sprint 6A
+    try {
+      const leaderboardResult = await computeWeeklyLeaderboard();
+      nb_traites += leaderboardResult.count;
+      allDetails.push(`Classement hebdo calculé : ${leaderboardResult.count} joueurs`);
+    } catch (leaderboardErr) {
+      nb_erreurs++;
+      allDetails.push(`Erreur classement hebdo : ${leaderboardErr.message}`);
     }
 
   } catch (globalErr) {

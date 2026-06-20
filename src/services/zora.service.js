@@ -3,6 +3,7 @@
 // ============================================================
 const pool = require('../config/db');
 const chatService = require('./chat.service');
+const { updateStreak } = require('./streak.service');
 
 /**
  * Fonction principale awardZora
@@ -205,6 +206,15 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     );
     
     await client.query('COMMIT');
+    
+    // Mettre à jour le streak (non bloquant, hors transaction)
+    setImmediate(async () => {
+      try {
+        await updateStreak({ phone });
+      } catch (streakErr) {
+        console.error('[ZORA] Erreur updateStreak (non bloquante):', streakErr.message);
+      }
+    });
     
     // Auto-post achievement dans le chat communauté pour certaines actions
     const achievementActions = ['bilan_annuel', 'vaccination', 'event_checkin', 'streak_7', 'streak_30'];

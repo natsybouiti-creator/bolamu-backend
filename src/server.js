@@ -207,6 +207,7 @@ app.use('/api/v1/zora',         zoraMarketplaceRoutes);
 app.use('/api/v1/zora',         zoraGamesRoutes);
 app.use('/api/v1/events',       require('./routes/elonga-events.routes'));
 app.use('/api/v1/leaderboard',  require('./routes/leaderboard.routes'));
+app.use('/api/v1/streaks',      require('./routes/streak.routes'));
 app.use('/api/v1/sport-groups', sportGroupsRoutes);
 app.use('/api/v1/chat',         chatRoutes);
 // ============================================================
