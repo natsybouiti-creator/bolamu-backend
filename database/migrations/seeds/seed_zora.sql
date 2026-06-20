@@ -51,3 +51,21 @@ INSERT INTO zora_earn_rules
    'activite', 30, 'device_measured', NULL, FALSE, 'phase2'),
   ('sleep_quality', 'Sommeil 7h+ mesuré', 
    'activite', 20, 'device_measured', 1, FALSE, 'phase2');
+
+-- Règles de gain - Phase 'now' : jeux Zora (Sprint 4)
+INSERT INTO zora_earn_rules 
+  (action_type, label_fr, category, points, required_proof_class, 
+   daily_cap, is_active, phase) VALUES
+  ('game_scratch', 'Gain carte à gratter',
+   'jeux', 30, 'system_event', 1, TRUE, 'now'),
+  ('game_wheel', 'Gain roue de la fortune',
+   'jeux', 50, 'system_event', 1, TRUE, 'now'),
+  ('game_chest', 'Gain coffre mystère',
+   'jeux', 75, 'system_event', 1, TRUE, 'now'),
+  ('game_quiz', 'Gain quiz santé',
+   'jeux', 40, 'system_event', 1, TRUE, 'now');
+
+-- Ajouter le cap catégorie jeux
+INSERT INTO zora_category_caps (category, cap_percent) VALUES 
+  ('jeux', 15)
+ON CONFLICT (category) DO NOTHING;

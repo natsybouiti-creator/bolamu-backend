@@ -948,11 +948,18 @@
       const [emergencyQr, setEmergencyQr] = useState(null);
       const [appointments, setAppointments] = useState([]);
       const [constants, setConstants] = useState(null);
+      const [gamesConfig, setGamesConfig] = useState([]);
+      const [gameStatus, setGameStatus] = useState({});
+      const [gameResult, setGameResult] = useState(null);
+      const [gameLoading, setGameLoading] = useState(false);
       
       useEffect(() => {
         if (suivreTab === 'zora') {
           loadZoraLedger();
           loadVouchers();
+        } else if (suivreTab === 'jeux') {
+          loadGamesConfig();
+          loadGamesStatus();
         } else if (suivreTab === 'dossier') {
           loadQrCode();
           loadEmergencyQr();
@@ -1063,6 +1070,84 @@
         }
       };
       
+      const loadGamesConfig = async () => {
+        try {
+          const res = await authFetch(`${API}/zora/games/config`);
+          if (res.ok) {
+            const data = await res.json();
+            setGamesConfig(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading games config:', e);
+        }
+      };
+      
+      const loadGamesStatus = async () => {
+        try {
+          const res = await authFetch(`${API}/zora/games/status`);
+          if (res.ok) {
+            const data = await res.json();
+            const statusMap = {};
+            data.data.forEach(s => {
+              statusMap[s.game_type] = s;
+            });
+            setGameStatus(statusMap);
+          }
+        } catch (e) {
+          console.error('Error loading games status:', e);
+        }
+      };
+      
+      const playGame = async (gameType, playType) => {
+        setGameLoading(true);
+        setGameResult(null);
+        try {
+          const res = await authFetch(`${API}/zora/games/play`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ game_type: gameType, play_type: playType })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setGameResult({ ...data.data, game_type: gameType });
+            if (data.data.points_won > 0) {
+              loadZoraData();
+            }
+          } else {
+            const data = await res.json();
+            alert(data.error || 'Erreur lors du jeu');
+          }
+        } catch (e) {
+          console.error('Error playing game:', e);
+          alert('Erreur de connexion');
+        } finally {
+          setGameLoading(false);
+        }
+      };
+      
+      const submitQuizAnswer = async (playId, answer) => {
+        try {
+          const res = await authFetch(`${API}/zora/games/quiz/answer`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ play_id: playId, answer: answer })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setGameResult({ ...gameResult, quizResult: data.data });
+            if (data.data.points_won > 0) {
+              loadZoraData();
+            }
+          } else {
+            const data = await res.json();
+            alert(data.error || 'Erreur lors de la soumission');
+          }
+        } catch (e) {
+          console.error('Error submitting quiz answer:', e);
+          alert('Erreur de connexion');
+        }
+      };
+      
       const ledger = [
         { icon: 'medical_services', label: 'Consultation Dr Ntolo', date: '14 juin 2026', delta: '+50', pos: true },
         { icon: 'directions_walk', label: 'Marche 10 000 pas', date: '14 juin 2026', delta: '+25', pos: true },
@@ -1078,6 +1163,7 @@
           
           <div style={{ display: 'inline-flex', gap: '4px', background: '#EDEDF8', padding: '4px', borderRadius: '9999px', marginBottom: '24px' }}>
             <TabBtn active={suivreTab === 'zora'} onClick={() => setSuivreTab('zora')}>Mes Zora</TabBtn>
+            <TabBtn active={suivreTab === 'jeux'} onClick={() => setSuivreTab('jeux')}>Jeux</TabBtn>
             <TabBtn active={suivreTab === 'dossier'} onClick={() => setSuivreTab('dossier')}>Mon dossier médical</TabBtn>
           </div>
           
@@ -1311,6 +1397,105 @@
                   )}
                 </div>
               </div>
+            </div>
+          )}
+          
+          {suivreTab === 'jeux' && (
+            <div>
+              <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '22px', marginBottom: '22px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#F5A623', fontSize: '22px' }}>casino</span>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0A2463' }}>Jeux Zora</h3>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                  {gamesConfig.map((game) => (
+                    <div key={game.game_type} style={{ background: 'linear-gradient(135deg, #FAF8FF, #F5F0FF)', border: '1px solid #EDEDF8', borderRadius: '16px', padding: '20px', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #F5A623, #FF6B35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: '24px' }}>
+                            {game.game_type === 'scratch' ? 'confirmation_number' : game.game_type === 'wheel' ? '360' : game.game_type === 'chest' ? 'inventory_2' : 'quiz'}
+                          </span>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0A2463' }}>{game.label_fr}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#434654' }}>Gain max: {game.max_gain_per_play} Zora</div>
+                        </div>
+                      </div>
+                      {gameStatus[game.game_type]?.free_plays_remaining > 0 ? (
+                        <div style={{ background: 'rgba(0,201,167,0.1)', color: '#00C9A7', padding: '6px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700, marginBottom: '12px', display: 'inline-block' }}>
+                          {gameStatus[game.game_type]?.free_plays_remaining} partie gratuite disponible
+                        </div>
+                      ) : (
+                        <div style={{ background: 'rgba(245,166,35,0.1)', color: '#F5A623', padding: '6px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700, marginBottom: '12px', display: 'inline-block' }}>
+                          Débloquer pour {game.extra_play_cost} Zora
+                        </div>
+                      )}
+                      <button 
+                        onClick={() => playGame(game.game_type, gameStatus[game.game_type]?.free_plays_remaining > 0 ? 'free' : 'paid')}
+                        disabled={gameLoading}
+                        style={{ 
+                          width: '100%', 
+                          padding: '12px', 
+                          background: gameStatus[game.game_type]?.free_plays_remaining > 0 ? 'linear-gradient(135deg, #00C9A7, #00A894)' : 'linear-gradient(135deg, #F5A623, #FF6B35)', 
+                          color: '#fff', 
+                          border: 'none', 
+                          borderRadius: '12px', 
+                          fontSize: '0.9rem', 
+                          fontWeight: 700, 
+                          cursor: gameLoading ? 'not-allowed' : 'pointer',
+                          fontFamily: 'Plus Jakarta Sans, sans-serif'
+                        }}
+                      >
+                        {gameLoading ? 'Chargement...' : 'Jouer'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {gameResult && (
+                <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '22px', marginBottom: '22px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <span className="material-symbols-outlined" style={{ color: '#0A2463', fontSize: '22px' }}>emoji_events</span>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0A2463' }}>Résultat</h3>
+                  </div>
+                  {gameResult.game_type === 'quiz' ? (
+                    <div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0A2463', marginBottom: '16px' }}>{gameResult.question}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        {['a', 'b', 'c', 'd'].map((opt) => (
+                          <button
+                            key={opt}
+                            onClick={() => submitQuizAnswer(gameResult.play_id, opt)}
+                            style={{ 
+                              padding: '16px', 
+                              background: '#FAF8FF', 
+                              border: '1px solid #EDEDF8', 
+                              borderRadius: '12px', 
+                              fontSize: '0.9rem', 
+                              fontWeight: 600, 
+                              cursor: 'pointer',
+                              fontFamily: 'Plus Jakarta Sans, sans-serif',
+                              textAlign: 'left'
+                            }}
+                          >
+                            {gameResult[`option_${opt}`]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                      <div style={{ fontSize: '3rem', fontWeight: 800, color: gameResult.points_won > 0 ? '#00C9A7' : '#434654', marginBottom: '8px' }}>
+                        {gameResult.points_won > 0 ? `+${gameResult.points_won}` : gameResult.prize_label}
+                      </div>
+                      <div style={{ fontSize: '1rem', color: '#434654' }}>
+                        {gameResult.points_won > 0 ? 'Zora gagnés' : 'Pas de gain cette fois'}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           
