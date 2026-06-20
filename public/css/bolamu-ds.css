@@ -1,0 +1,297 @@
+/* ============================================================
+   BOLAMU — Design System Partagé
+   ============================================================ */
+
+:root {
+  /* Couleurs principales */
+  --navy: #0A2463;
+  --blue-logo: #2E6EE8;
+  --primary: #003FB1;
+  --turquoise: #00C9A7;
+  --orange: #FF6B35;
+  --gold: #F5A623;
+  
+  /* Surface et texte */
+  --surface: #FAF8FF;
+  --ink: #191B23;
+  --ink-soft: #434654;
+  --line: #EDEDF8;
+  --line-2: #E4E4F2;
+  --white: #ffffff;
+  
+  /* Paliers Zora */
+  --kimia: #C0C0C0;
+  --liboso: #00C9A7;
+  --nkembo: #2E6EE8;
+  --elonga: #F5A623;
+  
+  /* Couleurs de rôles */
+  --role-patient: #00C9A7;
+  --role-medecin: #2E86FF;
+  --role-secretaire: #9333EA;
+  --role-pharmacie: #10B981;
+  --role-labo: #F59E0B;
+  --role-admin: #6B7280;
+  --role-rh: #EC4899;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #0A2463, #2E6EE8);
+  --gradient-turquoise: linear-gradient(135deg, #00C9A7, #00A894);
+  --gradient-gold: linear-gradient(135deg, #F5A623, #FF6B35);
+  --gradient-btn: linear-gradient(135deg, #2E86FF, #00C9A7);
+  
+  /* Dimensions */
+  --bottom-nav-height: 64px;
+  --topbar-height: 64px;
+  --border-radius-lg: 2rem;
+  --border-radius-md: 1.25rem;
+  --border-radius-sm: 0.75rem;
+}
+
+/* ============================================================
+   TYPOGRAPHIE
+   ============================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Material Symbols Outlined */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+}
+
+/* ============================================================
+   OMBRES TEINTÉES
+   ============================================================ */
+
+.shadow-navy {
+  box-shadow: 0 4px 20px rgba(10, 36, 99, 0.08);
+}
+
+.shadow-navy-lg {
+  box-shadow: 0 8px 30px rgba(10, 36, 99, 0.12);
+}
+
+.shadow-turquoise {
+  box-shadow: 0 4px 20px rgba(0, 201, 167, 0.12);
+}
+
+.shadow-gold {
+  box-shadow: 0 4px 20px rgba(245, 166, 35, 0.12);
+}
+
+.shadow-soft {
+  box-shadow: 0 2px 12px rgba(10, 36, 99, 0.04);
+}
+
+/* ============================================================
+   COMPOSANTS
+   ============================================================ */
+
+/* Carte */
+.card {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Bouton */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s;
+  min-height: 46px;
+}
+
+.btn-primary {
+  background: var(--gradient-btn);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   NAVIGATION DESKTOP (ONGLETS CENTRÉS)
+   ============================================================ */
+
+.tabs-bar {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  right: 0;
+  z-index: 99;
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 0 40px;
+  display: flex;
+  justify-content: center;
+  box-shadow: var(--shadow-soft);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  padding: 16px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink-soft);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  flex-shrink: 0;
+}
+
+.tab:hover {
+  color: var(--blue-logo);
+}
+
+.tab.active {
+  color: var(--navy);
+  border-bottom-color: var(--navy);
+}
+
+/* ============================================================
+   NAVIGATION MOBILE (BOTTOM NAV)
+   ============================================================ */
+
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  height: var(--bottom-nav-height);
+  padding: 0 4px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-inner {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.bnav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 6px;
+  cursor: pointer;
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.15s;
+  border-radius: 12px;
+  min-height: 52px;
+}
+
+.bnav-item.active .bnav-icon,
+.bnav-item.active .bnav-label {
+  color: var(--blue-logo);
+  font-weight: 700;
+}
+
+.bnav-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.bnav-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .tabs-bar {
+    display: none;
+  }
+  
+  .bottom-nav {
+    display: block;
+  }
+}
+
+/* ============================================================
+   PREFERS-REDUCED-MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

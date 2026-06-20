@@ -11,8 +11,11 @@
   <meta name="theme-color" content="#2E86FF">
   <link rel="manifest" href="/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/bolamu-ds.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="/js/bolamu-nav.js" defer></script>
   <script>
 var QRDetector = null;
 if (typeof BarcodeDetector !== 'undefined') {
@@ -21,88 +24,80 @@ if (typeof BarcodeDetector !== 'undefined') {
 </script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <style>
-    :root{
-      --bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;
-      --bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#ffffff;
-      --rouge:#e74c3c;--amber:#f39c12;--border:rgba(10,36,99,0.1);
-      --grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);
-      --grad-card:linear-gradient(135deg,#0A2463,#2E86FF);
-      --bottom-nav-h:64px;
-    }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bleu-pale);color:var(--texte);min-height:100vh;}
-    .topbar{position:fixed;top:0;width:100%;z-index:100;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);box-shadow:0 2px 20px rgba(10,36,99,0.06);}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;}
+    .topbar{position:fixed;top:0;width:100%;z-index:100;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);box-shadow:var(--shadow-soft);}
     .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}    .logo-name{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
-    .logo-name .b{color:var(--bleu);}.logo-name .t{color:var(--vert);}
+    .logo-name .b{color:var(--navy);}.logo-name .t{color:var(--turquoise);}
     .topbar-right{display:flex;align-items:center;gap:12px;}
-    .phone-pill{background:var(--vert-clair);color:#047857;padding:6px 16px;border-radius:50px;font-size:13px;font-weight:600;}
-    .role-pill{background:var(--bleu);color:white;padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:0.5px;}
-    .logout-btn{padding:8px 18px;border:2px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--texte-doux);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:40px;}
-    .logout-btn:hover{border-color:var(--bleu);color:var(--bleu);}
-    .tabs-bar{position:fixed;top:64px;width:100%;z-index:99;background:var(--blanc);border-bottom:1px solid var(--border);padding:0 40px;display:flex;box-shadow:0 2px 10px rgba(10,36,99,0.04);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+    .phone-pill{background:rgba(0,201,167,0.1);color:#047857;padding:6px 16px;border-radius:50px;font-size:13px;font-weight:600;}
+    .role-pill{background:var(--role-medecin);color:white;padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:0.5px;}
+    .logout-btn{padding:8px 18px;border:2px solid var(--line);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--ink-soft);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:40px;}
+    .logout-btn:hover{border-color:var(--navy);color:var(--navy);}
+    .tabs-bar{position:fixed;top:64px;width:100%;z-index:99;background:var(--white);border-bottom:1px solid var(--line);padding:0 40px;display:flex;justify-content:center;box-shadow:var(--shadow-soft);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
     .tabs-bar::-webkit-scrollbar{display:none;}
-    .tab{padding:16px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--texte-doux);border-bottom:3px solid transparent;transition:all 0.2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Plus Jakarta Sans',sans-serif;flex-shrink:0;}
-    .tab:hover{color:var(--bleu-vif);}.tab.active{color:var(--bleu);border-bottom-color:var(--bleu);}
-    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);height:var(--bottom-nav-h);padding:0 4px;padding-bottom:env(safe-area-inset-bottom);}
+    .tab{padding:16px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-soft);border-bottom:3px solid transparent;transition:all 0.2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Plus Jakarta Sans',sans-serif;flex-shrink:0;}
+    .tab:hover{color:var(--role-medecin);}.tab.active{color:var(--navy);border-bottom-color:var(--navy);}
+    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);border-top:1px solid var(--line);height:var(--bottom-nav-height);padding:0 4px;padding-bottom:env(safe-area-inset-bottom);}
     .bottom-nav-inner{display:flex;height:100%;align-items:center;justify-content:space-around;}
     .bnav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 6px;cursor:pointer;flex:1;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;border-radius:12px;min-height:52px;}
-    .bnav-item.active .bnav-icon,.bnav-item.active .bnav-label{color:var(--bleu-vif);font-weight:700;}
+    .bnav-item.active .bnav-icon,.bnav-item.active .bnav-label{color:var(--role-medecin);font-weight:700;}
     .bnav-icon{font-size:20px;line-height:1;}
-    .bnav-label{font-size:10px;font-weight:500;color:var(--texte-doux);white-space:nowrap;}
+    .bnav-label{font-size:10px;font-weight:500;color:var(--ink-soft);white-space:nowrap;}
     .main{padding:148px 40px 60px;max-width:1200px;margin:0 auto;}
     .panel{display:none;}.panel.active{display:block;}
     .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
-    .section-title{font-family:'Fraunces',serif;font-size:26px;font-weight:900;letter-spacing:-0.5px;}
+    .section-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;}
     .top-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;}
-    .med-card{background:var(--grad-card);border-radius:24px;padding:36px;color:white;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(10,36,99,0.25);}
+    .med-card{background:var(--gradient-primary);border-radius:32px;padding:36px;color:white;position:relative;overflow:hidden;box-shadow:var(--shadow-navy-lg);}
     .med-card::before{content:'';position:absolute;top:-80px;right:-80px;width:220px;height:220px;background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 65%);border-radius:50%;}
     .med-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;position:relative;z-index:2;}
-    .med-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:900;}
-    .med-logo .t{color:var(--vert);}
+    .med-logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;}
+    .med-logo .t{color:var(--turquoise);}
     .med-type{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);padding:4px 14px;border-radius:50px;font-size:12px;font-weight:600;}
-    .med-name{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:4px;position:relative;z-index:2;}
+    .med-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;position:relative;z-index:2;}
     .med-specialty{font-size:14px;color:rgba(255,255,255,0.75);margin-bottom:24px;position:relative;z-index:2;}
-    .med-code{font-family:'Fraunces',serif;font-size:22px;font-weight:900;letter-spacing:3px;margin-bottom:6px;position:relative;z-index:2;}
+    .med-code{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;letter-spacing:3px;margin-bottom:6px;position:relative;z-index:2;}
     .med-code-lbl{font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;position:relative;z-index:2;}
     .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-    .stat-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);}
-    .stat-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:10px;}
-    .stat-value{font-family:'Fraunces',serif;font-size:32px;font-weight:900;color:var(--texte);line-height:1;margin-bottom:4px;}
-    .stat-sub{font-size:13px;color:var(--texte-doux);}
+    .stat-card{background:var(--white);border-radius:32px;padding:24px;border:1px solid var(--line);box-shadow:var(--shadow-soft);}
+    .stat-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:10px;}
+    .stat-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:32px;font-weight:800;color:var(--ink);line-height:1;margin-bottom:4px;}
+    .stat-sub{font-size:13px;color:var(--ink-soft);}
     .badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:13px;font-weight:600;}
-    .badge-actif{background:var(--vert-clair);color:#047857;}
-    .badge-pending{background:#fef9ec;color:var(--amber);}
-    .badge-confirme{background:#e0f2fe;color:#0369a1;}
-    .badge-termine{background:var(--vert-clair);color:#047857;}
-    .bandeau-attente{background:#fef9ec;border:2px solid var(--amber);border-radius:16px;padding:18px 24px;display:flex;align-items:center;gap:14px;margin-bottom:24px;font-size:14px;color:#92400e;}
+    .badge-actif{background:rgba(0,201,167,0.1);color:#047857;}
+    .badge-pending{background:rgba(245,166,35,0.1);color:var(--gold);}
+    .badge-confirme{background:rgba(46,110,232,0.1);color:var(--blue-logo);}
+    .badge-termine{background:rgba(0,201,167,0.1);color:#047857;}
+    .bandeau-attente{background:rgba(245,166,35,0.1);border:2px solid var(--gold);border-radius:32px;padding:18px 24px;display:flex;align-items:center;gap:14px;margin-bottom:24px;font-size:14px;color:#92400e;}
     .rdv-list{display:flex;flex-direction:column;gap:12px;}
-    .rdv-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);transition:all 0.2s;}
-    .rdv-card:hover{border-color:var(--bleu-vif);transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,36,99,0.1);}
+    .rdv-card{background:var(--white);border-radius:32px;padding:24px;border:1px solid var(--line);box-shadow:var(--shadow-soft);transition:all 0.2s;}
+    .rdv-card:hover{border-color:var(--role-medecin);transform:translateY(-2px);box-shadow:var(--shadow-navy);}
     .rdv-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
     .rdv-patient{display:flex;align-items:center;gap:14px;}
-    .rdv-avatar{width:46px;height:46px;border-radius:14px;background:var(--bleu-pale);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .rdv-avatar{width:46px;height:46px;border-radius:14px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
     .rdv-name{font-size:16px;font-weight:700;margin-bottom:3px;}
-    .rdv-phone{font-size:13px;color:var(--texte-doux);}
+    .rdv-phone{font-size:13px;color:var(--ink-soft);}
     .rdv-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
-    .rdv-meta span{background:var(--bleu-pale);color:var(--texte-doux);padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;}
-    .rdv-meta span strong{color:var(--texte);font-weight:700;}
+    .rdv-meta span{background:var(--surface);color:var(--ink-soft);padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;}
+    .rdv-meta span strong{color:var(--ink);font-weight:700;}
     .rdv-actions{display:flex;gap:10px;flex-wrap:wrap;}
-    .btn-valider{padding:11px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-valider{padding:11px 24px;background:var(--gradient-btn);color:var(--white);border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-valider:hover{opacity:0.9;transform:translateY(-1px);}
     .btn-valider:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-    .btn-tele{padding:11px 20px;background:linear-gradient(135deg,#7C3AED,#2E86FF);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-tele{padding:11px 20px;background:linear-gradient(135deg,#7C3AED,#2E86FF);color:var(--white);border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-tele:hover{opacity:0.9;transform:translateY(-1px);}
-    .btn-labo{padding:11px 20px;background:linear-gradient(135deg,#5B21B6,#7C3AED);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-labo{padding:11px 20px;background:linear-gradient(135deg,#5B21B6,#7C3AED);color:var(--white);border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-labo:hover{opacity:0.9;transform:translateY(-1px);}
     .rdv-termine{opacity:0.6;}
-    .empty-state{text-align:center;padding:60px 24px;color:var(--texte-doux);}
+    .empty-state{text-align:center;padding:60px 24px;color:var(--ink-soft);}
     .empty-icon{font-size:48px;margin-bottom:16px;}
-    .loading{text-align:center;padding:48px;color:var(--texte-doux);}
+    .loading{text-align:center;padding:48px;color:var(--ink-soft);}
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,36,99,0.5);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:16px;}
     .modal-overlay.open{display:flex;}
     .modal{background:white;border-radius:28px;padding:40px;max-width:520px;width:100%;box-shadow:0 40px 100px rgba(10,36,99,0.3);animation:modalIn 0.3s ease;max-height:90vh;overflow-y:auto;}
     @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
-    .modal-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:8px;}
+    .modal-title{font-family:'Plus Jakarta Sans',serif;font-size:22px;font-weight:900;margin-bottom:8px;}
     .modal-sub{font-size:14px;color:var(--texte-doux);margin-bottom:28px;line-height:1.6;}
     .modal-section{margin-bottom:20px;}
     .modal-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:10px;display:block;}
@@ -125,18 +120,18 @@ if (typeof BarcodeDetector !== 'undefined') {
     .btn-cancel:hover{border-color:var(--texte-doux);}
     .validation-success{text-align:center;padding:20px 0;}
     .success-icon{font-size:56px;margin-bottom:16px;}
-    .success-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:8px;color:var(--texte);}
+    .success-title{font-family:'Plus Jakarta Sans',serif;font-size:22px;font-weight:900;margin-bottom:8px;color:var(--texte);}
     .success-sub{font-size:14px;color:var(--texte-doux);line-height:1.6;margin-bottom:24px;}
     .patients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
     .patient-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);}
     .profil-layout{display:grid;grid-template-columns:300px 1fr;gap:24px;}
     .profil-card{background:var(--grad-card);border-radius:24px;padding:36px;color:white;text-align:center;}
     .profil-avatar{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;border:3px solid rgba(255,255,255,0.25);}
-    .profil-name{font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:4px;}
+    .profil-name{font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:900;margin-bottom:4px;}
     .profil-spec{font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:20px;}
     .profil-code-box{background:rgba(255,255,255,0.1);border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,0.15);}
     .profil-code-lbl{font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
-    .profil-code-val{font-family:'Fraunces',serif;font-size:20px;font-weight:900;letter-spacing:3px;}
+    .profil-code-val{font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:900;letter-spacing:3px;}
     .detail-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);margin-bottom:16px;}
     .detail-card h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:16px;}
     .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;flex-wrap:wrap;gap:4px;}
@@ -240,7 +235,7 @@ if (typeof BarcodeDetector !== 'undefined') {
   <div style="flex:1;position:relative;">
     <iframe id="jitsi-iframe" style="width:100%;height:100%;border:none;" allow="camera; microphone; fullscreen; display-capture; autoplay"></iframe>
     <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,36,99,0.9);color:white;">
-      <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;margin-bottom:8px;">Connexion en cours…</div>
+      <div style="font-family:'Plus Jakarta Sans',serif;font-size:24px;font-weight:900;margin-bottom:8px;">Connexion en cours…</div>
       <div style="font-size:14px;color:rgba(255,255,255,0.7);">Votre session vidéo se prépare</div>
     </div>
   </div>
@@ -425,7 +420,7 @@ if (typeof BarcodeDetector !== 'undefined') {
                   border:1px solid var(--border);
                   box-shadow:0 2px 12px rgba(10,36,99,0.04);
                   margin-bottom:20px;">
-        <div style="font-family:'Fraunces',serif;font-size:16px;
+        <div style="font-family:'Plus Jakarta Sans',serif;font-size:16px;
                     font-weight:700;color:var(--bleu);margin-bottom:16px;">
           Recherche manuelle
         </div>
@@ -459,7 +454,7 @@ if (typeof BarcodeDetector !== 'undefined') {
                   border:1px solid var(--border);
                   box-shadow:0 2px 12px rgba(10,36,99,0.04);
                   margin-bottom:20px;">
-        <div style="font-family:'Fraunces',serif;font-size:16px;
+        <div style="font-family:'Plus Jakarta Sans',serif;font-size:16px;
                     font-weight:700;color:var(--bleu);margin-bottom:16px;">
           Scanner le QR code
         </div>
@@ -518,7 +513,7 @@ if (typeof BarcodeDetector !== 'undefined') {
   <div class="panel" id="panel-telemedicine">
     <div class="section-header"><h2 class="section-title">Téléconsultations</h2></div>
     <div style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:20px;padding:28px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <div><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:6px;">Consultations vidéo sécurisées</div>
+      <div><div style="font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:900;margin-bottom:6px;">Consultations vidéo sécurisées</div>
       <div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6;">Consultez vos patients à distance via Jitsi Meet — chiffré de bout en bout. Cliquez sur "Démarrer" pour lancer une session.</div></div>
     </div>
     <div id="tele-rdv-list"><div class="loading">Chargement…</div></div>
@@ -594,7 +589,7 @@ if (typeof BarcodeDetector !== 'undefined') {
   <div class="panel" id="panel-zora">
     <div class="section-header"><h2 class="section-title">Scanner Voucher Zora</h2></div>
     <div style="background:white;border-radius:24px;padding:28px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);margin-bottom:20px;">
-      <div style="font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--bleu);margin-bottom:16px;">
+      <div style="font-family:'Plus Jakarta Sans',serif;font-size:16px;font-weight:700;color:var(--bleu);margin-bottom:16px;">
         Validation de récompense Zora
       </div>
       <div style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;line-height:1.6;">
@@ -779,7 +774,7 @@ async function loadProfil(){
     document.getElementById('d-spec').textContent=spec;
     document.getElementById('d-ordre').textContent=d.registration_number||'—';
     document.getElementById('d-phone').textContent=phone;
-    const statutHtml=statut==='verified'?'<span class="badge badge-actif">✅ Vérifié</span>':'<span class="badge badge-pending">⏳ En attente</span>';
+    const statutHtml=statut==='verified'?'<span class="badge badge-actif"><span class="material-symbols-outlined">check_circle</span> Vérifié</span>':'<span class="badge badge-pending"><span class="material-symbols-outlined">hourglass</span> En attente</span>';
     document.getElementById('s-statut').innerHTML=statutHtml;
     document.getElementById('d-statut').innerHTML=statutHtml;
     const banner = document.getElementById('bandeau-attente');
@@ -868,7 +863,7 @@ async function ajouterCreneau(){
     const res=await fetch(`${API}/doctors/slots`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({phone,day:jour,start_time:debut,end_time:fin})});
     const data=await res.json();
     if(!data.success){alert('Erreur : '+data.message);return;}
-    alert('✅ Créneau ajouté !');
+    alert('<span class="material-symbols-outlined">check_circle</span> Créneau ajouté !');
     loadCreneaux();
     document.getElementById('creneau-debut').value='';
     document.getElementById('creneau-fin').value='';
@@ -881,7 +876,7 @@ async function supprimerCreneau(id){
     const res=await fetch(`${API}/doctors/slots/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${getAuthToken()}`}});
     const data=await res.json();
     if(!data.success){alert('Erreur : '+data.message);return;}
-    alert('✅ Créneau supprimé !');
+    alert('<span class="material-symbols-outlined">check_circle</span> Créneau supprimé !');
     loadCreneaux();
   }catch(e){alert('Erreur de connexion au serveur');}
 }
@@ -913,8 +908,8 @@ async function submitChangePwd(){
     });
     const data = await res.json();
     if (data.success) {
-      showToast('Mot de passe modifié ✅','success');
-      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      showToast('Mot de passe modifié <span class="material-symbols-outlined">check_circle</span>','success');
+      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;"><span class="material-symbols-outlined">key</span> Changer mon mot de passe</button>';
     } else {
       showToast(data.message || 'Erreur','error');
     }
@@ -946,14 +941,14 @@ async function loadRdv(){
     renderRdvList(rdvAujourdhui.length?rdvAujourdhui:allRdvData.slice(0,5),'accueil-rdv');
     renderRdvList(allRdvData,'all-rdv');
     const patientsEl=document.getElementById('patients-list');
-    if(!uniquePatients.length){patientsEl.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><p>Aucun patient pour l'instant.</p></div>`;}
-    else{patientsEl.innerHTML=`<div class="patients-grid">${uniquePatients.map(p=>{const rdvPatient=allRdvData.filter(r=>r.patient_phone===p);return `<div class="patient-card"><div style="font-size:24px;margin-bottom:10px;">👤</div><div style="font-size:16px;font-weight:700;margin-bottom:4px;">${p}</div><div style="font-size:13px;color:var(--texte-doux);margin-bottom:12px;">${rdvPatient.length} RDV — dernier : ${rdvPatient[0]?formatDate(rdvPatient[0].appointment_date||rdvPatient[0].date):'—'}</div><button class="btn-rdv" data-action="generer-qr-patient" data-patient="${p}" style="width:100%;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🔬 Générer QR Code</button></div>`;}).join('')}</div>`;}
-  }catch(e){['accueil-rdv','all-rdv'].forEach(id=>{document.getElementById(id).innerHTML=`<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous pour l'instant.</p></div>`;});}
+    if(!uniquePatients.length){patientsEl.innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">groups</span></div><p>Aucun patient pour l'instant.</p></div>`;}
+    else{patientsEl.innerHTML=`<div class="patients-grid">${uniquePatients.map(p=>{const rdvPatient=allRdvData.filter(r=>r.patient_phone===p);return `<div class="patient-card"><div style="font-size:24px;margin-bottom:10px;"><span class="material-symbols-outlined">person</span></div><div style="font-size:16px;font-weight:700;margin-bottom:4px;">${p}</div><div style="font-size:13px;color:var(--texte-doux);margin-bottom:12px;">${rdvPatient.length} RDV — dernier : ${rdvPatient[0]?formatDate(rdvPatient[0].appointment_date||rdvPatient[0].date):'—'}</div><button class="btn-rdv" data-action="generer-qr-patient" data-patient="${p}" style="width:100%;padding:10px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;"><span class="material-symbols-outlined">science</span> Générer QR Code</button></div>`;}).join('')}</div>`;}
+  }catch(e){['accueil-rdv','all-rdv'].forEach(id=>{document.getElementById(id).innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">calendar_month</span></div><p>Aucun rendez-vous pour l'instant.</p></div>`;});}
 }
 
 function renderRdvList(rdvs,containerId){
   const el=document.getElementById(containerId);
-  if(!rdvs||!rdvs.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun rendez-vous pour l'instant.</p></div>`;return;}
+  if(!rdvs||!rdvs.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">calendar_month</span></div><p>Aucun rendez-vous pour l'instant.</p></div>`;return;}
   el.innerHTML=`<div class="rdv-list">${rdvs.map(r=>{
     const termine=r.status==='termine'||r.status==='completed';
     const peutValider=!termine&&r.session_code;
@@ -964,37 +959,37 @@ function renderRdvList(rdvs,containerId){
     if(hasSymptoms){
       symptomsHtml=`
         <div style="margin-top:8px;padding:10px 12px;background:#f0fdf4;border-left:3px solid #10b981;border-radius:0 8px 8px 0;font-size:13px;">
-          <div style="font-weight:700;color:#065f46;margin-bottom:4px;">🤖 Bolamu IA Consult — Pré-consultation</div>
+          <div style="font-weight:700;color:#065f46;margin-bottom:4px;"><span class="material-symbols-outlined">smart_toy</span> Bolamu IA Consult — Pré-consultation</div>
           <div style="color:#047857;margin-bottom:6px;"><strong>Motif :</strong> ${r.symptomes_motif}</div>
           ${r.symptomes_liste&&r.symptomes_liste.length?
             `<div style="display:flex;flex-wrap:wrap;gap:4px;">
               ${(typeof r.symptomes_liste==='string'?JSON.parse(r.symptomes_liste):r.symptomes_liste)
                 .map(s=>`<span style="background:white;border:1px solid #10b981;color:#047857;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:600;">${s}</span>`).join('')}
             </div>`:''}
-          ${r.duree_symptomes?`<div style="margin-top:6px;font-size:12px;color:#6b7280;">⏱ Depuis : ${r.duree_symptomes.replace('_',' ').replace('moins 24h','moins de 24h')}</div>`:''}
-          ${r.intensite?`<div style="font-size:12px;color:#6b7280;">📊 Intensité : ${r.intensite}/10</div>`:''}
+          ${r.duree_symptomes?`<div style="margin-top:6px;font-size:12px;color:#6b7280;"><span class="material-symbols-outlined">timer</span> Depuis : ${r.duree_symptomes.replace('_',' ').replace('moins 24h','moins de 24h')}</div>`:''}
+          ${r.intensite?`<div style="font-size:12px;color:#6b7280;"><span class="material-symbols-outlined">bar_chart</span> Intensité : ${r.intensite}/10</div>`:''}
         </div>
       `;
     }
     return `<div class="rdv-card ${termine?'rdv-termine':''}">
       <div class="rdv-card-top">
-        <div class="rdv-patient"><div class="rdv-avatar">👤</div><div>
+        <div class="rdv-patient"><div class="rdv-avatar"><span class="material-symbols-outlined">person</span></div><div>
           <div class="rdv-name">${r.patient_phone}</div>
-          <div class="rdv-phone">Code : <strong style="font-family:'Fraunces',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code||'—'}</strong></div>
+          <div class="rdv-phone">Code : <strong style="font-family:'Plus Jakarta Sans',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code||'—'}</strong></div>
         </div></div>
         <div style="display:flex;align-items:center;gap:8px;">
-          ${hasSymptoms?`<span style="background:#d1fae5;color:#065f46;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:700;">🤖 IA Consult prêt</span>`:''}
-          <span class="badge ${termine?'badge-termine':'badge-confirme'}">${termine?'✅ Terminé':'📅 Confirmé'}</span>
+          ${hasSymptoms?`<span style="background:#d1fae5;color:#065f46;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:700;"><span class="material-symbols-outlined">smart_toy</span> IA Consult prêt</span>`:''}
+          <span class="badge ${termine?'badge-termine':'badge-confirme'}">${termine?'<span class="material-symbols-outlined">check_circle</span> Terminé':'<span class="material-symbols-outlined">calendar_month</span> Confirmé'}</span>
         </div>
       </div>
-      <div class="rdv-meta"><span>📅 <strong>${formatDate(dateRdv)}</strong></span><span>⏰ <strong>${heureRdv}</strong></span></div>
+      <div class="rdv-meta"><span><span class="material-symbols-outlined">calendar_month</span> <strong>${formatDate(dateRdv)}</strong></span><span><span class="material-symbols-outlined">schedule</span> <strong>${heureRdv}</strong></span></div>
       ${symptomsHtml}
       <div class="rdv-actions">
         ${peutValider?`
-          <button class="btn-valider" data-action="ouvrir-validation" data-id="${r.id}" data-patient="${r.patient_phone}" data-session="${r.session_code}" data-date="${dateRdv}" data-heure="${heureRdv}" data-symptomes-motif="${r.symptomes_motif||''}">✅ Valider</button>
-          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}">📹 Téléconsultation</button>
-          <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}">🔬 Prescrire labo</button>`:''}
-        ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}">🔬 Prescrire labo</button>`:''}
+          <button class="btn-valider" data-action="ouvrir-validation" data-id="${r.id}" data-patient="${r.patient_phone}" data-session="${r.session_code}" data-date="${dateRdv}" data-heure="${heureRdv}" data-symptomes-motif="${r.symptomes_motif||''}"><span class="material-symbols-outlined">check_circle</span> Valider</button>
+          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">videocam</span> Téléconsultation</button>
+          <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>`:''}
+        ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>`:''}
       </div>
     </div>`;
   }).join('')}</div>`;
@@ -1051,19 +1046,19 @@ function afficherEtapeCompteRendu(){
   document.getElementById('modal-content').innerHTML=`
     <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step active">2</div><div class="step-line"></div><div class="step pending">3</div></div>
     <div class="modal-title">Compte rendu de consultation</div>
-    <div class="modal-sub">Code validé ✅ — Remplissez le compte rendu obligatoire avant de valider la consultation.</div>
+    <div class="modal-sub">Code validé <span class="material-symbols-outlined">check_circle</span> — Remplissez le compte rendu obligatoire avant de valider la consultation.</div>
     
-    <!-- 🤖 Briefing IA — Amina -->
+    <!-- <span class="material-symbols-outlined">smart_toy</span> Briefing IA — Amina -->
     <div id="ai-briefing-section" style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:16px;padding:20px;margin-bottom:24px;color:white;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:24px;">🤖</span>
+          <span style="font-size:24px;"><span class="material-symbols-outlined">smart_toy</span></span>
           <span style="font-size:16px;font-weight:700;">Briefing IA — Amina</span>
         </div>
-        <button type="button" id="btn-generate-briefing" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;">🔄 Générer le briefing</button>
+        <button type="button" id="btn-generate-briefing" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;"><span class="material-symbols-outlined">refresh</span> Générer le briefing</button>
       </div>
       <div id="briefing-result" style="display:none;">
-        <div id="briefing-loading" style="text-align:center;padding:12px;font-size:13px;">⏳ Analyse en cours...</div>
+        <div id="briefing-loading" style="text-align:center;padding:12px;font-size:13px;"><span class="material-symbols-outlined">hourglass</span> Analyse en cours...</div>
         <div id="briefing-content" style="display:none;">
           <div id="tricolor-badge" style="display:inline-block;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;margin-bottom:12px;"></div>
           <div style="display:grid;gap:12px;font-size:13px;line-height:1.5;">
@@ -1072,7 +1067,7 @@ function afficherEtapeCompteRendu(){
             <div><strong>Alertes interactions :</strong> <span id="briefing-alertes">—</span></div>
             <div><strong>Symptômes déclarés :</strong> <span id="briefing-symptomes">—</span></div>
           </div>
-          <button type="button" id="btn-renewal" style="display:none;margin-top:16px;background:#00C9A7;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;">🔄 Renouvellement assisté</button>
+          <button type="button" id="btn-renewal" style="display:none;margin-top:16px;background:#00C9A7;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;"><span class="material-symbols-outlined">refresh</span> Renouvellement assisté</button>
         </div>
       </div>
     </div>
@@ -1089,7 +1084,7 @@ function afficherEtapeCompteRendu(){
       <label class="form-label">Diagnostic *</label>
       <textarea class="form-textarea" id="cr-diagnostic" placeholder="Diagnostic principal..." required></textarea>
     </div>
-    <div class="amina-box"><div class="amina-header"><div class="amina-label"><span style="font-size:20px;">🤖</span>SOAP</div><button type="button" id="btn-amina-soap" class="amina-btn">🔄</button></div><div id="amina-soap-result" style="display:none;"></div></div>
+    <div class="amina-box"><div class="amina-header"><div class="amina-label"><span style="font-size:20px;"><span class="material-symbols-outlined">smart_toy</span></span>SOAP</div><button type="button" id="btn-amina-soap" class="amina-btn"><span class="material-symbols-outlined">refresh</span></button></div><div id="amina-soap-result" style="display:none;"></div></div>
     <div class="form-group">
       <label class="form-label">Traitement prescrit (optionnel)</label>
       <textarea class="form-textarea" id="cr-traitement" placeholder="Médicaments, posologie..."></textarea>
@@ -1101,7 +1096,7 @@ function afficherEtapeCompteRendu(){
     <div class="form-group" style="background:var(--bleu-pale);padding:16px;border-radius:12px;border:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <label class="form-label" style="margin:0;">Constantes médicales du patient</label>
-        <button type="button" data-action="load-constantes" style="background:var(--bleu-vif);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;">🔄 Charger</button>
+        <button type="button" data-action="load-constantes" style="background:var(--bleu-vif);color:white;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;"><span class="material-symbols-outlined">refresh</span> Charger</button>
       </div>
       <div id="constantes-fields" style="display:none;flex-direction:column;gap:12px;">
         <div>
@@ -1152,8 +1147,8 @@ function afficherEtapeCompteRendu(){
           <label style="font-size:12px;font-weight:600;color:var(--texte-doux);">Lien de parenté</label>
           <input type="text" id="edit-contact-lien" placeholder="Ex: Épouse, Père, Mère..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;margin-top:4px;">
         </div>
-        <button type="button" data-action="save-constantes" style="background:var(--vert);color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600;">💾 Enregistrer les constantes</button>
-        <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;">⚠️ Ces informations seront visibles par le patient dans son dossier médical.</p>
+        <button type="button" data-action="save-constantes" style="background:var(--vert);color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600;"><span class="material-symbols-outlined">save</span> Enregistrer les constantes</button>
+        <p style="font-size:11px;color:var(--texte-doux);margin-top:8px;"><span class="material-symbols-outlined">warning</span> Ces informations seront visibles par le patient dans son dossier médical.</p>
       </div>
     </div>
     <div class="modal-actions">
@@ -1189,7 +1184,7 @@ function afficherEtapeOrdonnance(){
   document.getElementById('modal-content').innerHTML=`
     <div class="step-indicator"><div class="step done">✓</div><div class="step-line done"></div><div class="step done">✓</div><div class="step-line done"></div><div class="step active">3</div></div>
     <div class="modal-title">Rédiger l'ordonnance</div>
-    <div class="modal-sub">Code validé ✅ — Ajoutez les médicaments un par un. Le statut SSP est déterminé automatiquement.</div>
+    <div class="modal-sub">Code validé <span class="material-symbols-outlined">check_circle</span> — Ajoutez les médicaments un par un. Le statut SSP est déterminé automatiquement.</div>
     <div class="form-group" style="background:var(--bleu-pale);padding:16px;border-radius:12px;border:1px solid var(--border);">
       <label class="form-label">Nom du médicament *</label>
       <input class="form-input" id="ord-med-nom" list="ssp-datalist" autocomplete="off" placeholder="Commencez à taper… (ex : Paracétamol)">
@@ -1199,7 +1194,7 @@ function afficherEtapeOrdonnance(){
         <input class="form-input" id="ord-med-quantite" style="flex:1;min-width:120px;" placeholder="Quantité (ex : 1 boîte)">
       </div>
       <input class="form-input" id="ord-med-posologie" style="margin-top:10px;" placeholder="Posologie / instructions (ex : 3x/jour pendant 5 jours)">
-      <button type="button" class="btn-primary" data-action="ajouter-med" style="margin-top:12px;width:100%;">➕ Ajouter à l'ordonnance</button>
+      <button type="button" class="btn-primary" data-action="ajouter-med" style="margin-top:12px;width:100%;"><span class="material-symbols-outlined">add</span> Ajouter à l'ordonnance</button>
     </div>
     <div class="form-group">
       <label class="form-label">Médicaments de l'ordonnance</label>
@@ -1210,10 +1205,10 @@ function afficherEtapeOrdonnance(){
       <label class="form-label">Instructions complémentaires</label>
       <input class="form-input" id="ord-instructions" placeholder="Ex : Prendre après les repas…">
     </div>
-    <div class="amina-box"><div class="amina-header"><div class="amina-label"><span style="font-size:20px;">💊</span>Ordonnance SSP</div><button type="button" id="btn-amina-ordonnance" class="amina-btn">💊</button></div><div id="amina-ordonnance-result" style="display:none;"></div></div>
+    <div class="amina-box"><div class="amina-header"><div class="amina-label"><span style="font-size:20px;"><span class="material-symbols-outlined">medication</span></span>Ordonnance SSP</div><button type="button" id="btn-amina-ordonnance" class="amina-btn"><span class="material-symbols-outlined">medication</span></button></div><div id="amina-ordonnance-result" style="display:none;"></div></div>
     <div class="modal-actions">
       <button class="btn-cancel" data-action="retour-cr">← Retour</button>
-      <button class="btn-primary" id="btn-confirmer" data-action="confirmer-validation">✅ Valider et créer l'ordonnance</button>
+      <button class="btn-primary" id="btn-confirmer" data-action="confirmer-validation"><span class="material-symbols-outlined">check_circle</span> Valider et créer l'ordonnance</button>
     </div>`;
 
   medicamentsData = [];
@@ -1314,8 +1309,8 @@ function renderOrdMedList(){
 
   listDiv.innerHTML = medicamentsData.map((m, i) => {
     const badge = m.isSSP
-      ? `<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;background:var(--vert-clair);color:var(--emeraude);border:1px solid var(--vert);">✅ SSP gratuit</span>`
-      : `<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;background:#fef9ec;color:var(--amber);border:1px solid var(--amber);">💊 Hors catalogue</span>`;
+      ? `<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;background:var(--vert-clair);color:var(--emeraude);border:1px solid var(--vert);"><span class="material-symbols-outlined">check_circle</span> SSP gratuit</span>`
+      : `<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;background:#fef9ec;color:var(--amber);border:1px solid var(--amber);"><span class="material-symbols-outlined">medication</span> Hors catalogue</span>`;
     const details = [];
     if(m.dosage) details.push(m.dosage);
     if(m.quantite) details.push(`Qté : ${m.quantite}`);
@@ -1374,7 +1369,7 @@ async function confirmerValidation(){
     const dataVal=await resVal.json();
     if(!resVal.ok){
       if(dataVal.message&&dataVal.message.includes('Compte rendu obligatoire')){
-        btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';
+        btn.disabled=false;btn.textContent='<span class="material-symbols-outlined">check_circle</span> Valider et créer l\'ordonnance';
         alert('Erreur : '+dataVal.message+'\n\nLe compte rendu doit être soumis avant la validation.');
         afficherEtapeCompteRendu();
         return;
@@ -1387,12 +1382,12 @@ async function confirmerValidation(){
 
     document.getElementById('modal-content').innerHTML=`
       <div class="validation-success">
-        <div class="success-icon">✅</div>
+        <div class="success-icon"><span class="material-symbols-outlined">check_circle</span></div>
         <div class="success-title">Consultation validée !</div>
-        <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Fraunces',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong></div>
+        <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Plus Jakarta Sans',serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong></div>
         <button class="btn-primary" data-action="fermer-modal-load">Fermer</button>
       </div>`;
-  }catch(e){btn.disabled=false;btn.textContent='✅ Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
+  }catch(e){btn.disabled=false;btn.textContent='<span class="material-symbols-outlined">check_circle</span> Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
 }
 
 function fermerModal(){document.getElementById('modal-validation').classList.remove('open');}
@@ -1407,7 +1402,7 @@ async function generateBriefing(){
 
   console.log('[BRIEFING] currentRdv =', currentRdv);
 
-  btn.disabled=true;btn.textContent='⏳ Analyse...';
+  btn.disabled=true;btn.textContent='<span class="material-symbols-outlined">hourglass</span> Analyse...';
   resultDiv.style.display='block';
   loadingDiv.style.display='block';
   contentDiv.style.display='none';
@@ -1437,24 +1432,24 @@ async function generateBriefing(){
       
       // Badge feu tricolore par défaut (sera mis à jour après analyse tricolor)
       const badge=document.getElementById('tricolor-badge');
-      badge.textContent='🟢 Vert';
+      badge.textContent='Vert';
       badge.style.background='#00C9A7';
       
-      btn.textContent='🔄 Régénérer';
+      btn.textContent='<span class="material-symbols-outlined">refresh</span> Régénérer';
     }else{
-      contentDiv.innerHTML='<div style="padding:12px;font-size:13px;">⚠️ '+ (data.message||'Analyse indisponible')+'</div>';
+      contentDiv.innerHTML='<div style="padding:12px;font-size:13px;"><span class="material-symbols-outlined">warning</span> '+ (data.message||'Analyse indisponible')+'</div>';
     }
   }catch(e){
     loadingDiv.style.display='none';
-    contentDiv.innerHTML='<div style="padding:12px;font-size:13px;">⚠️ Erreur de connexion</div>';
+    contentDiv.innerHTML='<div style="padding:12px;font-size:13px;"><span class="material-symbols-outlined">warning</span> Erreur de connexion</div>';
   }
   
   btn.disabled=false;
 }
 
-async function generateAminaSOAP(){const b=document.getElementById('btn-amina-soap'),r=document.getElementById('amina-soap-result'),m=document.getElementById('cr-motif').value.trim(),o=document.getElementById('cr-observations').value.trim(),d=document.getElementById('cr-diagnostic').value.trim();if(!m||!o||!d){alert('Remplissez motif, obs, diag.');return;}b.disabled=true;b.textContent='⏳';r.style.display='block';r.innerHTML='<div class="amina-loading">⏳</div>';try{const res=await fetch(`${API}/ai-consult/rediger-cr`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({motif:m,observations:o,diagnostic:d,patient_phone:currentRdv.patientPhone})});const data=await res.json();if(data.success&&data.data){const s=data.data.soap||{},e=data.data.elements_manquants||[],meds=data.data.medicaments_suggeres||[];r.innerHTML=`<div class="soap-grid"><div class="soap-card"><span class="soap-label">S:</span><br>${s.S||'—'}</div><div class="soap-card"><span class="soap-label">O:</span><br>${s.O||'—'}</div><div class="soap-card"><span class="soap-label">A:</span><br>${s.A||'—'}</div><div class="soap-card"><span class="soap-label">P:</span><br>${s.P||'—'}</div>${e.length?`<div style="color:#d97706;font-size:12px;">⚠️ ${e.join(', ')}</div>`:''}${meds.length?`<div style="margin-top:8px;"><strong>SSP:</strong>${meds.map(m=>`<span class="ssp-badge ${m.est_ssp?'ssp-yes':'ssp-no'}">${m.nom}</span>`).join('')}</div>`:''}</div><button id="btn-copy-soap" class="amina-btn copy-btn">📋</button>`;}else{r.innerHTML='<div class="amina-error">⚠️ '+(data.message||'Err')+'</div>';}}catch(e){r.innerHTML='<div class="amina-error">⚠️ Err</div>';}b.disabled=false;b.textContent='🔄';}
-async function copySOAPToForm(){const m=document.getElementById('cr-motif'),o=document.getElementById('cr-observations'),d=document.getElementById('cr-diagnostic'),t=document.getElementById('cr-traitement'),r=document.getElementById('amina-soap-result'),s=r.innerText;if(s.includes('S:'))m.value=s.split('S:')[1]?.split('O:')[0]?.trim()||m.value;if(s.includes('O:'))o.value=s.split('O:')[1]?.split('A:')[0]?.trim()||o.value;if(s.includes('A:'))d.value=s.split('A:')[1]?.split('P:')[0]?.trim()||d.value;if(s.includes('P:'))t.value=s.split('P:')[1]?.split('⚠️')[0]?.trim()||t.value;alert('SOAP copié !');}
-async function generateAminaOrdonnance(){const b=document.getElementById('btn-amina-ordonnance'),r=document.getElementById('amina-ordonnance-result'),d=document.getElementById('cr-diagnostic').value.trim(),a=document.getElementById('edit-allerges')?.value.trim()||'';if(!d){alert('Diagnostic requis.');return;}b.disabled=true;b.textContent='⏳';r.style.display='block';r.innerHTML='<div class="amina-loading">⏳</div>';try{const res=await fetch(`${API}/ai-consult/suggerer-ordonnance`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({diagnostic:d,patient_phone:currentRdv.patientPhone,allergies:a})});const data=await res.json();if(data.success&&data.data){const meds=data.data.medicaments||[],w=data.data.avertissements||[];r.innerHTML=`<div class="med-grid">${meds.map(m=>`<div class="amina-med-card"><div style="flex:1;"><span style="font-weight:700;color:${m.est_ssp?'#047857':'#374151'};">${m.nom}</span><span class="ssp-badge ${m.est_ssp?'ssp-yes':'ssp-no'}">${m.est_ssp?'✅':'⚪'}</span><div style="font-size:12px;color:var(--texte-doux);margin-top:2px;">${m.dosage||''}•${m.posologie||''}•${m.duree||''}</div></div><button data-action="ajouter-med-ai" data-nom="${m.nom}" data-dosage="${m.dosage||''}" data-posologie="${m.posologie||''}" class="amina-btn add-btn">➕</button></div>`).join('')}${w.length?`<div class="warn-text">⚠️ ${w.join(', ')}</div>`:''}</div>`;}else{r.innerHTML='<div class="amina-error">⚠️ '+(data.message||'Err')+'</div>';}}catch(e){r.innerHTML='<div class="amina-error">⚠️ Err</div>';}b.disabled=false;b.textContent='💊';}
+async function generateAminaSOAP(){const b=document.getElementById('btn-amina-soap'),r=document.getElementById('amina-soap-result'),m=document.getElementById('cr-motif').value.trim(),o=document.getElementById('cr-observations').value.trim(),d=document.getElementById('cr-diagnostic').value.trim();if(!m||!o||!d){alert('Remplissez motif, obs, diag.');return;}b.disabled=true;b.textContent='<span class="material-symbols-outlined">hourglass</span>';r.style.display='block';r.innerHTML='<div class="amina-loading"><span class="material-symbols-outlined">hourglass</span></div>';try{const res=await fetch(`${API}/ai-consult/rediger-cr`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({motif:m,observations:o,diagnostic:d,patient_phone:currentRdv.patientPhone})});const data=await res.json();if(data.success&&data.data){const s=data.data.soap||{},e=data.data.elements_manquants||[],meds=data.data.medicaments_suggeres||[];r.innerHTML=`<div class="soap-grid"><div class="soap-card"><span class="soap-label">S:</span><br>${s.S||'—'}</div><div class="soap-card"><span class="soap-label">O:</span><br>${s.O||'—'}</div><div class="soap-card"><span class="soap-label">A:</span><br>${s.A||'—'}</div><div class="soap-card"><span class="soap-label">P:</span><br>${s.P||'—'}</div>${e.length?`<div style="color:#d97706;font-size:12px;"><span class="material-symbols-outlined">warning</span> ${e.join(', ')}</div>`:''}${meds.length?`<div style="margin-top:8px;"><strong>SSP:</strong>${meds.map(m=>`<span class="ssp-badge ${m.est_ssp?'ssp-yes':'ssp-no'}">${m.nom}</span>`).join('')}</div>`:''}</div><button id="btn-copy-soap" class="amina-btn copy-btn"><span class="material-symbols-outlined">content_copy</span></button>`;}else{r.innerHTML='<div class="amina-error"><span class="material-symbols-outlined">warning</span> '+(data.message||'Err')+'</div>';}}catch(e){r.innerHTML='<div class="amina-error"><span class="material-symbols-outlined">warning</span> Err</div>';}b.disabled=false;b.textContent='<span class="material-symbols-outlined">refresh</span>';}
+async function copySOAPToForm(){const m=document.getElementById('cr-motif'),o=document.getElementById('cr-observations'),d=document.getElementById('cr-diagnostic'),t=document.getElementById('cr-traitement'),r=document.getElementById('amina-soap-result'),s=r.innerText;if(s.includes('S:'))m.value=s.split('S:')[1]?.split('O:')[0]?.trim()||m.value;if(s.includes('O:'))o.value=s.split('O:')[1]?.split('A:')[0]?.trim()||o.value;if(s.includes('A:'))d.value=s.split('A:')[1]?.split('P:')[0]?.trim()||d.value;if(s.includes('P:'))t.value=s.split('P:')[1]?.split('<span class="material-symbols-outlined">warning</span>')[0]?.trim()||t.value;alert('SOAP copié !');}
+async function generateAminaOrdonnance(){const b=document.getElementById('btn-amina-ordonnance'),r=document.getElementById('amina-ordonnance-result'),d=document.getElementById('cr-diagnostic').value.trim(),a=document.getElementById('edit-allerges')?.value.trim()||'';if(!d){alert('Diagnostic requis.');return;}b.disabled=true;b.textContent='<span class="material-symbols-outlined">hourglass</span>';r.style.display='block';r.innerHTML='<div class="amina-loading"><span class="material-symbols-outlined">hourglass</span></div>';try{const res=await fetch(`${API}/ai-consult/suggerer-ordonnance`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({diagnostic:d,patient_phone:currentRdv.patientPhone,allergies:a})});const data=await res.json();if(data.success&&data.data){const meds=data.data.medicaments||[],w=data.data.avertissements||[];r.innerHTML=`<div class="med-grid">${meds.map(m=>`<div class="amina-med-card"><div style="flex:1;"><span style="font-weight:700;color:${m.est_ssp?'#047857':'#374151'};">${m.nom}</span><span class="ssp-badge ${m.est_ssp?'ssp-yes':'ssp-no'}">${m.est_ssp?'<span class="material-symbols-outlined">check_circle</span>':'<span class="material-symbols-outlined">radio_button_unchecked</span>'}</span><div style="font-size:12px;color:var(--texte-doux);margin-top:2px;">${m.dosage||''}•${m.posologie||''}•${m.duree||''}</div></div><button data-action="ajouter-med-ai" data-nom="${m.nom}" data-dosage="${m.dosage||''}" data-posologie="${m.posologie||''}" class="amina-btn add-btn"><span class="material-symbols-outlined">add</span></button></div>`).join('')}${w.length?`<div class="warn-text"><span class="material-symbols-outlined">warning</span> ${w.join(', ')}</div>`:''}</div>`;}else{r.innerHTML='<div class="amina-error"><span class="material-symbols-outlined">warning</span> '+(data.message||'Err')+'</div>';}}catch(e){r.innerHTML='<div class="amina-error"><span class="material-symbols-outlined">warning</span> Err</div>';}b.disabled=false;b.textContent='<span class="material-symbols-outlined">medication</span>';}
 async function addMedicamentAI(n,d,p){document.getElementById('ord-med-nom').value=n;document.getElementById('ord-med-dosage').value=d;document.getElementById('ord-med-posologie').value=p;ajouterMedicament();}
 
 async function analyzeTricolor(){
@@ -1476,13 +1471,13 @@ async function analyzeTricolor(){
       const status=data.data.status;
       
       if(status==='green'){
-        badge.textContent='🟢 Vert';
+        badge.textContent='Vert';
         badge.style.background='#00C9A7';
       }else if(status==='orange'){
-        badge.textContent='🟠 Orange';
+        badge.textContent='Orange';
         badge.style.background='#f39c12';
       }else if(status==='red'){
-        badge.textContent='🔴 Rouge';
+        badge.textContent='<span class="material-symbols-outlined">circle</span> Rouge';
         badge.style.background='#e74c3c';
       }
     }
@@ -1499,7 +1494,7 @@ async function generateRenewal(){
       if(renewal.eligible&&renewal.suggestion){
         document.getElementById('ord-medications').value=renewal.suggestion.medications||'';
         document.getElementById('ord-instructions').value=renewal.suggestion.instructions||'';
-        alert('✅ Ordonnance suggérée chargée : '+renewal.reason);
+        alert('<span class="material-symbols-outlined">check_circle</span> Ordonnance suggérée chargée : '+renewal.reason);
       }else{
         alert('ℹ️ '+renewal.reason);
       }
@@ -1514,26 +1509,26 @@ async function loadTeleRdv(){
     const data=await res.json();
     const rdvs=(data.data||data||[]).filter(r=>r.status==='confirme'||r.status==='en_cours');
     const container=document.getElementById('tele-rdv-list');
-    if(!rdvs.length){container.innerHTML=`<div class="empty-state"><div class="empty-icon">📅</div><p>Aucun RDV confirmé pour le moment.<br>Les téléconsultations apparaissent ici dès qu'un RDV est confirmé.</p></div>`;return;}
+    if(!rdvs.length){container.innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">calendar_month</span></div><p>Aucun RDV confirmé pour le moment.<br>Les téléconsultations apparaissent ici dès qu'un RDV est confirmé.</p></div>`;return;}
     container.innerHTML=`<div class="rdv-list">${rdvs.map(r=>{
       const dateRdv=r.appointment_date||r.date||'';
       const heureRdv=(r.appointment_time||r.time||'—').substring(0,5);
       const isEnCours=r.status==='en_cours';
       return `<div class="rdv-card" style="${isEnCours?'border-color:var(--vert);':''}">
         <div class="rdv-card-top">
-          <div class="rdv-patient"><div class="rdv-avatar">👤</div><div>
+          <div class="rdv-patient"><div class="rdv-avatar"><span class="material-symbols-outlined">person</span></div><div>
             <div class="rdv-name">${r.patient_phone}</div>
-            <div class="rdv-phone">Code : <strong style="font-family:'Fraunces',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code}</strong></div>
+            <div class="rdv-phone">Code : <strong style="font-family:'Plus Jakarta Sans',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code}</strong></div>
           </div></div>
-          ${isEnCours?'<span style="background:rgba(0,201,167,0.15);color:#047857;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;">🔴 En cours</span>':'<span class="badge badge-confirme">📅 Confirmé</span>'}
+          ${isEnCours?'<span style="background:rgba(0,201,167,0.15);color:#047857;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;"><span class="material-symbols-outlined">circle</span> En cours</span>':'<span class="badge badge-confirme"><span class="material-symbols-outlined">calendar_month</span> Confirmé</span>'}
         </div>
-        <div class="rdv-meta"><span>📅 <strong>${formatDate(dateRdv)}</strong></span><span>⏰ <strong>${heureRdv}</strong></span></div>
+        <div class="rdv-meta"><span><span class="material-symbols-outlined">calendar_month</span> <strong>${formatDate(dateRdv)}</strong></span><span><span class="material-symbols-outlined">schedule</span> <strong>${heureRdv}</strong></span></div>
         <div class="rdv-actions">
-          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}">📹 ${isEnCours?'Reprendre la session':'Démarrer la téléconsultation'}</button>
+          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">videocam</span> ${isEnCours?'Reprendre la session':'Démarrer la téléconsultation'}</button>
         </div>
       </div>`;
     }).join('')}</div>`;
-  }catch(e){document.getElementById('tele-rdv-list').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Erreur de chargement.</p></div>`;}
+  }catch(e){document.getElementById('tele-rdv-list').innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">warning</span></div><p>Erreur de chargement.</p></div>`;}
 }
 
 async function demarrerTeleconsultation(rdvId,sessionCode,patientPhone){
@@ -1620,7 +1615,7 @@ function ouvrirModalLabo(rdvId,patientPhone){
       </div>
       <div class="modal-actions" style="display:flex;gap:12px;margin-top:24px;">
         <button class="btn-cancel" data-action="fermer-modal-labo">Annuler</button>
-        <button class="btn-primary" id="btn-labo-envoyer" data-action="envoyer-labo" data-id="${rdvId}" data-patient="${patientPhone}">🔬 Envoyer</button>
+        <button class="btn-primary" id="btn-labo-envoyer" data-action="envoyer-labo" data-id="${rdvId}" data-patient="${patientPhone}"><span class="material-symbols-outlined">science</span> Envoyer</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -1646,8 +1641,8 @@ async function envoyerPrescriptionLabo(rdvId,patientPhone){
     if(!res.ok)throw new Error(data.message||'Erreur prescription');
     fermerModalLabo();
     const prescriptionCode=data.data?.prescription_code||'N/A';
-    alert(`✅ Prescription créée.\n\nCode à donner au patient : ${prescriptionCode}`);
-  }catch(e){btn.disabled=false;btn.textContent='🔬 Envoyer';alert('Erreur : '+e.message);}
+    alert(`<span class="material-symbols-outlined">check_circle</span> Prescription créée.\n\nCode à donner au patient : ${prescriptionCode}`);
+  }catch(e){btn.disabled=false;btn.textContent='<span class="material-symbols-outlined">science</span> Envoyer';alert('Erreur : '+e.message);}
 }
 
 async function genererQRPatient(patientPhone){
@@ -1683,11 +1678,11 @@ let currentLat = null, currentLng = null;
 
 function detectPosition() {
   const btn = document.getElementById('btn-detect-pos');
-  btn.textContent = '⏳ Détection…';
+  btn.textContent = '<span class="material-symbols-outlined">hourglass</span> Détection…';
   btn.disabled = true;
   if (!navigator.geolocation) {
-    document.getElementById('gps-status').textContent = '❌ Géolocalisation non supportée';
-    btn.textContent = '📡 Détecter ma position';
+    document.getElementById('gps-status').textContent = '<span class="material-symbols-outlined">cancel</span> Géolocalisation non supportée';
+    btn.textContent = '<span class="material-symbols-outlined">sensors</span> Détecter ma position';
     btn.disabled = false;
     return;
   }
@@ -1695,15 +1690,15 @@ function detectPosition() {
     (pos) => {
       currentLat = pos.coords.latitude;
       currentLng = pos.coords.longitude;
-      document.getElementById('gps-status').textContent = `📍 Position détectée — Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
+      document.getElementById('gps-status').textContent = `<span class="material-symbols-outlined">location_on</span> Position détectée — Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
       document.getElementById('gps-status').style.color = '#00C9A7';
-      btn.textContent = '📡 Détecter ma position';
+      btn.textContent = '<span class="material-symbols-outlined">sensors</span> Détecter ma position';
       btn.disabled = false;
     },
     (err) => {
-      document.getElementById('gps-status').textContent = '❌ Impossible de détecter — entrez l\'adresse manuellement';
+      document.getElementById('gps-status').textContent = '<span class="material-symbols-outlined">cancel</span> Impossible de détecter — entrez l\'adresse manuellement';
       document.getElementById('gps-status').style.color = '#ef4444';
-      btn.textContent = '📡 Détecter ma position';
+      btn.textContent = '<span class="material-symbols-outlined">sensors</span> Détecter ma position';
       btn.disabled = false;
     },
     { enableHighAccuracy: true, timeout: 10000 }
@@ -1727,8 +1722,8 @@ async function savePosition() {
     });
     const data = await res.json();
     if (data.success) {
-      alert('Position enregistrée ✅');
-      document.getElementById('gps-status').textContent = `✅ Position enregistrée${address ? ' — ' + address : ''}`;
+      alert('Position enregistrée <span class="material-symbols-outlined">check_circle</span>');
+      document.getElementById('gps-status').textContent = `<span class="material-symbols-outlined">check_circle</span> Position enregistrée${address ? ' — ' + address : ''}`;
     }
   } catch(e) { alert('Erreur serveur'); }
 }
@@ -1806,7 +1801,7 @@ async function savePatientConstantes() {
     });
     const data = await res.json();
     if (data.success) {
-      alert('✅ Constantes médicales enregistrées avec succès.');
+      alert('<span class="material-symbols-outlined">check_circle</span> Constantes médicales enregistrées avec succès.');
     } else {
       alert('Erreur lors de la mise à jour: ' + (data.message || 'Erreur inconnue'));
     }
@@ -1989,7 +1984,7 @@ function traiterPatientMedecin(valeur, mode) {
         return;
       }
 
-      var html = '<div style="font-family:\'Fraunces\',serif;font-size:15px;'
+      var html = '<div style="font-family:\'Plus Jakarta Sans\',serif;font-size:15px;'
         + 'font-weight:700;color:var(--bleu);margin-bottom:16px;">'
         + patients.length + ' patients trouves</div>';
       patients.forEach(function(p) {
@@ -2003,7 +1998,7 @@ function traiterPatientMedecin(valeur, mode) {
           + ' onmouseout="this.style.background=\'white\'">'
           + '<div style="width:44px;height:44px;border-radius:12px;'
           + 'background:var(--bleu-pale);display:flex;align-items:center;'
-          + 'justify-content:center;font-family:\'Fraunces\',serif;'
+          + 'justify-content:center;font-family:\'Plus Jakarta Sans\',serif;'
           + 'font-size:18px;font-weight:900;color:var(--bleu);">'
           + initial + '</div>'
           + '<div><div style="font-size:14px;font-weight:700;">'
@@ -2034,7 +2029,7 @@ function afficherFichePatientMedecin(p, resultDiv) {
     + 'border-bottom:1px solid var(--border);">'
     + '<div style="width:56px;height:56px;border-radius:16px;'
     + 'background:var(--bleu-pale);display:flex;align-items:center;'
-    + 'justify-content:center;font-family:\'Fraunces\',serif;'
+    + 'justify-content:center;font-family:\'Plus Jakarta Sans\',serif;'
     + 'font-size:22px;font-weight:900;color:var(--bleu);flex-shrink:0;">'
     + initial + '</div>'
     + '<div style="flex:1;">'
@@ -2154,7 +2149,7 @@ async function verifyZoraVoucher() {
     if (data.success) {
       resultEl.innerHTML = '<div style="background:#e8f5e9;border:2px solid #2e7d32;border-radius:16px;padding:24px;">'
         + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-        + '<div style="font-size:32px;">✅</div>'
+        + '<div style="font-size:32px;"><span class="material-symbols-outlined">check_circle</span></div>'
         + '<div><div style="font-size:16px;font-weight:700;color:var(--texte);">Voucher validé !</div>'
         + '<div style="font-size:14px;color:var(--texte-doux);">Remise à appliquer : ' + data.data.discount_value + '</div></div></div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'
@@ -2167,14 +2162,14 @@ async function verifyZoraVoucher() {
     } else {
       resultEl.innerHTML = '<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">'
         + '<div style="display:flex;align-items:center;gap:12px;">'
-        + '<div style="font-size:32px;">❌</div>'
+        + '<div style="font-size:32px;"><span class="material-symbols-outlined">cancel</span></div>'
         + '<div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur</div>'
         + '<div style="font-size:14px;color:var(--texte-doux);">' + (data.error === 'voucher_not_found' ? 'Voucher introuvable' : data.error === 'voucher_already_used' ? 'Voucher déjà utilisé' : data.error === 'voucher_expired' ? 'Voucher expiré' : data.error) + '</div></div></div></div>';
     }
   } catch(e) {
     resultEl.innerHTML = '<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">'
       + '<div style="display:flex;align-items:center;gap:12px;">'
-      + '<div style="font-size:32px;">⚠️</div>'
+      + '<div style="font-size:32px;"><span class="material-symbols-outlined">warning</span></div>'
       + '<div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur de connexion</div></div></div></div>';
   }
 }
@@ -2193,7 +2188,7 @@ async function loadZoraHistory() {
       histoEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:12px;">' + data.data.map(v => `
         <div style="background:white;border-radius:16px;padding:20px 24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(10,36,99,0.04);">
           <div style="display:flex;align-items:center;gap:16px;">
-            <div style="width:44px;height:44px;border-radius:12px;background:var(--emeraude-clair);display:flex;align-items:center;justify-content:center;font-size:20px;">🎁</div>
+            <div style="width:44px;height:44px;border-radius:12px;background:var(--emeraude-clair);display:flex;align-items:center;justify-content:center;font-size:20px;"><span class="material-symbols-outlined">card_giftcard</span></div>
             <div>
               <div style="font-size:15px;font-weight:700;color:var(--texte);margin-bottom:3px;">${v.reward_title}</div>
               <div style="font-size:13px;color:var(--texte-doux);">${new Date(v.consumed_at).toLocaleString('fr-FR')}</div>
@@ -2283,7 +2278,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (action === 'submit-pwd') submitChangePwd();
     if (action === 'cancel-pwd') {
-      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;"><span class="material-symbols-outlined">key</span> Changer mon mot de passe</button>';
       document.getElementById('btn-change-pwd').addEventListener('click', () => {
         document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
       });
