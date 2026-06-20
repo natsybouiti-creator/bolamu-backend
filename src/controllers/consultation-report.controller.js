@@ -1,5 +1,7 @@
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
+const { awardZora } = require('../services/zora.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 
 // ─── SOUMETTRE UN COMPTE RENDU DE CONSULTATION (médecin) ─────────────────
 async function submitReport(req, res) {
@@ -53,6 +55,42 @@ async function submitReport(req, res) {
             `UPDATE appointments SET report_submitted = TRUE WHERE id = $1`,
             [appointment_id]
         );
+
+        // Créditer points Zora pour consultation (non bloquant)
+        setImmediate(async () => {
+            try {
+                const zoraResult = await awardZora({
+                    phone: patient_phone,
+                    action_type: 'consultation',
+                    proof_class: 'system_event',
+                    proof_source: doctor_phone,
+                    proof_reference: appointment_id.toString()
+                });
+
+                if (zoraResult.success) {
+                    // Envoyer WhatsApp gain Zora consultation
+                    const balanceResult = await pool.query(
+                        `SELECT balance FROM zora_balance WHERE phone = $1`,
+                        [patient_phone]
+                    );
+                    const solde = balanceResult.rows[0]?.balance || 0;
+
+                    const doctorResult = await pool.query(
+                        `SELECT full_name FROM doctors WHERE phone = $1`,
+                        [doctor_phone]
+                    );
+                    const medecin = doctorResult.rows[0]?.full_name || 'Dr.';
+
+                    await sendWhatsAppTemplate(patient_phone, 'gain_zora_consultation', [
+                        medecin,
+                        '50',
+                        solde.toString()
+                    ]);
+                }
+            } catch (zoraErr) {
+                console.error('[submitReport] Erreur gain Zora (non bloquante):', zoraErr.message);
+            }
+        });
 
         return res.status(201).json({
             success: true,

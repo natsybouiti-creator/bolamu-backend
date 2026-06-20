@@ -4,6 +4,7 @@
 const crypto = require('crypto');
 const pool = require('../config/db');
 const { awardZora } = require('./zora.service');
+const { sendWhatsAppTemplate } = require('./whatsapp.service');
 
 /**
  * Vérifier les parties jouées aujourd'hui
@@ -263,6 +264,32 @@ async function playGame({ phone, game_type, play_type }) {
           proof_source: 'game_engine',
           recording_method: null,
           proof_reference: playResult.rows[0].id.toString()
+        });
+
+        // Envoyer WhatsApp gain jeu Zora (non bloquant)
+        setImmediate(async () => {
+          try {
+            const balanceResult = await pool.query(
+              `SELECT balance FROM zora_balance WHERE phone = $1`,
+              [phone]
+            );
+            const solde = balanceResult.rows[0]?.balance || 0;
+
+            const gameLabels = {
+              scratch: 'carte à gratter',
+              wheel: 'roue de la fortune',
+              chest: 'coffre mystère',
+              quiz: 'quiz santé'
+            };
+
+            await sendWhatsAppTemplate(phone, 'gain_jeu_zora', [
+              pointsWon.toString(),
+              gameLabels[game_type] || 'jeu',
+              solde.toString()
+            ]);
+          } catch (whatsappErr) {
+            console.error('[ZORA GAMES] Erreur envoi WhatsApp gain (non bloquante):', whatsappErr.message);
+          }
         });
       }
       

@@ -15,25 +15,24 @@ const {
   updateEvent,
   deleteEvent
 } = require('../controllers/elonga-events.controller');
-const { authenticateToken } = require('../middleware/auth');
-const { requireAdmin } = require('../middleware/admin');
+const authMiddleware = require('../middleware/auth.middleware');
 
 // PUBLICS
 router.get('/', getEvents);
 router.get('/:id', getEventById);
 
 // PATIENTS (auth JWT)
-router.post('/:id/register', authenticateToken, registerEvent);
-router.delete('/:id/register', authenticateToken, cancelEventRegistration);
-router.get('/:id/checkin-token', authenticateToken, getCheckinToken);
-router.get('/my/registrations', authenticateToken, getMyRegistrations);
+router.post('/:id/register', authMiddleware, registerEvent);
+router.delete('/:id/register', authMiddleware, cancelEventRegistration);
+router.get('/:id/checkin-token', authMiddleware, getCheckinToken);
+router.get('/my/registrations', authMiddleware, getMyRegistrations);
 
 // ORGANISATEUR (auth JWT)
-router.post('/:id/checkin', authenticateToken, checkinEvent);
+router.post('/:id/checkin', authMiddleware, checkinEvent);
 
 // ADMIN
-router.post('/', requireAdmin, createEvent);
-router.put('/:id', requireAdmin, updateEvent);
-router.delete('/:id', requireAdmin, deleteEvent);
+router.post('/', authMiddleware.requireAdmin, createEvent);
+router.put('/:id', authMiddleware.requireAdmin, updateEvent);
+router.delete('/:id', authMiddleware.requireAdmin, deleteEvent);
 
 module.exports = router;

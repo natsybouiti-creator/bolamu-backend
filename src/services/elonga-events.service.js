@@ -3,6 +3,7 @@
 // ============================================================
 const pool = require('../config/db');
 const { awardZora } = require('./zora.service');
+const { sendWhatsAppTemplate } = require('./whatsapp.service');
 
 /**
  * Inscrire un patient à un événement
@@ -239,6 +240,33 @@ async function processCheckin({ token, organizer_phone }) {
     );
     
     await client.query('COMMIT');
+    
+    // Envoyer WhatsApp confirmation check-in (non bloquant)
+    if (zoraResult.success) {
+      try {
+        // Récupérer le solde Zora actuel
+        const balanceResult = await pool.query(
+          `SELECT balance FROM zora_balance WHERE phone = $1`,
+          [tokenData.phone]
+        );
+        const solde = balanceResult.rows[0]?.balance || 0;
+        
+        const userResult = await pool.query(
+          `SELECT first_name FROM users WHERE phone = $1`,
+          [tokenData.phone]
+        );
+        const prenom = userResult.rows[0]?.first_name || '';
+        
+        await sendWhatsAppTemplate(tokenData.phone, 'confirmation_checkin', [
+          tokenData.event_title,
+          tokenData.zora_reward.toString(),
+          solde.toString()
+        ]);
+      } catch (whatsappErr) {
+        console.error('[ELONGA] Erreur envoi WhatsApp check-in:', whatsappErr);
+        // Ne pas bloquer si WhatsApp échoue
+      }
+    }
     
     return { 
       success: true, 

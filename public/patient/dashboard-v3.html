@@ -151,6 +151,10 @@
       const [steps, setSteps] = useState(7432);
       const [events, setEvents] = useState([]);
       const [myRegistrations, setMyRegistrations] = useState([]);
+      const [sportGroups, setSportGroups] = useState([]);
+      const [chatOpen, setChatOpen] = useState(false);
+      const [chatMessages, setChatMessages] = useState([]);
+      const [chatTab, setChatTab] = useState('community');
       
       useEffect(() => {
         loadConflict();
@@ -159,6 +163,7 @@
         loadZoraTiers();
         loadEvents();
         loadMyRegistrations();
+        loadSportGroups();
       }, []);
       
       const loadZoraBalance = async () => {
@@ -206,6 +211,85 @@
           }
         } catch (e) {
           console.error('Error loading my registrations:', e);
+        }
+      };
+      
+      const loadSportGroups = async () => {
+        try {
+          const res = await authFetch(`${API}/sport-groups?city=brazzaville`);
+          if (res.ok) {
+            const data = await res.json();
+            setSportGroups(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading sport groups:', e);
+        }
+      };
+      
+      const joinGroup = async (groupId) => {
+        try {
+          const res = await authFetch(`${API}/sport-groups/${groupId}/join`, { method: 'POST' });
+          if (res.ok) {
+            const data = await res.json();
+            loadSportGroups();
+          } else {
+            alert('Erreur lors de la jonction au groupe');
+          }
+        } catch (e) {
+          console.error('Error joining group:', e);
+          alert('Erreur de connexion');
+        }
+      };
+      
+      const leaveGroup = async (groupId) => {
+        try {
+          const res = await authFetch(`${API}/sport-groups/${groupId}/join`, { method: 'DELETE' });
+          if (res.ok) {
+            loadSportGroups();
+          }
+        } catch (e) {
+          console.error('Error leaving group:', e);
+        }
+      };
+      
+      const loadChatMessages = async (channel) => {
+        try {
+          const res = await authFetch(`${API}/chat/${channel}/messages?limit=20`);
+          if (res.ok) {
+            const data = await res.json();
+            setChatMessages(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading chat messages:', e);
+        }
+      };
+      
+      const sendChatMessage = async (content) => {
+        try {
+          const channel = chatTab === 'community' ? 'community' : 'medecin';
+          const res = await authFetch(`${API}/chat/${channel}/messages`, {
+            method: 'POST',
+            body: JSON.stringify({ content, message_type: 'text' })
+          });
+          if (res.ok) {
+            loadChatMessages(channel);
+          }
+        } catch (e) {
+          console.error('Error sending chat message:', e);
+        }
+      };
+      
+      const addReaction = async (messageId) => {
+        try {
+          const res = await authFetch(`${API}/chat/messages/${messageId}/react`, {
+            method: 'POST',
+            body: JSON.stringify({ reaction: 'encourage' })
+          });
+          if (res.ok) {
+            loadChatMessages(chatTab === 'community' ? 'community' : 'medecin');
+          }
+        } catch (e) {
+          console.error('Error adding reaction:', e);
         }
       };
       

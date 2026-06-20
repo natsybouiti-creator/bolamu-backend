@@ -2,6 +2,7 @@
 // BOLAMU — Sprint 2 : Service Zora Points
 // ============================================================
 const pool = require('../config/db');
+const chatService = require('./chat.service');
 
 /**
  * Fonction principale awardZora
@@ -204,6 +205,17 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     );
     
     await client.query('COMMIT');
+    
+    // Auto-post achievement dans le chat communauté pour certaines actions
+    const achievementActions = ['bilan_annuel', 'vaccination', 'event_checkin', 'streak_7', 'streak_30'];
+    if (achievementActions.includes(action_type)) {
+      try {
+        await chatService.postAchievement({ phone, action_type, points: rule.points });
+      } catch (chatError) {
+        console.error('[ZORA] Erreur auto-post achievement:', chatError.message);
+        // Ne pas bloquer le crédit si le chat échoue
+      }
+    }
     
     console.log(`[ZORA] Crédit réussi pour phone: ${phone}, action: ${action_type}, points: ${rule.points}, tier: ${newTier}`);
     

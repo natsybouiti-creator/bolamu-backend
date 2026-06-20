@@ -11,124 +11,125 @@
   <meta name="theme-color" content="#2E86FF">
   <link rel="manifest" href="/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/bolamu-ds.css">
+  <script src="/js/bolamu-nav.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
 <style>
-    :root{--bleu:#0A2463;--bleu-vif:#2E86FF;--vert:#00C9A7;--vert-clair:#E6FBF7;--bleu-pale:#F4F8FF;--texte:#0A2463;--texte-doux:#5A6E8C;--blanc:#ffffff;--rouge:#e74c3c;--amber:#f39c12;--border:rgba(10,36,99,0.1);--emeraude:#00A878;--emeraude-clair:#E6F7F3;--grad-btn:linear-gradient(135deg,#2E86FF,#00C9A7);--grad-pharma:linear-gradient(135deg,#00A878,#00C9A7);--grad-premium:linear-gradient(135deg,#f0a500,#ff6b35);}
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bleu-pale);color:var(--texte);min-height:100vh;}
-    .topbar{position:fixed;top:0;width:100%;z-index:100;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);box-shadow:0 2px 20px rgba(10,36,99,0.06);}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;}
+    .topbar{position:fixed;top:0;width:100%;z-index:100;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);box-shadow:var(--shadow-soft);}
     .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-    .logo-icon{width:36px;height:36px;background:var(--grad-btn);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
-    .logo-icon::after{content:'+';color:white;font-size:20px;font-weight:300;line-height:1;}
-    .logo-leaf{position:absolute;top:-3px;right:-2px;width:10px;height:10px;background:var(--vert);border-radius:50% 0 50% 0;transform:rotate(45deg);}
+    .logo-icon{width:36px;height:36px;background:linear-gradient(135deg, var(--role-pharmacie), var(--turquoise));border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .logo-name{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
-    .logo-name .b{color:var(--bleu);}.logo-name .t{color:var(--vert);}
+    .logo-name .b{color:var(--navy);}.logo-name .t{color:var(--turquoise);}
     .topbar-right{display:flex;align-items:center;gap:12px;}
-    .phone-pill{background:var(--emeraude-clair);color:var(--emeraude);padding:6px 16px;border-radius:50px;font-size:13px;font-weight:600;}
-    .type-pill{background:var(--emeraude);color:white;padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:0.5px;}
-    .logout-btn{padding:8px 18px;border:2px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--texte-doux);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .logout-btn:hover{border-color:var(--bleu);color:var(--bleu);}
-    .tabs-bar{position:fixed;top:64px;width:100%;z-index:99;background:var(--blanc);border-bottom:1px solid var(--border);padding:0 40px;display:flex;box-shadow:0 2px 10px rgba(10,36,99,0.04);}
-    .tab{padding:16px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--texte-doux);border-bottom:3px solid transparent;transition:all 0.2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Plus Jakarta Sans',sans-serif;}
-    .tab:hover{color:var(--emeraude);}.tab.active{color:var(--emeraude);border-bottom-color:var(--emeraude);}
+    .phone-pill{background:rgba(0,201,167,0.1);color:var(--turquoise);padding:6px 16px;border-radius:50px;font-size:13px;font-weight:600;}
+    .type-pill{background:var(--turquoise);color:white;padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:0.5px;}
+    .logout-btn{padding:8px 18px;border:2px solid var(--line);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--ink-soft);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .logout-btn:hover{border-color:var(--navy);color:var(--navy);}
+    .tabs-bar{position:fixed;top:64px;width:100%;z-index:99;background:white;border-bottom:1px solid var(--line);padding:0 40px;display:flex;box-shadow:var(--shadow-soft);}
+    .tab{padding:16px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-soft);border-bottom:3px solid transparent;transition:all 0.2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Plus Jakarta Sans',sans-serif;}
+    .tab:hover{color:var(--turquoise);}.tab.active{color:var(--turquoise);border-bottom-color:var(--turquoise);}
     .main{padding:148px 40px 60px;max-width:1200px;margin:0 auto;}
     .panel{display:none;}.panel.active{display:block;}
     .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-    .section-title-dash{font-family:'Fraunces',serif;font-size:26px;font-weight:900;letter-spacing:-0.5px;}
+    .section-title-dash{font-family:'Plus Jakarta Sans',serif;font-size:26px;font-weight:900;letter-spacing:-0.5px;}
     .top-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;}
-    .pharma-card{background:var(--grad-pharma);border-radius:24px;padding:36px;color:white;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,168,120,0.25);}
+    .pharma-card{background:linear-gradient(135deg, var(--role-pharmacie), var(--turquoise));border-radius:32px;padding:36px;color:white;position:relative;overflow:hidden;box-shadow:var(--shadow-turquoise);}
     .pharma-card::before{content:'';position:absolute;top:-80px;right:-80px;width:220px;height:220px;background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 65%);border-radius:50%;}
     .pharma-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;position:relative;z-index:2;}
-    .pharma-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:900;}
+    .pharma-logo{font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:900;}
     .pharma-logo .t{color:rgba(255,255,255,0.7);}
     .pharma-type{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);padding:4px 14px;border-radius:50px;font-size:12px;font-weight:600;}
-    .pharma-name{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:4px;position:relative;z-index:2;}
+    .pharma-name{font-family:'Plus Jakarta Sans',serif;font-size:22px;font-weight:900;margin-bottom:4px;position:relative;z-index:2;}
     .pharma-sub{font-size:14px;color:rgba(255,255,255,0.75);margin-bottom:24px;position:relative;z-index:2;}
-    .pharma-code{font-family:'Fraunces',serif;font-size:22px;font-weight:900;letter-spacing:3px;margin-bottom:6px;position:relative;z-index:2;}
+    .pharma-code{font-family:'Plus Jakarta Sans',serif;font-size:22px;font-weight:900;letter-spacing:3px;margin-bottom:6px;position:relative;z-index:2;}
     .pharma-code-lbl{font-size:11px;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:1.5px;position:relative;z-index:2;}
-    .stat-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);display:flex;flex-direction:column;justify-content:center;}
-    .stat-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:10px;}
-    .stat-value{font-family:'Fraunces',serif;font-size:32px;font-weight:900;color:var(--texte);line-height:1;margin-bottom:4px;}
-    .stat-sub{font-size:13px;color:var(--texte-doux);}
+    .stat-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--line);box-shadow:var(--shadow-soft);display:flex;flex-direction:column;justify-content:center;}
+    .stat-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:10px;}
+    .stat-value{font-family:'Plus Jakarta Sans',serif;font-size:32px;font-weight:900;color:var(--ink);line-height:1;margin-bottom:4px;}
+    .stat-sub{font-size:13px;color:var(--ink-soft);}
     .badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:13px;font-weight:600;}
-    .badge-actif{background:var(--emeraude-clair);color:var(--emeraude);}
+    .badge-actif{background:rgba(0,201,167,0.1);color:var(--turquoise);}
     .badge-pending{background:#fef9ec;color:var(--amber);}
-    .badge-livre{background:var(--emeraude-clair);color:var(--emeraude);}
+    .badge-livre{background:rgba(0,201,167,0.1);color:var(--turquoise);}
     .badge-en-attente{background:#fef9ec;color:var(--amber);}
-    .scanner-card{background:white;border-radius:24px;padding:36px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(10,36,99,0.06);}
-    .scanner-card h3{font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;}
-    .scanner-card p{font-size:14px;color:var(--texte-doux);margin-bottom:28px;line-height:1.6;}
+    .scanner-card{background:white;border-radius:32px;padding:36px;border:1px solid var(--line);box-shadow:var(--shadow-soft);}
+    .scanner-card h3{font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:900;margin-bottom:8px;}
+    .scanner-card p{font-size:14px;color:var(--ink-soft);margin-bottom:28px;line-height:1.6;}
     .code-input-group{display:flex;gap:12px;margin-bottom:20px;}
-    .code-input{flex:1;border:2px solid var(--border);border-radius:14px;padding:16px 20px;font-size:22px;font-family:'Fraunces',serif;font-weight:700;letter-spacing:4px;text-transform:uppercase;outline:none;color:var(--texte);transition:border-color 0.2s;text-align:center;}
-    .code-input:focus{border-color:var(--emeraude);}
-    .btn-scan{padding:16px 32px;background:var(--grad-pharma);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;white-space:nowrap;}
+    .code-input{flex:1;border:2px solid var(--line);border-radius:14px;padding:16px 20px;font-size:22px;font-family:'Plus Jakarta Sans',serif;font-weight:700;letter-spacing:4px;text-transform:uppercase;outline:none;color:var(--ink);transition:border-color 0.2s;text-align:center;}
+    .code-input:focus{border-color:var(--turquoise);}
+    .btn-scan{padding:16px 32px;background:linear-gradient(135deg, var(--role-pharmacie), var(--turquoise));color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;white-space:nowrap;}
     .btn-scan:hover{opacity:0.9;transform:translateY(-1px);}
-    .ordonnance-result{display:none;border:2px solid var(--emeraude);border-radius:20px;padding:28px;margin-top:20px;background:var(--emeraude-clair);}
-    .ordonnance-result.error{border-color:var(--rouge);background:#fde8e8;}
+    .ordonnance-result{display:none;border:2px solid var(--turquoise);border-radius:20px;padding:28px;margin-top:20px;background:rgba(0,201,167,0.1);}
+    .ordonnance-result.error{border-color:var(--error);background:#fde8e8;}
     .ordonnance-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
     .ordonnance-icon{font-size:32px;}
-    .ordonnance-title{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--texte);}
-    .ordonnance-sub{font-size:13px;color:var(--texte-doux);}
+    .ordonnance-title{font-family:'Plus Jakarta Sans',serif;font-size:18px;font-weight:900;color:var(--ink);}
+    .ordonnance-sub{font-size:13px;color:var(--ink-soft);}
     .ordonnance-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
     .ord-field{background:white;border-radius:12px;padding:14px 18px;}
-    .ord-field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;}
-    .ord-field-value{font-size:15px;font-weight:700;color:var(--texte);}
+    .ord-field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:4px;}
+    .ord-field-value{font-size:15px;font-weight:700;color:var(--ink);}
     .medications-box{background:white;border-radius:12px;padding:18px;margin-bottom:20px;}
-    .medications-box h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:12px;}
-    .medications-text{font-size:15px;line-height:1.7;color:var(--texte);}
-    .instructions-box{background:rgba(255,255,255,0.6);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:14px;color:var(--texte-doux);line-height:1.6;}
-    .btn-livrer{width:100%;padding:16px;background:var(--grad-pharma);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .medications-box h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:12px;}
+    .medications-text{font-size:15px;line-height:1.7;color:var(--ink);}
+    .instructions-box{background:rgba(255,255,255,0.6);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:14px;color:var(--ink-soft);line-height:1.6;}
+    .btn-livrer{width:100%;padding:16px;background:linear-gradient(135deg, var(--role-pharmacie), var(--turquoise));color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
     .btn-livrer:hover{opacity:0.9;transform:translateY(-1px);}
-    .btn-refuser{width:100%;padding:12px;background:transparent;color:var(--rouge);border:2px solid var(--rouge);border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:8px;transition:all 0.2s;}
-    .btn-refuser:hover{background:var(--rouge);color:white;}
+    .btn-refuser{width:100%;padding:12px;background:transparent;color:var(--error);border:2px solid var(--error);border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:8px;transition:all 0.2s;}
+    .btn-refuser:hover{background:var(--error);color:white;}
     .historique-list{display:flex;flex-direction:column;gap:12px;}
-    .histo-card{background:white;border-radius:16px;padding:20px 24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(10,36,99,0.04);transition:all 0.2s;}
-    .histo-card:hover{border-color:var(--emeraude);transform:translateY(-2px);}
+    .histo-card{background:white;border-radius:16px;padding:20px 24px;border:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-soft);transition:all 0.2s;}
+    .histo-card:hover{border-color:var(--turquoise);transform:translateY(-2px);}
     .histo-left{display:flex;align-items:center;gap:16px;}
-    .histo-icon{width:44px;height:44px;border-radius:12px;background:var(--emeraude-clair);display:flex;align-items:center;justify-content:center;font-size:20px;}
+    .histo-icon{width:44px;height:44px;border-radius:12px;background:rgba(0,201,167,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;}
     .histo-patient{font-size:15px;font-weight:700;margin-bottom:3px;}
-    .histo-date{font-size:13px;color:var(--texte-doux);}
+    .histo-date{font-size:13px;color:var(--ink-soft);}
     .histo-right{text-align:right;}
-    .histo-code{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--emeraude);letter-spacing:2px;}
+    .histo-code{font-family:'Plus Jakarta Sans',serif;font-size:18px;font-weight:900;color:var(--turquoise);letter-spacing:2px;}
     .abonnement-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;}
     .abonnement-card{background:white;border-radius:24px;padding:36px;border:2px solid transparent;transition:all 0.3s;position:relative;}
-    .abonnement-card:hover{border-color:var(--emeraude);transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,168,120,0.12);}
-    .abonnement-card.featured{background:var(--grad-pharma);color:white;border-color:transparent;}
-    .abo-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--grad-premium);color:white;padding:6px 20px;border-radius:50px;font-size:12px;font-weight:700;white-space:nowrap;}
-    .abo-name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--emeraude);margin-bottom:12px;}
+    .abonnement-card:hover{border-color:var(--turquoise);transform:translateY(-4px);box-shadow:var(--shadow-turquoise);}
+    .abonnement-card.featured{background:linear-gradient(135deg, var(--role-pharmacie), var(--turquoise));color:white;border-color:transparent;}
+    .abo-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#f0a500,#ff6b35);color:white;padding:6px 20px;border-radius:50px;font-size:12px;font-weight:700;white-space:nowrap;}
+    .abo-name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--turquoise);margin-bottom:12px;}
     .abonnement-card.featured .abo-name{color:rgba(255,255,255,0.75);}
-    .abo-price{font-family:'Fraunces',serif;font-size:44px;font-weight:900;line-height:1;margin-bottom:4px;}
-    .abo-period{font-size:14px;color:var(--texte-doux);margin-bottom:24px;}
+    .abo-price{font-family:'Plus Jakarta Sans',serif;font-size:44px;font-weight:900;line-height:1;margin-bottom:4px;}
+    .abo-period{font-size:14px;color:var(--ink-soft);margin-bottom:24px;}
     .abonnement-card.featured .abo-period{color:rgba(255,255,255,0.65);}
     .abo-features{list-style:none;margin-bottom:28px;}
-    .abo-features li{font-size:14px;color:var(--texte-doux);padding:7px 0;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--bleu-pale);}
+    .abo-features li{font-size:14px;color:var(--ink-soft);padding:7px 0;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--line);}
     .abo-features li:last-child{border-bottom:none;}
     .abonnement-card.featured .abo-features li{color:rgba(255,255,255,0.85);border-bottom-color:rgba(255,255,255,0.12);}
-    .abo-features li::before{content:'✓';color:var(--emeraude);font-weight:700;flex-shrink:0;}
-    .abonnement-card.featured .abo-features li::before{color:rgba(255,255,255,0.9);}
-    .btn-abo{width:100%;padding:14px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .abonnement-card.featured .btn-abo{background:white;color:var(--emeraude);}
+    .abo-features li::before{content:'';display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .abo-features li::before .material-symbols-outlined{color:var(--turquoise);font-size:18px;}
+    .abonnement-card.featured .abo-features li::before .material-symbols-outlined{color:rgba(255,255,255,0.9);}
+    .btn-abo{width:100%;padding:14px;background:linear-gradient(135deg, var(--role-pharmacie), var(--turquoise));color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
+    .abonnement-card.featured .btn-abo{background:white;color:var(--turquoise);}
     .btn-abo:hover{opacity:0.9;transform:translateY(-1px);}
     .profil-layout{display:grid;grid-template-columns:320px 1fr;gap:24px;}
-    .profil-card-main{background:var(--grad-pharma);border-radius:24px;padding:36px;color:white;text-align:center;}
+    .profil-card-main{background:linear-gradient(135deg, var(--role-pharmacie), var(--turquoise));border-radius:24px;padding:36px;color:white;text-align:center;}
     .profil-avatar-big{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;border:3px solid rgba(255,255,255,0.3);}
-    .profil-name-big{font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:4px;}
+    .profil-name-big{font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:900;margin-bottom:4px;}
     .profil-sub{font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:6px;}
     .profil-phone{font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:20px;}
     .profil-code-box{background:rgba(255,255,255,0.12);border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,0.2);}
     .profil-code-lbl{font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
-    .profil-code-val{font-family:'Fraunces',serif;font-size:20px;font-weight:900;letter-spacing:3px;}
+    .profil-code-val{font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:900;letter-spacing:3px;}
     .profil-details{display:flex;flex-direction:column;gap:16px;}
-    .detail-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--border);}
-    .detail-card h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:16px;}
-    .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;}
+    .detail-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--line);}
+    .detail-card h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:16px;}
+    .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;}
     .detail-row:last-child{border-bottom:none;}
-    .info-label{color:var(--texte-doux);font-weight:500;}
+    .info-label{color:var(--ink-soft);font-weight:500;}
     .info-value{font-weight:600;}
-    .empty-state{text-align:center;padding:60px 24px;color:var(--texte-doux);}
+    .empty-state{text-align:center;padding:60px 24px;color:var(--ink-soft);}
     .empty-icon{font-size:48px;margin-bottom:16px;}
-    .loading{text-align:center;padding:48px;color:var(--texte-doux);}
+    .loading{text-align:center;padding:48px;color:var(--ink-soft);}
     /* ── Tabs scrollables ── */
 .tabs-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap;}
 .tabs-bar::-webkit-scrollbar{display:none;}
@@ -181,11 +182,7 @@
 <body>
 <div class="topbar">
   <a href="/" class="logo">
-    <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="22" cy="22" r="22" fill="#2E86FF"/>
-      <text x="22" y="30" text-anchor="middle" font-size="22" font-weight="900" font-family="Arial,sans-serif" fill="white">B</text>
-      <ellipse cx="34" cy="9" rx="7" ry="7" fill="#00C9A7"/>
-    </svg>
+    <div class="logo-icon"><span class="material-symbols-outlined" style="font-size:24px;color:white;">local_pharmacy</span></div>
     <div class="logo-name"><span class="b">Bola</span><span class="t">mu</span></div>
   </a>
   <div class="topbar-right">
@@ -267,9 +264,9 @@
 
       <!-- Saisie manuelle -->
       <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
-        <div style="flex:1;height:1px;background:var(--border);"></div>
-        <span style="font-size:12px;color:var(--texte-doux);font-weight:600;">OU SAISIE MANUELLE</span>
-        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <div style="flex:1;height:1px;background:var(--line);"></div>
+        <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">OU SAISIE MANUELLE</span>
+        <div style="flex:1;height:1px;background:var(--line);"></div>
       </div>
       <div class="code-input-group">
         <input class="code-input" type="text" id="zora-uuid-input" placeholder="UUID du voucher" style="font-size:13px;letter-spacing:1px;font-family:'Plus Jakarta Sans',sans-serif;">
@@ -305,9 +302,9 @@
 
       <!-- Saisie manuelle -->
       <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
-        <div style="flex:1;height:1px;background:var(--border);"></div>
-        <span style="font-size:12px;color:var(--texte-doux);font-weight:600;">OU SAISIE MANUELLE</span>
-        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <div style="flex:1;height:1px;background:var(--line);"></div>
+        <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">OU SAISIE MANUELLE</span>
+        <div style="flex:1;height:1px;background:var(--line);"></div>
       </div>
       <div class="code-input-group">
         <input class="code-input" type="text" id="qr-token-input" placeholder="Collez le token QR ici" style="font-size:13px;letter-spacing:1px;font-family:'Plus Jakarta Sans',sans-serif;">
@@ -322,26 +319,26 @@
       <h3>Importer un catalogue Excel/CSV</h3>
       <p style="margin-bottom:16px;">Importez votre liste de médicaments avec prix. Format attendu : colonnes <strong>Nom médicament</strong>, <strong>Prix unitaire (FCFA)</strong>, <strong>Unité</strong> (optionnel).</p>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-        <input type="file" id="catalogue-file" accept=".xlsx,.xls,.csv" style="flex:1;min-width:200px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;">
+        <input type="file" id="catalogue-file" accept=".xlsx,.xls,.csv" style="flex:1;min-width:200px;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:13px;">
         <button class="btn-scan" id="btn-import-catalogue">Importer</button>
       </div>
       <div id="import-preview" style="display:none;margin-top:20px;">
         <h4 style="font-size:14px;font-weight:700;margin-bottom:12px;">Aperçu avant import</h4>
-        <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;">
+        <div style="max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead style="background:var(--bleu-pale);position:sticky;top:0;">
+            <thead style="background:var(--surface);position:sticky;top:0;">
               <tr>
-                <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Nom médicament</th>
-                <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Prix</th>
-                <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Unité</th>
-                <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">SSP</th>
+                <th style="padding:10px;text-align:left;border-bottom:1px solid var(--line);">Nom médicament</th>
+                <th style="padding:10px;text-align:left;border-bottom:1px solid var(--line);">Prix</th>
+                <th style="padding:10px;text-align:left;border-bottom:1px solid var(--line);">Unité</th>
+                <th style="padding:10px;text-align:left;border-bottom:1px solid var(--line);">SSP</th>
               </tr>
             </thead>
             <tbody id="import-preview-body"></tbody>
           </table>
         </div>
         <div style="margin-top:16px;display:flex;gap:12px;">
-          <button class="btn-scan" id="btn-confirm-import" style="background:var(--emeraude);">Confirmer l'import</button>
+          <button class="btn-scan" id="btn-confirm-import" style="background:var(--turquoise);">Confirmer l'import</button>
           <button class="btn-refuser" id="btn-cancel-import">Annuler</button>
         </div>
       </div>
@@ -349,7 +346,7 @@
     <div class="scanner-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
         <h3>Catalogue actuel</h3>
-        <input type="text" id="catalogue-search" placeholder="Rechercher un médicament..." style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;width:250px;">
+        <input type="text" id="catalogue-search" placeholder="Rechercher un médicament..." style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:250px;">
       </div>
       <div id="catalogue-list" style="max-height:500px;overflow-y:auto;">
         <div class="loading">Chargement...</div>
@@ -362,17 +359,17 @@
   </div>
   <div class="panel" id="panel-abonnement">
     <div class="section-header"><h2 class="section-title-dash">Abonnement partenaire</h2></div>
-    <p style="color:var(--texte-doux);font-size:15px;margin-bottom:32px;line-height:1.7">Bolamu met en avant les pharmacies partenaires abonnées auprès de tous les patients de la plateforme.</p>
+    <p style="color:var(--ink-soft);font-size:15px;margin-bottom:32px;line-height:1.7">Bolamu met en avant les pharmacies partenaires abonnées auprès de tous les patients de la plateforme.</p>
     <div class="abonnement-grid">
       <div class="abonnement-card">
         <div class="abo-name">Pharmacie Basique</div>
         <div class="abo-price">Gratuit</div>
         <div class="abo-period">inclus à l'inscription</div>
         <ul class="abo-features"><li>Profil sur la plateforme Bolamu</li><li>Validation des ordonnances numériques</li><li>Historique des délivrances</li><li>Code pharmacie Bolamu</li></ul>
-        <button class="btn-abo" disabled style="opacity:0.5;cursor:default;background:var(--border);color:var(--texte-doux);">Formule actuelle</button>
+        <button class="btn-abo" disabled style="opacity:0.5;cursor:default;background:var(--line);color:var(--ink-soft);">Formule actuelle</button>
       </div>
       <div class="abonnement-card featured">
-        <div class="abo-badge">⭐ Mise en avant garantie</div>
+        <div class="abo-badge"><span class="material-symbols-outlined">star</span> Mise en avant garantie</div>
         <div class="abo-name">Pharmacie Pro</div>
         <div class="abo-price">5 000</div>
         <div class="abo-period">FCFA / mois</div>
@@ -415,20 +412,20 @@
         <div class="detail-card">
           <h3>Sécurité & accès</h3>
           <div class="detail-row"><span class="info-label">Connexion</span><span class="info-value">Mot de passe permanent</span></div>
-          <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value">✅ AES-256</span></div>
+          <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">check_circle</span> AES-256</span></div>
           <div style="margin-top:16px;" id="pwd-form-container">
-            <button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
+            <button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-pharmacie);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
               Changer mon mot de passe
             </button>
           </div>
         </div>
         <div class="detail-card">
           <h3>Ma localisation</h3>
-          <div id="gps-status" style="font-size:13px;color:var(--texte-doux);margin-bottom:10px;">Non définie</div>
-          <input type="text" id="gps-address" placeholder="Adresse (ex: Avenue Foch, Brazzaville)" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--bg-input,#f8fafc);color:var(--text);margin-bottom:10px;box-sizing:border-box;">
+          <div id="gps-status" style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">Non définie</div>
+          <input type="text" id="gps-address" placeholder="Adresse (ex: Avenue Foch, Brazzaville)" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:var(--bg-input,#f8fafc);color:var(--text);margin-bottom:10px;box-sizing:border-box;">
           <div style="display:flex;gap:8px;">
             <button id="btn-detect-pos" style="flex:1;padding:10px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">Détecter ma position</button>
-            <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--grad-pharma);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">Enregistrer</button>
+            <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--role-pharmacie);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;">Enregistrer</button>
           </div>
         </div>
       </div>
@@ -438,13 +435,13 @@
   <div class="panel" id="panel-smartflow">
     <div class="section-header"><h2 class="section-title-dash">Smart Flow — Statistiques du mois</h2></div>
     <div style="display:flex;gap:12px;margin-bottom:24px;">
-      <input type="month" id="smartflow-mois" style="padding:10px 16px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--texte);">
+      <input type="month" id="smartflow-mois" style="padding:10px 16px;border:2px solid var(--line);border-radius:12px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);">
       <button class="btn-scan" id="btn-load-smartflow-stats">Charger</button>
     </div>
     <div class="top-grid">
       <div class="stat-card">
         <div class="stat-label">SSP — Actes gratuits</div>
-        <div class="stat-value" id="sf-ssp-count" style="color:var(--emeraude);">0</div>
+        <div class="stat-value" id="sf-ssp-count" style="color:var(--turquoise);">0</div>
         <div class="stat-sub">Médicaments couverts ce mois</div>
       </div>
       <div class="stat-card">
@@ -459,7 +456,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-label">Total Smart Flow</div>
-        <div class="stat-value" id="sf-total" style="color:var(--bleu);">0</div>
+        <div class="stat-value" id="sf-total" style="color:var(--navy);">0</div>
         <div class="stat-sub">Actes ce mois</div>
       </div>
     </div>
@@ -515,7 +512,7 @@ function toggleCamera() {
   const container = document.getElementById('camera-container');
   if (container.style.display === 'none') {
     container.style.display = 'block';
-    document.getElementById('btn-camera').textContent = '⏳ Démarrage caméra…';
+    document.getElementById('btn-camera').textContent = '<span class="material-symbols-outlined">hourglass</span> Démarrage caméra…';
     html5QrCode = new Html5Qrcode("qr-reader");
     html5QrCode.start(
       { facingMode: "environment" },
@@ -527,7 +524,7 @@ function toggleCamera() {
       },
       () => {}
     ).then(() => {
-      document.getElementById('btn-camera').textContent = '📷 Scanner avec la caméra';
+      document.getElementById('btn-camera').textContent = '<span class="material-symbols-outlined">photo_camera</span> Scanner avec la caméra';
     }).catch(() => {
       stopCamera();
       alert('Impossible d\'accéder à la caméra. Vérifiez les permissions.');
@@ -543,14 +540,14 @@ function stopCamera() {
     html5QrCode = null;
   }
   document.getElementById('camera-container').style.display = 'none';
-  document.getElementById('btn-camera').textContent = '📷 Scanner avec la caméra';
+  document.getElementById('btn-camera').textContent = '<span class="material-symbols-outlined">photo_camera</span> Scanner avec la caméra';
 }
 async function verifierQR() {
   const token_qr = document.getElementById('qr-token-input').value.trim();
   if (!token_qr) { alert('Veuillez entrer un token QR.'); return; }
   const resultEl = document.getElementById('qr-result');
   resultEl.style.display = 'block';
-  resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--texte-doux);">⏳ Vérification en cours...</div>';
+  resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-soft);"><span class="material-symbols-outlined">hourglass</span> Vérification en cours...</div>';
   try {
     const res = await fetch(`${API}/qr/verify`, {
       method: 'POST',
@@ -560,7 +557,7 @@ async function verifierQR() {
     const data = await res.json();
     if (!data.success) {
       resultEl.innerHTML = `<div class="ordonnance-result error" style="display:block;">
-        <div class="ordonnance-header"><div class="ordonnance-icon">❌</div>
+        <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">close</span></div>
         <div><div class="ordonnance-title">QR invalide</div>
         <div class="ordonnance-sub">${data.message}</div></div></div></div>`;
       return;
@@ -571,21 +568,21 @@ async function verifierQR() {
     const consomme = d.consumption.this_month_fcfa;
     const restant = cap - consomme;
     resultEl.innerHTML = `<div class="ordonnance-result" style="display:block;">
-      <div class="ordonnance-header"><div class="ordonnance-icon">✅</div>
+      <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">check</span></div>
       <div><div class="ordonnance-title">Patient vérifié — Abonnement actif</div>
       <div class="ordonnance-sub">Abonnement valide jusqu'au ${new Date(d.patient.subscription_end).toLocaleDateString('fr-FR')}</div></div></div>
       <div class="ordonnance-grid">
         <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value">${d.patient.full_name || d.patient.phone}</div></div>
         <div class="ord-field"><div class="ord-field-label">Plan</div><div class="ord-field-value" style="text-transform:capitalize;">${d.patient.plan}</div></div>
-        <div class="ord-field"><div class="ord-field-label">Remise applicable</div><div class="ord-field-value" style="color:var(--emeraude);font-size:22px;">${remise}%</div></div>
+        <div class="ord-field"><div class="ord-field-label">Remise applicable</div><div class="ord-field-value" style="color:var(--turquoise);font-size:22px;">${remise}%</div></div>
         <div class="ord-field"><div class="ord-field-label">Plafond restant ce mois</div><div class="ord-field-value">${restant.toLocaleString()} FCFA</div></div>
       </div>
-      <div class="instructions-box">💡 Appliquez une remise de <strong>${remise}%</strong> sur la facture du patient. Bolamu prend en charge cette remise via le tiers payant.</div>
-      <button class="btn-livrer" data-action="reset-qr">✅ Pris en compte — Scanner suivant</button>
+      <div class="instructions-box"><span class="material-symbols-outlined" style="vertical-align:middle;">lightbulb</span> Appliquez une remise de <strong>${remise}%</strong> sur la facture du patient. Bolamu prend en charge cette remise via le tiers payant.</div>
+      <button class="btn-livrer" data-action="reset-qr"><span class="material-symbols-outlined">check</span> Pris en compte — Scanner suivant</button>
     </div>`;
   } catch(e) {
     resultEl.innerHTML = `<div class="ordonnance-result error" style="display:block;">
-      <div class="ordonnance-header"><div class="ordonnance-icon">⚠️</div>
+      <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">warning</span></div>
       <div><div class="ordonnance-title">Erreur de connexion</div></div></div></div>`;
   }
 }
@@ -624,8 +621,8 @@ async function loadProfil() {
     document.getElementById('d-since').textContent = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
 
     const statutHtml = statut === 'verified'
-      ? '<span class="badge badge-actif">✅ Vérifié</span>'
-      : '<span class="badge badge-pending">⏳ En attente de vérification</span>';
+      ? '<span class="badge badge-actif"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Vérifié</span>'
+      : '<span class="badge badge-pending"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">hourglass</span> En attente de vérification</span>';
     document.getElementById('d-statut').innerHTML = statutHtml;
     document.getElementById('s-statut').innerHTML = statutHtml;
     
@@ -656,11 +653,11 @@ async function loadProfil() {
 
 function pwdFormHtml(){
   return `<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
-    <input id="pwd-old" type="password" placeholder="Ancien mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
-    <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
-    <input id="pwd-confirm" type="password" placeholder="Confirmer le nouveau mot de passe" style="padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
+    <input id="pwd-old" type="password" placeholder="Ancien mot de passe" style="padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
+    <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" style="padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
+    <input id="pwd-confirm" type="password" placeholder="Confirmer le nouveau mot de passe" style="padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-card);color:var(--text);">
     <div style="display:flex;gap:8px;">
-      <button data-action="submit-pwd" style="flex:1;padding:12px;background:var(--grad-pharma);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
+      <button data-action="submit-pwd" style="flex:1;padding:12px;background:var(--role-pharmacie);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Confirmer</button>
       <button data-action="cancel-pwd" style="padding:12px 20px;background:var(--bg-input,#f0f0f0);color:var(--text);border:none;border-radius:10px;font-size:14px;cursor:pointer;">Annuler</button>
     </div>
   </div>`;
@@ -681,8 +678,8 @@ async function submitChangePwd(){
     });
     const data = await res.json();
     if (data.success) {
-      showToast('Mot de passe modifié ✅','success');
-      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      showToast('Mot de passe modifié <span class="material-symbols-outlined">check_circle</span>','success');
+      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-pharmacie);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;"><span class="material-symbols-outlined">key</span> Changer mon mot de passe</button>';
     } else {
       showToast(data.message || 'Erreur','error');
     }
@@ -695,7 +692,7 @@ async function scanOrdonnance() {
   const resultEl = document.getElementById('ordonnance-result');
   resultEl.style.display = 'block';
   resultEl.className = 'ordonnance-result';
-  resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--texte-doux);">⏳ Vérification en cours...</div>';
+  resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-soft);"><span class="material-symbols-outlined">hourglass</span> Vérification en cours...</div>';
   try {
     const res = await fetch(`${API}/prescriptions/by-session/${codeSession}`, {
       headers: { 'Authorization': 'Bearer ' + token }
@@ -703,7 +700,7 @@ async function scanOrdonnance() {
     const data = await res.json();
     if (!res.ok || !data.success) {
       resultEl.className = 'ordonnance-result error';
-      resultEl.innerHTML = `<div class="ordonnance-header"><div class="ordonnance-icon">❌</div><div><div class="ordonnance-title">Ordonnance introuvable</div><div class="ordonnance-sub">Code "${codeSession}" — aucune ordonnance active trouvée</div></div></div>`;
+      resultEl.innerHTML = `<div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">close</span></div><div><div class="ordonnance-title">Ordonnance introuvable</div><div class="ordonnance-sub">Code "${codeSession}" — aucune ordonnance active trouvée</div></div></div>`;
       return;
     }
     const ord = data.data;
@@ -733,15 +730,15 @@ async function scanOrdonnance() {
     let medicationsHtml = '';
     if (sspMeds.length > 0) {
       medicationsHtml += `
-        <div style="background:var(--vert-clair);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--vert);">
+        <div style="background:rgba(0,201,167,0.1);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--turquoise);">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-            <span style="font-size:20px;">✅</span>
-            <span style="font-size:16px;font-weight:700;color:var(--emeraude);">SSP — Couvert Bolamu</span>
-            <span class="badge" style="background:var(--vert);color:white;margin-left:auto;">GRATUIT</span>
+            <span style="font-size:20px;"><span class="material-symbols-outlined">check_circle</span></span>
+            <span style="font-size:16px;font-weight:700;color:var(--turquoise);">SSP — Couvert Bolamu</span>
+            <span class="badge" style="background:var(--turquoise);color:white;margin-left:auto;">GRATUIT</span>
           </div>
-          <div style="font-size:12px;color:var(--texte-doux);margin-bottom:12px;">Couvert par l'abonnement Bolamu du patient</div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-bottom:12px;">Couvert par l'abonnement Bolamu du patient</div>
           <div style="background:white;border-radius:12px;padding:16px;">
-            ${sspMeds.map(m => `<div style="padding:8px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;">${m}</div>`).join('')}
+            ${sspMeds.map(m => `<div style="padding:8px 0;border-bottom:1px solid var(--surface);font-size:14px;">${m}</div>`).join('')}
           </div>
         </div>`;
     }
@@ -751,16 +748,16 @@ async function scanOrdonnance() {
         const autoPrice = findCataloguePrice(m);
         const prix = autoPrice !== null ? autoPrice : '';
         return `
-          <div style="padding:8px 0;border-bottom:1px solid var(--bleu-pale);font-size:14px;display:flex;align-items:center;gap:10px;">
+          <div style="padding:8px 0;border-bottom:1px solid var(--surface);font-size:14px;display:flex;align-items:center;gap:10px;">
             <span style="flex:1;">${m}</span>
-            <input type="number" class="hors-catalogue-prix" data-med="${m}" value="${prix}" placeholder="Prix FCFA" style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-            ${autoPrice !== null ? '<span style="font-size:11px;color:var(--emeraude);">Auto</span>' : ''}
+            <input type="number" class="hors-catalogue-prix" data-med="${m}" value="${prix}" placeholder="Prix FCFA" style="width:120px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;">
+            ${autoPrice !== null ? '<span style="font-size:11px;color:var(--turquoise);">Auto</span>' : ''}
           </div>`;
       }).join('');
       medicationsHtml += `
         <div style="background:#fef9ec;border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid var(--amber);">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-            <span style="font-size:20px;">💰</span>
+            <span style="font-size:20px;"><span class="material-symbols-outlined">payments</span></span>
             <span style="font-size:16px;font-weight:700;color:var(--amber);">Hors Catalogue — Prix plein</span>
             <span id="hors-total" style="margin-left:auto;font-weight:700;font-size:14px;color:var(--amber);"></span>
           </div>
@@ -772,17 +769,17 @@ async function scanOrdonnance() {
     }
     
     resultEl.innerHTML = `
-      <div class="ordonnance-header"><div class="ordonnance-icon">📋</div><div><div class="ordonnance-title">Ordonnance valide — prête à délivrer</div><div class="ordonnance-sub">Émise le ${dateOrd}</div></div></div>
+      <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">description</span></div><div><div class="ordonnance-title">Ordonnance valide — prête à délivrer</div><div class="ordonnance-sub">Émise le ${dateOrd}</div></div></div>
       <div class="ordonnance-grid">
         <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value">${ord.patient_phone}</div></div>
         <div class="ord-field"><div class="ord-field-label">Médecin prescripteur</div><div class="ord-field-value">${ord.doctor_name || ord.doctor_phone}</div></div>
-        <div class="ord-field"><div class="ord-field-label">Code session</div><div class="ord-field-value" style="color:var(--emeraude);font-family:'Fraunces',serif;letter-spacing:2px;">${codeSession}</div></div>
+        <div class="ord-field"><div class="ord-field-label">Code session</div><div class="ord-field-value" style="color:var(--turquoise);font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:2px;">${codeSession}</div></div>
         <div class="ord-field"><div class="ord-field-label">Statut</div><div class="ord-field-value"><span class="badge badge-actif">Active</span></div></div>
       </div>
       ${medicationsHtml}
-      ${ord.instructions ? `<div class="instructions-box">📝 <strong>Instructions :</strong> ${ord.instructions}</div>` : ''}
-      <button class="btn-livrer" data-action="valider-delivrance" data-id="${ord.id}" data-session="${codeSession}">✅ Confirmer la délivrance</button>
-      <button class="btn-refuser" data-action="refuser-delivrance" data-session="${codeSession}">❌ Refuser</button>`;
+      ${ord.instructions ? `<div class="instructions-box"><span class="material-symbols-outlined" style="vertical-align:middle;">edit_note</span> <strong>Instructions :</strong> ${ord.instructions}</div>` : ''}
+      <button class="btn-livrer" data-action="valider-delivrance" data-id="${ord.id}" data-session="${codeSession}"><span class="material-symbols-outlined">check</span> Confirmer la délivrance</button>
+      <button class="btn-refuser" data-action="refuser-delivrance" data-session="${codeSession}"><span class="material-symbols-outlined">close</span> Refuser</button>`;
 
     // Wire price input listeners for auto total
     document.querySelectorAll('.hors-catalogue-prix').forEach(inp => {
@@ -791,7 +788,7 @@ async function scanOrdonnance() {
     updateHorsTotal();
   } catch(e) {
     resultEl.className = 'ordonnance-result error';
-    resultEl.innerHTML = `<div class="ordonnance-header"><div class="ordonnance-icon">⚠️</div><div><div class="ordonnance-title">Erreur de connexion</div></div></div>`;
+    resultEl.innerHTML = `<div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">warning</span></div><div><div class="ordonnance-title">Erreur de connexion</div></div></div>`;
   }
 }
 
@@ -810,7 +807,7 @@ async function validerDelivrance(prescriptionId, codeSession) {
       body: JSON.stringify({ prescription_id: prescriptionId, pharmacie_phone: phone, session_code: codeSession })
     });
     document.getElementById('ordonnance-result').innerHTML = `
-      <div class="ordonnance-header"><div class="ordonnance-icon">✅</div><div><div class="ordonnance-title">Délivrance confirmée !</div><div class="ordonnance-sub">Le dossier patient a été mis à jour.</div></div></div>
+      <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">check</span></div><div><div class="ordonnance-title">Délivrance confirmée !</div><div class="ordonnance-sub">Le dossier patient a été mis à jour.</div></div></div>
       <button class="btn-scan" data-action="reset-scanner" style="margin-top:16px;width:100%;">Scanner une nouvelle ordonnance</button>`;
     document.getElementById('s-today').textContent = parseInt(document.getElementById('s-today').textContent) + 1;
   } catch(e) { alert('Erreur lors de la validation. Réessayez.'); }
@@ -819,7 +816,7 @@ async function validerDelivrance(prescriptionId, codeSession) {
 function refuserDelivrance(code) {
   if (confirm(`Refuser l'ordonnance ${code} ?`)) {
     document.getElementById('ordonnance-result').innerHTML = `
-      <div class="ordonnance-header"><div class="ordonnance-icon">❌</div><div><div class="ordonnance-title">Délivrance refusée</div></div></div>
+      <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">close</span></div><div><div class="ordonnance-title">Délivrance refusée</div></div></div>
       <button class="btn-scan" data-action="reset-scanner" style="margin-top:16px;width:100%;">Scanner une nouvelle ordonnance</button>`;
   }
 }
@@ -904,7 +901,7 @@ async function verifyZoraVoucher() {
     if (data.success) {
       resultEl.className = 'ordonnance-result';
       resultEl.innerHTML = `
-        <div class="ordonnance-header"><div class="ordonnance-icon">✅</div>
+        <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">check</span></div>
         <div><div class="ordonnance-title">Voucher validé !</div>
         <div class="ordonnance-sub">Remise à appliquer : ${data.data.discount_value}</div></div></div>
         <div class="ordonnance-grid">
@@ -924,7 +921,7 @@ async function verifyZoraVoucher() {
         'not_authorized': 'Non autorisé'
       };
       resultEl.innerHTML = `
-        <div class="ordonnance-header"><div class="ordonnance-icon">❌</div>
+        <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">close</span></div>
         <div><div class="ordonnance-title">Erreur</div>
         <div class="ordonnance-sub">${errorMessages[data.error] || data.error}</div></div></div>
       `;
@@ -932,7 +929,7 @@ async function verifyZoraVoucher() {
   } catch(e) {
     resultEl.className = 'ordonnance-result error';
     resultEl.innerHTML = `
-      <div class="ordonnance-header"><div class="ordonnance-icon">⚠️</div>
+      <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">warning</span></div>
       <div><div class="ordonnance-title">Erreur de connexion</div></div></div>
     `;
   }
@@ -952,22 +949,22 @@ async function loadZoraHistory() {
       histoEl.innerHTML = '<div class="historique-list">' + data.data.map(v => `
         <div class="histo-card">
           <div class="histo-left">
-            <div class="histo-icon">🎁</div>
+            <div class="histo-icon"><span class="material-symbols-outlined">card_giftcard</span></div>
             <div>
               <div class="histo-patient">${v.reward_title}</div>
               <div class="histo-date">${new Date(v.consumed_at).toLocaleString('fr-FR')}</div>
             </div>
           </div>
           <div class="histo-right">
-            <div style="font-size:14px;font-weight:700;color:var(--emeraude);">${v.discount_value}</div>
+            <div style="font-size:14px;font-weight:700;color:var(--turquoise);">${v.discount_value}</div>
           </div>
         </div>
       `).join('') + '</div>';
     } else {
-      histoEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--texte-doux);">Aucun voucher consommé</div>';
+      histoEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--ink-soft);">Aucun voucher consommé</div>';
     }
   } catch(e) {
-    histoEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--rouge);">Erreur de chargement</div>';
+    histoEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--error);">Erreur de chargement</div>';
   }
 }
 
@@ -1002,7 +999,7 @@ async function enregistrerHorsCatalogue(patientPhone) {
         body: JSON.stringify(transaction)
       });
     }
-    alert('✅ Acte enregistré — patient notifié');
+    alert('<span class="material-symbols-outlined">check_circle</span> Acte enregistré — patient notifié');
   } catch(e) {
     alert('Erreur lors de l\'enregistrement. Réessayez.');
   }
@@ -1034,17 +1031,17 @@ async function loadSmartFlowStats() {
 function renderHistorique(items, containerId) {
   const el = document.getElementById(containerId);
   if (!items || !items.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>Aucune délivrance enregistrée pour l'instant.</p></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">description</span></div><p>Aucune délivrance enregistrée pour l'instant.</p></div>`;
     return;
   }
   el.innerHTML = `<div class="historique-list">${items.map(h => `
     <div class="histo-card">
-      <div class="histo-left"><div class="histo-icon">💊</div><div>
+      <div class="histo-left"><div class="histo-icon"><span class="material-symbols-outlined">medication</span></div><div>
         <div class="histo-patient">${h.patient_phone}</div>
         <div class="histo-date">${new Date(h.created_at).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</div>
-        <div style="margin-top:6px"><span class="badge badge-${h.status==='livre'?'livre':'en-attente'}">${h.status==='livre'?'✅ Délivré':'⏳ En attente'}</span></div>
+        <div style="margin-top:6px"><span class="badge badge-${h.status==='livre'?'livre':'en-attente'}">${h.status==='livre'?'<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Délivré':'<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">hourglass</span> En attente'}</span></div>
       </div></div>
-      <div class="histo-right"><div class="histo-code">${h.session_code||'—'}</div><div style="font-size:11px;color:var(--texte-doux);text-transform:uppercase;letter-spacing:1px;">Code session</div></div>
+      <div class="histo-right"><div class="histo-code">${h.session_code||'—'}</div><div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px;">Code session</div></div>
     </div>`).join('')}</div>`;
 }
 
@@ -1064,7 +1061,7 @@ async function loadHistorique() {
     document.getElementById('d-patients').textContent = [...new Set(items.map(h => h.patient_phone))].length;
   } catch(e) {
     ['accueil-histo','historique-complet'].forEach(id => {
-      document.getElementById(id).innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>Aucune délivrance pour l'instant.</p></div>`;
+      document.getElementById(id).innerHTML = `<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">description</span></div><p>Aucune délivrance pour l'instant.</p></div>`;
     });
   }
 }
@@ -1097,7 +1094,7 @@ async function loadPosition() {
     if (data.user?.latitude) {
       currentLat = data.user.latitude;
       currentLng = data.user.longitude;
-      document.getElementById('gps-status').textContent = `✅ Position enregistrée${data.user.address ? ' — ' + data.user.address : ''}`;
+      document.getElementById('gps-status').textContent = `<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">check_circle</span> Position enregistrée${data.user.address ? ' — ' + data.user.address : ''}`;
       document.getElementById('gps-status').style.color = '#00C9A7';
       if (data.user.address) document.getElementById('gps-address').value = data.user.address;
     }
@@ -1106,11 +1103,11 @@ async function loadPosition() {
 
 function detectPosition() {
   const btn = document.getElementById('btn-detect-pos');
-  btn.textContent = '⏳ Détection…';
+  btn.textContent = '<span class="material-symbols-outlined">hourglass</span> Détection…';
   btn.disabled = true;
   if (!navigator.geolocation) {
-    document.getElementById('gps-status').textContent = '❌ Géolocalisation non supportée';
-    btn.textContent = '📡 Détecter ma position';
+    document.getElementById('gps-status').textContent = '<span class="material-symbols-outlined">cancel</span> Géolocalisation non supportée';
+    btn.textContent = '<span class="material-symbols-outlined">sensors</span> Détecter ma position';
     btn.disabled = false;
     return;
   }
@@ -1118,15 +1115,15 @@ function detectPosition() {
     (pos) => {
       currentLat = pos.coords.latitude;
       currentLng = pos.coords.longitude;
-      document.getElementById('gps-status').textContent = `📍 Position détectée — Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
+      document.getElementById('gps-status').textContent = `<span class="material-symbols-outlined">location_on</span> Position détectée — Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
       document.getElementById('gps-status').style.color = '#00C9A7';
-      btn.textContent = '📡 Détecter ma position';
+      btn.textContent = '<span class="material-symbols-outlined">sensors</span> Détecter ma position';
       btn.disabled = false;
     },
     (err) => {
-      document.getElementById('gps-status').textContent = '❌ Impossible de détecter — entrez l\'adresse manuellement';
+      document.getElementById('gps-status').textContent = '<span class="material-symbols-outlined">cancel</span> Impossible de détecter — entrez l\'adresse manuellement';
       document.getElementById('gps-status').style.color = '#ef4444';
-      btn.textContent = '📡 Détecter ma position';
+      btn.textContent = '<span class="material-symbols-outlined">sensors</span> Détecter ma position';
       btn.disabled = false;
     },
     { enableHighAccuracy: true, timeout: 10000 }
@@ -1150,8 +1147,8 @@ async function savePosition() {
     });
     const data = await res.json();
     if (data.success) {
-      alert('Position enregistrée ✅');
-      document.getElementById('gps-status').textContent = `✅ Position enregistrée${address ? ' — ' + address : ''}`;
+      alert('<span class="material-symbols-outlined">check_circle</span> Position enregistrée');
+      document.getElementById('gps-status').textContent = `<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">check_circle</span> Position enregistrée${address ? ' — ' + address : ''}`;
     }
   } catch(e) { alert('Erreur serveur'); }
 }
@@ -1208,8 +1205,8 @@ function renderCatalogue(items) {
   if (!items || !items.length) { el.innerHTML = '<div class="empty-state"><p>Aucun médicament dans votre catalogue. Importez un fichier Excel/CSV pour commencer.</p></div>'; return; }
   el.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">${items.map(item => {
     const ssp = item.est_ssp || estSSP(item.medicament_nom);
-    const badge = ssp ? '<span class="badge badge-actif" style="font-size:11px;">✅ SSP</span>' : '<span class="badge" style="font-size:11px;background:#eef2f7;color:#5A6E8C;">Hors catalogue</span>';
-    return `<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div style="flex:1;min-width:140px;"><div style="font-weight:600;font-size:14px;margin-bottom:4px;">${item.medicament_nom}</div><div style="font-size:12px;color:var(--texte-doux);">${item.unite||'comprimé'}</div></div><div style="text-align:right;"><div style="font-weight:700;font-size:16px;color:var(--emeraude);">${item.prix_unitaire.toLocaleString()} FCFA</div>${badge}</div><button class="btn-scan" data-action="modifier-prix" data-nom="${item.medicament_nom}" data-prix="${item.prix_unitaire}" data-unite="${item.unite||'comprimé'}" style="padding:8px 14px;font-size:12px;">Modifier prix</button></div>`;
+    const badge = ssp ? '<span class="badge badge-actif" style="font-size:11px;"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> SSP</span>' : '<span class="badge" style="font-size:11px;background:#eef2f7;color:#5A6E8C;">Hors catalogue</span>';
+    return `<div style="background:white;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div style="flex:1;min-width:140px;"><div style="font-weight:600;font-size:14px;margin-bottom:4px;">${item.medicament_nom}</div><div style="font-size:12px;color:var(--ink-soft);">${item.unite||'comprimé'}</div></div><div style="text-align:right;"><div style="font-weight:700;font-size:16px;color:var(--turquoise);">${item.prix_unitaire.toLocaleString()} FCFA</div>${badge}</div><button class="btn-scan" data-action="modifier-prix" data-nom="${item.medicament_nom}" data-prix="${item.prix_unitaire}" data-unite="${item.unite||'comprimé'}" style="padding:8px 14px;font-size:12px;">Modifier prix</button></div>`;
   }).join('')}</div>`;
 }
 
@@ -1287,10 +1284,10 @@ function renderImportPreview() {
   const tbody = document.getElementById('import-preview-body');
   tbody.innerHTML = importPreviewData.map(item => `
     <tr>
-      <td style="padding:10px;border-bottom:1px solid var(--border);">${item.medicament_nom}</td>
-      <td style="padding:10px;border-bottom:1px solid var(--border);">${item.prix_unitaire.toLocaleString()}</td>
-      <td style="padding:10px;border-bottom:1px solid var(--border);">${item.unite}</td>
-      <td style="padding:10px;border-bottom:1px solid var(--border);">${item.est_ssp ? '<span class="badge badge-actif">Oui</span>' : 'Non'}</td>
+      <td style="padding:10px;border-bottom:1px solid var(--line);">${item.medicament_nom}</td>
+      <td style="padding:10px;border-bottom:1px solid var(--line);">${item.prix_unitaire.toLocaleString()}</td>
+      <td style="padding:10px;border-bottom:1px solid var(--line);">${item.unite}</td>
+      <td style="padding:10px;border-bottom:1px solid var(--line);">${item.est_ssp ? '<span class="badge badge-actif">Oui</span>' : 'Non'}</td>
     </tr>
   `).join('');
 }
@@ -1395,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (action === 'submit-pwd') submitChangePwd();
     if (action === 'cancel-pwd') {
-      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--grad-pharma);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;">🔑 Changer mon mot de passe</button>';
+      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-pharmacie);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;"><span class="material-symbols-outlined">key</span> Changer mon mot de passe</button>';
       document.getElementById('btn-change-pwd').addEventListener('click', () => {
         document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
       });
@@ -1407,6 +1404,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'modifier-prix') modifierPrix(btn.dataset.nom, parseInt(btn.dataset.prix), btn.dataset.unite);
   });
 });
+
+// Initialize dual navigation
+if (typeof initNavigation === 'function') {
+  initNavigation();
+}
 </script>
 </body>
 </html>

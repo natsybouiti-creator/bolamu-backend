@@ -82,6 +82,49 @@ const WHATSAPP_TEMPLATES = {
         language: 'fr',
         description: 'Confirmation RDV patient/médecin',
         params: ['nom_patient', 'date_rdv', 'heure_rdv', 'nom_medecin', 'adresse_etablissement', 'code_session']
+    },
+    // Sprint 6A : Nouveaux templates événements et Zora
+    rappel_evenement: {
+        name: 'rappel_evenement',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Rappel événement Elonga 24h avant',
+        params: ['prenom', 'titre', 'heure', 'lieu']
+    },
+    confirmation_checkin: {
+        name: 'confirmation_checkin',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Confirmation check-in événement',
+        params: ['titre', 'points', 'solde']
+    },
+    gain_zora_consultation: {
+        name: 'gain_zora_consultation',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Gain Zora après consultation',
+        params: ['medecin', 'points', 'solde']
+    },
+    voucher_expirant: {
+        name: 'voucher_expirant',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Rappel voucher expirant 48h avant',
+        params: ['titre', 'partenaire', 'date']
+    },
+    rappel_rdv_24h: {
+        name: 'rappel_rdv_24h',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Rappel RDV 24h avant',
+        params: ['heure', 'medecin', 'adresse']
+    },
+    gain_jeu_zora: {
+        name: 'gain_jeu_zora',
+        category: 'UTILITY',
+        language: 'fr',
+        description: 'Gain Zora après jeu',
+        params: ['points', 'jeu', 'solde']
     }
 };
 
