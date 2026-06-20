@@ -11,7 +11,7 @@ const {
   getVoucherByUuid,
   getPartnerVouchers
 } = require('../services/zora-marketplace.service');
-const authMiddleware = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth.middleware');
 
 // ============================================================
 // CÔTÉ PATIENT
