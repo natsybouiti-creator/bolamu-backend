@@ -17,13 +17,12 @@ const authMiddleware = require('../middleware/auth.middleware');
 // CÔTÉ PATIENT
 // ============================================================
 
-// GET /api/v1/zora/rewards - Liste des récompenses disponibles
-router.get('/rewards', authMiddleware, async (req, res) => {
+// GET /api/v1/zora/rewards - Liste des récompenses disponibles (PUBLIC)
+router.get('/rewards', async (req, res) => {
   try {
     const { category } = req.query;
-    const phone = req.user.phone;
     
-    const result = await getRewards({ category, phone });
+    const result = await getRewards({ category });
     
     if (result.success) {
       res.json({ success: true, data: result.data });
