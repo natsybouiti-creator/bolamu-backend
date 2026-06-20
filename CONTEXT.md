@@ -1230,3 +1230,95 @@ Police : Plus Jakarta Sans
 - Endpoint prévu : /api/v1/patient/wallet-pass
 - Bloqué : compte Apple Developer (99$/an) non encore souscrit
 - Status : PLANIFIÉ, pas encore implémenté
+
+---
+
+## ÉTAT AU 20 JUIN 2026 — Sprints 1 à 8 (numérotation chantier Bolamu ADSP gamification, distincte des sprints CRIT/TC déjà documentés)
+
+### Sprint 1 — Dashboard patient câblé
+Aucune nouvelle table (réutilisation tables existantes)
+15 endpoints :
+GET /api/v1/patients/profile
+GET /api/v1/appointments/patient/:phone
+POST /api/v1/patients/constantes
+GET /api/v1/prescriptions/patient/:phone
+GET /api/v1/lab-results/patient/:phone
+GET /api/v1/consultation-reports/patient/:phone
+POST /api/v1/conflicts
+GET /api/v1/conflicts/patient/:phone
+GET /api/v1/ratings/patient/:phone
+POST /api/v1/ratings
+GET /api/v1/credits/patient/:phone
+GET /api/v1/articles
+GET /api/v1/patients/timeline/:phone
+POST /api/v1/patients/change-password
+GET /api/v1/patients/intervenants
+Statut : ✅ prod confirmée
+
+### Sprint 2 — Moteur Zora Points + ledger
+Tables : zora_ledger (id, phone, points, action_type, proof_class, proof_source, proof_reference, earned_at), zora_categories, zora_tiers
+Service : src/services/zora.service.js (awardZora() est le point d'entrée central utilisé par tous les sprints suivants pour créditer des points)
+Endpoints : POST /api/v1/zora/award, GET /api/v1/zora/balance/:phone, GET /api/v1/zora/tier/:phone, GET /api/v1/zora/history/:phone
+Paliers : Kimia / Liboso / Nkembo / Elonga
+Validation par preuve : proof_class, proof_source, proof_reference (ground_truth = preuve vérifiée terrain, utilisé notamment par le check-in QR des événements Elonga au Sprint 5)
+Statut : ✅ prod confirmée
+
+### Sprint 3 — Marketplace MFR + Vouchers QR
+Tables : zora_marketplace, zora_vouchers
+Endpoint réel : /api/v1/zora/rewards (PAS /marketplace)
+Service : zora-marketplace.service.js
+Statut : ✅ prod confirmée, 7 récompenses actives
+
+### Sprint 4 — Jeux Zora
+Tables : zora_games, zora_game_plays, zora_game_prizes, zora_games_global_cap, zora_quiz_questions
+Endpoint : /api/v1/zora/games/config
+Service : zora-games.service.js
+Statut : ✅ prod confirmée, 4 jeux actifs (scratch, wheel, chest, quiz)
+
+### Sprint 5 — Événements Elonga + Check-in QR ground_truth
+Tables : elonga_events, elonga_registrations, elonga_checkin_tokens
+Endpoints : /api/v1/events/*
+Service : elonga-events.service.js
+Statut : ✅ prod confirmée, 5 événements publiés
+
+### Sprint 6A — WhatsApp + Leaderboard hebdo + Streak
+Tables : leaderboard_weekly, user_streaks (PAS "streaks")
+Endpoints : /api/v1/leaderboard/*, /api/v1/streaks/*
+Services : leaderboard.service.js, streak.service.js
+WhatsApp : envoi DIRECT via whatsapp.service.js (sendWhatsAppTemplate), AUCUNE dépendance BullMQ/Redis
+Statut : ✅ prod confirmée
+
+### Sprint 6B — Groupes de sport + Chat communauté/médecins
+Tables : sport_groups, sport_group_members, chat_messages, chat_reactions
+Endpoints : /api/v1/sport-groups/*, /api/v1/chat/*
+Services : sport-groups.service.js, chat.service.js
+Auto-post achievements branché dans zora.service.js
+Statut : ✅ prod confirmée, 6 groupes actifs
+
+### Sprint 7 + 8 — Design system unifié
+Fichiers sources uniques : public/css/bolamu-ds.css, public/js/bolamu-nav.js
+Dashboards restylés : médecin, secrétaire, pharmacie, laboratoire, RH, admin
+Statut : ✅ prod confirmée sur les 6 dashboards
+
+---
+
+## RÈGLES CRITIQUES — leçons des incidents prod du 20 juin 2026
+
+1. IMPORT MIDDLEWARE AUTH (cause de 3 crashs MODULE_NOT_FOUND) :
+   TOUJOURS : const authMiddleware = require('../middleware/auth.middleware');
+   JAMAIS : const { authenticateToken } = require('../middleware/auth');
+   Copier le pattern d'un fichier routes/*.js existant, jamais généré de mémoire.
+
+2. POOL POSTGRESQL :
+   TOUJOURS : const pool = require('../config/db');
+   JAMAIS : const { pool } = require('../config/db');
+
+3. DÉPENDANCES CIRCULAIRES — zora.service.js et streak.service.js s'importent mutuellement. Le require de awardZora dans streak.service.js doit être DIFFÉRÉ (dans la fonction, pas en haut du fichier).
+
+4. ROUTES NON ENREGISTRÉES — toujours vérifier app.use('/api/v1/xxx', require('./routes/xxx.routes')) dans server.js pour chaque nouveau fichier route.
+
+5. MIGRATIONS — toujours CREATE TABLE IF NOT EXISTS.
+
+6. REDIS indisponible en prod en continu. N'affecte pas WhatsApp (direct), mais futures features dépendant de BullMQ ont besoin d'un fallback.
+
+7. VÉRIFICATION PROD — utiliser curl.exe explicitement sous PowerShell, tester sur www.bolamu.co (pas api.bolamu.co).
