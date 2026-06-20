@@ -311,7 +311,7 @@ if (typeof BarcodeDetector !== 'undefined') {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
       <polygon points="23 7 16 12 23 17 23 7"/>
       <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-    </svg>Téléconsultation
+    </svg>Consultation vidéo
   </button>
   <button class="tab" id="tab-profil" data-tab="profil">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
@@ -511,7 +511,7 @@ if (typeof BarcodeDetector !== 'undefined') {
     </div>
   </div>
   <div class="panel" id="panel-telemedicine">
-    <div class="section-header"><h2 class="section-title">Téléconsultations</h2></div>
+    <div class="section-header"><h2 class="section-title">Consultations vidéo</h2></div>
     <div style="background:linear-gradient(135deg,#0A2463,#2E86FF);border-radius:20px;padding:28px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
       <div><div style="font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:900;margin-bottom:6px;">Consultations vidéo sécurisées</div>
       <div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6;">Consultez vos patients à distance via Jitsi Meet — chiffré de bout en bout. Cliquez sur "Démarrer" pour lancer une session.</div></div>
@@ -662,7 +662,7 @@ if (typeof BarcodeDetector !== 'undefined') {
 <footer style="
   position: static;
   width: 100%;
-  background: rgba(0,0,0,0.25);
+  background: rgba(10,36,99,0.25);
   padding: 14px 0;
   text-align: center;
   margin-top: 40px;
@@ -785,7 +785,7 @@ if (d.is_active && d.validated_at) {
   const diffH = (Date.now() - new Date(d.validated_at)) / 3600000;
   if (diffH < 48) {
     const t = document.createElement('div');
-    t.style.cssText = 'position:fixed;top:20px;right:20px;background:#00C9A7;color:#fff;padding:14px 20px;border-radius:10px;font-weight:500;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15)';
+    t.style.cssText = 'position:fixed;top:20px;right:20px;background:#00C9A7;color:#fff;padding:14px 20px;border-radius:10px;font-weight:500;z-index:9999;box-shadow:0 4px 16px rgba(0,201,167,0.15)';
     t.textContent = '✓ Votre compte a été validé par l\'équipe Bolamu. Bienvenue !';
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 6000);
@@ -987,7 +987,7 @@ function renderRdvList(rdvs,containerId){
       <div class="rdv-actions">
         ${peutValider?`
           <button class="btn-valider" data-action="ouvrir-validation" data-id="${r.id}" data-patient="${r.patient_phone}" data-session="${r.session_code}" data-date="${dateRdv}" data-heure="${heureRdv}" data-symptomes-motif="${r.symptomes_motif||''}"><span class="material-symbols-outlined">check_circle</span> Valider</button>
-          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">videocam</span> Téléconsultation</button>
+          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">videocam</span> Consultation vidéo</button>
           <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>`:''}
         ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>`:''}
       </div>
@@ -1509,7 +1509,7 @@ async function loadTeleRdv(){
     const data=await res.json();
     const rdvs=(data.data||data||[]).filter(r=>r.status==='confirme'||r.status==='en_cours');
     const container=document.getElementById('tele-rdv-list');
-    if(!rdvs.length){container.innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">calendar_month</span></div><p>Aucun RDV confirmé pour le moment.<br>Les téléconsultations apparaissent ici dès qu'un RDV est confirmé.</p></div>`;return;}
+    if(!rdvs.length){container.innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">calendar_month</span></div><p>Aucun RDV confirmé pour le moment.<br>Les consultations vidéo apparaissent ici dès qu'un RDV est confirmé.</p></div>`;return;}
     container.innerHTML=`<div class="rdv-list">${rdvs.map(r=>{
       const dateRdv=r.appointment_date||r.date||'';
       const heureRdv=(r.appointment_time||r.time||'—').substring(0,5);
@@ -1524,7 +1524,7 @@ async function loadTeleRdv(){
         </div>
         <div class="rdv-meta"><span><span class="material-symbols-outlined">calendar_month</span> <strong>${formatDate(dateRdv)}</strong></span><span><span class="material-symbols-outlined">schedule</span> <strong>${heureRdv}</strong></span></div>
         <div class="rdv-actions">
-          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">videocam</span> ${isEnCours?'Reprendre la session':'Démarrer la téléconsultation'}</button>
+          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">videocam</span> ${isEnCours?'Reprendre la session':'Démarrer la consultation vidéo'}</button>
         </div>
       </div>`;
     }).join('')}</div>`;
