@@ -3,7 +3,7 @@
 -- ============================================================
 
 -- Table zora_points : solde et palier par utilisateur
-CREATE TABLE zora_points (
+CREATE TABLE IF NOT EXISTS zora_points (
   id SERIAL PRIMARY KEY,
   phone VARCHAR(20) NOT NULL REFERENCES users(phone),
   balance INTEGER NOT NULL DEFAULT 0,
@@ -16,7 +16,7 @@ CREATE TABLE zora_points (
 );
 
 -- Table zora_ledger : historique complet des gains avec taxonomie de preuve
-CREATE TABLE zora_ledger (
+CREATE TABLE IF NOT EXISTS zora_ledger (
   id SERIAL PRIMARY KEY,
   phone VARCHAR(20) NOT NULL REFERENCES users(phone),
   points INTEGER NOT NULL,
@@ -41,7 +41,7 @@ CREATE UNIQUE INDEX uq_zora_ledger_credit ON zora_ledger
   (action_type, proof_reference) WHERE points > 0;
 
 -- Table zora_tiers_config : configuration des paliers
-CREATE TABLE zora_tiers_config (
+CREATE TABLE IF NOT EXISTS zora_tiers_config (
   id SERIAL PRIMARY KEY,
   tier_name VARCHAR(20) UNIQUE NOT NULL,
   label_fr VARCHAR(40) NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE zora_tiers_config (
 );
 
 -- Table zora_earn_rules : règles de gain par action
-CREATE TABLE zora_earn_rules (
+CREATE TABLE IF NOT EXISTS zora_earn_rules (
   id SERIAL PRIMARY KEY,
   action_type VARCHAR(100) UNIQUE NOT NULL,
   label_fr VARCHAR(120) NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE zora_earn_rules (
 );
 
 -- Table zora_category_caps : plafonds par catégorie
-CREATE TABLE zora_category_caps (
+CREATE TABLE IF NOT EXISTS zora_category_caps (
   id SERIAL PRIMARY KEY,
   category VARCHAR(30) UNIQUE NOT NULL,
   cap_percent INTEGER NOT NULL

@@ -3,7 +3,7 @@
 -- ============================================================
 
 -- Configuration des jeux
-CREATE TABLE zora_games (
+CREATE TABLE IF NOT EXISTS zora_games (
   id SERIAL PRIMARY KEY,
   game_type VARCHAR(30) UNIQUE NOT NULL,
   -- scratch | wheel | chest | quiz
@@ -19,7 +19,7 @@ CREATE TABLE zora_games (
 );
 
 -- Catalogue des prix possibles par jeu
-CREATE TABLE zora_game_prizes (
+CREATE TABLE IF NOT EXISTS zora_game_prizes (
   id SERIAL PRIMARY KEY,
   game_id INTEGER NOT NULL REFERENCES zora_games(id),
   label_fr VARCHAR(60) NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE zora_game_prizes (
 );
 
 -- Historique des parties jouées
-CREATE TABLE zora_game_plays (
+CREATE TABLE IF NOT EXISTS zora_game_plays (
   id SERIAL PRIMARY KEY,
   phone VARCHAR(20) NOT NULL REFERENCES users(phone),
   game_id INTEGER NOT NULL REFERENCES zora_games(id),
@@ -55,7 +55,7 @@ CREATE UNIQUE INDEX uq_game_play_session
   ON zora_game_plays (phone, game_id, server_seed);
 
 -- Plafond global jeux
-CREATE TABLE zora_games_global_cap (
+CREATE TABLE IF NOT EXISTS zora_games_global_cap (
   id SERIAL PRIMARY KEY,
   daily_total_cap INTEGER NOT NULL DEFAULT 100,
   -- max Zora/jour tous jeux confondus
@@ -64,7 +64,7 @@ CREATE TABLE zora_games_global_cap (
 );
 
 -- Quiz : banque de questions
-CREATE TABLE zora_quiz_questions (
+CREATE TABLE IF NOT EXISTS zora_quiz_questions (
   id SERIAL PRIMARY KEY,
   question TEXT NOT NULL,
   option_a VARCHAR(200) NOT NULL,
