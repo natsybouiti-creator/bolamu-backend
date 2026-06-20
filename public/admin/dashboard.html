@@ -9,11 +9,11 @@
 <meta name="theme-color" content="#2E86FF">
 <link rel="manifest" href="/manifest.json">
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap">
+<link rel="stylesheet" href="/css/bolamu-ds.css">
+<script src="/js/bolamu-nav.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<style>
-.ni { font-family: 'Noto Color Emoji', sans-serif; }
-</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Bolamu · Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,7 +47,7 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--txt
 .nav-btn{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:8px;border:none;background:none;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;text-align:left;line-height:1;}
 .nav-btn:hover{background:var(--raised);color:var(--txt2);}
 .nav-btn.active{background:rgba(61,126,255,.1);color:#6ba4ff;border:1px solid rgba(61,126,255,.15);}
-.nav-btn .ni{font-family:"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;font-size:14px;width:18px;text-align:center;flex-shrink:0;opacity:.85;}
+.nav-btn .material-symbols-outlined{font-size:18px;width:18px;text-align:center;flex-shrink:0;opacity:.85;}
 .nav-badge{margin-left:auto;background:var(--red);color:#fff;border-radius:20px;padding:1px 7px;font-size:9px;font-weight:700;line-height:1.5;}
 .nav-badge.amber-b{background:rgba(245,158,11,.9);color:#0b0d12;}
 .sidebar-foot{padding:10px 8px 14px;border-top:1px solid var(--border);}
@@ -340,30 +340,30 @@ tr:hover td{background:rgba(255,255,255,.018);}
   </div>
   <nav class="nav">
     <div class="nav-group">Vue générale</div>
-    <button class="nav-btn active" id="nav-overview" data-panel="overview"><span class="ni"></span>Tableau de bord</button>
-    <button class="nav-btn"        id="nav-activity" data-panel="activity"><span class="ni"></span>Activité temps réel</button>
+    <button class="nav-btn active" id="nav-overview" data-panel="overview"><span class="material-symbols-outlined" style="font-size:18px;">dashboard</span>Tableau de bord</button>
+    <button class="nav-btn"        id="nav-activity" data-panel="activity"><span class="material-symbols-outlined" style="font-size:18px;">activity_log</span>Activité temps réel</button>
     <div class="nav-group">Comptes</div>
-    <button class="nav-btn" id="nav-pending" data-panel="pending"><span class="ni"></span>En attente<span class="nav-badge amber-b" id="bdg-pending">0</span></button>
-    <button class="nav-btn" id="nav-doctors" data-panel="doctors"><span class="ni"></span>Médecins</button>
-    <button class="nav-btn" id="nav-pharmacies" data-panel="pharmacies"><span class="ni"></span>Pharmacies</button>
-    <button class="nav-btn" id="nav-laboratories" data-panel="laboratories"><span class="ni"></span>Laboratoires</button>
-    <button class="nav-btn" id="nav-patients" data-panel="patients"><span class="ni"></span>Patients</button>
+    <button class="nav-btn" id="nav-pending" data-panel="pending"><span class="material-symbols-outlined" style="font-size:18px;">hourglass</span>En attente<span class="nav-badge amber-b" id="bdg-pending">0</span></button>
+    <button class="nav-btn" id="nav-doctors" data-panel="doctors"><span class="material-symbols-outlined" style="font-size:18px;">medical_services</span>Médecins</button>
+    <button class="nav-btn" id="nav-pharmacies" data-panel="pharmacies"><span class="material-symbols-outlined" style="font-size:18px;">local_pharmacy</span>Pharmacies</button>
+    <button class="nav-btn" id="nav-laboratories" data-panel="laboratories"><span class="material-symbols-outlined" style="font-size:18px;">science</span>Laboratoires</button>
+    <button class="nav-btn" id="nav-patients" data-panel="patients"><span class="material-symbols-outlined" style="font-size:18px;">person</span>Patients</button>
     <div class="nav-group">Plateforme</div>
-    <button class="nav-btn" id="nav-appointments" data-panel="appointments"><span class="ni"></span>Rendez-vous</button>
-    <button class="nav-btn" id="nav-prescriptions" data-panel="prescriptions"><span class="ni"></span>Ordonnances</button>
-    <button class="nav-btn" id="nav-payments" data-panel="payments"><span class="ni"></span>Paiements</button>
-    <button class="nav-btn" id="nav-fraud" data-panel="fraud"><span class="ni"></span>Fraudes<span class="nav-badge" id="bdg-fraud">0</span></button>
-    <button class="nav-btn" id="nav-audit" data-panel="audit"><span class="ni"></span>Journal d'audit</button>
+    <button class="nav-btn" id="nav-appointments" data-panel="appointments"><span class="material-symbols-outlined" style="font-size:18px;">event</span>Rendez-vous</button>
+    <button class="nav-btn" id="nav-prescriptions" data-panel="prescriptions"><span class="material-symbols-outlined" style="font-size:18px;">description</span>Ordonnances</button>
+    <button class="nav-btn" id="nav-payments" data-panel="payments"><span class="material-symbols-outlined" style="font-size:18px;">payments</span>Paiements</button>
+    <button class="nav-btn" id="nav-fraud" data-panel="fraud"><span class="material-symbols-outlined" style="font-size:18px;">warning</span>Fraudes<span class="nav-badge" id="bdg-fraud">0</span></button>
+    <button class="nav-btn" id="nav-audit" data-panel="audit"><span class="material-symbols-outlined" style="font-size:18px;">history</span>Journal d'audit</button>
     <div class="nav-group">Paramètres</div>
-    <button class="nav-btn" id="nav-config" data-panel="config"><span class="ni"></span>Configuration</button>
-    <button class="nav-btn" id="nav-credits" data-panel="credits"><span class="ni"></span>Crédits</button>
-    <button class="nav-btn" id="nav-ratings" data-panel="ratings"><span class="ni"></span>⭐ Notations</button>
+    <button class="nav-btn" id="nav-config" data-panel="config"><span class="material-symbols-outlined" style="font-size:18px;">settings</span>Configuration</button>
+    <button class="nav-btn" id="nav-credits" data-panel="credits"><span class="material-symbols-outlined" style="font-size:18px;">account_balance</span>Crédits</button>
+    <button class="nav-btn" id="nav-ratings" data-panel="ratings"><span class="material-symbols-outlined" style="font-size:18px;">star</span>Notations</button>
     <div class="nav-group">Opérations</div>
-    <button class="nav-btn" id="nav-collecte" data-panel="collecte"><span class="ni"></span>💰 Collecte</button>
-    <button class="nav-btn" id="nav-conventions" data-panel="conventions"><span class="ni"></span>🤝 Conventions</button>
-    <button class="nav-btn" id="nav-clearing" data-panel="clearing"><span class="ni"></span>🏦 Clearing CDR</button>
-    <button class="nav-btn" id="nav-conflits" data-panel="conflits"><span class="ni"></span>⚖️ Conflits</button>
-    <button class="nav-btn" id="nav-smartflow" data-panel="smartflow"><span class="ni"></span>Smart Flow</button>
+    <button class="nav-btn" id="nav-collecte" data-panel="collecte"><span class="material-symbols-outlined" style="font-size:18px;">payments</span>Collecte</button>
+    <button class="nav-btn" id="nav-conventions" data-panel="conventions"><span class="material-symbols-outlined" style="font-size:18px;">handshake</span>Conventions</button>
+    <button class="nav-btn" id="nav-clearing" data-panel="clearing"><span class="material-symbols-outlined" style="font-size:18px;">account_balance</span>Clearing CDR</button>
+    <button class="nav-btn" id="nav-conflits" data-panel="conflits"><span class="material-symbols-outlined" style="font-size:18px;">gavel</span>Conflits</button>
+    <button class="nav-btn" id="nav-smartflow" data-panel="smartflow"><span class="material-symbols-outlined" style="font-size:18px;">analytics</span>Smart Flow</button>
   </nav>
   <div class="sidebar-foot">
     <div class="user-row">
@@ -372,7 +372,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <div class="user-name" id="admin-name">Admin</div>
         <div class="user-role">Superadmin</div>
       </div>
-      <span class="logout" data-ononclick="logout" title="Déconnexion">?</span>
+      <span class="logout" data-ononclick="logout" title="Déconnexion"><span class="material-symbols-outlined" style="font-size:18px;">logout</span></span>
     </div>
   </div>
 </aside>
@@ -380,7 +380,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
 <div class="main">
   <header class="topbar">
     <div class="topbar-left">
-      <button class="mob-toggle" data-ononclick="toggleSB">?</button>
+      <button class="mob-toggle" data-ononclick="toggleSB"><span class="material-symbols-outlined" style="font-size:20px;">menu</span></button>
       <div>
         <div class="topbar-title" id="panel-title">Tableau de bord</div>
       </div>
@@ -390,7 +390,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <div class="dot amber" id="srv-dot"></div>
         <span id="srv-lbl">Connexion...</span>
       </div>
-      <button class="top-btn" data-ononclick="refreshAll">? Actualiser</button>
+      <button class="top-btn" data-ononclick="refreshAll"><span class="material-symbols-outlined" style="font-size:18px;">refresh</span> Actualiser</button>
     </div>
   </header>
 
@@ -574,7 +574,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
 
     <!-- PANEL COLLECTE -->
     <div id="panel-collecte" class="panel" style="display:none">
-      <h2>💰 Collecte — 4 canaux</h2>
+      <h2><span class="material-symbols-outlined" style="font-size:24px;vertical-align:middle;">payments</span> Collecte — 4 canaux</h2>
 
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
         <div class="card">
@@ -1195,11 +1195,11 @@ async function createAdmin(){
   const password=document.getElementById('admin-password').value.trim();
   if(!name||!phone||!password){toast('Tous les champs sont requis','err');return;}
   if(password.length<6){toast('Min. 6 caractères','err');return;}
-  try{const d=await api('/admin/team',{method:'POST',body:JSON.stringify({full_name:name,phone,password,role:'content_admin'})});if(d.success){closeModal();toast('✅ Admin créé !');loadAdminTeam();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{const d=await api('/admin/team',{method:'POST',body:JSON.stringify({full_name:name,phone,password,role:'content_admin'})});if(d.success){closeModal();toast('<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Admin créé !');loadAdminTeam();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 async function deleteAdmin(phone){
   if(!confirm(`Supprimer l'admin ${phone} ?`))return;
-  try{const d=await api(`/admin/team/${encodeURIComponent(phone)}`,{method:'DELETE'});if(d.success){toast('✅ Admin supprimé !');loadAdminTeam();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{const d=await api(`/admin/team/${encodeURIComponent(phone)}`,{method:'DELETE'});if(d.success){toast('<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Admin supprimé !');loadAdminTeam();}else toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 
 /* -----------------------------------
@@ -1232,12 +1232,12 @@ async function loadRatings() {
     const recent = res.recent || [];
 
     const roleEmoji = { doctor: '🩺', pharmacie: '💊', laboratoire: '🔬' };
-    const starsHtml = (n) => '⭐'.repeat(Math.round(n)) + ` (${n})`;
+    const starsHtml = (n) => '<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">star</span>'.repeat(Math.round(n)) + ` (${n})`;
 
     document.getElementById('ratings-classement').innerHTML = classement.length ? classement.map(r => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);">
         <div style="display:flex;align-items:center;gap:12px;">
-          <span style="font-size:24px;">${roleEmoji[r.intervenant_role]||'👤'}</span>
+          <span style="font-size:24px;"><span class="material-symbols-outlined" style="font-size:28px;">person</span></span>
           <div>
             <div style="font-weight:700;font-size:14px;color:var(--text);">${r.full_name||r.intervenant_phone}</div>
             <div style="font-size:12px;color:var(--muted);">${r.total_ratings} évaluation(s)</div>
@@ -1245,7 +1245,7 @@ async function loadRatings() {
         </div>
         <div style="text-align:right;">
           <div style="font-size:16px;">${starsHtml(r.moyenne)}</div>
-          ${r.alertes > 0 ? `<div style="font-size:11px;color:#ef4444;font-weight:700;">⚠️ ${r.alertes} alerte(s)</div>` : ''}
+          ${r.alertes > 0 ? `<div style="font-size:11px;color:#ef4444;font-weight:700;"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">warning</span> ${r.alertes} alerte(s)</div>` : ''}
         </div>
       </div>
     `).join('') : '<div style="color:var(--muted);font-size:14px;">Aucune évaluation</div>';
@@ -1253,8 +1253,8 @@ async function loadRatings() {
     document.getElementById('ratings-recent').innerHTML = recent.length ? recent.map(r => `
       <div style="padding:10px 14px;background:var(--bg-card);border-radius:10px;margin-bottom:6px;border:1px solid var(--border);">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <span style="font-size:13px;font-weight:600;color:var(--text);">${roleEmoji[r.intervenant_role]||'👤'} ${r.intervenant_name||r.intervenant_phone}</span>
-          <span style="font-size:13px;">${'⭐'.repeat(r.stars)}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--text);"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">person</span> ${r.intervenant_name||r.intervenant_phone}</span>
+          <span style="font-size:13px;"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">star</span><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">star</span><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">star</span><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">star</span><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">star</span></span>
         </div>
         <div style="font-size:11px;color:var(--muted);">Par ${r.patient_name||r.patient_phone} · ${new Date(r.created_at).toLocaleDateString('fr-FR')}</div>
         ${r.adjectives?.length ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">${r.adjectives.map(a=>`<span style="padding:2px 8px;background:var(--bg);border-radius:10px;font-size:11px;color:var(--muted);border:1px solid var(--border);">${a}</span>`).join('')}</div>` : ''}
@@ -1453,25 +1453,25 @@ async function viewUser(phone){
   const creditHistory = profileData.credit_history  || [];
  
   const roleInfo = {
-    doctor:     {emoji:'🩺', color:'var(--green)',   label:'Médecin'},
-    patient:    {emoji:'👤',   color:'var(--accent)',  label:'Patient'},
-    pharmacie:  {emoji:'💊',   color:'var(--violet)', label:'Pharmacie'},
-    laboratoire:{emoji:'🔬',   color:'var(--amber)',  label:'Laboratoire'},
-    admin:      {emoji:'⚙️',   color:'var(--red)',     label:'Admin'},
+    doctor:     {icon:'medical_services', color:'var(--green)',   label:'Médecin'},
+    patient:    {icon:'person',   color:'var(--accent)',  label:'Patient'},
+    pharmacie:  {icon:'local_pharmacy',   color:'var(--violet)', label:'Pharmacie'},
+    laboratoire:{icon:'science',   color:'var(--amber)',  label:'Laboratoire'},
+    admin:      {icon:'settings',   color:'var(--red)',     label:'Admin'},
   };
-  const ri = roleInfo[u.role] || {emoji:'??', color:'var(--muted)', label:u.role||''};
+  const ri = roleInfo[u.role] || {icon:'help', color:'var(--muted)', label:u.role||''};
   const fraudScore = u.fraud_score;
   const fraudColor = fraudScore>=70?'var(--red)':fraudScore>=40?'var(--amber)':'var(--green)';
  
   const html = `
     <div class="profile-header">
-      <div class="profile-avatar" style="background:linear-gradient(135deg,${ri.color},var(--accent)40)">${ri.emoji}</div>
+      <div class="profile-avatar" style="background:linear-gradient(135deg,${ri.color},var(--accent)40)"><span class="material-symbols-outlined" style="font-size:32px;">${ri.icon}</span></div>
       <div style="flex:1;min-width:0">
         <div class="profile-main-name">${u.full_name||u.business_name||u.name||''}</div>
         <div class="profile-phone">${u.phone||withPlus}</div>
         <div class="profile-role-line">
           ${badge(u.status||'verified')}
-          <span class="badge b-muted">${ri.emoji} ${ri.label}</span>
+          <span class="badge b-muted"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">${ri.icon}</span> ${ri.label}</span>
           ${u.specialty?`<span class="badge b-violet">${u.specialty}</span>`:''}
         </div>
       </div>
@@ -1483,20 +1483,20 @@ async function viewUser(phone){
     </div>
  
     <div class="profile-tabs">
-      <button class="profile-tab active" id="profile-tab-info-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="info">📋 Infos</button>
-      <button class="profile-tab" id="profile-tab-rdv-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="rdv">📅 RDV (${appointments.length})</button>
-      <button class="profile-tab" id="profile-tab-docs-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="docs">📄 Docs (${documents.length})</button>
-      <button class="profile-tab" id="profile-tab-credits-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="credits">💰 Crédits</button>
-      <button class="profile-tab" id="profile-tab-payments-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="payments">💳 Paiements (${payments.length})</button>
+      <button class="profile-tab active" id="profile-tab-info-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="info"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">description</span> Infos</button>
+      <button class="profile-tab" id="profile-tab-rdv-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="rdv"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">event</span> RDV (${appointments.length})</button>
+      <button class="profile-tab" id="profile-tab-docs-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="docs"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">folder</span> Docs (${documents.length})</button>
+      <button class="profile-tab" id="profile-tab-credits-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="credits"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">account_balance</span> Crédits</button>
+      <button class="profile-tab" id="profile-tab-payments-${u.phone||withPlus}" data-action="switch-profile-tab" data-tab="payments"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">payments</span> Paiements (${payments.length})</button>
     </div>
  
     <!-- ONGLET INFOS -->
     <div class="profile-tab-panel active" id="ptab-info">
       <div class="info-grid">
-        <div class="info-block"><div class="info-label">Crédits disponibles</div><div class="info-value big">${u.credits_balance||0} 💰</div></div>
+        <div class="info-block"><div class="info-label">Crédits disponibles</div><div class="info-value big">${u.credits_balance||0} FCFA</div></div>
         <div class="info-block"><div class="info-label">RDV au total</div><div class="info-value mono" style="font-size:18px;">${appointments.length}</div></div>
         <div class="info-block"><div class="info-label">Téléphone</div><div class="info-value mono">${u.phone||''}</div></div>
-        <div class="info-block"><div class="info-label">Rôle</div><div class="info-value">${ri.emoji} ${ri.label}</div></div>
+        <div class="info-block"><div class="info-label">Rôle</div><div class="info-value"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">${ri.icon}</span> ${ri.label}</div></div>
         ${u.specialty?`<div class="info-block"><div class="info-label">Spécialité</div><div class="info-value">${u.specialty}</div></div>`:''}
         ${u.registration_number?`<div class="info-block"><div class="info-label">N° d'ordre</div><div class="info-value mono">${u.registration_number}</div></div>`:''}
         ${u.city?`<div class="info-block"><div class="info-label">Ville</div><div class="info-value">${u.city}</div></div>`:''}
@@ -1517,10 +1517,10 @@ async function viewUser(phone){
             ${badge(a.status)}
           </div>
           <div class="rdv-meta">
-            ${u.role==='doctor'?`👤 Patient: ${a.patient_phone||''}`:`🩺 Médecin: ${a.doctor_phone||a.doctor_name||''}`}
+            ${u.role==='doctor'?`<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">person</span> Patient: ${a.patient_phone||''}`:`<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">medical_services</span> Médecin: ${a.doctor_phone||a.doctor_name||''}`}
             &nbsp;·&nbsp; ${fd(a.appointment_date||a.created_at)}
           </div>
-        </div>`).join(''):'<div class="empty"><div class="empty-ico">📅</div><p>Aucun rendez-vous</p></div>'}
+        </div>`).join(''):'<div class="empty"><div class="empty-ico"><span class="material-symbols-outlined" style="font-size:32px;">event</span></div><p>Aucun rendez-vous</p></div>'}
     </div>
  
     <!-- ONGLET DOCUMENTS -->
@@ -1533,10 +1533,10 @@ async function viewUser(phone){
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             ${badge(d.status||'verified')}
-            ${d.url||d.file_url?`<a href="${d.url||d.file_url}" target="_blank" class="ab ab-blue" style="text-decoration:none;font-size:9px">👁 Voir</a>`:''}
+            ${d.url||d.file_url?`<a href="${d.url||d.file_url}" target="_blank" class="ab ab-blue" style="text-decoration:none;font-size:9px"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">visibility</span> Voir</a>`:''}
           </div>
         </div>`).join(''):`
-        <div class="empty"><div class="empty-ico">📄</div><p>Aucun document uploadé</p></div>`}
+        <div class="empty"><div class="empty-ico"><span class="material-symbols-outlined" style="font-size:32px;">folder</span></div><p>Aucun document uploadé</p></div>`}
       ${prescriptions.length?`
         <div style="margin-top:14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Ordonnances (${prescriptions.length})</div>
         ${prescriptions.slice(0,5).map(p=>`
@@ -1551,8 +1551,8 @@ async function viewUser(phone){
     <!-- ONGLET CREDITS -->
     <div class="profile-tab-panel" id="ptab-credits">
       <div class="info-grid" style="margin-bottom:14px">
-        <div class="info-block"><div class="info-label">Solde actuel</div><div class="info-value big">${u.credits_balance||0} 💰</div></div>
-        <div class="info-block"><div class="info-label">Total reçus</div><div class="info-value mono" style="font-size:18px">${creditHistory.filter(c=>(c.amount||0)>0).reduce((s,c)=>s+(c.amount||0),0)} 💰</div></div>
+        <div class="info-block"><div class="info-label">Solde actuel</div><div class="info-value big">${u.credits_balance||0} FCFA</div></div>
+        <div class="info-block"><div class="info-label">Total reçus</div><div class="info-value mono" style="font-size:18px">${creditHistory.filter(c=>(c.amount||0)>0).reduce((s,c)=>s+(c.amount||0),0)} FCFA</div></div>
       </div>
       ${creditHistory.length?`
         <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Historique</div>
@@ -1562,7 +1562,7 @@ async function viewUser(phone){
               <div class="doc-name">${c.reason||c.description||'Crédit'}</div>
               <div class="doc-meta">${fd(c.created_at)}</div>
             </div>
-            <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${(c.amount||0)>0?'var(--green)':'var(--red)'}">${(c.amount||0)>0?'+':''}${c.amount} 💰</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${(c.amount||0)>0?'var(--green)':'var(--red)'}">${(c.amount||0)>0?'+':''}${c.amount} FCFA</span>
           </div>`).join('')}`:'<div class="empty"><p>Aucun historique de crédit</p></div>'}
     </div>
  
@@ -1575,17 +1575,17 @@ async function viewUser(phone){
             <div class="doc-meta">${p.reference||''} · ${fd(p.created_at)}</div>
           </div>
           ${badge(p.status)}
-        </div>`).join(''):'<div class="empty"><div class="empty-ico">💳</div><p>Aucun paiement</p></div>'}
+        </div>`).join(''):'<div class="empty"><div class="empty-ico"><span class="material-symbols-outlined" style="font-size:32px;">payments</span></div><p>Aucun paiement</p></div>'}
     </div>
  
     <!-- Actions bas de modal -->
     <div class="modal-acts" style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px">
-      <button class="mbtn mbtn-cancel" data-ononclick="closeProfileModal">❌ Fermer</button>
-      <button class="mbtn mbtn-violet" data-onclick="closeProfileModal" data-arg=");openGrantCreditTo('${u.phone||withPlus}'">💰 Crédits</button>
-      ${(u.status==='pending')?`<button class="mbtn mbtn-green" id="profile-validate-${u.phone||withPlus}" data-action="validate-user-and-close" data-phone="${u.phone||withPlus}">✅ Valider</button>`:''}
-      ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" id="profile-suspend-${u.phone||withPlus}" style="background:var(--amber);color:#080a0f" data-action="suspend-user-and-close" data-phone="${u.phone||withPlus}">⏸ Suspendre</button>`:''}
-      ${(u.status==='suspended')?`<button class="mbtn mbtn-green" id="profile-rehabilitate-${u.phone||withPlus}" data-action="rehabilitate-user-and-close" data-phone="${u.phone||withPlus}">✅ Réhabiliter</button>`:''}
-      <button class="mbtn mbtn-red" id="profile-ban-${u.phone||withPlus}" data-action="ban-user-and-close" data-phone="${u.phone||withPlus}">🚫 Bannir</button>
+      <button class="mbtn mbtn-cancel" data-ononclick="closeProfileModal"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">close</span> Fermer</button>
+      <button class="mbtn mbtn-violet" data-onclick="closeProfileModal" data-arg=");openGrantCreditTo('${u.phone||withPlus}'"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">account_balance</span> Crédits</button>
+      ${(u.status==='pending')?`<button class="mbtn mbtn-green" id="profile-validate-${u.phone||withPlus}" data-action="validate-user-and-close" data-phone="${u.phone||withPlus}"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">check_circle</span> Valider</button>`:''}
+      ${(u.status!=='suspended'&&u.status!=='banned')?`<button class="mbtn mbtn-amber" id="profile-suspend-${u.phone||withPlus}" style="background:var(--amber);color:#080a0f" data-action="suspend-user-and-close" data-phone="${u.phone||withPlus}"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">pause</span> Suspendre</button>`:''}
+      ${(u.status==='suspended')?`<button class="mbtn mbtn-green" id="profile-rehabilitate-${u.phone||withPlus}" data-action="rehabilitate-user-and-close" data-phone="${u.phone||withPlus}"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">check_circle</span> Réhabiliter</button>`:''}
+      <button class="mbtn mbtn-red" id="profile-ban-${u.phone||withPlus}" data-action="ban-user-and-close" data-phone="${u.phone||withPlus}"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">block</span> Bannir</button>
     </div>`;
  
   document.getElementById('profile-modal-body').innerHTML = html;
@@ -1594,7 +1594,7 @@ async function viewUser(phone){
 function renderProfileNotFound(phone){
   document.getElementById('profile-modal-body').innerHTML=`
     <div style="text-align:center;padding:48px 24px">
-      <div style="font-size:40px;margin-bottom:14px;opacity:.5">🔍</div>
+      <div style="font-size:40px;margin-bottom:14px;opacity:.5"><span class="material-symbols-outlined" style="font-size:48px;">search</span></div>
       <div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:8px">Dossier introuvable</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px">${phone}</div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:24px;line-height:1.7">
@@ -1621,7 +1621,7 @@ async function validateUser(phone){
   try{
     const d=await api('/admin/validate-user',{method:'POST',body:JSON.stringify({phone})});
     if(d.success){
-      toast('Compte validé avec succès ✅');
+      toast('Compte validé avec succès <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
       // Rafraîchir toutes les listes pertinentes
       loadPending(); // Mettre à jour la liste des comptes en attente
       loadDoctors(); // Mettre à jour la liste des médecins
@@ -1656,15 +1656,15 @@ async function rejectUser(phone){
 }
 async function suspendUser(phone){
   if(!confirm(`Suspendre ${phone} ?`))return;
-  try{const d=await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('⏸ Suspendu'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{const d=await api('/admin/suspend-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">pause</span> Suspendu'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 async function rehabilitateUser(phone){
   if(!confirm(`Réhabiliter ${phone} ?`))return;
-  try{const d=await api(`/admin/doctors/${encodeURIComponent(phone)}/rehabilitate`,{method:'PATCH',body:JSON.stringify({is_active:true,status:'verified'})});d.success?(toast('✅ Réhabilité'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{const d=await api(`/admin/doctors/${encodeURIComponent(phone)}/rehabilitate`,{method:'PATCH',body:JSON.stringify({is_active:true,status:'verified'})});d.success?(toast('<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Réhabilité'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 async function banUser(phone){
   if(!confirm(`Bannir définitivement ${phone} ?`))return;
-  try{const d=await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('🚫 Banni'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
+  try{const d=await api('/admin/ban-user',{method:'POST',body:JSON.stringify({phone})});d.success?(toast('<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">block</span> Banni'),refreshPanel()):toast(d.message||'Erreur','err');}catch(e){toast('Erreur réseau','err');}
 }
 
 /* -----------------------------------
@@ -1692,7 +1692,7 @@ async function loadCollecte() {
         <td>${fn(r.montant_total)} FCFA</td>
         <td>${fd(r.created_at)}</td>
         <td><button id="ovp-validate-${r.phone}" data-action="validate-ovp" data-phone="${r.phone}">
-          ✅ Valider</button></td>
+          <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">check_circle</span> Valider</button></td>
       </tr>`).join('') :
       '<tr><td colspan="5" style="text-align:center;opacity:.5">' +
       'Aucun OVP en attente</td></tr>';
@@ -1707,7 +1707,7 @@ async function loadCollecte() {
         <td>${fn(r.amount_fcfa)} FCFA</td>
         <td>${fd(r.created_at)}</td>
         <td><button id="sepa-validate-${r.phone}" data-action="validate-sepa" data-phone="${r.phone}">
-          ✅ Valider</button></td>
+          <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">check_circle</span> Valider</button></td>
       </tr>`).join('') :
       '<tr><td colspan="5" style="text-align:center;opacity:.5">' +
       'Aucun SEPA en attente</td></tr>';
@@ -1720,7 +1720,7 @@ async function validerOVP(phone) {
   if (!confirm(`Valider OVP pour ${phone} ?`)) return;
   try {
     await api(`/collecte/admin/ovp/valider/${phone}`, { method: 'PATCH' });
-    toast('OVP validé ✅');
+    toast('OVP validé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     loadCollecte();
   } catch(e) { toast('Erreur validation OVP', 'error'); }
 }
@@ -1729,7 +1729,7 @@ async function validerSEPA(phone) {
   if (!confirm(`Valider SEPA pour ${phone} ?`)) return;
   try {
     await api(`/collecte/admin/sepa/valider/${phone}`, { method: 'PATCH' });
-    toast('SEPA validé ✅');
+    toast('SEPA validé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     loadCollecte();
   } catch(e) { toast('Erreur validation SEPA', 'error'); }
 }
@@ -1805,7 +1805,7 @@ async function lancerClearing() {
     'pour tous les partenaires actifs.')) return;
   try {
     await api('/clearing/run', { method: 'POST' });
-    toast('Calcul CDR lancé ✅ — rechargement dans 3s');
+    toast('Calcul CDR lancé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> — rechargement dans 3s');
     setTimeout(loadClearing, 3000);
   } catch(e) { toast('Erreur calcul CDR', 'error'); }
 }
@@ -1814,7 +1814,7 @@ async function marquerVerse(id) {
   if (!confirm(`Marquer le versement CDR comme effectué pour ID ${id} ?`)) return;
   try {
     await api(`/clearing/${id}/pay`, { method: 'PATCH' });
-    toast('Versement enregistré ✅');
+    toast('Versement enregistré <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     loadClearing();
   } catch(e) { toast('Erreur versement', 'error'); }
 }
@@ -1860,7 +1860,7 @@ async function assignerConflict(id) {
       method: 'PATCH',
       body: JSON.stringify({ agent_phone: agent })
     });
-    toast('Agent assigné ✅');
+    toast('Agent assigné <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     loadConflits();
   } catch(e) { toast('Erreur assignation', 'error'); }
 }
@@ -1965,7 +1965,7 @@ async function changerStatut(arg) {
       method: 'PATCH',
       body: JSON.stringify({ statut })
     });
-    toast('Statut mis à jour ✅');
+    toast('Statut mis à jour <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     closeModal();
     loadConflits();
   } catch(e) { toast('Erreur mise à jour', 'error'); }
@@ -1979,7 +1979,7 @@ async function resoudreConflit(id) {
       method: 'PATCH',
       body: JSON.stringify({ resolution })
     });
-    toast('Conflit résolu ✅');
+    toast('Conflit résolu <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     closeModal();
     loadConflits();
   } catch(e) { toast('Erreur résolution', 'error'); }
@@ -1991,7 +1991,7 @@ async function escaladerConflit(id) {
     await api(`/conflicts/${id}/escalade`, {
       method: 'PATCH'
     });
-    toast('Conflit escaladé ✅');
+    toast('Conflit escaladé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     closeModal();
     loadConflits();
   } catch(e) { toast('Erreur escalade', 'error'); }
@@ -2005,7 +2005,7 @@ async function envoyerMessage(id) {
       method: 'POST',
       body: JSON.stringify({ message: msg })
     });
-    toast('Message envoyé ✅');
+    toast('Message envoyé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     document.getElementById('conflit-message').value = '';
     voirConflit(id); // Recharger le modal
   } catch(e) { toast('Erreur envoi', 'error'); }
@@ -2024,6 +2024,11 @@ async function envoyerMessage(id) {
 })();
 
 loadOverview();
+
+// Initialize dual navigation
+if (typeof initNavigation === 'function') {
+  initNavigation();
+}
 </script>
 
 <script>
