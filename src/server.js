@@ -138,6 +138,7 @@ const aiConsultRoutes     = require('./routes/ai-consult.routes');
 const uploadRoutes         = require('./routes/upload.routes');
 const adminDocsRoutes      = require('./routes/admin-docs.routes');
 const agenceRoutes         = require('./routes/agence.routes');
+const zoraRoutes           = require('./routes/zora.routes');
 
 // Routes BHP (Bolamu Health Data Protocol)
 try {
@@ -194,6 +195,7 @@ app.use('/api/v1',              smartflowRoutes);
 app.use('/api/v1',              symptomsRoutes);
 app.use('/api/v1/ai-consult',   aiConsultRoutes);
 app.use('/api/v1/upload',       uploadRoutes);
+app.use('/api/v1/zora',         zoraRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================

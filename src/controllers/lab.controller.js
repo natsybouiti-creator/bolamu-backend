@@ -3,6 +3,7 @@ const { uploadToCloudinary } = require('../utils/cloudinary');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 const { buildWameLink } = require('../services/wame.service');
+const { awardZora } = require('../services/zora.service');
 
 // ─── CRÉER UNE PRESCRIPTION LABO (médecin) ───────────────────────────────
 async function createLabPrescription(req, res) {
@@ -122,6 +123,20 @@ async function submitLabResults(req, res) {
         );
 
         console.log(`🔬 Résultats labo déposés pour patient ${patient_phone} par ${labPhone}`);
+
+        // Award Zora points for lab analysis
+        try {
+          await awardZora({
+            phone: patient_phone,
+            action_type: 'analyse_labo',
+            proof_class: 'system_event',
+            proof_source: 'laboratory_system',
+            recording_method: null,
+            proof_reference: result.rows[0].id.toString()
+          });
+        } catch (zoraError) {
+          console.error('[ZORA] Erreur lors du crédit analyse labo:', zoraError.message);
+        }
 
         // Récupérer le code prescription pour la notification médecin
         const prescriptionCode = prescCheck.rows[0].prescription_code;

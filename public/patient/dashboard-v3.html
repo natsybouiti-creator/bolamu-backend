@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bolamu — Dashboard Patient V3</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #FAF8FF;
+      color: #191B23;
+      min-height: 100vh;
+    }
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+    }
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #FAF8FF;
+      z-index: 9999;
+    }
+    #loading svg {
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#003FB1" stroke-width="2">
+      <circle cx="12" cy="12" r="10" stroke-opacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    const API = 'https://api.bolamu.co/api/v1';
+    
+    const getToken = () => localStorage.getItem('bolamu_patient_token');
+    
+    const authFetch = async (url, options = {}) => {
+      const token = getToken();
+      if (!token) {
+        window.location.href = '/patient/login.html';
+        return;
+      }
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+      return fetch(url, { ...options, headers });
+    };
+    
+    function App() {
+      const [loading, setLoading] = useState(true);
+      const [user, setUser] = useState(null);
+      const [subscription, setSubscription] = useState(null);
+      
+      useEffect(() => {
+        initApp();
+      }, []);
+      
+      const initApp = async () => {
+        const token = getToken();
+        if (!token) {
+          window.location.href = '/patient/login.html';
+          return;
+        }
+        
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          if (phone) {
+            const profileRes = await authFetch(`${API}/patients/profil?phone=${encodeURIComponent(phone)}`);
+            if (profileRes.ok) {
+              const profileData = await profileRes.json();
+              setUser(profileData.data);
+            }
+            
+            const subRes = await authFetch(`${API}/patients/subscription?phone=${encodeURIComponent(phone)}`);
+            if (subRes.ok) {
+              const subData = await subRes.json();
+              setSubscription(subData.data);
+            }
+          }
+        } catch (e) {
+          console.error('Init error:', e);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      if (loading) return null;
+      return <Dashboard user={user} subscription={subscription} />;
+    }
+    
+    function Dashboard({ user, subscription }) {
+      const [panel, setPanel] = useState('accueil');
+      const [profileOpen, setProfileOpen] = useState(false);
+      const [rdvModalOpen, setRdvModalOpen] = useState(false);
+      const [paymentStatus, setPaymentStatus] = useState(null);
+      const [conflict, setConflict] = useState(null);
+      const [ratingModalOpen, setRatingModalOpen] = useState(false);
+      const [pendingRating, setPendingRating] = useState(null);
+      const [zora, setZora] = useState(null);
+      const [zoraTiers, setZoraTiers] = useState([]);
+      const [steps, setSteps] = useState(7432);
+      
+      useEffect(() => {
+        loadConflict();
+        loadPendingRating();
+        loadZoraBalance();
+        loadZoraTiers();
+      }, []);
+      
+      const loadZoraBalance = async () => {
+        try {
+          const res = await authFetch(`${API}/zora/balance`);
+          if (res.ok) {
+            const data = await res.json();
+            setZora(data.data);
+          }
+        } catch (e) {
+          console.error('Error loading Zora balance:', e);
+        }
+      };
+      
+      const loadZoraTiers = async () => {
+        try {
+          const res = await authFetch(`${API}/zora/tiers`);
+          if (res.ok) {
+            const data = await res.json();
+            setZoraTiers(data.data);
+          }
+        } catch (e) {
+          console.error('Error loading Zora tiers:', e);
+        }
+      };
+      
+      const loadConflict = async () => {
+        try {
+          const res = await authFetch(`${API}/conflicts`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.data && data.data.length > 0) {
+              setConflict(data.data[0]);
+            }
+          }
+        } catch (e) {
+          console.error('Error loading conflicts:', e);
+        }
+      };
+      
+      const loadPendingRating = async () => {
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/ratings/pending/${encodeURIComponent(phone)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.data && data.data.length > 0) {
+              setPendingRating(data.data[0]);
+              setRatingModalOpen(true);
+            }
+          }
+        } catch (e) {
+          console.error('Error loading pending rating:', e);
+        }
+      };
+      
+      const submitRating = async (rating, comment) => {
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/ratings/submit`, {
+            method: 'POST',
+            body: JSON.stringify({
+              phone,
+              appointment_id: pendingRating.appointment_id,
+              rating,
+              comment
+            })
+          });
+          if (res.ok) {
+            setRatingModalOpen(false);
+            setPendingRating(null);
+          }
+        } catch (e) {
+          console.error('Error submitting rating:', e);
+        }
+      };
+      
+      const initiatePayment = async (plan) => {
+        setPaymentStatus('pending');
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/momo/request`, {
+            method: 'POST',
+            body: JSON.stringify({ phone, plan })
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            setPaymentStatus('waiting');
+            pollPaymentStatus(data.reference_id);
+          } else {
+            const data = await res.json();
+            setPaymentStatus('failed');
+            alert(data.message || 'Erreur lors de l\'initialisation du paiement');
+          }
+        } catch (e) {
+          setPaymentStatus('failed');
+          alert('Erreur de connexion');
+        }
+      };
+      
+      const pollPaymentStatus = async (referenceId) => {
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const poll = async () => {
+          if (attempts >= maxAttempts) {
+            setPaymentStatus('timeout');
+            return;
+          }
+          
+          try {
+            const res = await authFetch(`${API}/momo/status/${referenceId}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.status === 'SUCCESSFUL') {
+                setPaymentStatus('success');
+                window.location.reload();
+              } else if (data.status === 'FAILED') {
+                setPaymentStatus('failed');
+              } else {
+                attempts++;
+                setTimeout(poll, 3000);
+              }
+            }
+          } catch (e) {
+            attempts++;
+            setTimeout(poll, 3000);
+          }
+        };
+        
+        poll();
+      };
+      
+      return (
+        <div style={{ maxWidth: '100%', margin: 0, background: '#FAF8FF', minHeight: '100vh' }}>
+          {conflict && (
+            <div style={{
+              background: 'rgba(245, 166, 35, 0.12)',
+              border: '1px solid rgba(245, 166, 35, 0.3)',
+              padding: '12px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <span className="material-symbols-outlined" style={{ color: '#F5A623', fontSize: '20px' }}>warning</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463', marginBottom: '2px' }}>
+                  Conflit en cours
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#434654' }}>
+                  {conflict.description || 'Contactez le support pour résoudre ce conflit'}
+                </div>
+              </div>
+            </div>
+          )}
+          <nav style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            background: 'rgba(250, 248, 255, 0.80)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderBottom: '1px solid rgba(195, 197, 215, 0.30)',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img 
+                src="https://bolamu.co/images/landing/bolamu-logo-512.png"
+                alt="Bolamu"
+                style={{ height: '40px', width: '40px', borderRadius: '9999px', objectFit: 'contain' }}
+              />
+              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0A2463' }}>Bolamu</span>
+            </div>
+            <button 
+              onClick={() => setProfileOpen(true)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%' }}
+            >
+              <span className="material-symbols-outlined" style={{ color: '#0A2463' }}>account_circle</span>
+            </button>
+          </nav>
+          
+          <main style={{ padding: '20px', paddingBottom: '100px' }}>
+            {panel === 'accueil' && <Accueil user={user} subscription={subscription} zora={zora} zoraTiers={zoraTiers} steps={steps} />}
+            {panel === 'gagner' && <Gagner />}
+            {panel === 'suivre' && <Suivre user={user} zora={zora} />}
+            {panel === 'reward' && <Recompenses zora={zora} />}
+          </main>
+          
+          <nav style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: '#fff',
+            borderTop: '1px solid #EDEDF8',
+            display: 'flex',
+            justifyContent: 'space-around',
+            padding: '8px 0',
+            zIndex: 40
+          }}>
+            <BottomNavBtn active={panel === 'accueil'} icon="home" label="Accueil" onClick={() => setPanel('accueil')} />
+            <BottomNavBtn active={panel === 'gagner'} icon="add_circle" label="Gagner" onClick={() => setPanel('gagner')} />
+            <BottomNavBtn active={panel === 'suivre'} icon="timeline" label="Suivre" onClick={() => setPanel('suivre')} />
+            <BottomNavBtn active={panel === 'reward'} icon="card_giftcard" label="Récompenses" onClick={() => setPanel('reward')} />
+          </nav>
+          
+          {profileOpen && <ProfileModal user={user} subscription={subscription} onClose={() => setProfileOpen(false)} />}
+          {rdvModalOpen && <RdvModal onClose={() => setRdvModalOpen(false)} />}
+          {ratingModalOpen && <RatingModal pendingRating={pendingRating} onSubmit={submitRating} onClose={() => setRatingModalOpen(false)} />}
+        </div>
+      );
+    }
+    
+    function BottomNavBtn({ active, icon, label, onClick }) {
+      return (
+        <button
+          onClick={onClick}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '3px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px 12px',
+            color: active ? '#003FB1' : '#9498a8'
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>{icon}</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{label}</span>
+        </button>
+      );
+    }
+    
+    function Accueil({ user, subscription, zora, zoraTiers, steps }) {
+      const [credits, setCredits] = useState(null);
+      
+      useEffect(() => {
+        loadCredits();
+      }, []);
+      
+      const loadCredits = async () => {
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/credits/balance?phone=${encodeURIComponent(phone)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setCredits(data.data);
+          }
+        } catch (e) {
+          console.error('Error loading credits:', e);
+        }
+      };
+      
+      return (
+        <div>
+          <div style={{
+            background: '#0A2463',
+            borderRadius: '24px',
+            padding: '24px',
+            color: '#fff',
+            marginBottom: '20px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-40px',
+              right: '-40px',
+              width: '160px',
+              height: '160px',
+              background: 'rgba(255, 107, 53, 0.12)',
+              borderRadius: '50%',
+              pointerEvents: 'none'
+            }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#FF6B35', fontSize: '28px' }}>stars</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.6)' }}>
+                Vos Zora
+              </span>
+              {zora?.expires_at_warning && (
+                <span style={{ 
+                  background: 'rgba(245, 166, 35, 0.2)', 
+                  color: '#F5A623', 
+                  fontSize: '0.625rem', 
+                  fontWeight: 700, 
+                  padding: '2px 8px', 
+                  borderRadius: '9999px' 
+                }}>
+                  Expirent bientôt
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
+                {zora ? zora.balance.toLocaleString('fr-FR') : '...'}
+              </span>
+              <span style={{ fontSize: '1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>pts</span>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#00C9A7', fontWeight: 600, marginBottom: '20px' }}>
+              {zora ? `Palier ${zora.tier}` : 'Chargement...'}
+            </div>
+            {zora && zoraTiers.length > 0 && (
+              <>
+                <div style={{ background: 'rgba(255,255,255,0.10)', borderRadius: '9999px', height: '6px', marginBottom: '8px' }}>
+                  {zora.next_tier ? (
+                    <div style={{ 
+                      height: '100%', 
+                      width: `${((zora.total_earned / (zora.total_earned + zora.points_to_next)) * 100).toFixed(0)}%`, 
+                      background: '#FF6B35', 
+                      borderRadius: '9999px' 
+                    }} />
+                  ) : (
+                    <div style={{ height: '100%', width: '100%', background: '#00C9A7', borderRadius: '9999px' }} />
+                  )}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <span>{zora.total_earned.toLocaleString('fr-FR')}</span>
+                  <span>
+                    {zora.next_tier 
+                      ? `Prochain : ${zora.next_tier} (+${zora.points_to_next})` 
+                      : 'Palier maximum atteint'}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {credits && (
+            <div style={{
+              background: '#fff',
+              border: '1px solid #C3C5D7',
+              borderRadius: '20px',
+              padding: '20px',
+              marginBottom: '20px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463', marginBottom: '4px' }}>
+                    Solde crédits
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#434654' }}>
+                    {credits.balance ? credits.balance.toLocaleString('fr-FR') + ' FCFA' : '0 FCFA'}
+                  </div>
+                </div>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0, 201, 167, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#00C9A7', fontSize: '20px' }}>account_balance_wallet</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div style={{
+            background: '#fff',
+            border: '1px solid #C3C5D7',
+            borderRadius: '20px',
+            padding: '20px',
+            marginBottom: '20px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'rgba(0, 201, 167, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#00C9A7', fontSize: '28px' }}>directions_walk</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#0A2463' }}>Pas aujourd'hui</div>
+                  <div style={{ fontSize: '0.75rem', color: '#434654', fontWeight: 500 }}>
+                    {steps.toLocaleString('fr-FR')} / 10 000 pas
+                  </div>
+                </div>
+              </div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#00C9A7' }}>
+                {Math.round(steps / 10000 * 100)}%
+              </div>
+            </div>
+            <div style={{ background: '#EDEDF8', borderRadius: '9999px', height: '8px' }}>
+              <div style={{ height: '100%', width: `${steps / 10000 * 100}%`, background: 'linear-gradient(90deg, #00C9A7, #003FB1)', borderRadius: '9999px' }} />
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '20px' }}>
+            <QuickActionCard icon="calendar_month" label="Prendre RDV" color="#003FB1" onClick={() => setRdvModalOpen(true)} />
+            <QuickActionCard icon="local_pharmacy" label="Pharmacies" color="#00C9A7" onClick={() => setPanel('gagner')} />
+            <QuickActionCard icon="biotech" label="Laboratoires" color="#FF6B35" onClick={() => setPanel('gagner')} />
+            <QuickActionCard icon="qr_code_scanner" label="QR Urgence" color="#0A2463" onClick={() => setPanel('suivre')} />
+          </div>
+          
+          {subscription && (
+            <div style={{
+              background: '#fff',
+              border: '1px solid #C3C5D7',
+              borderRadius: '20px',
+              padding: '20px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463', marginBottom: '4px' }}>
+                    Abonnement {subscription.plan}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#434654' }}>
+                    Expire le {new Date(subscription.expires_at).toLocaleDateString('fr-FR')}
+                  </div>
+                </div>
+                <div style={{
+                  background: subscription.status === 'active' ? 'rgba(0, 201, 167, 0.14)' : 'rgba(186, 26, 26, 0.1)',
+                  color: subscription.status === 'active' ? '#00875f' : '#BA1A1A',
+                  padding: '6px 12px',
+                  borderRadius: '9999px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase'
+                }}>
+                  {subscription.status}
+                </div>
+              </div>
+              {subscription.status !== 'active' && (
+                <button
+                  onClick={() => initiatePayment(subscription.plan)}
+                  disabled={paymentStatus === 'waiting'}
+                  style={{
+                    width: '100%',
+                    background: paymentStatus === 'waiting' ? '#EDEDF8' : '#003FB1',
+                    color: paymentStatus === 'waiting' ? '#9498a8' : '#fff',
+                    border: 'none',
+                    padding: '12px',
+                    borderRadius: '9999px',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    cursor: paymentStatus === 'waiting' ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {paymentStatus === 'waiting' ? 'En attente de confirmation MoMo...' : 'Renouveler l\'abonnement'}
+                </button>
+              )}
+              {paymentStatus === 'failed' && (
+                <div style={{ fontSize: '0.75rem', color: '#BA1A1A', marginTop: '8px' }}>
+                  Paiement échoué — réessayez
+                </div>
+              )}
+              {paymentStatus === 'timeout' && (
+                <div style={{ fontSize: '0.75rem', color: '#F5A623', marginTop: '8px' }}>
+                  Délai d'attente dépassé — vérifiez votre statut
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    function QuickActionCard({ icon, label, color, onClick }) {
+      return (
+        <button
+          onClick={onClick}
+          style={{
+            background: '#fff',
+            border: '1px solid #EDEDF8',
+            borderRadius: '16px',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="material-symbols-outlined" style={{ color }}>{icon}</span>
+          </div>
+          <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463' }}>{label}</span>
+        </button>
+      );
+    }
+    
+    function Gagner() {
+      const [gagnerTab, setGagnerTab] = useState('sante');
+      const [mapFilter, setMapFilter] = useState('tout');
+      const [partners, setPartners] = useState([]);
+      const [mapInitialized, setMapInitialized] = useState(false);
+      const [earnRules, setEarnRules] = useState([]);
+      
+      useEffect(() => {
+        loadPartners();
+        loadEarnRules();
+      }, []);
+      
+      useEffect(() => {
+        if (partners.length > 0 && gagnerTab === 'sante' && !mapInitialized) {
+          initMap();
+        }
+      }, [partners, gagnerTab, mapInitialized]);
+      
+      const loadPartners = async () => {
+        try {
+          const res = await authFetch(`${API}/map/intervenants`);
+          if (res.ok) {
+            const data = await res.json();
+            setPartners(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading partners:', e);
+        }
+      };
+      
+      const loadEarnRules = async () => {
+        try {
+          const res = await authFetch(`${API}/zora/earn-rules`);
+          if (res.ok) {
+            const data = await res.json();
+            setEarnRules(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading earn rules:', e);
+        }
+      };
+      
+      const initMap = () => {
+        if (typeof L === 'undefined') return;
+        
+        const mapContainer = document.getElementById('reseau-map');
+        if (!mapContainer) return;
+        
+        mapContainer.innerHTML = '';
+        
+        const map = L.map('reseau-map').setView([-4.2694, 15.2700], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        partners.forEach(p => {
+          if (p.latitude && p.longitude) {
+            const marker = L.marker([p.latitude, p.longitude]).addTo(map);
+            marker.bindPopup(`
+              <div style="font-family: 'Plus Jakarta Sans', sans-serif; padding: 8px;">
+                <strong style="color: #0A2463; font-size: 14px;">${p.name}</strong><br>
+                <span style="color: #434654; font-size: 12px;">${p.type || 'Partenaire'}</span><br>
+                <span style="color: #9498a8; font-size: 11px;">${p.address || ''}</span>
+              </div>
+            `);
+          }
+        });
+        
+        setMapInitialized(true);
+      };
+      
+      const earnCards = earnRules.map(rule => ({
+        icon: rule.action_type === 'consultation' ? 'medical_services' :
+              rule.action_type === 'analyse_labo' ? 'biotech' :
+              rule.action_type === 'bilan_annuel' ? 'monitor_heart' :
+              rule.action_type === 'vaccination' ? 'vaccine' :
+              rule.action_type === 'parrainage' ? 'group_add' : 'stars',
+        tint: rule.category === 'sante' ? '#00C9A7' :
+              rule.category === 'activite' ? '#F5A623' :
+              rule.category === 'engagement' ? '#0A2463' : '#003FB1',
+        act: rule.label_fr,
+        pts: `+${rule.points} pts`,
+        cta: rule.action_type === 'consultation' ? 'Prendre RDV' :
+              rule.action_type === 'analyse_labo' ? 'Réserver' :
+              rule.action_type === 'bilan_annuel' ? 'Planifier' :
+              rule.action_type === 'vaccination' ? 'Vérifier carnet' :
+              rule.action_type === 'parrainage' ? 'Inviter via WhatsApp' : 'Voir'
+      }));
+      
+      const events = [
+        { id: 1, title: 'Marche collective Elonga', loc: 'Parc de la Loire, Brazzaville', date: '20 juin 2026', places: 45, registered: false },
+        { id: 2, title: 'Atelier nutrition Loboko', loc: 'Centre-ville, Brazzaville', date: '22 juin 2026', places: 20, registered: false },
+        { id: 3, title: 'Dépistage diabète gratuit', loc: 'Polyclinique Marie Curie', date: '25 juin 2026', places: 100, registered: false },
+      ];
+      
+      const filteredPartners = mapFilter === 'tout' 
+        ? partners 
+        : partners.filter(p => {
+            if (mapFilter === 'cliniques') return p.type === 'clinique';
+            if (mapFilter === 'pharmacies') return p.type === 'pharmacie';
+            if (mapFilter === 'labos') return p.type === 'laboratoire';
+            return true;
+          });
+      
+      return (
+        <div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0A2463', marginBottom: '20px' }}>
+            Gagner des Zora
+          </h2>
+          
+          <div style={{ display: 'inline-flex', gap: '4px', background: '#EDEDF8', padding: '4px', borderRadius: '9999px', marginBottom: '24px' }}>
+            <TabBtn active={gagnerTab === 'sante'} onClick={() => setGagnerTab('sante')}>Santé</TabBtn>
+            <TabBtn active={gagnerTab === 'sport'} onClick={() => setGagnerTab('sport')}>Sport</TabBtn>
+          </div>
+          
+          {gagnerTab === 'sante' && (
+            <div>
+              <div style={{ background: '#0A2463', borderRadius: '18px', padding: '16px', marginBottom: '28px', maxWidth: '360px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <span style={{ background: 'rgba(255,107,53,0.18)', color: '#FF6B35', fontSize: '0.58rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '4px 9px', borderRadius: '9999px' }}>
+                    Défi jour
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#F5A623', fontSize: '0.78rem', fontWeight: 800 }}>
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1', fontSize: '14px' }}>star</span>
+                    +200
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>
+                  Bilan annuel complet
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '9999px', height: '6px', overflow: 'hidden', marginBottom: '7px' }}>
+                  <div style={{ height: '100%', width: '20%', background: 'linear-gradient(90deg, #FF6B35, #F5A623)', borderRadius: '9999px' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
+                  <span>20%</span>
+                  <span>Expire dans 4h 32min</span>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                <span style={{ width: '4px', height: '18px', borderRadius: '9999px', background: '#00C9A7' }} />
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#434654' }}>
+                  Actions santé
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px', marginBottom: '28px' }}>
+                {earnCards.map((card, i) => (
+                  <EarnCard key={i} {...card} />
+                ))}
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                <span style={{ width: '4px', height: '18px', borderRadius: '9999px', background: '#003FB1' }} />
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#434654' }}>
+                  Réseau partenaires
+                </span>
+              </div>
+              <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '16px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', paddingBottom: '10px', marginBottom: '12px', overflowX: 'auto' }}>
+                  <FilterBtn active={mapFilter === 'tout'} onClick={() => setMapFilter('tout')}>Tout</FilterBtn>
+                  <FilterBtn active={mapFilter === 'cliniques'} onClick={() => setMapFilter('cliniques')}>Cliniques</FilterBtn>
+                  <FilterBtn active={mapFilter === 'pharmacies'} onClick={() => setMapFilter('pharmacies')}>Pharmacies</FilterBtn>
+                  <FilterBtn active={mapFilter === 'labos'} onClick={() => setMapFilter('labos')}>Labos</FilterBtn>
+                </div>
+                <div id="reseau-map" style={{ height: '320px', borderRadius: '14px', overflow: 'hidden', background: '#EDEDF8', marginBottom: '14px' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {filteredPartners.map((p) => (
+                    <PlaceRow key={p.id} {...p} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {gagnerTab === 'sport' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                <span style={{ width: '4px', height: '18px', borderRadius: '9999px', background: '#F5A623' }} />
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#434654' }}>
+                  Événements Elonga
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                {events.map((e) => (
+                  <EventCard key={e.id} {...e} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    function TabBtn({ active, onClick, children }) {
+      return (
+        <button
+          onClick={onClick}
+          style={{
+            background: active ? '#fff' : 'transparent',
+            color: active ? '#003FB1' : '#434654',
+            border: 'none',
+            padding: '9px 18px',
+            borderRadius: '9999px',
+            fontFamily: 'inherit',
+            fontSize: '0.85rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: active ? '0 2px 8px rgba(0,63,177,0.12)' : 'none',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          {children}
+        </button>
+      );
+    }
+    
+    function FilterBtn({ active, onClick, children }) {
+      return (
+        <button
+          onClick={onClick}
+          style={{
+            flex: '0 0 auto',
+            background: active ? '#003FB1' : '#EDEDF8',
+            color: active ? '#fff' : '#434654',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '9999px',
+            fontFamily: 'inherit',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {children}
+        </button>
+      );
+    }
+    
+    function EarnCard({ icon, tint, act, pts, cta }) {
+      return (
+        <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: tint + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+            <span className="material-symbols-outlined" style={{ color: tint, fontSize: '24px' }}>{icon}</span>
+          </div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463', marginBottom: '4px' }}>{act}</div>
+          <div style={{ fontSize: '0.75rem', color: '#FF6B35', fontWeight: 800, marginBottom: '12px' }}>{pts}</div>
+          <button style={{ marginTop: 'auto', width: '100%', background: tint, color: '#fff', border: 'none', padding: '10px', borderRadius: '9999px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+            {cta}
+          </button>
+        </div>
+      );
+    }
+    
+    function EventCard({ title, loc, date, places, registered }) {
+      return (
+        <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ background: 'rgba(245,166,35,0.12)', color: '#F5A623', fontSize: '0.58rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '4px 9px', borderRadius: '9999px' }}>
+              Événement
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#F5A623', fontSize: '0.78rem', fontWeight: 800 }}>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1', fontSize: '14px' }}>star</span>
+              +50
+            </span>
+          </div>
+          <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#0A2463', marginBottom: '8px' }}>{title}</div>
+          <div style={{ fontSize: '0.75rem', color: '#434654', marginBottom: '4px' }}>{loc}</div>
+          <div style={{ fontSize: '0.75rem', color: '#434654', marginBottom: '12px' }}>{date}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.75rem', color: '#9498a8' }}>{places} places</span>
+            <button style={{ background: registered ? '#EDEDF8' : '#003FB1', color: registered ? '#9498a8' : '#fff', border: 'none', padding: '8px 16px', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700, cursor: registered ? 'default' : 'pointer' }}>
+              {registered ? 'Inscrit' : 'Participer'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    function PlaceRow({ name, type, addr, partner }) {
+      const tintByType = { clinique: '#003FB1', pharmacie: '#00C9A7', laboratoire: '#FF6B35' };
+      const iconByType = { clinique: 'local_hospital', pharmacie: 'local_pharmacy', laboratoire: 'biotech' };
+      const tint = tintByType[type] || '#003FB1';
+      const icon = iconByType[type] || 'place';
+      
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#fff', border: '1px solid #EDEDF8', borderRadius: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: tint + '20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="material-symbols-outlined" style={{ color: tint, fontSize: '20px' }}>{icon}</span>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463', marginBottom: '2px' }}>{name}</div>
+            <div style={{ fontSize: '0.75rem', color: '#434654' }}>{addr}</div>
+          </div>
+          {partner && (
+            <span style={{ background: 'rgba(255,107,53,0.12)', color: '#FF6B35', fontSize: '0.66rem', fontWeight: 800, padding: '4px 8px', borderRadius: '9999px' }}>
+              Partenaire
+            </span>
+          )}
+        </div>
+      );
+    }
+    
+    function Suivre({ user, zora }) {
+      const [suivreTab, setSuivreTab] = useState('zora');
+      const [zoraLedger, setZoraLedger] = useState([]);
+      const [qrCode, setQrCode] = useState(null);
+      const [emergencyQr, setEmergencyQr] = useState(null);
+      const [appointments, setAppointments] = useState([]);
+      const [constants, setConstants] = useState(null);
+      
+      useEffect(() => {
+        if (suivreTab === 'zora') {
+          loadZoraLedger();
+        } else if (suivreTab === 'dossier') {
+          loadQrCode();
+          loadEmergencyQr();
+          loadAppointments();
+          loadConstants();
+        }
+      }, [suivreTab]);
+      
+      const loadZoraLedger = async () => {
+        try {
+          const res = await authFetch(`${API}/zora/ledger`);
+          if (res.ok) {
+            const data = await res.json();
+            setZoraLedger(data.data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading Zora ledger:', e);
+        }
+      };
+      
+      const loadQrCode = async () => {
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/qr/generate?phone=${encodeURIComponent(phone)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setQrCode(data.data?.qr_code);
+            setTimeout(() => {
+              const el = document.getElementById('member-qr');
+              if (el && window.QRCode) {
+                el.innerHTML = '';
+                new window.QRCode(el, { 
+                  text: data.data?.qr_code || phone, 
+                  width: 120, 
+                  height: 120, 
+                  colorDark: '#0A2463', 
+                  colorLight: '#ffffff' 
+                });
+              }
+            }, 100);
+          }
+        } catch (e) {
+          console.error('Error loading QR:', e);
+        }
+      };
+      
+      const loadEmergencyQr = async () => {
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/qr/emergency/generate?phone=${encodeURIComponent(phone)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setEmergencyQr(data.data?.qr_code);
+            setTimeout(() => {
+              const el = document.getElementById('emergency-qr');
+              if (el && window.QRCode) {
+                el.innerHTML = '';
+                new window.QRCode(el, { 
+                  text: data.data?.qr_code || phone, 
+                  width: 120, 
+                  height: 120, 
+                  colorDark: '#BA1A1A', 
+                  colorLight: '#ffffff' 
+                });
+              }
+            }, 100);
+          }
+        } catch (e) {
+          console.error('Error loading emergency QR:', e);
+        }
+      };
+      
+      const loadAppointments = async () => {
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/appointments/patient/${encodeURIComponent(phone)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setAppointments(data.data || []);
+          }
+        } catch (e) {
+          console.error('Error loading appointments:', e);
+        }
+      };
+      
+      const loadConstants = async () => {
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/patients/constantes/${encodeURIComponent(phone)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setConstants(data.data);
+          }
+        } catch (e) {
+          console.error('Error loading constants:', e);
+        }
+      };
+      
+      const ledger = [
+        { icon: 'medical_services', label: 'Consultation Dr Ntolo', date: '14 juin 2026', delta: '+50', pos: true },
+        { icon: 'directions_walk', label: 'Marche 10 000 pas', date: '14 juin 2026', delta: '+25', pos: true },
+        { icon: 'biotech', label: 'Analyse laboratoire', date: '10 juin 2026', delta: '+75', pos: true },
+        { icon: 'event_available', label: 'Événement Elonga · Marche', date: '7 juin 2026', delta: '+50', pos: true },
+      ];
+      
+      return (
+        <div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0A2463', marginBottom: '20px' }}>
+            Suivre ma santé
+          </h2>
+          
+          <div style={{ display: 'inline-flex', gap: '4px', background: '#EDEDF8', padding: '4px', borderRadius: '9999px', marginBottom: '24px' }}>
+            <TabBtn active={suivreTab === 'zora'} onClick={() => setSuivreTab('zora')}>Mes Zora</TabBtn>
+            <TabBtn active={suivreTab === 'dossier'} onClick={() => setSuivreTab('dossier')}>Mon dossier médical</TabBtn>
+          </div>
+          
+          {suivreTab === 'zora' && (
+            <div>
+              <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, #0A2463, #112d6b)', borderRadius: '24px', padding: '26px', marginBottom: '22px' }}>
+                <div style={{ position: 'absolute', top: '-40px', right: '-30px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(245,166,35,0.1)', pointerEvents: 'none' }} />
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '22px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <div style={{ width: '76px', height: '76px', borderRadius: '50%', background: 'linear-gradient(135deg, #FF6B35, #F5A623)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: '40px' }}>stars</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.16em', color: 'rgba(255,255,255,0.4)', marginBottom: '3px' }}>
+                          Zora Points
+                        </div>
+                        <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+                          {zora ? zora.balance.toLocaleString('fr-FR') : '...'}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '14px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#FF6B35' }}>hourglass_bottom</span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
+                        {zora ? `Palier ${zora.tier}` : 'Chargement...'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '22px', marginBottom: '22px' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#434654', marginBottom: '20px' }}>
+                  Votre parcours de paliers
+                </div>
+                {zora && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: '8px' }}>
+                      <div style={{ flex: 1, height: '8px', borderRadius: '9999px 0 0 9999px', background: zora.tier === 'kimia' ? '#B4733C' : '#EDEDF8' }} />
+                      <div style={{ flex: 1, height: '8px', background: zora.tier === 'liboso' ? '#00C9A7' : '#EDEDF8', position: 'relative' }}>
+                        {zora.tier === 'liboso' && <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', border: '3px solid #00C9A7', boxShadow: '0 2px 8px rgba(0,201,167,0.3)' }} />}
+                      </div>
+                      <div style={{ flex: 1, height: '8px', background: zora.tier === 'nkembo' ? '#2E6EE8' : '#EDEDF8', position: 'relative' }}>
+                        {zora.tier === 'nkembo' && <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', border: '3px solid #2E6EE8', boxShadow: '0 2px 8px rgba(46,110,232,0.3)' }} />}
+                      </div>
+                      <div style={{ flex: 1, height: '8px', borderRadius: '0 9999px 9999px 0', background: zora.tier === 'elonga' ? '#F5A623' : '#EDEDF8', position: 'relative' }}>
+                        {zora.tier === 'elonga' && <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', border: '3px solid #F5A623', boxShadow: '0 2px 8px rgba(245,166,35,0.3)' }} />}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <div style={{ flex: 1 }}><div style={{ fontSize: '0.74rem', fontWeight: 800, color: zora.tier === 'kimia' ? '#B4733C' : '#9498a8' }}>Kimia</div><div style={{ fontSize: '0.62rem', fontWeight: 600, color: '#9498a8' }}>0</div></div>
+                      <div style={{ flex: 1, textAlign: 'center' }}><div style={{ fontSize: '0.74rem', fontWeight: 800, color: zora.tier === 'liboso' ? '#00C9A7' : '#9498a8' }}>Liboso</div><div style={{ fontSize: '0.62rem', fontWeight: 600, color: '#9498a8' }}>500</div></div>
+                      <div style={{ flex: 1, textAlign: 'center' }}><div style={{ fontSize: '0.74rem', fontWeight: 800, color: zora.tier === 'nkembo' ? '#2E6EE8' : '#9498a8' }}>Nkembo</div><div style={{ fontSize: '0.62rem', fontWeight: 600, color: '#9498a8' }}>3 000</div></div>
+                      <div style={{ flex: 1, textAlign: 'right' }}><div style={{ fontSize: '0.74rem', fontWeight: 800, color: zora.tier === 'elonga' ? '#F5A623' : '#9498a8' }}>Elonga</div><div style={{ fontSize: '0.62rem', fontWeight: 600, color: '#9498a8' }}>7 000</div></div>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0A2463' }}>
+                  Historique des points
+                </h3>
+              </div>
+              <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '18px', overflow: 'hidden' }}>
+                {zoraLedger.length > 0 ? zoraLedger.map((item, i) => (
+                  <LedgerRow key={i} {...item} last={i === zoraLedger.length - 1} />
+                )) : (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#9498a8', fontSize: '0.875rem' }}>
+                    Aucun point gagné pour le moment
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {suivreTab === 'dossier' && (
+            <div>
+              <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '22px', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#003FB1', fontSize: '22px' }}>badge</span>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0A2463' }}>Informations</h3>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px 36px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9498a8', marginBottom: '4px' }}>Téléphone</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0A2463' }}>{user?.phone || '+242 06 555 12 34'}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9498a8', marginBottom: '4px' }}>Abonnement</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0A2463' }}>Bolamu Premium</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9498a8', marginBottom: '4px' }}>Membre depuis</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0A2463' }}>Janvier 2026</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '22px', marginBottom: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0A2463', marginBottom: '16px' }}>
+                  Mon QR Code membre
+                </div>
+                <div id="member-qr" style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }} />
+                <p style={{ fontSize: '0.75rem', color: '#434654' }}>
+                  Scannez ce code chez nos partenaires
+                </p>
+              </div>
+              
+              <div style={{ background: 'rgba(186, 26, 26, 0.08)', border: '1px solid rgba(186, 26, 26, 0.2)', borderRadius: '20px', padding: '22px', marginBottom: '14px', textAlign: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '12px' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#BA1A1A', fontSize: '20px' }}>emergency</span>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#BA1A1A' }}>
+                    QR Code urgence
+                  </div>
+                </div>
+                <div id="emergency-qr" style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }} />
+                <p style={{ fontSize: '0.75rem', color: '#BA1A1A', fontWeight: 600 }}>
+                  À montrer en cas d'urgence médicale
+                </p>
+              </div>
+              
+              <div style={{ background: '#fff', border: '1px solid #EDEDF8', borderRadius: '20px', padding: '22px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#003FB1', fontSize: '22px' }}>monitor_heart</span>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0A2463' }}>Constantes médicales</h3>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9498a8', marginBottom: '4px' }}>Tension</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0A2463' }}>
+                      {constants ? constants.tension_systolique + '/' + constants.tension_diastolique + ' mmHg' : '120/80 mmHg'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9498a8', marginBottom: '4px' }}>Poids</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0A2463' }}>
+                      {constants ? constants.poids + ' kg' : '72 kg'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9498a8', marginBottom: '4px' }}>Taille</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0A2463' }}>
+                      {constants ? constants.taille + ' cm' : '175 cm'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9498a8', marginBottom: '4px' }}>Glycémie</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0A2463' }}>
+                      {constants ? constants.glycemie + ' g/L' : '0.95 g/L'}
+                    </div>
+                  </div>
+                </div>
+                <button style={{ marginTop: '16px', width: '100%', background: '#003FB1', color: '#fff', border: 'none', padding: '12px', borderRadius: '9999px', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' }}>
+                  Mettre à jour
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    function LedgerRow({ icon, label, date, delta, pos, last }) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', borderBottom: last ? 'none' : '1px solid #EDEDF8' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: pos ? 'rgba(0, 201, 167, 0.12)' : 'rgba(186, 26, 26, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="material-symbols-outlined" style={{ color: pos ? '#00C9A7' : '#BA1A1A', fontSize: '18px' }}>{icon}</span>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0A2463', marginBottom: '2px' }}>{label}</div>
+            <div style={{ fontSize: '0.75rem', color: '#9498a8' }}>{date}</div>
+          </div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 800, color: pos ? '#00C9A7' : '#BA1A1A' }}>
+            {delta}
+          </div>
+        </div>
+      );
+    }
+    
+    function Recompenses({ zora }) {
+      return (
+        <div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0A2463', marginBottom: '20px' }}>
+            Récompenses
+          </h2>
+          <div style={{
+            background: '#fff',
+            border: '1px solid #EDEDF8',
+            borderRadius: '20px',
+            padding: '40px',
+            textAlign: 'center'
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#9498a8', marginBottom: '16px' }}>card_giftcard</span>
+            <p style={{ fontSize: '1rem', color: '#434654', marginBottom: '8px' }}>
+              Catalogue de récompenses en développement
+            </p>
+            <p style={{ fontSize: '0.875rem', color: '#9498a8' }}>
+              Solde actuel : {zora.toLocaleString('fr-FR')} Zora
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    function ProfileModal({ user, subscription, onClose }) {
+      return (
+        <div style={{
+          display: 'flex',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 100,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          background: 'rgba(10,36,99,0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '24px',
+            padding: '24px',
+            maxWidth: '400px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0A2463' }}>Mon profil</h3>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <span className="material-symbols-outlined" style={{ color: '#434654' }}>close</span>
+              </button>
+            </div>
+            
+            {user && (
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '4px' }}>Nom</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#191B23', marginBottom: '12px' }}>{user.full_name}</div>
+                
+                <div style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '4px' }}>Téléphone</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#191B23', marginBottom: '12px' }}>{user.phone}</div>
+                
+                <div style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '4px' }}>ID Bolamu</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#191B23', marginBottom: '12px' }}>{user.bolamu_id}</div>
+              </div>
+            )}
+            
+            <button
+              onClick={() => {
+                localStorage.removeItem('bolamu_patient_token');
+                localStorage.removeItem('bolamu_patient_phone');
+                window.location.href = '/patient/login.html';
+              }}
+              style={{
+                width: '100%',
+                background: '#BA1A1A',
+                color: '#fff',
+                border: 'none',
+                padding: '12px',
+                borderRadius: '9999px',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    function RdvModal({ onClose }) {
+      const [step, setStep] = useState(1);
+      const [doctors, setDoctors] = useState([]);
+      const [selectedDoctor, setSelectedDoctor] = useState(null);
+      const [selectedDate, setSelectedDate] = useState('');
+      const [slots, setSlots] = useState([]);
+      const [selectedSlot, setSelectedSlot] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+      const [success, setSuccess] = useState(false);
+      
+      useEffect(() => {
+        loadDoctors();
+      }, []);
+      
+      const loadDoctors = async () => {
+        try {
+          const res = await authFetch(`${API}/map/intervenants`);
+          if (res.ok) {
+            const data = await res.json();
+            const medecins = (data.data || []).filter(p => p.type === 'medecin' || p.type === 'doctor');
+            setDoctors(medecins);
+          }
+        } catch (e) {
+          console.error('Error loading doctors:', e);
+        }
+      };
+      
+      const loadSlots = async (doctorId, date) => {
+        setLoading(true);
+        setError('');
+        try {
+          const res = await authFetch(`${API}/appointments/slots/${doctorId}?date=${encodeURIComponent(date)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setSlots(data.data || []);
+            if (data.data && data.data.length > 0) {
+              setStep(3);
+            } else {
+              setError('Aucun créneau disponible pour cette date');
+            }
+          } else {
+            setError('Aucun créneau disponible pour cette date');
+          }
+        } catch (e) {
+          setError('Erreur lors du chargement des créneaux');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      const bookAppointment = async () => {
+        if (!selectedDoctor || !selectedSlot) return;
+        
+        setLoading(true);
+        setError('');
+        try {
+          const phone = localStorage.getItem('bolamu_patient_phone');
+          const res = await authFetch(`${API}/appointments/book`, {
+            method: 'POST',
+            body: JSON.stringify({
+              phone,
+              doctor_id: selectedDoctor.id,
+              slot_datetime: selectedSlot.datetime
+            })
+          });
+          
+          if (res.ok) {
+            setSuccess(true);
+            setTimeout(() => onClose(), 2000);
+          } else {
+            const data = await res.json();
+            setError(data.message || 'Erreur lors de la réservation');
+          }
+        } catch (e) {
+          setError('Erreur de connexion');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      const today = new Date().toISOString().split('T')[0];
+      
+      return (
+        <div style={{
+          display: 'flex',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 100,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          background: 'rgba(10,36,99,0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '24px',
+            padding: '24px',
+            maxWidth: '500px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0A2463' }}>
+                {success ? 'RDV confirmé' : 'Prendre un RDV'}
+              </h3>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <span className="material-symbols-outlined" style={{ color: '#434654' }}>close</span>
+              </button>
+            </div>
+            
+            {success ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#00C9A7', marginBottom: '16px' }}>check_circle</span>
+                <p style={{ fontSize: '1rem', color: '#0A2463', fontWeight: 600 }}>
+                  Votre rendez-vous a été confirmé
+                </p>
+              </div>
+            ) : (
+              <>
+                {step === 1 && (
+                  <>
+                    <div style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '12px' }}>
+                      Sélectionnez un médecin
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                      {doctors.map((doc) => (
+                        <button
+                          key={doc.id}
+                          onClick={() => { setSelectedDoctor(doc); setStep(2); }}
+                          style={{
+                            background: selectedDoctor?.id === doc.id ? '#003FB1' : '#fff',
+                            color: selectedDoctor?.id === doc.id ? '#fff' : '#0A2463',
+                            border: '1px solid #EDEDF8',
+                            borderRadius: '12px',
+                            padding: '12px',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '4px' }}>{doc.name}</div>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{doc.specialty || 'Médecin généraliste'}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                
+                {step === 2 && (
+                  <>
+                    <div style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '12px' }}>
+                      Sélectionnez une date
+                    </div>
+                    <input
+                      type="date"
+                      min={today}
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        border: '1px solid #EDEDF8',
+                        fontSize: '0.9rem',
+                        marginBottom: '16px',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                    {selectedDate && (
+                      <button
+                        onClick={() => loadSlots(selectedDoctor.id, selectedDate)}
+                        disabled={loading}
+                        style={{
+                          width: '100%',
+                          background: '#003FB1',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '12px',
+                          borderRadius: '9999px',
+                          fontSize: '0.9rem',
+                          fontWeight: 700,
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          opacity: loading ? 0.6 : 1
+                        }}
+                      >
+                        {loading ? 'Chargement...' : 'Voir les créneaux'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setStep(1)}
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        color: '#434654',
+                        border: 'none',
+                        padding: '12px',
+                        borderRadius: '9999px',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        marginTop: '8px'
+                      }}
+                    >
+                      Retour
+                    </button>
+                  </>
+                )}
+                
+                {step === 3 && (
+                  <>
+                    <div style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '12px' }}>
+                      Créneaux disponibles
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', maxHeight: '200px', overflowY: 'auto', marginBottom: '16px' }}>
+                      {slots.map((slot, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setSelectedSlot(slot)}
+                          style={{
+                            background: selectedSlot?.datetime === slot.datetime ? '#003FB1' : '#fff',
+                            color: selectedSlot?.datetime === slot.datetime ? '#fff' : '#0A2463',
+                            border: '1px solid #EDEDF8',
+                            borderRadius: '12px',
+                            padding: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{slot.time}</div>
+                        </button>
+                      ))}
+                    </div>
+                    {error && (
+                      <div style={{ fontSize: '0.8rem', color: '#BA1A1A', marginBottom: '12px' }}>{error}</div>
+                    )}
+                    <button
+                      onClick={bookAppointment}
+                      disabled={!selectedSlot || loading}
+                      style={{
+                        width: '100%',
+                        background: selectedSlot ? '#003FB1' : '#EDEDF8',
+                        color: selectedSlot ? '#fff' : '#9498a8',
+                        border: 'none',
+                        padding: '12px',
+                        borderRadius: '9999px',
+                        fontSize: '0.9rem',
+                        fontWeight: 700,
+                        cursor: selectedSlot && !loading ? 'pointer' : 'not-allowed',
+                        opacity: loading ? 0.6 : 1
+                      }}
+                    >
+                      {loading ? 'Confirmation...' : 'Confirmer le RDV'}
+                    </button>
+                    <button
+                      onClick={() => setStep(2)}
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        color: '#434654',
+                        border: 'none',
+                        padding: '12px',
+                        borderRadius: '9999px',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        marginTop: '8px'
+                      }}
+                    >
+                      Retour
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    function RatingModal({ pendingRating, onSubmit, onClose }) {
+      const [rating, setRating] = useState(0);
+      const [comment, setComment] = useState('');
+      const [submitting, setSubmitting] = useState(false);
+      
+      const handleSubmit = async () => {
+        if (rating === 0) return;
+        setSubmitting(true);
+        await onSubmit(rating, comment);
+        setSubmitting(false);
+      };
+      
+      return (
+        <div style={{
+          display: 'flex',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 100,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          background: 'rgba(10,36,99,0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '24px',
+            padding: '24px',
+            maxWidth: '400px',
+            width: '100%'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0A2463' }}>
+                Noter la consultation
+              </h3>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <span className="material-symbols-outlined" style={{ color: '#434654' }}>close</span>
+              </button>
+            </div>
+            
+            <p style={{ fontSize: '0.875rem', color: '#434654', marginBottom: '16px' }}>
+              Comment s'est passée votre consultation avec {pendingRating?.doctor_name || 'votre médecin'} ?
+            </p>
+            
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px'
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      color: star <= rating ? '#F5A623' : '#EDEDF8',
+                      fontSize: '32px',
+                      fontVariationSettings: star <= rating ? '"FILL" 1' : '"FILL" 0'
+                    }}
+                  >
+                    star
+                  </span>
+                </button>
+              ))}
+            </div>
+            
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Commentaire optionnel..."
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '12px',
+                border: '1px solid #EDEDF8',
+                fontSize: '0.875rem',
+                fontFamily: 'inherit',
+                marginBottom: '16px',
+                minHeight: '80px',
+                resize: 'vertical'
+              }}
+            />
+            
+            <button
+              onClick={handleSubmit}
+              disabled={rating === 0 || submitting}
+              style={{
+                width: '100%',
+                background: rating > 0 ? '#003FB1' : '#EDEDF8',
+                color: rating > 0 ? '#fff' : '#9498a8',
+                border: 'none',
+                padding: '12px',
+                borderRadius: '9999px',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                cursor: rating > 0 && !submitting ? 'pointer' : 'not-allowed',
+                opacity: submitting ? 0.6 : 1
+              }}
+            >
+              {submitting ? 'Envoi...' : 'Envoyer la note'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+    
+    document.getElementById('loading').style.display = 'none';
+  </script>
+</body>
+</html>

@@ -17,6 +17,7 @@ try {
 const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { awardZora } = require('../services/zora.service');
 
 // --- ROUTES ---
 
@@ -311,6 +312,25 @@ router.post('/:id/validate', authMiddleware, async (req, res) => {
             return res.status(403).json({ success: false, message: "Code invalide" });
         }
         await pool.query(`UPDATE appointments SET status = 'termine', validated_at = NOW() WHERE id = $1`, [id]);
+        
+        // Award Zora points for completed consultation
+        const appointmentResult = await pool.query(`SELECT patient_phone FROM appointments WHERE id = $1`, [id]);
+        if (appointmentResult.rows.length > 0) {
+          const patientPhone = appointmentResult.rows[0].patient_phone;
+          try {
+            await awardZora({
+              phone: patientPhone,
+              action_type: 'consultation',
+              proof_class: 'system_event',
+              proof_source: 'appointment_system',
+              recording_method: null,
+              proof_reference: id.toString()
+            });
+          } catch (zoraError) {
+            console.error('[ZORA] Erreur lors du crédit consultation:', zoraError.message);
+          }
+        }
+        
         res.json({ success: true, message: "Consultation validée" });
     } catch (err) {
         res.status(500).json({ error: "Erreur" });
