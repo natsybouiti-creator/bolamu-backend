@@ -1061,8 +1061,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
             </div>
           </div>
           </div>
-          <div class="hero-masc" style="position: absolute; top: -24px; right: -24px; width: 160px; height: 190px; pointer-events: none; z-index: 1;">
-            <div style="width: 160px; height: 190px; background-image: url(&quot;/images/landing/garcons3Dbleu.png&quot;); background-size: contain; background-position: bottom right; background-repeat: no-repeat;"></div>
+          <div class="hero-masc" style="position: absolute; top: -40px; right: -10px; width: 130px; height: 170px; pointer-events: none; z-index: 3;">
+            <div style="width: 130px; height: 170px; background-image: url(&quot;/images/landing/garcons3Dbleu.png&quot;); background-size: contain; background-position: bottom right; background-repeat: no-repeat;"></div>
           </div>
         </div>
         <div style="margin-top: 16px; background: #F3F3FE; border: 1px solid #EDEDF8; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 14px;">
@@ -1883,9 +1883,9 @@ class Component extends DCLogic {
     chestOpened: null, chestReward: null, quizPicked: null,
     zora: 0, steps: 0, now: Date.now(), toast: null, mapFilter: 'tout',
     events: [
-      { id: 'ev1', title: 'Marche sportive matinale', pilier: 'Activité physique', piTint: '#00C9A7', loc: 'Côte Sauvage, Pointe-Noire', date: 'Samedi 21 juin · 08h00', places: 32, cap: 40, pts: '+50 pts', registered: false, img: 'images/events/marche-cote-sauvage.jpg', seed: 'cotesauvage', icon: 'directions_walk', lat: -4.7960, lng: 11.8270 },
-      { id: 'ev2', title: 'Atelier cuisine équilibrée', pilier: 'Nutrition', piTint: '#FF6B35', loc: 'Tchikobo, Pointe-Noire', date: 'Dimanche 22 juin · 15h00', places: 17, cap: 25, pts: '+40 pts', registered: false, img: 'images/events/atelier-tchikobo.jpg', seed: 'cuisine', icon: 'restaurant', lat: -4.8090, lng: 11.8500 },
-      { id: 'ev3', title: 'Dépistage tension & glycémie', pilier: 'Anti-infectieux', piTint: '#003FB1', loc: 'Place de la Mairie, Brazzaville', date: 'Mercredi 25 juin · 09h00', places: 50, cap: 60, pts: '+30 pts', registered: false, img: 'images/events/depistage-mairie.jpg', seed: 'depistage', icon: 'monitor_heart', lat: -4.2667, lng: 15.2840 }
+      { id: 'ev1', title: 'Marche sportive matinale', pilier: 'Activité physique', piTint: '#00C9A7', loc: 'Côte Sauvage, Pointe-Noire', date: 'Samedi 21 juin · 08h00', places: 32, cap: 40, pts: '+50 pts', registered: false, img: '/images/landing/marche sport.png', seed: 'cotesauvage', icon: 'directions_walk', lat: -4.7960, lng: 11.8270 },
+      { id: 'ev2', title: 'Atelier cuisine équilibrée', pilier: 'Nutrition', piTint: '#FF6B35', loc: 'Tchikobo, Pointe-Noire', date: 'Dimanche 22 juin · 15h00', places: 17, cap: 25, pts: '+40 pts', registered: false, img: '/images/landing/atelier-cuisine.png', seed: 'cuisine', icon: 'restaurant', lat: -4.8090, lng: 11.8500 },
+      { id: 'ev3', title: 'Dépistage tension & glycémie', pilier: 'Anti-infectieux', piTint: '#003FB1', loc: 'Place de la Mairie, Brazzaville', date: 'Mercredi 25 juin · 09h00', places: 50, cap: 60, pts: '+30 pts', registered: false, img: '/images/landing/depistage.png', seed: 'depistage', icon: 'monitor_heart', lat: -4.2667, lng: 15.2840 }
     ]
   };
 
@@ -2480,7 +2480,12 @@ class Component extends DCLogic {
 
     const __evImg = { ev1: 'evMarche', ev2: 'evAtelier', ev3: 'evDepistage' };
     const __evR = (e) => (window.__resources && window.__resources[__evImg[e.id]]) || null;
-    const eventsView = s.events.map((e) => Object.assign({}, e, { img: __evR(e), participate: () => this.participate(e.id) }));
+    const eventsView = s.events.map((e) => Object.assign({}, e, { img: (function(pillar) {
+      if (pillar === 'activite') return '/images/landing/marche sport.png';
+      if (pillar === 'nutrition') return '/images/landing/atelier-cuisine.png';
+      if (pillar === 'anti_infectieux') return '/images/landing/depistage.png';
+      return '/images/landing/defis-sportif.png';
+    })(e.pilier || e.piTint), participate: () => this.participate(e.id) }));
 
     const eventPlaces = s.events.map((e) => ({ name: e.title, type: 'événement', addr: e.loc, kind: 'event', tint: '#F5A623', icon: 'event_available', tel: '', registered: e.registered, focus: () => this.focusEvent(e.id), participate: () => this.participate(e.id) }));
 
