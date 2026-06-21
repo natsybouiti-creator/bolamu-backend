@@ -1321,4 +1321,14 @@ Statut : ✅ prod confirmée sur les 6 dashboards
 
 6. REDIS indisponible en prod en continu. N'affecte pas WhatsApp (direct), mais futures features dépendant de BullMQ ont besoin d'un fallback.
 
+7. DETTE TECHNIQUE — timestamp without time zone (P2-DB-09, audit 2026-06-22) :
+   Les tables lab_prescriptions, prescriptions et otp_codes utilisent
+   TIMESTAMP WITHOUT TIME ZONE sur leurs colonnes created_at / expires_at,
+   alors que le reste du schéma utilise TIMESTAMP WITH TIME ZONE.
+   Impact : comparaisons cross-tables ambiguës si le timezone de session PostgreSQL
+   n'est pas UTC. À corriger lors d'une migration dédiée (ALTER COLUMN … TYPE
+   TIMESTAMP WITH TIME ZONE USING … AT TIME ZONE 'UTC') quand une fenêtre
+   de maintenance est disponible. Ne pas mélanger cette correction avec d'autres
+   migrations fonctionnelles.
+
 7. VÉRIFICATION PROD — utiliser curl.exe explicitement sous PowerShell, tester sur www.bolamu.co (pas api.bolamu.co).
