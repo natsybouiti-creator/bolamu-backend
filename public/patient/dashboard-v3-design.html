@@ -1111,7 +1111,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <button onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      <button data-testid="participate-{{ ev.id }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
     </div>
   </div>
 </sc-for>
@@ -1316,7 +1316,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <button onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      <button data-testid="participate-{{ ev.id }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
     </div>
   </div>
 </sc-for>
@@ -1487,7 +1487,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 14px;">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 8px;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 22px;">monitor_heart</span><h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0A2463;">Constantes médicales</h3></div>
-            <button onclick="{{ openEditConst }}" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0,63,177,0.08); color: #003FB1; border: none; font-family: inherit; font-weight: 700; font-size: 0.78rem; padding: 8px 14px; border-radius: 9999px; cursor: pointer;"><span class="material-symbols-outlined" style="font-size: 16px;">edit</span>Modifier</button>
+            <button data-testid="const-edit" onclick="{{ openEditConst }}" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0,63,177,0.08); color: #003FB1; border: none; font-family: inherit; font-weight: 700; font-size: 0.78rem; padding: 8px 14px; border-radius: 9999px; cursor: pointer;"><span class="material-symbols-outlined" style="font-size: 16px;">edit</span>Modifier</button>
           </div>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 24px;">
             <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Groupe sanguin</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">{{ groupeSanguin }}</div></div>
@@ -1598,7 +1598,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
             <div style="font-size: 0.92rem; font-weight: 700; color: #0A2463; margin-top: 12px;">{{ g.name }}</div>
             <div style="display: flex; align-items: center; gap: 5px; margin-top: 6px;"><dc-import name="ZoraCoin" size="16" no-float="{{ true }}" hint-size="16px,16px"></dc-import><span style="font-size: 0.74rem; font-weight: 700; color: #B0680A;">{{ g.gain }}</span></div>
             <div style="{{ g.badgeStyle }}"><span class="material-symbols-outlined" style="font-size: 13px;">{{ g.badgeIcon }}</span>{{ g.badgeText }}</div>
-            <button onclick="{{ g.onPlay }}" disabled="{{ g.btnDisabled }}" style="{{ g.btnStyle }}">{{ g.btnLabel }}</button>
+            <button data-testid="{{ g.testid }}" onclick="{{ g.onPlay }}" disabled="{{ g.btnDisabled }}" style="{{ g.btnStyle }}">{{ g.btnLabel }}</button>
           </div>
         </sc-for>
         <div style="position: relative; flex: 0 0 200px; scroll-snap-align: start; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; align-items: flex-start; opacity: 0.92;">
@@ -1769,18 +1769,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <button onclick="{{ closeEditConst }}" style="background: #F3F3FE; border: none; width: 36px; height: 36px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">close</span></button>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Groupe sanguin</label><select style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23; background: #fff;"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select></div>
-        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Poids (kg)</label><input type="number" value="64" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
-        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Taille (cm)</label><input type="number" value="168" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
-        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Allergies</label><textarea style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: #191B23; min-height: 48px;">Pénicilline</textarea></div>
-        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Maladies chroniques</label><textarea style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: #191B23; min-height: 48px;">Hypertension</textarea></div>
-        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Antécédents médicaux</label><textarea style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: #191B23; min-height: 48px;">Appendicectomie (2018)</textarea></div>
-        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Traitements en cours</label><textarea style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: #191B23; min-height: 48px;">Amlodipine 5 mg</textarea></div>
-        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Contact urgence · nom</label><input type="text" value="Paul Bemba" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
-        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Téléphone</label><input type="tel" value="+242 06 555 98 76" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
-        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Lien de parenté</label><input type="text" value="Époux" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
+        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Groupe sanguin</label><select onchange="{{ constGroupe }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23; background: #fff;"><option value="">Sélectionner</option><option value="O+">O+</option><option value="O-">O-</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option></select></div>
+        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Poids (kg)</label><input type="number" data-testid="const-poids" value="{{ constForm.poids }}" oninput="{{ constPoids }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
+        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Taille (cm)</label><input type="number" data-testid="const-taille" value="{{ constForm.taille }}" oninput="{{ constTaille }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
+        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Allergies</label><textarea value="{{ constForm.allergies }}" oninput="{{ constAllergies }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: #191B23; min-height: 48px;"></textarea></div>
+        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Maladies chroniques</label><textarea value="{{ constForm.maladies_chroniques }}" oninput="{{ constMaladies }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: #191B23; min-height: 48px;"></textarea></div>
+        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Antécédents médicaux</label><textarea value="{{ constForm.antecedents_medicaux }}" oninput="{{ constAntecedents }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: #191B23; min-height: 48px;"></textarea></div>
+        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Traitements en cours</label><textarea value="{{ constForm.traitements_en_cours }}" oninput="{{ constTraitements }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 500; color: #191B23; min-height: 48px;"></textarea></div>
+        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Contact urgence · nom</label><input type="text" value="{{ constForm.contact_urgence_nom }}" oninput="{{ constContactNom }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
+        <div><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Téléphone</label><input type="tel" value="{{ constForm.contact_urgence_phone }}" oninput="{{ constContactPhone }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
+        <div style="grid-column: 1 / -1;"><label style="display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Lien de parenté</label><input type="text" value="{{ constForm.contact_urgence_lien }}" oninput="{{ constContactLien }}" style="width: 100%; padding: 11px 13px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: #191B23;"></div>
       </div>
-      <div style="display: flex; gap: 10px; margin-top: 20px;"><button onclick="{{ closeEditConst }}" style="flex: 1; background: transparent; color: #434654; border: 1px solid #C3C5D7; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Annuler</button><button onclick="{{ saveConst }}" style="flex: 2; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Enregistrer</button></div>
+      <div style="display: flex; gap: 10px; margin-top: 20px;"><button onclick="{{ closeEditConst }}" style="flex: 1; background: transparent; color: #434654; border: 1px solid #C3C5D7; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Annuler</button><button data-testid="const-save" onclick="{{ saveConst }}" style="flex: 2; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Enregistrer</button></div>
     </div>
   </div>
 
@@ -1856,7 +1856,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         </div>
       </div>
       <div style="min-height: 24px; font-size: 0.95rem; font-weight: 800; color: #0A2463; margin-bottom: 12px;">{{ wheelResultTxt }}</div>
-      <button onclick="{{ spinWheel }}" disabled="{{ wheelBtnDisabled }}" style="{{ wheelBtnStyle }}">{{ wheelBtnLabel }}</button>
+      <button data-testid="wheel-spin" onclick="{{ spinWheel }}" disabled="{{ wheelBtnDisabled }}" style="{{ wheelBtnStyle }}">{{ wheelBtnLabel }}</button>
     </div>
   </div>
 
@@ -1870,7 +1870,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div style="font-size: 0.78rem; font-weight: 500; color: #434654; margin-bottom: 16px; text-align: left;">Choisissez un coffre pour révéler votre récompense mystère.</div>
       <div style="display: flex; gap: 12px; margin-bottom: 16px;">
         <sc-for list="{{ chestView }}" as="c" hint-placeholder-count="3">
-          <div id="{{ c.cid }}" onclick="{{ c.onOpen }}" style="{{ c.style }}"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; color: #F5A623; font-size: 42px;">inventory_2</span><span style="font-size: 0.7rem; font-weight: 700; color: #434654;">{{ c.label }}</span></div>
+          <div id="{{ c.cid }}" data-testid="{{ c.cid }}" onclick="{{ c.onOpen }}" style="{{ c.style }}"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; color: #F5A623; font-size: 42px;">inventory_2</span><span style="font-size: 0.7rem; font-weight: 700; color: #434654;">{{ c.label }}</span></div>
         </sc-for>
       </div>
       <sc-if value="{{ chestRevealed }}" hint-placeholder-val="{{ false }}">
@@ -1891,7 +1891,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div style="font-size: 1rem; font-weight: 700; color: #0A2463; margin: 12px 0 16px;">{{ quizQ }}</div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <sc-for list="{{ quizView }}" as="a" hint-placeholder-count="4">
-          <button onclick="{{ a.onPick }}" style="{{ a.style }}">{{ a.label }}</button>
+          <button data-testid="{{ a.testid }}" onclick="{{ a.onPick }}" style="{{ a.style }}">{{ a.label }}</button>
         </sc-for>
       </div>
       <sc-if value="{{ quizAnswered }}" hint-placeholder-val="{{ false }}">
@@ -1912,6 +1912,7 @@ class Component extends DCLogic {
     wheelDeg: 0, wheelSpinning: false, wheelDone: false, wheelResult: null,
     chestOpened: null, chestReward: null, quizPicked: null,
     zora: 0, steps: 0, now: Date.now(), toast: null, mapFilter: 'tout',
+    constForm: { groupe_sanguin: '', allergies: '', maladies_chroniques: '', antecedents_medicaux: '', traitements_en_cours: '', poids: '', taille: '', contact_urgence_nom: '', contact_urgence_phone: '', contact_urgence_lien: '' },
     events: [
       { id: 'ev1', title: 'Marche sportive matinale', pilier: 'Activité physique', piTint: '#00C9A7', loc: 'Côte Sauvage, Pointe-Noire', date: 'Samedi 21 juin · 08h00', places: 32, cap: 40, pts: '+50 pts', registered: false, img: '/images/landing/marche sport.png', seed: 'cotesauvage', icon: 'directions_walk', lat: -4.7960, lng: 11.8270 },
       { id: 'ev2', title: 'Atelier cuisine équilibrée', pilier: 'Nutrition', piTint: '#FF6B35', loc: 'Tchikobo, Pointe-Noire', date: 'Dimanche 22 juin · 15h00', places: 17, cap: 25, pts: '+40 pts', registered: false, img: '/images/landing/atelier-cuisine.png', seed: 'cuisine', icon: 'restaurant', lat: -4.8090, lng: 11.8500 },
@@ -2315,9 +2316,29 @@ class Component extends DCLogic {
     if (o && this._reseauMap) { this._reseauMap.setView(o.m.getLatLng(), 14); o.m.openPopup(); }
   }
 
-  participate(id) {
-    this.setState((s) => ({ events: s.events.map((e) => (e.id === id && !e.registered) ? Object.assign({}, e, { places: e.places + 1, registered: true }) : e) }));
-    this.showToast('Inscription confirmée · +50 Zora après participation');
+  async participate(id) {
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) {
+      this.showToast('Session expirée — reconnectez-vous', 'error');
+      return;
+    }
+
+    try {
+      const r = await fetch('/api/v1/events/' + id + '/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+      });
+      const d = await r.json();
+      
+      if (d.success) {
+        this.setState((s) => ({ events: s.events.map((e) => (e.id === id && !e.registered) ? Object.assign({}, e, { places: e.places + 1, registered: true }) : e) }));
+        this.showToast('Inscription confirmée · +50 Zora après participation');
+      } else {
+        this.showToast(d.message || d.error || 'Inscription impossible', 'error');
+      }
+    } catch (e) {
+      this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+    }
   }
 
   showToast(msg) {
@@ -2334,38 +2355,193 @@ class Component extends DCLogic {
   }
   closeGame() { this.setState({ game: null }); }
 
-  spinWheel() {
+  async spinWheel() {
     const s = this.state;
     if (s.wheelSpinning || s.wheelDone) return;
     const segs = this.wheelSeg || [];
     if (!segs.length) return;
+    
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) {
+      this.showToast('Session expirée — reconnectez-vous', 'error');
+      return;
+    }
+
     const win = Math.floor(Math.random() * segs.length);
     const target = 360 * 5 - win * (360 / segs.length);
     this.setState({ wheelSpinning: true, wheelDeg: target, wheelResult: null });
-    setTimeout(() => {
-      const val = segs[win].val;
-      if (val > 0) this.addZora(val);
-      this.setState((st) => ({ wheelSpinning: false, wheelDone: true, wheelResult: val > 0 ? ('Bravo ! +' + val + ' Zora') : 'Dommage… retentez demain !', freeGames: Math.max(0, st.freeGames - 1) }));
-      if (val > 0) this.showToast('+' + val + ' Zora gagnés à la Roue !');
-    }, 4200);
+
+    try {
+      const r = await fetch('/api/v1/zora/games/play', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ game_type: 'wheel', play_type: 'free' })
+      });
+      const d = await r.json();
+      
+      setTimeout(() => {
+        const val = segs[win].val;
+        if (d.success && d.data) {
+          this.addZora(d.data.points_won || 0);
+          this.setState((st) => ({ wheelSpinning: false, wheelDone: true, wheelResult: val > 0 ? ('Bravo ! +' + d.data.points_won + ' Zora') : 'Dommage… retentez demain !', freeGames: Math.max(0, st.freeGames - 1) }));
+          if (d.data.points_won > 0) this.showToast('+' + d.data.points_won + ' Zora gagnés à la Roue !');
+        } else {
+          this.setState((st) => ({ wheelSpinning: false, wheelDone: true, wheelResult: 'Erreur serveur', freeGames: st.freeGames }));
+          this.showToast(d.error || 'Erreur — réessaie dans un instant', 'error');
+        }
+      }, 4200);
+    } catch (e) {
+      setTimeout(() => {
+        this.setState((st) => ({ wheelSpinning: false, wheelDone: true, wheelResult: 'Erreur réseau', freeGames: st.freeGames }));
+        this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+      }, 4200);
+    }
   }
 
-  openChest(i) {
+  async openChest(i) {
     if (this.state.chestOpened !== null) return;
-    const prizes = [30, 50, 80, 120];
-    const val = prizes[Math.floor(Math.random() * prizes.length)];
-    this.addZora(val);
-    this.setState((st) => ({ chestOpened: i, chestReward: '+' + val + ' Zora', freeGames: Math.max(0, st.freeGames - 1) }));
-    this.showToast('+' + val + ' Zora trouvés dans le coffre !');
+    
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) {
+      this.showToast('Session expirée — reconnectez-vous', 'error');
+      return;
+    }
+
+    try {
+      const r = await fetch('/api/v1/zora/games/play', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ game_type: 'chest', play_type: 'free' })
+      });
+      const d = await r.json();
+      
+      if (d.success && d.data) {
+        this.addZora(d.data.points_won || 0);
+        this.setState((st) => ({ chestOpened: i, chestReward: '+' + d.data.points_won + ' Zora', freeGames: Math.max(0, st.freeGames - 1) }));
+        this.showToast('+' + d.data.points_won + ' Zora trouvés dans le coffre !');
+      } else {
+        this.showToast(d.error || 'Erreur — réessaie dans un instant', 'error');
+      }
+    } catch (e) {
+      this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+    }
   }
 
-  pickQuiz(i) {
+  async pickQuiz(i) {
     if (this.state.quizPicked !== null) return;
+    
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) {
+      this.showToast('Session expirée — reconnectez-vous', 'error');
+      return;
+    }
+
     const q = this.quizData || {};
     const correct = i === q.answer;
-    if (correct) this.addZora(25);
-    this.setState((st) => ({ quizPicked: i, freeGames: Math.max(0, st.freeGames - 1) }));
-    if (correct) this.showToast('+25 Zora · bonne réponse !');
+
+    try {
+      const r = await fetch('/api/v1/zora/games/play', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ game_type: 'quiz', play_type: 'free' })
+      });
+      const d = await r.json();
+      
+      this.setState((st) => ({ quizPicked: i, freeGames: Math.max(0, st.freeGames - 1) }));
+      
+      if (d.success && d.data) {
+        this.addZora(d.data.points_won || 0);
+        if (d.data.points_won > 0) this.showToast('+' + d.data.points_won + ' Zora · bonne réponse !');
+      } else {
+        this.showToast(d.error || 'Erreur — réessaie demain', 'error');
+      }
+    } catch (e) {
+      this.setState((st) => ({ quizPicked: i, freeGames: Math.max(0, st.freeGames - 1) }));
+      this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+    }
+  }
+
+  async playScratch() {
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) {
+      this.showToast('Session expirée — reconnectez-vous', 'error');
+      return;
+    }
+
+    try {
+      const r = await fetch('/api/v1/zora/games/play', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ game_type: 'scratch', play_type: 'free' })
+      });
+      const d = await r.json();
+      
+      if (d.success && d.data) {
+        this.addZora(d.data.points_won || 0);
+        this.setState((st) => ({ freeGames: Math.max(0, st.freeGames - 1) }));
+        this.showToast('+' + d.data.points_won + ' Zora gagnés au Grattage !');
+      } else {
+        this.showToast(d.error || 'Erreur — réessaie demain', 'error');
+      }
+    } catch (e) {
+      this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+    }
+  }
+
+  constGroupe(e) { this.setState((st) => ({ constForm: { ...st.constForm, groupe_sanguin: e.target.value } })); }
+  constPoids(e) { this.setState((st) => ({ constForm: { ...st.constForm, poids: e.target.value } })); }
+  constTaille(e) { this.setState((st) => ({ constForm: { ...st.constForm, taille: e.target.value } })); }
+  constAllergies(e) { this.setState((st) => ({ constForm: { ...st.constForm, allergies: e.target.value } })); }
+  constMaladies(e) { this.setState((st) => ({ constForm: { ...st.constForm, maladies_chroniques: e.target.value } })); }
+  constAntecedents(e) { this.setState((st) => ({ constForm: { ...st.constForm, antecedents_medicaux: e.target.value } })); }
+  constTraitements(e) { this.setState((st) => ({ constForm: { ...st.constForm, traitements_en_cours: e.target.value } })); }
+  constContactNom(e) { this.setState((st) => ({ constForm: { ...st.constForm, contact_urgence_nom: e.target.value } })); }
+  constContactPhone(e) { this.setState((st) => ({ constForm: { ...st.constForm, contact_urgence_phone: e.target.value } })); }
+  constContactLien(e) { this.setState((st) => ({ constForm: { ...st.constForm, contact_urgence_lien: e.target.value } })); }
+
+  async saveConst() {
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) {
+      this.showToast('Session expirée — reconnectez-vous', 'error');
+      return;
+    }
+
+    const f = this.state.constForm;
+    const body = {};
+    if (f.groupe_sanguin) body.groupe_sanguin = f.groupe_sanguin;
+    if (f.allergies) body.allergies = f.allergies;
+    if (f.maladies_chroniques) body.maladies_chroniques = f.maladies_chroniques;
+    if (f.antecedents_medicaux) body.antecedents_medicaux = f.antecedents_medicaux;
+    if (f.traitements_en_cours) body.traitements_en_cours = f.traitements_en_cours;
+    if (f.poids) body.poids = parseInt(f.poids);
+    if (f.taille) body.taille = parseInt(f.taille);
+    if (f.contact_urgence_nom) body.contact_urgence_nom = f.contact_urgence_nom;
+    if (f.contact_urgence_phone) body.contact_urgence_phone = f.contact_urgence_phone;
+    if (f.contact_urgence_lien) body.contact_urgence_lien = f.contact_urgence_lien;
+
+    if (Object.keys(body).length === 0) {
+      this.showToast('Aucune modification à enregistrer', 'error');
+      return;
+    }
+
+    try {
+      const r = await fetch('/api/v1/patients/constantes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      
+      if (d.success) {
+        this.setState({ editConst: false });
+        this.showToast('Constantes mises à jour');
+        this._constantes = { ...this._constantes, ...d.data };
+      } else {
+        this.showToast(d.message || d.error || 'Erreur lors de la sauvegarde', 'error');
+      }
+    } catch (e) {
+      this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+    }
   }
 
   componentDidUpdate() {
@@ -2467,8 +2643,8 @@ class Component extends DCLogic {
       ctx.clearRect(0, 0, W, H);
       canvas.style.pointerEvents = 'none';
       const hint = document.getElementById('scratch-hint');
-      if (hint) hint.textContent = 'Bravo ! +100 Zora ajoutés. Revenez demain pour gratter à nouveau.';
-      if (!this._scratchAwarded) { this._scratchAwarded = true; this.addZora(100); this.setState((st) => ({ freeGames: Math.max(0, st.freeGames - 1) })); this.showToast('+100 Zora gagnés au Grattage !'); }
+      if (hint) hint.textContent = 'Bravo ! Revenez demain pour gratter à nouveau.';
+      if (!this._scratchAwarded) { this._scratchAwarded = true; this.playScratch(); }
     };
     const end = () => { if (done) return; drawing = false; if (pct() > 0.55) reveal(); };
     const startFn = (e) => { drawing = true; scratch(e); };
@@ -2553,6 +2729,7 @@ class Component extends DCLogic {
         tint: gm.tint, icon: gm.icon, name: gm.name, gain: gm.gain,
         badgeStyle: { display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '10px', fontSize: '0.66rem', fontWeight: 800, background: soft, color: gm.tint, padding: '5px 10px', borderRadius: '9999px' },
         badgeIcon: gm.badgeIcon, badgeText: gm.badgeText,
+        testid: 'play-' + gm.key,
         onPlay: () => this.openGame(gm.key),
         btnDisabled: noFree,
         btnStyle: { marginTop: '14px', width: '100%', background: noFree ? '#EDEDF8' : gm.tint, color: noFree ? '#9498a8' : '#fff', border: 'none', padding: '10px', borderRadius: '9999px', fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 700, cursor: noFree ? 'not-allowed' : 'pointer' },
@@ -2578,7 +2755,7 @@ class Component extends DCLogic {
         else if (i === s.quizPicked) { bg = 'rgba(186,26,26,0.1)'; col = '#BA1A1A'; bd = '1px solid rgba(186,26,26,0.4)'; }
         else { bg = '#F7F7FB'; col = '#9498a8'; }
       }
-      return { label: opt, onPick: () => this.pickQuiz(i), style: { textAlign: 'left', background: bg, color: col, border: bd, padding: '12px 14px', borderRadius: '12px', fontFamily: 'inherit', fontSize: '0.88rem', fontWeight: 700, cursor: s.quizPicked === null ? 'pointer' : 'default', transition: 'all 0.2s ease' } };
+      return { label: opt, testid: 'quiz-opt-' + i, onPick: () => this.pickQuiz(i), style: { textAlign: 'left', background: bg, color: col, border: bd, padding: '12px 14px', borderRadius: '12px', fontFamily: 'inherit', fontSize: '0.88rem', fontWeight: 700, cursor: s.quizPicked === null ? 'pointer' : 'default', transition: 'all 0.2s ease' } };
     });
 
     const chestView = [0, 1, 2].map((i) => {
@@ -2696,9 +2873,26 @@ class Component extends DCLogic {
       closeProfile: () => this.setState({ profileOpen: false }),
       openModal: () => this.setState({ modal: true }),
       closeModal: () => this.setState({ modal: false }),
-      openEditConst: () => this.setState({ editConst: true }),
+      openEditConst: () => { 
+    const c = this._constantes || {};
+    this.setState({ 
+      editConst: true, 
+      constForm: { 
+        groupe_sanguin: c.groupe_sanguin || '', 
+        allergies: c.allergies || '', 
+        maladies_chroniques: c.maladies_chroniques || '', 
+        antecedents_medicaux: c.antecedents_medicaux || '', 
+        traitements_en_cours: c.traitements_en_cours || '', 
+        poids: c.poids || '', 
+        taille: c.taille || '', 
+        contact_urgence_nom: c.contact_urgence_nom || '', 
+        contact_urgence_phone: c.contact_urgence_phone || '', 
+        contact_urgence_lien: c.contact_urgence_lien || '' 
+      } 
+    }); 
+  },
       closeEditConst: () => this.setState({ editConst: false }),
-      saveConst: () => { this.setState({ editConst: false }); this.showToast('Constantes mises à jour'); },
+      saveConst: () => this.saveConst(),
       openQrUrg: () => { this.setState({ qrUrg: true }); this.renderQR('urg-qr', 'BOLAMU:URGENCE:BLM-4821-7763:O+:Pénicilline', 168); },
       closeQrUrg: () => this.setState({ qrUrg: false }),
       openLabRes: () => this.setState({ labRes: true }),
