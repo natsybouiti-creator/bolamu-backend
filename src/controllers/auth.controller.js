@@ -134,7 +134,7 @@ async function login(req, res) {
              VALUES ($1, $2, $3, FALSE)
              ON CONFLICT (phone) DO UPDATE SET token_hash = $2, expires_at = $3, is_revoked = FALSE`,
             [normalizedPhone, refreshTokenHash, expiresAt]
-        ).catch(() => {}); // Ignorer si la table n'existe pas encore
+        );
         
         let redirectUrl = '/login.html';
         switch (user.role) {
