@@ -1256,4 +1256,104 @@ router.post('/company-contracts/:id/employees', authMiddleware, adminOnly, async
   }
 });
 
+// ─── ÉQUIPE ADMIN (GET / POST / DELETE) ──────────────────────────────────────
+const bcrypt = require('bcrypt');
+
+router.get('/team', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, phone, full_name, role, is_active, created_at
+             FROM users WHERE role IN ('admin', 'content_admin')
+             ORDER BY created_at DESC`
+        );
+        res.json({ success: true, data: result.rows });
+    } catch (e) {
+        err(res, 500, 'Erreur serveur.');
+    }
+});
+
+router.post('/team', authMiddleware, adminOnly, async (req, res) => {
+    const { full_name, password, role: bodyRole } = req.body;
+    const rawPhone = req.body.phone || '';
+    const phone = normalizePhone(rawPhone);
+    const role = bodyRole === 'content_admin' ? 'content_admin' : 'content_admin';
+
+    if (!phone) return err(res, 400, 'Numéro de téléphone invalide.');
+    if (!full_name || !password) return err(res, 400, 'full_name et password requis.');
+    if (password.length < 6) return err(res, 400, 'Mot de passe trop court (min. 6 caractères).');
+
+    try {
+        const existing = await pool.query(`SELECT id FROM users WHERE phone=$1`, [phone]);
+        if (existing.rows.length) return err(res, 409, 'Ce téléphone est déjà enregistré.');
+
+        const maxResult = await pool.query(
+            `SELECT MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER))
+             FROM users WHERE role IN ('admin', 'content_admin') AND member_code LIKE 'ADM-%'`
+        );
+        const nextNum = (maxResult.rows[0].max || 0) + 1;
+        const member_code = `ADM-${String(nextNum).padStart(5, '0')}`;
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const result = await pool.query(
+            `INSERT INTO users (phone, full_name, role, password_hash, is_active, member_code, created_at)
+             VALUES ($1, $2, $3, $4, true, $5, NOW())
+             RETURNING id, phone, full_name, role, is_active, member_code, created_at`,
+            [phone, full_name, role, passwordHash, member_code]
+        );
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('admin.team.create', $1, 'users', $2, $3::jsonb)`,
+            [req.user.phone, phone, JSON.stringify({ role, full_name })]
+        ).catch(() => {});
+        res.status(201).json({ success: true, data: result.rows[0], message: 'Administrateur créé.' });
+    } catch (e) {
+        err(res, 500, 'Erreur serveur.');
+    }
+});
+
+router.delete('/team/:phone', authMiddleware, adminOnly, async (req, res) => {
+    const phone = normalizePhone(req.params.phone || '');
+    if (!phone) return err(res, 400, 'Numéro invalide.');
+    if (phone === req.user.phone) return err(res, 400, 'Impossible de supprimer son propre compte.');
+    try {
+        const result = await pool.query(
+            `UPDATE users SET is_active=false WHERE phone=$1 AND role IN ('admin','content_admin') RETURNING phone, role`,
+            [phone]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Compte admin introuvable.' });
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('admin.team.delete', $1, 'users', $2, $3::jsonb)`,
+            [req.user.phone, phone, JSON.stringify({ action: 'soft_delete' })]
+        ).catch(() => {});
+        res.json({ success: true, message: 'Compte administrateur désactivé.' });
+    } catch (e) {
+        err(res, 500, 'Erreur serveur.');
+    }
+});
+
+// ─── RÉHABILITATION MÉDECIN SUSPENDU ─────────────────────────────────────────
+router.patch('/doctors/:phone/rehabilitate', authMiddleware, adminOnly, async (req, res) => {
+    const phone = normalizePhone(req.params.phone || '');
+    if (!phone) return err(res, 400, 'Numéro invalide.');
+    try {
+        const user = await pool.query(`SELECT role FROM users WHERE phone=$1`, [phone]);
+        if (!user.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
+        if (user.rows[0].role !== 'doctor') return err(res, 400, 'Ce compte n\'est pas un médecin.');
+
+        await Promise.all([
+            pool.query(`UPDATE users SET is_active=true, banned=false WHERE phone=$1`, [phone]),
+            pool.query(`UPDATE doctors SET is_active=true, status='verified' WHERE phone=$1`, [phone])
+        ]);
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('doctor.rehabilitate', $1, 'doctors', $2, $3::jsonb)`,
+            [req.user.phone, phone, JSON.stringify({ action: 'rehabilitate' })]
+        ).catch(() => {});
+        res.json({ success: true, message: 'Médecin réhabilité avec succès.' });
+    } catch (e) {
+        err(res, 500, 'Erreur serveur.');
+    }
+});
+
 module.exports = router;
