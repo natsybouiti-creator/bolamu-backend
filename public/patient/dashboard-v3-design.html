@@ -953,8 +953,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .bottom-nav { display: none; }
   @media (max-width: 768px) {
     .hero-grid { grid-template-columns: 1fr !important; }
-    .hero-masc { position: absolute !important; top: 14px; right: 14px; width: 80px; height: 96px; z-index: 1; opacity: 0.92; align-items: flex-start !important; justify-content: flex-end !important; pointer-events: none; }
-    .hero-masc > div { width: 80px !important; height: 96px !important; background-position: top center !important; }
   }
   @media (max-width: 400px) {
     .hero-tiles { grid-template-columns: 1fr !important; }
@@ -1028,15 +1026,20 @@ svg.leaflet-image-layer.leaflet-interactive path {
                   <span style="display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; background: rgba(245,166,35,0.15); border: 1px solid rgba(245,166,35,0.3); color: #F5A623; font-size: 0.58rem; font-weight: 800; padding: 2px 7px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 11px;">workspace_premium</span>Liboso</span>
                 </div>
               </div>
-              <div style="height: 104px; background: #F3F3FE; border: 1px solid #E4E4F2; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
-                <div style="position: relative; width: 58px; height: 58px; flex-shrink: 0;">
-                  <svg width="58" height="58" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="#E4E4F2" stroke-width="7"></circle><circle cx="36" cy="36" r="30" fill="none" stroke="#FF6B35" stroke-width="7" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="188.5" stroke-dashoffset="{{ stepRingOffset }}" style="transition: stroke-dashoffset 0.1s linear;"></circle></svg>
-                  <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 22px;">directions_walk</span></div>
+              <div style="height: 104px; background: #F3F3FE; border: 1px solid #E4E4F2; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; overflow: hidden;">
+                <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;">
+                  <div style="position: relative; width: 58px; height: 58px; flex-shrink: 0;">
+                    <svg width="58" height="58" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="#E4E4F2" stroke-width="7"></circle><circle cx="36" cy="36" r="30" fill="none" stroke="#FF6B35" stroke-width="7" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="188.5" stroke-dashoffset="{{ stepRingOffset }}" style="transition: stroke-dashoffset 0.1s linear;"></circle></svg>
+                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 22px;">directions_walk</span></div>
+                  </div>
+                  <div style="min-width: 0;">
+                    <div style="display: flex; align-items: baseline; gap: 3px;"><span style="font-size: 1.3rem; font-weight: 800; color: #0A2463; line-height: 1;">{{ stepsTxt }}</span><span style="font-size: 0.68rem; font-weight: 700; color: #9498a8;">/ 10 000</span></div>
+                    <div style="font-size: 0.7rem; font-weight: 700; color: #434654;">pas aujourd'hui</div>
+                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 5px;"><dc-import name="ZoraCoin" size="14" no-float="{{ true }}" hint-size="14px,14px"></dc-import><span style="font-size: 0.68rem; font-weight: 800; color: #B0680A;">+85 Zora</span></div>
+                  </div>
                 </div>
-                <div style="min-width: 0;">
-                  <div style="display: flex; align-items: baseline; gap: 3px;"><span style="font-size: 1.3rem; font-weight: 800; color: #0A2463; line-height: 1;">{{ stepsTxt }}</span><span style="font-size: 0.68rem; font-weight: 700; color: #9498a8;">/ 10 000</span></div>
-                  <div style="font-size: 0.7rem; font-weight: 700; color: #434654;">pas aujourd'hui</div>
-                  <div style="display: flex; align-items: center; gap: 4px; margin-top: 5px;"><dc-import name="ZoraCoin" size="14" no-float="{{ true }}" hint-size="14px,14px"></dc-import><span style="font-size: 0.68rem; font-weight: 800; color: #B0680A;">+85 Zora</span></div>
+                <div style="width: 60px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 60px; height: 72px; background-image: url(&quot;/images/landing/garcons3Dbleu.png&quot;); background-size: contain; background-position: bottom center; background-repeat: no-repeat; animation: zoraFloat 4s ease-in-out infinite;"></div>
                 </div>
               </div>
             </div>
@@ -1060,9 +1063,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
               </div>
             </div>
           </div>
-          </div>
-          <div class="hero-masc" style="position: absolute; right: 0; bottom: 0; top: -30px; width: 200px; pointer-events: none; z-index: 3; display: flex; align-items: flex-end; justify-content: center;">
-            <div style="width: 200px; height: 100%; min-height: 250px; background-image: url(&quot;/images/landing/garcons3Dbleu.png&quot;); background-size: contain; background-position: bottom center; background-repeat: no-repeat;"></div>
           </div>
         </div>
         <div style="margin-top: 16px; background: #F3F3FE; border: 1px solid #EDEDF8; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 14px;">
