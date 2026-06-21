@@ -6,6 +6,7 @@ const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
 const authMiddleware = require('../middleware/auth.middleware');
+const { webhookLimiter } = require('../middleware/rateLimiter');
 const validateAirtelWebhook = require('../middleware/validateAirtelWebhook');
 const idempotencyMiddleware = require('../middleware/idempotency');
 
@@ -267,7 +268,7 @@ router.get('/status/:referenceId', authMiddleware, async (req, res) => {
 });
 
 // ─── POST /webhook ───────────────────────────────────────────────────────────────
-router.post('/webhook', express.raw({ type: 'application/json' }), validateAirtelWebhook, idempotencyMiddleware('/airtel/webhook'), async (req, res) => {
+router.post('/webhook', webhookLimiter, express.raw({ type: 'application/json' }), validateAirtelWebhook, idempotencyMiddleware('/airtel/webhook'), async (req, res) => {
     try {
         const webhookData = JSON.parse(req.body.toString());
         const { reference, status } = webhookData;
