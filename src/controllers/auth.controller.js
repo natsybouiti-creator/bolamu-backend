@@ -304,8 +304,11 @@ async function registerPatient(req, res) {
             client.release();
         }
     } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ success: false, message: "Ce numéro est déjà utilisé." });
+        }
         console.error('[registerPatient]', err.message);
-        return res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
+        return res.status(500).json({ success: false, message: "Erreur serveur." });
     }
 }
 
@@ -430,8 +433,11 @@ async function registerDoctor(req, res) {
             token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ success: false, message: "Ce numéro est déjà utilisé." });
+        }
         console.error('[registerDoctor]', err.message);
-        return res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
+        return res.status(500).json({ success: false, message: "Erreur serveur." });
     }
 }
 
@@ -536,8 +542,11 @@ async function registerPharmacie(req, res) {
             token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ success: false, message: "Ce numéro est déjà utilisé." });
+        }
         console.error('[registerPharmacie]', err.message);
-        return res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
+        return res.status(500).json({ success: false, message: "Erreur serveur." });
     }
 }
 
@@ -642,8 +651,11 @@ async function registerLaboratoire(req, res) {
             token, phone: normalizedPhone, role: user.role, member_code: user.member_code, is_active
         });
     } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ success: false, message: "Ce numéro est déjà utilisé." });
+        }
         console.error('[registerLaboratoire]', err.message);
-        return res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
+        return res.status(500).json({ success: false, message: "Erreur serveur." });
     }
 }
 
