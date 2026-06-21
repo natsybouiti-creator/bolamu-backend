@@ -498,4 +498,51 @@ async function updateDoctorProfile(req, res) {
     }
 }
 
-module.exports = { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile, generatePatientQRCode, createTimeSlot, getTimeSlots, updateTimeSlot, updateDoctorProfile };
+async function deleteTimeSlot(req, res) {
+    const doctorPhone = req.user.phone;
+    const { id } = req.params;
+
+    try {
+        // Vérifier ownership — le créneau doit appartenir au médecin connecté
+        const slot = await pool.query(
+            `SELECT id, date, heure_debut, heure_fin FROM time_slots WHERE id = $1 AND doctor_phone = $2`,
+            [id, doctorPhone]
+        );
+        if (!slot.rows.length) {
+            return res.status(404).json({ success: false, message: 'Créneau introuvable.' });
+        }
+        const { date, heure_debut, heure_fin } = slot.rows[0];
+
+        // Bloquer si un RDV actif existe sur ce créneau (match par date + heure + médecin)
+        const conflict = await pool.query(
+            `SELECT a.id FROM appointments a
+             JOIN doctors d ON d.id = a.doctor_id
+             WHERE d.phone = $1
+               AND a.appointment_date = $2
+               AND a.appointment_time = $3
+               AND a.status NOT IN ('annule', 'absent')`,
+            [doctorPhone, date, heure_debut]
+        );
+        if (conflict.rows.length) {
+            return res.status(409).json({
+                success: false,
+                message: 'Impossible de supprimer ce créneau : un rendez-vous actif y est associé.'
+            });
+        }
+
+        await pool.query(`DELETE FROM time_slots WHERE id = $1 AND doctor_phone = $2`, [id, doctorPhone]);
+
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('timeslot.deleted', $1, 'time_slots', $2, $3::jsonb)`,
+            [doctorPhone, id, JSON.stringify({ date, heure_debut, heure_fin })]
+        ).catch(() => {});
+
+        return res.json({ success: true, message: 'Créneau supprimé.' });
+    } catch (error) {
+        console.error('[deleteTimeSlot]', error.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+module.exports = { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile, generatePatientQRCode, createTimeSlot, getTimeSlots, updateTimeSlot, updateDoctorProfile, deleteTimeSlot };
