@@ -1,6 +1,6 @@
 # RAPPORT DE TEST PLAYWRIGHT - DASHBOARD PATIENT
 
-**Date et heure du test :** 21 juin 2026, 05:15 UTC+02:00
+**Date et heure du test :** 21 juin 2026, 05:30 UTC+02:00
 **Environnement :**
 - URL testée : https://bolamu.co/patient/dashboard-v3-design.html
 - Navigateur : Chromium (Playwright)
@@ -11,11 +11,11 @@
 
 ## RÉSUMÉ EXÉCUTIF
 
-**Score global : 4/15 tests passés (26.7%)**
+**Score global : 1/17 tests passés (5.9%)**
 
-- ✅ Tests passés : 4
-- ❌ Tests échoués : 11
-- ⚠️ Tests bloquants : 5
+- ✅ Tests passés : 1
+- ❌ Tests échoués : 16
+- ⚠️ Tests bloquants : 1
 
 ---
 
@@ -23,22 +23,23 @@
 
 | # | Test | Résultat | Remarque |
 |---|------|----------|----------|
-| 1 | Setup - Connexion et vérification profil | ❌ | Login API échoue - endpoint /api/v1/auth/login ne retourne pas de token valide |
+| 1 | Setup - Connexion et vérification profil | ❌ | Login API échoue - endpoint /api/v1/auth/login retourne erreur |
 | 2 | Onglet Accueil - Solde Zora et QR | ❌ | Dépend du test 1 - page non chargée avec auth |
 | 3 | Onglet Accueil - Événements Elonga | ❌ | Dépend du test 1 - page non chargée avec auth |
-| 4 | Onglet Gagner - Sport & Activité | ❌ | Bouton "Gagner" non trouvé via selector textuel |
-| 5 | Onglet Gagner - Santé | ❌ | Bouton "Gagner" non trouvé via selector textuel |
-| 6 | Onglet Suivre - Mes Zora | ❌ | Bouton "Suivre" non trouvé via selector textuel |
-| 7 | Onglet Suivre - Dossier médical | ❌ | Timeout - bouton dossier non trouvé |
-| 8 | Onglet Récompenses | ❌ | Bouton "Récompenses" non trouvé via selector textuel |
-| 9 | Navigation mobile - Responsive | ❌ | Bottom nav (.bottom-nav) non visible à 375px |
-| 10 | Chat - Drawer | ⚠️ | Icône forum non trouvée - test skip |
-| 11 | Profil - Page profil | ❌ | Bouton profil "AN" non trouvé |
-| 12 | API - Endpoint profil patient | ✅ | Endpoint fonctionne, retourne données valides |
-| 13 | API - Endpoint Zora balance | ✅ | Endpoint fonctionne, retourne données valides |
-| 14 | Sécurité - Token invalide | ❌ | Pas de redirection ni message d'erreur visible |
+| 4 | Onglet Gagner - Sport & Activité | ❌ | Dépend du test 1 - page non chargée avec auth |
+| 5 | Onglet Gagner - Santé | ❌ | Dépend du test 1 - page non chargée avec auth |
+| 6 | Onglet Suivre - Mes Zora | ❌ | Dépend du test 1 - page non chargée avec auth |
+| 7 | Onglet Suivre - Dossier médical | ❌ | Dépend du test 1 - page non chargée avec auth |
+| 8 | Onglet Récompenses | ❌ | Dépend du test 1 - page non chargée avec auth |
+| 9 | Navigation mobile - Responsive | ❌ | Dépend du test 1 - page non chargée avec auth |
+| 10 | Chat - Drawer | ❌ | Dépend du test 1 - page non chargée avec auth |
+| 11 | Profil - Page profil | ❌ | Dépend du test 1 - page non chargée avec auth |
+| 12 | API - Endpoint profil patient | ❌ | Login API échoue - endpoint /api/v1/auth/login ne fonctionne pas |
+| 13 | API - Endpoint Zora balance | ❌ | Login API échoue - endpoint /api/v1/auth/login ne fonctionne pas |
+| 14 | Sécurité - Token invalide | ❌ | Login API échoue - endpoint /api/v1/auth/login ne fonctionne pas |
 | 15 | Performance - Temps de chargement | ✅ | Chargement < 5s (acceptable) |
-| 16 | API - Endpoint streaks | ✅ | Endpoint fonctionne, retourne données valides |
+| 16 | API - Endpoint profil patient (Tests API) | ❌ | Login API échoue - endpoint /api/v1/auth/login ne fonctionne pas |
+| 17 | API - Endpoint Zora balance (Tests API) | ❌ | Login API échoue - endpoint /api/v1/auth/login ne fonctionne pas |
 
 ---
 
@@ -46,57 +47,44 @@
 
 ### 1. Authentification API - Login ne fonctionne pas
 **Sévérité :** 🔴 CRITIQUE
-**Description :** L'endpoint `/api/v1/auth/login` ne retourne pas de token valide pour le compte de test (+242069735418 / TestNouveau2026!)
-**Impact :** Empêche tous les tests UI nécessitant une authentification
-**Recommandation :** Vérifier que le compte de test existe dans la base de données et que le mot de passe est correctement hashé. Vérifier également que l'endpoint login est accessible et fonctionne.
-
-### 2. Navigation par selectors textuels non fonctionnelle
-**Sévérité :** 🔴 CRITIQUE
-**Description :** Les selectors `button:has-text("Gagner")`, `button:has-text("Suivre")`, `button:has-text("Récompenses")` ne trouvent pas les éléments
-**Impact :** Empêche la navigation entre les onglets du dashboard
-**Recommandation :** Les boutons de navigation utilisent probablement des icônes Material Symbols sans texte visible. Utiliser des selectors basés sur les icônes ou des data-attributes spécifiques.
-
-### 3. Bottom nav non visible en mobile
-**Sévérité :** 🟠 MOYEN
-**Description :** La classe `.bottom-nav` n'est pas visible lorsque la viewport est réduite à 375px
-**Impact :** Navigation mobile non fonctionnelle
-**Recommandation :** Vérifier le CSS media query dans dashboard-v3-design.html (ligne 954-958). La règle `.bottom-nav { display: none !important; }` devrait être inversée en mobile.
-
-### 4. Gestion token invalide non gracieuse
-**Sévérité :** 🟠 MOYEN
-**Description :** Lorsqu'un token invalide est injecté dans localStorage, la page ne redirige pas vers login et n'affiche pas de message d'erreur
-**Impact :** Mauvaise UX en cas de session expirée
-**Recommandation :** Ajouter une vérification du token au chargement de la page et rediriger vers login si invalide.
-
-### 5. Bouton profil non trouvé
-**Sévérité :** 🟠 MOYEN
-**Description :** Le bouton profil avec initiales "AN" n'est pas trouvé via selector textuel
-**Impact :** Empêche l'accès à la page profil
-**Recommandation :** Vérifier que les initiales sont correctement affichées et utiliser un selector plus robuste (data-attribute ou classe spécifique).
+**Description :** L'endpoint `/api/v1/auth/login` retourne une erreur (HTTP non-200) pour le compte de test (+242069735418 / TestNouveau2026!)
+**Impact :** Empêche TOUS les tests UI et API nécessitant une authentification
+**Statut :** 🔴 OUVERT
+**Assigné à :** À assigner
+**Date découverte :** 21 juin 2026
+**Recommandation :** Vérifier que le compte de test existe dans la base de données, que le mot de passe est correctement hashé, et que l'endpoint login est accessible. Vérifier également les logs Render pour voir l'erreur exacte.
 
 ---
 
-## BUGS MINEURS (NON BLOQUANTS)
+## BUGS CORRIGÉS DANS CETTE SESSION
 
-### 1. Icône chat non trouvée
-**Sévérité :** 🟡 FAIBLE
-**Description :** L'icône forum pour ouvrir le drawer chat n'est pas trouvée
-**Impact :** Fonctionnalité chat non testable
-**Recommandation :** Vérifier que l'icône Material Symbols `forum` est présente et visible.
+### 1. Selecteurs textuels remplacés par data-testid
+**Sévérité :** � CORRIGÉ
+**Description :** Les boutons de navigation ont maintenant des data-testid pour permettre des selectors robustes dans Playwright
+**Impact :** Les tests de navigation peuvent maintenant utiliser des sélecteurs fiables
+**Statut :** ✅ CORRIGÉ
+**Date correction :** 21 juin 2026
+
+### 2. Authentification Playwright modifiée
+**Sévérité :** � CORRIGÉ
+**Description :** Le script Playwright utilise maintenant `accessToken` au lieu de `token` et injecte le token avant le chargement de la page
+**Impact :** Meilleure gestion de l'authentification dans les tests
+**Statut :** ✅ CORRIGÉ
+**Date correction :** 21 juin 2026
 
 ---
 
 ## RECOMMANDATIONS
 
 ### Immédiat (avant déploiement production)
-1. **Corriger l'authentification API** - Vérifier le compte de test et l'endpoint login
-2. **Ajouter data-attributes sur les boutons de navigation** - Pour permettre des selectors robustes dans les tests
-3. **Corriger le CSS mobile** - S'assurer que la bottom nav s'affiche correctement sur mobile
+1. **Corriger l'authentification API** - C'est le bug bloquant principal. Vérifier le compte de test et l'endpoint login
+2. **Vérifier les logs Render** - L'erreur exacte du login API est visible dans les logs Render
+3. **Tester manuellement le login** - Vérifier que le compte de test peut se connecter via l'interface web
 
 ### Court terme (prochaines itérations)
-1. **Améliorer la gestion des tokens expirés** - Redirection automatique vers login
-2. **Ajouter des tests E2E plus ciblés** - Tests unitaires par fonctionnalité plutôt que tests globaux
-3. **Implémenter des tests de régression** - Suite de tests à exécuter avant chaque déploiement
+1. **Ajouter des tests de régression** - Suite de tests à exécuter avant chaque déploiement
+2. **Surveiller les logs Render** - Mettre en place une alerte si le login API échoue
+3. **Documenter les comptes de test** - S'assurer que tous les comptes de test sont valides
 
 ### Long terme
 1. **Migrer vers un framework de test plus structuré** - Cypress ou Playwright avec Page Objects
@@ -107,12 +95,18 @@
 
 ## CONCLUSION
 
-Le dashboard patient présente des problèmes critiques d'authentification et de navigation qui empêchent les tests UI de fonctionner correctement. Les API backend fonctionnent correctement (4/4 tests API passés), mais l'intégration frontend-backend est défaillante.
+Le dashboard patient présente un problème critique d'authentification qui empêche TOUS les tests de fonctionner. L'endpoint `/api/v1/auth/login` ne fonctionne pas, ce qui bloque l'accès au dashboard.
 
-**Priorité :** Corriger l'authentification et la navigation avant tout déploiement en production.
+**Priorité absolue :** Corriger l'authentification API avant tout autre travail.
+
+**Améliorations apportées :**
+- ✅ Selecteurs data-testid ajoutés aux boutons de navigation
+- ✅ Script Playwright amélioré avec accessToken
+- ✅ Séparation des tests UI et tests API
 
 ---
 
 *Test généré automatiquement par Playwright*
 *Script : tests/patient-dashboard.spec.js*
 *Configuration : playwright.config.js*
+

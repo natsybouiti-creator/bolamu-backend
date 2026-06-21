@@ -984,9 +984,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <span style="font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Bolamu</span>
       <nav class="top-nav" style="display: flex; justify-content: center; gap: 8px; max-width: 1180px; margin: 0 auto; padding: 0 20px 2px;">
       <button onclick="{{ goAccueil }}" style="{{ navAccueil }}"><span class="material-symbols-outlined" style="font-size: 21px;">home</span><span>Accueil</span><span style="{{ indAccueil }}"></span></button>
-      <button onclick="{{ goGagner }}" style="{{ navGagner }}"><span class="material-symbols-outlined" style="font-size: 21px;">add_circle</span><span>Gagner</span><span style="{{ indGagner }}"></span></button>
-      <button onclick="{{ goSuivre }}" style="{{ navSuivre }}"><span class="material-symbols-outlined" style="font-size: 21px;">account_balance_wallet</span><span>Suivre</span><span style="{{ indSuivre }}"></span></button>
-      <button onclick="{{ goRecompenses }}" style="{{ navReward }}"><span class="material-symbols-outlined" style="font-size: 21px;">redeem</span><span>Récompenses</span><span style="{{ indReward }}"></span></button>
+      <button data-testid="nav-gagner" onclick="{{ goGagner }}" style="{{ navGagner }}"><span class="material-symbols-outlined" style="font-size: 21px;">add_circle</span><span>Gagner</span><span style="{{ indGagner }}"></span></button>
+      <button data-testid="nav-suivre" onclick="{{ goSuivre }}" style="{{ navSuivre }}"><span class="material-symbols-outlined" style="font-size: 21px;">account_balance_wallet</span><span>Suivre</span><span style="{{ indSuivre }}"></span></button>
+      <button data-testid="nav-recompenses" onclick="{{ goRecompenses }}" style="{{ navReward }}"><span class="material-symbols-outlined" style="font-size: 21px;">redeem</span><span>Récompenses</span><span style="{{ indReward }}"></span></button>
     </nav><div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
         <div id="header-solde" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.25); padding: 5px 14px 5px 8px; border-radius: 9999px; animation: zoraPulse 3s ease-in-out infinite;">
           <dc-import name="ZoraCoin" size="22" no-float="{{ true }}" hint-size="22px,22px"></dc-import>
@@ -996,7 +996,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">forum</span>
           <span style="position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px; padding: 0 4px; background: #BA1A1A; color: #fff; font-size: 0.6rem; font-weight: 800; border-radius: 9999px; display: flex; align-items: center; justify-content: center;">3</span>
         </button>
-        <button onclick="{{ openProfile }}" style="height: 40px; width: 40px; border: 2px solid #003FB1; border-radius: 9999px; background: #0A2463; color: #fff; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">{{ patientInitiales }}</button>
+        <button data-testid="btn-profil" onclick="{{ openProfile }}" style="height: 40px; width: 40px; border: 2px solid #003FB1; border-radius: 9999px; background: #0A2463; color: #fff; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">{{ patientInitiales }}</button>
       </div>
     </div>
     
@@ -1154,7 +1154,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <!-- SOUS-ONGLETS (même composant que Suivre) -->
       <div style="display: inline-flex; gap: 4px; background: #EDEDF8; padding: 4px; border-radius: 9999px; margin-bottom: 24px;">
         <button onclick="{{ gagnerSport }}" style="{{ subSport }}">Sport &amp; Activité</button>
-        <button onclick="{{ gagnerSante }}" style="{{ subSante }}">Santé</button>
+        <button data-testid="tab-sante" onclick="{{ gagnerSante }}" style="{{ subSante }}">Santé</button>
       </div>
 
       <!-- ===================== SPORT & ACTIVITÉ ===================== -->
@@ -1423,7 +1423,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <section style="{{ suivreStyle }}">
       <div style="display: inline-flex; gap: 4px; background: #EDEDF8; padding: 4px; border-radius: 9999px; margin-bottom: 24px;">
         <button onclick="{{ suivreZora }}" style="{{ subZora }}">Mes Zora</button>
-        <button onclick="{{ suivreDossier }}" style="{{ subDossier }}">Mon dossier médical</button>
+        <button data-testid="btn-dossier-medical" onclick="{{ suivreDossier }}" style="{{ subDossier }}">Mon dossier médical</button>
       </div>
 
       <!-- MES ZORA -->
@@ -1694,9 +1694,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <nav class="bottom-nav" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 55; background: rgba(255,255,255,0.95); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid #EDEDF8; padding: 8px 10px calc(8px + env(safe-area-inset-bottom));">
     <div style="display: flex; justify-content: space-around; align-items: center;">
       <button onclick="{{ goAccueil }}" style="{{ bnavAccueil }}"><span class="material-symbols-outlined" style="font-size: 23px;">home</span><span style="font-size: 0.6rem; font-weight: 800;">Accueil</span></button>
-      <button onclick="{{ goGagner }}" style="{{ bnavGagner }}"><span class="material-symbols-outlined" style="font-size: 23px;">add_circle</span><span style="font-size: 0.6rem; font-weight: 800;">Gagner</span></button>
-      <button onclick="{{ goSuivre }}" style="{{ bnavSuivre }}"><span class="material-symbols-outlined" style="font-size: 23px;">account_balance_wallet</span><span style="font-size: 0.6rem; font-weight: 800;">Suivre</span></button>
-      <button onclick="{{ goRecompenses }}" style="{{ bnavReward }}"><span class="material-symbols-outlined" style="font-size: 23px;">redeem</span><span style="font-size: 0.6rem; font-weight: 800;">Récomp.</span></button>
+      <button data-testid="nav-gagner" onclick="{{ goGagner }}" style="{{ bnavGagner }}"><span class="material-symbols-outlined" style="font-size: 23px;">add_circle</span><span style="font-size: 0.6rem; font-weight: 800;">Gagner</span></button>
+      <button data-testid="nav-suivre" onclick="{{ goSuivre }}" style="{{ bnavSuivre }}"><span class="material-symbols-outlined" style="font-size: 23px;">account_balance_wallet</span><span style="font-size: 0.6rem; font-weight: 800;">Suivre</span></button>
+      <button data-testid="nav-recompenses" onclick="{{ goRecompenses }}" style="{{ bnavReward }}"><span class="material-symbols-outlined" style="font-size: 23px;">redeem</span><span style="font-size: 0.6rem; font-weight: 800;">Récomp.</span></button>
     </div>
   </nav>
 

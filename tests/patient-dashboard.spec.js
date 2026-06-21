@@ -4,28 +4,41 @@ const TEST_PHONE = '+242069735418';
 const TEST_PASSWORD = 'TestNouveau2026!';
 const BASE_URL = 'https://bolamu.co';
 
-test.describe('Dashboard Patient - Tests Exhaustifs', () => {
-  test.beforeEach(async ({ page }) => {
-    // Setup - Connexion avec token injection
-    await page.goto(`${BASE_URL}/patient/dashboard-v3-design.html`);
-    
-    // Simuler l'obtention d'un token via login API
-    const loginResponse = await page.request.post(`${BASE_URL}/api/v1/auth/login`, {
+test.describe('Dashboard Patient - Tests UI', () => {
+  test.beforeEach(async ({ page, request }) => {
+    // Auth — injecter le token directement via login API
+    const loginResponse = await request.post('https://bolamu.co/api/v1/auth/login', {
       data: {
-        phone: TEST_PHONE,
-        password: TEST_PASSWORD
+        phone: '+242069735418',
+        password: 'TestNouveau2026!'
       }
     });
     
-    if (loginResponse.ok()) {
-      const loginData = await loginResponse.json();
-      if (loginData.success && loginData.data?.accessToken) {
-        await page.evaluate((token) => {
-          localStorage.setItem('bolamu_patient_token', token);
-        }, loginData.data.accessToken);
-        await page.reload();
-      }
+    if (!loginResponse.ok()) {
+      throw new Error('Login API failed');
     }
+    
+    const loginData = await loginResponse.json();
+    const token = loginData.accessToken; // accessToken pas token
+
+    if (!token) {
+      throw new Error('No token received from login API');
+    }
+
+    // Injecter dans localStorage avant chargement de la page
+    await page.goto('https://bolamu.co/patient/dashboard-v3-design.html');
+    await page.evaluate((t) => {
+      localStorage.setItem('bolamu_patient_token', t);
+    }, token);
+    await page.reload();
+
+    // Attendre que le runtime DCLogic soit chargé
+    await page.waitForTimeout(3000);
+
+    // Vérifier que Antonio s'affiche
+    await page.waitForSelector('h1', { timeout: 10000 });
+    const h1 = await page.textContent('h1');
+    expect(h1).toContain('Antonio');
   });
 
   test('1. Setup - Connexion et vérification profil', async ({ page }) => {
@@ -70,8 +83,8 @@ test.describe('Dashboard Patient - Tests Exhaustifs', () => {
 
   test('4. Onglet Gagner - Sport & Activité', async ({ page }) => {
     // Cliquer sur Gagner
-    await page.click('button:has-text("Gagner")');
-    await page.waitForTimeout(500);
+    await page.click('[data-testid="nav-gagner"]');
+    await page.waitForTimeout(1000);
     
     // Vérifier EarnCards Sport
     const earnCards = page.locator('div').filter({ hasText: /pts/ });
@@ -80,11 +93,11 @@ test.describe('Dashboard Patient - Tests Exhaustifs', () => {
 
   test('5. Onglet Gagner - Santé', async ({ page }) => {
     // Cliquer sur Gagner puis Santé
-    await page.click('button:has-text("Gagner")');
-    await page.waitForTimeout(500);
+    await page.click('[data-testid="nav-gagner"]');
+    await page.waitForTimeout(1000);
     
     // Cliquer sur sous-onglet Santé si présent
-    const santeTab = page.locator('text=/Santé/').first();
+    const santeTab = page.locator('[data-testid="tab-sante"]');
     if (await santeTab.isVisible()) {
       await santeTab.click();
     }
@@ -95,8 +108,8 @@ test.describe('Dashboard Patient - Tests Exhaustifs', () => {
   });
 
   test('6. Onglet Suivre - Mes Zora', async ({ page }) => {
-    await page.click('button:has-text("Suivre")');
-    await page.waitForTimeout(500);
+    await page.click('[data-testid="nav-suivre"]');
+    await page.waitForTimeout(1000);
     
     // Vérifier carte solde Zora
     const zoraCard = page.locator('text=/Zora/').first();
@@ -104,11 +117,11 @@ test.describe('Dashboard Patient - Tests Exhaustifs', () => {
   });
 
   test('7. Onglet Suivre - Dossier médical', async ({ page }) => {
-    await page.click('button:has-text("Suivre")');
-    await page.waitForTimeout(500);
+    await page.click('[data-testid="nav-suivre"]');
+    await page.waitForTimeout(1000);
     
     // Cliquer sur Mon dossier médical
-    const dossierBtn = page.locator('text=/dossier|médical/i').first();
+    const dossierBtn = page.locator('[data-testid="btn-dossier-medical"]');
     if (await dossierBtn.isVisible()) {
       await dossierBtn.click();
     }
@@ -119,8 +132,8 @@ test.describe('Dashboard Patient - Tests Exhaustifs', () => {
   });
 
   test('8. Onglet Récompenses', async ({ page }) => {
-    await page.click('button:has-text("Récompenses")');
-    await page.waitForTimeout(500);
+    await page.click('[data-testid="nav-recompenses"]');
+    await page.waitForTimeout(1000);
     
     // Vérifier solde Zora
     const zoraDisplay = page.locator('text=/Zora|pts/').first();
@@ -152,9 +165,9 @@ test.describe('Dashboard Patient - Tests Exhaustifs', () => {
 
   test('11. Profil - Page profil', async ({ page }) => {
     // Cliquer bouton profil
-    const profileBtn = page.locator('button').filter({ hasText: /AN/ });
+    const profileBtn = page.locator('[data-testid="btn-profil"]');
     await profileBtn.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
     
     // Vérifier stats
     const stats = page.locator('text=/Zora|streak|événements/i');
@@ -241,5 +254,62 @@ test.describe('Dashboard Patient - Tests Exhaustifs', () => {
     
     // Le chargement doit prendre moins de 5 secondes
     expect(loadTime).toBeLessThan(5000);
+  });
+});
+
+test.describe('Dashboard Patient - Tests API', () => {
+  test('12. API - Endpoint profil patient', async ({ request }) => {
+    // D'abord obtenir un token valide
+    const loginResponse = await request.post(`${BASE_URL}/api/v1/auth/login`, {
+      data: {
+        phone: TEST_PHONE,
+        password: TEST_PASSWORD
+      }
+    });
+    
+    expect(loginResponse.ok()).toBeTruthy();
+    
+    const loginData = await loginResponse.json();
+    expect(loginData.success).toBeTruthy();
+    
+    if (loginData.data?.accessToken) {
+      // Tester endpoint profil
+      const profileResponse = await request.get(`${BASE_URL}/api/v1/patients/profil?phone=${encodeURIComponent(TEST_PHONE)}`, {
+        headers: {
+          'Authorization': `Bearer ${loginData.data.accessToken}`
+        }
+      });
+      
+      expect(profileResponse.ok()).toBeTruthy();
+      
+      const profileData = await profileResponse.json();
+      expect(profileData.success).toBeTruthy();
+      expect(profileData.data).not.toBeNull();
+    }
+  });
+
+  test('13. API - Endpoint Zora balance', async ({ request }) => {
+    const loginResponse = await request.post(`${BASE_URL}/api/v1/auth/login`, {
+      data: {
+        phone: TEST_PHONE,
+        password: TEST_PASSWORD
+      }
+    });
+    
+    if (loginResponse.ok()) {
+      const loginData = await loginResponse.json();
+      if (loginData.data?.accessToken) {
+        const balanceResponse = await request.get(`${BASE_URL}/api/v1/zora/balance`, {
+          headers: {
+            'Authorization': `Bearer ${loginData.data.accessToken}`
+          }
+        });
+        
+        expect(balanceResponse.ok()).toBeTruthy();
+        
+        const balanceData = await balanceResponse.json();
+        expect(balanceData.success).toBeTruthy();
+      }
+    }
   });
 });
