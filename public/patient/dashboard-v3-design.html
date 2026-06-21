@@ -1293,7 +1293,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 22px;">badge</span><h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0A2463;">Informations</h3></div>
           <div style="display: flex; flex-wrap: wrap; gap: 16px 36px;">
             <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Téléphone</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">+242 06 555 12 34</div></div>
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Abonnement</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">Bolamu Premium</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Abonnement</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">{{ abonnementTxt }}</div></div>
             <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Membre depuis</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">Janvier 2026</div></div>
           </div>
         </div>
@@ -1855,6 +1855,53 @@ class Component extends DCLogic {
         }
       }).catch(() => {});
 
+      // Groupes de sport
+      fetch('/api/v1/sport-groups', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          const iconMap = { course: 'directions_run', basketball: 'sports_basketball', football: 'sports_soccer', tennis: 'sports_tennis', natation: 'pool', cyclisme: 'directions_bike' };
+          const colorMap = { turquoise: '#00C9A7', orange: '#FF6B35', primary: '#003FB1', gold: '#F5A623', navy: '#0A2463' };
+          this._sportGroups = d.data.map(g => ({
+            icon: g.icon_name || iconMap[g.sport_type] || 'sports',
+            gname: g.name,
+            members: g.member_count + ' membre' + (g.member_count > 1 ? 's' : ''),
+            score: g.weekly_score.toLocaleString('fr-FR') + ' pts',
+            tint: colorMap[g.color_token] || '#003FB1',
+            isMember: g.is_member
+          }));
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Ledger Zora
+      fetch('/api/v1/zora/ledger?limit=10', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data && d.data.data) {
+          this._ledger = d.data.data;
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Abonnement patient
+      fetch('/api/v1/patients/subscription?phone=' + encodeURIComponent(phone), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          const planMap = { essentiel: 'Bolamu Essentiel', standard: 'Bolamu Standard', premium: 'Bolamu Premium' };
+          this._abonnement = planMap[d.data.plan] || d.data.plan || 'Bolamu Essentiel';
+          this._abonnementStatus = d.data.status || 'active';
+          this.setState({});
+        }
+      }).catch(() => {});
+
     } catch(e) {
       window.location.href = '/patient/login.html';
       return;
@@ -2280,6 +2327,9 @@ class Component extends DCLogic {
       patientInitiales: (this._patientNom || 'Sarah Bemba').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(),
       streakTxt: (this._streak || 0) + ' jour' + ((this._streak || 0) > 1 ? 's' : '') + ' d\'affilée',
       patientsToNext: 'À ' + this.fmt(this._zoraPointsToNext || 500) + ' pts du palier ' + (this._zoraNextTier || 'Liboso'),
+      sportGroupsData: this._sportGroups || [],
+      ledgerData: this._ledger || [],
+      abonnementTxt: this._abonnement || 'Bolamu Essentiel',
       freeCount: s.freeGames,
       gamesView: gamesView,
       gameScratchStyle: this.modalBg(s.game === 'scratch'),
