@@ -1111,7 +1111,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <button data-testid="participate-{{ ev.id }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
     </div>
   </div>
 </sc-for>
@@ -1316,7 +1316,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <button data-testid="participate-{{ ev.id }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
     </div>
   </div>
 </sc-for>
@@ -1914,9 +1914,9 @@ class Component extends DCLogic {
     zora: 0, steps: 0, now: Date.now(), toast: null, mapFilter: 'tout',
     constForm: { groupe_sanguin: '', allergies: '', maladies_chroniques: '', antecedents_medicaux: '', traitements_en_cours: '', poids: '', taille: '', contact_urgence_nom: '', contact_urgence_phone: '', contact_urgence_lien: '' },
     events: [
-      { id: 'ev1', title: 'Marche sportive matinale', pilier: 'Activité physique', piTint: '#00C9A7', loc: 'Côte Sauvage, Pointe-Noire', date: 'Samedi 21 juin · 08h00', places: 32, cap: 40, pts: '+50 pts', registered: false, img: '/images/landing/marche sport.png', seed: 'cotesauvage', icon: 'directions_walk', lat: -4.7960, lng: 11.8270 },
-      { id: 'ev2', title: 'Atelier cuisine équilibrée', pilier: 'Nutrition', piTint: '#FF6B35', loc: 'Tchikobo, Pointe-Noire', date: 'Dimanche 22 juin · 15h00', places: 17, cap: 25, pts: '+40 pts', registered: false, img: '/images/landing/atelier-cuisine.png', seed: 'cuisine', icon: 'restaurant', lat: -4.8090, lng: 11.8500 },
-      { id: 'ev3', title: 'Dépistage tension & glycémie', pilier: 'Anti-infectieux', piTint: '#003FB1', loc: 'Place de la Mairie, Brazzaville', date: 'Mercredi 25 juin · 09h00', places: 50, cap: 60, pts: '+30 pts', registered: false, img: '/images/landing/depistage.png', seed: 'depistage', icon: 'monitor_heart', lat: -4.2667, lng: 15.2840 }
+      { id: 'ev1', dbId: 1, title: 'Marche sportive matinale', pilier: 'Activité physique', piTint: '#00C9A7', loc: 'Côte Sauvage, Pointe-Noire', date: 'Samedi 21 juin · 08h00', places: 32, cap: 40, pts: '+50 pts', registered: false, img: '/images/landing/marche sport.png', seed: 'cotesauvage', icon: 'directions_walk', lat: -4.7960, lng: 11.8270 },
+      { id: 'ev2', dbId: 2, title: 'Atelier cuisine équilibrée', pilier: 'Nutrition', piTint: '#FF6B35', loc: 'Tchikobo, Pointe-Noire', date: 'Dimanche 22 juin · 15h00', places: 17, cap: 25, pts: '+40 pts', registered: false, img: '/images/landing/atelier-cuisine.png', seed: 'cuisine', icon: 'restaurant', lat: -4.8090, lng: 11.8500 },
+      { id: 'ev3', dbId: 3, title: 'Dépistage tension & glycémie', pilier: 'Anti-infectieux', piTint: '#003FB1', loc: 'Place de la Mairie, Brazzaville', date: 'Mercredi 25 juin · 09h00', places: 50, cap: 60, pts: '+30 pts', registered: false, img: '/images/landing/depistage.png', seed: 'depistage', icon: 'monitor_heart', lat: -4.2667, lng: 15.2840 }
     ]
   };
 
@@ -1995,6 +1995,7 @@ class Component extends DCLogic {
           const tintMap = { activite: '#00C9A7', nutrition: '#FF6B35', anti_infectieux: '#003FB1', sante: '#F5A623' };
           this._events = d.data.slice(0, 5).map(e => ({
             id: 'ev' + e.id,
+            dbId: e.id,
             title: e.title,
             pilier: pilierMap[e.pillar] || e.pillar,
             piTint: tintMap[e.pillar] || '#003FB1',
@@ -2331,7 +2332,7 @@ class Component extends DCLogic {
       const d = await r.json();
       
       if (d.success) {
-        this.setState((s) => ({ events: s.events.map((e) => (e.id === id && !e.registered) ? Object.assign({}, e, { places: e.places + 1, registered: true }) : e) }));
+        this.setState((s) => ({ events: s.events.map((e) => (e.dbId === id && !e.registered) ? Object.assign({}, e, { places: e.places + 1, registered: true }) : e) }));
         this.showToast('Inscription confirmée · +50 Zora après participation');
       } else {
         this.showToast(d.message || d.error || 'Inscription impossible', 'error');
@@ -2691,9 +2692,9 @@ class Component extends DCLogic {
       if (pillar === 'nutrition') return '/images/landing/atelier-cuisine.png';
       if (pillar === 'anti_infectieux') return '/images/landing/depistage.png';
       return '/images/landing/defis-sportif.png';
-    })(e.pilier || e.piTint), participate: () => this.participate(e.id) }));
+    })(e.pilier || e.piTint), participate: () => this.participate(e.dbId) }));
 
-    const eventPlaces = s.events.map((e) => ({ name: e.title, type: 'événement', addr: e.loc, kind: 'event', tint: '#F5A623', icon: 'event_available', tel: '', registered: e.registered, focus: () => this.focusEvent(e.id), participate: () => this.participate(e.id) }));
+    const eventPlaces = s.events.map((e) => ({ name: e.title, type: 'événement', addr: e.loc, kind: 'event', tint: '#F5A623', icon: 'event_available', tel: '', registered: e.registered, focus: () => this.focusEvent(e.id), participate: () => this.participate(e.dbId) }));
 
     const f = s.mapFilter;
     const matchEtab = (t) => f === 'tout' || (f === 'cliniques' && t === 'clinique') || (f === 'pharmacies' && t === 'pharmacie') || (f === 'labos' && t === 'laboratoire');
