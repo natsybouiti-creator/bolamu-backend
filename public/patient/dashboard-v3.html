@@ -397,7 +397,7 @@
         setPaymentStatus('pending');
         try {
           const phone = localStorage.getItem('bolamu_patient_phone');
-          const res = await authFetch(`${API}/momo/request`, {
+          const res = await authFetch(`${API}/payments/momo/request`, {
             method: 'POST',
             body: JSON.stringify({ phone, plan })
           });
@@ -428,7 +428,7 @@
           }
           
           try {
-            const res = await authFetch(`${API}/momo/status/${referenceId}`);
+            const res = await authFetch(`${API}/payments/momo/status/${referenceId}`);
             if (res.ok) {
               const data = await res.json();
               if (data.status === 'SUCCESSFUL') {
