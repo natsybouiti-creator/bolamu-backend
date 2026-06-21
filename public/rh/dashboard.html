@@ -334,16 +334,6 @@
         <div class="section-subtitle">Paramètres de gestion hors catalogue et catégories RH</div>
       </div>
       <div class="table-card">
-        <div class="form-group">
-          <label class="form-label">Mode de gestion hors catalogue</label>
-          <select id="config-mode" class="form-input">
-            <option value="retenue_salaire">Retenue sur salaire (Brasco avance, retenue générée)</option>
-            <option value="avance">Avance (salarié paie cash)</option>
-            <option value="prise_en_charge">Prise en charge (Brasco assume)</option>
-          </select>
-        </div>
-      </div>
-      <div class="table-card">
         <div class="table-header">
           <div class="table-title">Configuration des catégories RH</div>
           <button class="btn-primary" id="btn-sauvegarder-categories">Sauvegarder</button>
@@ -462,10 +452,6 @@
             document.getElementById('employes-table').querySelector('tbody').innerHTML = '<tr><td colspan="5" class="empty-state">Aucun employé actif</td></tr>';
           }
           
-          // Configuration
-          if (d.config && d.config.mode) {
-            document.getElementById('config-mode').value = d.config.mode;
-          }
         }
       } catch(e) {
         console.error('Erreur dashboard:', e);
@@ -531,27 +517,6 @@
       }
     }
 
-    async function sauvegarderConfig() {
-      const mode = document.getElementById('config-mode').value;
-      
-      try {
-        const res = await fetch(`${API}/smartflow/rh/config`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-          body: JSON.stringify({ mode })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-          alert('<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Configuration sauvegardée');
-        } else {
-          alert('Erreur lors de la sauvegarde.');
-        }
-      } catch(e) {
-        alert('Erreur de connexion.');
-      }
-    }
-
     function logout() {
       localStorage.removeItem('bolamu_rh_token');
       localStorage.removeItem('bolamu_rh_phone');
@@ -584,9 +549,6 @@
 
       const btnGenererExport = document.getElementById('btn-generer-export');
       if (btnGenererExport) btnGenererExport.addEventListener('click', genererExport);
-
-      const btnSauvegarderConfig = document.getElementById('btn-sauvegarder-config');
-      if (btnSauvegarderConfig) btnSauvegarderConfig.addEventListener('click', sauvegarderConfig);
 
       const btnChargerRetenues = document.getElementById('btn-charger-retenues');
       if (btnChargerRetenues) btnChargerRetenues.addEventListener('click', loadRetenues);
