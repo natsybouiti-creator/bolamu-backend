@@ -4,13 +4,13 @@
 // ============================================================
 import { test, expect } from '@playwright/test';
 
-const BASE = 'https://api.bolamu.co';
+const BASE = process.env.TEST_API_BASE || 'https://api.bolamu.co';
 
 // ─── Comptes de test (CLAUDE.md §/qa-lead) ──────────────────
-const PATIENT   = { phone: '+242069735418', password: 'TestNouveau2026!' };
-const DOCTOR    = { phone: '+242060000001', password: 'bolamu2026' };
-const PHARMACIE = { phone: '+242066226116', password: 'WR383LMW' };
-const ADMIN     = { phone: '+242060000099', password: 'bolamu2026' };
+const PATIENT   = { phone: '+242069735418', password: process.env.TEST_PATIENT_PASSWORD || 'TestNouveau2026!' };
+const DOCTOR    = { phone: '+242060000001', password: process.env.TEST_DOCTOR_PASSWORD || 'bolamu2026' };
+const PHARMACIE = { phone: '+242066226116', password: process.env.TEST_PHARMACIE_PASSWORD || 'WR383LMW' };
+const ADMIN     = { phone: '+242060000099', password: process.env.TEST_ADMIN_PASSWORD || 'bolamu2026' };
 
 // Helper auth
 async function login(request, creds) {
