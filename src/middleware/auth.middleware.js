@@ -69,12 +69,7 @@ authMiddleware.requireAdmin = async (req, res, next) => {
     if (!token && req.cookies && req.cookies.bolamu_admin_token) {
         token = req.cookies.bolamu_admin_token;
     }
-    
-    // 3. Essayer le token depuis le query param (pour les liens directs vers fichiers)
-    if (!token && req.query.token) {
-        token = req.query.token;
-    }
-    
+
     if (!token) {
         return res.status(401).json({
             success: false,

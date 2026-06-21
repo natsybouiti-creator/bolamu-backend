@@ -985,7 +985,7 @@ async function loadActivity(){
    PENDING
 ------------------------------------ */
 async function viewDocument(docId) {
-  const res = await fetch(`https://api.bolamu.co/api/v1/admin/documents/${docId}?token=${token}`, {
+  const res = await fetch(`https://api.bolamu.co/api/v1/admin/documents/${docId}`, {
     headers: { 'Authorization': 'Bearer ' + token }
   });
   const data = await res.json();
@@ -1424,15 +1424,15 @@ async function viewUser(phone){
   if (docMap && typeof docMap === 'string') { try { docMap = JSON.parse(docMap); } catch(e) { docMap = {}; } }
   if (docMap && typeof docMap === 'object') {
     Object.keys(docMap).forEach(k => {
-      if (docMap[k]) docs.push({ name: docNames[k] || k, url: `/api/v1/admin/documents/${docMap[k]}?token=${token}`, status: profileData.pro_profile?.status || 'pending' });
+      if (docMap[k]) docs.push({ name: docNames[k] || k, docId: docMap[k], status: profileData.pro_profile?.status || 'pending' });
     });
   }
   // Fallback colonnes legacy
   if (!docs.length) {
     const docFileId = (profileData.pro_profile?.document_file_id) || (profileData.user?.document_file_id);
-    if (docFileId) docs.push({ name: 'Document d\'inscription', url: `/api/v1/admin/documents/${docFileId}?token=${token}`, status: profileData.pro_profile?.status || 'pending' });
+    if (docFileId) docs.push({ name: 'Document d\'inscription', docId: docFileId, status: profileData.pro_profile?.status || 'pending' });
     const idCardFileId = profileData.user?.id_card_file_id;
-    if (idCardFileId) docs.push({ name: 'Carte d\'identité', url: `/api/v1/admin/documents/${idCardFileId}?token=${token}`, status: 'pending' });
+    if (idCardFileId) docs.push({ name: 'Carte d\'identité', docId: idCardFileId, status: 'pending' });
   }
   const documents     = docs;
   const creditHistory = profileData.credit_history  || [];
@@ -1518,7 +1518,7 @@ async function viewUser(phone){
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             ${badge(d.status||'verified')}
-            ${d.url||d.file_url?`<a href="${d.url||d.file_url}" target="_blank" class="ab ab-blue" style="text-decoration:none;font-size:9px"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">visibility</span> Voir</a>`:''}
+            ${d.docId?`<button onclick="viewDocument(${d.docId})" class="ab ab-blue" style="border:none;cursor:pointer;font-size:9px"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">visibility</span> Voir</button>`:d.file_url?`<a href="${d.file_url}" target="_blank" class="ab ab-blue" style="text-decoration:none;font-size:9px"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">visibility</span> Voir</a>`:''}
           </div>
         </div>`).join(''):`
         <div class="empty"><div class="empty-ico"><span class="material-symbols-outlined" style="font-size:32px;">folder</span></div><p>Aucun document uploadé</p></div>`}
