@@ -2790,7 +2790,7 @@ class Component extends DCLogic {
       // Carte membre
       membreNom: (this._patientNom || 'ANTONIO NGAMBOU').toUpperCase(),
       membreId: 'BLM-' + ((this._patientId || 'BOL-1535').replace('BOL-', '')),
-      membreTel: this._patientPhone || phone,
+      membreTel: this._patientPhone || localStorage.getItem('bolamu_patient_phone') || '',
       membreDepuis: new Date((this._constantes && this._constantes.constantes_updated_at) || Date.now()).toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'}),
       // Prochain RDV
       prochainRdvTxt: this._prochainRdv ? ('Dr ' + (this._prochainRdv.doctor_name || '').replace('Dr. ','') + ' · ' + new Date(this._prochainRdv.appointment_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + ' à ' + (this._prochainRdv.appointment_time || '').slice(0,5)) : null,
