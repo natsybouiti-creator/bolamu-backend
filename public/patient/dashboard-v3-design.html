@@ -1065,6 +1065,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
             <div style="width: 170px; height: 100%; align-self: end; background-image: url(&quot;assets/23c31757-c26a-43e5-8b3a-d2a204f55007.png&quot;); background-size: contain; background-position: bottom center; background-repeat: no-repeat;"></div>
           </div>
         </div>
+        <div style="margin-top: 16px; background: #F3F3FE; border: 1px solid #EDEDF8; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 14px;">
+          <div>
+            <div id="hero-qr" style="width: 90px; height: 90px; background: #fff; border-radius: 10px; padding: 4px; display: flex; align-items: center; justify-content: center;"></div>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #434654; margin-bottom: 4px;">Mon QR d'identification</div>
+            <div style="font-size: 0.8rem; font-weight: 600; color: #434654; margin-bottom: 8px;">Présentez ce code chez un partenaire Bolamu pour vous identifier.</div>
+            <div style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0,201,167,0.1); border: 1px solid rgba(0,201,167,0.3); color: #00875f; font-size: 0.7rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;">
+              <span class="material-symbols-outlined" style="font-size: 14px;">refresh</span>
+              Renouvellement dans {{ qrRemaining }}s
+            </div>
+          </div>
+        </div>
       </div><div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 18px; margin-bottom: 26px;">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
           <div style="display: flex; align-items: center; gap: 10px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; color: #FF6B35; font-size: 28px; animation: flameFlicker 0.9s ease-in-out infinite;">local_fire_department</span><span style="font-size: 1rem; font-weight: 700; color: #0A2463;">{{ streakTxt }}</span></div>
@@ -1951,6 +1964,29 @@ class Component extends DCLogic {
         }
       }).catch(() => {});
 
+      // QR Code identification patient (rotating 60s)
+      const loadQR = () => {
+        fetch('/api/v1/qr/generate', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success && d.data) {
+            this._qrToken = d.data.token;
+            this._qrExpiry = new Date(d.data.expires_at).getTime();
+            this.renderQR('hero-qr', d.data.token, 90);
+            this.setState({});
+          }
+        }).catch(() => {});
+      };
+      loadQR();
+      this._qrInterval = setInterval(() => {
+        const remaining = Math.max(0, Math.floor((this._qrExpiry - Date.now()) / 1000));
+        this._qrRemaining = remaining;
+        if (remaining <= 2) loadQR();
+        this.setState({});
+      }, 1000);
+
     } catch(e) {
       window.location.href = '/patient/login.html';
       return;
@@ -2018,6 +2054,7 @@ class Component extends DCLogic {
     if (this._timer) clearInterval(this._timer);
     if (this._toastT) clearTimeout(this._toastT);
     if (this._rewardTimer) clearInterval(this._rewardTimer);
+    if (this._qrInterval) clearInterval(this._qrInterval);
   }
 
   renderQR(id, text, size, attempt) {
@@ -2397,6 +2434,7 @@ class Component extends DCLogic {
       membreDepuis: new Date((this._constantes && this._constantes.constantes_updated_at) || Date.now()).toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'}),
       // Prochain RDV
       prochainRdvTxt: this._prochainRdv ? ('Dr ' + (this._prochainRdv.doctor_name || '').replace('Dr. ','') + ' · ' + new Date(this._prochainRdv.appointment_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + ' à ' + (this._prochainRdv.appointment_time || '').slice(0,5)) : null,
+      qrRemaining: this._qrRemaining || 60,
       freeCount: s.freeGames,
       gamesView: gamesView,
       gameScratchStyle: this.modalBg(s.game === 'scratch'),
