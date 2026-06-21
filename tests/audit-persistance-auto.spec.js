@@ -51,21 +51,41 @@ const constSelect =
 async function gotoFresh(page) {
   await page.goto(DASHBOARD, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('[data-testid="nav-accueil"]', { timeout: 20000 });
-  await page.waitForTimeout(1500); // laisse le temps aux fetch GET (profil, events, config)
+  // Hydratation DCLogic : attendre que les handlers onclick soient attaches et
+  // que les listes dynamiques (sc-for) soient rendues avant toute interaction.
+  await page.waitForTimeout(5000);
 }
 
 async function nav(page, testid) {
   await page.locator(`[data-testid="${testid}"]`).first().click();
 }
 
+// --- Capture diagnostique de la reponse du endpoint de jeu ---
+async function logPlayResponse(page, gameKey, triggerAction) {
+  const [resp] = await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/zora/games/play'), { timeout: 9000 }).catch(() => null),
+    triggerAction()
+  ]);
+  if (resp) {
+    let body = '';
+    try { body = await resp.text(); } catch (e) { body = '(corps illisible)'; }
+    console.log(`[PLAY ${gameKey}] HTTP ${resp.status()} -> ${body}`);
+  } else {
+    console.log(`[PLAY ${gameKey}] aucune requete /zora/games/play capturee`);
+  }
+}
+
 // --- Action jeu generique : ouvre Recompenses, lance le jeu, declenche le coup ---
+// dispatchEvent('click') declenche le handler onclick DCLogic sans dependre de
+// l'actionnabilite Playwright (les cartes sont dans un .hscroll/carrousel parfois
+// scrolle hors champ -> les checks de visibilite echouent de maniere flaky).
 async function playGameUI(page, gameKey, triggerSelector, waitMs) {
   await gotoFresh(page);
   await nav(page, 'nav-recompenses');
-  await page.waitForTimeout(1200);
-  await page.locator(`[data-testid="play-${gameKey}"]`).first().click();
-  await page.waitForTimeout(600);
-  await page.locator(triggerSelector).first().click();
+  await page.locator(`[data-testid="play-${gameKey}"]`).first().dispatchEvent('click');
+  const trigger = page.locator(triggerSelector).first();
+  await trigger.waitFor({ state: 'visible', timeout: 10000 });
+  await logPlayResponse(page, gameKey, () => trigger.dispatchEvent('click'));
   await page.waitForTimeout(waitMs);
 }
 
@@ -102,8 +122,7 @@ const cases = [
     action: async (page) => {
       await gotoFresh(page);
       await nav(page, 'nav-recompenses');
-      await page.waitForTimeout(1200);
-      await page.locator('[data-testid="play-scratch"]').first().click();
+      await page.locator('[data-testid="play-scratch"]').first().dispatchEvent('click');
       const canvas = page.locator('#scratch-canvas');
       await canvas.waitFor({ state: 'visible', timeout: 8000 });
       const box = await canvas.boundingBox();
@@ -158,15 +177,27 @@ const cases = [
       fs.writeFileSync(BACKUP_PATH, JSON.stringify(orig));
       try {
         await nav(page, 'nav-suivre');
-        await page.waitForTimeout(600);
-        await page.locator('[data-testid="btn-dossier-medical"]').first().click();
-        await page.waitForTimeout(600);
-        await page.locator('[data-testid="const-edit"]').first().click();
+        const dossierBtn = page.locator('[data-testid="btn-dossier-medical"]').first();
+        await dossierBtn.waitFor({ state: 'visible', timeout: 10000 });
+        await dossierBtn.click();
+        const editBtn = page.locator('[data-testid="const-edit"]').first();
+        await editBtn.waitFor({ state: 'visible', timeout: 10000 });
+        await editBtn.click();
         const input = page.locator('[data-testid="const-poids"]');
-        await input.waitFor({ state: 'visible', timeout: 6000 });
+        await input.waitFor({ state: 'visible', timeout: 10000 });
         const newPoids = Number(orig.poids) === 70 ? 71 : 70;
-        await input.fill(String(newPoids));
-        await page.click('[data-testid="const-save"]');
+        // Saisie reelle caractere par caractere : l'input est controle
+        // (value={{ constForm.poids }} + oninput) ; fill() one-shot ne "colle" pas
+        // avec le re-render DCLogic. pressSequentially declenche oninput a chaque touche.
+        await input.click();
+        await input.press('Control+a');
+        await input.press('Delete');
+        await input.pressSequentially(String(newPoids), { delay: 60 });
+        await page.waitForTimeout(1000);
+        await page.locator('[data-testid="const-save"]').waitFor({ state: 'visible', timeout: 8000 });
+        const domVal = await input.inputValue();
+        console.log(`[saveConst] valeur champ poids avant save: "${domVal}" (attendu ${newPoids})`);
+        await page.locator('[data-testid="const-save"]').first().click();
         await page.waitForTimeout(2500);
       } finally {
         // Garantit que le backup reste present meme si l'UI plante en cours de route,
