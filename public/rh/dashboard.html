@@ -646,18 +646,14 @@
               <thead>
                 <tr>
                   <th style="padding:8px;text-align:left;">Date</th>
-                  <th style="padding:8px;text-align:left;">Type</th>
                   <th style="padding:8px;text-align:left;">Montant FCFA</th>
-                  <th style="padding:8px;text-align:left;">Prestataire</th>
                 </tr>
               </thead>
               <tbody>
                 ${(r.actes_details || []).map(acte => `
                   <tr>
                     <td style="padding:8px;">${acte.date || '—'}</td>
-                    <td style="padding:8px;">${acte.type || '—'}</td>
                     <td style="padding:8px;">${(acte.montant || 0).toLocaleString()}</td>
-                    <td style="padding:8px;">${acte.prestataire || '—'}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -757,7 +753,6 @@
         alert('Erreur de connexion.');
       }
     }
-  }
 
   // Initialize dual navigation
   if (typeof initNavigation === 'function') {
