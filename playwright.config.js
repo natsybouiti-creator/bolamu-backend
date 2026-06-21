@@ -18,12 +18,23 @@ export default defineConfig({
       testMatch: /auth\.setup\.js/,
     },
     {
+      // Remise à zéro destructive SCOPÉE à +242069735418 (DELETE du jour)
+      name: 'reset',
+      testMatch: /audit-reset\.setup\.js/,
+    },
+    {
+      // Restauration des constantes médicales d'origine après l'audit
+      name: 'restore',
+      testMatch: /audit-restore\.teardown\.js/,
+    },
+    {
       name: 'chromium',
       use: { 
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.auth/patient.json',
       },
-      dependencies: ['setup'],
+      dependencies: ['setup', 'reset'],
+      teardown: 'restore',
     },
   ],
 });
