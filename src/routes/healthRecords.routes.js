@@ -5,10 +5,10 @@ const authMiddleware = require('../middleware/auth.middleware');
 const { bhpAccessMiddleware } = require('../middleware/bhpAccess');
 
 // POST — Créer un enregistrement médical
-// Rôles : medecin uniquement (TC-033 : pharmacie/laboratoire interdits)
+// Rôles : doctor uniquement (TC-033 : pharmacie/laboratoire interdits)
 router.post('/',
   authMiddleware,
-  bhpAccessMiddleware(['medecin']),
+  bhpAccessMiddleware(['doctor']),
   async (req, res) => {
     try {
       const { 
@@ -41,20 +41,20 @@ router.post('/',
 );
 
 // GET — Lire le carnet de santé d'un patient
-// Rôles : patient (le sien), medecin (avec consentement)
+// Rôles : patient (le sien), doctor/cms_medecin (accès RBAC — filtre consentement à venir)
 router.get('/patient/:patientId',
   authMiddleware,
-  bhpAccessMiddleware(['patient', 'medecin', 'cms_medecin', 'admin']),
+  bhpAccessMiddleware(['patient', 'doctor', 'cms_medecin', 'admin']),
   async (req, res) => {
     try {
       const { patientId } = req.params;
 
       // Patient ne peut voir que son propre dossier
-      if (req.user.role === 'patient' && 
+      if (req.user.role === 'patient' &&
           req.user.id !== patientId) {
-        return res.status(403).json({ 
-          success: false, 
-          error: 'BHP_ACCESS_DENIED' 
+        return res.status(403).json({
+          success: false,
+          error: 'BHP_ACCESS_DENIED'
         });
       }
 
@@ -76,7 +76,7 @@ router.get('/patient/:patientId',
 router.get('/:id',
   authMiddleware,
   bhpAccessMiddleware([
-    'patient', 'medecin', 'admin'
+    'patient', 'doctor', 'admin'
   ]),
   async (req, res) => {
     try {
