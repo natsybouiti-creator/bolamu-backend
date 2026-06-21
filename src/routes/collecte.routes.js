@@ -762,19 +762,24 @@ router.patch('/admin/sepa/valider/:user_phone',
 router.get('/admin/ovp/fichier-mensuel', authMiddleware.requireAdmin, async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT o.user_phone, o.nom_titulaire, o.numero_compte, 
+      `SELECT o.user_phone, o.nom_titulaire, o.numero_compte,
               o.montant_total, u.full_name
        FROM ovp_documents o
        JOIN users u ON u.phone = o.user_phone
        WHERE o.statut = 'valide'
-       ORDER BY o.user_phone`
+       ORDER BY o.user_phone
+       LIMIT 10000`
     );
 
+    if (result.rows.length === 10000) {
+      console.warn('[OVP FICHIER MENSUEL] LIMITE 10000 atteinte — le CSV est tronqué. Implémenter la pagination.');
+    }
+
     if (!result.rows.length) {
-      return res.json({ 
-        success: true, 
-        message: 'Aucun OVP validé ce mois.', 
-        csv: '' 
+      return res.json({
+        success: true,
+        message: 'Aucun OVP validé ce mois.',
+        csv: ''
       });
     }
 
