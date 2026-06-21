@@ -1331,4 +1331,4 @@ Statut : ✅ prod confirmée sur les 6 dashboards
    de maintenance est disponible. Ne pas mélanger cette correction avec d'autres
    migrations fonctionnelles.
 
-7. VÉRIFICATION PROD — utiliser curl.exe explicitement sous PowerShell, tester sur www.bolamu.co (pas api.bolamu.co).
+8. VÉRIFICATION PROD — utiliser curl.exe explicitement sous PowerShell, tester sur www.bolamu.co (pas api.bolamu.co).
