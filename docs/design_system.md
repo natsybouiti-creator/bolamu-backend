@@ -546,11 +546,40 @@ Badge de rang affiché sur le profil patient et le dashboard Wellness B2B.
 - Les points s'affichent toujours avec un espace comme séparateur de milliers : `1 250 pts` (jamais `1250pts`)
 - Sur fond navy (#0A2463), les accents Zora restent orange (#FF6B35) et turquoise (#00C9A7) — jamais blanc pur pour les highlights
 
-## 12. Logo officiel
+## 12. Couleurs d'identité par rôle
 
-- **Fichier** : `/images/landing/bolamu-logo-512.png`
+Ces tokens CSS sont définis dans `public/css/bolamu-ds.css` et réservés à l'identité visuelle de chaque dashboard métier (cartes principales, accents, hover footer). Elles ne remplacent PAS les couleurs de marque globales (navy/turquoise/primary/rouge/amber/zora-gold) utilisées pour les éléments transverses (boutons d'action, alertes, Zora).
+
+```css
+/* Couleurs de rôles — public/css/bolamu-ds.css */
+--role-patient: #00C9A7;    /* turquoise — identité patient */
+--role-medecin: #2E86FF;   /* bleu — identité médecin */
+--role-secretaire: #9333EA; /* violet — identité secrétaire */
+--role-pharmacie: #10B981;  /* vert — identité pharmacie */
+--role-labo: #F59E0B;      /* orange — identité laboratoire */
+--role-admin: #6B7280;     /* gris — identité admin */
+--role-rh: #EC4899;        /* rose — identité RH */
+--role-agence: #7C3AED;    /* violet clair — identité agence */
+```
+
+**Usage autorisé** :
+- Cartes principales du dashboard (fond, bordure hover)
+- Accents visuels spécifiques au rôle (badges, pills)
+- Hover des liens dans le footer allégé
+
+**Usage interdit** :
+- Boutons d'action principaux (utiliser `--primary` ou `.btn-primary`)
+- Alertes et notifications (utiliser `--rouge`, `--amber`, `--turquoise`)
+- Composants Zora (utiliser palette dédiée `--zora-*`)
+- Éléments transverses multi-rôles (utiliser couleurs marque globales)
+
+---
+
+## 13. Logo officiel
+
+- **Fichier** : `/images/landing/bolamu-logo-final.png`
 - **Description** : Rond bleu (#003FB1) avec lettre B blanche et feuille turquoise (#00C9A7) en haut à droite
-- **Usage navbar** : `<img src="/images/landing/bolamu-logo-512.png" class="h-12 w-12 object-contain rounded-full" alt="Bolamu">`
+- **Usage navbar** : `<img src="/images/landing/bolamu-logo-final.png" class="h-12 w-12 object-contain rounded-full" alt="Bolamu">`
 - **Usage footer** : idem, sans classe transition
 - **Taille standard** : 48×48px (h-12 w-12) sur navbar et footer
 - **Ne jamais** utiliser `01-logo-navbar.png` ou `23-logo-footer.png` — ces fichiers sont obsolètes

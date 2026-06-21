@@ -21,23 +21,24 @@
     body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;}
     .topbar{position:fixed;top:0;width:100%;z-index:100;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);box-shadow:var(--shadow-soft);}
     .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-    .logo-icon{width:36px;height:36px;background:var(--role-laboratoire);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .logo-icon{width:36px;height:36px;background:var(--role-labo);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .logo-icon img{width:100%;height:100%;object-fit:contain;}
     .logo-name{font-size:20px;font-weight:700;letter-spacing:-0.5px;}
     .logo-name .b{color:var(--navy);}.logo-name .t{color:var(--turquoise);}
     .topbar-right{display:flex;align-items:center;gap:12px;}
-    .phone-pill{background:rgba(245,158,11,0.1);color:var(--role-laboratoire);padding:6px 16px;border-radius:50px;font-size:13px;font-weight:600;}
-    .type-pill{background:var(--role-laboratoire);color:white;padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:0.5px;}
+    .phone-pill{background:rgba(245,158,11,0.1);color:var(--role-labo);padding:6px 16px;border-radius:50px;font-size:13px;font-weight:600;}
+    .type-pill{background:var(--role-labo);color:white;padding:6px 16px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:0.5px;}
     .logout-btn{padding:8px 18px;border:2px solid var(--line);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--ink-soft);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;}
-    .logout-btn:hover{border-color:var(--role-laboratoire);color:var(--role-laboratoire);}
+    .logout-btn:hover{border-color:var(--role-labo);color:var(--role-labo);}
     .tabs-bar{position:fixed;top:64px;width:100%;z-index:99;background:white;border-bottom:1px solid var(--line);padding:0 40px;display:flex;box-shadow:var(--shadow-soft);}
     .tab{padding:16px 20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-soft);border-bottom:3px solid transparent;transition:all 0.2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Plus Jakarta Sans',sans-serif;}
-    .tab:hover{color:var(--role-laboratoire);}.tab.active{color:var(--role-laboratoire);border-bottom-color:var(--role-laboratoire);}
+    .tab:hover{color:var(--role-labo);}.tab.active{color:var(--role-labo);border-bottom-color:var(--role-labo);}
     .main{padding:148px 40px 60px;max-width:1200px;margin:0 auto;}
     .panel{display:none;}.panel.active{display:block;}
     .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
     .section-title-dash{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;}
     .top-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;}
-    .labo-card{background:var(--role-laboratoire);border-radius:32px;padding:36px;color:white;position:relative;overflow:hidden;box-shadow:var(--shadow-navy-lg);}
+    .labo-card{background:var(--role-labo);border-radius:32px;padding:36px;color:white;position:relative;overflow:hidden;box-shadow:var(--shadow-navy-lg);}
     .labo-card::before{content:'';position:absolute;top:-80px;right:-80px;width:220px;height:220px;background:rgba(255,255,255,0.12);border-radius:50%;}
     .labo-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;position:relative;z-index:2;}
     .labo-logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;}
@@ -54,7 +55,7 @@
     .badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:13px;font-weight:600;}
     .badge-actif{background:rgba(0,201,167,0.1);color:var(--turquoise);}
     .badge-pending{background:rgba(243,156,18,0.1);color:var(--amber);}
-    .badge-traite{background:rgba(245,158,11,0.1);color:var(--role-laboratoire);}
+    .badge-traite{background:rgba(245,158,11,0.1);color:var(--role-labo);}
     .badge-en-attente{background:rgba(243,156,18,0.1);color:var(--amber);}
     .rdv-list{display:flex;flex-direction:column;gap:12px;}
     .rdv-card{background:white;border-radius:20px;padding:24px;border:1px solid var(--line);box-shadow:var(--shadow-soft);transition:all 0.2s;}
@@ -66,14 +67,14 @@
     .rdv-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
     .rdv-meta span{background:var(--surface);color:var(--ink-soft);padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;}
     .rdv-actions{display:flex;gap:10px;flex-wrap:wrap;}
-    .btn-valider{padding:11px 24px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-valider{padding:11px 24px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-valider:hover{opacity:0.9;transform:translateY(-1px);}
     .btn-valider:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-    .btn-primary{padding:11px 24px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
+    .btn-primary{padding:11px 24px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
     .btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
     .btn-cancel{padding:11px 24px;border:2px solid var(--line);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;background:transparent;color:var(--ink-soft);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
-    .btn-cancel:hover{border-color:var(--role-laboratoire);color:var(--role-laboratoire);}
+    .btn-cancel:hover{border-color:var(--role-labo);color:var(--role-labo);}
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,36,99,0.5);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:16px;}
     .modal-overlay.open{display:flex;}
     .modal{background:white;border-radius:28px;padding:40px;max-width:520px;width:100%;box-shadow:var(--shadow-navy-lg);animation:modalIn 0.3s ease;max-height:90vh;overflow-y:auto;}
@@ -83,11 +84,11 @@
     .form-group{margin-bottom:18px;}
     .form-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px;display:block;}
     .form-textarea{width:100%;border:2px solid var(--line);border-radius:14px;padding:14px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);outline:none;resize:vertical;min-height:100px;transition:border-color 0.2s;}
-    .form-textarea:focus{border-color:var(--role-laboratoire);}
+    .form-textarea:focus{border-color:var(--role-labo);}
     .form-input{width:100%;border:2px solid var(--line);border-radius:14px;padding:14px 16px;font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);outline:none;transition:border-color 0.2s;}
-    .form-input:focus{border-color:var(--role-laboratoire);}
+    .form-input:focus{border-color:var(--role-labo);}
     .profil-layout{display:grid;grid-template-columns:320px 1fr;gap:24px;}
-    .profil-card-main{background:var(--role-laboratoire);border-radius:24px;padding:36px;color:white;text-align:center;}
+    .profil-card-main{background:var(--role-labo);border-radius:24px;padding:36px;color:white;text-align:center;}
     .profil-avatar-big{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;border:3px solid rgba(255,255,255,0.3);}
     .profil-name-big{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px;}
     .profil-sub{font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:6px;}
@@ -148,7 +149,7 @@
 <body>
 <div class="topbar">
   <a href="/" class="logo">
-    <div class="logo-icon"><span class="material-symbols-outlined" style="font-size:24px;color:white;">science</span></div>
+    <div class="logo-icon"><img src="/images/landing/bolamu-logo-final.png" alt="Bolamu"></div>
     <div class="logo-name"><span class="b">Bola</span><span class="t">mu</span></div>
   </a>
   <div class="topbar-right">
@@ -194,7 +195,7 @@
         <div style="flex:1;">
           <input type="text" id="prescription-code-input" placeholder="Entrez le code de prescription du patient (ex: LAB-0001)" style="width:100%;border:2px solid var(--line);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);">
         </div>
-        <button id="btn-search-prescription" style="padding:12px 24px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">search</span> Rechercher</button>
+        <button id="btn-search-prescription" style="padding:12px 24px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">search</span> Rechercher</button>
       </div>
     </div>
     <div id="prescriptions-attente"><div class="loading">Chargement…</div></div>
@@ -210,7 +211,7 @@
     <div class="scanner-card" style="background:white;border-radius:24px;padding:32px;border:1px solid var(--line);box-shadow:var(--shadow-soft);max-width:600px;">
       <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:900;margin-bottom:8px;"><span class="material-symbols-outlined" style="font-size:24px;vertical-align:middle;">science</span> Tiers payant Bolamu</h3>
       <p style="font-size:14px;color:var(--ink-soft);margin-bottom:20px;">Scannez le QR Code du patient ou entrez le token manuellement pour vérifier son abonnement et afficher la remise applicable.</p>
-      <button id="btn-camera" style="width:100%;padding:14px;background:var(--role-laboratoire);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:16px;">
+      <button id="btn-camera" style="width:100%;padding:14px;background:var(--role-labo);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:16px;">
         <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">photo_camera</span> Scanner avec la caméra
       </button>
       <div id="camera-container" style="display:none;margin-bottom:16px;">
@@ -226,7 +227,7 @@
       </div>
       <div style="display:flex;gap:10px;">
         <input type="text" id="qr-token-input" placeholder="Collez le token QR ici" style="flex:1;border:2px solid var(--line);border-radius:12px;padding:12px 16px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);">
-        <button id="btn-verifier-qr" style="padding:12px 20px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">search</span> Vérifier</button>
+        <button id="btn-verifier-qr" style="padding:12px 20px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">search</span> Vérifier</button>
       </div>
       <div id="qr-result" style="display:none;margin-top:20px;"></div>
     </div>
@@ -236,7 +237,7 @@
     <div class="scanner-card" style="background:white;border-radius:24px;padding:32px;border:1px solid var(--line);box-shadow:var(--shadow-soft);max-width:600px;">
       <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:900;margin-bottom:8px;"><span class="material-symbols-outlined" style="font-size:24px;vertical-align:middle;">card_giftcard</span> Validation de récompense Zora</h3>
       <p style="font-size:14px;color:var(--ink-soft);margin-bottom:20px;">Le patient vous présente son <strong>QR Code voucher</strong>. Scannez-le pour valider la remise à appliquer.</p>
-      <button id="btn-zora-camera" style="width:100%;padding:14px;background:var(--role-laboratoire);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:16px;">
+      <button id="btn-zora-camera" style="width:100%;padding:14px;background:var(--role-labo);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:16px;">
         <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">photo_camera</span> Scanner avec la caméra
       </button>
       <div id="zora-camera-container" style="display:none;margin-bottom:16px;">
@@ -252,7 +253,7 @@
       </div>
       <div style="display:flex;gap:10px;">
         <input type="text" id="zora-uuid-input" placeholder="UUID du voucher" style="flex:1;border:2px solid var(--line);border-radius:12px;padding:12px 16px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);letter-spacing:1px;">
-        <button id="btn-verifier-zora" style="padding:12px 20px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">search</span> Vérifier</button>
+        <button id="btn-verifier-zora" style="padding:12px 20px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">search</span> Vérifier</button>
       </div>
       <div id="zora-result" style="display:none;margin-top:20px;"></div>
     </div>
@@ -293,7 +294,7 @@
           <div class="detail-row"><span class="info-label">Connexion</span><span class="info-value">Mot de passe permanent</span></div>
           <div class="detail-row"><span class="info-label">Chiffrement</span><span class="info-value"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> AES-256</span></div>
           <div style="margin-top:16px;" id="pwd-form-container">
-            <button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
+            <button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;">
               <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">key</span> Changer mon mot de passe
             </button>
           </div>
@@ -304,7 +305,7 @@
           <input type="text" id="gps-address" placeholder="Adresse (ex: Avenue Foch, Brazzaville)" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:var(--surface-light);color:var(--ink);margin-bottom:10px;box-sizing:border-box;">
           <div style="display:flex;gap:8px;">
             <button id="btn-detect-pos" style="flex:1;padding:10px;background:var(--surface-light);color:var(--ink);border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">sensors</span> Détecter ma position</button>
-            <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--role-laboratoire);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">save</span> Enregistrer</button>
+            <button id="btn-save-pos" style="flex:1;padding:10px;background:var(--role-labo);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">save</span> Enregistrer</button>
           </div>
         </div>
       </div>
@@ -341,34 +342,19 @@
     </div>
   </div>
 
-<footer style="
-  position: static;
-  width: 100%;
-  background: rgba(0,0,0,0.25);
-  padding: 14px 0;
-  text-align: center;
-  margin-top: 40px;
-  font-family: inherit;
-">
-  <p style="margin:0 0 3px 0; font-size:11px; color:rgba(255,255,255,0.55);">
-    © 2025 Bolamu · Plateforme santé digitale · Brazzaville, Congo
-  </p>
-  <p style="margin:0; font-size:11px;">
-    <a href="/cgu.html"
-       style="color:rgba(255,255,255,0.55); text-decoration:none;
-              margin-right:14px;">
-      CGU
-    </a>
-    <a href="/confidentialite.html"
-       style="color:rgba(255,255,255,0.55); text-decoration:none;
-              margin-right:14px;">
-      Confidentialité
-    </a>
-    <a href="mailto:contactbolamu@gmail.com"
-       style="color:rgba(255,255,255,0.55); text-decoration:none;">
-      contactbolamu@gmail.com
-    </a>
-  </p>
+<footer class="bg-brand-navy py-8 px-container-margin text-white">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+    <div class="flex items-center gap-3">
+      <img src="/images/landing/bolamu-logo-final.png" class="h-10 w-10 object-contain rounded-full" alt="Bolamu">
+      <span class="text-base font-bold text-white tracking-tight">Bolamu</span>
+    </div>
+    <div class="flex items-center gap-6 text-sm">
+      <a href="/cgu.html" class="text-white/60 hover:text-[var(--role-labo)] transition-colors font-medium">CGU</a>
+      <a href="/confidentialite.html" class="text-white/60 hover:text-[var(--role-labo)] transition-colors font-medium">Confidentialité</a>
+      <a href="mailto:contactbolamu@gmail.com" class="text-white/60 hover:text-[var(--role-labo)] transition-colors font-medium">Contact</a>
+    </div>
+    <p class="text-white/50 text-xs font-medium">© 2026 Bolamu. Tous droits réservés.</p>
+  </div>
 </footer>
 </div>
 <script>
@@ -460,7 +446,7 @@ async function verifierQR() {
         </div>
         <div style="background:white;border-radius:12px;padding:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Remise applicable</div>
-          <div style="font-size:24px;font-weight:700;color:var(--role-laboratoire);">${remise}%</div>
+          <div style="font-size:24px;font-weight:700;color:var(--role-labo);">${remise}%</div>
         </div>
         <div style="background:white;border-radius:12px;padding:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Plafond restant</div>
@@ -470,7 +456,7 @@ async function verifierQR() {
       <div style="background:white;border-radius:12px;padding:14px;margin-bottom:16px;font-size:14px;color:var(--texte);">
         <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">lightbulb</span> Appliquez une remise de <strong>${remise}%</strong> sur la facture du patient. Bolamu prend en charge cette remise via le tiers payant.
       </div>
-      <button data-action="reset-qr" style="width:100%;padding:12px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+      <button data-action="reset-qr" style="width:100%;padding:12px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
         <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">check_circle</span> Pris en compte — Scanner suivant
       </button>
     </div>`;
@@ -563,7 +549,7 @@ async function verifyZoraVoucher() {
           <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Récompense</div><div style="font-size:14px;font-weight:700;">${data.data.reward_title}</div></div>
           <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Consommé le</div><div style="font-size:14px;font-weight:700;">${new Date(data.data.consumed_at).toLocaleString('fr-FR')}</div></div>
         </div>
-        <button data-action="reset-zora" style="width:100%;padding:12px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Scanner un autre voucher</button>
+        <button data-action="reset-zora" style="width:100%;padding:12px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Scanner un autre voucher</button>
       </div>`;
       loadZoraHistory();
     } else {
@@ -720,7 +706,7 @@ async function submitChangePwd(){
     const data = await res.json();
     if (data.success) {
       showToast('Mot de passe modifié <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>','success');
-      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">key</span> Changer mon mot de passe</button>';
+      document.getElementById('pwd-form-container').innerHTML='<button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">key</span> Changer mon mot de passe</button>';
     } else {
       showToast(data.message || 'Erreur','error');
     }
@@ -1141,7 +1127,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (action === 'submit-pwd') submitChangePwd();
     if (action === 'cancel-pwd') {
-      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-laboratoire);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">key</span> Changer mon mot de passe</button>';
+      document.getElementById('pwd-form-container').innerHTML = '<button id="btn-change-pwd" style="padding:12px 24px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;min-height:46px;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">key</span> Changer mon mot de passe</button>';
       document.getElementById('btn-change-pwd').addEventListener('click', () => {
         document.getElementById('pwd-form-container').innerHTML = pwdFormHtml();
       });
