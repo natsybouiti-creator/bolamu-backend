@@ -4,8 +4,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const authMiddleware = require('../../middleware/auth.middleware');
-const { sendBolamuSms } = require('../services/sms.service');
+const authMiddleware = require('../middleware/auth.middleware');
+const { normalizePhone } = require('../utils/phone');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 
 // ─── RÈGLES D'ATTRIBUTION ─────────────────────────────────────────────────────
@@ -58,7 +58,7 @@ router.get('/balance', authMiddleware, async (req, res) => {
 });
 
 router.get('/balance/:phone', authMiddleware, async (req, res) => {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     try {
         let result = await pool.query(`SELECT * FROM credits WHERE phone = $1`, [phone]);
         if (!result.rows.length) {
@@ -115,7 +115,7 @@ router.post('/grant', authMiddleware, async (req, res) => {
         } catch(e) {}
 
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('credits.granted', $1, 'credits', NULL, $2)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('credits.granted', $1, 'credits', NULL, $2::jsonb)`,
             [phone, JSON.stringify({ amount, reason, new_balance: credit.balance })]
         ).catch(() => {});
 
@@ -202,7 +202,7 @@ router.post('/distribute-monthly', authMiddleware, async (req, res) => {
         }
 
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('credits.monthly_distribution', 'system', 'credits', NULL, $1)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('credits.monthly_distribution', 'system', 'credits', NULL, $1::jsonb)`,
             [JSON.stringify({ distributed: results.distributed, errors: results.errors })]
         ).catch(() => {});
 

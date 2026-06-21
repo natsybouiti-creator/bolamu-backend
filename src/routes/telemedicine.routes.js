@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const authMiddleware = require('../../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 
 // ─── GET /telemedicine/room/:appointmentId ────────────────────────────────────

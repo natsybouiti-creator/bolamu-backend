@@ -2,7 +2,7 @@
 // Service : Chat communauté + médecins
 // ============================================================
 
-const { pool } = require('../config/db');
+const pool = require('../config/db');
 
 /**
  * Récupérer les messages d'un canal

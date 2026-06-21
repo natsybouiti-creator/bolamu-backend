@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const { awardZora } = require('../services/zora.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { normalizePhone } = require('../utils/phone');
 
 // ─── SOUMETTRE UN COMPTE RENDU DE CONSULTATION (médecin) ─────────────────
 async function submitReport(req, res) {
@@ -151,7 +152,7 @@ async function getReportByAppointment(req, res) {
 
 // ─── RÉCUPÉRER LA TIMELINE D'UN PATIENT (RDV + comptes rendus + prescriptions) ─────────
 async function getPatientTimeline(req, res) {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const userPhone = req.user?.phone;
     const userRole = req.user?.role;
 
@@ -237,7 +238,7 @@ async function logDossierAccess(patientPhone, accessorPhone, accessorRole, acces
 
 // ─── RÉCUPÉRER L'HISTORIQUE DES ACCÈS AU DOSSIER (patient uniquement) ───────────
 async function getDossierAccessLog(req, res) {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const userPhone = req.user?.phone;
     const userRole = req.user?.role;
 

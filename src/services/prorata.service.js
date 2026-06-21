@@ -5,29 +5,28 @@ const pool = require('../config/db');
 const { validateCoupon, applyCoupon } = require('./coupon.service');
 
 // ─── CALCULER PRORATA ───────────────────────────────────────────────────────────
-async function calculProrata(ancien_plan, nouveau_plan, date_upgrade) {
+async function calculProrata(patient_phone, ancien_plan, nouveau_plan, date_upgrade) {
     try {
         // Lire les tarifs depuis platform_config (jamais hardcodés)
         const configResult = await pool.query(
-            `SELECT key, value FROM platform_config WHERE key IN 
-                ('subscription_bronze_price', 'subscription_silver_price', 'subscription_gold_price')`
+            `SELECT config_key, config_value FROM platform_config WHERE config_key IN
+                ('price_essentiel', 'price_standard', 'price_premium')`
         );
 
         const prices = {};
         configResult.rows.forEach(row => {
-            prices[row.key] = parseFloat(row.value);
+            prices[row.config_key] = parseFloat(row.config_value);
         });
 
-        const prix_ancien = prices[`subscription_${ancien_plan.toLowerCase()}_price`] || 0;
-        const prix_nouveau = prices[`subscription_${nouveau_plan.toLowerCase()}_price`] || 0;
+        const prix_ancien = prices[`price_${ancien_plan.toLowerCase()}`] || 0;
+        const prix_nouveau = prices[`price_${nouveau_plan.toLowerCase()}`] || 0;
 
-        // Récupérer la date d'expiration de l'abonnement actuel
+        // Récupérer la date d'expiration de l'abonnement actuel du patient
         const subscriptionResult = await pool.query(
-            `SELECT expires_at FROM subscriptions 
-             WHERE patient_phone = (SELECT phone FROM users WHERE role = 'patient' LIMIT 1)
-             AND plan = $1 AND status = 'active'
+            `SELECT expires_at FROM subscriptions
+             WHERE patient_phone = $1 AND plan = $2 AND status = 'active'
              ORDER BY expires_at DESC LIMIT 1`,
-            [ancien_plan]
+            [patient_phone, ancien_plan]
         );
 
         if (!subscriptionResult.rows.length) {
@@ -87,7 +86,7 @@ async function upgradeAbonnement(patient_phone, nouveau_plan, coupon_code) {
         const ancien_plan = currentSub.plan;
 
         // calculProrata pour obtenir montant_du
-        const prorataResult = await calculProrata(ancien_plan, nouveau_plan, new Date());
+        const prorataResult = await calculProrata(patient_phone, ancien_plan, nouveau_plan, new Date());
         let montant_du = prorataResult.montant_du;
 
         // Si coupon_code : validateCoupon puis ajuster montant_du
@@ -138,7 +137,7 @@ async function upgradeAbonnement(patient_phone, nouveau_plan, coupon_code) {
             // Audit log
             await client.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-                 VALUES ('subscription.upgraded', $1, 'subscriptions', $2, $3)`,
+                 VALUES ('subscription.upgraded', $1, 'subscriptions', $2, $3::jsonb)`,
                 [patient_phone, currentSub.id, JSON.stringify({ ancien_plan, nouveau_plan, montant_du })]
             ).catch(() => {});
 

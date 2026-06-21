@@ -2,15 +2,14 @@
 // BOLAMU — Contrôleur Patients (Complet)
 // ============================================================
 const pool = require('../config/db');
-const { sendBolamuSms } = require('../services/sms.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const bcrypt = require('bcrypt');
-
-const generateBolamuId = () => `BLM-${Math.floor(1000 + Math.random() * 9000)}`;
+const { normalizePhone } = require('../utils/phone');
 
 // ─── INSCRIPTION PATIENT ──────────────────────────────────────────────────────
 async function registerPatient(req, res) {
-    const { phone, full_name, birth_date, gender, city, momo_number, cgu_accepted } = req.body;
+    const { phone: rawPhone, full_name, birth_date, gender, city, momo_number, cgu_accepted } = req.body;
+    const phone = normalizePhone(rawPhone || '');
 
     if (!phone || !full_name) {
         return res.status(400).json({ success: false, message: 'Champs obligatoires : phone, full_name' });
@@ -20,15 +19,23 @@ async function registerPatient(req, res) {
         return res.status(400).json({ success: false, message: 'Numéro invalide. Format : +242XXXXXXXXX' });
     }
 
+    const client = await pool.connect();
     try {
-        const existing = await pool.query('SELECT id FROM users WHERE phone = $1', [phone]);
+        await client.query('BEGIN');
+
+        const existing = await client.query('SELECT id FROM users WHERE phone = $1', [phone]);
         if (existing.rows.length > 0) {
+            await client.query('ROLLBACK');
             return res.status(409).json({ success: false, message: 'Ce numéro est déjà enregistré.' });
         }
 
-        const bolamuId = generateBolamuId();
+        const idRes = await client.query(
+            `SELECT COALESCE(MAX(CAST(SUBSTRING(bolamu_id FROM 5) AS INTEGER)), 1000) + 1 AS next
+             FROM users WHERE bolamu_id ~ '^BLM-[0-9]+$'`
+        );
+        const bolamuId = `BLM-${idRes.rows[0].next}`;
 
-        const newUser = await pool.query(
+        const newUser = await client.query(
             `INSERT INTO users
                 (phone, full_name, birth_date, gender, role, bolamu_id, is_active,
                  momo_number, cgu_accepted, cgu_accepted_at, onboarding_completed, created_at)
@@ -41,18 +48,17 @@ async function registerPatient(req, res) {
             ]
         );
 
-        // Audit log
-        await pool.query(
+        await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('patient.registered', $1, 'users', $2, $3)`,
+             VALUES ('patient.registered', $1, 'users', $2, $3::jsonb)`,
             [phone, newUser.rows[0].id, JSON.stringify({ full_name, bolamu_id: bolamuId })]
         ).catch(() => {});
 
+        await client.query('COMMIT');
+
         try {
             await sendWhatsAppTemplate(phone, 'bolamu_inscription_patient_id', [full_name, bolamuId]);
-            // TODO: supprimer sendBolamuSms après validation WhatsApp
-            // await sendBolamuSms(phone, `Bolamu : Bienvenue ${full_name} ! Votre ID Bolamu : ${bolamuId}. Connectez-vous sur api.bolamu.co`);
-        } catch (e) { console.log('⚠️ WhatsApp non envoyé'); }
+        } catch (e) { console.log('WhatsApp non envoyé'); }
 
         return res.status(201).json({
             success: true,
@@ -68,14 +74,17 @@ async function registerPatient(req, res) {
         });
 
     } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
         console.error('[registerPatient]', error.message);
         return res.status(500).json({ success: false, message: 'Erreur serveur : ' + error.message });
+    } finally {
+        client.release();
     }
 }
 
 // ─── ABONNEMENT ACTIF ─────────────────────────────────────────────────────────
 async function getSubscription(req, res) {
-    const { phone } = req.query;
+    const phone = normalizePhone(req.query.phone || '');
     if (!phone) return res.status(400).json({ success: false, message: 'Paramètre phone manquant.' });
 
     try {
@@ -146,7 +155,7 @@ async function createSubscription(req, res) {
         // Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('subscription.created', $1, 'subscriptions', $2, $3)`,
+             VALUES ('subscription.created', $1, 'subscriptions', $2, $3::jsonb)`,
             [phone, subRes.rows[0].id, JSON.stringify({ plan, amount })]
         ).catch(() => {});
 
@@ -217,7 +226,7 @@ async function changePassword(req, res) {
         // Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('password_changed', $1, 'users', NULL, $2)`,
+             VALUES ('password_changed', $1, 'users', NULL, $2::jsonb)`,
             [phone, JSON.stringify({ timestamp: new Date().toISOString() })]
         ).catch(() => {});
 

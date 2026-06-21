@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
+const { normalizePhone } = require('../utils/phone');
 const patientController = require('../controllers/patient.controller');
 const bcrypt = require('bcrypt');
 const idempotencyMiddleware = require('../middleware/idempotency');
@@ -50,7 +51,7 @@ router.patch('/subscription/upgrade', authMiddleware, idempotencyMiddleware('/su
 
 router.get('/profil', authMiddleware, async (req, res) => {
     try {
-        const { phone } = req.query;
+        const phone = normalizePhone(req.query.phone || '');
         if (!phone) return res.status(400).json({ success: false, message: 'Numéro de téléphone requis' });
 
         const result = await pool.query(
@@ -73,7 +74,7 @@ router.get('/profil', authMiddleware, async (req, res) => {
 
 router.get('/check-subscription', authMiddleware, async (req, res) => {
     try {
-        const { phone } = req.query;
+        const phone = normalizePhone(req.query.phone || '');
         if (!phone) return res.status(400).json({ success: false, message: 'Numéro de téléphone requis' });
 
         const result = await pool.query(
@@ -96,8 +97,9 @@ router.get('/check-subscription', authMiddleware, async (req, res) => {
 });
 
 router.post('/change-password', authMiddleware, async (req, res) => {
-  const { phone, old_password, new_password } = req.body;
-  if (!phone || !old_password || !new_password) return res.status(400).json({ success: false, message: 'Champs manquants' });
+  const phone = req.user.phone;
+  const { old_password, new_password } = req.body;
+  if (!old_password || !new_password) return res.status(400).json({ success: false, message: 'Champs manquants' });
   if (new_password.length < 6) return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit faire au moins 6 caractères' });
   try {
     const result = await pool.query(`SELECT password_hash FROM users WHERE phone = $1`, [phone]);

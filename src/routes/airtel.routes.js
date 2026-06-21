@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
-const authMiddleware = require('../../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 const validateAirtelWebhook = require('../middleware/validateAirtelWebhook');
 const idempotencyMiddleware = require('../middleware/idempotency');
 
@@ -102,7 +102,7 @@ async function handlePaymentSuccess(phone, referenceId) {
         // 4. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('payment.success', $1, 'subscriptions', $2, $3)`,
+             VALUES ('payment.success', $1, 'subscriptions', $2, $3::jsonb)`,
             [phone, referenceId, JSON.stringify({
                 plan: payment.plan,
                 amount_fcfa: payment.amount_fcfa,
@@ -120,7 +120,7 @@ async function handlePaymentSuccess(phone, referenceId) {
         try {
             await db.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-                 VALUES ('payment.error', $1, 'payments', $2, $3)`,
+                 VALUES ('payment.error', $1, 'payments', $2, $3::jsonb)`,
                 [phone, referenceId, JSON.stringify({ error: e.message, operator: 'airtel' })]
             );
         } catch (auditErr) {
@@ -253,7 +253,7 @@ router.get('/status/:referenceId', authMiddleware, async (req, res) => {
             );
             await db.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-                 VALUES ('payment.failed', $1, 'payments', $2, $3)`,
+                 VALUES ('payment.failed', $1, 'payments', $2, $3::jsonb)`,
                 [phone, referenceId, JSON.stringify({ operator: 'airtel' })]
             ).catch(() => {});
         }
@@ -302,7 +302,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), validateAirte
             );
             await db.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-                 VALUES ('payment.failed', $1, 'payments', $2, $3)`,
+                 VALUES ('payment.failed', $1, 'payments', $2, $3::jsonb)`,
                 [payment.patient_phone, reference, JSON.stringify({ operator: 'airtel' })]
             ).catch(() => {});
         }

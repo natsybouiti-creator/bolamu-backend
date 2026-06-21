@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const authMiddleware = require('../../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
+const { normalizePhone } = require('../utils/phone');
 
 // Adjectifs prédéfinis
 const ADJECTIVES_POSITIVE = ['Professionnel', 'Ponctuel', 'Attentionné', 'Compétent', 'Rassurant', 'Rapide', 'Clair', 'Efficace'];
@@ -32,7 +33,7 @@ router.post('/submit', authMiddleware, async (req, res) => {
 
 // GET /api/v1/ratings/pending/:phone — actions récentes non notées par le patient
 router.get('/pending/:phone', authMiddleware, async (req, res) => {
-  const { phone } = req.params;
+  const phone = normalizePhone(req.params.phone || '');
   try {
     const pending = [];
 
@@ -94,7 +95,7 @@ router.get('/pending/:phone', authMiddleware, async (req, res) => {
 
 // GET /api/v1/ratings/intervenant/:phone — stats d'un intervenant
 router.get('/intervenant/:phone', authMiddleware, async (req, res) => {
-  const { phone } = req.params;
+  const phone = normalizePhone(req.params.phone || '');
   try {
     const stats = await pool.query(
       `SELECT

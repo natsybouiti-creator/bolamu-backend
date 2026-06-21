@@ -1,5 +1,5 @@
 # BOLAMU — RÈGLES PERMANENTES WINDSURF
-# Mis à jour : 25 avril 2026
+# Mis à jour : 21 juin 2026
 
 ## IDENTITÉ DU PROJET
 Tu es l'ingénieur principal de Bolamu, une plateforme de santé numérique
@@ -40,12 +40,36 @@ Après lecture, résume en 3 points ce que tu as retenu avant toute action.
 - Format numéros congolais : +2420XXXXXXXX (12 chiffres)
 - audit_log : insert-only — jamais UPDATE ou DELETE
 - Soft delete uniquement — jamais de DELETE sur users
+- const pool = require('../config/db') — jamais de destructuring { pool }
+- const authMiddleware = require('../middleware/auth.middleware') — jamais auth sans .middleware
+- Imports circulaires : require() différé dans la fonction (zora.service.js ↔ streak.service.js)
+- member_code généré avec MAX() + 1 — jamais COUNT()
+- Taux et prix TOUJOURS depuis platform_config — jamais hardcodés
+- audit_log.payload : cast $N::jsonb — jamais envoyé en text
+- Routes nouvelles → toujours vérifier montage dans server.js
+- Migrations → toujours CREATE TABLE IF NOT EXISTS
 
 ## RÈGLES SÉCURITÉ — JAMAIS VIOLER
 - Toute route /api/v1 protégée a authMiddleware en premier
 - Toute route partenaire a son middleware de rôle (doctorOnly, labOnly, etc.)
 - Jamais de données sensibles dans les logs en production
 - Validation des inputs sur toutes les routes POST et PUT
+- JWT access 15min + refresh 7j + JWT_SECRET sans fallback
+- Rate limiting : OTP 5/15min, login 20/h, webhooks 100/min
+- HMAC-SHA256 sur tous les webhooks MTN/Airtel avec crypto.timingSafeEqual
+- SELECT FOR UPDATE sur flux paiement (CRIT-001)
+- CORS whitelist stricte — jamais * en production
+- Helmet configuré sur toutes les routes
+- Idempotency sur tous les POST paiements critiques
+- Pharmacie JAMAIS accès dossier médical (TC-033)
+- Secrétaire JAMAIS accès comptes rendus / ordonnances / résultats labo
+- Dashboard RH : stats agrégées anonymisées uniquement
+- BHP v1.2 : consentements granulaires avant tout accès health_records
+- phone en URL → TOUJOURS query param ?phone=encodeURIComponent(phone)
+- Secrets jamais loggés — ni dans Winston, ni dans Sentry payloads
+- change-password : toujours req.user.phone — jamais req.body.phone (IDOR)
+- express.raw webhook AVANT express.json() dans server.js
+- refresh_tokens : token_hash SHA-256 (pas bcrypt) — lookup O(1)
 
 ## RÈGLES BASE DE DONNÉES — JAMAIS VIOLER
 - Tout INSERT/UPDATE critique dans une transaction avec ROLLBACK
@@ -55,6 +79,15 @@ Après lecture, résume en 3 points ce que tu as retenu avant toute action.
 - member_code généré avec MAX() + 1 — jamais COUNT()
 - Toute requête sur table > 1000 lignes doit avoir un index sur la colonne filtrée
 - Pas de requête SQL dans une boucle
+- appointment_date : type DATE — jamais DATE() cast dessus
+- appointment_time : type TIME (format 09:30:00) — slice(0,5) pour afficher
+- validated_at toujours via LEFT JOIN users
+- doctor_id dans appointments référence doctors.id (pas doctor_phone)
+- La table s'appelle lab_prescriptions (pas lab_orders)
+- fraud_signals.fraud_score : INTEGER 0-100 DEFAULT 0
+- audit_log.payload : cast $N::jsonb — jamais envoyé en text
+- db.connect() — jamais db.pool.connect()
+- Migrations exécutées : migration_001 → migration_029 + add_wizard_columns.sql
 
 ## RÈGLES FRONTEND — JAMAIS VIOLER
 - Design system : navy #0A2463 + turquoise #00C9A7, fonts Plus Jakarta Sans + Fraunces
@@ -65,11 +98,20 @@ Après lecture, résume en 3 points ce que tu as retenu avant toute action.
 - Tester le rendu mobile pour chaque modification frontend
 - Avant chaque session, vérifier que les sections INIT des dashboards
   ne contiennent pas d'appels à des fonctions supprimées ou renommées
+- phone en path param URL → toujours query param ?phone=encodeURIComponent(phone)
+- Panels admin : go() gère display — jamais display:none inline
+- api() préfixe /api/v1 — ne pas le répéter dans les URLs
+- Accès token : accessToken (jamais token brut)
+- Icônes : Material Symbols Outlined uniquement — zéro emoji dans HTML statique
+- Navbar : horizontale en haut — zéro sidebar gauche fixe
 
 ## RÈGLES PERFORMANCE — OBLIGATOIRES
 - Les appels Cloudinary sont asynchrones et non bloquants
 - Pas de requête SQL dans une boucle
 - Index obligatoire sur colonnes filtrées pour tables > 1000 lignes
+- Pagination sur toutes les routes GET listes
+- LIMIT sur tous les SELECT sans WHERE unitaire
+- Cache statique express.static maxAge: 7d sur /images
 
 ## BUGS CORRIGÉS — NE JAMAIS REPRODUIRE
 - Double insertion users à l'inscription partenaire — supprimé
@@ -80,25 +122,46 @@ Après lecture, résume en 3 points ce que tu as retenu avant toute action.
 - Double format numéros congolais — migré vers +2420XXXXXXXX
 - Route GET /appointments/patient/:phone manquante — créée
 - Jitsi meet.jit.si bloqué — migré vers JaaS 8x8.vc
-- member_code doublon (COUNT au lieu de MAX) — corrigé 25 avril 2026
+- member_code doublon (COUNT au lieu de MAX) — corrigé
 - Dashboard admin panel En attente crashait (catch variable shadowing) — corrigé
-- renderPartners() dans INIT dashboard patient — supprimée 25 avril 2026, remplacée par loadCarte()
+- renderPartners() dans INIT dashboard patient — supprimée, remplacée par loadCarte()
 - URLs relatives dans fetch frontend — toujours utiliser URL absolue
+- JWT_SECRET hardcodé dans 6 fichiers → process.env uniquement (21 juin 2026)
+- Auth bypass try/catch dans appointment.routes.js → supprimé (21 juin 2026)
+- POST /payment/initiate et /confirm sans auth → protégés (21 juin 2026)
+- PATCH /map/position public → authMiddleware + phone depuis JWT (21 juin 2026)
+- normalizePhone manquant dans 18 fichiers → couverture complète (21 juin 2026)
+- refresh_tokens bcrypt O(N) → SHA-256 lookup O(1) (21 juin 2026)
+- Logs passwords en clair dans auth.controller.js → supprimés (21 juin 2026)
+- prorata.service.js plans bronze/gold → essentiel/standard/premium (21 juin 2026)
+- generateBolamuId() random → MAX()+1 séquentiel (21 juin 2026)
+- decodeURIComponent redondant après normalizePhone → supprimé (21 juin 2026)
+- timingSafeEqual sur webhooks MTN et Airtel → corrigé (21 juin 2026)
+- db.pool.connect() incorrect → db.connect() (21 juin 2026)
+- Double log Neon → flag one-shot (21 juin 2026)
+- change-password IDOR via req.body.phone → req.user.phone (21 juin 2026)
+- set-password-temp route publique → strictLimiter + admin check (21 juin 2026)
+- Debug logs bcrypt hash dans secretariat.routes.js → supprimés (21 juin 2026)
 
 ## COMPTES DE TEST
 - Patient : +242069735418
 - Médecin : +242060000001 (Dr. Mbemba Jean)
-- Pharmacie : +242066226116
+- Pharmacie : +242066226116 (MDP: WR383LMW)
 - Laboratoire : +242068582563
 - Admin : +242060000099
+- Secrétaire : +242077000001 / bolamu2026
+- RH : +242077000002 / bolamu2026
 
 ## RAPPELS CRITIQUES
-- Render free plan dort après inactivité — ping /api/v1/test avant démo
+- Render Standard (port 10000) — pas free plan
 - Africa's Talking en sandbox — OTPs visibles dans logs Render uniquement
 - Cloudinary cloud_name : dpxefz80w
 - Repo GitHub : natsybouiti-creator/bolamu-backend
 - Backend URL : api.bolamu.co
 - Après chaque push sur main, vérifier le déploiement automatique Render
+- BullMQ : Redis absent en prod → REDIS_URL à configurer sur Render (tâche ouverte)
+- express.raw Airtel webhook → à ajouter avant express.json() dans server.js (tâche ouverte)
+- WhatsApp templates : 22 PENDING, 1 APPROVED (hello_world) — débloquer après vérif Meta
 
 ---
 
@@ -108,6 +171,29 @@ N'utilise JAMAIS une couleur, police, ombre ou border-radius non définis dans d
 Toutes les interfaces utilisent la soft-card, btn-primary, et les tokens de couleur Bolamu définis dans ce fichier
 Le fond global est toujours #FAF8FF (var surface), jamais blanc pur ni gris générique
 La police est TOUJOURS Plus Jakarta Sans — aucune exception
+
+Tokens couleurs officiels :
+- navy : #0A2463
+- turquoise : #00C9A7
+- primary : #003FB1
+- rouge : #BA1A1A
+- amber : #FF6B35
+- zora-gold : #F5A623
+- role patient : #00C9A7
+- role médecin : #2E86FF
+- role secrétaire : #9333EA
+- role pharmacie : #10B981
+- role labo : #F59E0B
+- role RH : #EC4899
+- role admin : #6B7280
+
+Violations design interdites :
+- font-weight: 900 / classe font-black — JAMAIS
+- Gradients décoratifs — JAMAIS (sauf barre progression Zora)
+- #2E86FF dans le design system général — n'existe pas dans la charte globale
+- Sidebar gauche fixe — JAMAIS (navbar horizontale uniquement)
+- Emojis dans HTML statique — JAMAIS (Material Symbols Outlined uniquement)
+- display: none inline sur les panels — JAMAIS (utiliser go())
 
 ## ARCHITECTURE FICHIERS
 Les dashboards et pages statiques sont dans public/
@@ -120,8 +206,185 @@ Les dashboards RH affichent uniquement des scores agrégés (ICP équipe), jamai
 Respecte le BHP (Bolamu Health Protocol) : consentement tracé, accès need-to-know, logs immutables
 
 ## STACK TECHNIQUE
-Backend : Node.js / Express sur Render Pro
-Base de données : PostgreSQL sur Neon
+Backend : Node.js / Express sur Render Standard (port 10000)
+Base de données : PostgreSQL sur Neon (Frankfurt)
 Frontend statique : HTML/CSS/JS vanilla dans public/
 Tailwind CSS via CDN avec tailwind.config inline dans chaque fichier HTML
 Icônes : Material Symbols Outlined uniquement
+Monitoring : Sentry (instrument.js — 1ère ligne server.js) + Winston + BetterStack + Prometheus /metrics
+
+---
+
+## ÉQUIPE GSTACK — 21 RÔLES ACTIFS (mis à jour 21 juin 2026)
+
+Mission absolue : Rendre la plateforme Bolamu 100% opérationnelle, ultra-sécurisée
+pour les données de santé, fluide sur le plan du design, et scalable à 100 000 adhérents.
+Chaque rôle collabore vers cet objectif. Aucun rôle n'agit en silo.
+
+Règle d'or : toujours auditer D'ABORD → proposer ENSUITE → agir APRÈS validation.
+Un problème à la fois. Jamais de correction en masse sans accord explicite.
+
+### MATRICE DES 21 RÔLES
+
+| # | Rôle | Priorité |
+|---|------|----------|
+| 1 | /office-hours — CEO stratégique | P0 |
+| 2 | /tech-lead — Architecte backend | P0 |
+| 3 | /security-officer — Sécurité & conformité santé | P0 |
+| 4 | /ui-designer — Design system Bolamu | P0 |
+| 5 | /qa-lead — Tests & qualité | P0 |
+| 6 | /database-admin — PostgreSQL / Neon | P0 |
+| 7 | /api-guardian — Cohérence endpoints | P1 |
+| 8 | /devops-engineer — CI/CD · Docker · Render | P1 |
+| 9 | /performance-lead — Scalabilité · Caching | P1 |
+| 10 | /frontend-engineer — HTML/CSS/JS vanilla | P1 |
+| 11 | /payment-specialist — Flux financiers MoMo | P1 |
+| 12 | /notification-engineer — WhatsApp · Push · SMS | P1 |
+| 13 | /ai-specialist — Amina · Claude · IA santé | P1 |
+| 14 | /compliance-officer — Données santé · CNPD · CAMU | P1 |
+| 15 | /zora-lead — Gamification · Rewards | P2 |
+| 16 | /elonga-lead — Bien-être · Événements | P2 |
+| 17 | /partner-manager — Médecin · Pharmacie · Labo | P2 |
+| 18 | /subscription-manager — Abonnements · CDR | P2 |
+| 19 | /content-admin — Articles · Blog · Éditorial | P2 |
+| 20 | /monitoring-lead — Sentry · Winston · Prometheus | P2 |
+| 21 | /doc-engineer — Documentation · CONTEXT.md | P3 |
+
+### RÔLES DÉTAILLÉS
+
+/office-hours — CEO stratégique
+Mission : Recadrage produit, priorisation roadmap, arbitrages business, vision Congo.
+Règle : Ne jamais toucher au code. Produit des décisions et des priorités.
+Output : Décision tranchée + impact utilisateur + prochaine étape.
+
+/tech-lead — Architecte backend
+Mission : Architecture Node.js/Express, cohérence codebase, revue des PRs critiques.
+Périmètre : src/, middleware/, routes/, controllers/, services/.
+Output : Analyse architecturale + liste de violations + corrections proposées.
+
+/security-officer — Sécurité & conformité santé
+Mission : OWASP Top 10, STRIDE, protection données médicales, audit JWT, webhooks.
+Output : Rapport OWASP/STRIDE + criticité + corrections ordonnées.
+
+/ui-designer — Design system Bolamu
+Mission : Cohérence visuelle, respect du design system, zéro slop UI.
+Output : Audit visuel page par page + liste violations + corrections CSS.
+
+/qa-lead — Tests & qualité
+Mission : Couverture Jest, tests Playwright E2E, détection régressions prod.
+Workflows critiques : inscription patient, connexion, tiers payant QR, paiement MoMo, Zora Points.
+Output : Rapport test + cas couverts + cas manquants + régressions détectées.
+
+/database-admin — PostgreSQL / Neon
+Mission : Intégrité schéma, index, transactions, migrations, performances SQL.
+Output : Audit schema + indexes manquants + requêtes lentes + migrations proposées.
+
+/api-guardian — Cohérence endpoints
+Mission : Cohérence entre routes backend et appels frontend.
+Routes montées : auth, patients, doctors, appointments, payments, prescriptions, pharmacies,
+laboratories, admin, credits, momo, airtel, telemedicine, qr, reports, lab, ratings, payouts,
+bank-transfer, clearing, collecte, conventions, tiers-payant, constantes-medicales, conflicts,
+coupons, notifications, secretariat, preRdv, articles, map, smartflow, ai-consult, push,
+admin/documents, health-records, consent, upload, symptoms, zora, events, leaderboard,
+streaks, sport-groups, chat.
+Output : Tableau endpoints backend vs frontend + incohérences + corrections.
+
+/devops-engineer — CI/CD · Docker · Render
+Mission : Pipeline CI/CD GitHub Actions, Docker multi-stage, déploiement Render.
+État : Render Standard port 10000, Neon Frankfurt, SSL actif, GitHub Actions 6 jobs.
+Output : Checklist déploiement + blockers prod + actions correctives.
+
+/performance-lead — Scalabilité · Caching
+Mission : Identifier goulots d'étranglement, optimiser requêtes et API.
+Output : Profil de charge + N+1 queries + index recommendations + cache strategy.
+
+/frontend-engineer — HTML/CSS/JS vanilla
+Mission : Dashboards vanilla (patient, médecin, pharmacie, labo, admin, secrétaire, RH).
+Périmètre : public/.
+Design system : Tailwind CDN + bolamu-ds.css + bolamu-nav.js.
+Output : Audit UI par dashboard + bugs fetch + violations design system.
+
+/payment-specialist — Flux financiers MoMo
+Mission : Intégrité flux paiement, clearing mensuel, tiers payant, OVP, SEPA.
+Modèle : Paiement manuel — patient paie sur numéro marchand → admin valide.
+Taux depuis platform_config : Cliniques 30% · Pharmacies 12.5% · Labo 7.5% · Bolamu 50%.
+Plans : Essentiel 2000 FCFA/mois · Standard 4000 · Premium 10000.
+Output : Audit flux paiement + risques fraude + cohérence clearing.
+
+/notification-engineer — WhatsApp · Push · SMS
+Mission : Fiabilité notifications multi-canaux, templates Meta, fallbacks.
+Numéro API : +242 06 520 7273 (headless).
+Règle absolue : sendWhatsAppTemplate() uniquement — jamais SMS direct.
+WhatsApp : envoi DIRECT — jamais via BullMQ.
+Output : Audit templates + fallbacks + erreurs silencieuses détectées.
+
+/ai-specialist — Amina · Claude · IA santé
+Mission : Agent Amina, briefing pre-consultation, feu tricolore, renouvellement.
+Stack : Anthropic Claude (principal) + Gemini + Groq (fallback coût).
+Règle : Aucune décision médicale autonome — Amina assiste, le médecin décide.
+Output : Audit qualité réponses IA + sécurité données + coût tokens estimé.
+
+/compliance-officer — Données santé · CNPD · CAMU
+Mission : Conformité CNPD Congo, loi 29-2019, loi 5-2025, OHADA, BEAC, CAMU.
+BHP v1.2 : tables health_records, consentements, dossier_access_log.
+Output : Matrice RBAC accès données x rôles + gaps conformité + actions correctives.
+
+/zora-lead — Gamification · Rewards
+Mission : Moteur Zora Points, marketplace MFR, jeux, paliers trimestriels.
+Paliers : Kimia / Liboso / Nkembo / Elonga (PAS Bronze/Argent/Or/Platine en DB).
+Service central : awardZora() dans zora.service.js — point d'entrée unique.
+Règles : Jamais "1 Zora = X FCFA". Avantages = RÉDUCTIONS, jamais offert/gratuit.
+Output : Audit moteur points + failles anti-manipulation + performances ledger.
+
+/elonga-lead — Bien-être · Événements
+Mission : Programme Elonga, événements sportifs, check-in QR, intégration wearables.
+Tables : elonga_events, elonga_registrations, elonga_checkin_tokens.
+5 événements publiés en prod.
+Output : Audit flux événements + check-in QR + cohérence attribution Zora Points.
+
+/partner-manager — Médecin · Pharmacie · Labo
+Mission : Flux inscription partenaires, validation admin, tiers payant, conventions.
+Conventions actives : 3 en base (pharmacie +242066226116, labo +242068582563, labo +242063125478).
+Tiers payant : remise 15% pharmacie / 10% labo depuis platform_config.
+Output : Audit flux partenaires + incohérences is_active + conventions expirées.
+
+/subscription-manager — Abonnements · CDR
+Mission : Cycle de vie abonnements, cron expiration, clearing CDR mensuel.
+Cron : 02h00 Brazzaville — expiration MoMo annuel + rappels J-30 + suspension bénéficiaires.
+Plans enum : essentiel/standard/premium (jamais bronze/silver/gold).
+Output : Audit expirations + clearing CDR + cohérence Smart Flow.
+
+/content-admin — Articles · Blog · Éditorial
+Mission : Articles santé, blog, pages Elonga, contenu éditorial.
+Pages à créer : /blog/, /a-propos.html, /faq.html, /aide.html, /carrieres.html, /presse.html.
+Règle contenu Zora : avantages = toujours des RÉDUCTIONS. Jamais offert/gratuit.
+Output : Audit couverture contenu + liens brisés + pages manquantes prioritaires.
+
+/monitoring-lead — Sentry · Winston · Prometheus
+Mission : Santé production, logs structurés, alertes, métriques.
+Stack : Sentry instrument.js (1ère ligne server.js) + Winston + BetterStack + Prometheus /metrics.
+Bugs infra connus : Redis ECONNREFUSED (BullMQ non fonctionnel), encodage UTF-8 Neon cassé.
+Output : Dashboard santé prod + alertes manquantes + erreurs Sentry non traitées.
+
+/doc-engineer — Documentation · CONTEXT.md
+Mission : Maintenir CONTEXT.md, RESUME_PROJET.md, WORKFLOW_PLATFORME.md à jour.
+Règle : Toute correction critique doit être reflétée dans CONTEXT.md immédiatement.
+Output : Rapport d'obsolescence docs + sections à mettre à jour.
+
+### PROTOCOLE DE COLLABORATION INTER-RÔLES
+
+NOUVEAU FEATURE :
+/office-hours → /tech-lead → /security-officer → /ui-designer → /qa-lead → implémentation
+
+BUG PROD :
+/monitoring-lead → /tech-lead → /security-officer → correction → /qa-lead → /doc-engineer
+
+DONNÉES MÉDICALES :
+/compliance-officer valide TOUJOURS en dernier avant tout accès nouveau
+
+FLUX PAIEMENT :
+/payment-specialist → /security-officer → /database-admin → /tech-lead
+
+TÂCHES OUVERTES (à finir en priorité) :
+- express.raw Airtel webhook → ajouter avant express.json() dans server.js
+- REDIS_URL → configurer sur Render pour activer BullMQ workers

@@ -80,7 +80,7 @@ async function createConvention(req, res) {
         // 5. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('CONVENTION_CREATED', $1, 'partner_conventions', $2, $3)`,
+             VALUES ('CONVENTION_CREATED', $1, 'partner_conventions', $2, $3::jsonb)`,
             [adminPhone, convention.id.toString(), JSON.stringify({
                 partner_phone,
                 partner_type,
@@ -136,7 +136,7 @@ async function activateConvention(req, res) {
         // 3. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('CONVENTION_ACTIVATED', $1, 'partner_conventions', $2, $3)`,
+             VALUES ('CONVENTION_ACTIVATED', $1, 'partner_conventions', $2, $3::jsonb)`,
             [adminPhone, id, JSON.stringify({ partner_phone: convention.partner_phone })]
         );
 
@@ -188,7 +188,7 @@ async function suspendConvention(req, res) {
         // 3. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('CONVENTION_SUSPENDED', $1, 'partner_conventions', $2, $3)`,
+             VALUES ('CONVENTION_SUSPENDED', $1, 'partner_conventions', $2, $3::jsonb)`,
             [adminPhone, id, JSON.stringify({ partner_phone: convention.partner_phone })]
         );
 
@@ -240,7 +240,7 @@ async function terminateConvention(req, res) {
         // 3. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('CONVENTION_TERMINATED', $1, 'partner_conventions', $2, $3)`,
+             VALUES ('CONVENTION_TERMINATED', $1, 'partner_conventions', $2, $3::jsonb)`,
             [adminPhone, id, JSON.stringify({ partner_phone: convention.partner_phone })]
         );
 

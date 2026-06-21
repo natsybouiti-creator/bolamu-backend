@@ -5,10 +5,10 @@ const authMiddleware = require('../middleware/auth.middleware');
 const { bhpAccessMiddleware } = require('../middleware/bhpAccess');
 
 // POST — Créer un enregistrement médical
-// Rôles : medecin, pharmacie, laboratoire
+// Rôles : medecin uniquement (TC-033 : pharmacie/laboratoire interdits)
 router.post('/',
   authMiddleware,
-  bhpAccessMiddleware(['medecin', 'pharmacie', 'laboratoire']),
+  bhpAccessMiddleware(['medecin']),
   async (req, res) => {
     try {
       const { 
@@ -61,7 +61,7 @@ router.get('/patient/:patientId',
       const result = await db.query(
         `SELECT * FROM health_records
          WHERE patient_id=$1 AND is_deleted=false
-         ORDER BY created_at DESC`,
+         ORDER BY created_at DESC LIMIT 200`,
         [patientId]
       );
 
@@ -76,8 +76,7 @@ router.get('/patient/:patientId',
 router.get('/:id',
   authMiddleware,
   bhpAccessMiddleware([
-    'patient', 'medecin', 'pharmacie', 
-    'laboratoire', 'admin'
+    'patient', 'medecin', 'admin'
   ]),
   async (req, res) => {
     try {
@@ -102,7 +101,7 @@ router.delete('/:id',
   authMiddleware,
   bhpAccessMiddleware(['patient', 'admin']),
   async (req, res) => {
-    const client = await db.pool.connect();
+    const client = await db.connect();
     try {
       await client.query('BEGIN');
       

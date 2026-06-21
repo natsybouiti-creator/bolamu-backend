@@ -250,7 +250,7 @@ async function doLogin() {
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = 'Connexion…';
   try {
-    const res = await fetch('/api/v1/auth/login', {
+    const res = await fetch('https://api.bolamu.co/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone, password })
@@ -281,7 +281,7 @@ async function doForgotPassword() {
   const btn = document.getElementById('btn-forgot');
   btn.disabled = true; btn.textContent = 'Envoi…';
   try {
-    const res = await fetch('/api/v1/auth/forgot-password', {
+    const res = await fetch('https://api.bolamu.co/api/v1/auth/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone })
@@ -310,7 +310,7 @@ async function checkMagicLink() {
   btn.disabled = true;
 
   try {
-    const res = await fetch(`/api/v1/auth/onboarding/${token}`);
+    const res = await fetch(`https://api.bolamu.co/api/v1/auth/onboarding/${token}`);
     const data = await res.json();
 
     if (data.success) {

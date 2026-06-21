@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
-const authMiddleware = require('../../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 
 function adminOnly(req, res, next) {
     if (req.user?.role !== 'admin') {
@@ -77,7 +77,7 @@ router.post('/request', authMiddleware, async (req, res) => {
         // 6. Audit log
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('bank_transfer.requested', $1, 'bank_transfer_requests', $2, $3)`,
+             VALUES ('bank_transfer.requested', $1, 'bank_transfer_requests', $2, $3::jsonb)`,
             [patient_phone, result.rows[0].id.toString(), JSON.stringify({ plan, amount_fcfa, reference })]
         ).catch(() => {});
 
@@ -172,7 +172,7 @@ router.patch('/:id/validate', authMiddleware, adminOnly, async (req, res) => {
         // 6. Audit log (hors transaction)
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('bank_transfer.activated', $1, 'bank_transfer_requests', $2, $3)`,
+             VALUES ('bank_transfer.activated', $1, 'bank_transfer_requests', $2, $3::jsonb)`,
             [req.user.phone, id, JSON.stringify({ subscription_id: subRes.rows[0].id, external_reference })]
         ).catch(() => {});
 
@@ -215,7 +215,7 @@ router.patch('/:id/reject', authMiddleware, adminOnly, async (req, res) => {
         // Audit log
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('bank_transfer.rejected', $1, 'bank_transfer_requests', $2, $3)`,
+             VALUES ('bank_transfer.rejected', $1, 'bank_transfer_requests', $2, $3::jsonb)`,
             [req.user.phone, id, JSON.stringify({ notes })]
         ).catch(() => {});
 

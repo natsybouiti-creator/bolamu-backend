@@ -49,7 +49,7 @@ async function demanderRenouvellement(patient_phone, prescription_id, session_id
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('renouvellement_demande', $1, 'renouvellement_demandes', $2, $3)
+            VALUES ('renouvellement_demande', $1, 'renouvellement_demandes', $2, $3::jsonb)
         `, [patient_phone, demande_id, JSON.stringify({ prescription_id })]);
 
         await client.query('COMMIT');
@@ -132,7 +132,7 @@ async function validerRenouvellement(demande_id, doctor_phone) {
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('renouvellement_valide', $1, 'lab_prescriptions', $2, $3)
+            VALUES ('renouvellement_valide', $1, 'lab_prescriptions', $2, $3::jsonb)
         `, [doctor_phone, new_prescription_id, JSON.stringify({ demande_id })]);
 
         await client.query('COMMIT');
@@ -203,7 +203,7 @@ async function refuserRenouvellement(demande_id, doctor_phone, motif_refus) {
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('renouvellement_refuse', $1, 'renouvellement_demandes', $2, $3)
+            VALUES ('renouvellement_refuse', $1, 'renouvellement_demandes', $2, $3::jsonb)
         `, [doctor_phone, demande_id, JSON.stringify({ motif_refus })]);
 
         await client.query('COMMIT');

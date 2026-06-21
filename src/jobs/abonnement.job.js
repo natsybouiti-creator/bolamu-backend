@@ -107,7 +107,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
         await db.query(
           `INSERT INTO audit_log 
            (event_type, actor_phone, target_table, target_id, payload)
-           VALUES ('abonnement_expire', 'system', 'subscriptions', $1, $2)`,
+           VALUES ('abonnement_expire', 'system', 'subscriptions', $1, $2::jsonb)`,
           [phone, JSON.stringify({ raison: 'expiration_momo_annuel' })]
         );
       }
@@ -145,7 +145,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
         await db.query(
           `INSERT INTO audit_log 
            (event_type, actor_phone, target_table, target_id, payload)
-           VALUES ('beneficiaire_suspendu', 'system', 'users', $1, $2)`,
+           VALUES ('beneficiaire_suspendu', 'system', 'users', $1, $2::jsonb)`,
           [row.beneficiaire_phone, JSON.stringify({ payeur: row.payeur_phone, raison: 'payeur_suspendu' })]
         );
       }

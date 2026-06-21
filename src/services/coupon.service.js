@@ -97,7 +97,7 @@ async function applyCoupon(coupon_id, user_phone, subscription_id, montant_remis
         // INSERT audit_log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('coupon.applied', $1, 'coupon_usages', NULL, $2)`,
+             VALUES ('coupon.applied', $1, 'coupon_usages', NULL, $2::jsonb)`,
             [user_phone, JSON.stringify({ coupon_id, subscription_id, montant_remise })]
         ).catch(() => {});
 
@@ -154,7 +154,7 @@ async function createCoupon(data, admin_phone) {
         // INSERT audit_log
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('coupon.created', $1, 'coupons', $2, $3)`,
+             VALUES ('coupon.created', $1, 'coupons', $2, $3::jsonb)`,
             [admin_phone, result.rows[0].id, JSON.stringify({ code, type, valeur })]
         ).catch(() => {});
 

@@ -115,8 +115,8 @@ async function redeemReward({ phone, reward_id }) {
     
     // Audit
     await client.query(
-      `INSERT INTO audit_log (action, phone, details, created_at)
-       VALUES ('zora_redemption', $1, $2, NOW())`,
+      `INSERT INTO audit_log (event_type, actor_phone, payload)
+       VALUES ('zora_redemption', $1, $2::jsonb)`,
       [phone, JSON.stringify({ reward_id, points_spent: reward.points_cost })]
     );
     

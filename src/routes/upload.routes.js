@@ -4,6 +4,7 @@ const pool = require('../config/db');
 const cloudinary = require('../config/cloudinary');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
+const { normalizePhone } = require('../utils/phone');
 const crypto = require('crypto');
 
 // Secret pour les tokens d'upload (différent du secret JWT principal)
@@ -21,7 +22,7 @@ const upload = multer({
 // car les documents sont uploadés AVANT la création du compte.
 router.post('/token', async (req, res) => {
   try {
-    const { phone } = req.body;
+    const phone = normalizePhone(req.body.phone || '');
 
     if (!phone) {
       return res.status(400).json({ success: false, message: 'Numéro de téléphone requis' });

@@ -1,4 +1,6 @@
 const pool = require('../config/db');
+const logger = require('../config/logger');
+const { normalizePhone } = require('../utils/phone');
 const { buildWameLink } = require('../services/wame.service');
 
 // ─── CRÉER UNE ORDONNANCE (médecin après validation consultation) ─────────────
@@ -159,12 +161,12 @@ async function deliverPrescription(req, res) {
 
         // Log audit
         await pool.query(
-            `INSERT INTO audit_log (action, actor, details)
-             VALUES ('prescription_delivered', $1, $2)`,
+            `INSERT INTO audit_log (event_type, actor_phone, payload)
+             VALUES ('prescription_delivered', $1, $2::jsonb)`,
             [pharmacie_phone, JSON.stringify({ prescription_id, session_code, patient_phone: check.rows[0].patient_phone })]
         );
 
-        console.log(`✅ Ordonnance ${prescription_id} délivrée par ${pharmacie_phone}`);
+        logger.info('[PRESCRIPTION] Ordonnance délivrée', { prescription_id });
 
         return res.json({
             success: true,
@@ -180,7 +182,7 @@ async function deliverPrescription(req, res) {
 
 // ─── HISTORIQUE DÉLIVRANCES PAR PHARMACIE ────────────────────────────────────
 async function getPrescriptionsByPharmacie(req, res) {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
 
     try {
         const result = await pool.query(
@@ -191,7 +193,7 @@ async function getPrescriptionsByPharmacie(req, res) {
              WHERE p.pharmacie_phone = $1
              ORDER BY p.delivered_at DESC
              LIMIT 50`,
-            [decodeURIComponent(phone)]
+            [phone]
         );
 
         return res.json({ success: true, data: result.rows });
@@ -204,7 +206,7 @@ async function getPrescriptionsByPharmacie(req, res) {
 
 // ─── ORDONNANCES D'UN PATIENT ─────────────────────────────────────────────────
 async function getPrescriptionsByPatient(req, res) {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
 
     try {
         const result = await pool.query(
@@ -215,7 +217,7 @@ async function getPrescriptionsByPatient(req, res) {
              LEFT JOIN doctors d ON p.doctor_phone = d.phone
              WHERE p.patient_phone = $1
              ORDER BY p.created_at DESC`,
-            [decodeURIComponent(phone)]
+            [phone]
         );
 
         return res.json({ success: true, data: result.rows });

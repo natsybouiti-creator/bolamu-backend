@@ -27,7 +27,7 @@ const generateQRToken = async (req, res) => {
       [phone, token, expiresAt]
     );
     await pool.query(
-      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_GENERATED', $1, 'qr_tokens', NULL, $2)`,
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_GENERATED', $1, 'qr_tokens', NULL, $2::jsonb)`,
       [phone, JSON.stringify({ expires_at: expiresAt })]
     );
     return res.status(200).json({ success: true, data: { token, expires_at: expiresAt, ttl_seconds: ttlSeconds, phone } });
@@ -68,7 +68,7 @@ const verifyQRToken = async (req, res) => {
     const hasConvention = convRes.rows.length > 0;
     const convention = convRes.rows[0] || null;
     await pool.query(
-      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2)`,
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2::jsonb)`,
       [partnerPhone, JSON.stringify({ patient_phone: qrToken.user_phone, token })]
     );
     return res.status(200).json({

@@ -22,15 +22,15 @@ const { runMigrations } = require('./db/migrate');
 const { configurePush } = require('./services/push.service');
 configurePush();
 
-// Générer hash bcrypt pour mot de passe test (temporaire)
-const bcrypt = require('bcrypt');
-bcrypt.hash('bolamu2026', 10).then(hash => console.log('[HASH BCRYPT bolamu2026]', hash)).catch(err => console.error('[HASH ERROR]', err));
-
 const app = express();
 app.set('trust proxy', 1);
 
 // Cookie parser pour lire les cookies
 app.use(cookieParser());
+
+// Body brut avant express.json() — le stream body ne peut être lu qu'une fois
+app.use('/api/v1/payments/momo/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/v1/payments/airtel/webhook', express.raw({ type: 'application/json' }));
 
 // Route GET '/' sert landing.html
 app.get('/', (req, res) => {
@@ -96,9 +96,6 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.urlencoded({ extended: true }));
 }
 
-// Middleware pour accepter le body brut sur la route webhook MTN (nécessaire pour la validation HMAC)
-app.use('/api/v1/payments/momo/webhook', express.raw({ type: 'application/json' }));
-
 // Request logger (remplace le logger de debug)
 app.use(requestLogger);
 
@@ -153,8 +150,9 @@ try {
   const consentRouter = require('./routes/consent.routes');
   app.use('/api/v1/health-records', healthRecordsRouter);
   app.use('/api/v1/consent', consentRouter);
+  logger.info('[BHP] Routes health-records et consent chargées');
 } catch (err) {
-  console.error('[BHP] Erreur chargement routes:', err.message);
+  logger.error('[BHP] Erreur chargement routes — vérifier healthRecords.routes.js et consent.routes.js:', err.message);
 }
 // ============================================================
 // 3. ROUTES API (V1)
@@ -162,8 +160,7 @@ try {
 // Appliquer le rate limiting standard sur toutes les routes API (sauf webhook)
 app.use('/api/v1', standardLimiter);
 
-// Enregistrer sport-groups AVANT les autres routes pour éviter les conflits
-app.use('/api/v1/sport-groups', require('./routes/sport-groups.routes'));
+app.use('/api/v1/sport-groups', sportGroupsRoutes);
 
 app.use('/api/v1/auth',          authRoutes);
 app.use('/api/v1/patients',      patientRoutes);
@@ -197,7 +194,6 @@ app.use('/api/v1/map',           require('./routes/map.routes'));
 app.use('/api/v1/events',       require('./routes/elonga-events.routes'));
 app.use('/api/v1/leaderboard',  require('./routes/leaderboard.routes'));
 app.use('/api/v1/streaks',      require('./routes/streak.routes'));
-// app.use('/api/v1/sport-groups', require('./routes/sport-groups.routes'));
 app.use('/api/v1/chat',         chatRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/push',         pushRoutes);
@@ -209,10 +205,10 @@ app.use('/api/v1/upload',       uploadRoutes);
 app.use('/api/v1/zora',         zoraRoutes);
 app.use('/api/v1/zora',         zoraMarketplaceRoutes);
 app.use('/api/v1/zora',         zoraGamesRoutes);
-// app.use('/api/v1',              conflictRoutes);
-// app.use('/api/v1',              couponRoutes);
-// app.use('/api/v1',              smartflowRoutes);
-// app.use('/api/v1',              symptomsRoutes);
+app.use('/api/v1',              conflictRoutes);
+app.use('/api/v1',              couponRoutes);
+app.use('/api/v1',              smartflowRoutes);
+app.use('/api/v1',              symptomsRoutes);
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
@@ -355,6 +351,20 @@ const createIndexes = async () => {
             pool.query(`CREATE INDEX IF NOT EXISTS idx_prescriptions_phone ON prescriptions(patient_phone, doctor_phone)`),
             pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_type      ON audit_log(event_type, created_at DESC)`),
             pool.query(`CREATE INDEX IF NOT EXISTS idx_fraud_score         ON fraud_signals(fraud_score DESC, severity)`),
+            // Index manquants identifiés /database-admin
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_subscriptions_patient_phone ON subscriptions(patient_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_payments_patient_phone ON payments(patient_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_user_phone ON notifications(user_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_credits_phone ON credits(phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_credit_transactions_phone ON credit_transactions(phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_fraud_signals_actor_phone ON fraud_signals(actor_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_ratings_patient_phone ON ratings(patient_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_ratings_intervenant_phone ON ratings(intervenant_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_lab_results_patient_phone ON lab_results(patient_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_doctor_payouts_doctor_phone ON doctor_payouts(doctor_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_ovp_documents_user_phone ON ovp_documents(user_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_company_contracts_contact_phone ON company_contracts(contact_phone)`),
+            pool.query(`CREATE INDEX IF NOT EXISTS idx_company_contracts_rh_phone ON company_contracts(rh_phone)`),
         ]);
         console.log('[INDEX] Tous les index de performance créés avec succès');
     } catch (e) {

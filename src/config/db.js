@@ -1,17 +1,19 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// On utilise DATABASE_URL pour Neon, sinon on reste en local
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false // Indispensable pour la sécurité de Neon
-  }
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: true }
+    : { rejectUnauthorized: false }
 });
 
-// Petit test de connexion pour confirmer le succès
+let _poolLogged = false;
 pool.on('connect', () => {
-  console.log("📡 Connecté à la base de données CLOUD (Neon) !");
+  if (_poolLogged) return;
+  _poolLogged = true;
+  const logger = require('./logger');
+  logger.info('[DB] Connecté à PostgreSQL Neon');
 });
 
 module.exports = pool;

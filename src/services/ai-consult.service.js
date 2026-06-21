@@ -150,7 +150,7 @@ async function generateBriefing(appointment_id, doctor_phone) {
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5::jsonb)`,
       ['ai_consult_briefing', doctor_phone, 'appointments', appointment_id, JSON.stringify({ patient_id })]
     );
 
@@ -211,7 +211,7 @@ async function analyzeTricolor(diagnosis, medications, patient_phone, doctor_pho
     // Audit log
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5::jsonb)`,
       ['ai_consult_tricolor', doctor_phone, 'users', patient_phone, JSON.stringify({ diagnosis, medications })]
     );
 
@@ -292,7 +292,7 @@ async function generateRenewal(patient_phone, doctor_phone) {
     // Audit log
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5::jsonb)`,
       ['ai_consult_renewal', doctor_phone, 'prescriptions', prescription.id, JSON.stringify({ patient_phone })]
     );
 

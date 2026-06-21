@@ -78,7 +78,7 @@ async function initiateTransaction(req, res) {
         // 6. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('TIERS_PAYANT_INITIATED', $1, 'transactions_tiers_payant', $2, $3)`,
+             VALUES ('TIERS_PAYANT_INITIATED', $1, 'transactions_tiers_payant', $2, $3::jsonb)`,
             [partnerPhone, transactionId.toString(), JSON.stringify({
                 patient_phone,
                 montant_total,
@@ -146,7 +146,7 @@ async function validateTransaction(req, res) {
         // 3. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('TIERS_PAYANT_VALIDATED', $1, 'transactions_tiers_payant', $2, $3)`,
+             VALUES ('TIERS_PAYANT_VALIDATED', $1, 'transactions_tiers_payant', $2, $3::jsonb)`,
             [partnerPhone, id, JSON.stringify({ patient_phone: transaction.patient_phone })]
         );
 
@@ -334,7 +334,7 @@ async function reconcileTransaction(req, res) {
         // 3. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('TIERS_PAYANT_RECONCILED', $1, 'transactions_tiers_payant', $2, $3)`,
+             VALUES ('TIERS_PAYANT_RECONCILED', $1, 'transactions_tiers_payant', $2, $3::jsonb)`,
             [adminPhone, id, JSON.stringify({ partner_phone: transaction.partner_phone })]
         );
 

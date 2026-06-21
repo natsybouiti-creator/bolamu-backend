@@ -24,12 +24,8 @@ function normalizePhoneNumber(phone) {
         return '+242' + cleaned;
     }
     
-    // Si le numéro commence déjà avec +242, vérifier le format
+    // Si le numéro commence déjà avec +242, c'est le bon format — retourner tel quel
     if (cleaned.startsWith('+242')) {
-        // S'assurer qu'il n'y a pas de double préfixe comme +24206
-        if (cleaned.startsWith('+24206')) {
-            return cleaned.replace('+24206', '+2426');
-        }
         return cleaned;
     }
     

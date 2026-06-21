@@ -3,18 +3,10 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { sendBolamuSms } = require('../services/sms.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
-const { normalizePhoneNumber } = require('../utils/phoneHelper');
+const { normalizePhone } = require('../utils/phone');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 
-function generateLabCode(phone) {
-    const digits = phone.replace(/\D/g, '').slice(-8);
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 8; i += 2) { const n = parseInt(digits.slice(i, i + 2)); code += chars[n % chars.length]; }
-    return 'LAB-' + code.slice(0, 4);
-}
 
 function calculateTrustScore(data) {
     let score = 0;
@@ -42,7 +34,7 @@ async function registerLaboratoire(req, res) {
     }
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
     if (!/^\+242[0-9]{9}$/.test(normalizedPhone)) {
         return res.status(400).json({ success: false, message: 'Numéro invalide. Format : +242XXXXXXXXX' });
     }
@@ -69,7 +61,11 @@ async function registerLaboratoire(req, res) {
 
         const score = calculateTrustScore({ phone: normalizedPhone, name, rccm_number, agrement_number, city, document_url: documentUrl });
         const autoStatus = score >= 80 ? 'verified' : 'pending';
-        const memberCode = generateLabCode(normalizedPhone);
+        const codeRes = await client.query(
+            `SELECT COALESCE(MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)), 0) + 1 AS next
+             FROM users WHERE role = 'laboratoire' AND member_code ~ '^LAB-[0-9]+$'`
+        );
+        const memberCode = `LAB-${codeRes.rows[0].next.toString().padStart(5, '0')}`;
 
         const existingUser = await client.query('SELECT id FROM users WHERE phone = $1', [normalizedPhone]);
         let userId;
@@ -96,7 +92,7 @@ async function registerLaboratoire(req, res) {
         }
 
         await client.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('laboratoire.registered', $1, 'laboratories', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('laboratoire.registered', $1, 'laboratories', $2, $3::jsonb)`,
             [normalizedPhone, newLab.rows[0].id, JSON.stringify({ name, rccm_number, trust_score: score, auto_status: autoStatus })]
         );
 
@@ -135,7 +131,7 @@ async function getLaboratoireProfile(req, res) {
     if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
     
     // Normalisation du numéro
-    const normalizedPhone = normalizePhoneNumber(phone);
+    const normalizedPhone = normalizePhone(phone);
     
     try {
         const result = await pool.query(
@@ -167,12 +163,14 @@ async function updateLaboratoireStatus(req, res) {
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Laboratoire introuvable.' });
         const l = result.rows[0];
         try {
-            const msgs = {
-                verified: `Bolamu : ${l.name} validé ! Code : ${l.member_code}.`,
-                rejected: `Bolamu : Inscription ${l.name} non validée. Motif : ${reason || 'Dossier incomplet'}.`,
-                suspended: `Bolamu : Compte ${l.name} suspendu.`
+            const templateMap = {
+                verified:  ['bolamu_labo_valide',    [l.name, l.member_code]],
+                rejected:  ['bolamu_labo_rejete',    [reason || 'Dossier incomplet']],
+                suspended: ['bolamu_compte_suspendu',[reason || 'Activité suspecte']]
             };
-            if (msgs[status]) await sendBolamuSms(l.phone, msgs[status]);
+            if (templateMap[status]) {
+                await sendWhatsAppTemplate(l.phone, templateMap[status][0], templateMap[status][1]);
+            }
         } catch (e) {}
         return res.json({ success: true, data: l });
     } catch (error) {
@@ -291,7 +289,7 @@ async function updateLaboratoireProfile(req, res) {
         // Audit log
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('laboratoire.profile_updated', $1, 'laboratories', $2, $3)`,
+             VALUES ('laboratoire.profile_updated', $1, 'laboratories', $2, $3::jsonb)`,
             [labPhone, result.rows[0].id, JSON.stringify({ updated_fields: Object.keys(req.body) })]
         ).catch(() => {});
 

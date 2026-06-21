@@ -198,7 +198,7 @@
     const btn = document.getElementById('btn-login');
     btn.disabled = true; btn.textContent = 'Vérification…';
     try {
-      const res = await fetch('/api/v1/secretariat/login', {
+      const res = await fetch('https://api.bolamu.co/api/v1/secretariat/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password })

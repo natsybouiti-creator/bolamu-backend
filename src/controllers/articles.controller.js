@@ -153,7 +153,7 @@ async function createArticle(req, res) {
       [title, excerpt, content, cat, image_url||null, emoji||'📄', author||'Dr. Bolamu', read_time||'5 min', is_published!==false, is_featured||false]
     );
     await pool.query(
-      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.create',$1,'articles',$2,$3)`,
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.create',$1,'articles',$2,$3::jsonb)`,
       [req.user.phone, result.rows[0].id, JSON.stringify({ title })]
     ).catch(() => {});
     return res.status(201).json({ success: true, article: result.rows[0] });
@@ -182,7 +182,7 @@ async function updateArticle(req, res) {
     );
     if (!result.rows.length) return res.status(404).json({ success: false, message: 'Article introuvable' });
     await pool.query(
-      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.update',$1,'articles',$2,$3)`,
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.update',$1,'articles',$2,$3::jsonb)`,
       [req.user.phone, id, JSON.stringify({ title })]
     ).catch(() => {});
     return res.json({ success: true, article: result.rows[0] });
@@ -209,7 +209,7 @@ async function deleteArticle(req, res) {
       } catch(e) { /* pas bloquant */ }
     }
     await pool.query(
-      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.delete',$1,'articles',$2,$3)`,
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.delete',$1,'articles',$2,$3::jsonb)`,
       [req.user.phone, id, JSON.stringify({ title: result.rows[0].title })]
     ).catch(() => {});
     return res.json({ success: true, message: 'Article supprimé' });
@@ -224,7 +224,7 @@ async function deleteArticle(req, res) {
 // ============================================================
 async function getAllArticlesAdmin(req, res) {
   try {
-    const result = await pool.query(`SELECT * FROM articles ORDER BY created_at DESC`);
+    const result = await pool.query(`SELECT * FROM articles ORDER BY created_at DESC LIMIT 500`);
     return res.json({ success: true, articles: result.rows });
   } catch (err) {
     console.error('[getAllArticlesAdmin]', err.message);

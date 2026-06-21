@@ -119,7 +119,7 @@ async function validateAppointment(req, res) {
 
             if (parseInt(highSignals.rows[0].count) >= 3) {
                 await pool.query(
-                    `INSERT INTO audit_log (action, actor, details) VALUES ($1, $2, $3)`,
+                    `INSERT INTO audit_log (event_type, actor_phone, payload) VALUES ($1, $2, $3::jsonb)`,
                     ['auto_suspension_triggered', doctorPhone,
                      JSON.stringify({ signal_count: parseInt(highSignals.rows[0].count) + 1 })]
                 ).catch(() => {});
@@ -140,7 +140,7 @@ async function validateAppointment(req, res) {
 
         // Audit
         await pool.query(
-            `INSERT INTO audit_log (action, actor, details) VALUES ($1, $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, payload) VALUES ($1, $2, $3::jsonb)`,
             ['appointment_validated', doctorPhone || 'unknown', JSON.stringify({
                 appointment_id: id, patient_phone: patientPhone, delay_minutes: delayMinutes
             })]

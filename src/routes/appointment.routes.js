@@ -1,17 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
 const pool = require('../config/db');
-
-// --- MIDDLEWARE DE SECOURS (Si l'import échoue, on ne crash pas) ---
-let authMiddleware;
-try {
-    const authPath = path.join(__dirname, '..', '..', 'middleware', 'auth.middleware.js');
-    authMiddleware = require(authPath);
-} catch (e) {
-    console.log("⚠️ Middleware non trouvé, utilisation d'un bypass temporaire.");
-    authMiddleware = (req, res, next) => next();
-}
+const authMiddleware = require('../middleware/auth.middleware');
+const { normalizePhone } = require('../utils/phone');
 
 // --- SERVICE DE NOTIFICATION UNIFIÉ ---
 const { notify } = require('../services/notification.service');
@@ -237,7 +228,7 @@ router.post('/book', authMiddleware, async (req, res) => {
 
 // 3. RDV Médecin
 router.get('/doctor/:phone', authMiddleware, async (req, res) => {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const { page = 1, per_page = 20 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(per_page);
     try {
@@ -283,7 +274,7 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
 // 4. RDV Patient
 router.get('/patient/:phone', authMiddleware, async (req, res) => {
   try {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const result = await pool.query(
       `SELECT a.id, a.patient_phone, a.status, a.session_code,
               a.appointment_date, a.appointment_time, a.created_at,

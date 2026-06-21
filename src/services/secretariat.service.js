@@ -29,7 +29,7 @@ async function ajouterFileAttente(partenaire_phone, patient_phone, doctor_phone,
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('file_attente_ajoutee', $1, 'file_attente', $2, $3)
+            VALUES ('file_attente_ajoutee', $1, 'file_attente', $2, $3::jsonb)
         `, [secretaire_phone, result.rows[0].id, JSON.stringify({ patient_phone, doctor_phone, priorite })]);
 
         await client.query('COMMIT');
@@ -79,7 +79,7 @@ async function appellerPatient(file_attente_id, secretaire_phone) {
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('patient_appelle', $1, 'file_attente', $2, $3)
+            VALUES ('patient_appelle', $1, 'file_attente', $2, $3::jsonb)
         `, [secretaire_phone, file_attente_id, JSON.stringify({ patient_phone })]);
 
         await client.query('COMMIT');
@@ -128,7 +128,7 @@ async function terminerConsultation(file_attente_id, secretaire_phone) {
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('consultation_terminee', $1, 'file_attente', $2, $3)
+            VALUES ('consultation_terminee', $1, 'file_attente', $2, $3::jsonb)
         `, [secretaire_phone, file_attente_id, JSON.stringify({ patient_phone })]);
 
         await client.query('COMMIT');
@@ -220,7 +220,7 @@ async function bloquerAgenda(doctor_phone, date, heure_debut, heure_fin, type, m
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('agenda_bloque', $1, 'agenda_blocs', NULL, $2)
+            VALUES ('agenda_bloque', $1, 'agenda_blocs', NULL, $2::jsonb)
         `, [secretaire_phone, JSON.stringify({ doctor_phone, date, heure_debut, heure_fin, type })]);
 
         await client.query('COMMIT');
@@ -319,7 +319,7 @@ async function annulerRDV(rdv_id, secretaire_phone, motif) {
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('rdv_annule', $1, 'appointments', $2, $3)
+            VALUES ('rdv_annule', $1, 'appointments', $2, $3::jsonb)
         `, [secretaire_phone, rdv_id, JSON.stringify({ motif })]);
 
         await client.query('COMMIT');

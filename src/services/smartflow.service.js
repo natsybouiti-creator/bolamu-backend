@@ -6,7 +6,6 @@
 
 const pool = require('../config/db');
 const logger = require('../config/logger');
-const { sendBolamuSms } = require('./sms.service');
 const { sendWhatsAppTemplate } = require('./whatsapp.service');
 const { sendToUser } = require('./push.service');
 
@@ -146,7 +145,7 @@ async function enregistrerHorsCatalogue(data) {
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5::jsonb)`,
       ['hors_catalogue.created', prestataire_phone, 'hors_catalogue_transactions', transaction.id, 
        JSON.stringify({ libelle, prix_plein, patient_phone, company_contract_id })]
     );
@@ -251,7 +250,7 @@ async function genererExportPaie(company_contract_id, mois) {
     
     // Récupérer toutes les transactions hors catalogue du mois pour ce contrat
     const transactionsResult = await client.query(
-      `SELECT hct.*, u.full_name as employee_name
+      `SELECT hct.*, u.member_code as employee_code
        FROM hors_catalogue_transactions hct
        LEFT JOIN users u ON hct.patient_phone = u.phone
        WHERE hct.company_contract_id = $1 
@@ -269,7 +268,7 @@ async function genererExportPaie(company_contract_id, mois) {
       if (!groupedByEmployee[phone]) {
         groupedByEmployee[phone] = {
           phone,
-          name: t.employee_name || phone,
+          code: t.employee_code || phone,
           total: 0,
           transactions: []
         };
@@ -280,9 +279,9 @@ async function genererExportPaie(company_contract_id, mois) {
     
     // Générer CSV
     const csvLines = [
-      'Matricule,Nom,Telephone,Nb_Actes,Montant_Total,Statut',
+      'Matricule,Code_Membre,Telephone,Nb_Actes,Montant_Total,Statut',
       ...Object.values(groupedByEmployee).map(emp => 
-        `${emp.phone},${emp.name},${emp.phone},${emp.transactions.length},${emp.total.toFixed(2)},retenue_salaire`
+        `${emp.phone},${emp.code},${emp.phone},${emp.transactions.length},${emp.total.toFixed(2)},retenue_salaire`
       )
     ];
     
@@ -291,7 +290,7 @@ async function genererExportPaie(company_contract_id, mois) {
     // Insérer ou mettre à jour l'export paie mensuel
     const detailsJson = Object.values(groupedByEmployee).map(emp => ({
       employee_phone: emp.phone,
-      employee_name: emp.name,
+      employee_code: emp.code,
       nb_actes: emp.transactions.length,
       montant: emp.total,
       statut: 'retenue_salaire'

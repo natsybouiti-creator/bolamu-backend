@@ -1,8 +1,9 @@
 const pool = require('../config/db');
+const { normalizePhone } = require('../utils/phone');
 
 // ─── RÉCUPÉRER LES CONSTANTES MÉDICALES D'UN PATIENT ─────────────────────────
 async function getConstantes(req, res) {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const userPhone = req.user?.phone;
     const userRole = req.user?.role;
 
@@ -177,17 +178,12 @@ async function updateConstantesPatient(req, res) {
 
         // Insert dans audit_log
         await pool.query(
-            `INSERT INTO audit_log (event_type, entity_type, entity_id, actor_phone, actor_role, old_values, new_values, ip_address)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ($1, $2, 'constantes_medicales', NULL, $3::jsonb)`,
             [
                 'CONSTANTES_UPDATED_PATIENT',
-                'users',
                 userPhone,
-                userPhone,
-                'patient',
-                JSON.stringify({ before: 'N/A' }),
-                JSON.stringify(result.rows[0]),
-                req.ip || null
+                JSON.stringify({ actor_role: 'patient', new_values: result.rows[0], ip_address: req.ip || null })
             ]
         );
 
@@ -333,17 +329,12 @@ async function updateConstantesMedecin(req, res) {
 
         // Insert dans audit_log
         await pool.query(
-            `INSERT INTO audit_log (event_type, entity_type, entity_id, actor_phone, actor_role, old_values, new_values, ip_address)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ($1, $2, 'constantes_medicales', NULL, $3::jsonb)`,
             [
                 'CONSTANTES_UPDATED_MEDECIN',
-                'users',
-                patient_phone,
                 userPhone,
-                'doctor',
-                JSON.stringify({ before: 'N/A' }),
-                JSON.stringify(result.rows[0]),
-                req.ip || null
+                JSON.stringify({ actor_role: 'doctor', patient_phone, new_values: result.rows[0], ip_address: req.ip || null })
             ]
         );
 

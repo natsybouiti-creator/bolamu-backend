@@ -243,7 +243,7 @@ async function escaladeSupAdmin(req, res) {
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('conflict.escalated', $1, 'conflicts', $2, $3)`,
+             VALUES ('conflict.escalated', $1, 'conflicts', $2, $3::jsonb)`,
             [requestPhone, id, JSON.stringify({ escalade_sup_admin: true })]
         ).catch(() => {});
 

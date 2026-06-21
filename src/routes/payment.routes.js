@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
-const authMiddleware = require('../../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 const idempotencyMiddleware = require('../middleware/idempotency');
+const { normalizePhone } = require('../utils/phone');
 
 // Générer une référence unique
 function generateReference() {
@@ -13,7 +14,7 @@ function generateReference() {
 }
 
 // Initier un paiement (simulation)
-router.post('/initiate', idempotencyMiddleware('payment-initiate'), async (req, res) => {
+router.post('/initiate', authMiddleware, idempotencyMiddleware('payment-initiate'), async (req, res) => {
     const { patient_phone, amount_fcfa, payment_type, subscription_id, appointment_id, plan } = req.body;
 
     try {
@@ -57,8 +58,11 @@ router.post('/initiate', idempotencyMiddleware('payment-initiate'), async (req, 
     }
 });
 
-// Confirmer un paiement (simulation du callback MTN MoMo)
-router.post('/confirm/:reference', idempotencyMiddleware('payment-confirm'), async (req, res) => {
+// Confirmer un paiement (admin uniquement — validation manuelle dashboard)
+router.post('/confirm/:reference', authMiddleware, idempotencyMiddleware('payment-confirm'), async (req, res) => {
+    if (!['admin', 'content_admin'].includes(req.user?.role)) {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux admins.' });
+    }
     const { reference } = req.params;
 
     const client = await db.connect();
@@ -139,7 +143,7 @@ router.post('/confirm/:reference', idempotencyMiddleware('payment-confirm'), asy
 
 // Historique des paiements d'un patient
 router.get('/history/:phone', authMiddleware, async (req, res) => {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const currentUser = req.user;
 
     // Vérifier que l'utilisateur a le droit d'accéder à cet historique

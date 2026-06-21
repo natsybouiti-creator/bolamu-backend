@@ -42,7 +42,7 @@ async function createConflict({ patient_phone, partner_phone, partner_type, suje
         // Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('conflict.created', $1, 'conflicts', $2, $3)`,
+             VALUES ('conflict.created', $1, 'conflicts', $2, $3::jsonb)`,
             [patient_phone, conflictId, JSON.stringify({ reference, partner_phone, partner_type, sujet })]
         ).catch(() => {});
 
@@ -173,7 +173,7 @@ async function addMessage(conflict_id, sender_phone, sender_role, message, piece
         // Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('conflict.message', $1, 'conflict_messages', $2, $3)`,
+             VALUES ('conflict.message', $1, 'conflict_messages', $2, $3::jsonb)`,
             [sender_phone, conflict_id, JSON.stringify({ sender_role, message_length: message.length })]
         ).catch(() => {});
 
@@ -246,7 +246,7 @@ async function suspendrePartenaire(partner_phone, admin_phone, conflict_id) {
         // Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('partner.suspended', $1, 'users', NULL, $2)`,
+             VALUES ('partner.suspended', $1, 'users', NULL, $2::jsonb)`,
             [admin_phone, JSON.stringify({ partner_phone, conflict_id })]
         ).catch(() => {});
 

@@ -2,19 +2,11 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
+const logger = require('../config/logger');
 const validateMtnWebhook = require('../middleware/validateMtnWebhook');
 const { webhookLimiter } = require('../middleware/rateLimiter');
 
-// ─── Import middleware ────────────────────────────────────────────────────────
-let verifyToken;
-try {
-    const authMiddleware = require('../../middleware/auth.middleware');
-    verifyToken = authMiddleware.verifyToken || authMiddleware.authenticate || authMiddleware.default || authMiddleware;
-    if (typeof verifyToken !== 'function') throw new Error('verifyToken non trouvé');
-} catch(e) {
-    console.error('Auth middleware error:', e.message);
-    verifyToken = (req, res, next) => next();
-}
+const authMiddleware = require('../middleware/auth.middleware');
 
 // ─── CONFIG MOMO ─────────────────────────────────────────────────────────────
 const MOMO_BASE_URL = 'https://sandbox.momodeveloper.mtn.com';
@@ -105,7 +97,7 @@ async function handlePaymentSuccess(phone, referenceId) {
         // 4. Audit log
         await client.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('payment.success', $1, 'subscriptions', $2, $3)`,
+             VALUES ('payment.success', $1, 'subscriptions', $2, $3::jsonb)`,
             [phone, referenceId, JSON.stringify({
                 plan: payment.plan,
                 amount_fcfa: payment.amount_fcfa,
@@ -114,7 +106,7 @@ async function handlePaymentSuccess(phone, referenceId) {
         ).catch(() => {});
 
         await client.query('COMMIT');
-        console.log(`✅ Abonnement ${payment.plan} activé pour ${phone}`);
+        logger.info('[MoMo] Abonnement activé', { plan: payment.plan });
     } catch(e) {
         await client.query('ROLLBACK');
         console.error('handlePaymentSuccess error:', e.message);
@@ -123,7 +115,7 @@ async function handlePaymentSuccess(phone, referenceId) {
         try {
             await db.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-                 VALUES ('payment.error', $1, 'payments', $2, $3)`,
+                 VALUES ('payment.error', $1, 'payments', $2, $3::jsonb)`,
                 [phone, referenceId, JSON.stringify({ error: e.message, operator: 'mtn' })]
             );
         } catch (auditErr) {
@@ -135,7 +127,7 @@ async function handlePaymentSuccess(phone, referenceId) {
 }
 
 // ─── POST /request ────────────────────────────────────────────────────────────
-router.post('/request', verifyToken, async (req, res) => {
+router.post('/request', authMiddleware, async (req, res) => {
     try {
         const phone = req.user?.phone;
         if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
@@ -228,7 +220,7 @@ router.post('/request', verifyToken, async (req, res) => {
 });
 
 // ─── GET /status/:referenceId ─────────────────────────────────────────────────
-router.get('/status/:referenceId', verifyToken, async (req, res) => {
+router.get('/status/:referenceId', authMiddleware, async (req, res) => {
     try {
         const { referenceId } = req.params;
         const phone = req.user?.phone;
@@ -255,7 +247,7 @@ router.get('/status/:referenceId', verifyToken, async (req, res) => {
             );
             await db.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-                 VALUES ('payment.failed', $1, 'payments', $2, $3)`,
+                 VALUES ('payment.failed', $1, 'payments', $2, $3::jsonb)`,
                 [phone, referenceId, JSON.stringify({ operator: 'mtn' })]
             ).catch(() => {});
         }
@@ -308,7 +300,7 @@ router.post('/webhook', webhookLimiter, validateMtnWebhook, async (req, res) => 
             );
             await db.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-                 VALUES ('payment.failed', $1, 'payments', $2, $3)`,
+                 VALUES ('payment.failed', $1, 'payments', $2, $3::jsonb)`,
                 [payment.patient_phone, externalId, JSON.stringify({ operator: 'mtn', source: 'webhook' })]
             ).catch(() => {});
         }

@@ -4,11 +4,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const authMiddleware = require('../../middleware/auth.middleware');
-const { sendBolamuSms } = require('../services/sms.service');
+const authMiddleware = require('../middleware/auth.middleware');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { ok, err } = require('../utils/apiResponse');
 const { ROLES, PRO_ROLES } = require('../utils/constants');
+const { normalizePhone } = require('../utils/phone');
 
 function adminOnly(req, res, next) {
     if (req.user?.role !== 'admin') {
@@ -123,13 +123,17 @@ router.get('/stats/patients', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── PATIENTS VÉRIFIÉS (is_active = true) ───────────────────────────────────────
 router.get('/patients', authMiddleware, adminOnly, async (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         const result = await pool.query(
             `SELECT u.phone, u.full_name, u.first_name, u.last_name,
                     u.created_at, u.is_active, u.member_code
              FROM users u
              WHERE u.role = 'patient' AND u.is_active = true
-             ORDER BY u.created_at DESC`
+             ORDER BY u.created_at DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset]
         );
         ok(res, result.rows);
     } catch (e) {
@@ -139,14 +143,21 @@ router.get('/patients', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── STATS APPOINTMENTS ───────────────────────────────────────────────────────
 router.get('/stats/appointments', authMiddleware, adminOnly, async (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
-        const result = await pool.query(`SELECT * FROM appointments ORDER BY created_at DESC LIMIT 500`);
+        const result = await pool.query(
+            `SELECT * FROM appointments ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+            [limit, offset]
+        );
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.', []); }
 });
 
 // ─── COMPTES EN ATTENTE ───────────────────────────────────────────────────────
 router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         const result = await pool.query(
             `SELECT 
@@ -179,7 +190,9 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
                       d.specialty, d.status, d.member_code,
                       ph.status, ph.member_code, ph.name,
                       l.status, l.member_code, l.name
-             ORDER BY u.created_at DESC`
+             ORDER BY u.created_at DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset]
         );
         
         ok(res, result.rows);
@@ -190,8 +203,8 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── VALIDER UN COMPTE UTILISATEUR (route attendue par le frontend)
 router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
-    const { phone } = req.body;
-    if (!phone || !/^\+?[0-9]{8,15}$/.test(phone)) {
+    const phone = normalizePhone(req.body.phone || '');
+    if (!phone) {
         return err(res, 400, 'Numéro de téléphone invalide.');
     }
     try {
@@ -219,7 +232,7 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
             // await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3::jsonb)`,
             [`${row.role}.verified`, phone, JSON.stringify({ action: 'approve' })]
         ).catch(() => {});
         res.json({ success: true, message: 'Compte validé avec succès.' });
@@ -259,7 +272,7 @@ router.post('/reject-user', authMiddleware, adminOnly, async (req, res) => {
             // await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3::jsonb)`,
             [`${row.role}.rejected`, phone, JSON.stringify({ reason: reason || null })]
         ).catch(() => {});
         res.json({ success: true, message: 'Compte rejeté avec succès.' });
@@ -299,7 +312,7 @@ router.post('/suspend-user', authMiddleware, adminOnly, async (req, res) => {
             // await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3::jsonb)`,
             [`${row.role}.suspended`, phone, JSON.stringify({ reason })]
         ).catch(() => {});
         res.json({ success: true, message: 'Compte suspendu avec succès.' });
@@ -339,7 +352,7 @@ router.post('/ban-user', authMiddleware, adminOnly, async (req, res) => {
             // await sendBolamuSms(phone, msg);
         } catch(e) {}
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3::jsonb)`,
             [`${row.role}.banned`, phone, JSON.stringify({ reason })]
         ).catch(() => {});
         res.json({ success: true, message: 'Compte banni avec succès.' });
@@ -350,7 +363,7 @@ router.post('/ban-user', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── CHANGER STATUT UTILISATEUR ─────────────────────────────────────────────
 router.patch('/users/:phone/status', authMiddleware, adminOnly, async (req, res) => {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const { status, reason } = req.body;
     if (!['verified','rejected','suspended','pending'].includes(status)) {
         return res.status(400).json({ success: false, message: 'Statut invalide.' });
@@ -362,7 +375,7 @@ router.patch('/users/:phone/status', authMiddleware, adminOnly, async (req, res)
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Introuvable.' });
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, 'admin', 'users', $2, $3::jsonb)`,
             [`${result.rows[0].role}.${status}`, phone, JSON.stringify({ reason })]
         ).catch(() => {});
         res.json({ success: true, data: result.rows[0] });
@@ -400,7 +413,7 @@ router.patch('/fraud/:id/suspend', authMiddleware, adminOnly, async (req, res) =
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu : Votre compte a été suspendu suite à une activité suspecte détectée. Contactez le support.`); 
         } catch(e) {}
-        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.banned.fraud','admin','fraud_signals',$1,$2)`,
+        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.banned.fraud','admin','fraud_signals',$1,$2::jsonb)`,
             [parseInt(id), JSON.stringify({ phone })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} suspendu pour fraude 🔒` });
     } catch (e) {
@@ -449,7 +462,7 @@ router.get('/users', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── FICHE COMPLÈTE D'UN UTILISATEUR ─────────────────────────────────────────
 router.get('/users/:phone/profile', authMiddleware, adminOnly, async (req, res) => {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     try {
         const user = await pool.query(`SELECT * FROM users WHERE phone = $1`, [phone]);
         if (!user.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
@@ -487,7 +500,7 @@ router.get('/users/:phone/profile', authMiddleware, adminOnly, async (req, res) 
 
 // ─── BANNIR UN COMPTE ─────────────────────────────────────────────────────────
 router.patch('/users/:phone/ban', authMiddleware, adminOnly, async (req, res) => {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const { reason } = req.body;
     try {
         const result = await pool.query(
@@ -504,7 +517,7 @@ router.patch('/users/:phone/ban', authMiddleware, adminOnly, async (req, res) =>
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu : Votre compte a été suspendu. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`); 
         } catch(e) {}
-        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.banned','admin','users',$1,$2)`,
+        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.banned','admin','users',$1,$2::jsonb)`,
             [u.id, JSON.stringify({ reason, role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} banni 🔒`, data: u });
     } catch (e) {
@@ -514,7 +527,7 @@ router.patch('/users/:phone/ban', authMiddleware, adminOnly, async (req, res) =>
 
 // ─── RÉANIMER UN COMPTE ───────────────────────────────────────────────────────
 router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) => {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     try {
         const result = await pool.query(
             `UPDATE users SET is_active=TRUE, banned=FALSE, ban_reason=NULL, banned_at=NULL WHERE phone=$1 RETURNING id,phone,full_name,role`,
@@ -527,7 +540,7 @@ router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) 
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu : Votre compte a été réactivé. Vous pouvez vous reconnecter sur api.bolamu.co`); 
         } catch(e) {}
-        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.unbanned','admin','users',$1,$2)`,
+        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account.unbanned','admin','users',$1,$2::jsonb)`,
             [u.id, JSON.stringify({ role: u.role })]).catch(() => {});
         res.json({ success: true, message: `Compte ${phone} réactivé ✅`, data: u });
     } catch (e) {
@@ -537,7 +550,7 @@ router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) 
 
 // ─── OUVRIR / FERMER UN COMPTE (toggle) ──────────────────────────────────────
 router.patch('/users/:phone/toggle', authMiddleware, adminOnly, async (req, res) => {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     try {
         const result = await pool.query(
             `UPDATE users SET is_active = NOT is_active WHERE phone=$1 RETURNING id,phone,full_name,role,is_active`,
@@ -548,7 +561,7 @@ router.patch('/users/:phone/toggle', authMiddleware, adminOnly, async (req, res)
         if (u.role === 'doctor') await pool.query(`UPDATE doctors SET is_active=$1 WHERE phone=$2`, [u.is_active, phone]).catch(() => {});
         if (u.role === 'pharmacie') await pool.query(`UPDATE pharmacies SET is_active=$1 WHERE phone=$2`, [u.is_active, phone]).catch(() => {});
         if (u.role === 'laboratoire') await pool.query(`UPDATE laboratories SET is_active=$1 WHERE phone=$2`, [u.is_active, phone]).catch(() => {});
-        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1,'admin','users',$2,$3)`,
+        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1,'admin','users',$2,$3::jsonb)`,
             [u.is_active ? 'account.opened' : 'account.suspended', u.id, JSON.stringify({ phone, role: u.role })]).catch(() => {});
         res.json({ success: true, data: u, message: u.is_active ? 'Compte réactivé ✅' : 'Compte suspendu 🔒' });
     } catch (e) {
@@ -574,7 +587,7 @@ router.patch('/config/:key', authMiddleware, adminOnly, async (req, res) => {
             [value, key]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Clé introuvable.' });
-        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('config.updated','admin','platform_config',NULL,$1)`,
+        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('config.updated','admin','platform_config',NULL,$1::jsonb)`,
             [JSON.stringify({ config_key: key, config_value: value })]).catch(() => {});
         res.json({ success: true, data: result.rows[0], message: `${key} mis à jour → ${value}` });
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
@@ -754,12 +767,15 @@ router.get('/laboratories', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── TOUS LES RDV ─────────────────────────────────────────────────────────────
 router.get('/appointments', authMiddleware, adminOnly, async (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         const result = await pool.query(
             `SELECT a.*, d.full_name as doctor_name, d.specialty, d.phone as doctor_phone
              FROM appointments a
              LEFT JOIN doctors d ON d.id = a.doctor_id
-             ORDER BY a.created_at DESC LIMIT 500`
+             ORDER BY a.created_at DESC LIMIT $1 OFFSET $2`,
+            [limit, offset]
         );
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
@@ -767,12 +783,15 @@ router.get('/appointments', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── TOUTES LES PRESCRIPTIONS ─────────────────────────────────────────────────
 router.get('/prescriptions', authMiddleware, adminOnly, async (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         const result = await pool.query(
             `SELECT p.*, d.full_name as doctor_name
              FROM prescriptions p
              LEFT JOIN doctors d ON d.phone = p.doctor_phone
-             ORDER BY p.created_at DESC LIMIT 500`
+             ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`,
+            [limit, offset]
         );
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
@@ -796,12 +815,15 @@ router.get('/payments', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── JOURNAL AUDIT ────────────────────────────────────────────────────────────
 router.get('/audit', authMiddleware, adminOnly, async (req, res) => {
-    const { event_type, limit = 300 } = req.query;
+    const { event_type } = req.query;
+    const limit = Math.min(parseInt(req.query.limit) || 300, 1000);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         let query = `SELECT * FROM audit_log`;
         const params = [];
         if (event_type) { query += ` WHERE event_type = $1`; params.push(event_type); }
-        query += ` ORDER BY created_at DESC LIMIT ${parseInt(limit)}`;
+        query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        params.push(limit, offset);
         const result = await pool.query(query, params);
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }
@@ -830,7 +852,7 @@ router.post('/credits/grant', authMiddleware, adminOnly, async (req, res) => {
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu Credits : +${amount} crédits ajoutés ! Motif : ${reason}. Consultez votre dashboard.`); 
         } catch(e) {}
-        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('credits.granted','admin','credits',NULL,$1)`,
+        await pool.query(`INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('credits.granted','admin','credits',NULL,$1::jsonb)`,
             [JSON.stringify({ phone, amount, reason })]).catch(() => {});
         res.json({ success: true, message: `${amount} crédits ajoutés à ${phone}` });
     } catch (e) { res.status(500).json({ success: false, message: 'Erreur : ' + e.message }); }
@@ -838,6 +860,8 @@ router.post('/credits/grant', authMiddleware, adminOnly, async (req, res) => {
 
 // ─── CRÉDITS : LISTE TOUS LES COMPTES ────────────────────────────────────────
 router.get('/credits', authMiddleware, adminOnly, async (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
         const result = await pool.query(
             `SELECT c.*, COALESCE(u.full_name, d.full_name, ph.name, l.name) as display_name
@@ -846,7 +870,9 @@ router.get('/credits', authMiddleware, adminOnly, async (req, res) => {
              LEFT JOIN doctors d ON d.phone = c.phone
              LEFT JOIN pharmacies ph ON ph.phone = c.phone
              LEFT JOIN laboratories l ON l.phone = c.phone
-             ORDER BY c.balance DESC`
+             ORDER BY c.balance DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset]
         );
         ok(res, result.rows);
     } catch (e) { err(res, 500, 'Erreur serveur.'); }

@@ -5,6 +5,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
+const { normalizePhone } = require('../utils/phone');
 const {
     createConflictController,
     getConflict,
@@ -70,7 +71,7 @@ router.get('/conflicts', authMiddleware, async (req, res) => {
 // Patient : voir ses propres conflits (par phone via query param)
 router.get('/patient', authMiddleware, async (req, res) => {
     try {
-        const phone = req.query.phone || req.user.phone;
+        const phone = normalizePhone(req.query.phone || '') || req.user.phone;
         const result = await pool.query(
             `SELECT id, reference, sujet, description, statut, priorite, created_at, resolved_at, partner_type, partner_phone
              FROM conflicts 

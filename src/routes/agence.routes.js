@@ -6,13 +6,17 @@ const router  = express.Router();
 const pool     = require('../config/db');
 const bcrypt   = require('bcrypt');
 const jwt       = require('jsonwebtoken');
+const { normalizePhone } = require('../utils/phone');
 const authMiddleware = require('../middleware/auth.middleware');
 const crypto = require('crypto');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
+if (!process.env.JWT_SECRET) {
+    throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Libellés commerciaux -> plan réel (enum subscription_plan)
 const PLAN_MAP = { moto: 'essentiel', ndeko: 'standard', libota: 'premium' };
@@ -117,7 +121,7 @@ router.get('/verifier-adherent', requireAgent, async (req, res) => {
 // ─── GET /client?phone= ──────────────────────────────────────────────────────
 router.get('/client', requireAgent, async (req, res) => {
   try {
-    const { phone } = req.query;
+    const phone = normalizePhone(req.query.phone || '');
     if (!phone) return res.status(400).json({ success: false, message: 'Numéro requis' });
     const result = await pool.query(
       `SELECT u.id, u.full_name, u.phone, u.statut_abonnement,

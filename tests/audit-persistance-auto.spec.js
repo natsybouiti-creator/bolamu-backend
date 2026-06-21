@@ -145,12 +145,14 @@ const cases = [
     after: regsToday,
     action: async (page) => {
       await gotoFresh(page);
-      // Recupere les ids d'evenements rendus sur la page
-      const ids = await page
+      // Recupere les ids (numeriques, = dbId) d'evenements rendus sur la page.
+      // NB: le bouton existe en double (accueil + carte) -> on deduplique.
+      const rawIds = await page
         .locator('[data-testid^="participate-"]')
         .evaluateAll((els) =>
           els.map((e) => e.getAttribute('data-testid').replace('participate-', ''))
         );
+      const ids = [...new Set(rawIds.filter((x) => x && /^\d+$/.test(x)))];
       if (!ids.length) throw new Error('aucun evenement rendu sur le dashboard');
       // Choisit un evenement causalement testable : non deja inscrit
       let target = null;
@@ -162,7 +164,8 @@ const cases = [
         if (r.rowCount === 0) { target = id; break; }
       }
       if (!target) throw new Error('tous les evenements rendus sont deja inscrits');
-      await page.click(`[data-testid="participate-${target}"]`);
+      // .first() : le testid existe en double (accueil + carte) -> evite le strict-mode.
+      await page.locator(`[data-testid="participate-${target}"]`).first().click();
       await page.waitForTimeout(2500);
     }
   },

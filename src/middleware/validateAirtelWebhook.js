@@ -36,32 +36,15 @@ function validateAirtelWebhook(req, res, next) {
         hmac.update(req.body); // req.body est déjà un buffer grâce à express.raw()
         const calculatedSignature = hmac.digest('hex');
 
-        // Comparaison timing-safe pour éviter les attaques par timing
         const signatureBuffer = Buffer.from(signature, 'hex');
         const calculatedBuffer = Buffer.from(calculatedSignature, 'hex');
 
-        if (signatureBuffer.length !== calculatedBuffer.length) {
-            console.error('[Webhook Airtel] Longueur signature incorrecte');
-            return res.status(401).json({ 
-                success: false, 
-                message: 'Signature invalide' 
-            });
-        }
-
-        // Comparaison byte par byte avec timing-safe
-        let isValid = true;
-        for (let i = 0; i < signatureBuffer.length; i++) {
-            if (signatureBuffer[i] !== calculatedBuffer[i]) {
-                isValid = false;
-                break;
-            }
-        }
-
-        if (!isValid) {
+        if (signatureBuffer.length !== calculatedBuffer.length ||
+            !crypto.timingSafeEqual(signatureBuffer, calculatedBuffer)) {
             console.error('[Webhook Airtel] Signature invalide');
-            return res.status(401).json({ 
-                success: false, 
-                message: 'Signature invalide - Requête non autorisée' 
+            return res.status(401).json({
+                success: false,
+                message: 'Signature invalide - Requête non autorisée'
             });
         }
 

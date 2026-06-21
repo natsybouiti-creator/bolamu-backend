@@ -1,4 +1,6 @@
 const pool = require('../config/db');
+const logger = require('../config/logger');
+const { normalizePhone } = require('../utils/phone');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -44,7 +46,7 @@ async function createLabPrescription(req, res) {
         );
 
         // Notification SMS au laboratoire (optionnel - à implémenter selon besoin)
-        console.log(`📋 Prescription labo créée pour patient ${patient_phone} par ${doctorPhone} - Code: ${prescriptionCode} - Priorité: ${priorite || 'normale'}`);
+        logger.info('[LAB] Prescription créée', { code: prescriptionCode, priorite: priorite || 'normale' });
 
         return res.status(201).json({
             success: true,
@@ -122,7 +124,7 @@ async function submitLabResults(req, res) {
             [labPhone, lab_prescription_id]
         );
 
-        console.log(`🔬 Résultats labo déposés pour patient ${patient_phone} par ${labPhone}`);
+        logger.info('[LAB] Résultats déposés', { lab_prescription_id });
 
         // Award Zora points for lab analysis
         try {
@@ -190,7 +192,7 @@ async function submitLabResults(req, res) {
 
 // ─── RÉCUPÉRER LES RÉSULTATS LABO D'UN PATIENT (patient, médecin, laborantin) ───
 async function getLabResultsByPatient(req, res) {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const userPhone = req.user?.phone;
     const userRole = req.user?.role;
 

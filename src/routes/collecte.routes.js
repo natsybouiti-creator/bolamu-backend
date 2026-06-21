@@ -163,7 +163,7 @@ router.post('/ovp/initier', authMiddleware, idempotencyMiddleware('collecte-ovp'
     await db.query(
       `INSERT INTO audit_log 
        (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('ovp_initie', $1, 'ovp_documents', $1, $2)`,
+       VALUES ('ovp_initie', $1, 'ovp_documents', $1, $2::jsonb)`,
       [phone, JSON.stringify({ montant: montantMensuel, plan })]
     );
 
@@ -345,7 +345,7 @@ router.post('/familial/ajouter', authMiddleware, async (req, res) => {
     await db.query(
       `INSERT INTO audit_log 
        (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('beneficiaire_ajoute', $1, 'beneficiaires_familiaux', $2, $3)`,
+       VALUES ('beneficiaire_ajoute', $1, 'beneficiaires_familiaux', $2, $3::jsonb)`,
       [payeur_phone, benPhone, 
        JSON.stringify({ beneficiaire: benPhone })]
     );
@@ -500,7 +500,7 @@ router.post('/sepa/initier', authMiddleware, idempotencyMiddleware('collecte-sep
     await db.query(
       `INSERT INTO audit_log 
        (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('sepa_initie', $1, 'bank_transfer_requests', $1, $2)`,
+       VALUES ('sepa_initie', $1, 'bank_transfer_requests', $1, $2::jsonb)`,
       [phone, JSON.stringify({ ref, montantFcfa, montantEur, frequence })]
     );
 
@@ -686,7 +686,7 @@ router.patch('/admin/ovp/valider/:user_phone',
     await db.query(
       `INSERT INTO audit_log 
        (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('ovp_valide', $1, 'ovp_documents', $2, $3)`,
+       VALUES ('ovp_valide', $1, 'ovp_documents', $2, $3::jsonb)`,
       [admin_phone, user_phone, 
        JSON.stringify({ action: 'validation_ovp' })]
     );
@@ -742,7 +742,7 @@ router.patch('/admin/sepa/valider/:user_phone',
     await db.query(
       `INSERT INTO audit_log 
        (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('sepa_valide', $1, 'ovp_documents', $2, $3)`,
+       VALUES ('sepa_valide', $1, 'ovp_documents', $2, $3::jsonb)`,
       [admin_phone, user_phone, 
        JSON.stringify({ action: 'validation_sepa' })]
     );

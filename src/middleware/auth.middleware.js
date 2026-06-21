@@ -1,7 +1,10 @@
 ﻿const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
+if (!process.env.JWT_SECRET) {
+    throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // 1. Middleware de base : Vérifie si l'utilisateur est connecté
 async function authMiddleware(req, res, next) {
@@ -72,9 +75,6 @@ authMiddleware.requireAdmin = async (req, res, next) => {
         token = req.query.token;
     }
     
-    // Log temporaire pour debug
-    console.log('[REQUIRE_ADMIN] Token from header:', !!authHeader, 'Token from cookie:', !!(req.cookies && req.cookies.bolamu_admin_token), 'Token from query:', !!req.query.token, 'Token present:', !!token);
-    
     if (!token) {
         return res.status(401).json({
             success: false,
@@ -85,9 +85,7 @@ authMiddleware.requireAdmin = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.user = decoded;
-        
-        console.log('[REQUIRE_ADMIN] Decoded user:', { phone: decoded.phone, role: decoded.role });
-        
+
         if (!rolesAutorises.includes(decoded.role)) {
             return res.status(403).json({ 
                 success: false, 
@@ -121,7 +119,7 @@ authMiddleware.requireSecretary = (req, res, next) => {
 // 4. Middleware pour l'accès RH Grand Compte
 authMiddleware.requireRH = (req, res, next) => {
     if (!req.user) return res.status(401).json({ success: false, message: 'Non authentifié' });
-    if (!['rh', 'admin'].includes(req.user.role)) {
+    if (!['company_rh', 'admin'].includes(req.user.role)) {
         return res.status(403).json({ success: false, message: 'Accès réservé aux RH entreprise' });
     }
     // Attacher company_id depuis le token

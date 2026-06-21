@@ -6,6 +6,11 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const secretary = require('../controllers/secretary.controller');
 const pool = require('../config/db');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
+if (!process.env.JWT_SECRET) throw new Error('[FATAL] JWT_SECRET non défini.');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // ============================================================
 // ROUTES SECRÉTAIRE
@@ -33,19 +38,11 @@ router.post('/login', async (req, res) => {
 
         const user = result.rows[0];
 
-        // Vérifier le mot de passe
-        console.log('[SECRETARY LOGIN DEBUG] phone:', phone);
-        console.log('[SECRETARY LOGIN DEBUG] password reçu:', password ? 'OUI (longueur: ' + password.length + ')' : 'NON/VIDE');
-        console.log('[SECRETARY LOGIN DEBUG] hash en base:', user.password_hash ? user.password_hash.substring(0, 20) : 'NULL');
-        const bcrypt = require('bcrypt');
         const valid = await bcrypt.compare(password, user.password_hash);
-        console.log('[SECRETARY LOGIN DEBUG] bcrypt.compare result:', valid);
         if (!valid) {
             return res.status(401).json({ success: false, message: 'Mot de passe incorrect' });
         }
 
-        const jwt = require('jsonwebtoken');
-        const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
 
         const token = jwt.sign(
             { id: user.id, phone: user.phone, role: 'secretaire', clinic_id: user.clinic_id },
@@ -93,14 +90,11 @@ router.post('/rh/login', async (req, res) => {
         const user = result.rows[0];
 
         // Vérifier le mot de passe
-        const bcrypt = require('bcrypt');
         const valid = await bcrypt.compare(password, user.password_hash);
         if (!valid) {
             return res.status(401).json({ success: false, message: 'Mot de passe incorrect' });
         }
 
-        const jwt = require('jsonwebtoken');
-        const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
 
         const token = jwt.sign(
             { id: user.id, phone: user.phone, role: 'rh', company_id: user.company_id },
@@ -223,7 +217,7 @@ router.patch('/rdv/:id/status', authMiddleware, authMiddleware.requireSecretary,
 
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('appointment.status_updated', $1, 'appointments', $2, $3)`,
+       VALUES ('appointment.status_updated', $1, 'appointments', $2, $3::jsonb)`,
       [req.user.phone, appointmentId, JSON.stringify({ status })]
     ).catch(() => {});
 

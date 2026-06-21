@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const authMiddleware = require('../middleware/auth.middleware');
+const { normalizePhone } = require('../utils/phone');
 
 // GET /api/v1/map/intervenants — liste tous les intervenants avec coordonnées
 router.get('/intervenants', async (req, res) => {
@@ -49,10 +51,11 @@ router.get('/intervenants', async (req, res) => {
 });
 
 // PATCH /api/v1/map/position — intervenant met à jour sa position
-router.patch('/position', async (req, res) => {
-  const { phone, latitude, longitude, address } = req.body;
-  if (!phone || !latitude || !longitude) {
-    return res.status(400).json({ success: false, message: 'phone, latitude et longitude requis' });
+router.patch('/position', authMiddleware, async (req, res) => {
+  const phone = normalizePhone(req.user.phone);
+  const { latitude, longitude, address } = req.body;
+  if (!latitude || !longitude) {
+    return res.status(400).json({ success: false, message: 'latitude et longitude requis' });
   }
   try {
     await pool.query(

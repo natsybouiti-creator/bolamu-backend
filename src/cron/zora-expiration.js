@@ -83,7 +83,7 @@ async function runExpiration() {
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('zora_expiration', 'system', 'zora_ledger', NULL, $1)`,
+       VALUES ('zora_expiration', 'system', 'zora_ledger', NULL, $1::jsonb)`,
       [JSON.stringify({
         expired_count: expireResult.rows.length,
         affected_phones: Array.from(affectedPhones),

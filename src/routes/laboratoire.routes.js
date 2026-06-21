@@ -6,6 +6,7 @@ const router = express.Router();
 const multer = require('multer');
 const { registerLaboratoire, getLaboratoireProfile, updateLaboratoireStatus, getLaboratoires, updateLaboratoireProfile } = require('../controllers/laboratoire.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const pool = require('../config/db');
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -27,9 +28,13 @@ router.patch('/profil', authMiddleware, updateLaboratoireProfile);
 router.get('/', getLaboratoires);
 
 router.get('/all', authMiddleware, async (req, res) => {
-    const pool = require('../config/db');
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = parseInt(req.query.offset) || 0;
     try {
-        const result = await pool.query(`SELECT * FROM users WHERE role = 'laboratoire' ORDER BY created_at DESC`);
+        const result = await pool.query(
+            `SELECT * FROM users WHERE role = 'laboratoire' ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+            [limit, offset]
+        );
         res.json({ success: true, data: result.rows });
     } catch (e) { res.status(500).json({ success: false, message: 'Erreur serveur.' }); }
 });

@@ -71,8 +71,13 @@ router.get('/content-blocks', async (req, res) => {
 
 // GET /api/v1/articles/admin/all
 router.get('/admin/all', authMiddleware, requireContentAdmin, async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+  const offset = parseInt(req.query.offset) || 0;
   try {
-    const { rows } = await pool.query('SELECT * FROM articles ORDER BY created_at DESC');
+    const { rows } = await pool.query(
+      'SELECT * FROM articles ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+      [limit, offset]
+    );
     res.json({ success: true, articles: rows });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -100,7 +105,7 @@ router.put('/admin/content-blocks/:key', authMiddleware, requireContentAdmin, as
     );
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('content.update',$1,'content_blocks',0,$2)`,
+       VALUES ('content.update',$1,'content_blocks',0,$2::jsonb)`,
       [req.user.phone, JSON.stringify({ key })]
     ).catch(() => {});
     res.json({ success: true });
@@ -138,7 +143,7 @@ router.post('/', authMiddleware, requireContentAdmin, async (req, res) => {
     );
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('article.create',$1,'articles',$2,$3)`,
+       VALUES ('article.create',$1,'articles',$2,$3::jsonb)`,
       [req.user.phone, rows[0].id, JSON.stringify({ title })]
     ).catch(() => {});
     res.json({ success: true, article: rows[0] });
@@ -171,7 +176,7 @@ router.delete('/:id', authMiddleware, requireContentAdmin, async (req, res) => {
     if (!rows[0]) return res.status(404).json({ success: false, message: 'Article introuvable' });
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('article.delete',$1,'articles',$2,$3)`,
+       VALUES ('article.delete',$1,'articles',$2,$3::jsonb)`,
       [req.user.phone, rows[0].id, JSON.stringify({ title: rows[0].title })]
     ).catch(() => {});
     res.json({ success: true });

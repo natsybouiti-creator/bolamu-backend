@@ -1,18 +1,21 @@
 const pool = require('../config/db');
+const logger = require('../config/logger');
 const { generateOtp, simulateSendOtp } = require('../utils/otp');
 const { hashText } = require('../utils/hash');
 const { normalizePhone } = require('../utils/phone');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const { sendBolamuSms } = require('../services/sms.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { buildWameLink } = require('../services/wame.service');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
-const ACCESS_TOKEN_EXPIRES = '7d';
+if (!process.env.JWT_SECRET) {
+    throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');
+}
+const JWT_SECRET = process.env.JWT_SECRET;
+const ACCESS_TOKEN_EXPIRES = '15m';
 const REFRESH_TOKEN_EXPIRES = '7d';
 
 function generatePassword(length = 8) {
@@ -122,7 +125,7 @@ async function login(req, res) {
 
         // Refresh token (7 jours)
         const refreshToken = crypto.randomBytes(64).toString('hex');
-        const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+        const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
 
         // Stocker le refresh token
@@ -220,7 +223,7 @@ async function registerPatient(req, res) {
 
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
-        console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
+        logger.info('[REGISTER] Compte créé', { phone: normalizedPhone });
 
         // Upload photo sur Cloudinary si fournie
         let photoUrl = null;
@@ -289,7 +292,7 @@ async function registerPatient(req, res) {
             const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
             await pool.query(
-                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3)`,
+                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3::jsonb)`,
                 [normalizedPhone, user.id, JSON.stringify({ member_code, photo_url: photoUrl })]
             ).catch(() => {});
 
@@ -340,7 +343,7 @@ async function registerDoctor(req, res) {
 
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
-        console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
+        logger.info('[REGISTER] Compte créé', { phone: normalizedPhone });
 
         let newUser;
         const client = await pool.connect();
@@ -417,7 +420,7 @@ async function registerDoctor(req, res) {
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.doctor', $1, 'users', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.doctor', $1, 'users', $2, $3::jsonb)`,
             [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
         ).catch(() => {});
 
@@ -461,7 +464,7 @@ async function registerPharmacie(req, res) {
 
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
-        console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
+        logger.info('[REGISTER] Compte créé', { phone: normalizedPhone });
 
         let newUser;
         const client = await pool.connect();
@@ -523,7 +526,7 @@ async function registerPharmacie(req, res) {
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.pharmacie', $1, 'users', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.pharmacie', $1, 'users', $2, $3::jsonb)`,
             [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
         ).catch(() => {});
 
@@ -567,7 +570,7 @@ async function registerLaboratoire(req, res) {
 
         const initialPassword = generatePassword();
         const passwordHash = await bcrypt.hash(initialPassword, 10);
-        console.log(`[REGISTER] Compte créé - Phone: ${normalizedPhone} - Password: ${initialPassword}`);
+        logger.info('[REGISTER] Compte créé', { phone: normalizedPhone });
 
         let newUser;
         const client = await pool.connect();
@@ -629,7 +632,7 @@ async function registerLaboratoire(req, res) {
         const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role, is_active: user.is_active, banned: user.banned || false }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
 
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.laboratoire', $1, 'users', $2, $3)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.laboratoire', $1, 'users', $2, $3::jsonb)`,
             [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
         ).catch(() => {});
 
@@ -654,19 +657,13 @@ async function refreshToken(req, res) {
     }
 
     try {
-        // Récupérer tous les refresh tokens non révoqués
+        const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
         const tokensResult = await pool.query(
-            `SELECT * FROM refresh_tokens WHERE is_revoked = FALSE AND expires_at > NOW()`
+            `SELECT * FROM refresh_tokens WHERE token_hash = $1 AND is_revoked = FALSE AND expires_at > NOW()`,
+            [tokenHash]
         );
 
-        let validToken = null;
-        for (const row of tokensResult.rows) {
-            const isValid = await bcrypt.compare(refreshToken, row.token_hash);
-            if (isValid) {
-                validToken = row;
-                break;
-            }
-        }
+        const validToken = tokensResult.rows[0] || null;
 
         if (!validToken) {
             return res.status(401).json({ success: false, message: 'Refresh token invalide ou expiré.' });
@@ -719,26 +716,15 @@ async function logout(req, res) {
     }
 
     try {
-        // Récupérer tous les refresh tokens non révoqués
-        const tokensResult = await pool.query(
-            `SELECT * FROM refresh_tokens WHERE is_revoked = FALSE`
+        const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+        const result = await pool.query(
+            `UPDATE refresh_tokens SET is_revoked = TRUE
+             WHERE token_hash = $1 AND is_revoked = FALSE
+             RETURNING id`,
+            [tokenHash]
         );
 
-        let found = false;
-        for (const row of tokensResult.rows) {
-            const isValid = await bcrypt.compare(refreshToken, row.token_hash);
-            if (isValid) {
-                // Révoquer le token (soft delete)
-                await pool.query(
-                    `UPDATE refresh_tokens SET is_revoked = TRUE WHERE id = $1`,
-                    [row.id]
-                );
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
+        if (!result.rows.length) {
             return res.status(401).json({ success: false, message: 'Refresh token invalide.' });
         }
 

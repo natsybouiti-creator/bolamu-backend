@@ -21,7 +21,10 @@ const {
     logout
 } = require('../controllers/auth.controller');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'bcbd5ea11381ab60f10bae67784495cc2b3ed3fbcbdf353d913d7d454ff33f35';
+if (!process.env.JWT_SECRET) {
+    throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 const ACCESS_TOKEN_EXPIRES = '15m';
 const REFRESH_TOKEN_EXPIRES = '7d';
 const ADMIN_ROLES = ['admin', 'content_admin'];
@@ -33,10 +36,10 @@ router.post('/login', strictLimiter, login);
 router.post('/forgot-password', strictLimiter, forgotPassword);
 
 // ─── REGISTER ─────────────────────────────────────────────────────────────────
-router.post('/register/patient',     registerPatient);
-router.post('/register/doctor',      registerDoctor);
-router.post('/register/pharmacie',   registerPharmacie);
-router.post('/register/laboratoire', registerLaboratoire);
+router.post('/register/patient',     strictLimiter, registerPatient);
+router.post('/register/doctor',      strictLimiter, registerDoctor);
+router.post('/register/pharmacie',   strictLimiter, registerPharmacie);
+router.post('/register/laboratoire', strictLimiter, registerLaboratoire);
 
 // ─── REFRESH TOKEN & LOGOUT ─────────────────────────────────────────────────────
 router.post('/refresh', refreshToken);
@@ -103,7 +106,7 @@ router.get('/onboarding/:token', async (req, res) => {
 });
 
 // ─── LOGIN ADMIN SÉCURISÉ ─────────────────────────────────────────────────────
-router.post('/admin-login', async (req, res) => {
+router.post('/admin-login', strictLimiter, async (req, res) => {
     const { phone, password } = req.body;
 
     if (!phone || !password) {
@@ -145,7 +148,7 @@ router.post('/admin-login', async (req, res) => {
         if (!passwordOk) {
             await pool.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) 
-                 VALUES ('admin.login_failed', $1, 'users', $2, $3)`,
+                 VALUES ('admin.login_failed', $1, 'users', $2, $3::jsonb)`,
                 [normalizedPhone, user.id, JSON.stringify({ reason: 'wrong_password' })]
             ).catch(() => {});
             return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });
@@ -174,7 +177,7 @@ router.post('/admin-login', async (req, res) => {
         // Audit Log
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) 
-             VALUES ('admin.login_success', $1, 'users', $2, $3)`,
+             VALUES ('admin.login_success', $1, 'users', $2, $3::jsonb)`,
             [normalizedPhone, user.id, JSON.stringify({ role: user.role, timestamp: new Date().toISOString() })]
         ).catch(() => {});
 
@@ -209,10 +212,14 @@ router.get('/me', authMiddleware, (req, res) => {
   });
 });
 
-// ─── POST /api/v1/auth/set-password-temp — usage interne uniquement ─────────────
-router.post('/set-password-temp', async (req, res) => {
+// ─── POST /api/v1/auth/set-password-temp — admin uniquement ─────────────────────
+router.post('/set-password-temp', strictLimiter, authMiddleware, async (req, res) => {
+  if (!ADMIN_ROLES.includes(req.user?.role)) {
+    return res.status(403).json({ success: false, message: 'Accès réservé aux admins.' });
+  }
+
   const { phone, password } = req.body;
-  const normalizedPhone = normalizePhone(phone);
+  const normalizedPhone = normalizePhone(phone || '');
 
   if (!phone || !password) {
     return res.status(400).json({ success: false, message: 'Téléphone et mot de passe requis.' });

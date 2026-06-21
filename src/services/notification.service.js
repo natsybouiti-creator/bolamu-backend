@@ -5,7 +5,6 @@ const pool = require('../config/db');
 const logger = require('../config/logger');
 const { sendToUser } = require('./push.service');
 const { sendMessage } = require('./whatsapp.service');
-const { sendBolamuSms } = require('./sms.service');
 const { sendWhatsAppTemplate } = require('./whatsapp.service');
 
 // Fonction centrale de notification

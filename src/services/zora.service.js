@@ -194,7 +194,7 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     // ÉTAPE 8 — AUDIT
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('zora_award', $1, 'zora_ledger', NULL, $2)`,
+       VALUES ('zora_award', $1, 'zora_ledger', NULL, $2::jsonb)`,
       [phone, JSON.stringify({
         action_type,
         proof_class,

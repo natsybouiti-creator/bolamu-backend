@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
-const { sendBolamuSms } = require('../services/sms.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
@@ -92,7 +91,7 @@ router.post('/secretaires', authMiddleware, partnerOnly, async (req, res) => {
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('secretaire_cree', $1, 'secretaires', $2, $3)
+            VALUES ('secretaire_cree', $1, 'secretaires', $2, $3::jsonb)
         `, [partenaire_phone, phone, JSON.stringify({ nom, prenom })]);
 
         await client.query('COMMIT');
@@ -148,7 +147,7 @@ router.patch('/secretaires/:phone/toggle', authMiddleware, partnerOnly, async (r
     try {
         await client.query('BEGIN');
 
-        const { phone } = req.params;
+        const phone = normalizePhone(req.params.phone || '');
         const partenaire_phone = req.user.phone;
 
         // Toggle is_active
@@ -174,7 +173,7 @@ router.patch('/secretaires/:phone/toggle', authMiddleware, partnerOnly, async (r
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ($1, $2, 'secretaires', $3, $4)
+            VALUES ($1, $2, 'secretaires', $3, $4::jsonb)
         `, [newStatus ? 'secretaire_active' : 'secretaire_desactive', partenaire_phone, phone, JSON.stringify({ new_status: newStatus })]);
 
         await client.query('COMMIT');

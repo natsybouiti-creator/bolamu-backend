@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const authMiddleware = require('../../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 
 function adminOnly(req, res, next) {
     if (req.user?.role !== 'admin') {
@@ -108,7 +108,7 @@ router.post('/initiate', authMiddleware, adminOnly, async (req, res) => {
         // Audit log
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('payout.initiated', $1, 'doctor_payouts', $2, $3)`,
+             VALUES ('payout.initiated', $1, 'doctor_payouts', $2, $3::jsonb)`,
             [req.user.phone, payout.rows[0].id.toString(), JSON.stringify({
                 doctor_phone, amount_fcfa, period_start, period_end
             })]
@@ -141,7 +141,7 @@ router.patch('/:id/confirm', authMiddleware, adminOnly, async (req, res) => {
         // Audit log
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('payout.confirmed', $1, 'doctor_payouts', $2, $3)`,
+             VALUES ('payout.confirmed', $1, 'doctor_payouts', $2, $3::jsonb)`,
             [req.user.phone, id, JSON.stringify({ momo_reference })]
         ).catch(() => {});
 

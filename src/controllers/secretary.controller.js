@@ -3,6 +3,7 @@
 // ============================================================
 const pool = require('../config/db');
 const bcrypt = require('bcrypt');
+const { normalizePhone } = require('../utils/phone');
 
 // ─── GET AGENDA MÉDECIN ─────────────────────────────────────────────────────────────
 async function getAgenda(req, res) {
@@ -397,7 +398,7 @@ async function createSecretary(req, res) {
 // ─── POST ASSIGNER SECRÉTAIRE À PARTENAIRE (ADMIN) ─────────────────────────────────────
 async function assignSecretary(req, res) {
     try {
-        const { phone } = req.params;
+        const phone = normalizePhone(req.params.phone || '');
         const { partner_type, partner_id, zone } = req.body;
 
         if (!partner_type) {

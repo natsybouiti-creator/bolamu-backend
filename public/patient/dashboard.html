@@ -1958,7 +1958,7 @@ async function loadConstantes() {
     if (!phone) return;
     const token = localStorage.getItem('bolamu_patient_token');
     try {
-        const res = await fetch(`/api/v1/patients/constantes/${encodeURIComponent(phone)}`, {
+        const res = await fetch(`https://api.bolamu.co/api/v1/patients/constantes/${encodeURIComponent(phone)}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -2027,7 +2027,7 @@ async function saveConstantes() {
     if (cp) body.contact_urgence_phone = cp;
     if (cl) body.contact_urgence_lien = cl;
     try {
-        const res = await fetch('/api/v1/patients/constantes', {
+        const res = await fetch('https://api.bolamu.co/api/v1/patients/constantes', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(body)

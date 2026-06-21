@@ -59,7 +59,7 @@
           <div class="error-text">Veuillez scanner un QR code Bolamu valide.</div>
         </div>`;
     }else{
-      fetch(`/api/v1/qr/urgence?token=${token}`)
+      fetch(`https://api.bolamu.co/api/v1/qr/urgence?token=${token}`)
         .then(res=>res.json())
         .then(data=>{
           if(!data.success){

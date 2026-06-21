@@ -8,6 +8,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const { isSSP, enregistrerHorsCatalogue, getStatsPartenaire, genererExportPaie, getStatsAdmin } = require('../services/smartflow.service');
 const { ok, err } = require('../utils/apiResponse');
+const { normalizePhone } = require('../utils/phone');
 const { ROLES } = require('../utils/constants');
 
 // Middleware pour vérifier que l'utilisateur est un prestataire (pharmacie, labo, médecin)
@@ -451,7 +452,7 @@ router.get('/smartflow/rh/export/:mois', authMiddleware, rhOnly, async (req, res
  * Détail des actes d'un employé
  */
 router.get('/smartflow/rh/employe/:phone/actes', authMiddleware, rhOnly, async (req, res) => {
-  const { phone } = req.params;
+  const phone = normalizePhone(req.params.phone || '');
   const { mois } = req.query;
 
   const pool = require('../config/db');
@@ -474,7 +475,7 @@ router.get('/smartflow/rh/employe/:phone/actes', authMiddleware, rhOnly, async (
 
     // Vérifier que l'employé appartient à l'entreprise
     const employeeResult = await pool.query(
-      `SELECT ce.*, u.full_name
+      `SELECT ce.*, u.member_code
        FROM company_employees ce
        LEFT JOIN users u ON ce.employee_phone = u.phone
        WHERE ce.employee_phone = $1 AND ce.contract_id = $2 AND ce.status = 'active'`,
@@ -871,11 +872,10 @@ router.get('/admin/smartflow/stats', authMiddleware, adminOnly, async (req, res)
  * Statistiques détaillées d'un partenaire spécifique
  */
 router.get('/admin/smartflow/partenaire/:phone', authMiddleware, adminOnly, async (req, res) => {
-  const { phone } = req.params;
+  const phone = normalizePhone(req.params.phone || '');
   const { mois } = req.query;
-  
-  // Valider format téléphone
-  if (!/^\+?[0-9]{8,15}$/.test(phone)) {
+
+  if (!phone) {
     return err(res, 400, 'Numéro de téléphone invalide');
   }
   

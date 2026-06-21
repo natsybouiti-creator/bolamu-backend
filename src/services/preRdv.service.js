@@ -38,7 +38,7 @@ async function soumettreFormulaire(appointment_id, patient_phone, doctor_phone, 
         // Audit log
         await client.query(`
             INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-            VALUES ('pre_rdv_soumis', $1, 'pre_rdv_formulaires', $2, $3)
+            VALUES ('pre_rdv_soumis', $1, 'pre_rdv_formulaires', $2, $3::jsonb)
         `, [patient_phone, pre_rdv_id, JSON.stringify({ triage_couleur: triageResult.couleur })]);
 
         await client.query('COMMIT');

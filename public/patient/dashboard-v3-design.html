@@ -1932,7 +1932,7 @@ class Component extends DCLogic {
       const phone = payload.phone;
 
       // Profil patient
-      fetch('/api/v1/patients/profil?phone=' + encodeURIComponent(phone), {
+      fetch('https://api.bolamu.co/api/v1/patients/profil?phone=' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -1949,7 +1949,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Solde Zora
-      fetch('/api/v1/zora/balance', {
+      fetch('https://api.bolamu.co/api/v1/zora/balance', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -1972,7 +1972,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Streak
-      fetch('/api/v1/streaks/me', {
+      fetch('https://api.bolamu.co/api/v1/streaks/me', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -1985,7 +1985,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Événements Elonga
-      fetch('/api/v1/events', {
+      fetch('https://api.bolamu.co/api/v1/events', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2020,7 +2020,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Leaderboard
-      fetch('/api/v1/leaderboard/weekly', {
+      fetch('https://api.bolamu.co/api/v1/leaderboard/weekly', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2033,7 +2033,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Palier Zora (réutilise la réponse balance)
-      fetch('/api/v1/zora/balance?phone=' + encodeURIComponent(phone), {
+      fetch('https://api.bolamu.co/api/v1/zora/balance?phone=' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2048,7 +2048,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Groupes de sport
-      fetch('/api/v1/sport-groups', {
+      fetch('https://api.bolamu.co/api/v1/sport-groups', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2069,7 +2069,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Ledger Zora
-      fetch('/api/v1/zora/ledger?limit=10', {
+      fetch('https://api.bolamu.co/api/v1/zora/ledger?limit=10', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2081,7 +2081,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Abonnement patient
-      fetch('/api/v1/patients/subscription?phone=' + encodeURIComponent(phone), {
+      fetch('https://api.bolamu.co/api/v1/patients/subscription?phone=' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2095,7 +2095,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Constantes médicales
-      fetch('/api/v1/patients/constantes/' + encodeURIComponent(phone), {
+      fetch('https://api.bolamu.co/api/v1/patients/constantes/' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2107,7 +2107,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Timeline consultations
-      fetch('/api/v1/reports/patient/' + encodeURIComponent(phone) + '/timeline', {
+      fetch('https://api.bolamu.co/api/v1/reports/patient/' + encodeURIComponent(phone) + '/timeline', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2120,7 +2120,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Historique accès dossier
-      fetch('/api/v1/reports/access-log/' + encodeURIComponent(phone), {
+      fetch('https://api.bolamu.co/api/v1/reports/access-log/' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2132,7 +2132,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Config jeux Zora
-      fetch('/api/v1/zora/games/config', {
+      fetch('https://api.bolamu.co/api/v1/zora/games/config', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2145,7 +2145,7 @@ class Component extends DCLogic {
 
       // QR Code identification patient (rotating 60s)
       const loadQR = () => {
-        fetch('/api/v1/qr/generate', {
+        fetch('https://api.bolamu.co/api/v1/qr/generate', {
           headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(r => r.json())
@@ -2325,7 +2325,7 @@ class Component extends DCLogic {
     }
 
     try {
-      const r = await fetch('/api/v1/events/' + id + '/register', {
+      const r = await fetch('https://api.bolamu.co/api/v1/events/' + id + '/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
       });
@@ -2373,7 +2373,7 @@ class Component extends DCLogic {
     this.setState({ wheelSpinning: true, wheelDeg: target, wheelResult: null });
 
     try {
-      const r = await fetch('/api/v1/zora/games/play', {
+      const r = await fetch('https://api.bolamu.co/api/v1/zora/games/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ game_type: 'wheel', play_type: 'free' })
@@ -2409,7 +2409,7 @@ class Component extends DCLogic {
     }
 
     try {
-      const r = await fetch('/api/v1/zora/games/play', {
+      const r = await fetch('https://api.bolamu.co/api/v1/zora/games/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ game_type: 'chest', play_type: 'free' })
@@ -2441,7 +2441,7 @@ class Component extends DCLogic {
     const correct = i === q.answer;
 
     try {
-      const r = await fetch('/api/v1/zora/games/play', {
+      const r = await fetch('https://api.bolamu.co/api/v1/zora/games/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ game_type: 'quiz', play_type: 'free' })
@@ -2470,7 +2470,7 @@ class Component extends DCLogic {
     }
 
     try {
-      const r = await fetch('/api/v1/zora/games/play', {
+      const r = await fetch('https://api.bolamu.co/api/v1/zora/games/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ game_type: 'scratch', play_type: 'free' })
@@ -2526,7 +2526,7 @@ class Component extends DCLogic {
     }
 
     try {
-      const r = await fetch('/api/v1/patients/constantes', {
+      const r = await fetch('https://api.bolamu.co/api/v1/patients/constantes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(body)

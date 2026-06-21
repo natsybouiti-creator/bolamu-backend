@@ -3,6 +3,7 @@
 // ============================================================
 const pool = require('../config/db');
 const logger = require('../config/logger');
+const { normalizePhone } = require('../utils/phone');
 
 // Configuration depuis process.env uniquement
 const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -140,8 +141,7 @@ async function sendMessage(phone, templateName, parameters = {}) {
         return { success: false, error: 'Configuration manquante' };
     }
 
-    // Formater le numéro pour WhatsApp (242 au lieu de 2420)
-    const whatsappPhone = phone.replace('+', '').replace(/^2420/, '242');
+    const whatsappPhone = normalizePhone(phone || '').replace('+', '');
 
     const template = WHATSAPP_TEMPLATES[templateName];
     if (!template) {
@@ -220,7 +220,8 @@ async function handleWebhook(body) {
             for (const change of body.entry[0].changes) {
                 if (change.value && change.value.messages) {
                     for (const message of change.value.messages) {
-                        const phone = message.from;
+                        const rawFrom = message.from || '';
+                        const phone = normalizePhone(rawFrom.startsWith('+') ? rawFrom : '+' + rawFrom);
                         const text = message.text ? message.text.body : '';
 
                         // Logger dans notifications
@@ -249,13 +250,7 @@ async function sendWhatsAppTemplate(to, templateName, params = []) {
         return false;
     }
 
-    // Formater le numéro en +242XXXXXXXXX
-    let formattedPhone = to;
-    if (!formattedPhone.startsWith('+')) {
-        formattedPhone = '+' + formattedPhone;
-    }
-    // S'assurer que le format est +242XXXXXXXXX (12 chiffres après le +)
-    formattedPhone = formattedPhone.replace('+2420', '+242');
+    const formattedPhone = normalizePhone(to || '');
 
     if (isDevelopment) {
         logger.info('[WhatsApp] Template simulé (développement)', { to: formattedPhone, templateName, params });

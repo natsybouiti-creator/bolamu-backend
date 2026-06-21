@@ -3,8 +3,9 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { sendBolamuSms } = require('../services/sms.service');
+const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const { normalizePhone } = require('../utils/phone');
 
 function calculateTrustScore(data) {
     let score = 0;
@@ -18,13 +19,6 @@ function calculateTrustScore(data) {
     return { score, details };
 }
 
-function generateMedCode(phone) {
-    const digits = phone.replace(/\D/g, '').slice(-8);
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 8; i += 2) { const n = parseInt(digits.slice(i, i + 2)); code += chars[n % chars.length]; }
-    return 'MED-' + code.slice(0, 4);
-}
 
 async function registerDoctor(req, res) {
     const phone = req.body?.phone;
@@ -36,10 +30,11 @@ async function registerDoctor(req, res) {
     const bio = req.body?.bio;
     const momo_number = req.body?.momo_number;
 
-    if (!phone || !full_name || !specialty || !registration_number || !city) {
+    const normalizedPhone = normalizePhone(phone || '');
+    if (!normalizedPhone || !full_name || !specialty || !registration_number || !city) {
         return res.status(400).json({ success: false, message: 'Champs obligatoires manquants : phone, full_name, specialty, registration_number, city' });
     }
-    if (!/^\+242[0-9]{9}$/.test(phone)) {
+    if (!/^\+242[0-9]{9}$/.test(normalizedPhone)) {
         return res.status(400).json({ success: false, message: 'Numéro invalide. Format : +242XXXXXXXXX' });
     }
 
@@ -47,7 +42,7 @@ async function registerDoctor(req, res) {
     try {
         await client.query('BEGIN');
 
-        const existingDoctor = await client.query('SELECT id FROM doctors WHERE phone = $1', [phone]);
+        const existingDoctor = await client.query('SELECT id FROM doctors WHERE phone = $1', [normalizedPhone]);
         if (existingDoctor.rows.length > 0) {
             await client.query('ROLLBACK');
             return res.status(409).json({ success: false, message: 'Un médecin avec ce numéro existe déjà.' });
@@ -68,16 +63,20 @@ async function registerDoctor(req, res) {
             } catch (e) { console.error('[Cloudinary doctor]', e.message); }
         }
 
-        const { score, details } = calculateTrustScore({ phone, full_name, specialty, registration_number, city, document_url: documentUrl });
+        const { score, details } = calculateTrustScore({ phone: normalizedPhone, full_name, specialty, registration_number, city, document_url: documentUrl });
         const autoStatus = score >= 80 ? 'verified' : 'pending';
-        const memberCode = generateMedCode(phone);
+        const codeRes = await client.query(
+            `SELECT COALESCE(MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)), 0) + 1 AS next
+             FROM users WHERE role = 'doctor' AND member_code ~ '^MED-[0-9]+$'`
+        );
+        const memberCode = `MED-${codeRes.rows[0].next.toString().padStart(5, '0')}`;
 
-        const existingUser = await client.query('SELECT id FROM users WHERE phone = $1', [phone]);
+        const existingUser = await client.query('SELECT id FROM users WHERE phone = $1', [normalizedPhone]);
         let userId;
         if (existingUser.rows.length === 0) {
             const newUser = await client.query(
                 `INSERT INTO users (phone, full_name, role, is_active) VALUES ($1, $2, 'doctor', FALSE) RETURNING id`,
-                [phone, full_name]
+                [normalizedPhone, full_name]
             );
             userId = newUser.rows[0].id;
         } else {
@@ -92,8 +91,8 @@ async function registerDoctor(req, res) {
                  document_url, document_public_id, trust_score, momo_number)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14)
              RETURNING id, phone, full_name, specialty, city, status, member_code, trust_score, created_at`,
-            [phone, userId, full_name, specialty, registration_number, city, neighborhood || null, bio || null,
-             autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || phone]
+            [normalizedPhone, userId, full_name, specialty, registration_number, city, neighborhood || null, bio || null,
+             autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || normalizedPhone]
         );
 
         // Création automatique des disponibilités par défaut (lun-ven 08h-17h)
@@ -111,36 +110,37 @@ async function registerDoctor(req, res) {
                  SELECT id, $1, '08:00', '17:00', 30
                  FROM users WHERE phone = $2
                  ON CONFLICT (doctor_id, day_of_week) DO NOTHING`,
-                [jour.day_of_week, phone]
+                [jour.day_of_week, normalizedPhone]
             );
             await client.query(
                 `INSERT INTO time_slots (doctor_phone, date, heure_debut, heure_fin)
                  VALUES ($1, CURRENT_DATE + INTERVAL '1 day' * $2, '08:00', '17:00')
                  ON CONFLICT DO NOTHING`,
-                [phone, jour.day_of_week - 1]
+                [normalizedPhone, jour.day_of_week - 1]
             );
         }
 
         if (documentUrl) {
             await client.query(
                 `UPDATE users SET document_url = $1 WHERE phone = $2`,
-                [documentUrl, phone]
+                [documentUrl, normalizedPhone]
             );
         }
 
         await client.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('doctor.registered', $1, 'doctors', $2, $3)`,
-            [phone, newDoctor.rows[0].id, JSON.stringify({ full_name, specialty, trust_score: score, auto_status: autoStatus })]
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('doctor.registered', $1, 'doctors', $2, $3::jsonb)`,
+            [normalizedPhone, newDoctor.rows[0].id, JSON.stringify({ full_name, specialty, trust_score: score, auto_status: autoStatus })]
         );
 
         await client.query('COMMIT');
 
         try {
-            const msg = autoStatus === 'verified'
-                ? `Bolamu : Bienvenue Dr. ${full_name} ! Compte validé. Code : ${memberCode}. Connectez-vous sur api.bolamu.co`
-                : `Bolamu : Inscription reçue Dr. ${full_name}. Vérification en cours (score: ${score}/100). Réponse sous 24h.`;
-            await sendBolamuSms(phone, msg);
-        } catch (e) { console.log('⚠️ SMS non envoyé'); }
+            if (autoStatus === 'verified') {
+                await sendWhatsAppTemplate(phone, 'bolamu_bienvenue_medecin', [full_name, memberCode]);
+            } else {
+                await sendWhatsAppTemplate(phone, 'bolamu_inscription_medecin_pending', [full_name, score.toString()]);
+            }
+        } catch (e) { console.warn('[WhatsApp] Envoi bienvenue médecin échoué (non bloquant):', e.message); }
 
         return res.status(201).json({
             success: true,
@@ -194,15 +194,17 @@ async function updateDoctorStatus(req, res) {
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Médecin introuvable.' });
         const doc = result.rows[0];
         try {
-            const messages = {
-                verified: `Bolamu : Félicitations Dr. ${doc.full_name} ! Compte validé. Code : ${doc.member_code}.`,
-                rejected: `Bolamu : Inscription non validée. Motif : ${reason || 'Dossier incomplet'}.`,
-                suspended: `Bolamu : Compte suspendu. Motif : ${reason || 'Activité suspecte'}.`
+            const templateMap = {
+                verified:  ['bolamu_medecin_valide',   [doc.full_name, doc.member_code]],
+                rejected:  ['bolamu_medecin_rejete',   [reason || 'Dossier incomplet']],
+                suspended: ['bolamu_compte_suspendu',  [reason || 'Activité suspecte']]
             };
-            if (messages[status]) await sendBolamuSms(doc.phone, messages[status]);
+            if (templateMap[status]) {
+                await sendWhatsAppTemplate(doc.phone, templateMap[status][0], templateMap[status][1]);
+            }
         } catch (e) {}
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, $2, 'doctors', $3, $4)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, $2, 'doctors', $3, $4::jsonb)`,
             [`doctor.status_${status}`, doc.phone, parseInt(id), JSON.stringify({ reason })]
         ).catch(() => {});
         return res.json({ success: true, message: `Statut mis à jour : ${status}`, data: doc });
@@ -212,7 +214,7 @@ async function updateDoctorStatus(req, res) {
 }
 
 async function getDoctorProfile(req, res) {
-    const { phone } = req.query;
+    const phone = normalizePhone(req.query.phone || '');
     if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
     
     try {
@@ -236,7 +238,7 @@ async function getDoctorProfile(req, res) {
 
 // ─── GÉNÉRER QR CODE POUR UN PATIENT (côté médecin) ─────────────────────────────
 async function generatePatientQRCode(req, res) {
-    const { phone } = req.params;
+    const phone = normalizePhone(req.params.phone || '');
     const doctorPhone = req.user.phone;
     
     if (!phone) {
@@ -277,8 +279,8 @@ async function generatePatientQRCode(req, res) {
         
         // Audit log
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) 
-             VALUES ('QR_GENERATED_BY_DOCTOR', $1, 'qr_tokens', NULL, $2)`,
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('QR_GENERATED_BY_DOCTOR', $1, 'qr_tokens', NULL, $2::jsonb)`,
             [doctorPhone, JSON.stringify({ patient_phone: phone, subscription_id: patient.subscription_id, expires_at: expiresAt })]
         ).catch(() => {});
         
@@ -343,7 +345,7 @@ async function createTimeSlot(req, res) {
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('timeslot.created', $1, 'time_slots', $2, $3)`,
+             VALUES ('timeslot.created', $1, 'time_slots', $2, $3::jsonb)`,
             [doctorPhone, result.rows[0].id, JSON.stringify({ date: dateParam, heure_debut: startParam, heure_fin: endParam })]
         ).catch(() => {});
 
@@ -405,7 +407,7 @@ async function updateTimeSlot(req, res) {
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('timeslot.updated', $1, 'time_slots', $2, $3)`,
+             VALUES ('timeslot.updated', $1, 'time_slots', $2, $3::jsonb)`,
             [doctorPhone, id, JSON.stringify({ is_available })]
         ).catch(() => {});
 
@@ -484,7 +486,7 @@ async function updateDoctorProfile(req, res) {
         // Audit log
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('doctor.profile_updated', $1, 'doctors', $2, $3)`,
+             VALUES ('doctor.profile_updated', $1, 'doctors', $2, $3::jsonb)`,
             [doctorPhone, result.rows[0].id, JSON.stringify({ updated_fields: Object.keys(req.body) })]
         ).catch(() => {});
 

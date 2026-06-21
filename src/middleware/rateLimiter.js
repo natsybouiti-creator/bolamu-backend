@@ -14,7 +14,7 @@ const strictLimiter = rateLimit({
         const phone = req.body?.phone || req.ip;
         pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('rate_limit.exceeded', $1, 'rate_limit', NULL, $2)`,
+             VALUES ('rate_limit.exceeded', $1, 'rate_limit', NULL, $2::jsonb)`,
             [phone, JSON.stringify({ endpoint: req.path, ip: req.ip })]
         ).catch(() => {});
         
@@ -38,7 +38,7 @@ const standardLimiter = rateLimit({
         const phone = req.user?.phone || req.ip;
         pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('rate_limit.exceeded', $1, 'rate_limit', NULL, $2)`,
+             VALUES ('rate_limit.exceeded', $1, 'rate_limit', NULL, $2::jsonb)`,
             [phone, JSON.stringify({ endpoint: req.path, ip: req.ip })]
         ).catch(() => {});
         
@@ -61,7 +61,7 @@ const webhookLimiter = rateLimit({
         const pool = require('../config/db');
         pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('rate_limit.exceeded', 'webhook', 'rate_limit', NULL, $1)`,
+             VALUES ('rate_limit.exceeded', 'webhook', 'rate_limit', NULL, $1::jsonb)`,
             [JSON.stringify({ endpoint: req.path, ip: req.ip })]
         ).catch(() => {});
         

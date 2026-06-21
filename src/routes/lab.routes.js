@@ -45,8 +45,9 @@ router.get('/pending', authMiddleware, labOnly, getLabResultsForLab);
 router.get('/prescription/:code', authMiddleware, labOnly, getLabPrescriptionByCode);
 
 router.post('/change-password', authMiddleware, async (req, res) => {
-  const { phone, old_password, new_password } = req.body;
-  if (!phone || !old_password || !new_password) return res.status(400).json({ success: false, message: 'Champs manquants' });
+  const phone = req.user.phone;
+  const { old_password, new_password } = req.body;
+  if (!old_password || !new_password) return res.status(400).json({ success: false, message: 'Champs manquants' });
   if (new_password.length < 6) return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit faire au moins 6 caractères' });
   try {
     const result = await pool.query(`SELECT password_hash FROM users WHERE phone = $1`, [phone]);

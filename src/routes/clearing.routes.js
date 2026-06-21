@@ -261,7 +261,7 @@ router.patch('/:id/pay', authMiddleware, adminOnly, async (req, res) => {
         // 6. Audit log (hors transaction)
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('clearing.paid', $1, 'partner_payouts', $2, $3)`,
+             VALUES ('clearing.paid', $1, 'partner_payouts', $2, $3::jsonb)`,
             [req.user.phone, id, JSON.stringify({
                 partner_phone: payout.partner_phone,
                 partner_type: payout.partner_type,
@@ -306,7 +306,7 @@ router.patch('/:id/fail', authMiddleware, adminOnly, async (req, res) => {
         // Audit log
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('clearing.failed', $1, 'partner_payouts', $2, $3)`,
+             VALUES ('clearing.failed', $1, 'partner_payouts', $2, $3::jsonb)`,
             [req.user.phone, id, JSON.stringify({ notes })]
         ).catch(() => {});
 

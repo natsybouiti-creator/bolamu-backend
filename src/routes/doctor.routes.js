@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const pool = require('../config/db');
 const { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile, generatePatientQRCode, createTimeSlot, getTimeSlots, updateTimeSlot, updateDoctorProfile } = require('../controllers/doctor.controller');
-const authMiddleware = require('../../middleware/auth.middleware');
+const authMiddleware = require('../middleware/auth.middleware');
 const bcrypt = require('bcrypt');
 
 const upload = multer({
@@ -16,7 +16,7 @@ router.get('/', getDoctors);
 
 router.get('/pending', authMiddleware, async (req, res) => {
     try {
-        const result = await pool.query(`SELECT * FROM users WHERE role = 'doctor' AND is_active = false`);
+        const result = await pool.query(`SELECT * FROM users WHERE role = 'doctor' AND is_active = false LIMIT 500`);
         res.json({ success: true, data: result.rows });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Erreur serveur.' });
@@ -39,8 +39,9 @@ router.get('/slots', authMiddleware, getTimeSlots);
 router.patch('/slots/:id', authMiddleware, updateTimeSlot);
 
 router.post('/change-password', authMiddleware, async (req, res) => {
-  const { phone, old_password, new_password } = req.body;
-  if (!phone || !old_password || !new_password) return res.status(400).json({ success: false, message: 'Champs manquants' });
+  const phone = req.user.phone;
+  const { old_password, new_password } = req.body;
+  if (!old_password || !new_password) return res.status(400).json({ success: false, message: 'Champs manquants' });
   if (new_password.length < 6) return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit faire au moins 6 caractères' });
   try {
     const result = await pool.query(`SELECT password_hash FROM users WHERE phone = $1`, [phone]);

@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 const bhpPurgeJob = async () => {
-  const client = await db.pool.connect();
+  const client = await db.connect();
   try {
     await client.query('BEGIN');
 
@@ -25,7 +25,7 @@ const bhpPurgeJob = async () => {
 
     await db.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('BHP_PURGE_PHYSIQUE', 'system', 'health_records', NULL, $1)`,
+       VALUES ('BHP_PURGE_PHYSIQUE', 'system', 'health_records', NULL, $1::jsonb)`,
       [JSON.stringify({ count: result.rowCount, date: new Date() })]
     );
 

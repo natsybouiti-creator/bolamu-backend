@@ -1000,7 +1000,7 @@ async function loadActivity(){
    PENDING
 ------------------------------------ */
 async function viewDocument(docId) {
-  const res = await fetch(`/api/v1/admin/documents/${docId}?token=${token}`, {
+  const res = await fetch(`https://api.bolamu.co/api/v1/admin/documents/${docId}?token=${token}`, {
     headers: { 'Authorization': 'Bearer ' + token }
   });
   const data = await res.json();

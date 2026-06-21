@@ -607,7 +607,7 @@ async function goStep3(){
 async function fetchUploadToken(){
   if(state.uploadToken)return state.uploadToken;
   try{
-    const res=await fetch('/api/v1/upload/token',{
+    const res=await fetch('https://api.bolamu.co/api/v1/upload/token',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({phone:state.fullPhone})
@@ -819,7 +819,7 @@ async function uploadSecureFile(input, key) {
     const formData = new FormData();
     formData.append('file', file);
     
-    const res = await fetch('/api/v1/upload/secure', {
+    const res = await fetch('https://api.bolamu.co/api/v1/upload/secure', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + state.uploadToken
