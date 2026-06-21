@@ -25,4 +25,10 @@ router.post('/rediger-cr', authMiddleware, doctorOnly, ctrl.redigerCompteRendu);
 // POST /api/v1/ai-consult/suggerer-ordonnance — Suggestion ordonnance SSP
 router.post('/suggerer-ordonnance', authMiddleware, doctorOnly, ctrl.suggererOrdonnance);
 
+// POST /api/v1/ai-consult/tricolor — Feu tricolore interactions/dosages
+router.post('/tricolor', authMiddleware, doctorOnly, ctrl.analyzeTricolor);
+
+// GET /api/v1/ai-consult/renewal/:phone — Renouvellement assisté
+router.get('/renewal/:phone', authMiddleware, doctorOnly, ctrl.generateRenewal);
+
 module.exports = router;

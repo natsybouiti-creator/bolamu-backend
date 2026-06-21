@@ -5,6 +5,7 @@
 
 const Groq = require('groq-sdk');
 const pool = require('../config/db');
+const { normalizePhone } = require('../utils/phone');
 
 const groq = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null;
 
@@ -94,6 +95,45 @@ Réponds UNIQUEMENT en JSON :
  * POST /api/v1/ai-consult/suggerer-ordonnance
  * Suggère une ordonnance basée sur le diagnostic et le catalogue SSP
  */
+/**
+ * POST /api/v1/ai-consult/tricolor
+ * Feu tricolore : interactions, dosages, protocoles OMS Congo-B
+ */
+exports.analyzeTricolor = async (req, res) => {
+  const { diagnosis, medications, patient_phone } = req.body;
+  const doctorPhone = req.user.phone;
+
+  if (!diagnosis || !medications) {
+    return res.status(400).json({ success: false, message: 'diagnosis et medications sont requis.' });
+  }
+
+  try {
+    const userPrompt = `Analyse ce diagnostic et ces médicaments prescrits au Congo-Brazzaville :\nDiagnostic : ${diagnosis}\nMédicaments : ${medications}\n\nVérifie :\n1. Interactions médicamenteuses dangereuses\n2. Dosages inhabituels pour ce contexte\n3. Conformité protocoles OMS Afrique centrale\n\nRéponds UNIQUEMENT en JSON :\n{\n  "status": "green|orange|red",\n  "message": "Explication synthétique",\n  "suggestions": ["suggestion1"]\n}`;
+
+    let analysis = { status: 'green', message: 'Analyse indisponible — IA non configurée', suggestions: [] };
+
+    if (groq) {
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'system', content: SYSTEM_AMINA }, { role: 'user', content: userPrompt }],
+        max_tokens: 500
+      });
+      analysis = JSON.parse(completion.choices[0].message.content.replace(/```json|```/g, '').trim());
+    }
+
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('ai_consult_tricolor', $1, 'users', $2, $3::jsonb)`,
+      [doctorPhone, patient_phone || null, JSON.stringify({ status: analysis.status })]
+    ).catch(() => {});
+
+    return res.json({ success: true, data: analysis });
+  } catch (e) {
+    console.error('[AI Consult tricolor]', e.message);
+    return res.json({ success: true, data: { status: 'green', message: 'Analyse indisponible', suggestions: [] } });
+  }
+};
+
 exports.suggererOrdonnance = async (req, res) => {
   const { diagnostic, patient_phone, allergies } = req.body;
 
