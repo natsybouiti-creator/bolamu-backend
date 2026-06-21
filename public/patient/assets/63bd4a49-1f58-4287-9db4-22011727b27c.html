@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px; height: 100%; transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;" style-hover="border-color: #003FB1; box-shadow: 0 8px 24px rgba(0,63,177,0.08); transform: translateY(-4px);">
+  <div style="display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px;">
+    <sc-if value="{{ hasImg }}" hint-placeholder-val="{{ false }}">
+      <img src="{{ img }}" alt="{{ act }}" data-seed="{{ seed }}" onError="{{ onErr }}" style="width: 52px; height: 52px; border-radius: 14px; object-fit: cover; flex-shrink: 0;">
+    </sc-if>
+    <sc-if value="{{ noImg }}" hint-placeholder-val="{{ true }}">
+      <div style="{{ tileStyle }}"><span class="material-symbols-outlined" style="color: {{ tint }}; font-size: 24px;">{{ icon }}</span></div>
+    </sc-if>
+    <div style="flex: 1;"><div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;"><span style="font-size: 0.98rem; font-weight: 700; color: #0A2463;">{{ act }}</span><span style="background: rgba(255,107,53,0.1); color: #FF6B35; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px; white-space: nowrap;">{{ pts }}</span></div></div>
+  </div>
+  <sc-if value="{{ hasProgress }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-bottom: 12px;"><div style="background: #EDEDF8; border-radius: 9999px; height: 6px; overflow: hidden;"><div style="{{ progStyle }}"></div></div></div>
+  </sc-if>
+  <button onClick="{{ onCta }}" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 11px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">{{ cta }}</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:320,&quot;height&quot;:128},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;medical_services&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tint&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#00C9A7&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;act&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Consultation médicale&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;pts&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;+50 pts&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;cta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Prendre RDV&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;progress&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:null,&quot;tsType&quot;:&quot;number&quot;},&quot;img&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;seed&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onCta&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const tint = this.props.tint || '#003FB1';
+    const prog = this.props.progress;
+    const has = prog !== undefined && prog !== null && prog !== '';
+    const hex = String(tint).replace('#', '');
+    const r = parseInt(hex.substring(0,2),16), g = parseInt(hex.substring(2,4),16), b = parseInt(hex.substring(4,6),16);
+    const img = this.props.seed || this.props.img;
+    return {
+      tileStyle: { width: '44px', height: '44px', flexShrink: 0, borderRadius: '14px', background: 'rgba(' + r + ',' + g + ',' + b + ',0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+      hasImg: !!img,
+      noImg: !img,
+      hasProgress: has,
+      progStyle: { height: '100%', width: (prog || 0) + '%', background: 'linear-gradient(90deg, #FF6B35, #F5A623)', borderRadius: '9999px' },
+      onCta: this.props.onCta || (() => {}),
+      onErr: (e) => { e.currentTarget.style.display = 'none'; }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 14px;">
+  <button onClick="{{ onFocus }}" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; background: none; border: none; cursor: pointer; font-family: inherit; text-align: left; padding: 0;">
+    <span style="{{ iconWrap }}"><span class="material-symbols-outlined" style="color: {{ tint }}; font-size: 20px;">{{ icon }}</span></span>
+    <span style="flex: 1; min-width: 0;">
+      <span style="display: block; font-size: 0.88rem; font-weight: 700; color: #0A2463;">{{ pname }}</span>
+      <span style="display: block; font-size: 0.74rem; font-weight: 500; color: #434654; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ sub }}</span>
+    </span>
+  </button>
+  <sc-if value="{{ isEvent }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ onParticipate }}" disabled="{{ registered }}" style="{{ evBtnStyle }}">{{ evBtnLabel }}</button>
+  </sc-if>
+  <sc-if value="{{ isPartner }}" hint-placeholder-val="{{ true }}">
+    <a href="{{ telHref }}" style="display: inline-flex; align-items: center; gap: 5px; text-decoration: none; background: rgba(0,63,177,0.08); color: #003FB1; font-size: 0.76rem; font-weight: 700; padding: 8px 14px; border-radius: 9999px; white-space: nowrap;"><span class="material-symbols-outlined" style="font-size: 16px;">call</span>Appeler</a>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:62},&quot;pname&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Clinique El Rapha&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;type&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;clinique&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;addr&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Centre-ville, Brazzaville&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;kind&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;partner&quot;,&quot;options&quot;:[&quot;partner&quot;,&quot;event&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;tint&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#003FB1&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;local_hospital&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;+242060000000&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;registered&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onFocus&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onParticipate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const tint = this.props.tint || '#003FB1';
+    const hex = String(tint).replace('#', '');
+    const r = parseInt(hex.substring(0,2),16), g = parseInt(hex.substring(2,4),16), b = parseInt(hex.substring(4,6),16);
+    const isEvent = this.props.kind === 'event';
+    const reg = !!this.props.registered;
+    return {
+      isEvent: isEvent,
+      isPartner: !isEvent,
+      iconWrap: { width: '38px', height: '38px', borderRadius: '12px', background: 'rgba(' + r + ',' + g + ',' + b + ',0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+      sub: (this.props.type ? (this.props.type.charAt(0).toUpperCase() + this.props.type.slice(1)) : '') + (this.props.addr ? ' · ' + this.props.addr : ''),
+      telHref: 'tel:' + (this.props.tel || '+242060000000'),
+      evBtnLabel: reg ? 'Inscrit' : 'Participer',
+      evBtnStyle: {
+        border: reg ? '1px solid #00C9A7' : 'none', background: reg ? 'rgba(0,201,167,0.1)' : '#003FB1',
+        color: reg ? '#00875f' : '#fff', fontSize: '0.76rem', fontWeight: 700, padding: '8px 14px',
+        borderRadius: '9999px', fontFamily: 'inherit', cursor: reg ? 'default' : 'pointer', whiteSpace: 'nowrap'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

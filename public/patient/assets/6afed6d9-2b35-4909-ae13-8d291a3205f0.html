@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<span style="{{ wrapStyle }}"><span style="{{ discStyle }}"></span><img src="{{ coinSrc }}" alt="Zora" style="{{ imgStyle }}" onError="{{ onErr }}"></span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:90,&quot;height&quot;:90},&quot;size&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:56,&quot;tsType&quot;:&quot;number&quot;},&quot;noFloat&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const sz = this.props.size || 56;
+    return {
+      wrapStyle: {
+        position: 'relative', display: 'inline-block', width: sz + 'px', height: sz + 'px', flexShrink: 0,
+        animation: this.props.noFloat ? 'none' : 'zoraFloat 4s ease-in-out infinite',
+        filter: 'drop-shadow(0 8px 16px rgba(245,166,35,0.42))'
+      },
+      discStyle: { position: 'absolute', inset: '0', borderRadius: '50%', background: 'radial-gradient(circle at 38% 30%, #FFF3C9 0%, #F5A623 54%, #C2790C 100%)', boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.4)' },
+      imgStyle: { position: 'absolute', inset: '0', width: '100%', height: '100%', objectFit: 'contain', display: 'block' },
+      coinSrc: (window.__resources && window.__resources.zoraCoinGold) || 'https://bolamu.co/images/landing/zora-coin-gold.png',
+      onErr: (e) => { e.currentTarget.style.display = 'none'; }
+    };
+  }
+}
+</script>
+</body>
+</html>

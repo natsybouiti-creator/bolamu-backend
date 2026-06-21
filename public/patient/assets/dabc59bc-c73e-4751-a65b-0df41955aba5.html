@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; overflow: hidden; height: 100%; display: flex; flex-direction: column;">
+  <div style="position: relative; height: 150px; background: #F3F3FE;">
+    <img src="{{ img }}" alt="{{ title }}" data-seed="{{ seed }}" onError="{{ onErr }}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+    <span style="{{ pilierStyle }}">{{ pilier }}</span>
+    <sc-if value="{{ lowPlaces }}" hint-placeholder-val="{{ false }}">
+      <span style="position: absolute; top: 10px; right: 10px; background: #BA1A1A; color: #fff; font-size: 0.58rem; font-weight: 800; padding: 4px 9px; border-radius: 9999px;">{{ remainTxt }}</span>
+    </sc-if>
+  </div>
+  <div style="padding: 16px; display: flex; flex-direction: column; flex: 1;">
+    <div style="font-size: 1rem; font-weight: 700; color: #0A2463; margin-bottom: 8px;">{{ title }}</div>
+    <div style="display: flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 500; color: #434654; margin-bottom: 3px;"><span class="material-symbols-outlined" style="font-size: 15px; color: #9498a8;">location_on</span>{{ loc }}</div>
+    <div style="display: flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 500; color: #434654; margin-bottom: 12px;"><span class="material-symbols-outlined" style="font-size: 15px; color: #9498a8;">event</span>{{ date }}</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; margin-top: auto;"><span style="font-size: 0.74rem; font-weight: 600; color: #434654;">{{ inscritsTxt }}</span><span style="background: rgba(255,107,53,0.1); color: #FF6B35; font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 9999px;">{{ pts }}</span></div>
+    <button onClick="{{ onParticipate }}" disabled="{{ registered }}" style="{{ btnStyle }}"><sc-if value="{{ registered }}" hint-placeholder-val="{{ false }}"><span class="material-symbols-outlined" style="font-size: 17px; vertical-align: -3px; margin-right: 4px;">check</span></sc-if>{{ btnLabel }}</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:340,&quot;height&quot;:330},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Marche sportive matinale&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;pilier&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Activité physique&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;piTint&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#00C9A7&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;loc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Côte Sauvage, Pointe-Noire&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;date&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Samedi 21 juin · 08h00&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;places&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:32,&quot;tsType&quot;:&quot;number&quot;},&quot;cap&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;tsType&quot;:&quot;number&quot;},&quot;pts&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;+50 pts&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;registered&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;img&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;images/events/marche-cote-sauvage.jpg&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;seed&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;cotesauvage&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onParticipate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const places = Number(this.props.places || 0);
+    const cap = Number(this.props.cap || 0);
+    const remain = Math.max(0, cap - places);
+    const reg = !!this.props.registered;
+    const piTint = this.props.piTint || '#00C9A7';
+    return {
+      lowPlaces: remain > 0 && remain < 10,
+      remainTxt: remain + ' places restantes',
+      inscritsTxt: places + ' / ' + cap + ' inscrits',
+      pilierStyle: { position: 'absolute', top: '10px', left: '10px', background: piTint, color: '#fff', fontSize: '0.6rem', fontWeight: 800, padding: '4px 10px', borderRadius: '9999px' },
+      btnLabel: reg ? 'Inscrit' : 'Participer',
+      btnStyle: {
+        width: '100%', border: reg ? '1px solid #00C9A7' : 'none', background: reg ? 'rgba(0,201,167,0.1)' : '#003FB1',
+        color: reg ? '#00875f' : '#fff', padding: '11px', borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem',
+        fontFamily: 'inherit', cursor: reg ? 'default' : 'pointer'
+      },
+      onErr: (e) => { e.currentTarget.style.display = 'none'; }
+    };
+  }
+}
+</script>
+</body>
+</html>
