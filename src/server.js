@@ -329,13 +329,14 @@ const { jobAbonnement } = require('./jobs/abonnement.job');
 jobAbonnement.start();
 console.log('[CRON] Job abonnement quotidien démarré (02h00 Brazzaville)');
 
-// Worker BullMQ SMS — démarrage automatique
-require('./workers/sms-worker');
-console.log('[BULLMQ] Worker SMS démarré');
-
-// Worker BullMQ Notifications — démarrage automatique
-require('./workers/notification-worker');
-console.log('[BULLMQ] Worker Notifications démarré');
+// ============================================================
+// BullMQ Workers — DÉSACTIVÉS (SMS abandonnés, WhatsApp direct)
+// Pour réactiver : configurer REDIS_URL sur Render + décommenter ci-dessous
+// ============================================================
+// require('./workers/sms-worker');
+// console.log('[BULLMQ] Worker SMS démarré');
+// require('./workers/notification-worker');
+// console.log('[BULLMQ] Worker Notifications démarré');
 
 // ============================================================
 // 8. INDEX DE PERFORMANCE
