@@ -1061,8 +1061,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
             </div>
           </div>
           </div>
-          <div class="hero-masc" style="position: absolute; top: -40px; right: -10px; width: 130px; height: 170px; pointer-events: none; z-index: 3;">
-            <div style="width: 130px; height: 170px; background-image: url(&quot;/images/landing/garcons3Dbleu.png&quot;); background-size: contain; background-position: bottom right; background-repeat: no-repeat;"></div>
+          <div class="hero-masc" style="position: absolute; right: 0; bottom: 0; top: -30px; width: 200px; pointer-events: none; z-index: 3; display: flex; align-items: flex-end; justify-content: center;">
+            <div style="width: 200px; height: 100%; min-height: 250px; background-image: url(&quot;/images/landing/garcons3Dbleu.png&quot;); background-size: contain; background-position: bottom center; background-repeat: no-repeat;"></div>
           </div>
         </div>
         <div style="margin-top: 16px; background: #F3F3FE; border: 1px solid #EDEDF8; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 14px;">
@@ -1098,8 +1098,23 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Événements près de chez vous</h2>
       <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px;">
         <sc-for list="{{ eventsView }}" as="ev" hint-placeholder-count="3">
-          <dc-import name="EventCard" title="{{ ev.title }}" pilier="{{ ev.pilier }}" pi-tint="{{ ev.piTint }}" loc="{{ ev.loc }}" date="{{ ev.date }}" places="{{ ev.places }}" cap="{{ ev.cap }}" pts="{{ ev.pts }}" registered="{{ ev.registered }}" img="{{ ev.img }}" seed="{{ ev.seed }}" on-participate="{{ ev.participate }}" hint-size="100%,330px"></dc-import>
-        </sc-for>
+  <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; overflow: hidden;">
+    <div style="height: 160px; background-image: url('{{ ev.img }}'); background-size: cover; background-position: center; position: relative;">
+      <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(10,36,99,0.6));"></div>
+      <span style="position: absolute; top: 12px; left: 12px; background: {{ ev.piTint }}; color: #fff; font-size: 0.6rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;">{{ ev.pilier }}</span>
+    </div>
+    <div style="padding: 14px;">
+      <div style="font-size: 0.92rem; font-weight: 800; color: #0A2463; margin-bottom: 6px;">{{ ev.title }}</div>
+      <div style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #434654; margin-bottom: 3px;"><span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>{{ ev.loc }}</div>
+      <div style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #434654; margin-bottom: 10px;"><span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>{{ ev.date }}</div>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
+        <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
+      </div>
+      <button onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+    </div>
+  </div>
+</sc-for>
       </div>
 
       <!-- GROUPES DE SPORT -->
@@ -1288,8 +1303,23 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;"><span style="width: 4px; height: 18px; border-radius: 9999px; background: #00C9A7;"></span><span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654;">Événements sport &amp; bien-être</span></div>
         <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
           <sc-for list="{{ eventsView }}" as="ev" hint-placeholder-count="3">
-            <dc-import name="EventCard" title="{{ ev.title }}" pilier="{{ ev.pilier }}" pi-tint="{{ ev.piTint }}" loc="{{ ev.loc }}" date="{{ ev.date }}" places="{{ ev.places }}" cap="{{ ev.cap }}" pts="{{ ev.pts }}" registered="{{ ev.registered }}" img="{{ ev.img }}" seed="{{ ev.seed }}" on-participate="{{ ev.participate }}" hint-size="100%,330px"></dc-import>
-          </sc-for>
+  <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; overflow: hidden;">
+    <div style="height: 160px; background-image: url('{{ ev.img }}'); background-size: cover; background-position: center; position: relative;">
+      <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(10,36,99,0.6));"></div>
+      <span style="position: absolute; top: 12px; left: 12px; background: {{ ev.piTint }}; color: #fff; font-size: 0.6rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;">{{ ev.pilier }}</span>
+    </div>
+    <div style="padding: 14px;">
+      <div style="font-size: 0.92rem; font-weight: 800; color: #0A2463; margin-bottom: 6px;">{{ ev.title }}</div>
+      <div style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #434654; margin-bottom: 3px;"><span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>{{ ev.loc }}</div>
+      <div style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #434654; margin-bottom: 10px;"><span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>{{ ev.date }}</div>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
+        <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
+      </div>
+      <button onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+    </div>
+  </div>
+</sc-for>
         </div>
 
         <!-- Carte événements -->
