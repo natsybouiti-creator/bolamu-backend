@@ -699,7 +699,7 @@ async function submitChangePwd(){
   if (newPwd !== confirmPwd) return showToast('Les mots de passe ne correspondent pas','error');
   if (newPwd.length < 6) return showToast('Minimum 6 caractères','error');
   try {
-    const res = await fetch(`${API}/laboratories/change-password`, {
+    const res = await fetch(`${API}/lab/change-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ phone, old_password: oldPwd, new_password: newPwd })
@@ -792,7 +792,7 @@ async function searchPrescriptionByCode() {
     
     for (const examen of examensList) {
       try {
-        const checkRes = await fetch(`${API}/medicaments/check?nom=${encodeURIComponent(examen.trim())}`, {
+        const checkRes = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(examen.trim())}`, {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         const checkData = await checkRes.json();
@@ -927,7 +927,7 @@ async function enregistrerHorsCatalogueLabo(patientPhone) {
   
   try {
     for (const transaction of transactions) {
-      await fetch(`${API}/hors-catalogue`, {
+      await fetch(`${API}/smartflow/hors-catalogue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(transaction)
@@ -944,7 +944,7 @@ async function loadSmartFlowStats() {
   if (!moisInput) { alert('Veuillez sélectionner un mois.'); return; }
   
   try {
-    const res = await fetch(`${API}/stats/moi?mois=${moisInput}`, {
+    const res = await fetch(`${API}/smartflow/stats/moi?mois=${moisInput}`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     const data = await res.json();
@@ -1005,7 +1005,7 @@ async function loadPosition() {
     const role = localStorage.getItem('bolamu_role');
     const phone = localStorage.getItem(`bolamu_${role}_phone`);
     const token = localStorage.getItem(`bolamu_${role}_token`);
-    const res = await fetch(`${API}/auth/profile`, {
+    const res = await fetch(`${API}/auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
