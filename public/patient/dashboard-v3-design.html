@@ -1292,9 +1292,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 14px;">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 22px;">badge</span><h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0A2463;">Informations</h3></div>
           <div style="display: flex; flex-wrap: wrap; gap: 16px 36px;">
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Téléphone</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">+242 06 555 12 34</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Téléphone</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">{{ membreTel }}</div></div>
             <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Abonnement</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">{{ abonnementTxt }}</div></div>
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Membre depuis</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">Janvier 2026</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Membre depuis</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">Membre depuis {{ membreDepuis }}</div></div>
           </div>
         </div>
 
@@ -1305,13 +1305,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
             <button onclick="{{ openEditConst }}" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0,63,177,0.08); color: #003FB1; border: none; font-family: inherit; font-weight: 700; font-size: 0.78rem; padding: 8px 14px; border-radius: 9999px; cursor: pointer;"><span class="material-symbols-outlined" style="font-size: 16px;">edit</span>Modifier</button>
           </div>
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 24px;">
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Groupe sanguin</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">O+</div></div>
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Allergies</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">Pénicilline</div></div>
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Maladies chroniques</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">Hypertension</div></div>
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Antécédents médicaux</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">Appendicectomie (2018)</div></div>
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Traitements en cours</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">Amlodipine 5 mg</div></div>
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Poids · Taille</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">64 kg · 168 cm</div></div>
-            <div style="grid-column: 1 / -1;"><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Contact d'urgence</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">Paul Bemba · +242 06 555 98 76 · Époux</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Groupe sanguin</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">{{ groupeSanguin }}</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Allergies</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">{{ allergies }}</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Maladies chroniques</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">{{ maladiesChroniques }}</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Antécédents médicaux</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">{{ antecedents }}</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Traitements en cours</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">{{ traitements }}</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Poids · Taille</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">{{ poids }} · {{ taille }}</div></div>
+            <div style="grid-column: 1 / -1;"><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Contact d'urgence</div><div style="font-size: 0.9rem; font-weight: 700; color: #0A2463;">{{ contactUrgenceNom }} · {{ contactUrgencePhone }} · {{ contactUrgenceLien }}</div></div>
           </div>
           <div style="font-size: 0.7rem; font-weight: 500; color: #9498a8; margin-top: 16px;">Renseigné par votre médecin — 14/06/2026</div>
         </div>
@@ -1374,7 +1374,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
               <div>
                 <span style="background: rgba(0,201,167,0.2); color: #00C9A7; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.1em; padding: 3px 9px; border-radius: 9999px;">TITULAIRE</span>
                 <div style="font-size: 1rem; font-weight: 800; letter-spacing: 0.02em; margin-top: 8px;">{{ patientNom }}</div>
-                <div style="font-size: 0.74rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-top: 2px;">BLM-4821-7763</div>
+                <div style="font-size: 0.74rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-top: 2px;">{{ membreId }}</div>
               </div>
               <div style="text-align: center;"><div id="dossier-qr" style="width: 78px; height: 78px; background: #fff; border-radius: 10px; padding: 6px; display: flex; align-items: center; justify-content: center;"></div><div style="font-size: 0.52rem; font-weight: 800; letter-spacing: 0.12em; color: rgba(255,255,255,0.5); margin-top: 6px;">ACCÈS DOSSIER</div></div>
             </div>
@@ -1902,6 +1902,55 @@ class Component extends DCLogic {
         }
       }).catch(() => {});
 
+      // Constantes médicales
+      fetch('/api/v1/patients/constantes/' + encodeURIComponent(phone), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          this._constantes = d.data;
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Timeline consultations
+      fetch('/api/v1/reports/patient/' + encodeURIComponent(phone) + '/timeline', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          this._timeline = d.data.filter(t => t.report_submitted).slice(0, 5);
+          this._prochainRdv = d.data.find(t => t.status === 'confirme' && new Date(t.appointment_date) >= new Date());
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Historique accès dossier
+      fetch('/api/v1/reports/access-log/' + encodeURIComponent(phone), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          this._accessLog = d.data.slice(0, 3);
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Config jeux Zora
+      fetch('/api/v1/zora/games/config', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          this._gamesConfig = d.data;
+          this.setState({});
+        }
+      }).catch(() => {});
+
     } catch(e) {
       window.location.href = '/patient/login.html';
       return;
@@ -2330,6 +2379,24 @@ class Component extends DCLogic {
       sportGroupsData: this._sportGroups || [],
       ledgerData: this._ledger || [],
       abonnementTxt: this._abonnement || 'Bolamu Essentiel',
+      // Constantes médicales
+      groupeSanguin: (this._constantes && this._constantes.groupe_sanguin) || 'Non renseigné',
+      allergies: (this._constantes && this._constantes.allergies) || 'Aucune connue',
+      maladiesChroniques: (this._constantes && this._constantes.maladies_chroniques) || 'Aucune',
+      antecedents: (this._constantes && this._constantes.antecedents_medicaux) || 'Aucun',
+      traitements: (this._constantes && this._constantes.traitements_en_cours) || 'Aucun',
+      poids: (this._constantes && this._constantes.poids) ? this._constantes.poids + ' kg' : 'Non renseigné',
+      taille: (this._constantes && this._constantes.taille) ? this._constantes.taille + ' cm' : 'Non renseigné',
+      contactUrgenceNom: (this._constantes && this._constantes.contact_urgence_nom) || 'Non renseigné',
+      contactUrgencePhone: (this._constantes && this._constantes.contact_urgence_phone) || '',
+      contactUrgenceLien: (this._constantes && this._constantes.contact_urgence_lien) || '',
+      // Carte membre
+      membreNom: (this._patientNom || 'ANTONIO NGAMBOU').toUpperCase(),
+      membreId: 'BLM-' + ((this._patientId || 'BOL-1535').replace('BOL-', '')),
+      membreTel: this._patientPhone || phone,
+      membreDepuis: new Date((this._constantes && this._constantes.constantes_updated_at) || Date.now()).toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'}),
+      // Prochain RDV
+      prochainRdvTxt: this._prochainRdv ? ('Dr ' + (this._prochainRdv.doctor_name || '').replace('Dr. ','') + ' · ' + new Date(this._prochainRdv.appointment_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + ' à ' + (this._prochainRdv.appointment_time || '').slice(0,5)) : null,
       freeCount: s.freeGames,
       gamesView: gamesView,
       gameScratchStyle: this.modalBg(s.game === 'scratch'),
