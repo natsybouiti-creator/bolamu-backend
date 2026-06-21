@@ -134,6 +134,82 @@ exports.analyzeTricolor = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/v1/ai-consult/renewal/:phone
+ * Renouvellement assisté : éligibilité + suggestion basée sur dernière ordonnance
+ */
+exports.generateRenewal = async (req, res) => {
+  const patientPhone = normalizePhone(req.params.phone || '');
+  const doctorPhone = req.user.phone;
+
+  if (!patientPhone) {
+    return res.status(400).json({ success: false, message: 'Numéro patient invalide.' });
+  }
+
+  try {
+    const lastConsult = await pool.query(
+      `SELECT a.appointment_date, a.motif, cr.diagnostic
+       FROM appointments a
+       LEFT JOIN consultation_reports cr ON cr.appointment_id = a.id
+       WHERE a.patient_phone = $1 AND a.status = 'termine'
+       ORDER BY a.appointment_date DESC LIMIT 1`,
+      [patientPhone]
+    );
+
+    if (!lastConsult.rows.length) {
+      return res.json({ success: true, data: { eligible: false, suggestion: null, reason: 'Aucune consultation précédente trouvée.' } });
+    }
+
+    const last = lastConsult.rows[0];
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    if (new Date(last.appointment_date) < threeMonthsAgo) {
+      return res.json({ success: true, data: { eligible: false, suggestion: null, reason: 'Dernière consultation > 3 mois.' } });
+    }
+
+    const chronicKeywords = ['diabète', 'hypertension', 'asthme', 'épilepsie', 'chronique', 'htn', 'diabetes', 'hta'];
+    const isChronic = chronicKeywords.some(kw =>
+      (last.motif || '').toLowerCase().includes(kw) ||
+      (last.diagnostic || '').toLowerCase().includes(kw)
+    );
+
+    if (!isChronic) {
+      return res.json({ success: true, data: { eligible: false, suggestion: null, reason: 'Pathologie non chronique détectée.' } });
+    }
+
+    const lastPrescription = await pool.query(
+      `SELECT medications, instructions FROM prescriptions
+       WHERE patient_phone = $1 ORDER BY created_at DESC LIMIT 1`,
+      [patientPhone]
+    );
+
+    if (!lastPrescription.rows.length) {
+      return res.json({ success: true, data: { eligible: false, suggestion: null, reason: 'Aucune ordonnance précédente.' } });
+    }
+
+    const p = lastPrescription.rows[0];
+
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('ai_consult_renewal', $1, 'users', $2, $3::jsonb)`,
+      [doctorPhone, patientPhone, JSON.stringify({ eligible: true })]
+    ).catch(() => {});
+
+    return res.json({
+      success: true,
+      data: {
+        eligible: true,
+        suggestion: { medications: p.medications, instructions: p.instructions },
+        reason: 'Pathologie chronique stable, dernière consultation < 3 mois.'
+      }
+    });
+  } catch (e) {
+    console.error('[AI Consult renewal]', e.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+};
+
 exports.suggererOrdonnance = async (req, res) => {
   const { diagnostic, patient_phone, allergies } = req.body;
 
