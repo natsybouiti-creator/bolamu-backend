@@ -41,7 +41,7 @@ router.post('/',
 );
 
 // GET — Lire le carnet de santé d'un patient
-// Rôles : patient (le sien), doctor/cms_medecin (accès RBAC — filtre consentement à venir)
+// Rôles : patient (le sien), doctor/cms_medecin (consentement requis par BHP v1.2)
 router.get('/patient/:patientId',
   authMiddleware,
   bhpAccessMiddleware(['patient', 'doctor', 'cms_medecin', 'admin']),
@@ -58,9 +58,15 @@ router.get('/patient/:patientId',
         });
       }
 
+      // BHP v1.2 : doctor et cms_medecin ne voient que les enregistrements
+      // pour lesquels le patient a accordé son consentement (consent_granted = true).
+      // Patient et admin voient tout (patient = ses propres données, admin = supervision).
+      const requiresConsent = ['doctor', 'cms_medecin'].includes(req.user.role);
       const result = await db.query(
         `SELECT * FROM health_records
-         WHERE patient_id=$1 AND is_deleted=false
+         WHERE patient_id=$1
+           AND is_deleted=false
+           ${requiresConsent ? 'AND consent_granted = true' : ''}
          ORDER BY created_at DESC LIMIT 200`,
         [patientId]
       );
