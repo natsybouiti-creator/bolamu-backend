@@ -1016,7 +1016,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
             <div>
               <div style="font-size: 0.625rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #434654; margin-bottom: 4px;">Bonjour</div>
               <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">{{ patientPrenom }}, prête à gagner&nbsp;?</h1>
-              <p style="margin: 6px 0 0; font-size: 0.84rem; font-weight: 600; color: #00875f;">À 1 750 pts du palier Nkembo</p>
+              <p style="margin: 6px 0 0; font-size: 0.84rem; font-weight: 600; color: #00875f;">{{ patientsToNext }}</p>
             </div>
             <div class="hero-tiles" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div style="position: relative; overflow: hidden; height: 104px; background: linear-gradient(135deg, #0A2463, #112d6b); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
@@ -1067,7 +1067,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         </div>
       </div><div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 18px; margin-bottom: 26px;">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 10px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; color: #FF6B35; font-size: 28px; animation: flameFlicker 0.9s ease-in-out infinite;">local_fire_department</span><span style="font-size: 1rem; font-weight: 700; color: #0A2463;">5 jours d'affilée</span></div>
+          <div style="display: flex; align-items: center; gap: 10px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; color: #FF6B35; font-size: 28px; animation: flameFlicker 0.9s ease-in-out infinite;">local_fire_department</span><span style="font-size: 1rem; font-weight: 700; color: #0A2463;">{{ streakTxt }}</span></div>
           <span style="background: rgba(255,107,53,0.12); color: #FF6B35; font-size: 0.76rem; font-weight: 800; padding: 6px 12px; border-radius: 9999px;">+50 Zora</span>
         </div>
         <div style="display: flex; justify-content: space-between; gap: 8px;">
@@ -1785,6 +1785,76 @@ class Component extends DCLogic {
         }
       }).catch(() => {});
 
+      // Streak
+      fetch('/api/v1/streaks/me', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          this._streak = d.current_streak || 0;
+          this._longestStreak = d.longest_streak || 0;
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Événements Elonga
+      fetch('/api/v1/events', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          const pilierMap = { activite: 'Activité physique', nutrition: 'Nutrition', anti_infectieux: 'Anti-infectieux', sante: 'Santé' };
+          const tintMap = { activite: '#00C9A7', nutrition: '#FF6B35', anti_infectieux: '#003FB1', sante: '#F5A623' };
+          this._events = d.data.slice(0, 5).map(e => ({
+            id: 'ev' + e.id,
+            title: e.title,
+            pilier: pilierMap[e.pillar] || e.pillar,
+            piTint: tintMap[e.pillar] || '#003FB1',
+            loc: e.location_name,
+            date: new Date(e.starts_at).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) + ' · ' + new Date(e.starts_at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            places: parseInt(e.places_restantes),
+            cap: e.max_participants,
+            pts: '+' + e.zora_reward + ' pts',
+            registered: false,
+            img: e.cover_image_path || null,
+            seed: 'ev' + e.id,
+            lat: parseFloat(e.latitude),
+            lng: parseFloat(e.longitude)
+          }));
+          this.setState({ events: this._events });
+        }
+      }).catch(() => {});
+
+      // Leaderboard
+      fetch('/api/v1/leaderboard/weekly', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.top) {
+          this._leaderboard = d.top.slice(0, 5);
+          this._myPosition = d.my_position;
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Palier Zora (réutilise la réponse balance)
+      fetch('/api/v1/zora/balance?phone=' + encodeURIComponent(phone), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          const tierMap = { kimia: 'Kimia', liboso: 'Liboso', nkembo: 'Nkembo', elonga: 'Elonga' };
+          this._zoraTier = tierMap[d.data.tier] || d.data.tier;
+          this._zoraNextTier = tierMap[d.data.next_tier] || d.data.next_tier;
+          this._zoraPointsToNext = d.data.points_to_next || 0;
+          this.setState({});
+        }
+      }).catch(() => {});
+
     } catch(e) {
       window.location.href = '/patient/login.html';
       return;
@@ -2208,6 +2278,8 @@ class Component extends DCLogic {
       patientPrenom: this._patientPrenom || 'Sarah',
       patientNom: (this._patientNom || 'Sarah Bemba').toUpperCase(),
       patientInitiales: (this._patientNom || 'Sarah Bemba').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(),
+      streakTxt: (this._streak || 0) + ' jour' + ((this._streak || 0) > 1 ? 's' : '') + ' d\'affilée',
+      patientsToNext: 'À ' + this.fmt(this._zoraPointsToNext || 500) + ' pts du palier ' + (this._zoraNextTier || 'Liboso'),
       freeCount: s.freeGames,
       gamesView: gamesView,
       gameScratchStyle: this.modalBg(s.game === 'scratch'),
