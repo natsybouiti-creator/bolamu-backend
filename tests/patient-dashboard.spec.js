@@ -5,37 +5,10 @@ const TEST_PASSWORD = 'TestNouveau2026!';
 const BASE_URL = 'https://bolamu.co';
 
 test.describe('Dashboard Patient - Tests UI', () => {
-  test.beforeEach(async ({ page, request }) => {
-    // Auth — login via request API (avec gestion d'erreur gracieuse)
-    let token = null;
-    try {
-      const loginResponse = await request.post('https://bolamu.co/api/v1/auth/login', {
-        data: {
-          phone: '+242069735418',
-          password: 'TestNouveau2026!'
-        }
-      });
-      
-      if (loginResponse.ok()) {
-        const loginData = await loginResponse.json();
-        token = loginData.accessToken;
-      }
-    } catch (e) {
-      console.log('Login API échoué, tests continueront sans auth:', e.message);
-    }
-
-    // Charger la page
+  test.beforeEach(async ({ page }) => {
     await page.goto('https://bolamu.co/patient/dashboard-v3-design.html');
-    
-    // Injecter le token si disponible
-    if (token) {
-      await page.evaluate((t) => localStorage.setItem('bolamu_patient_token', t), token);
-      await page.reload();
-    }
-
-    // Attendre un élément réel du runtime
     await page.waitForSelector('[data-testid="nav-accueil"]', { timeout: 15000 }).catch(() => {});
-    await page.waitForTimeout(2000); // laisser DCLogic finir son hydration
+    await page.waitForTimeout(1500);
   });
 
   test('1. Setup - Connexion et vérification profil', async ({ page }) => {
@@ -118,25 +91,29 @@ test.describe('Dashboard Patient - Tests UI', () => {
     await expect.soft(page.locator('text=/Zora|streak|événements/i').first()).toBeVisible();
   });
 
-  test('12. Sécurité - Token invalide', async ({ page }) => {
-    await page.evaluate(() => {
-      localStorage.setItem('bolamu_patient_token', 'invalid_token_12345');
-    });
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    
-    const isLoginPage = await page.locator('text=/connexion|login/i').isVisible();
-    const hasError = await page.locator('text=/erreur|non autorisé/i').isVisible();
-    
-    await expect.soft(isLoginPage || hasError).toBeTruthy();
-  });
-
   test('13. Performance - Temps de chargement', async ({ page }) => {
     const startTime = Date.now();
     await page.goto(`${BASE_URL}/patient/dashboard-v3-design.html`);
     await page.waitForLoadState('networkidle');
     const loadTime = Date.now() - startTime;
     await expect.soft(loadTime).toBeLessThan(5000);
+  });
+});
+
+test.describe('Sécurité', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+  
+  test('12. Token invalide redirige vers login', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('bolamu_patient_token', 'invalid_token_xyz');
+    });
+    await page.goto('https://bolamu.co/patient/dashboard-v3-design.html');
+    await page.waitForLoadState('networkidle');
+    
+    const isLoginPage = await page.locator('text=/connexion|login/i').isVisible();
+    const hasError = await page.locator('text=/erreur|non autorisé/i').isVisible();
+    
+    await expect.soft(isLoginPage || hasError).toBeTruthy();
   });
 });
 
