@@ -1,20 +1,10 @@
 const cron = require('node-cron');
 const db = require('../config/db');
 const { notify } = require('../services/notification.service');
-const { addJob } = require('../queues/bolamu-queue');
 const { buildWameLink } = require('../services/wame.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { normalizePhone } = require('../utils/phone');
 const { computeWeeklyLeaderboard } = require('../services/leaderboard.service');
-
-// Fonction helper pour envoyer SMS en batch via BullMQ
-// Non bloquant : si Redis est indisponible, le job est simplement ignoré
-async function sendSmsBatch(phones, message) {
-  if (phones.length === 0) return 0;
-  
-  await addJob('send-sms-batch', { phones, message });
-  
-  return phones.length;
-}
 
 // Cron quotidien à 02h00 heure Brazzaville (UTC+1 = 01h00 UTC)
 const jobAbonnement = cron.schedule('0 1 * * *', async () => {
@@ -38,11 +28,17 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
     );
     
     if (rappelsResult.rows.length > 0) {
-      const phones = rappelsResult.rows.map(row => row.patient_phone);
-      const message = `Bonjour, votre abonnement Bolamu expire bientôt. Renouvelez pour 24 000 FCFA via MTN MoMo pour rester couvert. Bolamu - Votre santé, notre priorité.`;
-      const sent = await sendSmsBatch(phones, message);
-      nb_traites += sent;
-      allDetails.push(`SMS rappels envoyés : ${sent} abonnés`);
+      for (const row of rappelsResult.rows) {
+        try {
+          const phone = normalizePhone(row.patient_phone);
+          await sendWhatsAppTemplate(phone, 'abonnement_expire', []);
+          nb_traites++;
+          allDetails.push(`Rappel J-30 envoyé : ${phone}`);
+        } catch (err) {
+          nb_erreurs++;
+          allDetails.push(`Erreur rappel J-30 ${row.patient_phone}`);
+        }
+      }
     }
 
     // 2. Notifications abonnement expirant dans 3 jours (Sprint 7)
@@ -112,12 +108,18 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
         );
       }
       
-      // SMS notification en batch
-      const message = `Bonjour, votre abonnement Bolamu a expiré. Renouvelez pour 24 000 FCFA via MTN MoMo pour retrouver l'accès à vos soins. Bolamu.`;
-      await sendSmsBatch(phones, message);
-      
-      nb_traites += phones.length;
-      allDetails.push(`Expirés : ${phones.length} abonnés`);
+      // Notification WhatsApp en batch
+      for (const phone of phones) {
+        try {
+          const normalizedPhone = normalizePhone(phone);
+          await sendWhatsAppTemplate(normalizedPhone, 'abonnement_expire', []);
+          nb_traites++;
+          allDetails.push(`Notification expiration envoyée : ${normalizedPhone}`);
+        } catch (err) {
+          nb_erreurs++;
+          allDetails.push(`Erreur notification expiration ${phone}`);
+        }
+      }
     }
 
     // 4. Suspension cascade — bénéficiaires dont le payeur est suspendu
