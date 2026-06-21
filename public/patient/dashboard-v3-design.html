@@ -996,7 +996,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">forum</span>
           <span style="position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px; padding: 0 4px; background: #BA1A1A; color: #fff; font-size: 0.6rem; font-weight: 800; border-radius: 9999px; display: flex; align-items: center; justify-content: center;">3</span>
         </button>
-        <button onclick="{{ openProfile }}" style="height: 40px; width: 40px; border: 2px solid #003FB1; border-radius: 9999px; background: #0A2463; color: #fff; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">SB</button>
+        <button onclick="{{ openProfile }}" style="height: 40px; width: 40px; border: 2px solid #003FB1; border-radius: 9999px; background: #0A2463; color: #fff; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">{{ patientInitiales }}</button>
       </div>
     </div>
     
@@ -1015,7 +1015,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
             <div>
               <div style="font-size: 0.625rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #434654; margin-bottom: 4px;">Bonjour</div>
-              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Sarah, prête à gagner&nbsp;?</h1>
+              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">{{ patientPrenom }}, prête à gagner&nbsp;?</h1>
               <p style="margin: 6px 0 0; font-size: 0.84rem; font-weight: 600; color: #00875f;">À 1 750 pts du palier Nkembo</p>
             </div>
             <div class="hero-tiles" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -1373,7 +1373,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
             <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;">
               <div>
                 <span style="background: rgba(0,201,167,0.2); color: #00C9A7; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.1em; padding: 3px 9px; border-radius: 9999px;">TITULAIRE</span>
-                <div style="font-size: 1rem; font-weight: 800; letter-spacing: 0.02em; margin-top: 8px;">SARAH BEMBA</div>
+                <div style="font-size: 1rem; font-weight: 800; letter-spacing: 0.02em; margin-top: 8px;">{{ patientNom }}</div>
                 <div style="font-size: 0.74rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-top: 2px;">BLM-4821-7763</div>
               </div>
               <div style="text-align: center;"><div id="dossier-qr" style="width: 78px; height: 78px; background: #fff; border-radius: 10px; padding: 6px; display: flex; align-items: center; justify-content: center;"></div><div style="font-size: 0.52rem; font-weight: 800; letter-spacing: 0.12em; color: rgba(255,255,255,0.5); margin-top: 6px;">ACCÈS DOSSIER</div></div>
@@ -1735,6 +1735,62 @@ class Component extends DCLogic {
   };
 
   componentDidMount() {
+    // === CÂBLAGE API BOLAMU ===
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) {
+      window.location.href = '/patient/login.html';
+      return;
+    }
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const phone = payload.phone;
+
+      // Profil patient
+      fetch('/api/v1/patients/profil?phone=' + encodeURIComponent(phone), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          const prenom = (d.data.full_name || '').split(' ')[0];
+          this._patientPrenom = prenom;
+          this._patientNom = d.data.full_name || '';
+          this._patientPhone = d.data.phone || '';
+          this._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel';
+          this._patientId = d.data.bolamu_id || '';
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Solde Zora
+      fetch('/api/v1/zora/balance', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          const pts = d.data.points || d.data.balance || 0;
+          if (!this.reduce) {
+            const dur = 1200, start = performance.now();
+            const tick = (t) => {
+              const p = Math.min(1, (t - start) / dur);
+              const e = 1 - Math.pow(1 - p, 3);
+              this.setState({ zora: Math.round(pts * e) });
+              if (p < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+          } else {
+            this.setState({ zora: pts });
+          }
+        }
+      }).catch(() => {});
+
+    } catch(e) {
+      window.location.href = '/patient/login.html';
+      return;
+    }
+    // === FIN CÂBLAGE ===
+
     this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.gamesList = [
       { key: 'scratch', name: 'Grattage Zora', icon: 'touch_app', tint: '#00C9A7', gain: 'Jusqu\'à +100', badgeIcon: 'local_fire_department', badgeText: 'Populaire' },
@@ -2149,6 +2205,9 @@ class Component extends DCLogic {
 
     return {
       toast: s.toast,
+      patientPrenom: this._patientPrenom || 'Sarah',
+      patientNom: (this._patientNom || 'Sarah Bemba').toUpperCase(),
+      patientInitiales: (this._patientNom || 'Sarah Bemba').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(),
       freeCount: s.freeGames,
       gamesView: gamesView,
       gameScratchStyle: this.modalBg(s.game === 'scratch'),
