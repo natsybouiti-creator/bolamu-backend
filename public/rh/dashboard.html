@@ -478,7 +478,7 @@
       
       try {
         const res = await fetch(`${API}/smartflow/rh/dashboard?mois=${mois}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         const data = await res.json();
         
@@ -504,7 +504,7 @@
       
       try {
         const res = await fetch(`${API}/smartflow/rh/export/${mois}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         
         if (res.ok) {
@@ -537,7 +537,7 @@
       try {
         const res = await fetch(`${API}/smartflow/rh/config`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
           body: JSON.stringify({ mode })
         });
         const data = await res.json();
