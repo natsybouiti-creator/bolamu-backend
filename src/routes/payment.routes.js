@@ -110,6 +110,12 @@ router.post('/confirm/:reference', authMiddleware, idempotencyMiddleware('paymen
                  VALUES ($1, $2, $3, 'active', NOW(), NOW() + INTERVAL '30 days', TRUE, $4)`,
                 [payment.patient_phone, payment.plan, payment.amount_fcfa, reference]
             );
+
+            // Activer le compte patient (is_active=true dès que le premier paiement est confirmé)
+            await client.query(
+                `UPDATE users SET is_active = TRUE WHERE phone = $1`,
+                [payment.patient_phone]
+            );
         }
 
         await client.query('COMMIT');
