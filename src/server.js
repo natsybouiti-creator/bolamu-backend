@@ -326,13 +326,11 @@ jobAbonnement.start();
 console.log('[CRON] Job abonnement quotidien démarré (02h00 Brazzaville)');
 
 // ============================================================
-// BullMQ Workers — DÉSACTIVÉS (SMS abandonnés, WhatsApp direct)
-// Pour réactiver : configurer REDIS_URL sur Render + décommenter ci-dessous
+// BullMQ Workers — SMS abandonné (WhatsApp direct), Push actif si REDIS_URL configuré
 // ============================================================
-// require('./workers/sms-worker');
-// console.log('[BULLMQ] Worker SMS démarré');
-// require('./workers/notification-worker');
-// console.log('[BULLMQ] Worker Notifications démarré');
+// require('./workers/sms-worker'); // SMS abandonné — ne pas réactiver
+require('./workers/notification-worker');
+console.log('[BULLMQ] Worker Push Notifications démarré');
 
 // ============================================================
 // 8. INDEX DE PERFORMANCE
