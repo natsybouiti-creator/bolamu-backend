@@ -83,12 +83,32 @@ authMiddleware.requireAdmin = async (req, res, next) => {
         req.user = decoded;
 
         if (!rolesAutorises.includes(decoded.role)) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Accès interdit : Droits d'administration requis." 
+            return res.status(403).json({
+                success: false,
+                message: "Accès interdit : Droits d'administration requis."
             });
         }
-        
+
+        if (decoded.is_active === false) {
+            return res.status(403).json({ success: false, message: 'Compte inactif ou suspendu.' });
+        }
+        if (decoded.banned === true) {
+            return res.status(403).json({ success: false, message: 'Compte banni.' });
+        }
+
+        if (decoded.is_active === undefined) {
+            const userCheck = await pool.query(
+                'SELECT is_active, banned FROM users WHERE phone = $1',
+                [decoded.phone]
+            );
+            if (!userCheck.rows.length || !userCheck.rows[0].is_active) {
+                return res.status(403).json({ success: false, message: 'Compte inactif ou suspendu.' });
+            }
+            if (userCheck.rows[0].banned) {
+                return res.status(403).json({ success: false, message: 'Compte banni.' });
+            }
+        }
+
         next();
     } catch (err) {
         logger.error('[REQUIRE_ADMIN] Token error:', err.message);
