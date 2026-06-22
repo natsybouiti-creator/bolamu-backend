@@ -1063,93 +1063,6 @@
       } catch(e) { console.error('[STATS]', e); }
     }
 
-    // ─── Souscription ───
-    const PLANS_UI = [
-      { key: 'moto',   nom: 'MOTO',   prix: 2000,  membres: '1 personne',   desc: 'Couverture individuelle des soins de santé primaires.' },
-      { key: 'ndeko',  nom: 'NDEKO',  prix: 4000,  membres: '2 personnes',  desc: 'Couverture pour le foyer restreint.' },
-      { key: 'libota', nom: 'LIBOTA', prix: 10000, membres: '5 personnes',  desc: 'Couverture familiale étendue.' },
-    ];
-    let planSelectionne = null;
-    let clientSouscription = null;
-
-    function renderPlanCards() {
-      document.getElementById('plan-cards').innerHTML = PLANS_UI.map(p => `
-        <div class="plan-card" data-plan="${p.key}" onclick="selectPlan('${p.key}', this)">
-          <div class="plan-nom">${p.nom}</div>
-          <div class="plan-prix">${p.prix.toLocaleString('fr-FR')} FCFA</div>
-          <div class="plan-membres">${p.membres}</div>
-          <div class="plan-desc">${p.desc}</div>
-        </div>`).join('');
-    }
-    function selectPlan(key, el) {
-      planSelectionne = key;
-      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected');
-    }
-
-    async function rechercherClient() {
-      const phone = document.getElementById('sub-phone').value.trim().replace(/\s+/g, '');
-      const out = document.getElementById('sub-client-result');
-      const newClient = document.getElementById('sub-new-client');
-      if (!phone) { out.innerHTML = '<div class="result-msg err">Entrez un numéro.</div>'; return; }
-      const token = getToken();
-      out.innerHTML = '<div class="result-msg">Recherche...</div>';
-      try {
-        const res = await fetch(`${API}/agence/client?phone=${encodeURIComponent(phone)}`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const data = await res.json();
-        if (data.success && data.client) {
-          clientSouscription = { phone, existant: true };
-          newClient.classList.add('hidden');
-          out.innerHTML = `<div class="result-msg ok">Client trouvé : <strong>${data.client.full_name || phone}</strong>${data.client.plan ? ' — abonnement actuel : ' + data.client.plan : ''}.</div>`;
-        } else {
-          clientSouscription = { phone, existant: false };
-          newClient.classList.remove('hidden');
-          out.innerHTML = '<div class="result-msg warn">Client non trouvé. Renseignez son nom et prénom pour créer le compte.</div>';
-        }
-        document.getElementById('step-plan').classList.remove('hidden');
-        renderPlanCards();
-      } catch(e) {
-        out.innerHTML = '<div class="result-msg err">Erreur de connexion au serveur.</div>';
-        console.error('[CLIENT]', e);
-      }
-    }
-
-    async function confirmerSouscription() {
-      const out = document.getElementById('sub-confirmation');
-      if (!clientSouscription) { return; }
-      if (!planSelectionne) { out.classList.remove('hidden'); out.className = 'result-msg err'; out.textContent = 'Sélectionnez une formule.'; return; }
-      const token = getToken();
-      const payload = {
-        patient_phone: clientSouscription.phone,
-        plan: planSelectionne,
-        payment_mode: document.getElementById('sub-payment-mode').value,
-      };
-      if (!clientSouscription.existant) {
-        payload.nom = document.getElementById('sub-nom').value.trim();
-        payload.prenom = document.getElementById('sub-prenom').value.trim();
-      }
-      out.classList.remove('hidden'); out.className = 'result-msg'; out.textContent = 'Enregistrement...';
-      try {
-        const res = await fetch(`${API}/agence/souscrire`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-          out.className = 'result-msg ok';
-          out.textContent = `Souscription confirmée — plan ${data.plan} (${Number(data.amount_fcfa).toLocaleString('fr-FR')} FCFA), valide jusqu'au ${new Date(data.expires_at).toLocaleDateString('fr-FR')}.`;
-        } else {
-          out.className = 'result-msg err';
-          out.textContent = data.message || 'Échec de la souscription.';
-        }
-      } catch(e) {
-        out.className = 'result-msg err';
-        out.textContent = 'Erreur de connexion au serveur.';
-        console.error('[SOUSCRIRE]', e);
-      }
-    }
-
     // ─── Orientation ───
     async function loadPartenaires() {
       const ville  = document.getElementById('orient-ville').value;
@@ -1697,11 +1610,11 @@
         }
       } catch(e) {
         console.error('[LOAD PLANS]', e);
-        // Fallback : plans par défaut
+        // Fallback : plans par défaut (tarifs réels — source platform_config)
         plansConfig = [
-          { id: 'essentiel', name: 'MOTO', price: 15000, members: 1, description: 'Couverture de base pour une personne' },
-          { id: 'standard', name: 'NDEKO', price: 35000, members: 4, description: 'Pour la famille jusqu\'à 4 personnes' },
-          { id: 'premium', name: 'LIBOTA', price: 70000, members: 8, description: 'Famille élargie jusqu\'à 8 personnes' }
+          { id: 'essentiel', name: 'MOTO',   price: 2000,  members: 1, description: 'Couverture individuelle des soins de santé primaires.' },
+          { id: 'standard',  name: 'NDEKO',  price: 5000,  members: 2, description: 'Couverture pour le foyer restreint (2 personnes).' },
+          { id: 'premium',   name: 'LIBOTA', price: 10000, members: 5, description: 'Couverture familiale étendue (5 personnes).' }
         ];
         renderPlanCards();
       }
