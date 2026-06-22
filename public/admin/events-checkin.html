@@ -290,12 +290,12 @@
     }
     
     // Traiter QR code
-    async function processQRCode(token) {
+    async function processQRCode(qrToken) {
       if (!selectedEventId) {
         showResult('error', 'Sélectionnez un événement d\'abord');
         return;
       }
-      
+
       try {
         const res = await fetch(`${API}/events/${selectedEventId}/checkin`, {
           method: 'POST',
@@ -303,7 +303,7 @@
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ token })
+          body: JSON.stringify({ token: qrToken })
         });
         
         const data = await res.json();
