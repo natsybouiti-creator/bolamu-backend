@@ -53,6 +53,13 @@ reset('remise a zero des actions one-shot du jour', async () => {
       [AUDIT_PHONE]
     );
     console.log(`[RESET] zora_ledger event_checkin (tous, ${AUDIT_PHONE}) supprimees : ${checkins.rowCount}`);
+
+    // Réinitialiser bilan_annuel du jour (daily_cap = 1, sinon groups-chat test 9 échoue si run précédent l'a déjà crédité)
+    const bilans = await pool.query(
+      `DELETE FROM zora_ledger WHERE phone = $1 AND action_type = 'bilan_annuel' AND earned_at >= CURRENT_DATE`,
+      [AUDIT_PHONE]
+    );
+    console.log(`[RESET] zora_ledger bilan_annuel (aujourd'hui, ${AUDIT_PHONE}) supprimees : ${bilans.rowCount}`);
   } finally {
     await pool.end();
   }
