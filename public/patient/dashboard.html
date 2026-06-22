@@ -745,6 +745,10 @@
         <div id="historique-list"><div class="loading">Chargement…</div></div>
       </div>
     </div>
+    <div class="info-card" style="margin-top:16px;">
+      <h3>Mes ordonnances</h3>
+      <div id="ordonnances-list"><div class="loading">Chargement…</div></div>
+    </div>
   </div>
 
   <!-- CARTE -->
@@ -1014,7 +1018,7 @@ function showTab(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='medecins')loadDoctors();
-  if(name==='dossier'){loadTimeline();loadConstantes();}
+  if(name==='dossier'){loadTimeline();loadConstantes();loadPrescriptions();}
   if(name==='carte')loadCarte();
   if(name==='credits')loadCredits();
   if(name==='conflits')loadConflits();
@@ -1026,7 +1030,7 @@ function showTabMobile(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='medecins')loadDoctors();
-  if(name==='dossier'){loadTimeline();loadConstantes();}
+  if(name==='dossier'){loadTimeline();loadConstantes();loadPrescriptions();}
   if(name==='carte')loadCarte();
   if(name==='credits')loadCredits();
   if(name==='conflits')loadConflits();
@@ -1498,6 +1502,40 @@ async function loadAccessLog(){
     }).join('');
     container.innerHTML=html;
   }catch(e){document.getElementById('access-log-list').innerHTML=`<div style="font-size:13px;color:var(--texte-doux);padding:12px;">Impossible de charger l'historique.</div>`;}
+}
+
+async function loadPrescriptions(){
+  try{
+    const token=localStorage.getItem('bolamu_patient_token');
+    const res=await fetch(`${API}/prescriptions/patient/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${token}`}});
+    const data=await res.json();
+    const container=document.getElementById('ordonnances-list');
+    if(!data.success||!data.data||!data.data.length){
+      container.innerHTML=`<div class="empty-state"><div class="empty-icon">💊</div><p>Aucune ordonnance pour l'instant.</p></div>`;return;
+    }
+    container.innerHTML=data.data.map(p=>{
+      const dateStr=new Date(p.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+      const statusBadge=p.status==='delivered'
+        ?`<span style="background:#e8f5e9;color:#2e7d32;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;">Délivrée</span>`
+        :`<span style="background:#fff3e0;color:#e65100;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;">À retirer</span>`;
+      let meds='';
+      try{
+        const m=typeof p.medications==='string'?JSON.parse(p.medications):p.medications;
+        if(Array.isArray(m))meds=m.map(x=>`<div style="font-size:13px;padding:4px 0;border-bottom:1px solid var(--border);">${typeof x==='object'?(x.nom||x.name||JSON.stringify(x)):x}</div>`).join('');
+        else meds=`<div style="font-size:13px;">${p.medications}</div>`;
+      }catch(e){meds=`<div style="font-size:13px;">${p.medications}</div>`;}
+      return `<div style="padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><div style="font-weight:600;font-size:14px;">Dr ${p.doctor_name||p.doctor_phone}</div>
+          <div style="font-size:12px;color:var(--texte-doux);">${dateStr}${p.specialty?' · '+p.specialty:''}</div></div>
+          ${statusBadge}
+        </div>
+        <div style="margin-bottom:8px;">${meds}</div>
+        ${p.status==='active'?`<div style="font-size:12px;color:var(--texte-doux);">Code de retrait : <strong>${p.session_code||'—'}</strong></div>`:''}
+        ${p.status==='delivered'&&p.delivered_at?`<div style="font-size:12px;color:var(--texte-doux);">Retirée le ${new Date(p.delivered_at).toLocaleDateString('fr-FR')}</div>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){document.getElementById('ordonnances-list').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Impossible de charger les ordonnances.</p></div>`;}
 }
 
 async function genererQRUrgence(){
