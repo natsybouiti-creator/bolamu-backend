@@ -160,13 +160,24 @@ async function deliverPrescription(req, res) {
         );
 
         // Log audit
+        const patient_phone_delivered = check.rows[0].patient_phone;
         await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, payload)
-             VALUES ('prescription_delivered', $1, $2::jsonb)`,
-            [pharmacie_phone, JSON.stringify({ prescription_id, session_code, patient_phone: check.rows[0].patient_phone })]
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('prescription_delivered', $1, 'prescriptions', $2, $3::jsonb)`,
+            [pharmacie_phone, prescription_id, JSON.stringify({ session_code, patient_phone: patient_phone_delivered })]
         );
 
         logger.info('[PRESCRIPTION] Ordonnance délivrée', { prescription_id });
+
+        // Notification asynchrone au patient
+        setImmediate(async () => {
+            try {
+                const { notify } = require('../services/notification.service');
+                await notify(patient_phone_delivered, 'message_recu', {
+                    message: `Votre ordonnance a été délivrée. Merci d'avoir utilisé une pharmacie partenaire Bolamu.`
+                });
+            } catch (e) { console.error('[NOTIFY DELIVER]', e.message); }
+        });
 
         return res.json({
             success: true,

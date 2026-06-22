@@ -62,10 +62,13 @@ async function notify(user_phone, type, data = {}) {
 
         // Mettre à jour le canal utilisé dans notifications
         await pool.query(`
-            UPDATE notifications 
-            SET canal = $1, sent_at = NOW() 
-            WHERE user_phone = $2 AND type = $3 AND sent_at IS NULL
-            ORDER BY created_at DESC LIMIT 1
+            UPDATE notifications
+            SET canal = $1, sent_at = NOW()
+            WHERE id = (
+              SELECT id FROM notifications
+              WHERE user_phone = $2 AND type = $3 AND sent_at IS NULL
+              ORDER BY created_at DESC LIMIT 1
+            )
         `, [sentChannels[0] || 'sms', user_phone, type]);
 
         logger.info('[Notification] Notification envoyée', { user_phone, type, channels: sentChannels });
@@ -125,7 +128,7 @@ function getNotificationContent(type, data) {
         },
         message_recu: {
             titre: 'Message reçu',
-            message: `Vous avez reçu un nouveau message.`
+            message: data.message || 'Vous avez reçu un nouveau message.'
         },
         alerte_systeme: {
             titre: 'Alerte système',
