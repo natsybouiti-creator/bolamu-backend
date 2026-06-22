@@ -39,8 +39,8 @@ router.post('/initiate', authMiddleware, idempotencyMiddleware('payment-initiate
         const reference = generateReference();
 
         const result = await db.query(
-            `INSERT INTO payments 
-             (patient_phone, amount_fcfa, payment_type, payment_method, status, reference, subscription_id, appointment_id, plan)
+            `INSERT INTO payments
+             (patient_phone, amount_fcfa, payment_type, payment_method_new, status, reference, subscription_id, appointment_id, plan)
              VALUES ($1, $2, $3, 'simulation', 'pending', $4, $5, $6, $7)
              RETURNING *`,
             [patient_phone, amount_fcfa, payment_type, reference, subscription_id || null, appointment_id || null, plan || null]

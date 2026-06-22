@@ -4,7 +4,7 @@
 const { test, expect } = require('@playwright/test');
 
 const API = 'https://api.bolamu.co/api/v1';
-const TEST_PHONE = '+242099999999';
+const TEST_PHONE = '+242069735418';
 
 // ============================================================
 // TEST 1 — Catalogue chargé
@@ -12,10 +12,10 @@ const TEST_PHONE = '+242099999999';
 test('Test 1 — Catalogue chargé', async ({ request }) => {
   // Login patient
   const loginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: TEST_PHONE, password: 'bolamu2026' }
+    data: { phone: TEST_PHONE, password: 'TestNouveau2026!' }
   });
   const loginData = await loginRes.json();
-  const token = loginData.data.token;
+  const token = loginData.accessToken;
   
   // GET /zora/rewards
   const rewardsRes = await request.get(`${API}/zora/rewards`, {
@@ -34,10 +34,10 @@ test('Test 1 — Catalogue chargé', async ({ request }) => {
 test('Test 2 — Échange complet', async ({ request }) => {
   // Login patient
   const loginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: TEST_PHONE, password: 'bolamu2026' }
+    data: { phone: TEST_PHONE, password: 'TestNouveau2026!' }
   });
   const loginData = await loginRes.json();
-  const token = loginData.data.token;
+  const token = loginData.accessToken;
   
   // Créditer 500 points pour le test
   await request.post(`${API}/zora/award`, {
@@ -94,10 +94,10 @@ test('Test 2 — Échange complet', async ({ request }) => {
 test('Test 3 — Solde insuffisant', async ({ request }) => {
   // Login patient
   const loginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: TEST_PHONE, password: 'bolamu2026' }
+    data: { phone: TEST_PHONE, password: 'TestNouveau2026!' }
   });
   const loginData = await loginRes.json();
-  const token = loginData.data.token;
+  const token = loginData.accessToken;
   
   // Réinitialiser solde à 100 points
   await request.post(`${API}/zora/reset`, {
@@ -125,17 +125,17 @@ test('Test 4 — Scan partenaire', async ({ request }) => {
   // Login partenaire (pharmacie)
   const partnerPhone = '+242066226116';
   const loginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: partnerPhone, password: 'bolamu2026' }
+    data: { phone: partnerPhone, password: 'WR383LMW' }
   });
   const loginData = await loginRes.json();
-  const token = loginData.data.token;
+  const token = loginData.accessToken;
   
   // Créer un voucher pour le test
   const patientLoginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: TEST_PHONE, password: 'bolamu2026' }
+    data: { phone: TEST_PHONE, password: 'TestNouveau2026!' }
   });
   const patientLoginData = await patientLoginRes.json();
-  const patientToken = patientLoginData.data.token;
+  const patientToken = patientLoginData.accessToken;
   
   // Créditer points
   await request.post(`${API}/zora/award`, {
@@ -176,17 +176,17 @@ test('Test 5 — Double scan bloqué', async ({ request }) => {
   // Login partenaire
   const partnerPhone = '+242066226116';
   const loginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: partnerPhone, password: 'bolamu2026' }
+    data: { phone: partnerPhone, password: 'WR383LMW' }
   });
   const loginData = await loginRes.json();
-  const token = loginData.data.token;
+  const token = loginData.accessToken;
   
   // Créer un voucher déjà consommé
   const patientLoginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: TEST_PHONE, password: 'bolamu2026' }
+    data: { phone: TEST_PHONE, password: 'TestNouveau2026!' }
   });
   const patientLoginData = await patientLoginRes.json();
-  const patientToken = patientLoginData.data.token;
+  const patientToken = patientLoginData.accessToken;
   
   await request.post(`${API}/zora/award`, {
     headers: { Authorization: `Bearer ${patientToken}` },
@@ -230,10 +230,10 @@ test('Test 6 — Mauvais partenaire', async ({ request }) => {
   // Login pharmacie
   const pharmacyPhone = '+242066226116';
   const pharmacyLoginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: pharmacyPhone, password: 'bolamu2026' }
+    data: { phone: pharmacyPhone, password: 'WR383LMW' }
   });
   const pharmacyLoginData = await pharmacyLoginRes.json();
-  const pharmacyToken = pharmacyLoginData.data.token;
+  const pharmacyToken = pharmacyLoginData.accessToken;
   
   // Créer un voucher pour un autre partenaire (médecin)
   const doctorPhone = '+242060000001';
@@ -241,14 +241,14 @@ test('Test 6 — Mauvais partenaire', async ({ request }) => {
     data: { phone: doctorPhone, password: 'bolamu2026' }
   });
   const doctorLoginData = await doctorLoginRes.json();
-  const doctorToken = doctorLoginData.data.token;
+  const doctorToken = doctorLoginData.accessToken;
   
   // Créer voucher
   const patientLoginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: TEST_PHONE, password: 'bolamu2026' }
+    data: { phone: TEST_PHONE, password: 'TestNouveau2026!' }
   });
   const patientLoginData = await patientLoginRes.json();
-  const patientToken = patientLoginData.data.token;
+  const patientToken = patientLoginData.accessToken;
   
   await request.post(`${API}/zora/award`, {
     headers: { Authorization: `Bearer ${patientToken}` },
@@ -285,10 +285,10 @@ test('Test 6 — Mauvais partenaire', async ({ request }) => {
 test('Test 7 — Expiration cron', async ({ request }) => {
   // Login patient
   const loginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: TEST_PHONE, password: 'bolamu2026' }
+    data: { phone: TEST_PHONE, password: 'TestNouveau2026!' }
   });
   const loginData = await loginRes.json();
-  const token = loginData.data.token;
+  const token = loginData.accessToken;
   
   // Créer un voucher expiré manuellement
   await request.post(`${API}/zora/award`, {
@@ -317,10 +317,10 @@ test('Test 7 — Expiration cron', async ({ request }) => {
   // Tenter de consommer le voucher expiré
   const partnerPhone = '+242066226116';
   const partnerLoginRes = await request.post(`${API}/auth/login`, {
-    data: { phone: partnerPhone, password: 'bolamu2026' }
+    data: { phone: partnerPhone, password: 'WR383LMW' }
   });
   const partnerLoginData = await partnerLoginRes.json();
-  const partnerToken = partnerLoginData.data.token;
+  const partnerToken = partnerLoginData.accessToken;
   
   const consumeRes = await request.post(`${API}/zora/vouchers/${voucherUuid}/consume`, {
     headers: { Authorization: `Bearer ${partnerToken}` }

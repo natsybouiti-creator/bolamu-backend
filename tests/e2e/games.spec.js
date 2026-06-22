@@ -2,23 +2,24 @@
 // BOLAMU — Sprint 4 : Tests E2E Jeux Zora
 // ============================================================
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 
 const API_URL = 'https://api.bolamu.co/api/v1';
 const TEST_PHONE = '+242069735418';
-const TEST_PASSWORD = 'test1234';
 
-let authToken = '';
+function readStoredToken() {
+  try {
+    const state = JSON.parse(fs.readFileSync('playwright/.auth/patient.json', 'utf8'));
+    for (const origin of (state.origins || [])) {
+      for (const item of (origin.localStorage || [])) {
+        if (item.name === 'bolamu_patient_token') return item.value;
+      }
+    }
+  } catch (_) {}
+  return '';
+}
 
-test.beforeAll(async () => {
-  // Login pour obtenir le token
-  const loginResponse = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: TEST_PHONE, password: TEST_PASSWORD })
-  });
-  const loginData = await loginResponse.json();
-  authToken = loginData.data?.token || '';
-});
+let authToken = readStoredToken();
 
 test('Test 1 — Config chargée', async () => {
   const response = await fetch(`${API_URL}/zora/games/config`);

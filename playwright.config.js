@@ -5,7 +5,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: 'html',
   use: {
     baseURL: 'https://bolamu.co',
@@ -29,12 +29,19 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.auth/patient.json',
       },
       dependencies: ['setup', 'reset'],
       teardown: 'restore',
+      testIgnore: /tests\/e2e\/(0[1-6])-/,
+    },
+    {
+      // Tests API E2E critiques — pas de browser, pas de dépendance auth
+      name: 'api-e2e',
+      testMatch: /tests\/e2e\/(0[1-6])-.*\.spec\.js/,
+      use: {},
     },
   ],
 });

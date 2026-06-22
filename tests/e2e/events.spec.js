@@ -2,14 +2,24 @@
 // BOLAMU — Sprint 5 : Tests Playwright Événements Elonga
 // ============================================================
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 
 const API = 'https://api.bolamu.co/api/v1';
 
-// Comptes de test
-const PATIENT_PHONE = '+242069735418';
-const PATIENT_PASSWORD = 'bolamu2026';
 const ADMIN_PHONE = '+242060000099';
 const ADMIN_PASSWORD = 'bolamu2026';
+
+function readStoredToken() {
+  try {
+    const state = JSON.parse(fs.readFileSync('playwright/.auth/patient.json', 'utf8'));
+    for (const origin of (state.origins || [])) {
+      for (const item of (origin.localStorage || [])) {
+        if (item.name === 'bolamu_patient_token') return item.value;
+      }
+    }
+  } catch (_) {}
+  return '';
+}
 
 let patientToken = null;
 let adminToken = null;
@@ -17,18 +27,11 @@ let testEventId = null;
 let testToken = null;
 
 test.describe('Événements Elonga — Sprint 5', () => {
-  
+
   test.beforeAll(async () => {
-    // Login patient
-    const patientLogin = await fetch(`${API}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: PATIENT_PHONE, password: PATIENT_PASSWORD })
-    });
-    const patientData = await patientLogin.json();
-    patientToken = patientData.accessToken;
-    
-    // Login admin
+    patientToken = readStoredToken();
+
+    // Login admin (1 seul appel strictLimiter pour ce fichier)
     const adminLogin = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

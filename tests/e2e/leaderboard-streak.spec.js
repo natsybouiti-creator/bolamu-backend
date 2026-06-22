@@ -2,26 +2,28 @@
 // BOLAMU — Sprint 6A : Tests Playwright Leaderboard + Streak
 // ============================================================
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 
 const API = 'https://api.bolamu.co/api/v1';
 
-// Comptes de test
-const PATIENT_PHONE = '+242069735418';
-const PATIENT_PASSWORD = 'bolamu2026';
-
-let patientToken = null;
+function readStoredToken() {
+  try {
+    const state = JSON.parse(fs.readFileSync('playwright/.auth/patient.json', 'utf8'));
+    for (const origin of (state.origins || [])) {
+      for (const item of (origin.localStorage || [])) {
+        if (item.name === 'bolamu_patient_token') return item.value;
+      }
+    }
+  } catch (_) {}
+  return '';
+}
 
 test.describe('Leaderboard + Streak — Sprint 6A', () => {
-  
+
+  let patientToken;
+
   test.beforeAll(async () => {
-    // Login patient
-    const patientLogin = await fetch(`${API}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: PATIENT_PHONE, password: PATIENT_PASSWORD })
-    });
-    const patientData = await patientLogin.json();
-    patientToken = patientData.accessToken;
+    patientToken = readStoredToken();
   });
   
   test('1. GET /leaderboard/weekly/top3 → top 3 sans auth', async () => {

@@ -680,8 +680,9 @@ router.post('/reclamation/reactiver', requireAgent, async (req, res) => {
   if (!patient_phone) return res.status(400).json({ success: false, message: 'patient_phone requis.' });
   const phone = normalizePhone(patient_phone);
   try {
-    const userRes = await pool.query(`SELECT phone, full_name, is_active FROM users WHERE phone = $1`, [phone]);
+    const userRes = await pool.query(`SELECT id, phone, full_name, is_active FROM users WHERE phone = $1`, [phone]);
     if (!userRes.rows.length) return res.status(404).json({ success: false, message: 'Patient introuvable.' });
+    const userId = userRes.rows[0].id;
 
     await pool.query(`UPDATE users SET is_active = TRUE WHERE phone = $1`, [phone]);
 
@@ -698,7 +699,7 @@ router.post('/reclamation/reactiver', requireAgent, async (req, res) => {
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
        VALUES ('agent.reclamation_reactivation', $1, 'users', $2, $3::jsonb)`,
-      [req.user.phone, phone, JSON.stringify({ patient_phone: phone, raison: raison || 'reactivation_agent' })]
+      [req.user.phone, userId, JSON.stringify({ patient_phone: phone, raison: raison || 'reactivation_agent' })]
     );
 
     res.json({ success: true, message: `Compte ${phone} réactivé avec succès.` });
@@ -723,16 +724,17 @@ router.post('/reclamation/changer-formule', requireAgent, async (req, res) => {
     const cfgRes = await pool.query(`SELECT config_value FROM platform_config WHERE config_key = $1`, [`price_${planEnum}`]);
     const amount = cfgRes.rows.length ? parseInt(cfgRes.rows[0].config_value, 10) : null;
 
-    await pool.query(
+    const subRes = await pool.query(
       `UPDATE subscriptions SET plan = $1, amount_fcfa = $2, updated_at = NOW()
-       WHERE patient_phone = $3 AND is_active = TRUE`,
+       WHERE patient_phone = $3 AND is_active = TRUE RETURNING id`,
       [planEnum, amount, phone]
     );
+    const subId = subRes.rows[0]?.id || null;
 
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
        VALUES ('agent.reclamation_changement_plan', $1, 'subscriptions', $2, $3::jsonb)`,
-      [req.user.phone, phone, JSON.stringify({ patient_phone: phone, nouveau_plan: planEnum, raison: raison || '' })]
+      [req.user.phone, subId, JSON.stringify({ patient_phone: phone, nouveau_plan: planEnum, raison: raison || '' })]
     );
 
     res.json({ success: true, message: `Formule mise à jour vers ${planEnum} pour ${phone}.` });
@@ -758,6 +760,10 @@ router.post('/reclamation/corriger', requireAgent, async (req, res) => {
   }
 
   try {
+    const userIdRes = await pool.query(`SELECT id FROM users WHERE phone = $1`, [phone]);
+    if (!userIdRes.rows.length) return res.status(404).json({ success: false, message: 'Patient introuvable.' });
+    const userId = userIdRes.rows[0].id;
+
     const sets = champs.map((col, i) => `${col} = $${i + 2}`).join(', ');
     const vals = champs.map(col => corrections[col]);
     await pool.query(`UPDATE users SET ${sets} WHERE phone = $1`, [phone, ...vals]);
@@ -765,7 +771,7 @@ router.post('/reclamation/corriger', requireAgent, async (req, res) => {
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
        VALUES ('agent.reclamation_correction', $1, 'users', $2, $3::jsonb)`,
-      [req.user.phone, phone, JSON.stringify({ patient_phone: phone, champs_corriges: corrections, raison: raison || '' })]
+      [req.user.phone, userId, JSON.stringify({ patient_phone: phone, champs_corriges: corrections, raison: raison || '' })]
     );
 
     res.json({ success: true, message: `Informations corrigées pour ${phone}.`, champs_mis_a_jour: champs });
@@ -783,10 +789,13 @@ router.post('/reclamation/signaler', requireAgent, async (req, res) => {
   }
   const phone = normalizePhone(patient_phone);
   try {
+    const sigUserRes = await pool.query(`SELECT id FROM users WHERE phone = $1`, [phone]);
+    const sigUserId = sigUserRes.rows[0]?.id || null;
+
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
        VALUES ('agent.reclamation_signalement', $1, 'users', $2, $3::jsonb)`,
-      [req.user.phone, phone, JSON.stringify({ patient_phone: phone, description, agent: req.user.phone })]
+      [req.user.phone, sigUserId, JSON.stringify({ patient_phone: phone, description, agent: req.user.phone })]
     );
 
     res.json({ success: true, message: 'Signalement enregistré. Un administrateur va traiter votre demande.' });
