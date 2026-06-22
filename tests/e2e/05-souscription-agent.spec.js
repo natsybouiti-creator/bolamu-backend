@@ -22,6 +22,7 @@ let agentToken;
 async function cleanPatient(p, phone) {
   await p.query(`DELETE FROM subscriptions WHERE patient_phone = $1`, [phone]);
   await p.query(`DELETE FROM audit_log WHERE payload->>'patient_phone' = $1 AND created_at::date = CURRENT_DATE`, [phone]);
+  await p.query(`DELETE FROM zora_points WHERE phone = $1`, [phone]);
   await p.query(`DELETE FROM users WHERE phone = $1`, [phone]);
 }
 

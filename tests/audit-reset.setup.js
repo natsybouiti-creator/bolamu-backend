@@ -45,6 +45,14 @@ reset('remise a zero des actions one-shot du jour', async () => {
       [AUDIT_PHONE]
     );
     console.log(`[RESET] elonga_registrations (aujourd'hui, ${AUDIT_PHONE}) supprimees : ${regs.rowCount}`);
+
+    // Réinitialiser TOUS les crédits event_checkin pour ce compte de test
+    // (idempotency dans awardZora vérifie proof_reference sans filtre date)
+    const checkins = await pool.query(
+      `DELETE FROM zora_ledger WHERE phone = $1 AND action_type = 'event_checkin'`,
+      [AUDIT_PHONE]
+    );
+    console.log(`[RESET] zora_ledger event_checkin (tous, ${AUDIT_PHONE}) supprimees : ${checkins.rowCount}`);
   } finally {
     await pool.end();
   }

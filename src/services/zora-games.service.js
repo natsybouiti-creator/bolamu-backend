@@ -122,10 +122,10 @@ async function playGame({ phone, game_type, play_type }) {
         [game.extra_play_cost, phone]
       );
       
-      // Insérer ledger négative
+      // Insérer ledger négative — category est NOT NULL, expires_at requis
       await client.query(
-        `INSERT INTO zora_ledger (phone, points, action_type, proof_class, proof_source, recording_method, proof_reference)
-         VALUES ($1, $2, 'game_play_cost', 'system_event', 'game_engine', NULL, $3)`,
+        `INSERT INTO zora_ledger (phone, points, category, action_type, proof_class, proof_source, recording_method, proof_reference, verified, earned_at, expires_at)
+         VALUES ($1, $2, 'plateforme', 'game_play_cost', 'system_event', 'game_engine', NULL, $3, TRUE, NOW(), NOW() + INTERVAL '12 months')`,
         [phone, -game.extra_play_cost, crypto.randomBytes(16).toString('hex')]
       );
       

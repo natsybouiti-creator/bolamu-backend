@@ -3,11 +3,10 @@
 // ============================================================
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
+const pg = require('pg');
+require('dotenv').config();
 
 const API = 'https://api.bolamu.co/api/v1';
-
-const ADMIN_PHONE = '+242060000099';
-const ADMIN_PASSWORD = 'bolamu2026';
 
 function readStoredToken() {
   try {
@@ -21,24 +20,69 @@ function readStoredToken() {
   return '';
 }
 
+function readAdminToken() {
+  try {
+    return JSON.parse(fs.readFileSync('playwright/.auth/admin.json', 'utf8')).token || '';
+  } catch (_) {}
+  return '';
+}
+
 let patientToken = null;
 let adminToken = null;
 let testEventId = null;
 let testToken = null;
+let pool = null;
 
 test.describe('Événements Elonga — Sprint 5', () => {
+  test.describe.configure({ mode: 'serial' });
 
   test.beforeAll(async () => {
     patientToken = readStoredToken();
+    adminToken = readAdminToken();
 
-    // Login admin (1 seul appel strictLimiter pour ce fichier)
-    const adminLogin = await fetch(`${API}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: ADMIN_PHONE, password: ADMIN_PASSWORD })
-    });
-    const adminData = await adminLogin.json();
-    adminToken = adminData.accessToken;
+    // Annuler toute inscription existante pour repartir proprement
+    try {
+      const myRegsRes = await fetch(`${API}/events/my/registrations`, {
+        headers: { 'Authorization': `Bearer ${patientToken}` }
+      });
+      if (myRegsRes.ok) {
+        const myRegs = await myRegsRes.json();
+        for (const reg of (myRegs.data || [])) {
+          if (reg.status === 'registered' || reg.status === 'active') {
+            await fetch(`${API}/events/${reg.event_id}/register`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${patientToken}`, 'Content-Type': 'application/json' }
+            });
+          }
+        }
+      }
+    } catch (_) {}
+
+    // Assurer que la règle event_checkin existe et est active dans zora_earn_rules
+    try {
+      pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+      // ON CONFLICT DO NOTHING = safe si action_type est unique OU pas de contrainte
+      await pool.query(`
+        INSERT INTO zora_earn_rules
+          (action_type, label_fr, points, category, required_proof_class, daily_cap, is_active, phase)
+        VALUES ('event_checkin', 'Présence événement Elonga', 5, 'engagement', 'ground_truth', 1, true, 'sprint_5')
+        ON CONFLICT DO NOTHING
+      `);
+      // Activer si déjà existante mais inactive
+      await pool.query(`UPDATE zora_earn_rules SET is_active = true WHERE action_type = 'event_checkin' AND is_active = false`);
+      const ruleCheck = await pool.query(`SELECT action_type, points, is_active FROM zora_earn_rules WHERE action_type = 'event_checkin'`);
+      if (ruleCheck.rows.length > 0) {
+        console.log(`[SETUP] Règle event_checkin : points=${ruleCheck.rows[0].points}, is_active=${ruleCheck.rows[0].is_active}`);
+      } else {
+        console.log('[WARN] Règle event_checkin absente de zora_earn_rules — insertion impossible (vérifier contraintes)');
+      }
+    } catch (e) {
+      console.log(`[WARN] event_checkin rule setup failed: ${e.message}`);
+    }
+  });
+
+  test.afterAll(async () => {
+    if (pool) await pool.end();
   });
   
   test('1. GET /events → 5 événements sans auth', async () => {
@@ -139,12 +183,24 @@ test.describe('Événements Elonga — Sprint 5', () => {
     // Se réinscrire pour générer un token
     await fetch(`${API}/events/${testEventId}/register`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Authorization': `Bearer ${patientToken}`,
         'Content-Type': 'application/json'
       }
     });
-    
+
+    // Assurer que l'événement a zora_reward > 0 pour que points_credited soit > 0
+    if (pool && testEventId) {
+      try {
+        await pool.query(
+          `UPDATE elonga_events SET zora_reward = 5 WHERE id = $1 AND (zora_reward IS NULL OR zora_reward = 0)`,
+          [testEventId]
+        );
+      } catch (e) {
+        console.log(`[WARN] zora_reward update failed: ${e.message}`);
+      }
+    }
+
     // Générer token
     const tokenRes = await fetch(`${API}/events/${testEventId}/checkin-token`, {
       headers: { 
@@ -248,7 +304,7 @@ test.describe('Événements Elonga — Sprint 5', () => {
       ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
       max_participants: 50,
       zora_reward: 50,
-      organizer_phone: ADMIN_PHONE
+      organizer_phone: '+242060000099'
     };
     
     const createRes = await fetch(`${API}/events`, {
