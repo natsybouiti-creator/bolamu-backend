@@ -121,9 +121,7 @@ async function enregistrerHorsCatalogue(data) {
         if (rhCheck.rows.length > 0) {
           const rhPhone = rhCheck.rows[0].phone;
           await sendWhatsAppTemplate(rhPhone, 'bolamu_hors_catalogue_rh', [libelle, prix_plein.toString(), patient_phone]);
-          // TODO: supprimer sendBolamuSms après validation WhatsApp
-          // const rhMessage = `Bolamu : Hors catalogue ${libelle} — ${prix_plein} FCFA pour employé ${patient_phone}`;
-          // await sendBolamuSms(rhPhone, rhMessage);
+          const rhMessage = `Bolamu : Hors catalogue ${libelle} — ${prix_plein} FCFA pour employé ${patient_phone}`;
           await sendToUser(rhPhone, {
             titre: 'Hors catalogue employé',
             message: rhMessage,
@@ -349,44 +347,50 @@ async function genererExportPaie(company_contract_id, mois) {
  */
 async function getStatsAdmin(mois = null) {
   try {
-    const moisFilter = mois ? `AND TO_CHAR(hct.created_at, 'YYYY-MM') = '${mois}'` : '';
-    
+    const params = mois ? [mois] : [];
+    const moisFilter = mois ? `AND TO_CHAR(hct.created_at, 'YYYY-MM') = $1` : '';
+    const moisFilterSsp = mois ? `AND TO_CHAR(p.created_at, 'YYYY-MM') = $1` : '';
+
     // Total actes SSP
     const sspResult = await pool.query(
-      `SELECT COUNT(*) as total FROM prescriptions p
-       WHERE 1=1 ${mois ? `AND TO_CHAR(p.created_at, 'YYYY-MM') = '${mois}'` : ''}`
+      `SELECT COUNT(*) as total FROM prescriptions p WHERE 1=1 ${moisFilterSsp}`,
+      params
     );
-    
+
     // Total actes hors catalogue
     const horsCatResult = await pool.query(
       `SELECT COUNT(*) as total, COALESCE(SUM(prix_plein), 0) as montant
        FROM hors_catalogue_transactions hct
-       WHERE 1=1 ${moisFilter}`
+       WHERE 1=1 ${moisFilter}`,
+      params
     );
-    
+
     // Top partenaires hors catalogue
     const topPartenairesResult = await pool.query(
       `SELECT hct.prestataire_phone, hct.prestataire_type,
-              COUNT(*) as nb_transactions, 
+              COUNT(*) as nb_transactions,
               COALESCE(SUM(hct.prix_plein), 0) as total_montant
        FROM hors_catalogue_transactions hct
        WHERE 1=1 ${moisFilter}
        GROUP BY hct.prestataire_phone, hct.prestataire_type
        ORDER BY total_montant DESC
-       LIMIT 10`
+       LIMIT 10`,
+      params
     );
-    
+
     // Top grands comptes
+    const grandsMoisFilter = mois ? `AND TO_CHAR(hct.created_at, 'YYYY-MM') = $1` : '';
     const topGrandsComptesResult = await pool.query(
       `SELECT hct.company_contract_id, cc.company_name,
               COUNT(*) as nb_transactions,
               COALESCE(SUM(hct.prix_plein), 0) as total_montant
        FROM hors_catalogue_transactions hct
        LEFT JOIN company_contracts cc ON hct.company_contract_id = cc.id
-       WHERE hct.company_contract_id IS NOT NULL ${moisFilter}
+       WHERE hct.company_contract_id IS NOT NULL ${grandsMoisFilter}
        GROUP BY hct.company_contract_id, cc.company_name
        ORDER BY total_montant DESC
-       LIMIT 10`
+       LIMIT 10`,
+      params
     );
     
     const total_ssp_actes = parseInt(sspResult.rows[0].total) || 0;
