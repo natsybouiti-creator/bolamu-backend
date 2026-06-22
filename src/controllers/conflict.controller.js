@@ -2,6 +2,7 @@
 // BOLAMU — Contrôleur Conflits (Sprint 3)
 // ============================================================
 const pool = require('../config/db');
+const logger = require('../config/logger');
 const {
     createConflict,
     transitionStatut,
@@ -245,7 +246,7 @@ async function escaladeSupAdmin(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('conflict.escalated', $1, 'conflicts', $2, $3::jsonb)`,
             [requestPhone, id, JSON.stringify({ escalade_sup_admin: true })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[escaladeSupAdmin] Audit log error:', err.message));
 
         return res.json({ success: true, message: 'Conflit escaladé au super admin.' });
     } catch (error) {

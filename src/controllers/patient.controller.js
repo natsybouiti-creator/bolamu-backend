@@ -5,6 +5,7 @@ const pool = require('../config/db');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const bcrypt = require('bcrypt');
 const { normalizePhone } = require('../utils/phone');
+const logger = require('../config/logger');
 
 // ─── INSCRIPTION PATIENT ──────────────────────────────────────────────────────
 async function registerPatient(req, res) {
@@ -52,7 +53,7 @@ async function registerPatient(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('patient.registered', $1, 'users', $2, $3::jsonb)`,
             [phone, newUser.rows[0].id, JSON.stringify({ full_name, bolamu_id: bolamuId })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[patient.registered] Audit log error:', err.message));
 
         await client.query('COMMIT');
 
@@ -157,7 +158,7 @@ async function createSubscription(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('subscription.created', $1, 'subscriptions', $2, $3::jsonb)`,
             [phone, subRes.rows[0].id, JSON.stringify({ plan, amount })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[subscription.created] Audit log error:', err.message));
 
         await client.query('COMMIT');
 
@@ -228,7 +229,7 @@ async function changePassword(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('password_changed', $1, 'users', NULL, $2::jsonb)`,
             [phone, JSON.stringify({ timestamp: new Date().toISOString() })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[password_changed] Audit log error:', err.message));
 
         await client.query('COMMIT');
 

@@ -6,6 +6,7 @@ const pool = require('../config/db');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
+const logger = require('../config/logger');
 
 function calculateTrustScore(data) {
     let score = 0;
@@ -202,11 +203,13 @@ async function updateDoctorStatus(req, res) {
             if (templateMap[status]) {
                 await sendWhatsAppTemplate(doc.phone, templateMap[status][0], templateMap[status][1]);
             }
-        } catch (e) {}
+        } catch (e) {
+            logger.error('[updateDoctorStatus] WhatsApp error:', e.message);
+        }
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ($1, $2, 'doctors', $3, $4::jsonb)`,
             [`doctor.status_${status}`, doc.phone, parseInt(id), JSON.stringify({ reason })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[updateDoctorStatus] Audit log error:', err.message));
         return res.json({ success: true, message: `Statut mis à jour : ${status}`, data: doc });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });
@@ -282,7 +285,7 @@ async function generatePatientQRCode(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('QR_GENERATED_BY_DOCTOR', $1, 'qr_tokens', NULL, $2::jsonb)`,
             [doctorPhone, JSON.stringify({ patient_phone: phone, subscription_id: patient.subscription_id, expires_at: expiresAt })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[generatePatientQRCode] Audit log error:', err.message));
         
         return res.json({
             success: true,
@@ -340,14 +343,14 @@ async function createTimeSlot(req, res) {
                  ON CONFLICT (doctor_id, day_of_week)
                  DO UPDATE SET start_time = $2, end_time = $3`,
                 [dayOfWeek, startParam, endParam, doctorPhone]
-            ).catch(() => {});
+            ).catch((err) => logger.error('[createTimeSlot] Availability error:', err.message));
         }
 
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('timeslot.created', $1, 'time_slots', $2, $3::jsonb)`,
             [doctorPhone, result.rows[0].id, JSON.stringify({ date: dateParam, heure_debut: startParam, heure_fin: endParam })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[createTimeSlot] Audit log error:', err.message));
 
         return res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
@@ -409,7 +412,7 @@ async function updateTimeSlot(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('timeslot.updated', $1, 'time_slots', $2, $3::jsonb)`,
             [doctorPhone, id, JSON.stringify({ is_available })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[updateTimeSlot] Audit log error:', err.message));
 
         return res.json({ success: true, data: result.rows[0] });
     } catch (error) {
@@ -488,7 +491,7 @@ async function updateDoctorProfile(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('doctor.profile_updated', $1, 'doctors', $2, $3::jsonb)`,
             [doctorPhone, result.rows[0].id, JSON.stringify({ updated_fields: Object.keys(req.body) })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[updateDoctorProfile] Audit log error:', err.message));
 
         return res.json({ success: true, message: 'Profil mis à jour avec succès.', data: result.rows[0] });
 
@@ -536,7 +539,7 @@ async function deleteTimeSlot(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('timeslot.deleted', $1, 'time_slots', $2, $3::jsonb)`,
             [doctorPhone, id, JSON.stringify({ date, heure_debut, heure_fin })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[deleteTimeSlot] Audit log error:', err.message));
 
         return res.json({ success: true, message: 'Créneau supprimé.' });
     } catch (error) {

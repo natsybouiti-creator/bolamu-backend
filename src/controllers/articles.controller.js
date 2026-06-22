@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const logger = require('../config/logger');
 
 // ── Configuration Cloudinary ──────────────────────────────────
 cloudinary.config({
@@ -129,7 +130,7 @@ async function getArticleById(req, res) {
     if (!result.rows.length) {
       return res.status(404).json({ success: false, message: 'Article introuvable' });
     }
-    await pool.query(`UPDATE articles SET views = views + 1 WHERE id = $1`, [id]).catch(() => {});
+    await pool.query(`UPDATE articles SET views = views + 1 WHERE id = $1`, [id]).catch((err) => logger.error('[getArticleById] Views update error:', err.message));
     return res.json({ success: true, article: result.rows[0] });
   } catch (err) {
     console.error('[getArticleById]', err.message);
@@ -155,7 +156,7 @@ async function createArticle(req, res) {
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.create',$1,'articles',$2,$3::jsonb)`,
       [req.user.phone, result.rows[0].id, JSON.stringify({ title })]
-    ).catch(() => {});
+    ).catch((err) => logger.error('[createArticle] Audit log error:', err.message));
     return res.status(201).json({ success: true, article: result.rows[0] });
   } catch (err) {
     console.error('[createArticle]', err.message);
@@ -184,7 +185,7 @@ async function updateArticle(req, res) {
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.update',$1,'articles',$2,$3::jsonb)`,
       [req.user.phone, id, JSON.stringify({ title })]
-    ).catch(() => {});
+    ).catch((err) => logger.error('[updateArticle] Audit log error:', err.message));
     return res.json({ success: true, article: result.rows[0] });
   } catch (err) {
     console.error('[updateArticle]', err.message);
@@ -211,7 +212,7 @@ async function deleteArticle(req, res) {
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('article.delete',$1,'articles',$2,$3::jsonb)`,
       [req.user.phone, id, JSON.stringify({ title: result.rows[0].title })]
-    ).catch(() => {});
+    ).catch((err) => logger.error('[deleteArticle] Audit log error:', err.message));
     return res.json({ success: true, message: 'Article supprimé' });
   } catch (err) {
     console.error('[deleteArticle]', err.message);

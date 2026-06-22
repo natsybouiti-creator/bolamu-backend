@@ -6,6 +6,7 @@ const pool = require('../config/db');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const logger = require('../config/logger');
 
 
 function calculateTrustScore(data) {
@@ -171,7 +172,9 @@ async function updateLaboratoireStatus(req, res) {
             if (templateMap[status]) {
                 await sendWhatsAppTemplate(l.phone, templateMap[status][0], templateMap[status][1]);
             }
-        } catch (e) {}
+        } catch (e) {
+            logger.error('[updateLaboratoireStatus] WhatsApp error:', e.message);
+        }
         return res.json({ success: true, data: l });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });
@@ -291,7 +294,7 @@ async function updateLaboratoireProfile(req, res) {
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
              VALUES ('laboratoire.profile_updated', $1, 'laboratories', $2, $3::jsonb)`,
             [labPhone, result.rows[0].id, JSON.stringify({ updated_fields: Object.keys(req.body) })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[updateLaboratoireProfile] Audit log error:', err.message));
 
         return res.json({ success: true, message: 'Profil mis à jour avec succès.', data: result.rows[0] });
 

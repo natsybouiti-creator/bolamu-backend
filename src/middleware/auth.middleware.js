@@ -1,5 +1,6 @@
 ﻿const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const logger = require('../config/logger');
 
 if (!process.env.JWT_SECRET) {
     throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');
@@ -90,7 +91,7 @@ authMiddleware.requireAdmin = async (req, res, next) => {
         
         next();
     } catch (err) {
-        console.error('[REQUIRE_ADMIN] Token error:', err.message);
+        logger.error('[REQUIRE_ADMIN] Token error:', err.message);
         return res.status(403).json({
             success: false,
             message: "Token invalide ou expiré"

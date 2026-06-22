@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { buildWameLink } = require('../services/wame.service');
+const logger = require('../config/logger');
 
 // ─── OUVRIR UNE FICHE (mesure le début de consultation) ──────────────────────
 async function openAppointment(req, res) {
@@ -72,7 +73,7 @@ async function validateAppointment(req, res) {
                 `INSERT INTO fraud_signals (signal_type, severity, actor_phone, appointment_id, details)
                  VALUES ('early_validation', 'high', $1, $2, $3)`,
                 [doctorPhone, id, JSON.stringify({ delay_minutes: delayMinutes })]
-            ).catch(() => {});
+            ).catch((err) => logger.error('[validateAppointment] Fraud signal error (early_validation):', err.message));
 
             if (delayMinutes < -30) {
                 return res.status(400).json({
@@ -88,7 +89,7 @@ async function validateAppointment(req, res) {
                 `INSERT INTO fraud_signals (signal_type, severity, actor_phone, appointment_id, details)
                  VALUES ('short_consultation', 'medium', $1, $2, $3)`,
                 [doctorPhone, id, JSON.stringify({ duration_minutes: consultation_duration_minutes })]
-            ).catch(() => {});
+            ).catch((err) => logger.error('[validateAppointment] Fraud signal error (short_consultation):', err.message));
         }
 
         // ── SIGNAL ANTI-FRAUDE 3 : RDV répétitifs même patient/jour ──────────
@@ -98,14 +99,17 @@ async function validateAppointment(req, res) {
              WHERE patient_phone = $1 AND id != $2
                AND (appointment_date = $3 OR date::text = $3)`,
             [patientPhone, id, rdvDateStr]
-        ).catch(() => ({ rows: [{ count: 0 }] }));
+        ).catch((err) => {
+            logger.error('[validateAppointment] Repeated RDV check error:', err.message);
+            return { rows: [{ count: 0 }] };
+        });
 
         if (parseInt(repeats.rows[0].count) >= 2) {
             await pool.query(
                 `INSERT INTO fraud_signals (signal_type, severity, actor_phone, appointment_id, details)
                  VALUES ('repeated_rdv', 'medium', $1, $2, $3)`,
                 [patientPhone, id, JSON.stringify({ count_same_day: parseInt(repeats.rows[0].count) + 1 })]
-            ).catch(() => {});
+            ).catch((err) => logger.error('[validateAppointment] Fraud signal error (repeated_rdv):', err.message));
         }
 
         // ── ALERTE AUTO si 3+ signaux HIGH en 30 jours ───────────────────────
@@ -115,14 +119,17 @@ async function validateAppointment(req, res) {
                  WHERE actor_phone = $1 AND severity = 'high' 
                    AND created_at > NOW() - INTERVAL '30 days'`,
                 [doctorPhone]
-            ).catch(() => ({ rows: [{ count: 0 }] }));
+            ).catch((err) => {
+                logger.error('[validateAppointment] High signals check error:', err.message);
+                return { rows: [{ count: 0 }] };
+            });
 
             if (parseInt(highSignals.rows[0].count) >= 3) {
                 await pool.query(
                     `INSERT INTO audit_log (event_type, actor_phone, payload) VALUES ($1, $2, $3::jsonb)`,
                     ['auto_suspension_triggered', doctorPhone,
                      JSON.stringify({ signal_count: parseInt(highSignals.rows[0].count) + 1 })]
-                ).catch(() => {});
+                ).catch((err) => logger.error('[validateAppointment] Auto suspension audit log error:', err.message));
                 console.warn(`⚠️ ALERTE FRAUDE : ${doctorPhone} — ${parseInt(highSignals.rows[0].count) + 1} signaux HIGH`);
             }
         }
@@ -144,7 +151,7 @@ async function validateAppointment(req, res) {
             ['appointment_validated', doctorPhone || 'unknown', JSON.stringify({
                 appointment_id: id, patient_phone: patientPhone, delay_minutes: delayMinutes
             })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[validateAppointment] Audit log error:', err.message));
 
         console.log(`✅ Consultation validée — RDV ${id} — délai: ${delayMinutes} min`);
 

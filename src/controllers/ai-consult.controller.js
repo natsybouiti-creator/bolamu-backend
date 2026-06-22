@@ -6,6 +6,7 @@
 const Groq = require('groq-sdk');
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
+const logger = require('../config/logger');
 
 const groq = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null;
 
@@ -125,7 +126,7 @@ exports.analyzeTricolor = async (req, res) => {
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
        VALUES ('ai_consult_tricolor', $1, 'users', $2, $3::jsonb)`,
       [doctorPhone, patient_phone || null, JSON.stringify({ status: analysis.status })]
-    ).catch(() => {});
+    ).catch((err) => logger.error('[AI Consult tricolor] Audit log error:', err.message));
 
     return res.json({ success: true, data: analysis });
   } catch (e) {
@@ -194,7 +195,7 @@ exports.generateRenewal = async (req, res) => {
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
        VALUES ('ai_consult_renewal', $1, 'users', $2, $3::jsonb)`,
       [doctorPhone, patientPhone, JSON.stringify({ eligible: true })]
-    ).catch(() => {});
+    ).catch((err) => logger.error('[AI Consult renewal] Audit log error:', err.message));
 
     return res.json({
       success: true,

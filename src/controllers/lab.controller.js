@@ -323,7 +323,7 @@ async function getLabPrescriptionByCode(req, res) {
                 `INSERT INTO dossier_access_log (patient_phone, accessed_by_phone, accessed_by_role, access_type, created_at)
                  VALUES ($1, $2, 'laboratoire', 'lab_code', NOW())`,
                 [prescription.patient_phone, labPhone]
-            ).catch(() => {});
+            ).catch((err) => logger.error('[getLabPrescriptionByCode] Access log error:', err.message));
         });
 
         return res.json({ success: true, data: prescription });

@@ -6,6 +6,7 @@ const pool = require('../config/db');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
+const logger = require('../config/logger');
 
 function calculateTrustScore(data) {
     let score = 0;
@@ -159,7 +160,9 @@ async function updatePharmacieStatus(req, res) {
             } else if (status === 'suspended') {
                 await sendWhatsAppTemplate(p.phone, 'bolamu_pharmacie_suspendue', [p.name]);
             }
-        } catch (e) {}
+        } catch (e) {
+            logger.error('[updatePharmacieStatus] WhatsApp error:', e.message);
+        }
         return res.json({ success: true, data: p });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });

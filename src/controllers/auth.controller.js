@@ -294,7 +294,7 @@ async function registerPatient(req, res) {
             await pool.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3::jsonb)`,
                 [normalizedPhone, user.id, JSON.stringify({ member_code, photo_url: photoUrl })]
-            ).catch(() => {});
+            ).catch((err) => logger.error('[registerPatient] Audit log error:', err.message));
 
             return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: normalizedPhone, role: user.role, member_code: user.member_code, whatsapp_link: wameLink });
         } catch (e) {
@@ -425,7 +425,7 @@ async function registerDoctor(req, res) {
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.doctor', $1, 'users', $2, $3::jsonb)`,
             [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[registerDoctor] Audit log error:', err.message));
 
         return res.status(201).json({
             success: true,
@@ -534,7 +534,7 @@ async function registerPharmacie(req, res) {
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.pharmacie', $1, 'users', $2, $3::jsonb)`,
             [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[registerPharmacie] Audit log error:', err.message));
 
         return res.status(201).json({
             success: true,
@@ -643,7 +643,7 @@ async function registerLaboratoire(req, res) {
         await pool.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.laboratoire', $1, 'users', $2, $3::jsonb)`,
             [normalizedPhone, user.id, JSON.stringify({ member_code, is_active, score })]
-        ).catch(() => {});
+        ).catch((err) => logger.error('[registerLaboratoire] Audit log error:', err.message));
 
         return res.status(201).json({
             success: true,
