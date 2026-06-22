@@ -25,11 +25,11 @@ const strictLimiter = rateLimit({
     }
 });
 
-// Limiteur standard : 30 requêtes / minute
+// Limiteur standard : 60 requêtes / minute
 // Pour toutes les routes /api/v1/ sauf webhook
 const standardLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 30,
+    max: 60,
     message: { success: false, message: 'Trop de requêtes. Réessayez dans 1 minute.' },
     standardHeaders: true,
     legacyHeaders: false,
