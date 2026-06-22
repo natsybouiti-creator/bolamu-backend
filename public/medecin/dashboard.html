@@ -85,8 +85,6 @@ if (typeof BarcodeDetector !== 'undefined') {
     .btn-valider{padding:11px 24px;background:var(--gradient-btn);color:var(--white);border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-valider:hover{opacity:0.9;transform:translateY(-1px);}
     .btn-valider:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-    .btn-tele{padding:11px 20px;background:linear-gradient(135deg,#7C3AED,#0A2463);color:var(--white);border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
-    .btn-tele:hover{opacity:0.9;transform:translateY(-1px);}
     .btn-labo{padding:11px 20px;background:linear-gradient(135deg,#5B21B6,#7C3AED);color:var(--white);border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;min-height:46px;}
     .btn-labo:hover{opacity:0.9;transform:translateY(-1px);}
     .rdv-termine{opacity:0.6;}
@@ -197,7 +195,7 @@ if (typeof BarcodeDetector !== 'undefined') {
       .rdv-card{padding:16px;}
       .rdv-card-top{flex-direction:column;align-items:flex-start;}
       .rdv-actions{gap:8px;}
-      .btn-valider,.btn-tele{padding:10px 16px;font-size:13px;}
+      .btn-valider{padding:10px 16px;font-size:13px;}
       .modal{padding:24px 16px;border-radius:20px;}
       .code-boxes{gap:8px;}
       .code-box{width:54px;height:58px;font-size:24px;}
@@ -213,7 +211,7 @@ if (typeof BarcodeDetector !== 'undefined') {
       .btn-primary,.btn-cancel{flex:none;width:100%;}
       .horaires-grid{grid-template-columns:repeat(3,1fr);}
       .rdv-actions{flex-direction:column;}
-      .btn-valider,.btn-tele{width:100%;}
+      .btn-valider{width:100%;}
     }
   </style>
 </head>
@@ -223,33 +221,6 @@ if (typeof BarcodeDetector !== 'undefined') {
   <div class="modal"><div id="modal-content"></div></div>
 </div>
 
-<div id="modal-jitsi" style="display:none;position:fixed;inset:0;background:rgba(10,36,99,0.95);z-index:500;flex-direction:column;">
-  <div style="background:rgba(255,255,255,0.05);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;gap:10px;">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:10px;height:10px;border-radius:50%;background:#00C9A7;animation:pulse 2s infinite;"></div>
-      <span style="color:white;font-weight:700;font-size:15px;" id="jitsi-session-label">Consultation en cours</span>
-    </div>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <div style="background:rgba(255,255,255,0.1);color:white;padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;" id="jitsi-code-display">Code: —</div>
-      <button id="btn-close-jitsi" style="background:rgba(231,76,60,0.8);color:white;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Fermer</button>
-    </div>
-  </div>
-  <div style="flex:1;position:relative;">
-    <iframe id="jitsi-iframe" style="width:100%;height:100%;border:none;" allow="camera; microphone; fullscreen; display-capture; autoplay"></iframe>
-    <div id="jitsi-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,36,99,0.9);color:white;">
-      <div style="font-family:'Plus Jakarta Sans',serif;font-size:24px;font-weight:800;margin-bottom:8px;">Connexion en cours…</div>
-      <div style="font-size:14px;color:rgba(255,255,255,0.7);">Votre session vidéo se prépare</div>
-    </div>
-  </div>
-  <div id="jitsi-post-actions" style="display:none;background:rgba(255,255,255,0.05);padding:16px 24px;border-top:1px solid rgba(255,255,255,0.1);gap:12px;justify-content:center;flex-wrap:wrap;">
-    <button id="btn-jitsi-validate" style="padding:12px 28px;background:linear-gradient(135deg,#0A2463,#00C9A7);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:48px;">
-      Terminer et valider la consultation
-    </button>
-    <button id="btn-jitsi-close" style="padding:12px 20px;background:transparent;color:rgba(255,255,255,0.7);border:2px solid rgba(255,255,255,0.2);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:48px;">
-      Fermer sans valider
-    </button>
-  </div>
-</div>
 
 <div class="topbar">
   <a href="/" class="logo">
@@ -309,12 +280,6 @@ if (typeof BarcodeDetector !== 'undefined') {
       <line x1="6" y1="20" x2="6" y2="14"/>
     </svg>Smart Flow
   </button>
-  <button class="tab" id="tab-telemedicine" data-tab="telemedicine">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
-      <polygon points="23 7 16 12 23 17 23 7"/>
-      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-    </svg>Consultation vidéo
-  </button>
   <button class="tab" id="tab-profil" data-tab="profil">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -340,13 +305,6 @@ if (typeof BarcodeDetector !== 'undefined') {
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
       <span class="bnav-label">RDV</span>
-    </button>
-    <button class="bnav-item" id="bnav-telemedicine" data-tab="telemedicine">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;">
-        <polygon points="23 7 16 12 23 17 23 7"/>
-        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-      </svg>
-      <span class="bnav-label">Vidéo</span>
     </button>
     <button class="bnav-item" id="bnav-patients" data-tab="patients">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;">
@@ -511,14 +469,6 @@ if (typeof BarcodeDetector !== 'undefined') {
            box-shadow:0 2px 12px rgba(10,36,99,0.04);">
       </div>
     </div>
-  </div>
-  <div class="panel" id="panel-telemedicine">
-    <div class="section-header"><h2 class="section-title">Consultations vidéo</h2></div>
-    <div style="background:linear-gradient(135deg,#0A2463,#003FB1);border-radius:20px;padding:28px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <div><div style="font-family:'Plus Jakarta Sans',serif;font-size:20px;font-weight:800;margin-bottom:6px;">Consultations vidéo sécurisées</div>
-      <div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6;">Consultez vos patients à distance via Jitsi Meet — chiffré de bout en bout. Cliquez sur "Démarrer" pour lancer une session.</div></div>
-    </div>
-    <div id="tele-rdv-list"><div class="loading">Chargement…</div></div>
   </div>
   <div class="panel" id="panel-profil">
     <div class="section-header"><h2 class="section-title">Mon profil</h2></div>
@@ -722,7 +672,6 @@ function showTab(name,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='telemedicine')loadTeleRdv();
   if(name==='rdv')loadRdv();
   if(name==='patients')loadRdv();
 }
@@ -732,7 +681,6 @@ function showTabMobile(name,btn){
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='telemedicine')loadTeleRdv();
   if(name==='rdv'||name==='patients')loadRdv();
 }
 
@@ -973,7 +921,6 @@ function renderRdvList(rdvs,containerId){
       <div class="rdv-actions">
         ${peutValider?`
           <button class="btn-valider" data-action="ouvrir-validation" data-id="${r.id}" data-patient="${r.patient_phone}" data-session="${r.session_code}" data-date="${dateRdv}" data-heure="${heureRdv}" data-symptomes-motif="${r.symptomes_motif||''}"><span class="material-symbols-outlined">check_circle</span> Valider</button>
-          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">videocam</span> Consultation vidéo</button>
           <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>`:''}
         ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>`:''}
       </div>
@@ -1488,98 +1435,6 @@ async function generateRenewal(){
   }catch(e){alert('Erreur de connexion');}
 }
 
-let currentJitsiRdv=null;
-async function loadTeleRdv(){
-  try{
-    const res=await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
-    const data=await res.json();
-    const rdvs=(data.data||data||[]).filter(r=>r.status==='confirme'||r.status==='en_cours');
-    const container=document.getElementById('tele-rdv-list');
-    if(!rdvs.length){container.innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">calendar_month</span></div><p>Aucun RDV confirmé pour le moment.<br>Les consultations vidéo apparaissent ici dès qu'un RDV est confirmé.</p></div>`;return;}
-    container.innerHTML=`<div class="rdv-list">${rdvs.map(r=>{
-      const dateRdv=r.appointment_date||r.date||'';
-      const heureRdv=(r.appointment_time||r.time||'—').substring(0,5);
-      const isEnCours=r.status==='en_cours';
-      return `<div class="rdv-card" style="${isEnCours?'border-color:var(--vert);':''}">
-        <div class="rdv-card-top">
-          <div class="rdv-patient"><div class="rdv-avatar"><span class="material-symbols-outlined">person</span></div><div>
-            <div class="rdv-name">${r.patient_phone}</div>
-            <div class="rdv-phone">Code : <strong style="font-family:'Plus Jakarta Sans',serif;color:var(--bleu);letter-spacing:2px;">${r.session_code}</strong></div>
-          </div></div>
-          ${isEnCours?'<span style="background:rgba(0,201,167,0.15);color:#047857;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;"><span class="material-symbols-outlined">circle</span> En cours</span>':'<span class="badge badge-confirme"><span class="material-symbols-outlined">calendar_month</span> Confirmé</span>'}
-        </div>
-        <div class="rdv-meta"><span><span class="material-symbols-outlined">calendar_month</span> <strong>${formatDate(dateRdv)}</strong></span><span><span class="material-symbols-outlined">schedule</span> <strong>${heureRdv}</strong></span></div>
-        <div class="rdv-actions">
-          <button class="btn-tele" data-action="demarrer-tele" data-id="${r.id}" data-session="${r.session_code}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">videocam</span> ${isEnCours?'Reprendre la session':'Démarrer la consultation vidéo'}</button>
-        </div>
-      </div>`;
-    }).join('')}</div>`;
-  }catch(e){document.getElementById('tele-rdv-list').innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">warning</span></div><p>Erreur de chargement.</p></div>`;}
-}
-
-async function demarrerTeleconsultation(rdvId,sessionCode,patientPhone){
-  try{await fetch(`${API}/telemedicine/start`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:rdvId})});}catch(e){console.log('Notif patient non envoyée:',e.message);}
-  currentJitsiRdv={rdvId,sessionCode,role:'doctor'};
-  ouvrirJitsi(rdvId,sessionCode,'doctor');
-}
-
-function ouvrirJitsi(rdvId, sessionCode, role) {
-  const roomName = `vpaas-magic-cookie-9ca467330cb64541aa516c38dfe2e159/bolamu-${sessionCode}-${rdvId}`;
-  const displayName = role === 'doctor' ? 'Dr. Bolamu' : phone;
-  document.getElementById('jitsi-session-label').textContent = `Consultation — Patient ${sessionCode}`;
-  document.getElementById('jitsi-code-display').textContent = `Code: ${sessionCode}`;
-  document.getElementById('modal-jitsi').style.display = 'flex';
-  document.getElementById('jitsi-loading').style.display = 'flex';
-  document.getElementById('jitsi-post-actions').style.display = 'none';
-
-  const container = document.getElementById('jitsi-iframe');
-  container.src = '';
-  container.style.display = 'none';
-
-  let jaasDiv = document.getElementById('jaas-container');
-  if (!jaasDiv) {
-    jaasDiv = document.createElement('div');
-    jaasDiv.id = 'jaas-container';
-    jaasDiv.style.cssText = 'width:100%;height:100%;';
-    container.parentNode.insertBefore(jaasDiv, container);
-  }
-  jaasDiv.innerHTML = '';
-
-  if (!window.JitsiMeetExternalAPI) {
-    const script = document.createElement('script');
-    script.src = 'https://8x8.vc/vpaas-magic-cookie-9ca467330cb64541aa516c38dfe2e159/external_api.js';
-    script.onload = () => initJaas(roomName, displayName, jaasDiv);
-    document.head.appendChild(script);
-  } else {
-    initJaas(roomName, displayName, jaasDiv);
-  }
-}
-
-function initJaas(roomName, displayName, container) {
-  document.getElementById('jitsi-loading').style.display = 'none';
-  document.getElementById('jitsi-post-actions').style.display = 'flex';
-  window._jaasApi = new JitsiMeetExternalAPI('8x8.vc', {
-    roomName: roomName,
-    parentNode: container,
-    userInfo: { displayName: displayName }
-  });
-}
-
-function closeJitsi() {
-  document.getElementById('modal-jitsi').style.display = 'none';
-  document.getElementById('jitsi-iframe').src = '';
-  document.getElementById('jitsi-loading').style.display = 'flex';
-  document.getElementById('jitsi-post-actions').style.display = 'none';
-  if (window._jaasApi) { window._jaasApi.dispose(); window._jaasApi = null; }
-  const jaasDiv = document.getElementById('jaas-container');
-  if (jaasDiv) jaasDiv.innerHTML = '';
-  currentJitsiRdv = null;
-}
-
-function closeJitsiAndValidate(){
-  const rdv=currentJitsiRdv;closeJitsi();
-  if(rdv){const found=allRdvData.find(r=>String(r.id)===String(rdv.rdvId));if(found){ouvrirValidation(found.id,found.patient_phone,found.session_code,found.appointment_date||found.date,(found.appointment_time||found.time||'').substring(0,5));}}
-}
 
 function formatDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});}
 
@@ -2206,13 +2061,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-scanner').addEventListener('click', () => showTab('scanner', document.getElementById('tab-scanner')));
   document.getElementById('tab-zora').addEventListener('click', () => { showTab('zora', document.getElementById('tab-zora')); loadZoraHistory(); });
   document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
-  document.getElementById('tab-telemedicine').addEventListener('click', () => showTab('telemedicine', document.getElementById('tab-telemedicine')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
 
   // Tabs mobile
   document.getElementById('bnav-accueil').addEventListener('click', () => showTabMobile('accueil', document.getElementById('bnav-accueil')));
   document.getElementById('bnav-rdv').addEventListener('click', () => showTabMobile('rdv', document.getElementById('bnav-rdv')));
-  document.getElementById('bnav-telemedicine').addEventListener('click', () => showTabMobile('telemedicine', document.getElementById('bnav-telemedicine')));
   document.getElementById('bnav-patients').addEventListener('click', () => showTabMobile('patients', document.getElementById('bnav-patients')));
   document.getElementById('bnav-scanner').addEventListener('click', () => showTabMobile('scanner', document.getElementById('bnav-scanner')));
   document.getElementById('bnav-profil').addEventListener('click', () => showTabMobile('profil', document.getElementById('bnav-profil')));
@@ -2270,7 +2123,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     if (action === 'ouvrir-validation') ouvrirValidation(id, patient, session, date, heure);
-    if (action === 'demarrer-tele') demarrerTeleconsultation(id, session, patient);
     if (action === 'ouvrir-labo') ouvrirModalLabo(id, patient);
     if (action === 'fermer-modal') fermerModal();
     if (action === 'verifier-code') verifierCode();
