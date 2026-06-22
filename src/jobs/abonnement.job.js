@@ -70,41 +70,39 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       }
     }
 
-    // 3. Expiration — adhérents MoMo dont l'abonnement est expiré
+    // 3. Expiration — tous les abonnements expirés (MoMo annuel ou standard mensuel)
     const expiresResult = await db.query(
       `SELECT s.patient_phone, u.first_name
        FROM subscriptions s
        JOIN users u ON u.phone = s.patient_phone
-       WHERE s.canal_paiement = 'momo_annuel'
-       AND s.statut_collecte = 'actif'
-       AND s.expires_at < NOW()
+       WHERE s.expires_at < NOW()
        AND s.is_active = TRUE`
     );
-    
+
     if (expiresResult.rows.length > 0) {
       const phones = expiresResult.rows.map(row => row.patient_phone);
-      
+
       // Suspendre les utilisateurs en une seule requête
       await db.query(
         `UPDATE users SET is_active = FALSE WHERE phone = ANY($1)`,
         [phones]
       );
-      
-      // Mettre à jour les abonnements en une seule requête
+
+      // Mettre à jour les abonnements en une seule requête (tous canaux confondus)
       await db.query(
-        `UPDATE subscriptions 
-         SET statut_collecte = 'expire', is_active = FALSE, updated_at = NOW()
-         WHERE patient_phone = ANY($1) AND canal_paiement = 'momo_annuel'`,
+        `UPDATE subscriptions
+         SET statut_collecte = 'expire', is_active = FALSE, status = 'expired', updated_at = NOW()
+         WHERE patient_phone = ANY($1) AND is_active = TRUE AND expires_at < NOW()`,
         [phones]
       );
-      
+
       // Log audit en une seule requête
       for (const phone of phones) {
         await db.query(
-          `INSERT INTO audit_log 
+          `INSERT INTO audit_log
            (event_type, actor_phone, target_table, target_id, payload)
            VALUES ('abonnement_expire', 'system', 'subscriptions', $1, $2::jsonb)`,
-          [phone, JSON.stringify({ raison: 'expiration_momo_annuel' })]
+          [phone, JSON.stringify({ raison: 'expiration_abonnement' })]
         );
       }
       
