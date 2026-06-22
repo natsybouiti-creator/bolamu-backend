@@ -519,7 +519,7 @@ router.post('/rdv', requireAgent, async (req, res) => {
 router.post('/import-employes', requireAgent, async (req, res) => {
   const client = await pool.connect();
   try {
-    const { employes } = req.body;
+    const { employes, company_contract_id } = req.body;
 
     if (!Array.isArray(employes) || employes.length === 0) {
       return res.status(400).json({ success: false, message: 'employes doit être un tableau non vide' });
@@ -543,7 +543,10 @@ router.post('/import-employes', requireAgent, async (req, res) => {
     const errors = [];
 
     for (const emp of employes) {
-      const { nom, prenom, phone, categorie_rh, plan, payment_method } = emp;
+      const { nom, prenom, phone, categorie_rh, plan, payment_method, company_id: emp_company_id } = emp;
+      // company_contract_id peut venir du corps de la requête (niveau lot) ou de chaque employé
+      const contractId = company_contract_id || null;
+      const companyId = emp_company_id || null;
 
       if (!nom || !prenom || !phone || !plan || !payment_method) {
         errors.push({ phone, error: 'Champs manquants' });
@@ -611,11 +614,23 @@ router.post('/import-employes', requireAgent, async (req, res) => {
           [phone]
         );
 
+        // Lier l'employé à l'entreprise si company_contract_id fourni
+        if (contractId) {
+          await client.query(
+            `INSERT INTO company_employees
+               (company_contract_id, company_id, patient_phone, subscription_id, categorie_rh, enrolled_at, enrolled_by)
+             VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+             ON CONFLICT (company_contract_id, patient_phone) DO UPDATE
+               SET subscription_id = EXCLUDED.subscription_id, updated_at = NOW()`,
+            [contractId, companyId, phone, sub.rows[0].id, categorie_rh || null, req.user.phone]
+          );
+        }
+
         // Audit log
         await client.query(
           `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
            VALUES ('agent.import_employe', $1, 'subscriptions', $2, $3::jsonb)`,
-          [req.user.phone, sub.rows[0].id, JSON.stringify({ patient_phone: phone, plan: planEnum, amount, payment_method })]
+          [req.user.phone, sub.rows[0].id, JSON.stringify({ patient_phone: phone, plan: planEnum, amount, payment_method, company_contract_id: contractId })]
         );
 
         results.push({
@@ -624,7 +639,8 @@ router.post('/import-employes', requireAgent, async (req, res) => {
           prenom,
           plan: planEnum,
           subscription_id: sub.rows[0].id,
-          member_code: memberCode
+          member_code: memberCode,
+          company_contract_id: contractId || undefined
         });
       } catch (empErr) {
         await client.query('ROLLBACK');
