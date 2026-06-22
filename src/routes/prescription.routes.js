@@ -11,7 +11,7 @@ const {
 } = require('../controllers/prescription.controller');
 
 // Médecin crée une ordonnance après consultation validée
-router.post('/create', authMiddleware, createPrescription);
+router.post('/create', authMiddleware, authMiddleware.requireDoctor, createPrescription);
 
 // Pharmacie scanne le code session patient → récupère l'ordonnance
 router.get('/by-session/:code', authMiddleware, getPrescriptionBySession);

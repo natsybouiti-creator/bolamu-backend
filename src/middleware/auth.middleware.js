@@ -137,7 +137,16 @@ authMiddleware.requireRH = (req, res, next) => {
     next();
 };
 
-// 5. Middleware pour les actions sensibles (Seulement l'Admin Principal)
+// 5. Middleware pour les actions réservées aux médecins
+authMiddleware.requireDoctor = (req, res, next) => {
+    if (!req.user) return res.status(401).json({ success: false, message: 'Non authentifié' });
+    if (!['doctor', 'admin'].includes(req.user.role)) {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux médecins.' });
+    }
+    next();
+};
+
+// 6. Middleware pour les actions sensibles (Seulement l'Admin Principal)
 authMiddleware.requireOpsAdmin = (req, res, next) => {
     if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({ 
