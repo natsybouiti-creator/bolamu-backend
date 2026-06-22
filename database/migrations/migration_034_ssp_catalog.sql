@@ -22,12 +22,12 @@ CREATE INDEX IF NOT EXISTS idx_ssp_catalog_categorie ON ssp_catalog(categorie);
 
 -- Trigger pour mettre à jour updated_at automatiquement
 CREATE OR REPLACE FUNCTION update_ssp_catalog_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS '
 BEGIN
   NEW.updated_at = CURRENT_TIMESTAMP;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+' LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_update_ssp_catalog_updated_at
 BEFORE UPDATE ON ssp_catalog
