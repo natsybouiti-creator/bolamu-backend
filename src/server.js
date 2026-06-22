@@ -184,7 +184,6 @@ app.use('/api/v1/tiers-payant',   tiersPayantRoutes);
 app.use('/api/v1/admin/tiers-payant', tiersPayantRoutes);
 app.use('/api/v1/articles',      require('./routes/articles.routes'));
 app.use('/api/v1/credits',       creditsRoutes);
-app.use('/api/v1/telemedicine',  telemedicineRoutes);
 app.use('/api/v1/reports',       reportRoutes);
 app.use('/api/v1/lab',           labRoutes);
 app.use('/api/v1/ratings',      ratingsRoutes);
