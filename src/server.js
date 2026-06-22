@@ -229,7 +229,7 @@ app.get('/api/v1/test', async (req, res) => {
         await pool.query('SELECT 1');
         checks.database = 'ok';
     } catch (err) {
-        console.error('[HEALTH CHECK] Database error:', err.message);
+        logger.error('[HEALTH CHECK] Database error:', err.message);
         checks.database = 'failed';
         overallStatus = 'critical';
         return res.status(503).json({
@@ -246,10 +246,9 @@ app.get('/api/v1/test', async (req, res) => {
     // Check Redis (optionnel)
     if (process.env.REDIS_URL) {
         try {
-            // Redis check si configuré
             checks.redis = 'ok';
         } catch (err) {
-            console.error('[HEALTH CHECK] Redis error:', err.message);
+            logger.error('[HEALTH CHECK] Redis error:', err.message);
             checks.redis = 'failed';
             overallStatus = 'degraded';
         }
@@ -258,10 +257,9 @@ app.get('/api/v1/test', async (req, res) => {
     // Check SMTP (optionnel)
     if (process.env.RESEND_API_KEY) {
         try {
-            // SMTP check si configuré
             checks.smtp = 'ok';
         } catch (err) {
-            console.error('[HEALTH CHECK] SMTP error:', err.message);
+            logger.error('[HEALTH CHECK] SMTP error:', err.message);
             checks.smtp = 'failed';
             overallStatus = 'degraded';
         }
