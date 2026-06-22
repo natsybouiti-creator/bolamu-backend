@@ -55,7 +55,7 @@ async function getAppliedMigrations() {
 function parseSQL(sql) {
   const instructions = [];
   let current = '';
-  let inDoBlock = false;
+  let inDollarBlock = false;
   let depth = 0;
   
   const lines = sql.split('\n');
@@ -63,20 +63,28 @@ function parseSQL(sql) {
   for (const line of lines) {
     const trimmed = line.trim();
     
-    if (trimmed.startsWith('DO $$')) {
-      inDoBlock = true;
-      depth = 1;
+    // Détection début bloc $$
+    if (!inDollarBlock && (trimmed.includes('$$') || trimmed.startsWith('DO $$') || 
+        trimmed.includes('AS $$') || trimmed.includes('LANGUAGE plpgsql'))) {
+      const matches = line.match(/\$\$/g);
+      if (matches) {
+        depth += matches.length;
+        if (depth % 2 === 1) {
+          inDollarBlock = true;
+        }
+      }
       current += line + '\n';
       continue;
     }
     
-    if (inDoBlock) {
+    // Dans un bloc $$
+    if (inDollarBlock) {
       current += line + '\n';
       const matches = line.match(/\$\$/g);
       if (matches) {
         depth += matches.length;
         if (depth % 2 === 0) {
-          inDoBlock = false;
+          inDollarBlock = false;
           if (current.trim()) {
             instructions.push(current.trim());
           }
@@ -86,6 +94,7 @@ function parseSQL(sql) {
       continue;
     }
     
+    // Instructions normales terminées par ;
     if (trimmed.endsWith(';')) {
       current += line;
       if (current.trim()) {
