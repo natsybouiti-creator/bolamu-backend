@@ -3,6 +3,8 @@
 // ============================================================
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
+const pg = require('pg');
+require('dotenv').config();
 
 const API_URL = 'https://api.bolamu.co/api/v1';
 const TEST_PHONE = '+242069735418';
@@ -20,6 +22,21 @@ function readStoredToken() {
 }
 
 let authToken = readStoredToken();
+
+test.beforeAll(async () => {
+  // Remet à zéro les parties du jour pour que les tests de partie gratuite fonctionnent
+  // (audit-persistance-auto.spec.js consomme les free plays avant ce fichier)
+  try {
+    const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+    await pool.query(
+      `DELETE FROM zora_game_plays WHERE phone = $1 AND played_at::date = CURRENT_DATE`,
+      [TEST_PHONE]
+    );
+    await pool.end();
+  } catch (e) {
+    console.log('[WARN] Impossible de reset zora_game_plays :', e.message);
+  }
+});
 
 test('Test 1 — Config chargée', async () => {
   const response = await fetch(`${API_URL}/zora/games/config`);

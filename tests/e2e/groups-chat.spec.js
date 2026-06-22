@@ -6,6 +6,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 
 const API_URL = 'https://api.bolamu.co/api/v1';
+const TEST_PATIENT_PHONE = '+242069735418';
 
 function readStoredToken() {
   try {
