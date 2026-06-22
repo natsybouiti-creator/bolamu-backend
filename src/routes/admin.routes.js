@@ -464,7 +464,19 @@ router.get('/users', authMiddleware, adminOnly, async (req, res) => {
 router.get('/users/:phone/profile', authMiddleware, adminOnly, async (req, res) => {
     const phone = normalizePhone(req.params.phone || '');
     try {
-        const user = await pool.query(`SELECT * FROM users WHERE phone = $1`, [phone]);
+        const USER_SAFE_COLS = `id, phone, full_name, first_name, last_name, birth_date, date_of_birth,
+            gender, age, role, bolamu_id, member_code, is_active, banned, ban_reason, banned_at,
+            created_at, updated_at, statut_abonnement, date_fin_abonnement, momo_number,
+            onboarding_completed, cgu_accepted, cgu_accepted_at, credits_balance,
+            city, neighborhood, address, latitude, longitude, trust_score, photo_url,
+            specialty, registration_number, order_country, country_of_residence,
+            consultation_languages, is_international, rccm_number, responsible_name,
+            agrement_number, director_name, validated_at, allergies, groupe_sanguin,
+            niu, password_must_change, payeur_principal_id, maladies_chroniques,
+            antecedents_medicaux, poids, taille, contact_urgence_nom, contact_urgence_phone,
+            contact_urgence_lien, clinic_id, company_id, doc_type, doc_numero, email,
+            etablissement_nom, etablissement_adresse, etablissement_ville, proche_number`;
+        const user = await pool.query(`SELECT ${USER_SAFE_COLS} FROM users WHERE phone = $1`, [phone]);
         if (!user.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
         const u = user.rows[0];
         let proProfile = null;
