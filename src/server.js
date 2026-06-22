@@ -383,13 +383,6 @@ const initializeApp = async () => {
         console.log('[UPLOAD] Dossier uploads sécurisé existe déjà:', uploadDir);
     }
     
-    // Log du schéma users pour debugging
-    try {
-        const { rows } = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'users' ORDER BY column_name`);
-        console.log('[SCHEMA users]', rows.map(r => r.column_name).join(', '));
-    } catch (e) {
-        console.warn('[SCHEMA] Erreur lors du log du schéma users:', e.message);
-    }
 };
 
 // Exécuter les migrations automatiques avant de démarrer le serveur
