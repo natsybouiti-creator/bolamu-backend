@@ -49,9 +49,9 @@ async function registerForEvent({ phone, event_id }) {
     const insertResult = await client.query(
       `INSERT INTO elonga_registrations (event_id, phone, status)
        VALUES ($1, $2, 'registered')
-       ON CONFLICT (event_id, phone) 
+       ON CONFLICT (event_id, phone)
        DO UPDATE SET status = 'registered', registered_at = NOW()
-       WHERE status = 'cancelled'
+       WHERE elonga_registrations.status = 'cancelled'
        RETURNING id`,
       [event_id, phone]
     );
