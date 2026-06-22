@@ -187,7 +187,7 @@ async function consumeVoucher({ voucher_uuid, partner_phone }) {
     // ÉTAPE 3 — Vérifier que le partenaire est autorisé
     // Récupérer le partenaire depuis users pour vérifier l'autorisation
     const partnerResult = await client.query(
-      `SELECT phone FROM users WHERE phone = $1 AND role IN ('pharmacy', 'doctor', 'laboratory')`,
+      `SELECT phone FROM users WHERE phone = $1 AND role IN ('pharmacie', 'pharmacy', 'doctor', 'laboratory')`,
       [partner_phone]
     );
     

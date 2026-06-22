@@ -1,8 +1,20 @@
 import { test, expect } from '@playwright/test';
+import fs from 'fs';
 
 const TEST_PHONE = '+242069735418';
-const TEST_PASSWORD = 'TestNouveau2026!';
 const BASE_URL = 'https://bolamu.co';
+
+function readStoredPatientToken() {
+  try {
+    const state = JSON.parse(fs.readFileSync('playwright/.auth/patient.json', 'utf8'));
+    for (const origin of (state.origins || [])) {
+      for (const item of (origin.localStorage || [])) {
+        if (item.name === 'bolamu_patient_token') return item.value;
+      }
+    }
+  } catch (_) {}
+  return '';
+}
 
 test.describe('Dashboard Patient - Tests UI', () => {
   test.beforeEach(async ({ page }) => {
@@ -118,57 +130,35 @@ test.describe('Sécurité', () => {
 });
 
 test.describe('Dashboard Patient - Tests API', () => {
+  const API_BASE = 'https://api.bolamu.co';
+
   test('14. API - Endpoint profil patient', async ({ request }) => {
-    const loginResponse = await request.post(`${BASE_URL}/api/v1/auth/login`, {
-      data: {
-        phone: TEST_PHONE,
-        password: TEST_PASSWORD
-      }
+    const token = readStoredPatientToken();
+    expect(token, 'Token patient non disponible').toBeTruthy();
+
+    const profileResponse = await request.get(`${API_BASE}/api/v1/patients/profil?phone=${encodeURIComponent(TEST_PHONE)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    await expect.soft(loginResponse.ok()).toBeTruthy();
-    
-    const loginData = await loginResponse.json();
-    await expect.soft(loginData.success).toBeTruthy();
-    
-    if (loginData.accessToken) {
-      const profileResponse = await request.get(`${BASE_URL}/api/v1/patients/profil?phone=${encodeURIComponent(TEST_PHONE)}`, {
-        headers: {
-          'Authorization': `Bearer ${loginData.accessToken}`
-        }
-      });
-      
-      await expect.soft(profileResponse.ok()).toBeTruthy();
-      
-      const profileData = await profileResponse.json();
-      await expect.soft(profileData.success).toBeTruthy();
-      await expect.soft(profileData.data).not.toBeNull();
-    }
+
+    await expect.soft(profileResponse.ok()).toBeTruthy();
+
+    const profileData = await profileResponse.json();
+    await expect.soft(profileData.success).toBeTruthy();
+    await expect.soft(profileData.data).not.toBeNull();
   });
 
   test('15. API - Endpoint Zora balance', async ({ request }) => {
-    const loginResponse = await request.post(`${BASE_URL}/api/v1/auth/login`, {
-      data: {
-        phone: TEST_PHONE,
-        password: TEST_PASSWORD
-      }
+    const token = readStoredPatientToken();
+    expect(token, 'Token patient non disponible').toBeTruthy();
+
+    const balanceResponse = await request.get(`${API_BASE}/api/v1/zora/balance`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (loginResponse.ok()) {
-      const loginData = await loginResponse.json();
-      if (loginData.accessToken) {
-        const balanceResponse = await request.get(`${BASE_URL}/api/v1/zora/balance`, {
-          headers: {
-            'Authorization': `Bearer ${loginData.accessToken}`
-          }
-        });
-        
-        await expect.soft(balanceResponse.ok()).toBeTruthy();
-        
-        const balanceData = await balanceResponse.json();
-        await expect.soft(balanceData.success).toBeTruthy();
-      }
-    }
+
+    await expect.soft(balanceResponse.ok()).toBeTruthy();
+
+    const balanceData = await balanceResponse.json();
+    await expect.soft(balanceData.success).toBeTruthy();
   });
 });
 

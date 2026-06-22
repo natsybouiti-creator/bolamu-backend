@@ -113,11 +113,11 @@ router.post('/vouchers/:uuid/consume', authMiddleware, async (req, res) => {
     const { uuid } = req.params;
     const partner_phone = req.user.phone;
     
-    // Vérifier que l'utilisateur est un partenaire
-    if (!['pharmacy', 'doctor', 'laboratory'].includes(req.user.role)) {
+    // Vérifier que l'utilisateur est un partenaire (rôles DB : pharmacie/doctor/laboratory)
+    if (!['pharmacie', 'pharmacy', 'doctor', 'laboratory'].includes(req.user.role)) {
       return res.status(403).json({ success: false, error: 'not_authorized' });
     }
-    
+
     const result = await consumeVoucher({ voucher_uuid: uuid, partner_phone });
     
     if (result.success) {
@@ -143,11 +143,11 @@ router.get('/partner/vouchers', authMiddleware, async (req, res) => {
   try {
     const partner_phone = req.user.phone;
     
-    // Vérifier que l'utilisateur est un partenaire
-    if (!['pharmacy', 'doctor', 'laboratory'].includes(req.user.role)) {
+    // Vérifier que l'utilisateur est un partenaire (rôles DB : pharmacie/doctor/laboratory)
+    if (!['pharmacie', 'pharmacy', 'doctor', 'laboratory'].includes(req.user.role)) {
       return res.status(403).json({ success: false, error: 'not_authorized' });
     }
-    
+
     const result = await getPartnerVouchers(partner_phone);
     
     if (result.success) {

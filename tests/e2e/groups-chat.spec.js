@@ -20,6 +20,13 @@ function readStoredToken() {
   return '';
 }
 
+function readAdminToken() {
+  try {
+    return JSON.parse(fs.readFileSync('playwright/.auth/admin.json', 'utf8')).token || '';
+  } catch (_) {}
+  return '';
+}
+
 let authToken = readStoredToken();
 
 // Helper pour les requêtes authentifiées
@@ -172,16 +179,21 @@ test.describe('Chat communauté', () => {
 test.describe('Auto-post achievements', () => {
 
   test('Test 9 — Auto-post achievement', async () => {
-    // Simuler un awardZora pour bilan_annuel
-    const response = await authFetch('/zora/award', {
+    // Simuler un awardZora pour bilan_annuel — nécessite token admin
+    const adminToken = readAdminToken();
+    const response = await fetch(`${API_URL}/zora/earn`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${adminToken}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         phone: TEST_PATIENT_PHONE,
         action_type: 'bilan_annuel',
         proof_class: 'ground_truth',
         proof_source: 'praticien',
         recording_method: 'auto_recorded',
-        proof_reference: 'test_e2e_bilan'
+        proof_reference: `test_e2e_bilan_${Date.now()}`
       })
     });
 
