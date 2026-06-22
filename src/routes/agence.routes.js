@@ -656,4 +656,128 @@ router.post('/import-employes', requireAgent, async (req, res) => {
   }
 });
 
+// ─── RÉCLAMATIONS ────────────────────────────────────────────────────────────
+
+// Réactiver un abonnement expiré ou suspendu
+router.post('/reclamation/reactiver', requireAgent, async (req, res) => {
+  const { patient_phone, raison } = req.body;
+  if (!patient_phone) return res.status(400).json({ success: false, message: 'patient_phone requis.' });
+  const phone = normalizePhone(patient_phone);
+  try {
+    const userRes = await pool.query(`SELECT phone, full_name, is_active FROM users WHERE phone = $1`, [phone]);
+    if (!userRes.rows.length) return res.status(404).json({ success: false, message: 'Patient introuvable.' });
+
+    await pool.query(`UPDATE users SET is_active = TRUE WHERE phone = $1`, [phone]);
+
+    // Réactiver le dernier abonnement expiré s'il en existe un récent (< 30 jours)
+    await pool.query(
+      `UPDATE subscriptions SET is_active = TRUE, status = 'active',
+          expires_at = NOW() + INTERVAL '30 days', updated_at = NOW()
+       WHERE patient_phone = $1
+         AND id = (SELECT id FROM subscriptions WHERE patient_phone = $1
+                   ORDER BY expires_at DESC LIMIT 1)`,
+      [phone]
+    );
+
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('agent.reclamation_reactivation', $1, 'users', $2, $3::jsonb)`,
+      [req.user.phone, phone, JSON.stringify({ patient_phone: phone, raison: raison || 'reactivation_agent' })]
+    );
+
+    res.json({ success: true, message: `Compte ${phone} réactivé avec succès.` });
+  } catch (err) {
+    console.error('[AGENCE RECLAMATION REACTIVER]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Changer la formule d'abonnement d'un adhérent
+router.post('/reclamation/changer-formule', requireAgent, async (req, res) => {
+  const { patient_phone, nouveau_plan, raison } = req.body;
+  if (!patient_phone || !nouveau_plan) {
+    return res.status(400).json({ success: false, message: 'patient_phone et nouveau_plan requis.' });
+  }
+  const planEnum = PLAN_MAP[String(nouveau_plan).toLowerCase()] || String(nouveau_plan).toLowerCase();
+  if (!['essentiel', 'standard', 'premium'].includes(planEnum)) {
+    return res.status(400).json({ success: false, message: 'Plan invalide. Valeurs : essentiel, standard, premium (ou moto, ndeko, libota).' });
+  }
+  const phone = normalizePhone(patient_phone);
+  try {
+    const cfgRes = await pool.query(`SELECT config_value FROM platform_config WHERE config_key = $1`, [`price_${planEnum}`]);
+    const amount = cfgRes.rows.length ? parseInt(cfgRes.rows[0].config_value, 10) : null;
+
+    await pool.query(
+      `UPDATE subscriptions SET plan = $1, amount_fcfa = $2, updated_at = NOW()
+       WHERE patient_phone = $3 AND is_active = TRUE`,
+      [planEnum, amount, phone]
+    );
+
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('agent.reclamation_changement_plan', $1, 'subscriptions', $2, $3::jsonb)`,
+      [req.user.phone, phone, JSON.stringify({ patient_phone: phone, nouveau_plan: planEnum, raison: raison || '' })]
+    );
+
+    res.json({ success: true, message: `Formule mise à jour vers ${planEnum} pour ${phone}.` });
+  } catch (err) {
+    console.error('[AGENCE RECLAMATION CHANGER FORMULE]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Corriger les informations d'un adhérent (nom, prénom, date de naissance)
+router.post('/reclamation/corriger', requireAgent, async (req, res) => {
+  const { patient_phone, corrections, raison } = req.body;
+  if (!patient_phone || !corrections || typeof corrections !== 'object') {
+    return res.status(400).json({ success: false, message: 'patient_phone et corrections (objet) requis.' });
+  }
+  const phone = normalizePhone(patient_phone);
+
+  // Colonnes autorisées à corriger par un agent
+  const COLONNES_AUTORISEES = ['first_name', 'last_name', 'full_name', 'birth_date', 'email'];
+  const champs = Object.keys(corrections).filter(k => COLONNES_AUTORISEES.includes(k));
+  if (!champs.length) {
+    return res.status(400).json({ success: false, message: `Colonnes autorisées : ${COLONNES_AUTORISEES.join(', ')}.` });
+  }
+
+  try {
+    const sets = champs.map((col, i) => `${col} = $${i + 2}`).join(', ');
+    const vals = champs.map(col => corrections[col]);
+    await pool.query(`UPDATE users SET ${sets} WHERE phone = $1`, [phone, ...vals]);
+
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('agent.reclamation_correction', $1, 'users', $2, $3::jsonb)`,
+      [req.user.phone, phone, JSON.stringify({ patient_phone: phone, champs_corriges: corrections, raison: raison || '' })]
+    );
+
+    res.json({ success: true, message: `Informations corrigées pour ${phone}.`, champs_mis_a_jour: champs });
+  } catch (err) {
+    console.error('[AGENCE RECLAMATION CORRIGER]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Signaler un problème (log + notification admin)
+router.post('/reclamation/signaler', requireAgent, async (req, res) => {
+  const { patient_phone, description } = req.body;
+  if (!patient_phone || !description) {
+    return res.status(400).json({ success: false, message: 'patient_phone et description requis.' });
+  }
+  const phone = normalizePhone(patient_phone);
+  try {
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('agent.reclamation_signalement', $1, 'users', $2, $3::jsonb)`,
+      [req.user.phone, phone, JSON.stringify({ patient_phone: phone, description, agent: req.user.phone })]
+    );
+
+    res.json({ success: true, message: 'Signalement enregistré. Un administrateur va traiter votre demande.' });
+  } catch (err) {
+    console.error('[AGENCE RECLAMATION SIGNALER]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

@@ -1334,13 +1334,86 @@
       correction_info: 'Corriger les informations',
       signalement: 'Signaler un problème'
     };
+
     function ouvrirActionModal(type) {
       if (!compteReclam) return;
+      const name = compteReclam.full_name || compteReclam.phone;
       document.getElementById('modal-action-title').textContent = ACTION_LABELS[type] || 'Action';
-      document.getElementById('modal-action-body').innerHTML =
-        `<div class="result-msg warn">Action sur le compte <strong>${compteReclam.full_name || compteReclam.phone}</strong>.<br>Cette fonctionnalité sera connectée au module de gestion des réclamations. Contactez l'administrateur pour traitement immédiat.</div>`;
+
+      let html = '';
+      if (type === 'reactivation') {
+        html = `<p>Réactiver le compte de <strong>${name}</strong> ?</p>
+          <div class="form-row"><input type="text" id="reclam-raison" placeholder="Raison (optionnel)" /></div>
+          <button class="btn-primary" onclick="soumettreReclamation('reactiver')">Réactiver</button>`;
+      } else if (type === 'changement_plan') {
+        html = `<p>Changer la formule de <strong>${name}</strong></p>
+          <div class="form-row">
+            <select id="reclam-nouveau-plan">
+              <option value="essentiel">MOTO — Essentiel</option>
+              <option value="standard">NDEKO — Standard</option>
+              <option value="premium">LIBOTA — Premium</option>
+            </select>
+          </div>
+          <div class="form-row"><input type="text" id="reclam-raison" placeholder="Raison" /></div>
+          <button class="btn-primary" onclick="soumettreReclamation('changer-formule')">Appliquer</button>`;
+      } else if (type === 'correction_info') {
+        html = `<p>Corriger les informations de <strong>${name}</strong></p>
+          <div class="form-row"><input type="text" id="reclam-first-name" placeholder="Prénom (laisser vide pour conserver)" /></div>
+          <div class="form-row"><input type="text" id="reclam-last-name" placeholder="Nom (laisser vide pour conserver)" /></div>
+          <div class="form-row"><input type="date" id="reclam-birth-date" /></div>
+          <div class="form-row"><input type="text" id="reclam-raison" placeholder="Raison de la correction" /></div>
+          <button class="btn-primary" onclick="soumettreReclamation('corriger')">Corriger</button>`;
+      } else if (type === 'signalement') {
+        html = `<p>Signaler un problème pour <strong>${name}</strong></p>
+          <div class="form-row"><textarea id="reclam-description" placeholder="Décrivez le problème..." rows="4" style="width:100%;resize:vertical;padding:8px;border:1px solid #ccc;border-radius:6px;"></textarea></div>
+          <button class="btn-primary" onclick="soumettreReclamation('signaler')">Envoyer</button>`;
+      }
+
+      document.getElementById('modal-action-body').innerHTML = html;
       document.getElementById('modal-action').classList.add('open');
     }
+
+    async function soumettreReclamation(action) {
+      const token = getToken();
+      if (!token || !compteReclam) return;
+      const phone = compteReclam.phone;
+
+      let body = { patient_phone: phone };
+      if (action === 'reactiver') {
+        body.raison = document.getElementById('reclam-raison')?.value || '';
+      } else if (action === 'changer-formule') {
+        body.nouveau_plan = document.getElementById('reclam-nouveau-plan')?.value;
+        body.raison = document.getElementById('reclam-raison')?.value || '';
+      } else if (action === 'corriger') {
+        const corrections = {};
+        const fn = document.getElementById('reclam-first-name')?.value.trim();
+        const ln = document.getElementById('reclam-last-name')?.value.trim();
+        const bd = document.getElementById('reclam-birth-date')?.value;
+        if (fn) corrections.first_name = fn;
+        if (ln) corrections.last_name = ln;
+        if (fn && ln) corrections.full_name = `${fn} ${ln}`.trim();
+        if (bd) corrections.birth_date = bd;
+        body.corrections = corrections;
+        body.raison = document.getElementById('reclam-raison')?.value || '';
+      } else if (action === 'signaler') {
+        body.description = document.getElementById('reclam-description')?.value;
+      }
+
+      try {
+        const r = await fetch(`${API}/agence/reclamation/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body)
+        });
+        const data = await r.json();
+        document.getElementById('modal-action-body').innerHTML =
+          `<div class="result-msg ${r.ok ? 'ok' : 'err'}">${data.message || (r.ok ? 'Opération réussie.' : 'Erreur.')}</div>`;
+      } catch (err) {
+        document.getElementById('modal-action-body').innerHTML =
+          `<div class="result-msg err">Erreur réseau : ${err.message}</div>`;
+      }
+    }
+
     function fermerActionModal() { document.getElementById('modal-action').classList.remove('open'); }
 
     // ─── CANAL DE CONFIRMATION ───
