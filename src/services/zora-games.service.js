@@ -270,7 +270,7 @@ async function playGame({ phone, game_type, play_type }) {
         setImmediate(async () => {
           try {
             const balanceResult = await pool.query(
-              `SELECT balance FROM zora_balance WHERE phone = $1`,
+              `SELECT balance FROM zora_points WHERE phone = $1`,
               [phone]
             );
             const solde = balanceResult.rows[0]?.balance || 0;

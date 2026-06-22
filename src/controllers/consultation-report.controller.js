@@ -71,7 +71,7 @@ async function submitReport(req, res) {
                 if (zoraResult.success) {
                     // Envoyer WhatsApp gain Zora consultation
                     const balanceResult = await pool.query(
-                        `SELECT balance FROM zora_balance WHERE phone = $1`,
+                        `SELECT balance FROM zora_points WHERE phone = $1`,
                         [patient_phone]
                     );
                     const solde = balanceResult.rows[0]?.balance || 0;
