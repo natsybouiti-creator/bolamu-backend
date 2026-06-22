@@ -170,6 +170,7 @@ app.use('/api/v1/appointments',  appointmentRoutes);
 app.use('/api/v1/payments',      paymentRoutes);
 app.use('/api/v1/payments/momo', momoRoutes);
 app.use('/api/v1/payments/airtel', airtelRoutes);
+app.use('/api/v1/qr',            qrRoutes);
 app.use('/api/v1/prescriptions', prescriptionRoutes);
 app.use('/api/v1/pharmacies',    pharmacieRoutes);
 app.use('/api/v1/laboratories',  laboratoireRoutes);
