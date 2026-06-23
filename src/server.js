@@ -329,6 +329,10 @@ const { jobAbonnement } = require('./jobs/abonnement.job');
 jobAbonnement.start();
 console.log('[CRON] Job abonnement quotidien démarré (02h00 Brazzaville)');
 
+// Job cron wellness — démarrage automatique
+const { startWellnessCron } = require('./jobs/wellness.cron');
+startWellnessCron();
+
 // ============================================================
 // BullMQ Workers — SMS abandonné (WhatsApp direct), Push actif si REDIS_URL configuré
 // ============================================================
