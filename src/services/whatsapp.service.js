@@ -341,10 +341,94 @@ function verifyWebhook(mode, token, challenge) {
     return null;
 }
 
+/**
+ * Notification d'inscription à un événement
+ * @param {string} patient_phone - Numéro du patient
+ * @param {Object} event - Objet événement (title, starts_at, location_name)
+ * @param {string} session_code - Code de session
+ * @returns {Promise<boolean>} Succès de l'envoi
+ */
+async function notifyEventRegistration(patient_phone, event, session_code) {
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+
+    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+        logger.warn('[WhatsApp] WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_NUMBER_ID non configuré');
+        return false;
+    }
+
+    const formattedPhone = normalizePhone(patient_phone);
+
+    // Formater la date
+    const eventDate = new Date(event.starts_at);
+    const dateStr = eventDate.toLocaleDateString('fr-FR', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long',
+        year: 'numeric'
+    });
+
+    // Message personnalisé pour inscription événement
+    const message = `Inscription confirmée ✅\nÉvénement : ${event.title}\nDate : ${dateStr}\nLieu : ${event.location_name}\nVotre code de session : ${session_code}\nPrésentez ce code à l'animateur le jour J.`;
+
+    if (isDevelopment) {
+        logger.info('[WhatsApp] Notification inscription simulée (développement)', { 
+            to: formattedPhone, 
+            event: event.title, 
+            session_code 
+        });
+        console.log(`[WhatsApp SIMULÉ] Vers: ${formattedPhone} | Inscription: ${event.title} | Code: ${session_code}`);
+        return true;
+    }
+
+    try {
+        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+        
+        const body = {
+            messaging_product: 'whatsapp',
+            to: formattedPhone.replace('+', ''),
+            type: 'text',
+            text: { body: message }
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            logger.error('[WhatsApp] Erreur notification inscription:', data);
+            return false;
+        }
+
+        logger.info('[WhatsApp] Notification inscription envoyée avec succès', { 
+            to: formattedPhone, 
+            event: event.title 
+        });
+
+        // INSERT dans notifications avec canal='whatsapp'
+        await pool.query(`
+            INSERT INTO notifications (user_phone, type, titre, message, data, canal, is_read, sent_at, created_at)
+            VALUES ($1, 'event_registration', $2, $3, $4, 'whatsapp', FALSE, NOW(), NOW())
+        `, [patient_phone, `Inscription: ${event.title}`, message, JSON.stringify({ event_id: event.id, session_code })]);
+
+        return true;
+    } catch (error) {
+        logger.error('[WhatsApp] Erreur notifyEventRegistration:', error.message);
+        return false;
+    }
+}
+
 module.exports = {
     sendMessage,
     sendWhatsAppTemplate,
     handleWebhook,
     verifyWebhook,
+    notifyEventRegistration,
     WHATSAPP_TEMPLATES
 };
