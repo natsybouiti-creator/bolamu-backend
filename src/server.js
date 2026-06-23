@@ -145,6 +145,7 @@ const wellnessRoutes        = require('./routes/wellness.routes');
 const clubsRoutes           = require('./routes/clubs.routes');
 const chatRoutes            = require('./routes/chat.routes');
 const animateurRoutes       = require('./routes/animateur.routes');
+const voucherRoutes         = require('./routes/voucher.routes');
 
 // Routes BHP (Bolamu Health Data Protocol)
 try {
@@ -211,6 +212,7 @@ app.use('/api/v1/upload',       uploadRoutes);
 app.use('/api/v1/zora',         zoraRoutes);
 app.use('/api/v1/zora',         zoraMarketplaceRoutes);
 app.use('/api/v1/zora',         zoraGamesRoutes);
+app.use('/api/v1/vouchers',     voucherRoutes);
 app.use('/api/v1',              conflictRoutes);
 app.use('/api/v1',              couponRoutes);
 app.use('/api/v1',              smartflowRoutes);
