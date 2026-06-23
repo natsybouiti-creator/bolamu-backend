@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Bolamu — Partenaire</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="theme-color" content="#8B5CF6">
+  <link rel="manifest" href="/manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
+  <link href="/fonts/material-symbols.css" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root {
+      --violet: #8B5CF6;
+      --violet-dark: #7C3AED;
+      --violet-light: rgba(139,92,246,0.12);
+      --navy: #0A2463;
+      --turquoise: #00C9A7;
+      --rouge: #BA1A1A;
+      --texte: #0A2463;
+      --texte-doux: #5A6E8C;
+      --border: rgba(10,36,99,0.1);
+      --blanc: #ffffff;
+      --fond: #F5F3FF;
+      --card-shadow: 0 2px 12px rgba(10,36,99,0.08);
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--fond); color: var(--texte); min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 250px; background: var(--blanc); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+    .sidebar-logo img { width: 36px; height: 36px; border-radius: 50%; }
+    .logo-name { font-size: 20px; font-weight: 800; color: var(--texte); }
+    .role-pill { margin-left: auto; background: var(--violet-light); color: var(--violet-dark); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 9999px; white-space: nowrap; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; border: none; background: none; color: var(--texte-doux); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; width: 100%; }
+    .nav-item:hover { background: var(--violet-light); color: var(--violet-dark); }
+    .nav-item.active { background: var(--violet); color: white; }
+    .nav-item .material-symbols-outlined { font-size: 22px; flex-shrink: 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .btn-logout { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: white; color: var(--rouge); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-logout:hover { background: #fee2e2; border-color: var(--rouge); }
+    .btn-logout .material-symbols-outlined { font-size: 20px; }
+
+    /* ── BOTTOM NAV (mobile) ── */
+    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: rgba(255,255,255,0.97); backdrop-filter: blur(16px); border-top: 1px solid var(--border); height: 64px; padding: 0 4px; padding-bottom: env(safe-area-inset-bottom); }
+    .bottom-nav-inner { display: flex; height: 100%; align-items: center; justify-content: space-around; }
+    .bnav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 8px 6px; cursor: pointer; flex: 1; border: none; background: transparent; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.15s; border-radius: 12px; min-height: 52px; }
+    .bnav-item.active .bnav-icon, .bnav-item.active .bnav-label { color: var(--violet); }
+    .bnav-item.active .bnav-label { font-weight: 700; }
+    .bnav-icon { font-size: 22px; color: var(--texte-doux); }
+    .bnav-label { font-size: 10px; font-weight: 500; color: var(--texte-doux); white-space: nowrap; }
+
+    /* ── MAIN ── */
+    .main-content { margin-left: 250px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { height: 64px; background: var(--blanc); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 90; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-title { font-size: 16px; font-weight: 700; color: var(--navy); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .badge-role { padding: 6px 14px; background: var(--violet); border-radius: 20px; font-size: 12px; font-weight: 700; color: white; }
+    .user-chip { padding: 6px 14px; background: var(--navy); border-radius: 20px; font-size: 13px; font-weight: 600; color: white; }
+    .content-area { padding: 32px; flex: 1; }
+    .tab { display: none; }
+    .tab.active { display: block; }
+    .tab-title { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 24px; }
+
+    /* ── CARDS / STATS ── */
+    .card { background: var(--blanc); border-radius: 12px; padding: 24px; box-shadow: var(--card-shadow); margin-bottom: 20px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: var(--blanc); border-radius: 12px; padding: 20px 24px; box-shadow: var(--card-shadow); }
+    .stat-value { font-size: 30px; font-weight: 800; color: var(--violet); margin-bottom: 4px; }
+    .stat-label { font-size: 12px; font-weight: 700; color: var(--texte-doux); text-transform: uppercase; letter-spacing: 0.06em; }
+    .section-title { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+
+    /* ── TABLES ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texte-doux); padding: 10px 12px; border-bottom: 2px solid var(--border); text-align: left; }
+    td { font-size: 13px; font-weight: 500; color: var(--texte); padding: 12px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--fond); }
+
+    /* ── BADGES ── */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+    .badge-green { background: rgba(0,201,167,0.12); color: #00796b; }
+    .badge-violet { background: rgba(139,92,246,0.15); color: var(--violet-dark); }
+    .badge-red { background: rgba(186,26,26,0.1); color: var(--rouge); }
+    .badge-grey { background: rgba(10,36,99,0.08); color: var(--texte-doux); }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 9999px; border: none; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--violet); color: white; box-shadow: 0 4px 14px rgba(139,92,246,0.35); }
+    .btn-primary:hover:not(:disabled) { background: var(--violet-dark); }
+    .btn-outline { background: white; color: var(--navy); border: 1.5px solid var(--border); }
+    .btn-outline:hover:not(:disabled) { background: var(--fond); }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+    /* ── FORM INPUTS ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texte-doux); margin-bottom: 8px; }
+    .form-input {
+      width: 100%; padding: 12px 16px; border-radius: 10px;
+      border: 2px solid var(--border); outline: none;
+      font-size: 14px; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--texte); background: white; transition: border-color 0.2s;
+    }
+    .form-input::placeholder { color: var(--texte-doux); }
+    .form-input:focus { border-color: var(--violet); }
+
+    /* ── QR SCANNER ── */
+    #qr-reader { width: 100%; max-width: 400px; margin: 0 auto; }
+    #qr-reader video { border-radius: 12px; }
+    .qr-result { margin-top: 16px; padding: 16px; background: var(--violet-light); border-radius: 12px; border: 1px solid var(--violet); display: none; }
+    .qr-result.show { display: block; }
+    .qr-result-title { font-size: 14px; font-weight: 800; color: var(--violet-dark); margin-bottom: 8px; }
+    .qr-result-value { font-size: 18px; font-weight: 700; color: var(--navy); }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; background: var(--navy); color: white; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 300; opacity: 0; transform: translateY(16px); transition: all 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .bottom-nav { display: block; }
+      .main-content { margin-left: 0; }
+      .topbar { padding: 0 16px; }
+      .content-area { padding: 20px 16px; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="/images/landing/bolamu-logo-final.png" alt="Bolamu">
+    <div class="logo-name">Bolamu</div>
+    <div class="role-pill">Partenaire</div>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-tab="accueil" data-testid="nav-accueil">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span>Accueil</span>
+    </button>
+    <button class="nav-item" data-tab="validation" data-testid="nav-validation">
+      <span class="material-symbols-outlined">qr_code_scanner</span>
+      <span>Validation</span>
+    </button>
+    <button class="nav-item" data-tab="programmes" data-testid="nav-programmes">
+      <span class="material-symbols-outlined">card_giftcard</span>
+      <span>Mes programmes</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout" id="btn-logout" data-testid="btn-logout">
+      <span class="material-symbols-outlined">logout</span>
+      <span>Déconnexion</span>
+    </button>
+  </div>
+</aside>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-item active" data-tab="accueil" data-testid="bnav-accueil">
+      <span class="material-symbols-outlined bnav-icon">dashboard</span>
+      <span class="bnav-label">Accueil</span>
+    </button>
+    <button class="bnav-item" data-tab="validation" data-testid="bnav-validation">
+      <span class="material-symbols-outlined bnav-icon">qr_code_scanner</span>
+      <span class="bnav-label">Validation</span>
+    </button>
+    <button class="bnav-item" data-tab="programmes" data-testid="bnav-programmes">
+      <span class="material-symbols-outlined bnav-icon">card_giftcard</span>
+      <span class="bnav-label">Programmes</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main-content">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Espace Partenaire</div>
+    </div>
+    <div class="topbar-right">
+      <div class="badge-role">Partenaire</div>
+      <div class="user-chip" id="user-chip">—</div>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <!-- TAB ACCUEIL -->
+    <div class="tab active" id="tab-accueil">
+      <h2 class="tab-title">Vue d'ensemble</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-count">0</div>
+          <div class="stat-label">Vouchers validés ce mois</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total">0 FCFA</div>
+          <div class="stat-label">Total FCFA ce mois</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-pending">0</div>
+          <div class="stat-label">Vouchers en attente</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">
+          <span>Mon programme de fidélité actif</span>
+        </div>
+        <div id="active-program">Chargement...</div>
+      </div>
+    </div>
+
+    <!-- TAB VALIDATION -->
+    <div class="tab" id="tab-validation">
+      <h2 class="tab-title">Validation de vouchers</h2>
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label" for="code-input">Code voucher (BOL-XXXX-XXXX)</label>
+          <input type="text" id="code-input" class="form-input" placeholder="BOL-XXXX-XXXX" maxlength="15" data-testid="validation-code">
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+          <button class="btn btn-primary" id="btn-validate-code" data-testid="btn-validate-code">
+            <span class="material-symbols-outlined">check</span>
+            <span>Valider le code</span>
+          </button>
+          <button class="btn btn-outline" id="btn-scan-qr" data-testid="btn-scan-qr">
+            <span class="material-symbols-outlined">qr_code_scanner</span>
+            <span>Scanner QR</span>
+          </button>
+        </div>
+        <div id="qr-reader" style="display: none;"></div>
+        <div class="qr-result" id="qr-result">
+          <div class="qr-result-title">Voucher validé</div>
+          <div class="qr-result-value" id="qr-result-value">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">
+          <span>Historique des validations</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Patient</th>
+                <th>Valeur FCFA</th>
+                <th>Date</th>
+                <th>Méthode</th>
+              </tr>
+            </thead>
+            <tbody id="validation-history">
+              <tr><td colspan="5" style="text-align: center; color: var(--texte-doux);">Aucune validation</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB PROGRAMMES -->
+    <div class="tab" id="tab-programmes">
+      <h2 class="tab-title">Mes programmes de fidélité</h2>
+      <div class="card">
+        <div class="section-title">
+          <span>Programmes actifs</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th>Coût Zora</th>
+                <th>Valeur FCFA</th>
+                <th>Stock</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="programs-list">
+              <tr><td colspan="6" style="text-align: center; color: var(--texte-doux);">Chargement...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'https://api.bolamu.co/api/v1';
+  const token = localStorage.getItem('bolamu_partenaire_token');
+  const phone = localStorage.getItem('bolamu_partenaire_phone');
+
+  // Redirect if not logged in
+  if (!token || !phone) {
+    window.location.href = '/partenaire/login.html';
+  }
+
+  // Set user chip
+  const userName = localStorage.getItem('bolamu_partenaire_name') || phone;
+  document.getElementById('user-chip').textContent = userName;
+
+  // Toast
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Tab navigation
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.querySelectorAll(`[data-tab="${tabId}"]`).forEach(b => b.classList.add('active'));
+  }
+
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // Logout
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    localStorage.removeItem('bolamu_partenaire_token');
+    localStorage.removeItem('bolamu_partenaire_phone');
+    localStorage.removeItem('bolamu_partenaire_name');
+    window.location.href = '/partenaire/login.html';
+  });
+
+  // API helper
+  async function api(endpoint, options = {}) {
+    const res = await fetch(API + endpoint, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        ...options.headers
+      }
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('bolamu_partenaire_token');
+      window.location.href = '/partenaire/login.html';
+      return null;
+    }
+    return res.json();
+  }
+
+  // Load stats
+  async function loadStats() {
+    const data = await api('/partenaire/stats');
+    if (data && data.success) {
+      document.getElementById('stat-count').textContent = data.data.monthly_count || 0;
+      document.getElementById('stat-total').textContent = (data.data.monthly_fcfa || 0) + ' FCFA';
+      document.getElementById('stat-pending').textContent = data.data.pending_count || 0;
+      if (data.data.active_program) {
+        document.getElementById('active-program').innerHTML = `
+          <div style="font-size: 14px; font-weight: 600; color: var(--navy);">${data.data.active_program.name}</div>
+          <div style="font-size: 12px; color: var(--texte-doux); margin-top: 4px;">Stock: ${data.data.active_program_stock || 'Illimité'}</div>
+        `;
+      } else {
+        document.getElementById('active-program').textContent = 'Aucun programme actif';
+      }
+    }
+  }
+
+  // Load programs
+  async function loadPrograms() {
+    const data = await api('/vouchers/programs');
+    if (data && data.success) {
+      const tbody = document.getElementById('programs-list');
+      if (data.data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--texte-doux);">Aucun programme disponible</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.data.map(p => `
+        <tr>
+          <td>${p.name}</td>
+          <td>${p.category || '—'}</td>
+          <td>${p.zora_cost}</td>
+          <td>${p.fcfa_value || '—'}</td>
+          <td>${p.stock === null ? 'Illimité' : p.stock}</td>
+          <td>
+            <button class="btn btn-sm btn-outline" onclick="showToast('Contactez votre gestionnaire')">
+              <span class="material-symbols-outlined" style="font-size: 16px;">contact_support</span>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // Load validation history
+  async function loadValidationHistory() {
+    const data = await api('/vouchers/my');
+    if (data && data.success) {
+      const tbody = document.getElementById('validation-history');
+      const used = data.data.history || [];
+      if (used.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--texte-doux);">Aucune validation</td></tr>';
+        return;
+      }
+      tbody.innerHTML = used.slice(0, 20).map(v => `
+        <tr>
+          <td><span class="badge badge-violet">${v.code}</span></td>
+          <td>${v.partner_name || '—'}</td>
+          <td>${v.fcfa_value || '—'}</td>
+          <td>${v.used_at ? new Date(v.used_at).toLocaleDateString('fr-FR') : '—'}</td>
+          <td>Code</td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // Validate code
+  async function validateCode(code) {
+    const data = await api('/vouchers/validate', {
+      method: 'POST',
+      body: JSON.stringify({ code })
+    });
+    if (data && data.success) {
+      document.getElementById('qr-result').classList.add('show');
+      document.getElementById('qr-result-value').textContent = `${data.data.patient_initiales} — ${data.data.fcfa_value} FCFA`;
+      showToast('Voucher validé avec succès');
+      loadStats();
+      loadValidationHistory();
+    } else {
+      showToast(data.error || 'Erreur de validation');
+    }
+  }
+
+  document.getElementById('btn-validate-code').addEventListener('click', () => {
+    const code = document.getElementById('code-input').value.trim().toUpperCase();
+    if (!code) { showToast('Entrez un code'); return; }
+    validateCode(code);
+  });
+
+  // QR Scanner
+  let html5QrCode = null;
+  document.getElementById('btn-scan-qr').addEventListener('click', () => {
+    const reader = document.getElementById('qr-reader');
+    reader.style.display = reader.style.display === 'none' ? 'block' : 'none';
+    if (reader.style.display === 'block' && !html5QrCode) {
+      html5QrCode = new Html5Qrcode("qr-reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          html5QrCode.stop();
+          reader.style.display = 'none';
+          document.getElementById('code-input').value = decodedText;
+          validateCode(decodedText);
+        },
+        (errorMessage) => {}
+      ).catch(err => {
+        showToast('Erreur caméra: ' + err);
+        reader.style.display = 'none';
+      });
+    } else if (html5QrCode && reader.style.display === 'none') {
+      html5QrCode.stop().catch(() => {});
+    }
+  });
+
+  // Init
+  loadStats();
+  loadPrograms();
+  loadValidationHistory();
+</script>
+
+</body>
+</html>
