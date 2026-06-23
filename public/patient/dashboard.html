@@ -3209,7 +3209,10 @@ class Component extends DCLogic {
     }));
     const rdvSlotsView = (this._slots || []).map((sl) => ({ value: sl, label: sl }));
 
-    const genderAdj = (s.gender === 'M' || this._patientData?.gender === 'M') ? 'prêt' : 'prête';
+    const genderAdj = (s.gender === 'M' || 
+      s.gender === 'homme' ||
+      this._patientData?.gender === 'M' ||
+      this._patientData?.gender === 'homme') ? 'prêt' : 'prête';
 
     return {
       toast: s.toast,
