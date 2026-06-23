@@ -492,6 +492,52 @@ router.get('/verifier-adherent', authMiddleware, authMiddleware.requireSecretary
   }
 });
 
+// POST /api/v1/secretariat/bloquer-creneau
+// Bloquer un créneau horaire pour un médecin
+router.post('/bloquer-creneau', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
+  try {
+    const clinicId = req.user.clinic_id;
+    const secretairePhone = req.user.phone;
+    const { doctor_id, date, heure, motif } = req.body;
+
+    if (!doctor_id || !date || !heure) {
+      return res.status(400).json({ success: false, message: 'doctor_id, date et heure sont obligatoires.' });
+    }
+
+    // Vérifier que le médecin appartient à la clinique de la secrétaire
+    const doctorCheck = await pool.query(
+      `SELECT id FROM doctors WHERE id = $1 AND clinic_id = $2`,
+      [parseInt(doctor_id), clinicId]
+    );
+    if (!doctorCheck.rows.length) {
+      return res.status(403).json({ success: false, message: 'Médecin non autorisé.' });
+    }
+
+    // Vérifier si le créneau est déjà occupé
+    const existing = await pool.query(
+      `SELECT id FROM appointments
+       WHERE doctor_id = $1 AND appointment_date = $2 AND appointment_time = $3
+       AND status NOT IN ('annule', 'refuse')`,
+      [parseInt(doctor_id), date, heure]
+    );
+    if (existing.rows.length) {
+      return res.status(409).json({ success: false, message: 'Ce créneau est déjà occupé.' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO appointments (doctor_id, patient_phone, appointment_date, appointment_time, status, motif)
+       VALUES ($1, $2, $3, $4, 'bloque', $5)
+       RETURNING id`,
+      [parseInt(doctor_id), secretairePhone, date, heure, motif || 'Créneau réservé']
+    );
+
+    res.json({ success: true, message: 'Créneau bloqué avec succès.', id: result.rows[0].id });
+  } catch(err) {
+    console.error('[BLOQUER CRENEAU]', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ============================================================
 // ROUTES ADMIN
 // ============================================================

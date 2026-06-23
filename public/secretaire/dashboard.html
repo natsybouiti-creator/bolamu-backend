@@ -48,7 +48,7 @@ if (typeof BarcodeDetector !== 'undefined') {
       z-index: 100;
     }
     .sidebar-logo { display:flex; align-items:center; gap:10px; padding:24px 20px 16px; border-bottom:1px solid var(--line); }
-    .logo-name { font-family:'Plus Jakarta Sans',serif; font-size:20px; font-weight:900; color:var(--ink); }
+    .logo-name { font-family:'Plus Jakarta Sans',sans-serif; font-size:20px; font-weight:800; color:var(--ink); }
     .sidebar-nav {
       flex: 1;
       padding: 16px 12px;
@@ -1359,7 +1359,7 @@ if (typeof BarcodeDetector !== 'undefined') {
             <div style="background:white;border-radius:20px;padding:24px;
                         border:1px solid var(--line);margin-bottom:20px;
                         box-shadow:0 2px 12px rgba(10,36,99,0.04);">
-              <div style="font-family:'Plus Jakarta Sans',serif;font-size:15px;
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;
                           font-weight:700;color:var(--navy);margin-bottom:14px;">
                 Médecin
               </div>
@@ -1426,7 +1426,7 @@ if (typeof BarcodeDetector !== 'undefined') {
                           border:1px solid var(--line);
                           box-shadow:0 2px 8px rgba(10,36,99,0.04);
                           margin-bottom:16px;">
-                <div style="font-family:'Plus Jakarta Sans',serif;font-size:15px;
+                <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;
                             font-weight:700;color:var(--navy);margin-bottom:12px;">
                   Recherche manuelle
                 </div>
@@ -1456,7 +1456,7 @@ if (typeof BarcodeDetector !== 'undefined') {
                           border:1px solid var(--line);
                           box-shadow:0 2px 8px rgba(10,36,99,0.04);
                           margin-bottom:16px;">
-                <div style="font-family:'Plus Jakarta Sans',serif;font-size:15px;
+                <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;
                             font-weight:700;color:var(--navy);margin-bottom:12px;">
                   Scanner le QR code
                 </div>
@@ -2715,7 +2715,7 @@ if (typeof BarcodeDetector !== 'undefined') {
           return;
         }
 
-        var html = '<div style="font-family:\'Plus Jakarta Sans\',serif;font-size:15px;'
+        var html = '<div style="font-family:\'Plus Jakarta Sans\',sans-serif;font-size:15px;'
           + 'font-weight:700;color:var(--navy);margin-bottom:16px;">'
           + patients.length + ' patients trouves</div>';
         patients.forEach(function(p) {
@@ -2729,8 +2729,8 @@ if (typeof BarcodeDetector !== 'undefined') {
             + ' onmouseout="this.style.background=\'white\'">'
             + '<div style="width:40px;height:40px;border-radius:10px;'
             + 'background:var(--navy);display:flex;align-items:center;'
-            + 'justify-content:center;font-family:\'Plus Jakarta Sans\',serif;'
-            + 'font-size:16px;font-weight:900;color:var(--navy);">'
+            + 'justify-content:center;font-family:\'Plus Jakarta Sans\',sans-serif;'
+            + 'font-size:16px;font-weight:800;color:var(--navy);">'
             + initial + '</div>'
             + '<div><div style="font-size:14px;font-weight:700;">'
             + (p.full_name || '') + '</div>'
@@ -2756,8 +2756,8 @@ if (typeof BarcodeDetector !== 'undefined') {
       + 'border-bottom:1px solid var(--line);">'
       + '<div style="width:52px;height:52px;border-radius:14px;'
       + 'background:var(--navy);display:flex;align-items:center;'
-      + 'justify-content:center;font-family:\'Plus Jakarta Sans\',serif;'
-      + 'font-size:20px;font-weight:900;color:var(--navy);flex-shrink:0;">'
+      + 'justify-content:center;font-family:\'Plus Jakarta Sans\',sans-serif;'
+      + 'font-size:20px;font-weight:800;color:var(--navy);flex-shrink:0;">'
       + initial + '</div>'
       + '<div style="flex:1;">'
       + '<div style="font-size:16px;font-weight:700;margin-bottom:4px;">'
@@ -2784,6 +2784,153 @@ if (typeof BarcodeDetector !== 'undefined') {
 
     resultDiv.innerHTML = html;
   }
+
+    // ─── VOIR FICHE PATIENT (identité + abonnement uniquement — pas de dossier médical) ───
+    async function viewPatient(patientId) {
+      const token = getToken();
+      try {
+        const res = await fetch(`${API}/secretariat/patients/search?q=${encodeURIComponent(patientId)}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const p = (data.patients || [])[0];
+        if (!p) { alert('Patient introuvable.'); return; }
+        document.getElementById('modal-emploi-title').textContent = 'Fiche patient';
+        document.getElementById('modal-emploi-body').innerHTML = `
+          <div style="display:grid;gap:12px;font-size:14px;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line);">
+              <div style="width:48px;height:48px;border-radius:14px;background:var(--role-secretaire);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:white;flex-shrink:0;">${(p.full_name||p.phone||'?').charAt(0).toUpperCase()}</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;">${p.full_name || '—'}</div>
+                <div style="font-size:13px;color:var(--ink-soft);">${p.phone || '—'}</div>
+              </div>
+            </div>
+            <div><span style="color:var(--ink-soft);">Abonnement :</span> <strong>${p.statut_abonnement || '—'}</strong></div>
+            <div><span style="color:var(--ink-soft);">Plan :</span> <strong>${p.plan_nom || '—'}</strong></div>
+          </div>
+          <button onclick="closeModal('modal-emploi-du-temps'); openRdvForPatient('${p.phone}');" style="width:100%;padding:12px;background:var(--role-secretaire);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Prendre RDV</button>
+        `;
+        document.getElementById('modal-emploi-du-temps').classList.add('open');
+      } catch(e) {
+        alert('Erreur de chargement.');
+      }
+    }
+
+    // ─── PRISE DE RDV DEPUIS FICHE PATIENT ────────────────────────────────
+    function openRdvForPatient(phone) {
+      openRdvManuel();
+      const field = document.getElementById('rdv-phone');
+      if (field) field.value = phone;
+    }
+
+    // ─── BLOQUER UN CRÉNEAU MÉDECIN ───────────────────────────────────────
+    function bloquerCreneau(doctorId) {
+      document.getElementById('modal-emploi-title').textContent = 'Bloquer un créneau';
+      document.getElementById('modal-emploi-body').innerHTML = `
+        <div style="display:grid;gap:14px;">
+          <div>
+            <label style="font-size:13px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:6px;">Date</label>
+            <input type="date" id="bloq-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;">
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:6px;">Heure</label>
+            <input type="time" id="bloq-heure" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;">
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:6px;">Motif (optionnel)</label>
+            <input type="text" id="bloq-motif" placeholder="Ex: Réunion, congé..." style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;">
+          </div>
+          <div id="bloq-result"></div>
+          <div style="display:flex;gap:10px;">
+            <button onclick="confirmerBlocageCreneau(${doctorId})" style="flex:1;padding:12px;background:var(--role-secretaire);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Bloquer</button>
+            <button onclick="closeModal('modal-emploi-du-temps')" style="padding:12px 20px;background:transparent;border:2px solid var(--line);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Annuler</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('modal-emploi-du-temps').classList.add('open');
+    }
+
+    async function confirmerBlocageCreneau(doctorId) {
+      const token = getToken();
+      const date = document.getElementById('bloq-date').value;
+      const heure = document.getElementById('bloq-heure').value;
+      const motif = document.getElementById('bloq-motif').value.trim();
+      const resultDiv = document.getElementById('bloq-result');
+      if (!date || !heure) {
+        resultDiv.innerHTML = '<div style="color:var(--error);font-size:13px;">Date et heure obligatoires.</div>';
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/secretariat/bloquer-creneau`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ doctor_id: doctorId, date, heure, motif: motif || null })
+        });
+        const data = await res.json();
+        if (data.success) {
+          resultDiv.innerHTML = '<div style="color:var(--role-secretaire);font-size:13px;font-weight:600;">Créneau bloqué avec succès.</div>';
+          setTimeout(() => closeModal('modal-emploi-du-temps'), 1500);
+        } else {
+          resultDiv.innerHTML = `<div style="color:var(--error);font-size:13px;">${data.message || 'Erreur serveur.'}</div>`;
+        }
+      } catch(e) {
+        resultDiv.innerHTML = '<div style="color:var(--error);font-size:13px;">Erreur de connexion.</div>';
+      }
+    }
+
+    // ─── TRAITER ADHÉRENT VIA SCANNER QR (modal principale) ───────────────
+    async function traiterAdherentSecretaire(qrData, mode) {
+      const resultDiv = document.getElementById('scanner-sec-result');
+      const statusDiv = document.getElementById('scanner-sec-status');
+      const token = getToken();
+      statusDiv.textContent = 'Vérification en cours...';
+      statusDiv.style.color = 'var(--turquoise)';
+      if (resultDiv) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-soft);">Vérification...</div>';
+      }
+      try {
+        let qrToken = qrData;
+        if (typeof qrData === 'string' && qrData.indexOf('token=') !== -1) {
+          try { qrToken = new URL(qrData).searchParams.get('token'); }
+          catch(e) { qrToken = qrData.split('token=')[1]?.split('&')[0] || qrData; }
+        }
+        const res = await fetch(`${API}/qr/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ qr_token: qrToken })
+        });
+        const data = await res.json();
+        if (data.success && data.patient) {
+          const p = data.patient;
+          statusDiv.textContent = 'Adhérent identifié';
+          if (resultDiv) resultDiv.innerHTML = `
+            <div style="background:rgba(0,201,167,0.1);border-radius:12px;padding:20px;border:1px solid var(--turquoise);">
+              <div style="font-size:16px;font-weight:700;color:var(--turquoise);margin-bottom:12px;">Adhérent identifié</div>
+              <div style="display:grid;gap:8px;font-size:13px;">
+                <div><strong>Nom :</strong> ${p.full_name || '—'}</div>
+                <div><strong>Téléphone :</strong> ${p.phone || '—'}</div>
+                <div><strong>Abonnement :</strong> ${p.statut_abonnement || '—'}</div>
+                <div><strong>Plan :</strong> ${p.plan_nom || '—'}</div>
+              </div>
+              <button onclick="closeScannerModal(); openRdvForPatient('${p.phone}');" style="margin-top:14px;width:100%;padding:11px;background:var(--role-secretaire);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Prendre RDV</button>
+            </div>
+          `;
+        } else {
+          statusDiv.textContent = 'QR invalide';
+          statusDiv.style.color = 'var(--error)';
+          if (resultDiv) resultDiv.innerHTML = `
+            <div style="background:#fef2f2;border-radius:12px;padding:20px;border:1px solid #ef4444;">
+              <div style="font-size:14px;font-weight:700;color:#b91c1c;">${data.message || 'Adhérent non reconnu'}</div>
+            </div>
+          `;
+        }
+      } catch(e) {
+        statusDiv.textContent = 'Erreur de connexion';
+        statusDiv.style.color = 'var(--error)';
+        if (resultDiv) resultDiv.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:20px;font-size:13px;color:#b91c1c;">Erreur de connexion au serveur.</div>';
+      }
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
       const token = getToken();
