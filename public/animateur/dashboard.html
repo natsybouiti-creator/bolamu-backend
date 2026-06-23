@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Bolamu — Animateur</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="theme-color" content="#F59E0B">
+  <link rel="manifest" href="/manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
+  <link href="/fonts/material-symbols.css" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root {
+      --amber: #F59E0B;
+      --amber-dark: #D97706;
+      --amber-light: rgba(245,158,11,0.12);
+      --navy: #0A2463;
+      --turquoise: #00C9A7;
+      --rouge: #BA1A1A;
+      --texte: #0A2463;
+      --texte-doux: #5A6E8C;
+      --border: rgba(10,36,99,0.1);
+      --blanc: #ffffff;
+      --fond: #FFFBEB;
+      --card-shadow: 0 2px 12px rgba(10,36,99,0.08);
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--fond); color: var(--texte); min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 250px; background: var(--blanc); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+    .sidebar-logo img { width: 36px; height: 36px; border-radius: 50%; }
+    .logo-name { font-size: 20px; font-weight: 800; color: var(--texte); }
+    .role-pill { margin-left: auto; background: var(--amber-light); color: var(--amber-dark); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 9999px; white-space: nowrap; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; border: none; background: none; color: var(--texte-doux); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; width: 100%; }
+    .nav-item:hover { background: var(--amber-light); color: var(--amber-dark); }
+    .nav-item.active { background: var(--amber); color: white; }
+    .nav-item .material-symbols-outlined { font-size: 22px; flex-shrink: 0; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+    .btn-logout { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: white; color: var(--rouge); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-logout:hover { background: #fee2e2; border-color: var(--rouge); }
+    .btn-logout .material-symbols-outlined { font-size: 20px; }
+
+    /* ── BOTTOM NAV (mobile) ── */
+    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: rgba(255,255,255,0.97); backdrop-filter: blur(16px); border-top: 1px solid var(--border); height: 64px; padding: 0 4px; padding-bottom: env(safe-area-inset-bottom); }
+    .bottom-nav-inner { display: flex; height: 100%; align-items: center; justify-content: space-around; }
+    .bnav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 8px 6px; cursor: pointer; flex: 1; border: none; background: transparent; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.15s; border-radius: 12px; min-height: 52px; }
+    .bnav-item.active .bnav-icon, .bnav-item.active .bnav-label { color: var(--amber); }
+    .bnav-item.active .bnav-label { font-weight: 700; }
+    .bnav-icon { font-size: 22px; color: var(--texte-doux); }
+    .bnav-label { font-size: 10px; font-weight: 500; color: var(--texte-doux); white-space: nowrap; }
+
+    /* ── MAIN ── */
+    .main-content { margin-left: 250px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { height: 64px; background: var(--blanc); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 90; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-title { font-size: 16px; font-weight: 700; color: var(--navy); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .badge-role { padding: 6px 14px; background: var(--amber); border-radius: 20px; font-size: 12px; font-weight: 700; color: white; }
+    .user-chip { padding: 6px 14px; background: var(--navy); border-radius: 20px; font-size: 13px; font-weight: 600; color: white; }
+    .content-area { padding: 32px; flex: 1; }
+    .tab { display: none; }
+    .tab.active { display: block; }
+    .tab-title { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 24px; }
+
+    /* ── CARDS / STATS ── */
+    .card { background: var(--blanc); border-radius: 12px; padding: 24px; box-shadow: var(--card-shadow); margin-bottom: 20px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: var(--blanc); border-radius: 12px; padding: 20px 24px; box-shadow: var(--card-shadow); }
+    .stat-value { font-size: 30px; font-weight: 800; color: var(--amber); margin-bottom: 4px; }
+    .stat-label { font-size: 12px; font-weight: 700; color: var(--texte-doux); text-transform: uppercase; letter-spacing: 0.06em; }
+    .section-title { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+
+    /* ── TABLES ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texte-doux); padding: 10px 12px; border-bottom: 2px solid var(--border); text-align: left; }
+    td { font-size: 13px; font-weight: 500; color: var(--texte); padding: 12px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--fond); }
+
+    /* ── BADGES ── */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+    .badge-green { background: rgba(0,201,167,0.12); color: #00796b; }
+    .badge-amber { background: rgba(245,158,11,0.15); color: var(--amber-dark); }
+    .badge-red { background: rgba(186,26,26,0.1); color: var(--rouge); }
+    .badge-grey { background: rgba(10,36,99,0.08); color: var(--texte-doux); }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 9999px; border: none; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--amber); color: white; box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
+    .btn-primary:hover:not(:disabled) { background: var(--amber-dark); }
+    .btn-outline { background: white; color: var(--navy); border: 1.5px solid var(--border); }
+    .btn-outline:hover:not(:disabled) { background: var(--fond); }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-icon { background: none; border: none; cursor: pointer; color: var(--texte-doux); display: inline-flex; align-items: center; padding: 4px; border-radius: 6px; transition: color 0.2s; }
+    .btn-icon:hover { color: var(--amber); }
+    .btn-icon .material-symbols-outlined { font-size: 20px; }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 48px 24px; }
+    .empty .material-symbols-outlined { font-size: 48px; color: var(--border); margin-bottom: 12px; display: block; }
+    .empty-text { font-size: 14px; color: var(--texte-doux); font-weight: 500; }
+
+    /* ── MODAL ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,36,99,0.5); z-index: 500; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 20px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.2); }
+    .modal-title { font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .modal-close { background: none; border: none; cursor: pointer; color: var(--texte-doux); display: flex; padding: 4px; }
+    .modal-close .material-symbols-outlined { font-size: 22px; }
+    .modal-close:hover { color: var(--navy); }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--navy); margin-bottom: 6px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--texte); background: white; outline: none; transition: border-color 0.2s; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--amber); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ── MSG BOX ── */
+    .msg-box { display: none; padding: 12px 16px; border-radius: 10px; font-weight: 700; font-size: 13px; margin-bottom: 16px; }
+    .msg-box.show.error { display: block; background: #ffdad6; color: #93000a; border: 1px solid #ba1a1a; }
+    .msg-box.show.success { display: block; background: #fef3c7; color: #92400e; border: 1px solid var(--amber); }
+
+    /* ── QR SCANNER ── */
+    #qr-reader { width: 100%; border-radius: 12px; overflow: hidden; }
+    .qr-result { margin-top: 16px; padding: 12px; background: var(--fond); border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--navy); text-align: center; }
+
+    /* ── NOTIFICATION CLUB ── */
+    .club-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .club-row:last-child { border-bottom: none; }
+    .club-info { display: flex; flex-direction: column; gap: 2px; }
+    .club-name { font-size: 14px; font-weight: 700; color: var(--navy); }
+    .club-meta { font-size: 12px; color: var(--texte-doux); font-weight: 500; }
+
+    /* ── LOADING ── */
+    .spin { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .bottom-nav { display: flex; }
+      .main-content { margin-left: 0; }
+      .content-area { padding: 20px 16px 80px; }
+      .topbar { padding: 0 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR (desktop) -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <img src="/images/landing/bolamu-logo-final.png" alt="Bolamu">
+    <span class="logo-name">Bolamu</span>
+    <span class="role-pill">Animateur</span>
+  </div>
+  <div class="sidebar-nav">
+    <button class="nav-item active" data-testid="nav-accueil" onclick="goTab('accueil',this)">
+      <span class="material-symbols-outlined">home</span> Accueil
+    </button>
+    <button class="nav-item" data-testid="nav-evenements" onclick="goTab('evenements',this)">
+      <span class="material-symbols-outlined">event</span> Événements
+    </button>
+    <button class="nav-item" data-testid="nav-clubs" onclick="goTab('clubs',this)">
+      <span class="material-symbols-outlined">groups</span> Clubs
+    </button>
+    <button class="nav-item" data-testid="nav-notifications" onclick="goTab('notifications',this)">
+      <span class="material-symbols-outlined">notifications</span> Notifications
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <button class="btn-logout" data-testid="btn-logout" onclick="logout()">
+      <span class="material-symbols-outlined">logout</span> Déconnexion
+    </button>
+  </div>
+</nav>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-item active" data-testid="bnav-accueil" onclick="goTab('accueil',null,'accueil')">
+      <span class="material-symbols-outlined bnav-icon">home</span>
+      <span class="bnav-label">Accueil</span>
+    </button>
+    <button class="bnav-item" data-testid="bnav-evenements" onclick="goTab('evenements',null,'evenements')">
+      <span class="material-symbols-outlined bnav-icon">event</span>
+      <span class="bnav-label">Événements</span>
+    </button>
+    <button class="bnav-item" data-testid="bnav-clubs" onclick="goTab('clubs',null,'clubs')">
+      <span class="material-symbols-outlined bnav-icon">groups</span>
+      <span class="bnav-label">Clubs</span>
+    </button>
+    <button class="bnav-item" data-testid="bnav-notifications" onclick="goTab('notifications',null,'notifications')">
+      <span class="material-symbols-outlined bnav-icon">notifications</span>
+      <span class="bnav-label">Notifs</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main-content">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title" id="topbar-title">Tableau de bord</span>
+    </div>
+    <div class="topbar-right">
+      <span class="badge-role">Animateur</span>
+      <span class="user-chip" id="user-chip">—</span>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <!-- ── TAB ACCUEIL ── -->
+    <div id="tab-accueil" class="tab active">
+      <h2 class="tab-title">Vue d'ensemble</h2>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="stat-events">—</div><div class="stat-label">Événements</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-inscriptions">—</div><div class="stat-label">Inscriptions</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-checkins">—</div><div class="stat-label">Check-ins</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-clubs">—</div><div class="stat-label">Clubs</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-membres">—</div><div class="stat-label">Membres</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-actifs">—</div><div class="stat-label">Événements actifs</div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          Prochains événements
+          <button class="btn btn-primary btn-sm" data-testid="btn-creer-event-accueil" onclick="openCreateEvent()">
+            <span class="material-symbols-outlined" style="font-size:16px">add</span> Créer
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Titre</th>
+                <th>Date</th>
+                <th>Lieu</th>
+                <th>Inscrits</th>
+                <th>Check-ins</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="accueil-events-body">
+              <tr><td colspan="6"><div class="empty"><span class="material-symbols-outlined">event_busy</span><p class="empty-text">Chargement…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB ÉVÉNEMENTS ── -->
+    <div id="tab-evenements" class="tab">
+      <h2 class="tab-title">Mes événements</h2>
+
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <button class="btn btn-primary" data-testid="btn-creer-event" onclick="openCreateEvent()">
+          <span class="material-symbols-outlined" style="font-size:18px">add</span> Créer un événement
+        </button>
+        <button class="btn btn-outline" data-testid="btn-scanner-qr" onclick="openQrScanner()">
+          <span class="material-symbols-outlined" style="font-size:18px">qr_code_scanner</span> Scanner QR check-in
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Titre</th>
+                <th>Pilier</th>
+                <th>Date début</th>
+                <th>Ville</th>
+                <th>Inscrits</th>
+                <th>Check-ins</th>
+                <th>Statut</th>
+                <th>QR</th>
+              </tr>
+            </thead>
+            <tbody id="events-body">
+              <tr><td colspan="8"><div class="empty"><span class="material-symbols-outlined">event_busy</span><p class="empty-text">Chargement…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB CLUBS ── -->
+    <div id="tab-clubs" class="tab">
+      <h2 class="tab-title">Mes clubs</h2>
+      <div class="card" id="clubs-list">
+        <div class="empty"><span class="material-symbols-outlined">groups</span><p class="empty-text">Chargement…</p></div>
+      </div>
+    </div>
+
+    <!-- ── TAB NOTIFICATIONS ── -->
+    <div id="tab-notifications" class="tab">
+      <h2 class="tab-title">Envoyer une notification</h2>
+      <div class="card" style="max-width:560px">
+        <div class="msg-box" id="notif-msg"></div>
+        <div class="form-group">
+          <label class="form-label" for="notif-club">Club destinataire</label>
+          <select id="notif-club" class="form-select" data-testid="notif-club-select">
+            <option value="">Sélectionner un club…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="notif-message">Message WhatsApp</label>
+          <textarea id="notif-message" class="form-textarea" data-testid="notif-message-input" placeholder="Texte du message à envoyer aux membres du club…" rows="4"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn btn-primary" id="btn-send-notif" data-testid="btn-send-notif" onclick="sendNotification()">
+            <span class="material-symbols-outlined" style="font-size:18px">send</span> Envoyer WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── MODAL CRÉER ÉVÉNEMENT ── -->
+<div id="modal-event" class="modal-overlay" data-testid="modal-event">
+  <div class="modal">
+    <div class="modal-title">
+      Créer un événement
+      <button class="modal-close" data-testid="modal-event-close" onclick="closeModal('modal-event')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="msg-box" id="event-msg"></div>
+    <div class="form-group">
+      <label class="form-label" for="evt-title">Titre *</label>
+      <input type="text" id="evt-title" class="form-input" data-testid="evt-title" placeholder="Ex: Course de 5km Bolamu">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="evt-pillar">Pilier *</label>
+        <select id="evt-pillar" class="form-select" data-testid="evt-pillar">
+          <option value="sport">Sport</option>
+          <option value="nutrition">Nutrition</option>
+          <option value="sante">Santé</option>
+          <option value="bien-etre">Bien-être</option>
+          <option value="prevention">Prévention</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="evt-city">Ville *</label>
+        <input type="text" id="evt-city" class="form-input" data-testid="evt-city" placeholder="Brazzaville">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="evt-location-name">Nom du lieu *</label>
+      <input type="text" id="evt-location-name" class="form-input" data-testid="evt-location-name" placeholder="Ex: Stade Marchand">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="evt-location-address">Adresse *</label>
+      <input type="text" id="evt-location-address" class="form-input" data-testid="evt-location-address" placeholder="Ex: Avenue des Martyrs, Brazzaville">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="evt-starts">Début *</label>
+        <input type="datetime-local" id="evt-starts" class="form-input" data-testid="evt-starts">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="evt-ends">Fin *</label>
+        <input type="datetime-local" id="evt-ends" class="form-input" data-testid="evt-ends">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="evt-max">Max participants</label>
+        <input type="number" id="evt-max" class="form-input" data-testid="evt-max" placeholder="100" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="evt-zora">Zora reward</label>
+        <input type="number" id="evt-zora" class="form-input" data-testid="evt-zora" value="50" min="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="evt-desc">Description</label>
+      <textarea id="evt-desc" class="form-textarea" data-testid="evt-desc" placeholder="Détails de l'événement…"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-event')">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-event" data-testid="btn-save-event" onclick="saveEvent()">
+        <span class="material-symbols-outlined" style="font-size:18px">save</span> Enregistrer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL QR SCANNER ── -->
+<div id="modal-qr" class="modal-overlay" data-testid="modal-qr">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">
+      Scanner QR check-in
+      <button class="modal-close" data-testid="modal-qr-close" onclick="closeQrScanner()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="qr-event-select">Événement</label>
+      <select id="qr-event-select" class="form-select" data-testid="qr-event-select">
+        <option value="">Sélectionner un événement…</option>
+      </select>
+    </div>
+    <div id="qr-reader"></div>
+    <div id="qr-result" class="qr-result" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ── MODAL NOTIF CLUB (depuis liste clubs) ── -->
+<div id="modal-club-notif" class="modal-overlay" data-testid="modal-club-notif">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">
+      Notifier le club <span id="modal-club-name"></span>
+      <button class="modal-close" data-testid="modal-club-notif-close" onclick="closeModal('modal-club-notif')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="msg-box" id="club-notif-msg"></div>
+    <div class="form-group">
+      <label class="form-label" for="club-notif-message">Message</label>
+      <textarea id="club-notif-message" class="form-textarea" data-testid="club-notif-message" placeholder="Message à envoyer à tous les membres actifs…" rows="4"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-club-notif')">Annuler</button>
+      <button class="btn btn-primary" id="btn-club-notif-send" data-testid="btn-club-notif-send" onclick="sendClubNotif()">
+        <span class="material-symbols-outlined" style="font-size:18px">send</span> Envoyer
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://api.bolamu.co/api/v1';
+let TOKEN = null;
+let USER_PHONE = null;
+let USER_NAME = null;
+let html5QrCode = null;
+let activeClubId = null;
+let eventsCache = [];
+let clubsCache = [];
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+(function() {
+  TOKEN = localStorage.getItem('bolamu_animateur_token');
+  if (!TOKEN) { window.location.href = '/animateur/login.html'; return; }
+  USER_PHONE = localStorage.getItem('bolamu_animateur_phone') || '';
+  USER_NAME = localStorage.getItem('bolamu_animateur_name') || USER_PHONE;
+  document.getElementById('user-chip').textContent = USER_NAME || USER_PHONE;
+  loadAll();
+})();
+
+function logout() {
+  localStorage.removeItem('bolamu_animateur_token');
+  localStorage.removeItem('bolamu_animateur_phone');
+  localStorage.removeItem('bolamu_animateur_name');
+  window.location.href = '/animateur/login.html';
+}
+
+function headers() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN };
+}
+
+async function apiFetch(path, opts) {
+  const r = await fetch(API + path, { headers: headers(), ...opts });
+  if (r.status === 401 || r.status === 403) { logout(); return null; }
+  return r.json();
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function goTab(name, btn, bnavName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+
+  // sidebar
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    document.querySelectorAll('.nav-item').forEach(i => {
+      if (i.dataset.testid === 'nav-' + name) i.classList.add('active');
+    });
+  }
+
+  // bottom nav
+  document.querySelectorAll('.bnav-item').forEach(i => i.classList.remove('active'));
+  const bKey = bnavName || name;
+  const bItem = document.querySelector('[data-testid="bnav-' + bKey + '"]');
+  if (bItem) bItem.classList.add('active');
+
+  const titles = { accueil: 'Vue d\'ensemble', evenements: 'Mes événements', clubs: 'Mes clubs', notifications: 'Notifications' };
+  document.getElementById('topbar-title').textContent = titles[name] || '';
+}
+
+// ── LOAD ALL ──────────────────────────────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadStats(), loadEvents(), loadClubs()]);
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  const data = await apiFetch('/animateur/stats');
+  if (!data || !data.success) return;
+  const s = data.data;
+  document.getElementById('stat-events').textContent = s.total_events || 0;
+  document.getElementById('stat-inscriptions').textContent = s.total_inscriptions || 0;
+  document.getElementById('stat-checkins').textContent = s.total_checkins || 0;
+  document.getElementById('stat-clubs').textContent = s.total_clubs || 0;
+  document.getElementById('stat-membres').textContent = s.total_membres || 0;
+  document.getElementById('stat-actifs').textContent = s.events_actifs || 0;
+}
+
+// ── EVENTS ────────────────────────────────────────────────────────────────────
+async function loadEvents() {
+  const data = await apiFetch('/animateur/events?limit=50');
+  if (!data || !data.success) return;
+  eventsCache = data.data || [];
+  renderEventsTable('events-body', eventsCache, true);
+  renderEventsTable('accueil-events-body', eventsCache.slice(0, 5), false);
+  populateQrEventSelect();
+}
+
+function renderEventsTable(bodyId, events, showQr) {
+  const tbody = document.getElementById(bodyId);
+  if (!events.length) {
+    tbody.innerHTML = '<tr><td colspan="' + (showQr ? 8 : 6) + '"><div class="empty"><span class="material-symbols-outlined">event_busy</span><p class="empty-text">Aucun événement pour l\'instant.</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = events.map(e => {
+    const statusBadge = e.status === 'published' ? '<span class="badge badge-green">Publié</span>' : '<span class="badge badge-grey">' + e.status + '</span>';
+    const date = e.starts_at ? new Date(e.starts_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+    const qrCell = showQr ? '<td><button class="btn-icon" data-testid="btn-scan-event-' + e.id + '" title="Scanner QR" onclick="openQrScannerForEvent(' + e.id + ')"><span class="material-symbols-outlined">qr_code_scanner</span></button></td>' : '';
+    return '<tr><td style="font-weight:700">' + esc(e.title) + '</td>' +
+      (showQr ? '<td><span class="badge badge-amber">' + esc(e.pillar) + '</span></td>' : '') +
+      '<td>' + date + '</td>' +
+      '<td>' + esc(e.city) + '</td>' +
+      '<td>' + (e.inscriptions || 0) + '</td>' +
+      '<td>' + (e.checkins || 0) + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      qrCell + '</tr>';
+  }).join('');
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── CREATE EVENT ──────────────────────────────────────────────────────────────
+function openCreateEvent() {
+  showMsg('event-msg', '', '');
+  document.getElementById('modal-event').classList.add('open');
+}
+
+async function saveEvent() {
+  const title = document.getElementById('evt-title').value.trim();
+  const pillar = document.getElementById('evt-pillar').value;
+  const city = document.getElementById('evt-city').value.trim();
+  const location_name = document.getElementById('evt-location-name').value.trim();
+  const location_address = document.getElementById('evt-location-address').value.trim();
+  const starts_at = document.getElementById('evt-starts').value;
+  const ends_at = document.getElementById('evt-ends').value;
+  const max_participants = document.getElementById('evt-max').value;
+  const zora_reward = parseInt(document.getElementById('evt-zora').value) || 50;
+  const description = document.getElementById('evt-desc').value.trim();
+
+  if (!title || !pillar || !city || !location_name || !location_address || !starts_at || !ends_at) {
+    showMsg('event-msg', 'Veuillez remplir tous les champs obligatoires (*).', 'error'); return;
+  }
+
+  const btn = document.getElementById('btn-save-event');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+
+  const data = await apiFetch('/animateur/events', {
+    method: 'POST',
+    body: JSON.stringify({ title, pillar, city, location_name, location_address, starts_at, ends_at, max_participants: max_participants ? parseInt(max_participants) : null, zora_reward, description })
+  });
+
+  btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">save</span> Enregistrer';
+
+  if (data && data.success) {
+    showMsg('event-msg', 'Événement créé avec succès !', 'success');
+    setTimeout(() => { closeModal('modal-event'); loadAll(); }, 1200);
+  } else {
+    showMsg('event-msg', (data && data.message) || 'Erreur lors de la création.', 'error');
+  }
+}
+
+// ── QR SCANNER ────────────────────────────────────────────────────────────────
+function populateQrEventSelect() {
+  const sel = document.getElementById('qr-event-select');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Sélectionner un événement…</option>' +
+    eventsCache.filter(e => e.status === 'published').map(e =>
+      '<option value="' + e.id + '">' + esc(e.title) + '</option>'
+    ).join('');
+  if (current) sel.value = current;
+}
+
+function openQrScannerForEvent(eventId) {
+  document.getElementById('qr-event-select').value = eventId;
+  openQrScanner();
+}
+
+function openQrScanner() {
+  document.getElementById('qr-result').style.display = 'none';
+  document.getElementById('qr-result').textContent = '';
+  document.getElementById('modal-qr').classList.add('open');
+  startQrScanner();
+}
+
+function startQrScanner() {
+  if (html5QrCode) { try { html5QrCode.stop(); } catch(e) {} }
+  html5QrCode = new Html5Qrcode('qr-reader');
+  html5QrCode.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    onQrScan,
+    () => {}
+  ).catch(err => {
+    document.getElementById('qr-result').style.display = 'block';
+    document.getElementById('qr-result').textContent = 'Impossible d\'accéder à la caméra : ' + err;
+  });
+}
+
+async function onQrScan(decodedText) {
+  const token = decodedText.trim();
+  const eventId = document.getElementById('qr-event-select').value;
+
+  if (!eventId) {
+    document.getElementById('qr-result').style.display = 'block';
+    document.getElementById('qr-result').textContent = 'Veuillez sélectionner un événement avant de scanner.';
+    return;
+  }
+
+  try { html5QrCode.stop(); } catch(e) {}
+
+  document.getElementById('qr-result').style.display = 'block';
+  document.getElementById('qr-result').textContent = 'Traitement du check-in…';
+
+  const data = await apiFetch('/events/' + eventId + '/checkin', {
+    method: 'POST',
+    body: JSON.stringify({ token, organizer_phone: USER_PHONE })
+  });
+
+  const resultEl = document.getElementById('qr-result');
+  if (data && data.success) {
+    resultEl.style.background = '#ecfdf5';
+    resultEl.style.color = '#065f46';
+    resultEl.textContent = 'Check-in validé ! Points Zora crédités : +' + (data.points_credited || 0);
+    loadStats();
+    loadEvents();
+  } else {
+    resultEl.style.background = '#fef2f2';
+    resultEl.style.color = '#991b1b';
+    const reasons = { token_invalid: 'QR invalide.', token_already_used: 'Ce QR a déjà été utilisé.', token_expired: 'QR expiré.' };
+    resultEl.textContent = reasons[(data && data.reason)] || (data && data.message) || 'Erreur lors du check-in.';
+    setTimeout(() => { startQrScanner(); }, 2000);
+  }
+}
+
+function closeQrScanner() {
+  if (html5QrCode) { try { html5QrCode.stop(); } catch(e) {} html5QrCode = null; }
+  document.getElementById('modal-qr').classList.remove('open');
+}
+
+// ── CLUBS ─────────────────────────────────────────────────────────────────────
+async function loadClubs() {
+  const data = await apiFetch('/animateur/clubs');
+  if (!data || !data.success) return;
+  clubsCache = data.data || [];
+  renderClubs();
+  populateClubSelects();
+}
+
+function renderClubs() {
+  const container = document.getElementById('clubs-list');
+  if (!clubsCache.length) {
+    container.innerHTML = '<div class="empty"><span class="material-symbols-outlined">groups</span><p class="empty-text">Aucun club assigné.</p></div>';
+    return;
+  }
+  container.innerHTML = clubsCache.map(c =>
+    '<div class="club-row">' +
+      '<div class="club-info">' +
+        '<span class="club-name">' + esc(c.name) + '</span>' +
+        '<span class="club-meta">' + esc(c.category || '—') + ' · ' + (c.membres_actifs || 0) + ' membres actifs / ' + (c.max_members || '?') + '</span>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;align-items:center">' +
+        '<span class="badge ' + (c.is_active ? 'badge-green' : 'badge-grey') + '">' + (c.is_active ? 'Actif' : 'Inactif') + '</span>' +
+        '<button class="btn btn-outline btn-sm" data-testid="btn-notif-club-' + c.id + '" onclick="openClubNotif(' + c.id + ',\'' + esc(c.name) + '\')">' +
+          '<span class="material-symbols-outlined" style="font-size:16px">send</span> Notifier' +
+        '</button>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function populateClubSelects() {
+  const sel = document.getElementById('notif-club');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Sélectionner un club…</option>' +
+    clubsCache.map(c => '<option value="' + c.id + '">' + esc(c.name) + ' (' + (c.membres_actifs || 0) + ' membres)</option>').join('');
+  if (current) sel.value = current;
+}
+
+// ── NOTIF DEPUIS ONGLET CLUBS ──────────────────────────────────────────────────
+function openClubNotif(clubId, clubName) {
+  activeClubId = clubId;
+  document.getElementById('modal-club-name').textContent = clubName;
+  document.getElementById('club-notif-message').value = '';
+  showMsg('club-notif-msg', '', '');
+  document.getElementById('modal-club-notif').classList.add('open');
+}
+
+async function sendClubNotif() {
+  if (!activeClubId) return;
+  const message = document.getElementById('club-notif-message').value.trim();
+  if (!message) { showMsg('club-notif-msg', 'Veuillez entrer un message.', 'error'); return; }
+
+  const btn = document.getElementById('btn-club-notif-send');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+
+  const data = await apiFetch('/animateur/clubs/' + activeClubId + '/notify', {
+    method: 'POST',
+    body: JSON.stringify({ message })
+  });
+
+  btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Envoyer';
+
+  if (data && data.success) {
+    showMsg('club-notif-msg', 'Envoyé à ' + (data.data.sent || 0) + ' membre(s).', 'success');
+    setTimeout(() => closeModal('modal-club-notif'), 1500);
+  } else {
+    showMsg('club-notif-msg', (data && data.message) || 'Erreur lors de l\'envoi.', 'error');
+  }
+}
+
+// ── NOTIF DEPUIS ONGLET NOTIFICATIONS ─────────────────────────────────────────
+async function sendNotification() {
+  const clubId = document.getElementById('notif-club').value;
+  const message = document.getElementById('notif-message').value.trim();
+  if (!clubId) { showMsg('notif-msg', 'Veuillez sélectionner un club.', 'error'); return; }
+  if (!message) { showMsg('notif-msg', 'Veuillez entrer un message.', 'error'); return; }
+
+  const btn = document.getElementById('btn-send-notif');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+
+  const data = await apiFetch('/animateur/clubs/' + clubId + '/notify', {
+    method: 'POST',
+    body: JSON.stringify({ message })
+  });
+
+  btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Envoyer WhatsApp';
+
+  if (data && data.success) {
+    showMsg('notif-msg', 'Envoyé à ' + (data.data.sent || 0) + ' membre(s). Échecs : ' + (data.data.failed || 0) + '.', 'success');
+    document.getElementById('notif-message').value = '';
+  } else {
+    showMsg('notif-msg', (data && data.message) || 'Erreur lors de l\'envoi.', 'error');
+  }
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!text) { el.className = 'msg-box'; return; }
+  el.textContent = text;
+  el.className = 'msg-box show ' + type;
+  if (type !== 'error') setTimeout(() => { el.className = 'msg-box'; }, 4000);
+}
+
+// Fermer les modals au clic sur l'overlay
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      if (overlay.id === 'modal-qr') { closeQrScanner(); }
+      else { overlay.classList.remove('open'); }
+    }
+  });
+});
+</script>
+
+</body>
+</html>
