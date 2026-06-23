@@ -264,6 +264,31 @@
           </table>
         </div>
       </div>
+
+      <div class="card">
+        <div class="section-title">
+          Check-ins du jour
+          <button class="btn btn-outline btn-sm" data-testid="btn-refresh-checkins" onclick="loadTodayCheckins()">
+            <span class="material-symbols-outlined" style="font-size:16px">refresh</span> Actualiser
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Heure</th>
+                <th>Nom</th>
+                <th>Téléphone</th>
+                <th>Événement</th>
+                <th>Zora</th>
+              </tr>
+            </thead>
+            <tbody id="today-checkins-body">
+              <tr><td colspan="5"><div class="empty"><span class="material-symbols-outlined">history</span><p class="empty-text">Chargement…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- ── TAB ÉVÉNEMENTS ── -->
@@ -540,7 +565,7 @@ function goTab(name, btn, bnavName) {
 
 // ── LOAD ALL ──────────────────────────────────────────────────────────────────
 async function loadAll() {
-  await Promise.all([loadStats(), loadEvents(), loadClubs()]);
+  await Promise.all([loadStats(), loadEvents(), loadClubs(), loadTodayCheckins()]);
 }
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
@@ -564,6 +589,35 @@ async function loadEvents() {
   renderEventsTable('events-body', eventsCache, true);
   renderEventsTable('accueil-events-body', eventsCache.slice(0, 5), false);
   populateQrEventSelect();
+}
+
+// ── TODAY CHECKINS ─────────────────────────────────────────────────────────────
+async function loadTodayCheckins() {
+  const data = await apiFetch('/animateur/checkins/today');
+  const tbody = document.getElementById('today-checkins-body');
+
+  if (!data || !data.success) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><span class="material-symbols-outlined">error</span><p class="empty-text">Erreur lors du chargement.</p></div></td></tr>';
+    return;
+  }
+
+  const checkins = data.data || [];
+  if (!checkins.length) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><span class="material-symbols-outlined">history</span><p class="empty-text">Aucun check-in aujourd\'hui.</p></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = checkins.map(c => {
+    const name = c.full_name || (c.first_name && c.last_name ? c.first_name + ' ' + c.last_name : c.phone);
+    const time = c.checkin_at ? new Date(c.checkin_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—';
+    return '<tr>' +
+      '<td style="font-weight:600">' + time + '</td>' +
+      '<td>' + esc(name) + '</td>' +
+      '<td>' + esc(c.phone) + '</td>' +
+      '<td>' + esc(c.event_title) + '</td>' +
+      '<td><span class="badge badge-amber">+' + (c.zora_awarded || 0) + '</span></td>' +
+    '</tr>';
+  }).join('');
 }
 
 function renderEventsTable(bodyId, events, showQr) {

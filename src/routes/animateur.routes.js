@@ -233,6 +233,33 @@ router.get('/events/:id/registrations', requireAnimateur, async (req, res) => {
     }
 });
 
+// ─── GET /checkins/today ────────────────────────────────────────────────────────
+router.get('/checkins/today', requireAnimateur, async (req, res) => {
+    try {
+        const phone = req.user.phone;
+
+        const result = await pool.query(
+            `SELECT
+               er.id, er.phone, er.checkin_at, er.zora_awarded,
+               ee.id AS event_id, ee.title AS event_title,
+               u.full_name, u.first_name, u.last_name
+             FROM elonga_registrations er
+             JOIN elonga_events ee ON er.event_id = ee.id
+             LEFT JOIN users u ON er.phone = u.phone
+             WHERE ee.organizer_phone = $1
+               AND er.status = 'checked_in'
+               AND DATE(er.checkin_at) = CURRENT_DATE
+             ORDER BY er.checkin_at DESC`,
+            [phone]
+        );
+
+        res.json({ success: true, data: result.rows });
+    } catch (err) {
+        logger.error('[ANIMATEUR CHECKINS TODAY]', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // ─── POST /clubs/:id/notify ───────────────────────────────────────────────────
 router.post('/clubs/:id/notify', requireAnimateur, async (req, res) => {
     try {
