@@ -1493,6 +1493,26 @@ svg.leaflet-image-layer.leaflet-interactive path {
           </sc-for>
           <div style="{{ ledgerEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun mouvement enregistré</span></div>
         </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 28px 0 14px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Mes bons d'achat</h3>
+        </div>
+        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; overflow: hidden;">
+          <sc-for list="{{ vouchersView }}" as="v" hint-placeholder-count="3">
+            <div style="{{ v.rowStyle }}">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 0.86rem; font-weight: 600; color: #191B23;">{{ v.partner }}</div>
+                <div style="font-size: 0.72rem; font-weight: 500; color: #9498a8;">Expire le {{ v.expiresTxt }}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 0.78rem; font-weight: 800; color: #0A2463; font-family: monospace; letter-spacing: 0.08em;">{{ v.codeTxt }}</div>
+                <div style="{{ v.statusStyle }}">{{ v.statusLabel }}</div>
+              </div>
+              <button data-testid="{{ v.qrTestid }}" onclick="{{ v.showQr }}" style="{{ v.qrBtnStyle }}">QR</button>
+            </div>
+          </sc-for>
+          <div style="{{ vouchersEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun bon d'achat disponible</span></div>
+        </div>
       </div>
 
       <!-- DOSSIER MÉDICAL -->
@@ -1918,6 +1938,83 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <sc-if value="{{ quizAnswered }}" hint-placeholder-val="{{ false }}">
         <div style="margin-top: 14px; font-size: 0.84rem; font-weight: 600; color: #434654;">{{ quizFeedback }}</div>
       </sc-if>
+    </div>
+  </div>
+
+  <!-- ===== MODAL VOUCHER ÉCHANGE (chantier 1) ===== -->
+  <div style="{{ voucherModalStyle }}" onclick="{{ closeVoucherModal }}">
+    <div onclick="{{ stop }}" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 400px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); text-align: center;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Bon d'achat généré</h3>
+        <button data-testid="close-voucher-modal" onclick="{{ closeVoucherModal }}" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+      </div>
+      <div style="font-size: 0.82rem; font-weight: 600; color: #434654; margin-bottom: 16px;">{{ voucherPartner }}</div>
+      <div data-testid="voucher-code" style="display: inline-block; font-size: 1.5rem; font-weight: 800; color: #0A2463; letter-spacing: 0.14em; background: #F3F3FE; border: 2px dashed #C3C5D7; padding: 14px 22px; border-radius: 14px; margin-bottom: 20px; font-family: monospace;">{{ voucherCode }}</div>
+      <div id="voucher-qr" style="width: 140px; height: 140px; margin: 0 auto 18px; background: #fff; display: flex; align-items: center; justify-content: center;"></div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0,201,167,0.1); color: #00875f; font-size: 0.74rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; margin-bottom: 20px;"><span class="material-symbols-outlined" style="font-size: 15px;">check_circle</span>Bon d'achat disponible ! Vérifiez WhatsApp.</div>
+      <button data-testid="close-voucher-btn" onclick="{{ closeVoucherModal }}" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Fermer</button>
+    </div>
+  </div>
+
+  <!-- ===== MODAL VOUCHER QR (chantier 2) ===== -->
+  <div style="{{ voucherQrModalStyle }}" onclick="{{ closeVoucherQrModal }}">
+    <div onclick="{{ stop }}" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 360px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); text-align: center;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">QR du bon d'achat</h3>
+        <button data-testid="close-voucher-qr-modal" onclick="{{ closeVoucherQrModal }}" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+      </div>
+      <div style="font-size: 0.82rem; font-weight: 600; color: #434654; margin-bottom: 16px;">{{ voucherQrPartner }}</div>
+      <div id="my-voucher-qr" style="width: 160px; height: 160px; margin: 0 auto 16px; background: #fff; display: flex; align-items: center; justify-content: center;"></div>
+      <div style="font-size: 1rem; font-weight: 800; color: #0A2463; letter-spacing: 0.1em; margin-bottom: 16px; font-family: monospace;">{{ voucherQrCode }}</div>
+      <button data-testid="close-voucher-qr-btn" onclick="{{ closeVoucherQrModal }}" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Fermer</button>
+    </div>
+  </div>
+
+  <!-- ===== MODAL DMN — MOT DE PASSE (chantier 3) ===== -->
+  <div style="{{ dmnPasswordModalStyle }}" onclick="{{ closeDmnPasswordModal }}">
+    <div onclick="{{ stop }}" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 420px; box-shadow: 0 24px 64px rgba(10,36,99,0.25);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Accès sécurisé au dossier</h3>
+        <button data-testid="close-dmn-password-modal" onclick="{{ closeDmnPasswordModal }}" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,201,167,0.08); border-radius: 10px; padding: 10px 12px; margin-bottom: 20px;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">lock</span><span style="font-size: 0.76rem; font-weight: 600; color: #00875f;">Vos documents sont protégés. Votre mot de passe Bolamu est requis.</span></div>
+      <div style="margin-bottom: 20px;"><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Mot de passe</label><input data-testid="dmn-password-input" type="password" oninput="{{ dmnPasswordInput }}" value="{{ dmnPassword }}" placeholder="Votre mot de passe Bolamu" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23; box-sizing: border-box;"></div>
+      <div style="display: flex; gap: 10px;"><button onclick="{{ closeDmnPasswordModal }}" style="flex: 1; background: transparent; color: #434654; border: 1px solid #C3C5D7; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Annuler</button><button data-testid="confirm-dmn-password" onclick="{{ confirmDmnPassword }}" style="flex: 2; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 8px 24px rgba(0,63,177,0.25);">Confirmer</button></div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL DMN — LISTE DOCUMENTS (chantier 3) ===== -->
+  <div style="{{ dmnDocsModalStyle }}" onclick="{{ closeDmnDocsModal }}">
+    <div onclick="{{ stop }}" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 460px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Mes documents médicaux</h3>
+        <button data-testid="close-dmn-docs-modal" onclick="{{ closeDmnDocsModal }}" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0; background: #F8F8FC; border: 1px solid #EDEDF8; border-radius: 14px; overflow: hidden; margin-bottom: 16px;">
+        <sc-for list="{{ dmnDocsView }}" as="dd" hint-placeholder-count="4">
+          <div style="{{ dd.rowStyle }}">
+            <span class="material-symbols-outlined" style="color: #003FB1; font-size: 20px; flex-shrink: 0;">description</span>
+            <div style="flex: 1; min-width: 0;"><div style="font-size: 0.86rem; font-weight: 700; color: #0A2463; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ dd.name }}</div><div style="font-size: 0.72rem; font-weight: 500; color: #9498a8;">{{ dd.type }} · {{ dd.date }}</div></div>
+            <button data-testid="{{ dd.testid }}" onclick="{{ dd.onDownload }}" style="background: rgba(0,63,177,0.08); color: #003FB1; border: none; fontFamily: inherit; font-size: 0.72rem; font-weight: 800; padding: 6px 12px; border-radius: 9999px; cursor: pointer; flex-shrink: 0;">Télécharger</button>
+          </div>
+        </sc-for>
+        <div style="{{ dmnDocsEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun document disponible</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 14px; color: #FF6B35;">schedule</span>Accès valable 15 min · Lien de téléchargement sécurisé</div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL DMN — QR MÉDICAL (chantier 3) ===== -->
+  <div style="{{ dmnQrModalStyle }}" onclick="{{ closeDmnQrModal }}">
+    <div onclick="{{ stop }}" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 360px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); text-align: center;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">QR Code médical</h3>
+        <button data-testid="close-dmn-qr-modal" onclick="{{ closeDmnQrModal }}" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+      </div>
+      <div id="dmn-qr-med" style="width: 200px; height: 200px; margin: 0 auto 16px; background: #fff; display: flex; align-items: center; justify-content: center;"></div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0,63,177,0.08); color: #003FB1; font-size: 0.74rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; margin-bottom: 14px;"><span class="material-symbols-outlined" style="font-size: 15px;">schedule</span>Valable 24h — informations d'urgence</div>
+      <p style="margin: 0 0 20px; font-size: 0.78rem; font-weight: 500; color: #434654;">Présentez ce code à un professionnel de santé pour un accès immédiat à votre dossier médical.</p>
+      <button data-testid="close-dmn-qr-btn" onclick="{{ closeDmnQrModal }}" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Fermer</button>
     </div>
   </div>
 
