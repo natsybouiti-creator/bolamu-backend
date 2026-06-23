@@ -1928,7 +1928,8 @@ class Component extends DCLogic {
   state = {
     panel: 'accueil', suivreTab: 'zora', gagnerTab: 'sport', rewardIdx: 0, filterCategorie: 'tout',
     chatOpen: false, chatTab: 'communaute', profileOpen: false,
-    modal: false, editConst: false, qrUrg: false, labRes: false,
+    modal: false, editConst: false, qrUrg: false, labRes: false, voucherModal: false, voucherQrModal: false,
+    dmnPasswordModal: false, dmnDocsModal: false, dmnQrModal: false, dmnPassword: '',
     rdvDoctorId: '', rdvDate: '', rdvSlot: '', rdvBooking: false,
     game: null, freeGames: 3,
     wheelDeg: 0, wheelSpinning: false, wheelDone: false, wheelResult: null,
@@ -1945,6 +1946,7 @@ class Component extends DCLogic {
   componentDidMount() {
     // === CÂBLAGE API BOLAMU ===
     const token = localStorage.getItem('bolamu_patient_token');
+    this._rewardsLoaded = false;
     if (!token) {
       window.location.href = '/patient/login.html';
       return;
@@ -2194,6 +2196,41 @@ class Component extends DCLogic {
             seed: 'rw' + rw.id,
             cat: rw.category || rw.cat || 'tout'
           }));
+        }
+        this._rewardsLoaded = true;
+        this.setState({});
+      }).catch(() => {
+        this.rewards = [
+          { name: 'Crédit MTN 5 000F', cost: 500, img: '/images/landing/zora-mtn.png', seed: 'mtn', cat: 'Télécom' },
+          { name: 'Data Airtel 1Go', cost: 300, img: '/images/landing/zora-airtel.jpg', seed: 'airtel', cat: 'Télécom' },
+          { name: 'Bon pharmacie Daffé', cost: 250, img: '/images/landing/daffe.png', seed: 'daffe', cat: 'Beauté' },
+          { name: 'Plein essence 30L', cost: 800, img: '/images/landing/zora-station.png', seed: 'station', cat: 'Carburant' },
+          { name: 'Abonnement salle sport', cost: 1200, img: '/images/landing/zora-salle-sport.jpg', seed: 'salle', cat: 'Sport' }
+        ];
+        this._rewardsLoaded = true;
+        this.setState({});
+      });
+
+      // Bons d'achat patient (chantier 2)
+      fetch('https://api.bolamu.co/api/v1/vouchers/my', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          this._vouchers = d.data.vouchers || (Array.isArray(d.data) ? d.data : []);
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // DMN access log (chantier 3)
+      fetch('https://api.bolamu.co/api/v1/dmn/access-log', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          this._dmnAccessLog = d.data;
           this.setState({});
         }
       }).catch(() => {});
@@ -2240,13 +2277,7 @@ class Component extends DCLogic {
     ];
     this.wheelColors = ['#003FB1', '#0A2463', '#003FB1', '#F5A623', '#003FB1', '#0A2463', '#003FB1', '#00C9A7'];
     this.quizData = { pilier: 'Nutrition', q: 'Combien de verres d\'eau faut-il boire en moyenne par jour ?', options: ['1 à 2 verres', '3 à 4 verres', '6 à 8 verres', 'Plus de 15 verres'], answer: 2, feedbackOk: 'Bonne réponse ! 6 à 8 verres (1,5 à 2 L) par jour sont recommandés. +25 Zora.', feedbackNo: 'La bonne réponse était 6 à 8 verres par jour. Réessayez demain !' };
-    this.rewards = [
-      { name: 'Crédit MTN 5 000F', cost: 500, img: '/images/landing/zora-mtn.png', seed: 'mtn', cat: 'Télécom' },
-      { name: 'Data Airtel 1Go', cost: 300, img: '/images/landing/zora-airtel.jpg', seed: 'airtel', cat: 'Télécom' },
-      { name: 'Bon pharmacie Daffé', cost: 250, img: '/images/landing/daffe.png', seed: 'daffe', cat: 'Beauté' },
-      { name: 'Plein essence 30L', cost: 800, img: '/images/landing/zora-station.png', seed: 'station', cat: 'Carburant' },
-      { name: 'Abonnement salle sport', cost: 1200, img: '/images/landing/zora-salle-sport.jpg', seed: 'salle', cat: 'Sport' }
-    ];
+    this.rewards = this.rewards || [];
     this.etabs = [
       { id: 'p1', name: 'Clinique El Rapha', type: 'clinique', addr: 'Centre-ville, Brazzaville', lat: -4.2710, lng: 15.2620, tel: '+242060000001', partner: true, icon: 'local_hospital' },
       { id: 'p2', name: 'Polyclinique Marie Curie', type: 'clinique', addr: 'Loandjili, Pointe-Noire', lat: -4.7820, lng: 11.8630, tel: '+242060000002', partner: false, icon: 'local_hospital' },
@@ -2281,6 +2312,110 @@ class Component extends DCLogic {
     setTimeout(() => this.initCarousels(), 220);
     this._onResize = () => this.refreshCarousels();
     window.addEventListener('resize', this._onResize);
+  }
+
+  async redeemVoucher(r) {
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { this.showToast('Session expirée'); return; }
+    try {
+      const res = await fetch('https://api.bolamu.co/api/v1/vouchers/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ program_id: r.id })
+      });
+      const d = await res.json();
+      if (d.success && d.data) {
+        this._voucherCode = d.data.code;
+        this._voucherPartner = r.name;
+        if (d.data.new_balance !== undefined) this._zoraBalance = d.data.new_balance;
+        this.setState({ voucherModal: true });
+        setTimeout(() => this.renderQR('voucher-qr', this._voucherCode, 140), 80);
+      } else {
+        const msg = {
+          insufficient_balance: 'Solde Zora insuffisant',
+          program_not_found: 'Programme introuvable',
+          program_out_of_stock: 'Stock épuisé',
+          no_zora_account: 'Compte Zora introuvable'
+        }[d.error] || 'Échange impossible';
+        this.showToast(msg);
+      }
+    } catch(e) {
+      this.showToast('Erreur réseau');
+    }
+  }
+
+  async verifyDmnPassword() {
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { this.showToast('Session expirée'); return; }
+    const password = this.state.dmnPassword;
+    if (!password) { this.showToast('Mot de passe requis'); return; }
+    try {
+      const res = await fetch('https://api.bolamu.co/api/v1/dmn/download/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ password })
+      });
+      const d = await res.json();
+      if (d.success && d.token) {
+        this._dmnToken = d.token;
+        this._dmnTokenExpires = d.expires_at;
+        this.setState({ dmnPasswordModal: false, dmnPassword: '' });
+        // Charger la liste des documents depuis summary
+        fetch('https://api.bolamu.co/api/v1/dmn/summary', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(r => r.json())
+        .then(s => {
+          if (s.success && s.data) {
+            this._dmnDocs = s.data.documents || [];
+            this.setState({ dmnDocsModal: true });
+          }
+        }).catch(() => {});
+      } else {
+        this.showToast('Mot de passe incorrect');
+      }
+    } catch(e) {
+      this.showToast('Erreur réseau');
+    }
+  }
+
+  async downloadDmnDoc(docId) {
+    const dmnToken = this._dmnToken;
+    if (!dmnToken) { this.showToast('Token expiré — re-vérifiez votre mot de passe'); return; }
+    try {
+      const res = await fetch('https://api.bolamu.co/api/v1/dmn/download/' + docId, {
+        headers: { 'Authorization': 'Bearer ' + dmnToken }
+      });
+      const d = await res.json();
+      if (d.success && d.download_url) {
+        window.open(d.download_url, '_blank');
+      } else {
+        this.showToast('Téléchargement impossible');
+      }
+    } catch(e) {
+      this.showToast('Erreur réseau');
+    }
+  }
+
+  async generateDmnQr() {
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { this.showToast('Session expirée'); return; }
+    try {
+      const res = await fetch('https://api.bolamu.co/api/v1/dmn/qr-payload', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const d = await res.json();
+      if (d.success && d.data) {
+        const payload = d.data.signed || JSON.stringify(d.data.payload);
+        this._dmnQrPayload = payload;
+        this.setState({ dmnQrModal: true });
+        setTimeout(() => this.renderQR('dmn-qr-med', payload, 200), 80);
+      } else {
+        this.showToast('Génération du QR impossible');
+      }
+    } catch(e) {
+      this.showToast('Erreur réseau');
+    }
   }
 
   componentWillUnmount() {
@@ -2865,10 +3000,10 @@ class Component extends DCLogic {
     const affordableView = affordable.map((r) => ({
       name: r.name,
       costTxt: this.fmt(r.cost) + ' Zora',
-      onExchange: () => this.redeem(r.id),
+      onExchange: () => this.redeemVoucher(r),
       imgEl: React.createElement('div', { style: { width: '100%', height: '100%', backgroundImage: 'url("' + r.img + '")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#EDEDF8' } })
     }));
-    const rewardBandStyle = { display: affordable.length ? 'block' : 'none', marginTop: '0' };
+    const rewardBandStyle = { display: (this._rewardsLoaded && affordable.length) ? 'block' : 'none', marginTop: '0' };
     const chipBase = { flex: '0 0 auto', border: 'none', padding: '9px 18px', borderRadius: '9999px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' };
     const chip = (cat) => Object.assign({}, chipBase, { background: fc === cat ? '#003FB1' : '#EDEDF8', color: fc === cat ? '#fff' : '#434654' });
 
@@ -3177,7 +3312,71 @@ class Component extends DCLogic {
       toastPartenaire: () => this.showToast('Bientôt disponible'),
       toastReserver: () => this.showToast('Réservation bientôt disponible'),
       toastPlanifier: () => this.showToast('Planification bientôt disponible'),
-      toastWhatsapp: () => this.showToast('Parrainage WhatsApp bientôt disponible')
+      toastWhatsapp: () => this.showToast('Parrainage WhatsApp bientôt disponible'),
+
+      // CHANTIER 1 — Voucher échange modal
+      voucherModalStyle: this.modalBg(s.voucherModal),
+      voucherCode: this._voucherCode || '',
+      voucherPartner: this._voucherPartner || '',
+      closeVoucherModal: () => this.setState({ voucherModal: false }),
+
+      // CHANTIER 2 — Mes bons d'achat
+      vouchersView: (this._vouchers || []).map((v, i, arr) => {
+        const expired = v.status === 'expired' || (v.expires_at && new Date(v.expires_at) < new Date());
+        const expiresDate = v.expires_at ? new Date(v.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+        return {
+          rowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: i < arr.length - 1 ? '1px solid #EDEDF8' : 'none', opacity: expired ? 0.55 : 1 },
+          partner: v.program_name || v.partner_name || '—',
+          expiresTxt: expiresDate,
+          codeTxt: v.code || '—',
+          statusLabel: expired ? 'Expiré' : 'Actif',
+          statusStyle: { fontSize: '0.66rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', background: expired ? '#F3F3FE' : 'rgba(0,201,167,0.12)', color: expired ? '#9498a8' : '#00875f', padding: '3px 8px', borderRadius: '9999px' },
+          qrTestid: 'voucher-my-qr-' + (v.code || i),
+          showQr: expired ? () => {} : () => { this._voucherQrCode = v.code; this._voucherQrPartner = v.program_name || v.partner_name || ''; this.setState({ voucherQrModal: true }); setTimeout(() => this.renderQR('my-voucher-qr', v.code, 160), 80); },
+          qrBtnStyle: { background: expired ? '#F3F3FE' : 'rgba(0,63,177,0.08)', color: expired ? '#9498a8' : '#003FB1', border: 'none', fontFamily: 'inherit', fontSize: '0.72rem', fontWeight: 800, padding: '6px 12px', borderRadius: '9999px', cursor: expired ? 'not-allowed' : 'pointer' }
+        };
+      }),
+      vouchersEmptyStyle: { display: (this._vouchers && this._vouchers.length) ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' },
+      voucherQrModalStyle: this.modalBg(s.voucherQrModal),
+      voucherQrCode: this._voucherQrCode || '',
+      voucherQrPartner: this._voucherQrPartner || '',
+      closeVoucherQrModal: () => this.setState({ voucherQrModal: false }),
+
+      // CHANTIER 3 — DMN
+      accessLogView: (this._dmnAccessLog || []).slice(0, 5).map(function(al, i, arr) {
+        const typeMap = { qr_scan: 'QR scan', download: 'Téléchargement', consultation: 'Consultation', update: 'Mise à jour' };
+        const iconMap = { qr_scan: 'qr_code_scanner', download: 'download', consultation: 'visibility', update: 'edit' };
+        const accessor = al.accessor_phone ? ('…' + al.accessor_phone.slice(-4)) : 'Vous';
+        return {
+          iconStyle: { color: '#003FB1', fontSize: '20px' },
+          icon: iconMap[al.access_type] || 'history',
+          name: accessor,
+          type: typeMap[al.access_type] || al.access_type,
+          action: (al.details && al.details.source) || '',
+          date: al.accessed_at ? new Date(al.accessed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' · ' + new Date(al.accessed_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—'
+        };
+      }),
+      accessLogEmptyStyle: { display: (this._dmnAccessLog && this._dmnAccessLog.length) ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' },
+      dmnPasswordModalStyle: this.modalBg(s.dmnPasswordModal),
+      dmnDocsModalStyle: this.modalBg(s.dmnDocsModal),
+      dmnQrModalStyle: this.modalBg(s.dmnQrModal),
+      dmnPassword: s.dmnPassword,
+      dmnPasswordInput: (e) => this.setState({ dmnPassword: e.target.value }),
+      closeDmnPasswordModal: () => this.setState({ dmnPasswordModal: false, dmnPassword: '' }),
+      closeDmnDocsModal: () => this.setState({ dmnDocsModal: false }),
+      closeDmnQrModal: () => this.setState({ dmnQrModal: false }),
+      openDmnPasswordModal: () => this.setState({ dmnPasswordModal: true, dmnPassword: '' }),
+      confirmDmnPassword: () => this.verifyDmnPassword(),
+      generateDmnQr: () => this.generateDmnQr(),
+      dmnDocsView: (this._dmnDocs || []).map((doc, i, arr) => ({
+        rowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: i < arr.length - 1 ? '1px solid #EDEDF8' : 'none' },
+        name: doc.original_name || doc.document_type || '—',
+        type: doc.document_type || '—',
+        date: doc.created_at ? new Date(doc.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—',
+        testid: 'dmn-dl-' + doc.id,
+        onDownload: () => this.downloadDmnDoc(doc.id)
+      })),
+      dmnDocsEmptyStyle: { display: (this._dmnDocs && this._dmnDocs.length) ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' }
     };
   }
 }
