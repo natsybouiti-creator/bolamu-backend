@@ -788,6 +788,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
 <div class="toast" id="toast"></div>
 
 <script>
+(function(){if(!window.fetch)return;var _f=window.fetch;window.fetch=function(i,o){return _f.apply(this,arguments).then(function(r){if(r.status===401){localStorage.clear();location.href='/login.html';}return r;});};})();
 /* -----------------------------------
    AUTH
 ----------------------------------- */
