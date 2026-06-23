@@ -2303,7 +2303,7 @@ class Component extends DCLogic {
             id: rw.id,
             name: rw.title,
             cost: rw.points_cost,
-            img: rw.logo_path || this.rewardImgFallback(rw.category || rw.cat),
+            img: (rw.logo_path && rw.logo_path.startsWith('/images/')) ? rw.logo_path : this.rewardImgFallback(rw.category || rw.cat),
             seed: 'rw' + rw.id,
             cat: rw.category || rw.cat || 'tout'
           }));
