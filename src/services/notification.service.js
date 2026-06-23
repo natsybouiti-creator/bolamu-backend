@@ -188,7 +188,152 @@ function getWhatsAppParameters(type, data) {
     return paramMap[type] || {};
 }
 
+// ============================================================
+// SPRINT 3 — Notifications WhatsApp métier avec fallback wame
+// ============================================================
+const { sendWhatsAppTemplate } = require('./whatsapp.service');
+const { buildWameLink } = require('./wame.service');
+const { normalizePhone } = require('../utils/phone');
+
+async function _saveWhatsAppNotif(recipient_phone, template_name, template_params, status, sent_at = null) {
+    try {
+        await pool.query(
+            `INSERT INTO whatsapp_notifications
+               (recipient_phone, template_name, template_params, status, sent_at)
+             VALUES ($1, $2, $3::jsonb, $4, $5)`,
+            [recipient_phone, template_name, JSON.stringify(template_params), status, sent_at]
+        );
+    } catch (err) {
+        logger.error('[WA Notif] Erreur INSERT whatsapp_notifications:', err.message);
+    }
+}
+
+async function notifyRdvConfirme(patient_phone, rdv_data) {
+    const phone = normalizePhone(patient_phone);
+    const params = [
+        rdv_data.patient_name || '',
+        rdv_data.date || '',
+        rdv_data.heure || '',
+        rdv_data.doctor_name || '',
+        rdv_data.adresse || '',
+        rdv_data.code || ''
+    ];
+
+    try {
+        const ok = await sendWhatsAppTemplate(phone, 'bolamu_rdv_confirme', params);
+        await _saveWhatsAppNotif(phone, 'bolamu_rdv_confirme', { params, rdv_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
+        if (!ok) {
+            buildWameLink(phone, 'rdv_confirme', {
+                prenom: rdv_data.patient_name || '',
+                medecin: rdv_data.doctor_name || '',
+                date: rdv_data.date || '',
+                heure: rdv_data.heure || '',
+                clinique: rdv_data.adresse || ''
+            });
+        }
+        return ok;
+    } catch (err) {
+        logger.error('[WA Notif] notifyRdvConfirme:', err.message);
+        await _saveWhatsAppNotif(phone, 'bolamu_rdv_confirme', { params, rdv_data }, 'failed');
+        return false;
+    }
+}
+
+async function notifyEvenementInscription(patient_phone, event_data) {
+    const phone = normalizePhone(patient_phone);
+    const params = [
+        event_data.nom_evenement || '',
+        event_data.date || '',
+        event_data.heure || '',
+        event_data.lieu || '',
+        String(event_data.zora || 0)
+    ];
+
+    try {
+        const ok = await sendWhatsAppTemplate(phone, 'rappel_evenement', params);
+        await _saveWhatsAppNotif(phone, 'rappel_evenement', { params, event_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
+        return ok;
+    } catch (err) {
+        logger.error('[WA Notif] notifyEvenementInscription:', err.message);
+        await _saveWhatsAppNotif(phone, 'rappel_evenement', { params, event_data }, 'failed');
+        return false;
+    }
+}
+
+async function notifyClubInscription(patient_phone, club_data) {
+    const phone = normalizePhone(patient_phone);
+    const params = [
+        club_data.nom_club || '',
+        club_data.date || '',
+        club_data.heure || '',
+        club_data.lieu || ''
+    ];
+
+    try {
+        const ok = await sendWhatsAppTemplate(phone, 'rappel_evenement', params);
+        await _saveWhatsAppNotif(phone, 'bolamu_club_inscription', { params, club_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
+        return ok;
+    } catch (err) {
+        logger.error('[WA Notif] notifyClubInscription:', err.message);
+        await _saveWhatsAppNotif(phone, 'bolamu_club_inscription', { params, club_data }, 'failed');
+        return false;
+    }
+}
+
+async function notifyZoraAttribues(patient_phone, points, reason) {
+    const phone = normalizePhone(patient_phone);
+
+    let solde = 0;
+    try {
+        const res = await pool.query(
+            `SELECT COALESCE(SUM(points), 0) as solde FROM zora_ledger WHERE phone = $1`,
+            [phone]
+        );
+        solde = parseInt(res.rows[0].solde);
+    } catch (_) {}
+
+    const params = [
+        String(points),
+        reason || '',
+        String(solde)
+    ];
+
+    try {
+        const ok = await sendWhatsAppTemplate(phone, 'confirmation_checkin', params);
+        await _saveWhatsAppNotif(phone, 'bolamu_zora_attribues', { points, reason, solde }, ok ? 'sent' : 'failed', ok ? new Date() : null);
+        return ok;
+    } catch (err) {
+        logger.error('[WA Notif] notifyZoraAttribues:', err.message);
+        await _saveWhatsAppNotif(phone, 'bolamu_zora_attribues', { points, reason }, 'failed');
+        return false;
+    }
+}
+
+async function notifyVoucherGenere(patient_phone, voucher_data) {
+    const phone = normalizePhone(patient_phone);
+    const params = [
+        voucher_data.titre || '',
+        voucher_data.partenaire || '',
+        voucher_data.date_expiration || ''
+    ];
+
+    try {
+        const ok = await sendWhatsAppTemplate(phone, 'voucher_expirant', params);
+        await _saveWhatsAppNotif(phone, 'voucher_expirant', { params, voucher_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
+        return ok;
+    } catch (err) {
+        logger.error('[WA Notif] notifyVoucherGenere:', err.message);
+        await _saveWhatsAppNotif(phone, 'voucher_expirant', { params, voucher_data }, 'failed');
+        return false;
+    }
+}
+
 module.exports = {
     notify,
-    hasActivePushSubscription
+    hasActivePushSubscription,
+    notifyRdvConfirme,
+    notifyEvenementInscription,
+    notifyClubInscription,
+    notifyZoraAttribues,
+    notifyVoucherGenere
 };
