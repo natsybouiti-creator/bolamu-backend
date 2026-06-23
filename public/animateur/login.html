@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolamu — Espace Animateur</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#F59E0B">
+  <link rel="manifest" href="/manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
+  <link href="/fonts/material-symbols.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+      background: #0A2463;
+    }
+    .container { width: 100%; max-width: 380px; }
+
+    /* Logo + badge */
+    .logo-area { text-align: center; margin-bottom: 2rem; }
+    .logo-area img { height: 56px; width: 56px; border-radius: 50%; margin: 0 auto 1rem; display: block; }
+    .logo-area h1 { font-size: 1.25rem; font-weight: 800; color: white; margin-bottom: 0.5rem; }
+    .role-badge {
+      display: inline-flex; align-items: center;
+      padding: 6px 16px; border-radius: 9999px;
+      background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4);
+    }
+    .role-badge span { font-size: 11px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: #F59E0B; }
+
+    /* Card */
+    .card { background: white; border-radius: 2rem; padding: 2rem; box-shadow: 0 24px 64px rgba(0,0,0,0.25); }
+    .card-title { font-size: 1.25rem; font-weight: 800; color: #0A2463; margin-bottom: 4px; }
+    .card-sub { font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 1.5rem; }
+
+    /* Msg box */
+    .msg-box { display: none; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 13px; margin-bottom: 1rem; }
+    .msg-box.show.error { display: block; background: #ffdad6; color: #93000a; border: 1px solid #ba1a1a; }
+    .msg-box.show.success { display: block; background: #fef3c7; color: #92400e; border: 1px solid #F59E0B; }
+
+    /* Form */
+    .form-group { margin-bottom: 1rem; }
+    .form-group:last-of-type { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #0A2463; margin-bottom: 8px; }
+    .form-input {
+      width: 100%; padding: 14px 16px; border-radius: 1rem;
+      border: 2px solid #e5e7eb; outline: none;
+      font-size: 0.875rem; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #111827; background: white; transition: border-color 0.2s;
+    }
+    .form-input::placeholder { color: #9ca3af; }
+    .form-input:focus { border-color: #F59E0B; }
+    .input-wrap { position: relative; }
+    .input-wrap .form-input { padding-right: 3rem; }
+    .toggle-pw {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: #9ca3af;
+      display: flex; align-items: center; transition: color 0.2s;
+    }
+    .toggle-pw:hover { color: #F59E0B; }
+    .toggle-pw .material-symbols-outlined { font-size: 20px; }
+
+    /* Button */
+    .btn-login {
+      width: 100%; padding: 16px;
+      background: #F59E0B; color: #1c1917;
+      border: none; border-radius: 9999px;
+      font-size: 0.9375rem; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 8px 24px rgba(245,158,11,0.35);
+    }
+    .btn-login:hover { transform: translateY(-2px); opacity: 0.92; }
+    .btn-login:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Note */
+    .note { text-align: center; font-size: 12px; font-weight: 500; color: #9ca3af; margin-top: 1.25rem; }
+
+    /* Retour */
+    .back-link { display: block; text-align: center; margin-top: 1.5rem; }
+    .back-link a { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.2s; }
+    .back-link a:hover { color: rgba(255,255,255,0.8); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="logo-area">
+    <img src="/images/landing/bolamu-logo-final.png" alt="Bolamu">
+    <h1>Bolamu</h1>
+    <div class="role-badge"><span>Espace Animateur</span></div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Accès Animateur</h2>
+    <p class="card-sub">Tableau de bord événements et clubs Bolamu.</p>
+
+    <div class="msg-box" id="msg"></div>
+
+    <div class="form-group">
+      <label class="form-label" for="phone">Numéro de téléphone</label>
+      <input type="tel" id="phone" data-testid="login-phone"
+        class="form-input" placeholder="+242 06 XXX XX XX" maxlength="15">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">Mot de passe</label>
+      <div class="input-wrap">
+        <input type="password" id="password" data-testid="login-password"
+          class="form-input" placeholder="••••••••••">
+        <button type="button" id="toggle-btn" class="toggle-pw" aria-label="Afficher/masquer">
+          <span class="material-symbols-outlined" id="eye-icon">visibility</span>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn-login" id="btn-login" data-testid="login-submit">
+      Accéder au tableau de bord
+    </button>
+
+    <p class="note">Accès réservé aux animateurs du réseau Bolamu.</p>
+  </div>
+
+  <div class="back-link">
+    <a href="/">← Retour à l'accueil</a>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    if (localStorage.getItem('bolamu_animateur_token')) {
+      window.location.href = '/animateur/dashboard.html';
+    }
+  })();
+
+  const API = 'https://api.bolamu.co/api/v1';
+
+  function showMsg(text, type) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg-box show ' + type;
+    setTimeout(function() { el.className = 'msg-box'; }, 5000);
+  }
+
+  document.getElementById('toggle-btn').addEventListener('click', function() {
+    const inp = document.getElementById('password');
+    const icon = document.getElementById('eye-icon');
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      icon.textContent = 'visibility_off';
+    } else {
+      inp.type = 'password';
+      icon.textContent = 'visibility';
+    }
+  });
+
+  async function doLogin() {
+    const phone = document.getElementById('phone').value.trim().replace(/\s+/g, '');
+    const password = document.getElementById('password').value.trim();
+    if (!phone || !password) { showMsg('Veuillez remplir tous les champs.', 'error'); return; }
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true; btn.textContent = 'Vérification…';
+    try {
+      const res = await fetch(API + '/animateur/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        localStorage.setItem('bolamu_animateur_token', data.token);
+        localStorage.setItem('bolamu_animateur_phone', data.animateur.phone);
+        if (data.animateur.full_name) localStorage.setItem('bolamu_animateur_name', data.animateur.full_name);
+        showMsg('Connexion réussie.', 'success');
+        setTimeout(function() { window.location.href = '/animateur/dashboard.html'; }, 900);
+      } else {
+        showMsg(data.message || 'Numéro ou mot de passe incorrect.', 'error');
+        btn.disabled = false; btn.textContent = 'Accéder au tableau de bord';
+      }
+    } catch(e) {
+      showMsg('Erreur de connexion. Vérifiez internet.', 'error');
+      btn.disabled = false; btn.textContent = 'Accéder au tableau de bord';
+    }
+  }
+
+  document.getElementById('btn-login').addEventListener('click', doLogin);
+  document.getElementById('phone').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('password').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+</script>
+
+</body>
+</html>
