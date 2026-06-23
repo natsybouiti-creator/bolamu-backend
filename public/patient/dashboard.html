@@ -1068,7 +1068,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
                     <div style="flex: 1; min-width: 0;">
                       <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ it.name }}</div>
                       <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;"><dc-import name="ZoraCoin" size="15" no-float="{{ true }}" hint-size="15px,15px"></dc-import><span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ it.costTxt }}</span></div>
-                      <button onclick="{{ it.onExchange }}" style="margin-top: 8px; background: rgba(0,63,177,0.08); color: #003FB1; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 6px 12px; border-radius: 9999px; cursor: pointer;">Échanger</button>
+                      <button onclick="{{ it.onExchange }}" style="{{ it.btnStyle }}">{{ it.btnLabel }}</button>
                     </div>
                   </div>
                 </sc-for>
@@ -3108,12 +3108,17 @@ class Component extends DCLogic {
     const rewardDots = affordable.map((r, i) => ({ style: { width: '6px', height: '6px', borderRadius: '50%', background: i === rIdx ? '#003FB1' : '#D5D8E8', transition: 'background 0.3s ease' } }));
     const rewardCardStyle = { display: curR ? 'block' : 'none', marginTop: '14px', maxWidth: '360px' };
     const exchange = () => { this.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); this.initScratch(); };
-    const affordableView = affordable.map((r) => ({
-      name: r.name,
-      costTxt: this.fmt(r.cost) + ' Zora',
-      onExchange: () => this.redeemVoucher(r),
-      imgEl: React.createElement('div', { style: { width: '100%', height: '100%', backgroundImage: 'url("' + r.img + '")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#EDEDF8' } })
-    }));
+    const affordableView = rewards.map((r) => {
+      const canAfford = r.cost <= zoraBalance;
+      return {
+        name: r.name,
+        costTxt: this.fmt(r.cost) + ' Zora',
+        onExchange: canAfford ? () => this.redeemVoucher(r) : () => this.showToast('Solde Zora insuffisant'),
+        imgEl: React.createElement('div', { style: { width: '100%', height: '100%', backgroundImage: 'url("' + r.img + '")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#EDEDF8' } }),
+        btnStyle: { marginTop: '8px', background: canAfford ? 'rgba(0,63,177,0.08)' : '#F3F3FE', color: canAfford ? '#003FB1' : '#9498a8', border: 'none', fontFamily: 'inherit', fontSize: '0.72rem', fontWeight: '800', padding: '6px 12px', borderRadius: '9999px', cursor: canAfford ? 'pointer' : 'not-allowed' },
+        btnLabel: canAfford ? 'Échanger' : 'Solde insuffisant'
+      };
+    });
     const rewardBandStyle = { display: (this._rewardsLoaded && rewards.length) ? 'block' : 'none', marginTop: '0' };
     const chipBase = { flex: '0 0 auto', border: 'none', padding: '9px 18px', borderRadius: '9999px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' };
     const chip = (cat) => Object.assign({}, chipBase, { background: fc === cat ? '#003FB1' : '#EDEDF8', color: fc === cat ? '#fff' : '#434654' });
