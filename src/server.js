@@ -144,6 +144,7 @@ const sportGroupsRoutes     = require('./routes/sport-groups.routes');
 const wellnessRoutes        = require('./routes/wellness.routes');
 const clubsRoutes           = require('./routes/clubs.routes');
 const chatRoutes            = require('./routes/chat.routes');
+const animateurRoutes       = require('./routes/animateur.routes');
 
 // Routes BHP (Bolamu Health Data Protocol)
 try {
@@ -197,6 +198,7 @@ app.use('/api/v1/events',       require('./routes/elonga-events.routes'));
 app.use('/api/v1/leaderboard',  require('./routes/leaderboard.routes'));
 app.use('/api/v1/streaks',      require('./routes/streak.routes'));
 app.use('/api/v1/chat',         chatRoutes);
+app.use('/api/v1/animateur',    animateurRoutes);
 app.use('/api/v1/wellness',     wellnessRoutes);
 app.use('/api/v1/clubs',        clubsRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
