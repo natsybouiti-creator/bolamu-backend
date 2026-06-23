@@ -1,38 +1,139 @@
 // ============================================================
-// BOLAMU — Sprint 5 : Routes Événements Elonga
+// BOLAMU — Sprint 5 + 7 : Routes Événements Elonga
 // ============================================================
 const express = require('express');
 const router = express.Router();
 const {
   getEvents,
   getEventById,
-  registerEvent,
   cancelEventRegistration,
   getCheckinToken,
-  getMyRegistrations,
   checkinEvent,
-  createEvent,
   updateEvent,
   deleteEvent
 } = require('../controllers/elonga-events.controller');
+const {
+  registerPatient,
+  checkinPatient,
+  checkinByCode,
+  getPatientRegistrations,
+  getEventRegistrations,
+  publishEvent,
+  createEvent: createEventService,
+  getPendingEvents
+} = require('../services/event.service');
 const authMiddleware = require('../middleware/auth.middleware');
+const apiResponse = require('../utils/apiResponse');
 
 // PUBLICS
 router.get('/', getEvents);
 router.get('/:id', getEventById);
 
 // PATIENTS (auth JWT)
-router.post('/:id/register', authMiddleware, registerEvent);
 router.delete('/:id/register', authMiddleware, cancelEventRegistration);
 router.get('/:id/checkin-token', authMiddleware, getCheckinToken);
-router.get('/my/registrations', authMiddleware, getMyRegistrations);
 
-// ORGANISATEUR (auth JWT)
+// PATIENTS (auth JWT) - Sprint 7 : Inscription avec session_code et qr_token
+router.post('/:id/register', authMiddleware, async (req, res) => {
+  try {
+    const result = await registerPatient(req.user.phone, req.params.id);
+    if (result.success) {
+      res.json(apiResponse.success(result));
+    } else {
+      res.status(400).json(apiResponse.error(result.error));
+    }
+  } catch (err) {
+    res.status(500).json(apiResponse.error(err.message));
+  }
+});
+
+// PATIENTS (auth JWT) - Sprint 7 : Liste des inscriptions du patient
+router.get('/my/registrations', authMiddleware, async (req, res) => {
+  try {
+    const registrations = await getPatientRegistrations(req.user.phone);
+    res.json(apiResponse.success(registrations));
+  } catch (err) {
+    res.status(500).json(apiResponse.error(err.message));
+  }
+});
+
+// ORGANISATEUR (auth JWT) - Sprint 5
 router.post('/:id/checkin', authMiddleware, checkinEvent);
 
-// ADMIN
-router.post('/', authMiddleware.requireAdmin, createEvent);
+// ORGANISATEUR (auth JWT) - Sprint 7 : Check-in via QR token ou session_code
+router.post('/:id/checkin', authMiddleware, async (req, res) => {
+  try {
+    const { token, session_code, method } = req.body;
+    let result;
+    
+    if (method === 'qr_scan' && token) {
+      result = await checkinPatient(token, req.user.phone, req.params.id);
+    } else if (method === 'code_manual' && session_code) {
+      result = await checkinByCode(session_code, req.user.phone, req.params.id);
+    } else {
+      return res.status(400).json(apiResponse.error('Paramètres manquants : token ou session_code'));
+    }
+    
+    if (result.success) {
+      res.json(apiResponse.success(result));
+    } else {
+      res.status(400).json(apiResponse.error(result.error));
+    }
+  } catch (err) {
+    res.status(500).json(apiResponse.error(err.message));
+  }
+});
+
+// ORGANISATEUR ou ADMIN (auth JWT) - Sprint 7 : Liste des inscrits à un événement
+router.get('/:id/registrations', authMiddleware, async (req, res) => {
+  try {
+    const result = await getEventRegistrations(req.params.id);
+    res.json(apiResponse.success(result));
+  } catch (err) {
+    res.status(500).json(apiResponse.error(err.message));
+  }
+});
+
+// ADMIN - Sprint 5
 router.put('/:id', authMiddleware.requireAdmin, updateEvent);
 router.delete('/:id', authMiddleware.requireAdmin, deleteEvent);
+
+// ADMIN - Sprint 7 : Créer événement avec status='pending'
+router.post('/', authMiddleware, async (req, res) => {
+  try {
+    const result = await createEventService(req.body, req.user.phone);
+    if (result.success) {
+      res.json(apiResponse.success(result));
+    } else {
+      res.status(400).json(apiResponse.error('Erreur création événement'));
+    }
+  } catch (err) {
+    res.status(500).json(apiResponse.error(err.message));
+  }
+});
+
+// ADMIN - Sprint 7 : Publier événement
+router.patch('/:id/publish', authMiddleware.requireAdmin, async (req, res) => {
+  try {
+    const result = await publishEvent(req.params.id, req.user.phone);
+    if (result.success) {
+      res.json(apiResponse.success({ message: 'Événement publié' }));
+    } else {
+      res.status(400).json(apiResponse.error(result.error));
+    }
+  } catch (err) {
+    res.status(500).json(apiResponse.error(err.message));
+  }
+});
+
+// ADMIN - Sprint 7 : Liste des événements en attente
+router.get('/admin/events/pending', authMiddleware.requireAdmin, async (req, res) => {
+  try {
+    const events = await getPendingEvents();
+    res.json(apiResponse.success(events));
+  } catch (err) {
+    res.status(500).json(apiResponse.error(err.message));
+  }
+});
 
 module.exports = router;
