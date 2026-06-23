@@ -37,7 +37,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Numéro et mot de passe requis' });
     }
     const result = await pool.query(
-      `SELECT id, full_name, phone, password_hash, role
+      `SELECT id, full_name, phone, password_hash, role, company_id
        FROM users WHERE phone = $1 AND role = 'agent_bolamu' AND is_active = true`,
       [phone]
     );
@@ -49,11 +49,11 @@ router.post('/login', async (req, res) => {
     if (!valid) return res.status(401).json({ success: false, message: 'Mot de passe incorrect' });
 
     const token = jwt.sign(
-      { id: user.id, phone: user.phone, role: user.role },
+      { id: user.id, phone: user.phone, role: user.role, company_id: user.company_id || null },
       JWT_SECRET,
       { expiresIn: '12h' }
     );
-    res.json({ success: true, token, agent: { id: user.id, full_name: user.full_name, phone: user.phone } });
+    res.json({ success: true, token, agent: { id: user.id, full_name: user.full_name, phone: user.phone, company_id: user.company_id || null } });
   } catch (err) {
     console.error('[AGENCE LOGIN]', err.message);
     res.status(500).json({ success: false, message: err.message });
@@ -546,7 +546,7 @@ router.post('/import-employes', requireAgent, async (req, res) => {
       const { nom, prenom, phone, categorie_rh, plan, payment_method, company_id: emp_company_id } = emp;
       // company_contract_id peut venir du corps de la requête (niveau lot) ou de chaque employé
       const contractId = company_contract_id || null;
-      const companyId = emp_company_id || null;
+      const companyId = emp_company_id || req.user.company_id || null;
 
       if (!nom || !prenom || !phone || !plan || !payment_method) {
         errors.push({ phone, error: 'Champs manquants' });
