@@ -1025,7 +1025,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
             <div>
               <div style="font-size: 0.625rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #434654; margin-bottom: 4px;">Bonjour</div>
-              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">{{ patientPrenom }}, prête à gagner&nbsp;?</h1>
+              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">{{ patientPrenom }}, {{ genderAdj }} à gagner&nbsp;?</h1>
               <p style="margin: 6px 0 0; font-size: 0.84rem; font-weight: 600; color: #00875f;">{{ patientsToNext }}</p>
             </div>
             <div class="hero-tiles" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -2079,7 +2079,8 @@ class Component extends DCLogic {
           this._patientPhone = d.data.phone || '';
           this._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel';
           this._patientId = d.data.bolamu_id || '';
-          this.setState({});
+          this._patientData = d.data;
+          this.setState({ gender: d.data.gender });
         }
       }).catch(() => {});
 
@@ -3208,9 +3209,12 @@ class Component extends DCLogic {
     }));
     const rdvSlotsView = (this._slots || []).map((sl) => ({ value: sl, label: sl }));
 
+    const genderAdj = (s.gender === 'M' || this._patientData?.gender === 'M') ? 'prêt' : 'prête';
+
     return {
       toast: s.toast,
       patientPrenom: this._patientPrenom || 'Sarah',
+      genderAdj: genderAdj,
       patientNom: (this._patientNom || 'Sarah Bemba').toUpperCase(),
       patientInitiales: (this._patientNom || 'Sarah Bemba').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(),
       streakTxt: (this._streak || 0) + ' jour' + ((this._streak || 0) > 1 ? 's' : '') + ' d\'affilée',
