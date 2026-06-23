@@ -1140,7 +1140,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <dc-import name="SportGroup" icon="pool" gname="Natation" members="23 membres" score="33 100 pts" hint-size="170px,180px"></dc-import>
         <dc-import name="SportGroup" icon="directions_run" gname="Course à pied" members="48 membres" score="82 400 pts" hint-size="170px,180px"></dc-import>
         <dc-import name="SportGroup" icon="directions_bike" gname="Cyclisme" members="26 membres" score="39 800 pts" hint-size="170px,180px"></dc-import>
-        <div style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px dashed #C3C5D7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;"><span class="material-symbols-outlined" style="color: #2E6EE8; font-size: 32px;">add_circle</span><span style="font-size: 0.82rem; font-weight: 700; color: #0A2463; text-align: center;">Créer un groupe</span></div>
+        <div onclick="{{ toastCreerGroupe }}" style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px dashed #C3C5D7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><span class="material-symbols-outlined" style="color: #2E6EE8; font-size: 32px;">add_circle</span><span style="font-size: 0.82rem; font-weight: 700; color: #0A2463; text-align: center;">Créer un groupe</span></div>
       </div>
 
       <!-- CLASSEMENT -->
@@ -1205,7 +1205,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">10 000 pas aujourd'hui</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+25 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">En cours</button>
+      <button onclick="{{ toastActivite }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">En cours</button>
     </div>
   </div>
 </div>
@@ -1217,7 +1217,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Séance de sport (30 min)</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+30 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Démarrer</button>
+      <button onclick="{{ toastActivite }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Démarrer</button>
     </div>
   </div>
 </div>
@@ -1229,7 +1229,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Méditation / respiration</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+15 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Commencer</button>
+      <button onclick="{{ toastActivite }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Commencer</button>
     </div>
   </div>
 </div>
@@ -1241,7 +1241,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Atelier respiration guidée</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+20 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Démarrer</button>
+      <button onclick="{{ toastActivite }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Démarrer</button>
     </div>
   </div>
 </div>
@@ -1258,7 +1258,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Dormir 7h+ cette nuit</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+20 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Suivre mon sommeil</button>
+      <button onclick="{{ toastSommeil }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Suivre mon sommeil</button>
     </div>
   </div>
 </div>
@@ -1270,7 +1270,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Heure de coucher régulière (5 j)</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+40 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Activer</button>
+      <button onclick="{{ toastSommeil }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Activer</button>
     </div>
   </div>
 </div>
@@ -1287,7 +1287,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Journal alimentaire du jour</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+15 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Remplir</button>
+      <button onclick="{{ toastNutrition }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Remplir</button>
     </div>
   </div>
 </div>
@@ -1299,7 +1299,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Hydratation : 6 verres d'eau</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+10 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Suivre</button>
+      <button onclick="{{ toastHydratation }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Suivre</button>
     </div>
   </div>
 </div>
@@ -1311,7 +1311,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Atelier nutrition Elonga</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+40 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">M'inscrire</button>
+      <button onclick="{{ toastNutrition }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">M'inscrire</button>
     </div>
   </div>
 </div>
@@ -1387,7 +1387,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Analyse laboratoire</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+75 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Réserver</button>
+      <button onclick="{{ toastReserver }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Réserver</button>
     </div>
   </div>
 </div>
@@ -1399,7 +1399,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Bilan annuel complet</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Planifier</button>
+      <button onclick="{{ toastPlanifier }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Planifier</button>
     </div>
   </div>
 </div>
@@ -1411,7 +1411,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Parrainer un ami</div>
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span>
-      <button style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Inviter via WhatsApp</button>
+      <button onclick="{{ toastWhatsapp }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Inviter via WhatsApp</button>
     </div>
   </div>
 </div>
@@ -1478,7 +1478,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
           <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Historique des points</h3>
-          <button style="background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.8rem; padding: 9px 18px; border-radius: 9999px; cursor: pointer;">Convertir en Zora Cash (MoMo)</button>
+          <button onclick="{{ toastConvertir }}" style="background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.8rem; padding: 9px 18px; border-radius: 9999px; cursor: pointer;">Convertir en Zora Cash (MoMo)</button>
         </div>
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; overflow: hidden;">
           <sc-for list="{{ ledgerView }}" as="lr" hint-placeholder-count="5">
@@ -1666,18 +1666,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <!-- CATALOGUE -->
       <h3 style="margin: 0 0 16px; font-size: 1.25rem; font-weight: 800; color: #0A2463;">Tous les partenaires</h3>
       <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 36px;">
-        <dc-import name="Partner" icon="smartphone" cat="Électronique" partner-name="Smartphone Tecno Spark" desc="Smartphone 4G écran 6,6 pouces" pts="18 000 pts" stock="{{ true }}" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="watch" cat="Électronique" partner-name="Montre connectée" desc="Smartwatch suivi d'activité" pts="9 500 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="headphones" cat="Électronique" partner-name="Écouteurs sans fil" desc="Bluetooth, réduction de bruit" pts="4 000 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="battery_charging_full" cat="Électronique" partner-name="Powerbank 20 000 mAh" desc="Charge rapide 2 ports USB" pts="2 500 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="sim_card" cat="Télécom" partner-name="Crédit MTN" desc="Recharge mobile 5 000 FCFA" pts="500 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="wifi" cat="Télécom" partner-name="Data Airtel" desc="Forfait internet 1 Go" pts="300 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="flight" cat="Voyage" partner-name="Vol ASKY" desc="Réduction vol BZV–PNR" pts="2 000 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="hotel" cat="Hôtels" partner-name="Hilton Pointe-Noire" desc="Nuitée chambre standard" pts="2 500 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="fitness_center" cat="Sport" partner-name="Abonnement salle" desc="1 mois accès illimité" pts="1 200 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="local_pharmacy" cat="Santé" partner-name="Pharmacie Daffé" desc="Bon d'achat médicaments" pts="250 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="local_gas_station" cat="Carburant" partner-name="Station Total" desc="Plein essence 30L" pts="800 pts" hint-size="100%,260px"></dc-import>
-        <dc-import name="Partner" icon="spa" cat="Beauté" partner-name="Institut Lumière" desc="Soin visage complet" pts="900 pts" stock="{{ true }}" hint-size="100%,260px"></dc-import>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="smartphone" cat="Électronique" partner-name="Smartphone Tecno Spark" desc="Smartphone 4G écran 6,6 pouces" pts="18 000 pts" stock="{{ true }}" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="watch" cat="Électronique" partner-name="Montre connectée" desc="Smartwatch suivi d'activité" pts="9 500 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="headphones" cat="Électronique" partner-name="Écouteurs sans fil" desc="Bluetooth, réduction de bruit" pts="4 000 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="battery_charging_full" cat="Électronique" partner-name="Powerbank 20 000 mAh" desc="Charge rapide 2 ports USB" pts="2 500 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="sim_card" cat="Télécom" partner-name="Crédit MTN" desc="Recharge mobile 5 000 FCFA" pts="500 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="wifi" cat="Télécom" partner-name="Data Airtel" desc="Forfait internet 1 Go" pts="300 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="flight" cat="Voyage" partner-name="Vol ASKY" desc="Réduction vol BZV–PNR" pts="2 000 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="hotel" cat="Hôtels" partner-name="Hilton Pointe-Noire" desc="Nuitée chambre standard" pts="2 500 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="fitness_center" cat="Sport" partner-name="Abonnement salle" desc="1 mois accès illimité" pts="1 200 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="local_pharmacy" cat="Santé" partner-name="Pharmacie Daffé" desc="Bon d'achat médicaments" pts="250 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="local_gas_station" cat="Carburant" partner-name="Station Total" desc="Plein essence 30L" pts="800 pts" hint-size="100%,260px"></dc-import></div>
+        <div onclick="{{ toastPartenaire }}" style="cursor: pointer;"><dc-import name="Partner" icon="spa" cat="Beauté" partner-name="Institut Lumière" desc="Soin visage complet" pts="900 pts" stock="{{ true }}" hint-size="100%,260px"></dc-import></div>
       </div>
 
       <h3 style="margin: 0 0 14px; font-size: 1.25rem; font-weight: 800; color: #0A2463;">Vos derniers échanges</h3>
@@ -1741,12 +1741,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div style="background: #F3F3FE; border-radius: 16px; padding: 14px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="width: 34px; height: 34px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-2.jpg'); background-size: cover; background-position: center; background-color: #003FB1; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; flex-shrink: 0;">SB</span><div><div style="font-size: 0.82rem; font-weight: 700; color: #0A2463;">Sarah B.</div><div style="font-size: 0.66rem; color: #9498a8;">il y a 2 h</div></div></div>
             <div style="font-size: 0.85rem; font-weight: 500; color: #191B23; margin-bottom: 10px;">A complété un bilan annuel complet <span style="font-weight: 800; color: #FF6B35;">+200 Zora</span></div>
-            <div style="display: flex; gap: 14px;"><button style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #FF6B35; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 17px;">favorite</span>12</button><button style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #434654; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-size: 17px;">chat_bubble</span>Commenter</button></div>
+            <div style="display: flex; gap: 14px;"><button onclick="{{ toastChat }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #FF6B35; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 17px;">favorite</span>12</button><button onclick="{{ toastChat }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #434654; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-size: 17px;">chat_bubble</span>Commenter</button></div>
           </div>
           <div style="background: #F3F3FE; border-radius: 16px; padding: 14px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="width: 34px; height: 34px; border-radius: 9999px; background: #00C9A7; color: #06352c; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800;">RB</span><div><div style="font-size: 0.82rem; font-weight: 700; color: #0A2463;">Groupe Runners Brazza</div><div style="font-size: 0.66rem; color: #9498a8;">hier</div></div></div>
             <div style="font-size: 0.85rem; font-weight: 500; color: #191B23; margin-bottom: 10px;">A gagné le défi de la semaine ! Bravo à tous les membres.</div>
-            <div style="display: flex; gap: 14px;"><button style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #FF6B35; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 17px;">favorite</span>38</button><button style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #434654; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-size: 17px;">person_add</span>Suivre</button></div>
+            <div style="display: flex; gap: 14px;"><button onclick="{{ toastChat }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #FF6B35; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 17px;">favorite</span>38</button><button onclick="{{ toastChat }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #434654; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-size: 17px;">person_add</span>Suivre</button></div>
           </div>
         </div>
       </div>
@@ -1760,7 +1760,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
     <div style="padding: 14px 20px; border-top: 1px solid #EDEDF8; display: flex; gap: 8px;">
       <input type="text" placeholder="Écrire un message…" style="flex: 1; padding: 11px 14px; border: 1px solid #C3C5D7; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; color: #191B23;">
-      <button style="width: 42px; height: 42px; border: none; border-radius: 9999px; background: #003FB1; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 20px;">send</span></button>
+      <button onclick="{{ toastChat }}" style="width: 42px; height: 42px; border: none; border-radius: 9999px; background: #003FB1; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 20px;">send</span></button>
     </div>
   </aside>
 
@@ -1832,7 +1832,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: #F3F3FE; border-radius: 12px;"><span style="font-size: 0.84rem; font-weight: 600; color: #191B23;">Hémoglobine</span><span style="font-size: 0.84rem; font-weight: 800; color: #00875f;">13,4 g/dL · Normal</span></div>
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: rgba(255,107,53,0.08); border-radius: 12px;"><span style="font-size: 0.84rem; font-weight: 600; color: #191B23;">Vitamine D</span><span style="font-size: 0.84rem; font-weight: 800; color: #B0680A;">22 ng/mL · Bas</span></div>
       </div>
-      <button style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.88rem; cursor: pointer;"><span class="material-symbols-outlined" style="font-size: 19px;">download</span>Télécharger le PDF</button>
+      <button onclick="{{ toastPdf }}" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.88rem; cursor: pointer;"><span class="material-symbols-outlined" style="font-size: 19px;">download</span>Télécharger le PDF</button>
     </div>
   </div>
 
