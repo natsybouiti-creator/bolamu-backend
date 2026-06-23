@@ -1,5 +1,5 @@
 // ============================================================
-// Routes : Chat communauté + médecins
+// Routes : Chat (Sprint 3 — conversation-based + ancien canal)
 // ============================================================
 
 const express = require('express');
@@ -7,155 +7,196 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const chatService = require('../services/chat.service');
 
+// ============================================================
+// NOUVEAU SYSTÈME — conversations (Sprint 3)
+// Polling toutes les 10s depuis le frontend (pas de WebSocket)
+// ============================================================
+
 /**
- * GET /api/v1/chat/:channel/messages
- * Messages d'un canal (auth patient requis)
+ * GET /api/v1/chat/unread
+ * Badge header : nombre de messages non lus
  */
-router.get('/:channel/messages', authMiddleware, async (req, res) => {
+router.get('/unread', authMiddleware, async (req, res) => {
   try {
-    const { channel } = req.params;
+    const unread = await chatService.getUnreadCount(req.user.phone);
+    res.json({ success: true, data: { unread } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * GET /api/v1/chat/communaute
+ * Conversation communautaire globale unique
+ */
+router.get('/communaute', authMiddleware, async (req, res) => {
+  try {
+    const conv = await chatService.getCommunauteConversation();
+    res.json({ success: true, data: conv });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * GET /api/v1/chat/conversations
+ * Liste des conversations du patient connecté avec last_message et unread_count
+ */
+router.get('/conversations', authMiddleware, async (req, res) => {
+  try {
+    const conversations = await chatService.getPatientConversations(req.user.phone);
+    res.json({ success: true, data: conversations });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * GET /api/v1/chat/conversations/:id/messages
+ * Messages paginés (cursor-based)
+ * ?limit=20&before_id=xxx
+ */
+router.get('/conversations/:id/messages', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
     const { limit = 20, before_id } = req.query;
-    
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
-    }
-    
-    const messages = await chatService.getMessages({ 
-      channel, 
-      limit: parseInt(limit), 
-      before_id: before_id ? parseInt(before_id) : null 
-    });
-    
+    const messages = await chatService.getConversationMessages(
+      id,
+      Math.min(parseInt(limit) || 20, 100),
+      before_id ? parseInt(before_id) : null
+    );
     res.json({ success: true, data: messages });
-  } catch (error) {
-    console.error('Error getting chat messages:', error);
-    res.status(500).json({ success: false, message: 'Erreur lors de la récupération des messages' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
 /**
- * POST /api/v1/chat/:channel/messages
- * Envoyer un message (auth patient requis)
+ * POST /api/v1/chat/conversations/:id/messages
+ * Envoyer un message dans une conversation
+ * body: { content, type }
  */
-router.post('/:channel/messages', authMiddleware, async (req, res) => {
+router.post('/conversations/:id/messages', authMiddleware, async (req, res) => {
   try {
-    const { channel } = req.params;
-    const { content, message_type = 'text', achievement_data } = req.body;
-    const sender_phone = req.user.phone;
-    
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
+    const { id } = req.params;
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ success: false, message: 'Contenu requis' });
     }
-    
-    if (!content || content.trim().length === 0) {
-      return res.status(400).json({ success: false, message: 'Contenu du message requis' });
-    }
-    
-    const message = await chatService.sendMessage({ 
-      sender_phone, 
-      channel, 
-      content, 
-      message_type, 
-      achievement_data 
-    });
-    
+
+    const message = await chatService.sendConversationMessage(id, req.user.phone, content.trim());
     res.json({ success: true, data: message });
-  } catch (error) {
-    console.error('Error sending chat message:', error);
-    res.status(500).json({ success: false, message: error.message || 'Erreur lors de l\'envoi du message' });
+  } catch (err) {
+    const status = err.message.includes('Accès non autorisé') ? 403 : 500;
+    res.status(status).json({ success: false, message: err.message });
   }
 });
 
 /**
- * POST /api/v1/chat/messages/:id/react
- * Ajouter une réaction (auth patient requis)
+ * POST /api/v1/chat/conversations/:id/read
+ * Marquer les messages d'une conversation comme lus
  */
-router.post('/messages/:id/react', authMiddleware, async (req, res) => {
+router.post('/conversations/:id/read', authMiddleware, async (req, res) => {
   try {
-    const { id: message_id } = req.params;
-    const { reaction = 'encourage' } = req.body;
-    const phone = req.user.phone;
-    
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
-    }
-    
-    const result = await chatService.addReaction({ message_id, phone, reaction });
-    
-    res.json(result);
-  } catch (error) {
-    console.error('Error adding reaction:', error);
-    res.status(500).json({ success: false, message: 'Erreur lors de l\'ajout de la réaction' });
+    await chatService.markAsRead(req.params.id, req.user.phone);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// ============================================================
+// ANCIEN SYSTÈME — canal médecins (conservé pour compatibilité)
+// Les routes fixes sont déclarées AVANT /:medecin_phone dynamique
+// ============================================================
 
 /**
  * GET /api/v1/chat/medecin/messages
- * Messages avec un médecin (auth patient ou médecin requis)
+ * Messages avec un médecin (ancien système canal)
  */
 router.get('/medecin/messages', authMiddleware, async (req, res) => {
   try {
     const { doctor_phone } = req.query;
     const phone = req.user.phone;
-    
+
     if (req.user.role !== 'patient' && req.user.role !== 'doctor') {
       return res.status(403).json({ success: false, message: 'Accès réservé aux patients et médecins' });
     }
-    
+
     if (!doctor_phone) {
       return res.status(400).json({ success: false, message: 'Numéro de médecin requis' });
     }
-    
+
     const channel = `medecin_${doctor_phone}`;
     const { limit = 20, before_id } = req.query;
-    
-    const messages = await chatService.getMessages({ 
-      channel, 
-      limit: parseInt(limit), 
-      before_id: before_id ? parseInt(before_id) : null 
+
+    const messages = await chatService.getMessages({
+      channel,
+      limit: parseInt(limit),
+      before_id: before_id ? parseInt(before_id) : null
     });
-    
+
     res.json({ success: true, data: messages });
-  } catch (error) {
-    console.error('Error getting doctor messages:', error);
-    res.status(500).json({ success: false, message: 'Erreur lors de la récupération des messages' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
 /**
  * POST /api/v1/chat/medecin/messages
- * Envoyer un message à un médecin (auth patient ou médecin requis)
+ * Envoyer un message à un médecin (ancien système canal)
  */
 router.post('/medecin/messages', authMiddleware, async (req, res) => {
   try {
     const { content, doctor_phone } = req.body;
     const sender_phone = req.user.phone;
-    
+
     if (req.user.role !== 'patient' && req.user.role !== 'doctor') {
       return res.status(403).json({ success: false, message: 'Accès réservé aux patients et médecins' });
     }
-    
+
     if (!doctor_phone) {
       return res.status(400).json({ success: false, message: 'Numéro de médecin requis' });
     }
-    
-    if (!content || content.trim().length === 0) {
+
+    if (!content || !content.trim()) {
       return res.status(400).json({ success: false, message: 'Contenu du message requis' });
     }
-    
+
     const channel = `medecin_${doctor_phone}`;
-    
-    const message = await chatService.sendMessage({ 
-      sender_phone, 
-      channel, 
-      content, 
-      message_type: 'text' 
+    const message = await chatService.sendMessage({
+      sender_phone,
+      channel,
+      content,
+      message_type: 'text'
     });
-    
+
     res.json({ success: true, data: message });
-  } catch (error) {
-    console.error('Error sending doctor message:', error);
-    res.status(500).json({ success: false, message: error.message || 'Erreur lors de l\'envoi du message' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * POST /api/v1/chat/medecin/:medecin_phone
+ * Trouver ou créer une conversation patient↔médecin
+ * Retourne conversation_id
+ */
+router.post('/medecin/:medecin_phone', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'patient') {
+      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
+    }
+
+    const conversation = await chatService.getOrCreateConversation(
+      req.user.phone,
+      req.params.medecin_phone
+    );
+
+    res.json({ success: true, data: conversation });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -165,18 +206,94 @@ router.post('/medecin/messages', authMiddleware, async (req, res) => {
  */
 router.get('/doctors', authMiddleware, async (req, res) => {
   try {
-    const patient_phone = req.user.phone;
-    
     if (req.user.role !== 'patient') {
       return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
     }
-    
-    const doctors = await chatService.getPatientDoctors({ patient_phone });
-    
+    const doctors = await chatService.getPatientDoctors({ patient_phone: req.user.phone });
     res.json({ success: true, data: doctors });
-  } catch (error) {
-    console.error('Error getting patient doctors:', error);
-    res.status(500).json({ success: false, message: 'Erreur lors de la récupération des médecins' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ============================================================
+// ANCIEN SYSTÈME — canal communauté / groupes sport
+// ============================================================
+
+/**
+ * POST /api/v1/chat/messages/:id/react
+ * Ajouter une réaction à un message (groupes sport)
+ */
+router.post('/messages/:id/react', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'patient') {
+      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
+    }
+    const result = await chatService.addReaction({
+      message_id: req.params.id,
+      phone: req.user.phone,
+      reaction: req.body.reaction || 'encourage'
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * GET /api/v1/chat/:channel/messages
+ * Messages d'un canal (groupes sport, communauté)
+ */
+router.get('/:channel/messages', authMiddleware, async (req, res) => {
+  try {
+    const { channel } = req.params;
+    const { limit = 20, before_id } = req.query;
+
+    if (req.user.role !== 'patient') {
+      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
+    }
+
+    const messages = await chatService.getMessages({
+      channel,
+      limit: parseInt(limit),
+      before_id: before_id ? parseInt(before_id) : null
+    });
+
+    res.json({ success: true, data: messages });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * POST /api/v1/chat/:channel/messages
+ * Envoyer un message dans un canal (groupes sport, communauté)
+ */
+router.post('/:channel/messages', authMiddleware, async (req, res) => {
+  try {
+    const { channel } = req.params;
+    const { content, message_type = 'text', achievement_data } = req.body;
+    const sender_phone = req.user.phone;
+
+    if (req.user.role !== 'patient') {
+      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
+    }
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ success: false, message: 'Contenu du message requis' });
+    }
+
+    const message = await chatService.sendMessage({
+      sender_phone,
+      channel,
+      content,
+      message_type,
+      achievement_data
+    });
+
+    res.json({ success: true, data: message });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
