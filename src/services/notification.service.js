@@ -191,7 +191,6 @@ function getWhatsAppParameters(type, data) {
 // ============================================================
 // SPRINT 3 — Notifications WhatsApp métier avec fallback wame
 // ============================================================
-const { sendWhatsAppTemplate } = require('./whatsapp.service');
 const { buildWameLink } = require('./wame.service');
 const { normalizePhone } = require('../utils/phone');
 
