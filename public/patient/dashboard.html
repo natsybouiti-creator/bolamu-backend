@@ -1763,12 +1763,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <button onclick="{{ closeModal }}" style="background: #F3F3FE; border: none; width: 36px; height: 36px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">close</span></button>
       </div>
       <div style="display: flex; flex-direction: column; gap: 16px;">
-        <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Médecin</label><select style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23; background: #fff;"><option>Dr. Marc Ntolo — Cardiologie</option><option>Dr. Alice Bekono — Généraliste</option><option>Dr. Pierre Massamba — Dermatologie</option></select></div>
-        <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Date</label><input type="date" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23;"></div>
-        <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Créneau</label><select style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23; background: #fff;"><option>09h00</option><option>10h30</option><option>14h30</option><option>16h00</option></select></div>
+        <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Médecin</label><select onchange="{{ rdvSelectDoctor }}" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23; background: #fff;"><option value="">Choisir un médecin</option><sc-for list="{{ rdvDoctorsView }}" as="doc" hint-placeholder-count="3"><option value="{{ doc.id }}">{{ doc.label }}</option></sc-for></select></div>
+        <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Date</label><input type="date" onchange="{{ rdvSelectDate }}" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23;"></div>
+        <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Créneau</label><select onchange="{{ rdvSelectSlot }}" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23; background: #fff;"><option value="">Choisir un créneau</option><sc-for list="{{ rdvSlotsView }}" as="c" hint-placeholder-count="4"><option value="{{ c.value }}">{{ c.label }}</option></sc-for></select></div>
         <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Motif</label><textarea placeholder="Ex : suivi tension" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 500; color: #191B23; resize: vertical; min-height: 60px;"></textarea></div>
         <div style="display: flex; align-items: center; gap: 7px; background: rgba(0,201,167,0.08); border-radius: 10px; padding: 10px 12px;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">info</span><span style="font-size: 0.76rem; font-weight: 600; color: #00875f;">Ce RDV rapporte +50 pts Zora après consultation.</span></div>
-        <div style="display: flex; gap: 10px;"><button onclick="{{ closeModal }}" style="flex: 1; background: transparent; color: #434654; border: 1px solid #C3C5D7; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Annuler</button><button onclick="{{ closeModal }}" style="flex: 2; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 8px 24px rgba(0,63,177,0.25);">Confirmer</button></div>
+        <div style="display: flex; gap: 10px;"><button onclick="{{ closeModal }}" style="flex: 1; background: transparent; color: #434654; border: 1px solid #C3C5D7; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Annuler</button><button onclick="{{ confirmRdv }}" style="flex: 2; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 8px 24px rgba(0,63,177,0.25);">Confirmer</button></div>
       </div>
     </div>
   </div>
@@ -1920,6 +1920,7 @@ class Component extends DCLogic {
     panel: 'accueil', suivreTab: 'zora', gagnerTab: 'sport', rewardIdx: 0,
     chatOpen: false, chatTab: 'communaute', profileOpen: false,
     modal: false, editConst: false, qrUrg: false, labRes: false,
+    rdvDoctorId: '', rdvDate: '', rdvSlot: '', rdvBooking: false,
     game: null, freeGames: 3,
     wheelDeg: 0, wheelSpinning: false, wheelDone: false, wheelResult: null,
     chestOpened: null, chestReward: null, quizPicked: null,
@@ -2155,6 +2156,36 @@ class Component extends DCLogic {
         }
       }).catch(() => {});
 
+      // Liste des médecins (modal RDV)
+      fetch('https://api.bolamu.co/api/v1/doctors', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data && d.data.doctors) {
+          this._doctors = d.data.doctors;
+          this.setState({});
+        }
+      }).catch(() => {});
+
+      // Récompenses Zora (marketplace réelle)
+      fetch('https://api.bolamu.co/api/v1/zora/rewards', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && Array.isArray(d.data) && d.data.length) {
+          this.rewards = d.data.map(rw => ({
+            id: rw.id,
+            name: rw.title,
+            cost: rw.points_cost,
+            img: rw.logo_path || '/images/landing/zora-mtn.png',
+            seed: 'rw' + rw.id
+          }));
+          this.setState({});
+        }
+      }).catch(() => {});
+
       // QR Code identification patient (rotating 60s)
       const loadQR = () => {
         fetch('https://api.bolamu.co/api/v1/qr/generate', {
@@ -2233,7 +2264,7 @@ class Component extends DCLogic {
     this.ends = { defi1: now.getTime() + (4 * 3600 + 32 * 60) * 1000, defi2: now.getTime() + (23 * 3600) * 1000, offer: midnight.getTime() };
     this._timer = setInterval(() => this.setState({ now: Date.now() }), 1000);
     if (!this.reduce) this._rewardTimer = setInterval(() => this.setState((st) => ({ rewardIdx: st.rewardIdx + 1 })), 3500);
-    this.renderQR('dossier-qr', 'BOLAMU:BLM-4821-7763', 66);
+    this.renderQR('dossier-qr', this.dossierQrText(), 66);
     this.initScratch();
     setTimeout(() => this.initCarousels(), 220);
     this._onResize = () => this.refreshCarousels();
@@ -2557,6 +2588,92 @@ class Component extends DCLogic {
     }
   }
 
+  // === RDV (prise de rendez-vous réelle) ===
+  rdvSelectDoctor(e) { this.setState({ rdvDoctorId: e.target.value, rdvSlot: '' }, () => this.loadRdvSlots()); }
+  rdvSelectDate(e) { this.setState({ rdvDate: e.target.value, rdvSlot: '' }, () => this.loadRdvSlots()); }
+  rdvSelectSlot(e) { this.setState({ rdvSlot: e.target.value }); }
+
+  loadRdvSlots() {
+    const { rdvDoctorId, rdvDate } = this.state;
+    if (!rdvDoctorId || !rdvDate) { this._slots = []; this.setState({}); return; }
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    fetch('https://api.bolamu.co/api/v1/appointments/slots/' + encodeURIComponent(rdvDoctorId) + '?date=' + encodeURIComponent(rdvDate), {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) { this._slots = d.slots || []; this.setState({}); }
+    }).catch(() => {});
+  }
+
+  async confirmRdv() {
+    const { rdvDoctorId, rdvDate, rdvSlot, rdvBooking } = this.state;
+    if (rdvBooking) return;
+    if (!rdvDoctorId || !rdvDate || !rdvSlot) {
+      this.showToast('Choisis un médecin, une date et un créneau', 'error');
+      return;
+    }
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { this.showToast('Session expirée — reconnectez-vous', 'error'); return; }
+    const patientPhone = this._patientPhone || localStorage.getItem('bolamu_patient_phone') || '';
+    this.setState({ rdvBooking: true });
+    try {
+      const r = await fetch('https://api.bolamu.co/api/v1/appointments/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ patient_phone: patientPhone, doctor_id: rdvDoctorId, date: rdvDate, time: rdvSlot })
+      });
+      const d = await r.json();
+      if (d.success) {
+        this.showToast('Rendez-vous confirmé · +50 Zora après consultation');
+        this.setState({ modal: false, rdvBooking: false, rdvDoctorId: '', rdvDate: '', rdvSlot: '' });
+        this._slots = [];
+      } else {
+        this.showToast(d.message || d.error || 'Réservation impossible', 'error');
+        this.setState({ rdvBooking: false });
+      }
+    } catch (e) {
+      this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+      this.setState({ rdvBooking: false });
+    }
+  }
+
+  // === QR codes réels ===
+  patientMembreId() {
+    return this._patientId ? ('BLM-' + String(this._patientId).replace('BOL-', '')) : 'BLM-0000';
+  }
+  dossierQrText() { return 'BOLAMU:' + this.patientMembreId(); }
+  urgenceQrText() {
+    const c = this._constantes || {};
+    const groupe = c.groupe_sanguin || 'NA';
+    const allerg = c.allergies || 'NA';
+    return 'BOLAMU:URGENCE:' + this.patientMembreId() + ':' + groupe + ':' + allerg;
+  }
+
+  // === Échange récompense Zora ===
+  async redeem(rewardId) {
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { this.showToast('Session expirée — reconnectez-vous', 'error'); return; }
+    if (!rewardId) { this.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); this.initScratch(); return; }
+    try {
+      const r = await fetch('https://api.bolamu.co/api/v1/zora/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ reward_id: rewardId })
+      });
+      const d = await r.json();
+      if (d.success) {
+        this.showToast('Échange réussi · voucher généré');
+      } else {
+        const msg = { insufficient_balance: 'Solde Zora insuffisant', tier_insufficient: 'Palier insuffisant pour cette récompense', reward_exhausted: 'Récompense épuisée', reward_not_found: 'Récompense introuvable' }[d.error] || 'Échange impossible';
+        this.showToast(msg, 'error');
+      }
+    } catch (e) {
+      this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+    }
+  }
+
   componentDidUpdate() {
     if (this._cTO) return;
     this._cTO = setTimeout(() => { this._cTO = null; this.initCarousels(); }, 80);
@@ -2725,7 +2842,7 @@ class Component extends DCLogic {
     const affordableView = affordable.map((r) => ({
       name: r.name,
       costTxt: this.fmt(r.cost) + ' Zora',
-      onExchange: exchange,
+      onExchange: () => this.redeem(r.id),
       imgEl: React.createElement('div', { style: { width: '100%', height: '100%', backgroundImage: 'url("' + r.img + '")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#EDEDF8' } })
     }));
     const rewardBandStyle = { display: affordable.length ? 'block' : 'none', marginTop: '0' };
@@ -2777,6 +2894,12 @@ class Component extends DCLogic {
       return { cid: 'chest-' + i, label: opened ? 'Ouvert' : ('Coffre ' + (i + 1)), onOpen: () => this.openChest(i),
         style: { flex: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '16px 8px', borderRadius: '16px', border: opened ? '1px solid rgba(245,166,35,0.5)' : '1px solid #E4E4F2', background: opened ? 'rgba(245,166,35,0.1)' : '#F8F8FC', cursor: anyOpen ? 'default' : 'pointer', opacity: (anyOpen && !opened) ? 0.45 : 1, transition: 'all 0.2s ease' } };
     });
+
+    const rdvDoctorsView = (this._doctors || []).map((doc) => ({
+      id: String(doc.id),
+      label: doc.full_name + (doc.specialty ? (' — ' + doc.specialty) : '')
+    }));
+    const rdvSlotsView = (this._slots || []).map((sl) => ({ value: sl, label: sl }));
 
     return {
       toast: s.toast,
@@ -2834,6 +2957,12 @@ class Component extends DCLogic {
       stepRingOffset: ring.toFixed(1),
       affordableView: affordableView,
       rewardBandStyle: rewardBandStyle,
+      rdvDoctorsView: rdvDoctorsView,
+      rdvSlotsView: rdvSlotsView,
+      rdvSelectDoctor: (e) => this.rdvSelectDoctor(e),
+      rdvSelectDate: (e) => this.rdvSelectDate(e),
+      rdvSelectSlot: (e) => this.rdvSelectSlot(e),
+      confirmRdv: () => this.confirmRdv(),
       eventsView: eventsView,
       eventPlaces: eventPlaces,
       reseauPlaces: reseauPlaces,
@@ -2873,11 +3002,11 @@ class Component extends DCLogic {
       goGagner: () => { this.setState({ panel: 'gagner', profileOpen: false }); window.scrollTo(0, 0); setTimeout(() => { if (this.state.gagnerTab === 'sante') { this.initReseauMap(); this.applyReseauFilter(); } else { this.initEventsMap(); } }, 80); },
       gagnerSport: () => { this.setState({ gagnerTab: 'sport' }); setTimeout(() => this.initEventsMap(), 60); },
       gagnerSante: () => { this.setState({ gagnerTab: 'sante' }); setTimeout(() => { this.initReseauMap(); this.applyReseauFilter(); }, 60); },
-      goSuivre: () => { this.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); this.renderQR('dossier-qr', 'BOLAMU:BLM-4821-7763', 66); },
+      goSuivre: () => { this.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); this.renderQR('dossier-qr', this.dossierQrText(), 66); },
       goRecompenses: () => { this.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); this.initScratch(); },
       filterTout: () => this.setMapFilter('tout'), filterClin: () => this.setMapFilter('cliniques'), filterPharm: () => this.setMapFilter('pharmacies'), filterLabo: () => this.setMapFilter('labos'),
       suivreZora: () => this.setState({ suivreTab: 'zora' }),
-      suivreDossier: () => { this.setState({ suivreTab: 'dossier' }); this.renderQR('dossier-qr', 'BOLAMU:BLM-4821-7763', 66); },
+      suivreDossier: () => { this.setState({ suivreTab: 'dossier' }); this.renderQR('dossier-qr', this.dossierQrText(), 66); },
       openChat: () => this.setState({ chatOpen: true }),
       closeChat: () => this.setState({ chatOpen: false }),
       chatCommunaute: () => this.setState({ chatTab: 'communaute' }),
@@ -2906,7 +3035,7 @@ class Component extends DCLogic {
   },
       closeEditConst: () => this.setState({ editConst: false }),
       saveConst: () => this.saveConst(),
-      openQrUrg: () => { this.setState({ qrUrg: true }); this.renderQR('urg-qr', 'BOLAMU:URGENCE:BLM-4821-7763:O+:Pénicilline', 168); },
+      openQrUrg: () => { this.setState({ qrUrg: true }); this.renderQR('urg-qr', this.urgenceQrText(), 168); },
       closeQrUrg: () => this.setState({ qrUrg: false }),
       openLabRes: () => this.setState({ labRes: true }),
       closeLabRes: () => this.setState({ labRes: false }),
