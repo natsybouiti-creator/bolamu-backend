@@ -291,7 +291,7 @@
                 <th>Inscrits</th>
                 <th>Check-ins</th>
                 <th>Statut</th>
-                <th>QR</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="events-body">
@@ -450,6 +450,33 @@
   </div>
 </div>
 
+<!-- ── MODAL LISTE INSCRITS ── -->
+<div id="modal-registrations" class="modal-overlay" data-testid="modal-registrations">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">
+      Inscrits : <span id="modal-event-title"></span>
+      <button class="modal-close" data-testid="modal-registrations-close" onclick="closeModal('modal-registrations')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="msg-box" id="registrations-msg"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Téléphone</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="registrations-body">
+          <tr><td colspan="3"><div class="empty"><span class="material-symbols-outlined">people</span><p class="empty-text">Chargement…</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = 'https://api.bolamu.co/api/v1';
 let TOKEN = null;
@@ -548,7 +575,12 @@ function renderEventsTable(bodyId, events, showQr) {
   tbody.innerHTML = events.map(e => {
     const statusBadge = e.status === 'published' ? '<span class="badge badge-green">Publié</span>' : '<span class="badge badge-grey">' + e.status + '</span>';
     const date = e.starts_at ? new Date(e.starts_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
-    const qrCell = showQr ? '<td><button class="btn-icon" data-testid="btn-scan-event-' + e.id + '" title="Scanner QR" onclick="openQrScannerForEvent(' + e.id + ')"><span class="material-symbols-outlined">qr_code_scanner</span></button></td>' : '';
+    const actionsCell = showQr ? '<td style="display:flex;gap:8px;align-items:center">' +
+      '<button class="btn btn-outline btn-sm" data-testid="btn-view-registrations-' + e.id + '" onclick="openRegistrations(' + e.id + ',\'' + esc(e.title) + '\')">' +
+        '<span class="material-symbols-outlined" style="font-size:16px">people</span> Inscrits' +
+      '</button>' +
+      '<button class="btn-icon" data-testid="btn-scan-event-' + e.id + '" title="Scanner QR" onclick="openQrScannerForEvent(' + e.id + ')"><span class="material-symbols-outlined">qr_code_scanner</span></button>' +
+    '</td>' : '';
     return '<tr><td style="font-weight:700">' + esc(e.title) + '</td>' +
       (showQr ? '<td><span class="badge badge-amber">' + esc(e.pillar) + '</span></td>' : '') +
       '<td>' + date + '</td>' +
@@ -556,7 +588,7 @@ function renderEventsTable(bodyId, events, showQr) {
       '<td>' + (e.inscriptions || 0) + '</td>' +
       '<td>' + (e.checkins || 0) + '</td>' +
       '<td>' + statusBadge + '</td>' +
-      qrCell + '</tr>';
+      actionsCell + '</tr>';
   }).join('');
 }
 
@@ -569,6 +601,43 @@ function esc(str) {
 function openCreateEvent() {
   showMsg('event-msg', '', '');
   document.getElementById('modal-event').classList.add('open');
+}
+
+// ── REGISTRATIONS ───────────────────────────────────────────────────────────────
+let currentEventId = null;
+
+function openRegistrations(eventId, eventTitle) {
+  currentEventId = eventId;
+  document.getElementById('modal-event-title').textContent = eventTitle;
+  showMsg('registrations-msg', '', '');
+  document.getElementById('modal-registrations').classList.add('open');
+  loadRegistrations(eventId);
+}
+
+async function loadRegistrations(eventId) {
+  const data = await apiFetch('/animateur/events/' + eventId + '/registrations');
+  const tbody = document.getElementById('registrations-body');
+
+  if (!data || !data.success) {
+    tbody.innerHTML = '<tr><td colspan="3"><div class="empty"><span class="material-symbols-outlined">error</span><p class="empty-text">Erreur lors du chargement.</p></div></td></tr>';
+    return;
+  }
+
+  const regs = data.data || [];
+  if (!regs.length) {
+    tbody.innerHTML = '<tr><td colspan="3"><div class="empty"><span class="material-symbols-outlined">people</span><p class="empty-text">Aucun inscrit pour cet événement.</p></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = regs.map(r => {
+    const name = r.full_name || (r.first_name && r.last_name ? r.first_name + ' ' + r.last_name : r.phone);
+    const statusBadge = r.status === 'checked_in' ? '<span class="badge badge-green">Check-in</span>' : '<span class="badge badge-grey">Inscrit</span>';
+    return '<tr>' +
+      '<td style="font-weight:600">' + esc(name) + '</td>' +
+      '<td>' + esc(r.phone) + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+    '</tr>';
+  }).join('');
 }
 
 async function saveEvent() {

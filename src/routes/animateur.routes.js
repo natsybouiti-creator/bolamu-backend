@@ -199,6 +199,40 @@ router.get('/clubs', requireAnimateur, async (req, res) => {
     }
 });
 
+// ─── GET /events/:id/registrations ───────────────────────────────────────────────
+router.get('/events/:id/registrations', requireAnimateur, async (req, res) => {
+    try {
+        const animateurPhone = req.user.phone;
+        const eventId = parseInt(req.params.id);
+
+        // Vérifier que l'événement appartient bien à cet animateur
+        const eventCheck = await pool.query(
+            `SELECT id, title FROM elonga_events WHERE id = $1 AND organizer_phone = $2`,
+            [eventId, animateurPhone]
+        );
+
+        if (!eventCheck.rows.length) {
+            return res.status(403).json({ success: false, message: 'Événement introuvable ou accès non autorisé' });
+        }
+
+        const result = await pool.query(
+            `SELECT
+               er.id, er.phone, er.registered_at, er.status, er.checkin_at, er.zora_awarded,
+               u.full_name, u.first_name, u.last_name, u.avatar_url
+             FROM elonga_registrations er
+             LEFT JOIN users u ON er.phone = u.phone
+             WHERE er.event_id = $1
+             ORDER BY er.registered_at ASC`,
+            [eventId]
+        );
+
+        res.json({ success: true, data: result.rows });
+    } catch (err) {
+        logger.error('[ANIMATEUR EVENT REGISTRATIONS]', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // ─── POST /clubs/:id/notify ───────────────────────────────────────────────────
 router.post('/clubs/:id/notify', requireAnimateur, async (req, res) => {
     try {
