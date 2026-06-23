@@ -1096,13 +1096,15 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <span style="background: rgba(255,107,53,0.12); color: #FF6B35; font-size: 0.76rem; font-weight: 800; padding: 6px 12px; border-radius: 9999px;">+50 Zora</span>
         </div>
         <div style="display: flex; justify-content: space-between; gap: 8px;">
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px;"><div style="width: 100%; max-width: 46px; aspect-ratio: 1; border-radius: 50%; background: #FF6B35; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #fff; font-size: 20px;">check</span></div><span style="font-size: 0.62rem; font-weight: 700; color: #434654;">L</span></div>
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px;"><div style="width: 100%; max-width: 46px; aspect-ratio: 1; border-radius: 50%; background: #FF6B35; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #fff; font-size: 20px;">check</span></div><span style="font-size: 0.62rem; font-weight: 700; color: #434654;">M</span></div>
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px;"><div style="width: 100%; max-width: 46px; aspect-ratio: 1; border-radius: 50%; background: #FF6B35; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #fff; font-size: 20px;">check</span></div><span style="font-size: 0.62rem; font-weight: 700; color: #434654;">M</span></div>
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px;"><div style="width: 100%; max-width: 46px; aspect-ratio: 1; border-radius: 50%; background: #FF6B35; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #fff; font-size: 20px;">check</span></div><span style="font-size: 0.62rem; font-weight: 700; color: #434654;">J</span></div>
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px;"><div style="width: 100%; max-width: 46px; aspect-ratio: 1; border-radius: 50%; background: #FF6B35; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #fff; font-size: 20px;">check</span></div><span style="font-size: 0.62rem; font-weight: 700; color: #434654;">V</span></div>
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px;"><div style="width: 100%; max-width: 46px; aspect-ratio: 1; border-radius: 50%; background: #fff; border: 2px solid #FF6B35; display: flex; align-items: center; justify-content: center; animation: streakPulse 2s ease-in-out infinite;"><span style="color: #FF6B35; font-weight: 800; font-size: 0.85rem;">S</span></div><span style="font-size: 0.62rem; font-weight: 800; color: #FF6B35;">Auj.</span></div>
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px;"><div style="width: 100%; max-width: 46px; aspect-ratio: 1; border-radius: 50%; background: #F3F3FE; display: flex; align-items: center; justify-content: center;"><span style="color: #C3C5D7; font-weight: 800; font-size: 0.85rem;">D</span></div><span style="font-size: 0.62rem; font-weight: 700; color: #C3C5D7;">Dim</span></div>
+          <sc-for list="{{ streakDays }}" as="day" hint-placeholder-count="7">
+            <div style="{{ day.wrapStyle }}">
+              <div style="{{ day.circleStyle }}">
+                <span class="material-symbols-outlined" style="{{ day.checkStyle }}">check</span>
+                <span style="{{ day.letterStyle }}">{{ day.initial }}</span>
+              </div>
+              <span style="{{ day.labelStyle }}">{{ day.label }}</span>
+            </div>
+          </sc-for>
         </div>
       </div>
 
@@ -2917,6 +2919,32 @@ class Component extends DCLogic {
       patientNom: (this._patientNom || 'Sarah Bemba').toUpperCase(),
       patientInitiales: (this._patientNom || 'Sarah Bemba').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(),
       streakTxt: (this._streak || 0) + ' jour' + ((this._streak || 0) > 1 ? 's' : '') + ' d\'affilée',
+      streakDays: (() => {
+        const today = new Date();
+        const todayN = new Date(today); todayN.setHours(0,0,0,0);
+        const dow = today.getDay();
+        const monday = new Date(todayN);
+        monday.setDate(todayN.getDate() - ((dow + 6) % 7));
+        const labels = ['L','M','M','J','V','S','D'];
+        const streak = this._streak || 0;
+        const base = { width: '100%', maxWidth: '46px', aspectRatio: '1', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+        return labels.map(function(lbl, i) {
+          const d = new Date(monday); d.setDate(monday.getDate() + i);
+          const isToday = d.getTime() === todayN.getTime();
+          const isFuture = d > todayN;
+          const diffDays = Math.round((todayN.getTime() - d.getTime()) / 86400000);
+          const done = !isToday && !isFuture && diffDays < streak;
+          return {
+            wrapStyle: { flex: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px' },
+            circleStyle: isToday ? Object.assign({}, base, { background: '#fff', border: '2px solid #FF6B35', animation: 'streakPulse 2s ease-in-out infinite' }) : done ? Object.assign({}, base, { background: '#FF6B35' }) : Object.assign({}, base, { background: '#F3F3FE' }),
+            checkStyle: { color: '#fff', fontSize: '20px', display: done ? 'block' : 'none' },
+            letterStyle: { fontWeight: '800', fontSize: '0.85rem', color: isToday ? '#FF6B35' : '#C3C5D7', display: done ? 'none' : 'block' },
+            initial: lbl,
+            label: isToday ? 'Auj.' : lbl,
+            labelStyle: { fontSize: '0.62rem', fontWeight: isToday ? '800' : '700', color: isToday ? '#FF6B35' : (done ? '#434654' : '#C3C5D7') }
+          };
+        });
+      })(),
       patientsToNext: 'À ' + this.fmt(this._zoraPointsToNext || 500) + ' pts du palier ' + (this._zoraNextTier || 'Liboso'),
       sportGroupsData: this._sportGroups || [],
       ledgerData: this._ledger || [],
