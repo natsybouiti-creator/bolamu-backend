@@ -1545,14 +1545,28 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div style="font-size: 0.7rem; font-weight: 500; color: #9498a8; margin-top: 16px;">Renseigné par votre médecin — 14/06/2026</div>
         </div>
 
-        <!-- C QR urgence -->
+        <!-- C Télécharger documents -->
+        <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(0,63,177,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 26px;">folder_open</span></div>
+          <div style="flex: 1; min-width: 200px;"><div style="font-size: 1rem; font-weight: 800; color: #0A2463;">Télécharger mes documents</div><div style="font-size: 0.8rem; font-weight: 500; color: #434654; margin-top: 2px;">Rapports de consultation, résultats labo, ordonnances.</div></div>
+          <button data-testid="btn-download-dmn" onclick="{{ openDmnPasswordModal }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-weight: 700; font-size: 0.82rem; padding: 11px 18px; border-radius: 9999px; cursor: pointer;">Accéder aux documents</button>
+        </div>
+
+        <!-- D QR urgence -->
         <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
           <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(186,26,26,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-outlined" style="color: #BA1A1A; font-size: 26px;">emergency</span></div>
           <div style="flex: 1; min-width: 200px;"><div style="font-size: 1rem; font-weight: 800; color: #0A2463;">QR code d'urgence</div><div style="font-size: 0.8rem; font-weight: 500; color: #434654; margin-top: 2px;">Permet à un secouriste d'accéder à vos constantes vitales. Valable 24h.</div></div>
           <button onclick="{{ openQrUrg }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-weight: 700; font-size: 0.82rem; padding: 11px 18px; border-radius: 9999px; cursor: pointer;">Générer mon QR d'urgence</button>
         </div>
 
-        <!-- D Historique des accès -->
+        <!-- E QR Code médical -->
+        <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(0,201,167,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 26px;">qr_code_2</span></div>
+          <div style="flex: 1; min-width: 200px;"><div style="font-size: 1rem; font-weight: 800; color: #0A2463;">QR Code médical</div><div style="font-size: 0.8rem; font-weight: 500; color: #434654; margin-top: 2px;">Accès sécurisé à votre dossier complet pour les professionnels de santé. Valable 24h.</div></div>
+          <button data-testid="btn-dmn-qr" onclick="{{ openDmnQrModal }}" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-weight: 700; font-size: 0.82rem; padding: 11px 18px; border-radius: 9999px; cursor: pointer;">Générer mon QR médical</button>
+        </div>
+
+        <!-- F Historique des accès -->
         <h3 style="margin: 22px 0 12px; font-size: 1.15rem; font-weight: 800; color: #0A2463;">Historique des accès</h3>
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
           <sc-for list="{{ accessLogView }}" as="al" hint-placeholder-count="3">
@@ -1568,7 +1582,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div style="{{ accessLogEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun accès enregistré</span></div>
         </div>
 
-        <!-- E Historique des consultations -->
+        <!-- F Historique des consultations -->
         <h3 style="margin: 22px 0 12px; font-size: 1.15rem; font-weight: 800; color: #0A2463;">Historique des consultations</h3>
         <div style="position: relative; padding-left: 26px; margin-bottom: 18px;">
           <div style="position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: #E4E4F2;"></div>
@@ -3463,8 +3477,8 @@ class Component extends DCLogic {
       closeDmnDocsModal: () => this.setState({ dmnDocsModal: false }),
       closeDmnQrModal: () => this.setState({ dmnQrModal: false }),
       openDmnPasswordModal: () => this.setState({ dmnPasswordModal: true, dmnPassword: '' }),
+      openDmnQrModal: () => this.generateDmnQr(),
       confirmDmnPassword: () => this.verifyDmnPassword(),
-      generateDmnQr: () => this.generateDmnQr(),
       dmnDocsView: (this._dmnDocs || []).map((doc, i, arr) => ({
         rowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: i < arr.length - 1 ? '1px solid #EDEDF8' : 'none' },
         name: doc.original_name || doc.document_type || '—',
