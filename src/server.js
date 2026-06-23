@@ -149,11 +149,13 @@ const chatRoutes            = require('./routes/chat.routes');
 try {
   const healthRecordsRouter = require('./routes/healthRecords.routes');
   const consentRouter = require('./routes/consent.routes');
+  const dmnRouter = require('./routes/dmn.routes');
   app.use('/api/v1/health-records', healthRecordsRouter);
   app.use('/api/v1/consent', consentRouter);
-  logger.info('[BHP] Routes health-records et consent chargées');
+  app.use('/api/v1/dmn', dmnRouter);
+  logger.info('[BHP] Routes health-records, consent et dmn chargées');
 } catch (err) {
-  logger.error('[BHP] Erreur chargement routes — vérifier healthRecords.routes.js et consent.routes.js:', err.message);
+  logger.error('[BHP] Erreur chargement routes — vérifier healthRecords.routes.js, consent.routes.js et dmn.routes.js:', err.message);
 }
 // ============================================================
 // 3. ROUTES API (V1)
