@@ -1004,7 +1004,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         </div>
         <button onclick="{{ openChat }}" style="position: relative; height: 40px; width: 40px; border: 1px solid #E4E4F2; background: #fff; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
           <span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">forum</span>
-          <span style="position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px; padding: 0 4px; background: #BA1A1A; color: #fff; font-size: 0.6rem; font-weight: 800; border-radius: 9999px; display: flex; align-items: center; justify-content: center;">3</span>
+          <span style="{{ chatBadgeStyle }}">{{ chatBadge }}</span>
         </button>
         <button data-testid="btn-profil" onclick="{{ openProfile }}" style="height: 40px; width: 40px; border: 2px solid #003FB1; border-radius: 9999px; background: #0A2463; color: #fff; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">{{ patientInitiales }}</button>
       </div>
@@ -1150,13 +1150,17 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.62rem; font-weight: 800; color: #00875f; background: rgba(0,201,167,0.12); padding: 3px 9px; border-radius: 9999px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #00C9A7; animation: livePulse 1.5s ease-in-out infinite;"></span>LIVE</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: #F3F3FE;"><span style="font-size: 1rem; font-weight: 800; color: #9498a8; width: 18px;">1</span><span style="width: 38px; height: 38px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-1.jpg'); background-size: cover; background-position: center; background-color: #64748B; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;">JP</span><span style="flex: 1; font-size: 0.9rem; font-weight: 600; color: #191B23;">Jean-Paul M.</span><span style="font-size: 0.85rem; font-weight: 800; color: #B0680A;">2 450</span><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">trending_up</span></div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3);"><span style="font-size: 1rem; font-weight: 800; color: #F5A623; width: 18px;">2</span><span style="width: 38px; height: 38px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-2.jpg'); background-size: cover; background-position: center; background-color: #003FB1; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 0 0 2px #F5A623;">SB</span><span style="flex: 1; font-size: 0.9rem; font-weight: 800; color: #0A2463;">Sarah B. <span style="font-size: 0.6rem; font-weight: 800; color: #B0680A; background: rgba(245,166,35,0.2); padding: 2px 7px; border-radius: 9999px; margin-left: 4px;">VOUS</span></span><span style="font-size: 0.85rem; font-weight: 800; color: #B0680A;">1 250</span><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">trending_up</span></div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: #F3F3FE;"><span style="font-size: 1rem; font-weight: 800; color: #9498a8; width: 18px;">3</span><span style="width: 38px; height: 38px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-3.jpg'); background-size: cover; background-position: center; background-color: #B4733C; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;">MK</span><span style="flex: 1; font-size: 0.9rem; font-weight: 600; color: #191B23;">Michel K.</span><span style="font-size: 0.85rem; font-weight: 800; color: #B0680A;">980</span><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 18px;">trending_down</span></div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: #F3F3FE;"><span style="font-size: 1rem; font-weight: 800; color: #9498a8; width: 18px;">4</span><span style="width: 38px; height: 38px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-4.jpg'); background-size: cover; background-position: center; background-color: #00C9A7; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;">GN</span><span style="flex: 1; font-size: 0.9rem; font-weight: 600; color: #191B23;">Grace N.</span><span style="font-size: 0.85rem; font-weight: 800; color: #B0680A;">870</span><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">trending_up</span></div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: #F3F3FE;"><span style="font-size: 1rem; font-weight: 800; color: #9498a8; width: 18px;">5</span><span style="width: 38px; height: 38px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-5.jpg'); background-size: cover; background-position: center; background-color: #FF6B35; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;">PO</span><span style="flex: 1; font-size: 0.9rem; font-weight: 600; color: #191B23;">Patrick O.</span><span style="font-size: 0.85rem; font-weight: 800; color: #B0680A;">540</span><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 18px;">trending_down</span></div>
+          <sc-for list="{{ leaderboardView }}" as="lr" hint-placeholder-count="5">
+            <div style="{{ lr.rowStyle }}">
+              <span style="{{ lr.rankStyle }}">{{ lr.rank }}</span>
+              <span style="{{ lr.avatarStyle }}">{{ lr.initials }}</span>
+              <span style="flex: 1; font-size: 0.9rem; font-weight: 600; color: #191B23;">{{ lr.name }}</span>
+              <span style="font-size: 0.85rem; font-weight: 800; color: #B0680A;">{{ lr.pts }}</span>
+            </div>
+          </sc-for>
+          <div style="{{ leaderboardEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Classement bientôt disponible</span></div>
         </div>
-        <button style="margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir tout · Encourager</button>
+        <button onclick="{{ toastEncourager }}" style="margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir tout · Encourager</button>
       </div>
     </section>
 
@@ -1449,9 +1453,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
             <div style="flex: 1; min-width: 200px;">
               <div style="display: flex; gap: 28px; flex-wrap: wrap;">
                 <div><div style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); margin-bottom: 3px;">Zora Points</div><div style="font-size: 1.9rem; font-weight: 800; color: #fff; line-height: 1;">{{ zoraTxt }}</div></div>
-                <div><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"><span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.4);">Zora Cash</span><span style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #00C9A7; background: rgba(0,201,167,0.15); padding: 2px 6px; border-radius: 9999px;">MoMo</span></div><div style="font-size: 1.9rem; font-weight: 800; color: #00C9A7; line-height: 1;">3 200 <span style="font-size: 0.8rem; color: rgba(255,255,255,0.5);">FCFA</span></div></div>
+                <div><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"><span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.4);">Zora Cash</span><span style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #00C9A7; background: rgba(0,201,167,0.15); padding: 2px 6px; border-radius: 9999px;">MoMo</span></div><div style="font-size: 1.9rem; font-weight: 800; color: #00C9A7; line-height: 1;">{{ zoraCashTxt }}</div></div>
               </div>
-              <div style="display: flex; align-items: center; gap: 6px; margin-top: 14px;"><span class="material-symbols-outlined" style="font-size: 14px; color: #FF6B35;">hourglass_bottom</span><span style="font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.5);">Trimestre Q3 — remise à zéro dans 47 jours</span></div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 14px;"><span class="material-symbols-outlined" style="font-size: 14px; color: #FF6B35;">hourglass_bottom</span><span style="font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.5);">{{ zoraResetLabel }}</span></div>
             </div>
           </div>
         </div>
@@ -1477,11 +1481,17 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <button style="background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.8rem; padding: 9px 18px; border-radius: 9999px; cursor: pointer;">Convertir en Zora Cash (MoMo)</button>
         </div>
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; overflow: hidden;">
-          <dc-import name="LedgerRow" icon="medical_services" label="Consultation Dr Ntolo" date="14 juin 2026" delta="+50" pos="{{ true }}" hint-size="100%,56px"></dc-import>
-          <dc-import name="LedgerRow" icon="directions_walk" label="Marche 10 000 pas" date="14 juin 2026" delta="+25" pos="{{ true }}" hint-size="100%,56px"></dc-import>
-          <dc-import name="LedgerRow" icon="smartphone" label="Échange crédit MTN" date="12 juin 2026" delta="−500" pos="{{ false }}" hint-size="100%,56px"></dc-import>
-          <dc-import name="LedgerRow" icon="biotech" label="Analyse laboratoire" date="10 juin 2026" delta="+75" pos="{{ true }}" hint-size="100%,56px"></dc-import>
-          <dc-import name="LedgerRow" icon="event_available" label="Événement Elonga · Marche" date="7 juin 2026" delta="+50" pos="{{ true }}" last="{{ true }}" hint-size="100%,56px"></dc-import>
+          <sc-for list="{{ ledgerView }}" as="lr" hint-placeholder-count="5">
+            <div style="{{ lr.rowStyle }}">
+              <span style="{{ lr.iconWrap }}"><span class="material-symbols-outlined" style="font-size: 18px; color: #003FB1;">{{ lr.icon }}</span></span>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 0.86rem; font-weight: 600; color: #191B23; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ lr.label }}</div>
+                <div style="font-size: 0.72rem; font-weight: 500; color: #9498a8;">{{ lr.date }}</div>
+              </div>
+              <span style="{{ lr.deltaStyle }}">{{ lr.delta }}</span>
+            </div>
+          </sc-for>
+          <div style="{{ ledgerEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun mouvement enregistré</span></div>
         </div>
       </div>
 
@@ -1525,43 +1535,40 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <!-- D Historique des accès -->
         <h3 style="margin: 22px 0 12px; font-size: 1.15rem; font-weight: 800; color: #0A2463;">Historique des accès</h3>
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
-          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 20px;">stethoscope</span><div style="flex: 1;"><div style="font-size: 0.86rem; font-weight: 700; color: #0A2463;">Dr Marc Ntolo</div><div style="font-size: 0.72rem; font-weight: 500; color: #434654;">Médecin · Compte rendu</div></div><span style="font-size: 0.72rem; font-weight: 600; color: #9498a8;">14/06/2026</span></div>
-          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;"><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 20px;">biotech</span><div style="flex: 1;"><div style="font-size: 0.86rem; font-weight: 700; color: #0A2463;">Laboratoire Biotech</div><div style="font-size: 0.72rem; font-weight: 500; color: #434654;">Laboratoire · Timeline</div></div><span style="font-size: 0.72rem; font-weight: 600; color: #9498a8;">10/06/2026</span></div>
-          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 20px;">local_pharmacy</span><div style="flex: 1;"><div style="font-size: 0.86rem; font-weight: 700; color: #0A2463;">Pharmacie Daffé</div><div style="font-size: 0.72rem; font-weight: 500; color: #434654;">Pharmacie · QR urgence</div></div><span style="font-size: 0.72rem; font-weight: 600; color: #9498a8;">02/06/2026</span></div>
+          <sc-for list="{{ accessLogView }}" as="al" hint-placeholder-count="3">
+            <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+              <span class="material-symbols-outlined" style="{{ al.iconStyle }}">{{ al.icon }}</span>
+              <div style="flex: 1;">
+                <div style="font-size: 0.86rem; font-weight: 700; color: #0A2463;">{{ al.name }}</div>
+                <div style="font-size: 0.72rem; font-weight: 500; color: #434654;">{{ al.type }} · {{ al.action }}</div>
+              </div>
+              <span style="font-size: 0.72rem; font-weight: 600; color: #9498a8;">{{ al.date }}</span>
+            </div>
+          </sc-for>
+          <div style="{{ accessLogEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun accès enregistré</span></div>
         </div>
 
         <!-- E Historique des consultations -->
         <h3 style="margin: 22px 0 12px; font-size: 1.15rem; font-weight: 800; color: #0A2463;">Historique des consultations</h3>
         <div style="position: relative; padding-left: 26px; margin-bottom: 18px;">
           <div style="position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: #E4E4F2;"></div>
-          <!-- consultation 1 -->
-          <div style="position: relative; margin-bottom: 18px;">
-            <span style="position: absolute; left: -26px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #003FB1; border: 3px solid #fff; box-shadow: 0 0 0 2px #003FB1;"></span>
-            <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; padding: 18px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
-                <div><div style="font-size: 1rem; font-weight: 800; color: #0A2463;">Dr Marc Ntolo</div><div style="font-size: 0.78rem; font-weight: 600; color: #434654;">Cardiologie</div></div>
-                <span style="font-size: 0.74rem; font-weight: 700; color: #9498a8;">14/06/2026 · 14h30</span>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div style="background: #F3F3FE; border-radius: 12px; padding: 12px 14px;"><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 3px;">Motif</div><div style="font-size: 0.85rem; font-weight: 600; color: #191B23;">Suivi de tension artérielle</div></div>
-                <div style="background: rgba(0,201,167,0.08); border-radius: 12px; padding: 12px 14px;"><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #00875f; margin-bottom: 3px;">Diagnostic</div><div style="font-size: 0.85rem; font-weight: 600; color: #06352c;">Hypertension stade 1, bien contrôlée</div></div>
-                <div style="background: #F3F3FE; border-radius: 12px; padding: 12px 14px;"><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 3px;">Traitement</div><div style="font-size: 0.85rem; font-weight: 600; color: #191B23;">Amlodipine 5 mg — 1 comprimé/jour</div></div>
-                <div style="border: 1px solid #EDEDF8; border-radius: 12px; padding: 12px 14px;"><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 6px;">Ordonnance</div><div style="display: flex; align-items: center; gap: 8px;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 18px;">medication</span><span style="font-size: 0.85rem; font-weight: 600; color: #191B23;">Amlodipine 5 mg · 30 comprimés</span></div></div>
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid #EDEDF8; border-radius: 12px; padding: 12px 14px;"><div style="display: flex; align-items: center; gap: 8px;"><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 18px;">science</span><span style="font-size: 0.85rem; font-weight: 600; color: #191B23;">Résultats labo disponibles</span></div><button onclick="{{ openLabRes }}" style="background: rgba(0,63,177,0.08); color: #003FB1; border: none; font-family: inherit; font-weight: 700; font-size: 0.76rem; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Voir</button></div>
+          <sc-for list="{{ timelineView }}" as="tl" hint-placeholder-count="2">
+            <div style="position: relative; margin-bottom: 18px;">
+              <span style="{{ tl.dotStyle }}"></span>
+              <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; padding: 18px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                  <div>
+                    <div style="font-size: 1rem; font-weight: 800; color: #0A2463;">{{ tl.doctor }}</div>
+                    <div style="font-size: 0.78rem; font-weight: 600; color: #434654;">{{ tl.specialty }}</div>
+                  </div>
+                  <span style="font-size: 0.74rem; font-weight: 700; color: #9498a8;">{{ tl.dateTxt }}</span>
+                </div>
+                <div style="{{ tl.motifStyle }}"><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 3px;">Motif</div><div style="font-size: 0.85rem; font-weight: 600; color: #191B23;">{{ tl.motif }}</div></div>
+                <div style="{{ tl.pendingStyle }}"><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 18px;">hourglass_top</span><span style="font-size: 0.82rem; font-weight: 600; color: #434654;">Consultation en attente de compte rendu</span></div>
               </div>
             </div>
-          </div>
-          <!-- consultation 2 -->
-          <div style="position: relative;">
-            <span style="position: absolute; left: -26px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #C3C5D7; border: 3px solid #fff; box-shadow: 0 0 0 2px #C3C5D7;"></span>
-            <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; padding: 18px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
-                <div><div style="font-size: 1rem; font-weight: 800; color: #0A2463;">Dr A. Loemba</div><div style="font-size: 0.78rem; font-weight: 600; color: #434654;">Médecine générale</div></div>
-                <span style="font-size: 0.74rem; font-weight: 700; color: #9498a8;">02/06/2026 · 10h00</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px; background: rgba(255,107,53,0.07); border-radius: 12px; padding: 12px 14px;"><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 18px;">hourglass_top</span><span style="font-size: 0.82rem; font-weight: 600; color: #434654;">Consultation en attente de compte rendu</span></div>
-            </div>
-          </div>
+          </sc-for>
+          <div style="{{ timelineEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucune consultation enregistrée</span></div>
         </div>
 
         <!-- member card -->
@@ -1647,7 +1654,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
       <!-- OFFRES ÉCLAIR -->
       <div style="background: #0A2463; border-radius: 24px; padding: 20px; margin-bottom: 28px;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; color: #FF6B35; font-size: 22px;">bolt</span><span style="font-size: 0.95rem; font-weight: 800; color: #fff;">OFFRES ÉCLAIR</span><span style="background: #BA1A1A; color: #fff; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 9999px; animation: livePulse 1.5s ease-in-out infinite;">3 disponibles</span></div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; color: #FF6B35; font-size: 22px;">bolt</span><span style="font-size: 0.95rem; font-weight: 800; color: #fff;">OFFRES ÉCLAIR</span><span style="{{ flashBadgeStyle }}">{{ flashCount }} disponibles</span></div>
         <div style="font-size: 0.78rem; font-weight: 500; color: rgba(255,255,255,0.5); margin-bottom: 16px;">Ces offres expirent ce soir à minuit.</div>
         <div class="hscroll" style="display: flex; gap: 14px; padding-bottom: 6px;">
           <dc-import name="FlashOffer" icon="smartphone" cat="Télécom" title="Crédit MTN 5 000F" old="700" now="500 pts" timer="{{ offerTxt }}" urgent="{{ offerUrgent }}" hint-size="230px,250px"></dc-import>
@@ -3109,7 +3116,56 @@ class Component extends DCLogic {
       constTraitements: (e) => this.constTraitements(e),
       constContactNom: (e) => this.constContactNom(e),
       constContactPhone: (e) => this.constContactPhone(e),
-      constContactLien: (e) => this.constContactLien(e)
+      constContactLien: (e) => this.constContactLien(e),
+
+      // BUG 7 — données dynamiques
+      zoraCashTxt: '—',
+      zoraResetLabel: (() => {
+        const now = new Date();
+        const m = now.getMonth();
+        const qEnd = new Date(now.getFullYear(), m < 3 ? 3 : m < 6 ? 6 : m < 9 ? 9 : 12, 1);
+        const diff = Math.ceil((qEnd - now) / 86400000);
+        const q = m < 3 ? 'Q1' : m < 6 ? 'Q2' : m < 9 ? 'Q3' : 'Q4';
+        return 'Trimestre ' + q + ' — remise à zéro dans ' + diff + ' jour' + (diff > 1 ? 's' : '');
+      })(),
+      chatBadge: '',
+      chatBadgeStyle: { display: 'none' },
+      flashCount: '3',
+      flashBadgeStyle: { background: '#BA1A1A', color: '#fff', fontSize: '0.6rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 10px', borderRadius: '9999px', animation: 'livePulse 1.5s ease-in-out infinite' },
+      leaderboardView: [],
+      leaderboardEmptyStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' },
+      ledgerView: (this._ledger || []).map(function(e, i, arr) {
+        var pos = (e.delta || 0) >= 0;
+        return {
+          rowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: i < arr.length - 1 ? '1px solid #EDEDF8' : 'none' },
+          iconWrap: { width: '34px', height: '34px', borderRadius: '50%', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: '0' },
+          icon: e.icon || (pos ? 'add_circle' : 'remove_circle'),
+          label: e.label || e.description || '—',
+          date: e.date || '',
+          delta: (pos ? '+' : '') + (e.delta || 0),
+          deltaStyle: { fontSize: '0.85rem', fontWeight: '800', color: pos ? '#00875f' : '#BA1A1A' }
+        };
+      }),
+      ledgerEmptyStyle: { display: (this._ledger && this._ledger.length) ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' },
+      accessLogView: [],
+      accessLogEmptyStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' },
+      timelineView: [],
+      timelineEmptyStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' },
+      toastEncourager: () => this.showToast('Classement bientôt disponible'),
+
+      // BUG 8 — boutons morts → toasts contextuels
+      toastActivite: () => this.showToast('Suivi d\'activité bientôt disponible'),
+      toastSommeil: () => this.showToast('Suivi du sommeil bientôt disponible'),
+      toastNutrition: () => this.showToast('Suivi nutrition bientôt disponible'),
+      toastHydratation: () => this.showToast('Suivi hydratation bientôt disponible'),
+      toastCreerGroupe: () => this.showToast('Création de groupe bientôt disponible'),
+      toastChat: () => this.showToast('Chat bientôt disponible'),
+      toastConvertir: () => this.showToast('Conversion Zora Cash bientôt disponible'),
+      toastPdf: () => this.showToast('Téléchargement PDF bientôt disponible'),
+      toastPartenaire: () => this.showToast('Bientôt disponible'),
+      toastReserver: () => this.showToast('Réservation bientôt disponible'),
+      toastPlanifier: () => this.showToast('Planification bientôt disponible'),
+      toastWhatsapp: () => this.showToast('Parrainage WhatsApp bientôt disponible')
     };
   }
 }
