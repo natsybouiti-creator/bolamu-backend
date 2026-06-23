@@ -2303,7 +2303,7 @@ class Component extends DCLogic {
             id: rw.id,
             name: rw.title,
             cost: rw.points_cost,
-            img: rw.logo_path || '/images/landing/zora-mtn.png',
+            img: rw.logo_path || this.rewardImgFallback(rw.category || rw.cat),
             seed: 'rw' + rw.id,
             cat: rw.category || rw.cat || 'tout'
           }));
@@ -2314,9 +2314,12 @@ class Component extends DCLogic {
         this.rewards = [
           { name: 'Crédit MTN 5 000F', cost: 500, img: '/images/landing/zora-mtn.png', seed: 'mtn', cat: 'Télécom' },
           { name: 'Data Airtel 1Go', cost: 300, img: '/images/landing/zora-airtel.jpg', seed: 'airtel', cat: 'Télécom' },
-          { name: 'Bon pharmacie Daffé', cost: 250, img: '/images/landing/daffe.png', seed: 'daffe', cat: 'Beauté' },
-          { name: 'Plein essence 30L', cost: 800, img: '/images/landing/zora-station.png', seed: 'station', cat: 'Carburant' },
-          { name: 'Abonnement salle sport', cost: 1200, img: '/images/landing/zora-salle-sport.jpg', seed: 'salle', cat: 'Sport' }
+          { name: 'Bon pharmacie Daffé', cost: 250, img: '/images/landing/daffe.png', seed: 'daffe', cat: 'Santé' },
+          { name: 'Plein essence 30L', cost: 800, img: '/images/landing/station.png', seed: 'station', cat: 'Carburant' },
+          { name: 'Abonnement salle sport', cost: 1200, img: '/images/landing/salledesport.jpg', seed: 'salle', cat: 'Sport' },
+          { name: 'Vol ASKY BZV-PNR', cost: 2000, img: '/images/landing/zora-asky.png', seed: 'asky', cat: 'Voyage' },
+          { name: 'Nuitée Hilton PNR', cost: 2500, img: '/images/landing/zora-hilton-pnr.png', seed: 'hilton', cat: 'Hôtels' },
+          { name: 'Salon beauté', cost: 900, img: '/images/landing/zora-salon-beaute.png', seed: 'beaute', cat: 'Beauté' }
         ];
         this._rewardsLoaded = true;
         this.setState({});
@@ -2647,6 +2650,19 @@ class Component extends DCLogic {
     this.setState({ toast: msg });
     if (this._toastT) clearTimeout(this._toastT);
     this._toastT = setTimeout(() => this.setState({ toast: null }), 2800);
+  }
+
+  rewardImgFallback(cat) {
+    const map = {
+      'Télécom': '/images/landing/zora-mtn.png',
+      'Carburant': '/images/landing/station.png',
+      'Sport': '/images/landing/salledesport.jpg',
+      'Voyage': '/images/landing/zora-asky.png',
+      'Hôtels': '/images/landing/zora-hilton-pnr.png',
+      'Beauté': '/images/landing/zora-salon-beaute.png',
+      'Santé': '/images/landing/daffe.png'
+    };
+    return map[cat] || '/images/landing/zora-mtn.png';
   }
 
   logout() {
