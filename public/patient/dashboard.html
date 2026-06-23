@@ -1635,14 +1635,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <button onclick="{{ goGagner }}" style="display: inline-flex; align-items: center; gap: 6px; background: none; border: none; color: #003FB1; font-family: inherit; font-weight: 700; font-size: 0.82rem; cursor: pointer; padding: 0; margin-bottom: 28px;">Pas de partie gratuite&nbsp;? Complétez un défi santé pour en gagner une<span class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span></button>
 
       <div class="hscroll" style="display: flex; gap: 8px; padding-bottom: 8px; margin-bottom: 24px;">
-        <button style="flex: 0 0 auto; background: #003FB1; color: #fff; border: none; padding: 9px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Tout</button>
-        <button style="flex: 0 0 auto; background: #EDEDF8; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Électronique</button>
-        <button style="flex: 0 0 auto; background: #EDEDF8; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Voyage</button>
-        <button style="flex: 0 0 auto; background: #EDEDF8; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Télécom</button>
-        <button style="flex: 0 0 auto; background: #EDEDF8; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Hôtels</button>
-        <button style="flex: 0 0 auto; background: #EDEDF8; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Sport</button>
-        <button style="flex: 0 0 auto; background: #EDEDF8; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Beauté</button>
-        <button style="flex: 0 0 auto; background: #EDEDF8; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Carburant</button>
+        <button onclick="{{ filterCatTout }}" style="{{ chipCatTout }}">Tout</button>
+        <button onclick="{{ filterCatElec }}" style="{{ chipCatElec }}">Électronique</button>
+        <button onclick="{{ filterCatVoyage }}" style="{{ chipCatVoyage }}">Voyage</button>
+        <button onclick="{{ filterCatTelecom }}" style="{{ chipCatTelecom }}">Télécom</button>
+        <button onclick="{{ filterCatHotels }}" style="{{ chipCatHotels }}">Hôtels</button>
+        <button onclick="{{ filterCatSport }}" style="{{ chipCatSport }}">Sport</button>
+        <button onclick="{{ filterCatBeaute }}" style="{{ chipCatBeaute }}">Beauté</button>
+        <button onclick="{{ filterCatCarburant }}" style="{{ chipCatCarburant }}">Carburant</button>
       </div>
 
       <!-- OFFRES ÉCLAIR -->
@@ -1919,7 +1919,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 <script type="text/x-dc" data-dc-script="">
 class Component extends DCLogic {
   state = {
-    panel: 'accueil', suivreTab: 'zora', gagnerTab: 'sport', rewardIdx: 0,
+    panel: 'accueil', suivreTab: 'zora', gagnerTab: 'sport', rewardIdx: 0, filterCategorie: 'tout',
     chatOpen: false, chatTab: 'communaute', profileOpen: false,
     modal: false, editConst: false, qrUrg: false, labRes: false,
     rdvDoctorId: '', rdvDate: '', rdvSlot: '', rdvBooking: false,
@@ -2183,7 +2183,8 @@ class Component extends DCLogic {
             name: rw.title,
             cost: rw.points_cost,
             img: rw.logo_path || '/images/landing/zora-mtn.png',
-            seed: 'rw' + rw.id
+            seed: 'rw' + rw.id,
+            cat: rw.category || rw.cat || 'tout'
           }));
           this.setState({});
         }
@@ -2232,11 +2233,11 @@ class Component extends DCLogic {
     this.wheelColors = ['#003FB1', '#0A2463', '#003FB1', '#F5A623', '#003FB1', '#0A2463', '#003FB1', '#00C9A7'];
     this.quizData = { pilier: 'Nutrition', q: 'Combien de verres d\'eau faut-il boire en moyenne par jour ?', options: ['1 à 2 verres', '3 à 4 verres', '6 à 8 verres', 'Plus de 15 verres'], answer: 2, feedbackOk: 'Bonne réponse ! 6 à 8 verres (1,5 à 2 L) par jour sont recommandés. +25 Zora.', feedbackNo: 'La bonne réponse était 6 à 8 verres par jour. Réessayez demain !' };
     this.rewards = [
-      { name: 'Crédit MTN 5 000F', cost: 500, img: '/images/landing/zora-mtn.png', seed: 'mtn' },
-      { name: 'Data Airtel 1Go', cost: 300, img: '/images/landing/zora-airtel.jpg', seed: 'airtel' },
-      { name: 'Bon pharmacie Daffé', cost: 250, img: '/images/landing/daffe.png', seed: 'daffe' },
-      { name: 'Plein essence 30L', cost: 800, img: '/images/landing/zora-station.png', seed: 'station' },
-      { name: 'Abonnement salle sport', cost: 1200, img: '/images/landing/zora-salle-sport.jpg', seed: 'salle' }
+      { name: 'Crédit MTN 5 000F', cost: 500, img: '/images/landing/zora-mtn.png', seed: 'mtn', cat: 'Télécom' },
+      { name: 'Data Airtel 1Go', cost: 300, img: '/images/landing/zora-airtel.jpg', seed: 'airtel', cat: 'Télécom' },
+      { name: 'Bon pharmacie Daffé', cost: 250, img: '/images/landing/daffe.png', seed: 'daffe', cat: 'Beauté' },
+      { name: 'Plein essence 30L', cost: 800, img: '/images/landing/zora-station.png', seed: 'station', cat: 'Carburant' },
+      { name: 'Abonnement salle sport', cost: 1200, img: '/images/landing/zora-salle-sport.jpg', seed: 'salle', cat: 'Sport' }
     ];
     this.etabs = [
       { id: 'p1', name: 'Clinique El Rapha', type: 'clinique', addr: 'Centre-ville, Brazzaville', lat: -4.2710, lng: 15.2620, tel: '+242060000001', partner: true, icon: 'local_hospital' },
@@ -2845,7 +2846,8 @@ class Component extends DCLogic {
     }
 
     const rewards = this.rewards || [];
-    const affordable = rewards.filter((r) => r.cost <= s.zora);
+    const fc = s.filterCategorie || 'tout';
+    const affordable = rewards.filter((r) => r.cost <= s.zora && (fc === 'tout' || r.cat === fc));
     const rIdx = affordable.length ? (s.rewardIdx % affordable.length) : 0;
     const curR = affordable[rIdx] || null;
     const rewardDots = affordable.map((r, i) => ({ style: { width: '6px', height: '6px', borderRadius: '50%', background: i === rIdx ? '#003FB1' : '#D5D8E8', transition: 'background 0.3s ease' } }));
@@ -2858,6 +2860,8 @@ class Component extends DCLogic {
       imgEl: React.createElement('div', { style: { width: '100%', height: '100%', backgroundImage: 'url("' + r.img + '")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#EDEDF8' } })
     }));
     const rewardBandStyle = { display: affordable.length ? 'block' : 'none', marginTop: '0' };
+    const chipBase = { flex: '0 0 auto', border: 'none', padding: '9px 18px', borderRadius: '9999px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' };
+    const chip = (cat) => Object.assign({}, chipBase, { background: fc === cat ? '#003FB1' : '#EDEDF8', color: fc === cat ? '#fff' : '#434654' });
 
     const ring = 188.5 * (1 - Math.min(1, s.steps / 10000));
 
@@ -2999,6 +3003,17 @@ class Component extends DCLogic {
       stepRingOffset: ring.toFixed(1),
       affordableView: affordableView,
       rewardBandStyle: rewardBandStyle,
+      chipCatTout: chip('tout'), chipCatElec: chip('Électronique'), chipCatVoyage: chip('Voyage'),
+      chipCatTelecom: chip('Télécom'), chipCatHotels: chip('Hôtels'), chipCatSport: chip('Sport'),
+      chipCatBeaute: chip('Beauté'), chipCatCarburant: chip('Carburant'),
+      filterCatTout: () => this.setState({ filterCategorie: 'tout' }),
+      filterCatElec: () => this.setState({ filterCategorie: 'Électronique' }),
+      filterCatVoyage: () => this.setState({ filterCategorie: 'Voyage' }),
+      filterCatTelecom: () => this.setState({ filterCategorie: 'Télécom' }),
+      filterCatHotels: () => this.setState({ filterCategorie: 'Hôtels' }),
+      filterCatSport: () => this.setState({ filterCategorie: 'Sport' }),
+      filterCatBeaute: () => this.setState({ filterCategorie: 'Beauté' }),
+      filterCatCarburant: () => this.setState({ filterCategorie: 'Carburant' }),
       rdvDoctorsView: rdvDoctorsView,
       rdvSlotsView: rdvSlotsView,
       rdvSelectDoctor: (e) => this.rdvSelectDoctor(e),
