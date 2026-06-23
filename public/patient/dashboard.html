@@ -1692,12 +1692,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 18px; text-align: center;"><div style="font-size: 1.6rem; font-weight: 800; color: #0A2463;">{{ eventsCount }}</div><div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #434654; margin-top: 4px;">Événements</div></div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px; max-width: 560px;">
-        <dc-import name="SettingRow" icon="person" label="Mes informations" hint-size="100%,56px"></dc-import>
-        <dc-import name="SettingRow" icon="notifications" label="Notifications" hint-size="100%,56px"></dc-import>
-        <dc-import name="SettingRow" icon="shield" label="Confidentialité &amp; données" hint-size="100%,56px"></dc-import>
-        <dc-import name="SettingRow" icon="account_balance_wallet" label="Moyens de paiement (MoMo)" hint-size="100%,56px"></dc-import>
-        <dc-import name="SettingRow" icon="translate" label="Langue (FR / Lingala)" hint-size="100%,56px"></dc-import>
-        <dc-import name="SettingRow" icon="logout" label="Déconnexion" danger="{{ true }}" hint-size="100%,56px"></dc-import>
+        <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="person" label="Mes informations" hint-size="100%,56px"></dc-import></div>
+        <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="notifications" label="Notifications" hint-size="100%,56px"></dc-import></div>
+        <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="shield" label="Confidentialité &amp; données" hint-size="100%,56px"></dc-import></div>
+        <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="account_balance_wallet" label="Moyens de paiement (MoMo)" hint-size="100%,56px"></dc-import></div>
+        <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="translate" label="Langue (FR / Lingala)" hint-size="100%,56px"></dc-import></div>
+        <div onclick="{{ logout }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="logout" label="Déconnexion" danger="{{ true }}" hint-size="100%,56px"></dc-import></div>
       </div>
     </section>
   </main>
@@ -2392,6 +2392,15 @@ class Component extends DCLogic {
     this._toastT = setTimeout(() => this.setState({ toast: null }), 2800);
   }
 
+  logout() {
+    localStorage.clear();
+    window.location.href = '/patient/login.html';
+  }
+
+  comingSoon() {
+    this.showToast('Bientôt disponible');
+  }
+
   addZora(n) { this.setState((s) => ({ zora: s.zora + n })); }
 
   openGame(type) {
@@ -3044,7 +3053,9 @@ class Component extends DCLogic {
       closeQrUrg: () => this.setState({ qrUrg: false }),
       openLabRes: () => this.setState({ labRes: true }),
       closeLabRes: () => this.setState({ labRes: false }),
-      stop: (e) => e.stopPropagation()
+      stop: (e) => e.stopPropagation(),
+      logout: () => this.logout(),
+      comingSoon: () => this.comingSoon()
     };
   }
 }
