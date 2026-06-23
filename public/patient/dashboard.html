@@ -1978,6 +1978,7 @@ class Component extends DCLogic {
       .then(d => {
         if (d.success && d.data) {
           const pts = d.data.points || d.data.balance || 0;
+          this._zoraBalance = pts;
           if (!this.reduce) {
             const dur = 1200, start = performance.now();
             const tick = (t) => {
@@ -2854,7 +2855,8 @@ class Component extends DCLogic {
 
     const rewards = this.rewards || [];
     const fc = s.filterCategorie || 'tout';
-    const affordable = rewards.filter((r) => r.cost <= s.zora && (fc === 'tout' || r.cat === fc));
+    const zoraBalance = this._zoraBalance !== undefined ? this._zoraBalance : s.zora;
+    const affordable = rewards.filter((r) => r.cost <= zoraBalance && (fc === 'tout' || r.cat === fc));
     const rIdx = affordable.length ? (s.rewardIdx % affordable.length) : 0;
     const curR = affordable[rIdx] || null;
     const rewardDots = affordable.map((r, i) => ({ style: { width: '6px', height: '6px', borderRadius: '50%', background: i === rIdx ? '#003FB1' : '#D5D8E8', transition: 'background 0.3s ease' } }));
