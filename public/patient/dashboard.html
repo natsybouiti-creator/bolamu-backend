@@ -2303,7 +2303,7 @@ class Component extends DCLogic {
             id: rw.id,
             name: rw.title,
             cost: rw.points_cost,
-            img: (rw.logo_path && rw.logo_path.startsWith('/images/')) ? rw.logo_path : this.rewardImgFallback(rw.category || rw.cat),
+            img: this.rewardImgByTitle(rw.title || rw.name || '', rw.category || rw.cat),
             seed: 'rw' + rw.id,
             cat: rw.category || rw.cat || 'tout'
           }));
@@ -2663,6 +2663,21 @@ class Component extends DCLogic {
       'Santé': '/images/landing/daffe.png'
     };
     return map[cat] || '/images/landing/zora-mtn.png';
+  }
+
+  rewardImgByTitle(title, cat) {
+    const t = (title || '').toLowerCase();
+    if (t.includes('mtn')) return '/images/landing/zora-mtn.png';
+    if (t.includes('airtel')) return '/images/landing/zora-airtel.jpg';
+    if (t.includes('daff') || t.includes('pharmacie')) return '/images/landing/daffe.png';
+    if (t.includes('essence') || t.includes('carburant') || t.includes('station')) return '/images/landing/station.png';
+    if (t.includes('salle') || t.includes('sport') || t.includes('gym')) return '/images/landing/salledesport.jpg';
+    if (t.includes('asky') || t.includes('vol') || t.includes('avion')) return '/images/landing/zora-asky.png';
+    if (t.includes('hilton') || t.includes('hotel') || t.includes('nuit')) return '/images/landing/zora-hilton-pnr.png';
+    if (t.includes('salon') || t.includes('beaut')) return '/images/landing/zora-salon-beaute.png';
+    if (t.includes('airfrance') || t.includes('air france')) return '/images/landing/zora-airfrance.png';
+    if (t.includes('retrait') || t.includes('momo') || t.includes('cash')) return '/images/landing/zora-retrait-momo.png';
+    return this.rewardImgFallback(cat);
   }
 
   logout() {
