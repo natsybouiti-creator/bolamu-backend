@@ -141,6 +141,7 @@ const zoraRoutes           = require('./routes/zora.routes');
 const zoraMarketplaceRoutes = require('./routes/zora-marketplace.routes');
 const zoraGamesRoutes       = require('./routes/zora-games.routes');
 const sportGroupsRoutes     = require('./routes/sport-groups.routes');
+const wellnessRoutes        = require('./routes/wellness.routes');
 const chatRoutes            = require('./routes/chat.routes');
 
 // Routes BHP (Bolamu Health Data Protocol)
@@ -193,6 +194,7 @@ app.use('/api/v1/events',       require('./routes/elonga-events.routes'));
 app.use('/api/v1/leaderboard',  require('./routes/leaderboard.routes'));
 app.use('/api/v1/streaks',      require('./routes/streak.routes'));
 app.use('/api/v1/chat',         chatRoutes);
+app.use('/api/v1/wellness',     wellnessRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/push',         pushRoutes);
 app.use('/api/v1/secretariat',  secretariatRoutes);
