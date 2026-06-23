@@ -1462,8 +1462,8 @@ function renderSportChallenges() {
 }
 
 // ── MODALS ──
-function openModal(id) { document.getElementById(id)?.classList.add('open'); }
-function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+function openModal(id) { const el = document.getElementById(id); if (el) { el.classList.add('open'); el.style.display = 'flex'; } }
+function closeModal(id) { const el = document.getElementById(id); if (el) { el.classList.remove('open'); el.style.display = 'none'; } }
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); });
 });
