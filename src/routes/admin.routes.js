@@ -1371,6 +1371,11 @@ router.patch('/doctors/:phone/rehabilitate', authMiddleware, adminOnly, async (r
 // ============================================================
 // DIAGNOSTIC TEMPORAIRE — À SUPPRIMER APRÈS TEST
 // ============================================================
+
+// Clé secrète temporaire pour diagnostic (à retirer après test)
+const DIAG_KEY = 'BOLAMU_DIAG_2024_XK9M2P4Q7R';
+
+// GET : Tester validité token
 router.get('/diagnostics/whatsapp-token', authMiddleware, adminOnly, async (req, res) => {
     try {
         const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -1417,6 +1422,87 @@ router.get('/diagnostics/whatsapp-token', authMiddleware, adminOnly, async (req,
             token_valid: false,
             meta_message: `Erreur réseau: ${error.message}`,
             phone_info: null
+        });
+    }
+});
+
+// POST : Envoyer message test WhatsApp (avec clé secrète query string)
+router.post('/diagnostics/whatsapp-send-test', async (req, res) => {
+    try {
+        const { diag_key } = req.query;
+
+        if (diag_key !== DIAG_KEY) {
+            return res.status(403).json({ success: false, message: 'Clé diagnostique invalide' });
+        }
+
+        const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+        const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+        if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+            return res.json({
+                success: false,
+                meta_http_status: 0,
+                meta_response: null,
+                template_used: null,
+                error: 'WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_NUMBER_ID non configuré'
+            });
+        }
+
+        const testPhone = '242069735418'; // +242 06 973 54 18 (fondateur)
+        const templateName = 'bolamu_code_acces'; // Template existant et approuvé
+        const testCode = 'TEST123'; // Code de test
+
+        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+        
+        const body = {
+            messaging_product: 'whatsapp',
+            to: testPhone,
+            type: 'template',
+            template: {
+                name: templateName,
+                language: { code: 'fr' },
+                components: [
+                    {
+                        type: 'body',
+                        parameters: [{ type: 'text', text: testCode }]
+                    },
+                    {
+                        type: 'button',
+                        sub_type: 'url',
+                        index: '0',
+                        parameters: [{ type: 'text', text: testCode }]
+                    }
+                ]
+            }
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        const statusCode = response.status;
+        const data = await response.json();
+
+        res.json({
+            success: statusCode === 200,
+            meta_http_status: statusCode,
+            meta_response: data,
+            template_used: templateName,
+            test_phone: testPhone,
+            error: statusCode !== 200 ? data.error?.message || 'Erreur inconnue' : null
+        });
+    } catch (error) {
+        res.json({
+            success: false,
+            meta_http_status: 0,
+            meta_response: null,
+            template_used: null,
+            error: `Erreur réseau: ${error.message}`
         });
     }
 });
