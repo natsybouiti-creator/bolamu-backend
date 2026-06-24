@@ -414,7 +414,7 @@ async function notifyEventRegistration(patient_phone, event, session_code) {
         // INSERT dans notifications avec canal='whatsapp'
         await pool.query(`
             INSERT INTO notifications (user_phone, type, titre, message, data, canal, is_read, sent_at, created_at)
-            VALUES ($1, 'event_registration', $2, $3, $4, 'whatsapp', FALSE, NOW(), NOW())
+            VALUES ($1, 'whatsapp_message', $2, $3, $4, 'whatsapp', FALSE, NOW(), NOW())
         `, [patient_phone, `Inscription: ${event.title}`, message, JSON.stringify({ event_id: event.id, session_code })]);
 
         return true;
