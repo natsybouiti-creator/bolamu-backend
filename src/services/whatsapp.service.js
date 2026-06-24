@@ -12,19 +12,19 @@ const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 // Templates WhatsApp
 const WHATSAPP_TEMPLATES = {
     rdv_confirmation: {
-        name: 'rdv_confirmation',
+        name: 'bolamu_rdv_confirme', // Corrigé : correspond au template Meta APPROVED
         language: 'fr'
     },
     paiement_confirme: {
-        name: 'paiement_confirme',
+        name: 'paiement_confirme', // TODO: vérifier nom Meta (n'existe pas dans la liste actuelle)
         language: 'fr'
     },
     rappel_rdv: {
-        name: 'rappel_rdv',
+        name: 'bolamu_rdv_rappel', // Corrigé : correspond au template Meta APPROVED (pas rappel_rdv_24h)
         language: 'fr'
     },
     abonnement_expire: {
-        name: 'abonnement_expire',
+        name: 'bolamu_abonnement_expire', // Corrigé : correspond au template Meta APPROVED
         language: 'fr'
     },
     bolamu_magic_link: {

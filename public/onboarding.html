@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Bolamu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #FAF8FF;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 24px rgba(10, 36, 99, 0.08);
+            text-align: center;
+        }
+        
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #E8E4F5;
+            border-top-color: #0A2463;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .title {
+            color: #0A2463;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .subtitle {
+            color: #6B7280;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 32px;
+        }
+        
+        .error {
+            color: #DC2626;
+            font-size: 14px;
+            margin-bottom: 24px;
+            padding: 12px;
+            background: #FEF2F2;
+            border-radius: 8px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #0A2463;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #081D52;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading">
+            <div class="loader"></div>
+            <h1 class="title">Connexion en cours...</h1>
+            <p class="subtitle">Veuillez patienter pendant que nous sécurisons votre session.</p>
+        </div>
+        
+        <div id="error" class="hidden">
+            <div class="error" id="errorMessage"></div>
+            <h1 class="title">Lien invalide</h1>
+            <p class="subtitle">Ce lien de connexion est invalide ou a expiré.</p>
+            <a href="/" class="btn">Retour à l'accueil</a>
+        </div>
+    </div>
+
+    <script>
+        const token = new URLSearchParams(window.location.search).get('token');
+        
+        if (!token) {
+            showError('Lien invalide : aucun token trouvé.');
+        } else {
+            validateToken(token);
+        }
+        
+        async function validateToken(token) {
+            try {
+                const response = await fetch(`/api/v1/auth/onboarding/${token}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('bolamu_patient_token', data.token);
+                    localStorage.setItem('bolamu_patient_phone', data.user.phone);
+                    localStorage.setItem('bolamu_patient_role', data.user.role);
+                    
+                    if (data.user.role === 'patient') {
+                        window.location.href = '/patient/dashboard.html';
+                    } else if (data.user.role === 'doctor') {
+                        window.location.href = '/doctor/dashboard.html';
+                    } else if (data.user.role === 'pharmacie') {
+                        window.location.href = '/pharmacie/dashboard.html';
+                    } else if (data.user.role === 'laboratoire') {
+                        window.location.href = '/laboratoire/dashboard.html';
+                    } else {
+                        window.location.href = '/';
+                    }
+                } else {
+                    showError(data.message || 'Lien invalide ou expiré');
+                }
+            } catch (error) {
+                showError('Erreur de connexion au serveur. Veuillez réessayer.');
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+        }
+    </script>
+</body>
+</html>

@@ -5,6 +5,19 @@ const pool = require('../config/db');
 const { awardZora } = require('./zora.service');
 const { sendWhatsAppTemplate } = require('./whatsapp.service');
 
+// Fonctions utilitaires pour les dates
+function formatDate(isoDate) {
+  return new Date(isoDate).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+}
+
+function formatTime(isoDate) {
+  return new Date(isoDate).toLocaleTimeString('fr-FR', {
+    hour: '2-digit', minute: '2-digit'
+  }).replace(':', 'h');
+}
+
 /**
  * Inscrire un patient à un événement
  * @param {Object} params - { phone, event_id }
@@ -57,6 +70,26 @@ async function registerForEvent({ phone, event_id }) {
     );
     
     await client.query('COMMIT');
+    
+    // Envoyer WhatsApp confirmation inscription (non bloquant)
+    try {
+      const userResult = await pool.query(
+        `SELECT first_name FROM users WHERE phone = $1`,
+        [phone]
+      );
+      const prenom = userResult.rows[0]?.first_name || '';
+      
+      await sendWhatsAppTemplate(phone, 'confirmation_checkin', [
+        prenom,                                    // {{1}} prénom
+        event.title,                               // {{2}} nom événement
+        event.location_name,                       // {{3}} lieu
+        formatDate(event.starts_at),              // {{4}} date
+        formatTime(event.starts_at)               // {{5}} heure
+      ]);
+    } catch (whatsappErr) {
+      console.error('[ELONGA] Erreur envoi WhatsApp inscription:', whatsappErr);
+      // Ne pas bloquer si WhatsApp échoue
+    }
     
     // Calculer places restantes
     const placesRestantes = event.max_participants !== null 
@@ -239,6 +272,20 @@ async function processCheckin({ token, organizer_phone }) {
       [tokenData.registration_id]
     );
     
+    // === WHATSAPP zora_event_checkin — activer dès approbation Meta ===
+    // const zoraBalance = await pool.query(
+    //   `SELECT balance FROM zora_points WHERE phone = $1`,
+    //   [tokenData.phone]
+    // );
+    // const solde = zoraBalance.rows[0]?.balance || 0;
+    // await sendWhatsAppTemplate(tokenData.phone, 'zora_event_checkin', [
+    //   tokenData.first_name || tokenData.name,        // {{1}} prénom
+    //   tokenData.event_title,                          // {{2}} nom événement
+    //   String(tokenData.zora_reward),                  // {{3}} points gagnés
+    //   String(solde),                                   // {{4}} solde total
+    // ]);
+    // === FIN zora_event_checkin ===
+    
     await client.query('COMMIT');
     
     // Envoyer WhatsApp confirmation check-in (non bloquant)
@@ -257,6 +304,8 @@ async function processCheckin({ token, organizer_phone }) {
         );
         const prenom = userResult.rows[0]?.first_name || '';
         
+        // TODO: créer le template zora_event_checkin dans Meta (AUTHENTICATION/UTILITY)
+        // pour l'instant, utiliser confirmation_checkin qui existe déjà
         await sendWhatsAppTemplate(tokenData.phone, 'confirmation_checkin', [
           tokenData.event_title,
           tokenData.zora_reward.toString(),

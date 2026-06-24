@@ -401,12 +401,11 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
 
     await client.query('COMMIT');
 
-    // Envoyer bienvenue + mot de passe par WhatsApp
+    // Envoyer bienvenue + magic link par WhatsApp
     try {
       await sendWhatsAppTemplate(phone, 'bolamu_bienvenue_patient_v4', [`${prenom} ${nom}`.trim()]);
-      await sendWhatsAppTemplate(phone, 'bolamu_code_acces', [tempPassword]);
     } catch (whatsappError) {
-      console.warn('[WhatsApp] Envoi bienvenue/mot de passe échoué (non bloquant)', { phone, error: whatsappError.message });
+      console.warn('[WhatsApp] Envoi bienvenue échoué (non bloquant)', { phone, error: whatsappError.message });
     }
     await sendOnboardingLink(phone, `${prenom} ${nom}`.trim(), 'patient');
     res.json({
