@@ -84,7 +84,7 @@ async function registerPatient(patient_phone, event_id) {
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_id, payload)
-       VALUES ('event_registration', $1, $2, $3)`,
+       VALUES ('event_registration', $1, $2, $3::jsonb)`,
       [normalizedPhone, registration_id, JSON.stringify({ event_id, session_code })]
     );
     
@@ -208,7 +208,7 @@ async function checkinPatient(qr_token, animateur_phone, event_id) {
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_id, payload)
-       VALUES ('event_checkin', $1, $2, $3)`,
+       VALUES ('event_checkin', $1, $2, $3::jsonb)`,
       [normalizedAnimateur, registration.id, JSON.stringify({ event_id, method: 'qr_scan' })]
     );
     
@@ -304,7 +304,7 @@ async function checkinByCode(session_code, animateur_phone, event_id) {
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_id, payload)
-       VALUES ('event_checkin', $1, $2, $3)`,
+       VALUES ('event_checkin', $1, $2, $3::jsonb)`,
       [normalizedAnimateur, registration.id, JSON.stringify({ event_id, method: 'code_manual' })]
     );
     
@@ -443,7 +443,7 @@ async function publishEvent(event_id, admin_phone) {
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_id, payload)
-       VALUES ('event_publish', $1, $2, $3)`,
+       VALUES ('event_publish', $1, $2, $3::jsonb)`,
       [normalizedAdmin, event_id, JSON.stringify({ event_id })]
     );
     
@@ -506,7 +506,7 @@ async function createEvent(data, creator_phone) {
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_id, payload)
-       VALUES ('event_create', $1, $2, $3)`,
+       VALUES ('event_create', $1, $2, $3::jsonb)`,
       [normalizedCreator, event_id, JSON.stringify({ title: data.title })]
     );
     
