@@ -23,7 +23,7 @@ const {
   getPendingEvents
 } = require('../services/event.service');
 const authMiddleware = require('../middleware/auth.middleware');
-const apiResponse = require('../utils/apiResponse');
+const { ok, err } = require('../utils/apiResponse');
 
 // PUBLICS
 router.get('/', getEvents);
@@ -38,12 +38,12 @@ router.post('/:id/register', authMiddleware, async (req, res) => {
   try {
     const result = await registerPatient(req.user.phone, req.params.id);
     if (result.success) {
-      res.json(apiResponse.success(result));
+      ok(res, result);
     } else {
-      res.status(400).json(apiResponse.error(result.error));
+      err(res, 400, result.error);
     }
   } catch (err) {
-    res.status(500).json(apiResponse.error(err.message));
+    err(res, 500, err.message);
   }
 });
 
@@ -51,9 +51,9 @@ router.post('/:id/register', authMiddleware, async (req, res) => {
 router.get('/my/registrations', authMiddleware, async (req, res) => {
   try {
     const registrations = await getPatientRegistrations(req.user.phone);
-    res.json(apiResponse.success(registrations));
+    ok(res, registrations);
   } catch (err) {
-    res.status(500).json(apiResponse.error(err.message));
+    err(res, 500, err.message);
   }
 });
 
@@ -71,16 +71,16 @@ router.post('/:id/checkin', authMiddleware, async (req, res) => {
     } else if (method === 'code_manual' && session_code) {
       result = await checkinByCode(session_code, req.user.phone, req.params.id);
     } else {
-      return res.status(400).json(apiResponse.error('Paramètres manquants : token ou session_code'));
+      return err(res, 400, 'Paramètres manquants : token ou session_code');
     }
     
     if (result.success) {
-      res.json(apiResponse.success(result));
+      ok(res, result);
     } else {
-      res.status(400).json(apiResponse.error(result.error));
+      err(res, 400, result.error);
     }
   } catch (err) {
-    res.status(500).json(apiResponse.error(err.message));
+    err(res, 500, err.message);
   }
 });
 
@@ -88,9 +88,9 @@ router.post('/:id/checkin', authMiddleware, async (req, res) => {
 router.get('/:id/registrations', authMiddleware, async (req, res) => {
   try {
     const result = await getEventRegistrations(req.params.id);
-    res.json(apiResponse.success(result));
+    ok(res, result);
   } catch (err) {
-    res.status(500).json(apiResponse.error(err.message));
+    err(res, 500, err.message);
   }
 });
 
@@ -103,12 +103,12 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const result = await createEventService(req.body, req.user.phone);
     if (result.success) {
-      res.json(apiResponse.success(result));
+      ok(res, result);
     } else {
-      res.status(400).json(apiResponse.error('Erreur création événement'));
+      err(res, 400, 'Erreur création événement');
     }
   } catch (err) {
-    res.status(500).json(apiResponse.error(err.message));
+    err(res, 500, err.message);
   }
 });
 
@@ -117,12 +117,12 @@ router.patch('/:id/publish', authMiddleware.requireAdmin, async (req, res) => {
   try {
     const result = await publishEvent(req.params.id, req.user.phone);
     if (result.success) {
-      res.json(apiResponse.success({ message: 'Événement publié' }));
+      ok(res, { message: 'Événement publié' });
     } else {
-      res.status(400).json(apiResponse.error(result.error));
+      err(res, 400, result.error);
     }
   } catch (err) {
-    res.status(500).json(apiResponse.error(err.message));
+    err(res, 500, err.message);
   }
 });
 
@@ -130,9 +130,9 @@ router.patch('/:id/publish', authMiddleware.requireAdmin, async (req, res) => {
 router.get('/admin/events/pending', authMiddleware.requireAdmin, async (req, res) => {
   try {
     const events = await getPendingEvents();
-    res.json(apiResponse.success(events));
+    ok(res, events);
   } catch (err) {
-    res.status(500).json(apiResponse.error(err.message));
+    err(res, 500, err.message);
   }
 });
 
