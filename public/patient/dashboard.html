@@ -2691,7 +2691,18 @@ class Component extends DCLogic {
       const d = await r.json();
       
       if (d.success) {
+        // Mise à jour events dans le state
         this.setState((s) => ({ events: s.events.map((e) => (e.dbId === id && !e.registered) ? Object.assign({}, e, { places: e.places + 1, registered: true }) : e) }));
+        // Mise à jour _eventsActivite et _eventsSante
+        if (this._eventsActivite) {
+          this._eventsActivite = this._eventsActivite.map((e) => 
+            e.id === id ? Object.assign({}, e, { registered: true }) : e);
+        }
+        if (this._eventsSante) {
+          this._eventsSante = this._eventsSante.map((e) => 
+            e.id === id ? Object.assign({}, e, { registered: true }) : e);
+        }
+        this.setState({});
         this.showToast('Inscription confirmée · +50 Zora après participation');
       } else {
         this.showToast(d.message || d.error || 'Inscription impossible', 'error');
