@@ -156,12 +156,16 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
       [phone, rule.points, rule.category, action_type, proof_class, proof_source, recording_method, proof_reference, expiresAt]
     );
     
-    // UPDATE zora_points
+    // UPDATE zora_points — balance TOUJOURS recalculé depuis ledger
     const pointsUpdate = await client.query(
       `INSERT INTO zora_points (phone, balance, total_earned, tier, last_activity_at, created_at, updated_at)
        VALUES ($1, $2, $3, 'kimia', NOW(), NOW(), NOW())
        ON CONFLICT (phone) DO UPDATE SET
-         balance = zora_points.balance + $2,
+         balance = (
+           SELECT COALESCE(SUM(points), 0) 
+           FROM zora_ledger 
+           WHERE phone = $1
+         ),
          total_earned = zora_points.total_earned + $3,
          last_activity_at = NOW(),
          updated_at = NOW()
@@ -375,10 +379,51 @@ async function getZoraEarnRules() {
   return result.rows;
 }
 
+/**
+ * Resynchroniser le balance Zora depuis le ledger pour un phone donné
+ * Utilisé pour corriger les incohérences de balance
+ */
+async function recalculateBalance(phone) {
+  try {
+    const ledgerSumResult = await pool.query(
+      `SELECT COALESCE(SUM(points), 0) as ledger_sum 
+       FROM zora_ledger 
+       WHERE phone = $1`,
+      [phone]
+    );
+    
+    const ledgerSum = parseInt(ledgerSumResult.rows[0].ledger_sum);
+    
+    const updateResult = await pool.query(
+      `UPDATE zora_points 
+       SET balance = $1, updated_at = NOW()
+       WHERE phone = $2
+       RETURNING *`,
+      [ledgerSum, phone]
+    );
+    
+    if (updateResult.rows.length === 0) {
+      // Créer le compte s'il n'existe pas
+      await pool.query(
+        `INSERT INTO zora_points (phone, balance, total_earned, tier, last_activity_at, created_at, updated_at)
+         VALUES ($1, $2, $2, 'kimia', NOW(), NOW(), NOW())`,
+        [phone, ledgerSum]
+      );
+    }
+    
+    console.log(`[ZORA] Balance resynchronisé pour ${phone}: ${ledgerSum} points`);
+    return { success: true, balance: ledgerSum };
+  } catch (error) {
+    console.error('[ZORA] Erreur recalculateBalance:', error.message);
+    throw error;
+  }
+}
+
 module.exports = {
   awardZora,
   getZoraBalance,
   getZoraLedger,
   getZoraTiers,
-  getZoraEarnRules
+  getZoraEarnRules,
+  recalculateBalance
 };
