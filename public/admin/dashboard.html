@@ -365,6 +365,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
     <button class="nav-btn" id="nav-clearing" data-panel="clearing"><span class="material-symbols-outlined" style="font-size:18px;">account_balance</span>Clearing CDR</button>
     <button class="nav-btn" id="nav-conflits" data-panel="conflits"><span class="material-symbols-outlined" style="font-size:18px;">gavel</span>Conflits</button>
     <button class="nav-btn" id="nav-smartflow" data-panel="smartflow"><span class="material-symbols-outlined" style="font-size:18px;">analytics</span>Smart Flow</button>
+    <button class="nav-btn" id="nav-events" data-panel="events"><span class="material-symbols-outlined" style="font-size:18px;">event</span>Événements<span class="nav-badge amber-b" id="bdg-events">0</span></button>
   </nav>
   <div class="sidebar-foot">
     <div class="user-row">
@@ -757,6 +758,51 @@ tr:hover td{background:rgba(255,255,255,.018);}
       </div>
     </div>
 
+    <!-- PANEL ÉVÉNEMENTS -->
+    <div id="panel-events" class="panel">
+      <div class="section-hd">
+        <div><h2>Événements</h2><p>Gestion des événements Elonga et check-ins</p></div>
+      </div>
+
+      <!-- SECTION A: ÉVÉNEMENTS EN ATTENTE DE VALIDATION -->
+      <div style="margin-bottom:32px">
+        <div class="section-hd">
+          <div><h3>En attente de validation</h3></div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-head">
+            <span class="tbl-title">Événements à valider</span>
+            <span class="tbl-count" id="events-pending-count">—</span>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Titre</th><th>Créateur</th><th>Date</th><th>Lieu</th><th>Capacité</th><th>Zora récompense</th><th>Pilier</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="tbody-events-pending"><div class="loading">Chargement...</div></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECTION B: TOUS LES ÉVÉNEMENTS PUBLIÉS -->
+      <div>
+        <div class="section-hd">
+          <div><h3>Événements publiés</h3></div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-head">
+            <span class="tbl-title">Tous les événements</span>
+            <span class="tbl-count" id="events-published-count">—</span>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Titre</th><th>Date</th><th>Lieu</th><th>Inscrits/Capacité</th><th>Présents</th><th>Statut</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="tbody-events-published"><div class="loading">Chargement...</div></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 
 <footer class="bg-brand-navy py-8 px-container-margin text-white">
@@ -845,7 +891,7 @@ function showBannerErr(msg){
 /* -----------------------------------
    NAVIGATION
 ----------------------------------- */
-const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits',smartflow:'Smart Flow'};
+const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits',smartflow:'Smart Flow',events:'Événements'};
 
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
@@ -872,7 +918,7 @@ function go(name){
   loadPanel(name);
 }
 function loadPanel(name){
-  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits,smartflow:loadSmartFlow};
+  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits,smartflow:loadSmartFlow,events:loadEvents};
   if(m[name])m[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
@@ -1277,6 +1323,81 @@ async function loadTransactions(){
     if(!rows.length){el.innerHTML='<tr><td colspan="6" class="empty">Aucune transaction</td></tr>';return;}
     el.innerHTML=rows.map(t=>`<tr><td>${t.company_name||''}</td><td>${t.employee_name||t.patient_phone||''}</td><td>${t.prestataire_type||''}<br><span style="font-size:10px;color:var(--muted)">${t.prestataire_phone||''}</span></td><td>${t.libelle||''}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fn(t.prix_plein)} F</td><td style="color:var(--muted)">${fs(t.created_at)}</td></tr>`).join('');
   }catch(e){el.innerHTML='<tr><td colspan="6" class="empty">Erreur</td></tr>';}
+}
+
+/* -----------------------------------
+   ÉVÉNEMENTS
+----------------------------------- */
+async function loadEvents(){
+  try{
+    // Charger les événements en attente
+    const pendingRes=await api('/admin/events/pending');
+    const pendingRows=pendingRes.data||[];
+    const pendingCount=document.getElementById('events-pending-count');
+    if(pendingCount)pendingCount.textContent=pendingRows.length+' événements';
+    const bdgEvents=document.getElementById('bdg-events');
+    if(bdgEvents)bdgEvents.textContent=pendingRows.length;
+    
+    const pendingEl=document.getElementById('tbody-events-pending');
+    if(!pendingRows.length){
+      pendingEl.innerHTML='<tr><td colspan="8" class="empty">Aucun événement en attente</td></tr>';
+    }else{
+      pendingEl.innerHTML=pendingRows.map(e=>`<tr><td style="font-weight:500">${e.title||''}</td><td>${e.creator_phone||''}</td><td style="color:var(--muted)">${fs(e.event_date)}</td><td>${e.location||''}</td><td style="font-family:'JetBrains Mono',monospace">${e.capacity||0}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${e.zora_reward||0} Z</td><td>${e.pillar||''}</td><td class="acts"><button class="ab ab-green" data-onclick="publishEvent" data-arg="${e.id}">Publier</button><button class="ab ab-red" data-onclick="cancelEvent" data-arg="${e.id}">Refuser</button></td></tr>`).join('');
+    }
+    
+    // Charger les événements publiés
+    const publishedRes=await api('/events?status=published');
+    const publishedRows=publishedRes.data||[];
+    const publishedCount=document.getElementById('events-published-count');
+    if(publishedCount)publishedCount.textContent=publishedRows.length+' événements';
+    
+    const publishedEl=document.getElementById('tbody-events-published');
+    if(!publishedRows.length){
+      publishedEl.innerHTML='<tr><td colspan="7" class="empty">Aucun événement publié</td></tr>';
+    }else{
+      publishedEl.innerHTML=publishedRows.map(e=>`<tr><td style="font-weight:500">${e.title||''}</td><td style="color:var(--muted)">${fs(e.event_date)}</td><td>${e.location||''}</td><td style="font-family:'JetBrains Mono',monospace">${e.registrations_count||0}/${e.capacity||0}</td><td style="font-family:'JetBrains Mono',monospace">${e.checkins_count||0}</td><td>${badge(e.status)}</td><td class="acts"><button class="ab ab-blue" data-onclick="viewEventRegistrations" data-arg="${e.id}">Voir inscrits</button><a href="/admin/check-in.html?event_id=${e.id}" class="ab ab-violet" target="_blank">Check-in</a></td></tr>`).join('');
+    }
+  }catch(e){
+    console.error('[loadEvents]',e);
+    document.getElementById('tbody-events-pending').innerHTML='<tr><td colspan="8" class="empty">Erreur</td></tr>';
+    document.getElementById('tbody-events-published').innerHTML='<tr><td colspan="7" class="empty">Erreur</td></tr>';
+  }
+}
+
+async function publishEvent(id){
+  if(!confirm(`Publier l'événement #${id} ?`))return;
+  try{
+    const d=await api(`/events/${id}/publish`,{method:'PATCH'});
+    if(d.success){
+      toast('Événement publié <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
+      loadEvents();
+    }else{
+      toast(d.message||'Erreur','err');
+    }
+  }catch(e){toast('Erreur réseau','err');}
+}
+
+async function cancelEvent(id){
+  if(!confirm(`Refuser l'événement #${id} ?`))return;
+  try{
+    const d=await api(`/events/${id}/cancel`,{method:'PATCH'});
+    if(d.success){
+      toast('Événement refusé ❌');
+      loadEvents();
+    }else{
+      toast(d.message||'Erreur','err');
+    }
+  }catch(e){toast('Erreur réseau','err');}
+}
+
+async function viewEventRegistrations(id){
+  try{
+    const d=await api(`/events/${id}/registrations`);
+    const rows=d.data||[];
+    document.getElementById('modal-box').className='modal modal-lg';
+    document.getElementById('modal-body').innerHTML=`<div class="modal-title">Inscrits à l'événement #${id}</div><div class="modal-sub">${rows.length} participant(s)</div><table><thead><tr><th>Téléphone</th><th>Nom</th><th>Date inscription</th><th>Check-in</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${r.phone||''}</td><td>${r.full_name||''}</td><td style="color:var(--muted)">${fs(r.created_at)}</td><td>${r.checked_in?badge('checked_in'):badge('pending')}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Aucun inscrit</td></tr>'}</tbody></table><div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Fermer</button></div>`;
+    openModal();
+  }catch(e){toast('Erreur chargement inscrits','err');}
 }
 
 function openNewContractModal(){
