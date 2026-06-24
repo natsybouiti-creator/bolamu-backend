@@ -40,10 +40,10 @@ router.post('/:id/register', authMiddleware, async (req, res) => {
     if (result.success) {
       ok(res, result);
     } else {
-      err(res, 400, result.error);
+      res.status(400).json({ success: false, error: result.error });
     }
-  } catch (err) {
-    err(res, 500, err.message);
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
   }
 });
 
