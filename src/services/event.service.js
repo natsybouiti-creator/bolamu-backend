@@ -93,9 +93,10 @@ async function registerPatient(patient_phone, event_id) {
     // Notification WhatsApp (non bloquant)
     try {
       const { notifyEventRegistration } = require('./whatsapp.service');
-      await notifyEventRegistration(normalizedPhone, event, session_code);
+      const waResult = await notifyEventRegistration(normalizedPhone, event, session_code);
+      logger.info('[EVENT] WhatsApp envoyé:', JSON.stringify(waResult));
     } catch (whatsappErr) {
-      logger.warn('[EVENT] Erreur notification WhatsApp:', whatsappErr.message);
+      logger.error('[EVENT] Erreur WhatsApp:', whatsappErr.message, whatsappErr.stack);
     }
     
     return { 
