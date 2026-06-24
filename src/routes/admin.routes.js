@@ -1368,4 +1368,57 @@ router.patch('/doctors/:phone/rehabilitate', authMiddleware, adminOnly, async (r
     }
 });
 
+// ============================================================
+// DIAGNOSTIC TEMPORAIRE — À SUPPRIMER APRÈS TEST
+// ============================================================
+router.get('/diagnostics/whatsapp-token', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+        const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+        if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+            return res.json({
+                http_status: 0,
+                token_valid: false,
+                meta_message: 'WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_NUMBER_ID non configuré',
+                phone_info: null
+            });
+        }
+
+        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}?fields=display_phone_number,verified_name,quality_rating,name_status&access_token=${WHATSAPP_ACCESS_TOKEN}`;
+        
+        const response = await fetch(url);
+        const statusCode = response.status;
+        const data = await response.json();
+
+        if (statusCode === 200) {
+            res.json({
+                http_status: statusCode,
+                token_valid: true,
+                meta_message: null,
+                phone_info: {
+                    display_phone_number: data.display_phone_number,
+                    verified_name: data.verified_name,
+                    quality_rating: data.quality_rating,
+                    name_status: data.name_status
+                }
+            });
+        } else {
+            res.json({
+                http_status: statusCode,
+                token_valid: false,
+                meta_message: data.error?.message || 'Erreur inconnue',
+                phone_info: null
+            });
+        }
+    } catch (error) {
+        res.json({
+            http_status: 0,
+            token_valid: false,
+            meta_message: `Erreur réseau: ${error.message}`,
+            phone_info: null
+        });
+    }
+});
+
 module.exports = router;
