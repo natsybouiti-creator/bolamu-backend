@@ -1125,10 +1125,41 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      <sc-if cond="{{ ev.registered }}">
+        <div style="margin-top: 10px; width: 100%; background: #E8F5E9; color: #2E7D32; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; text-align: center;">Déjà inscrit ✓</div>
+      </sc-if>
+      <sc-if cond="{{ !ev.registered }}">
+        <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      </sc-if>
     </div>
   </div>
 </sc-for>
+      </div>
+
+      <!-- MES ÉVÉNEMENTS -->
+      <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Mes événements</h2>
+      <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px; margin-bottom: 30px;">
+        <sc-if cond="{{ myRegistrations.length === 0 }}">
+          <div style="text-align: center; padding: 30px; color: #9CA3AF;">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: #D1D5DB;">event_busy</span>
+            <div style="margin-top: 12px; font-size: 0.9rem; font-weight: 600;">Aucune inscription</div>
+            <div style="font-size: 0.8rem; color: #9CA3AF;">Participez à un événement pour le voir ici</div>
+          </div>
+        </sc-if>
+        <sc-if cond="{{ myRegistrations.length > 0 }}">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <sc-for list="{{ myRegistrations }}" as="reg" hint-placeholder-count="2">
+              <div style="display: flex; align-items: center; gap: 14px; padding: 14px; background: #FAF8FF; border-radius: 14px; border: 1px solid #EDEDF8;">
+                <div style="flex: 1;">
+                  <div style="font-size: 0.92rem; font-weight: 700; color: #0A2463; margin-bottom: 4px;">{{ reg.title }}</div>
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #434654; margin-bottom: 2px;"><span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>{{ reg.location_name }}</div>
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #434654;"><span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>{{ reg.starts_at }}</div>
+                </div>
+                <div style="background: #003FB1; color: #fff; padding: 8px 14px; border-radius: 9999px; font-size: 0.74rem; font-weight: 700;">{{ reg.session_code }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
       </div>
 
       <!-- GROUPES DE SPORT -->
@@ -1334,7 +1365,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      <sc-if cond="{{ ev.registered }}">
+        <div style="margin-top: 10px; width: 100%; background: #E8F5E9; color: #2E7D32; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; text-align: center;">Déjà inscrit ✓</div>
+      </sc-if>
+      <sc-if cond="{{ !ev.registered }}">
+        <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      </sc-if>
     </div>
   </div>
 </sc-for>
@@ -2047,6 +2083,7 @@ class Component extends DCLogic {
     chestOpened: null, chestReward: null, quizPicked: null,
     zora: 0, steps: 0, now: Date.now(), toast: null, mapFilter: 'tout',
     constForm: { groupe_sanguin: '', allergies: '', maladies_chroniques: '', antecedents_medicaux: '', traitements_en_cours: '', poids: '', taille: '', contact_urgence_nom: '', contact_urgence_phone: '', contact_urgence_lien: '' },
+    myRegistrations: [],
     events: [
       { id: 'ev1', dbId: 1, title: 'Marche sportive matinale', pilier: 'Activité physique', piTint: '#00C9A7', loc: 'Côte Sauvage, Pointe-Noire', date: 'Samedi 21 juin · 08h00', places: 32, cap: 40, pts: '+50 pts', registered: false, img: '/images/landing/marche sport.png', seed: 'cotesauvage', icon: 'directions_walk', lat: -4.7960, lng: 11.8270 },
       { id: 'ev2', dbId: 2, title: 'Atelier cuisine équilibrée', pilier: 'Nutrition', piTint: '#FF6B35', loc: 'Tchikobo, Pointe-Noire', date: 'Dimanche 22 juin · 15h00', places: 17, cap: 25, pts: '+40 pts', registered: false, img: '/images/landing/atelier-cuisine.png', seed: 'cuisine', icon: 'restaurant', lat: -4.8090, lng: 11.8500 },
@@ -2153,6 +2190,23 @@ class Component extends DCLogic {
             lng: parseFloat(e.longitude)
           }));
           this.setState({ events: this._events });
+        }
+      }).catch(() => {});
+
+      // Mes inscriptions événements
+      fetch('https://api.bolamu.co/api/v1/events/my/registrations', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data) {
+          this._myRegistrations = d.data.map(reg => ({
+            title: reg.title,
+            location_name: reg.location_name,
+            starts_at: new Date(reg.starts_at).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) + ' · ' + new Date(reg.starts_at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            session_code: reg.session_code
+          }));
+          this.setState({ myRegistrations: this._myRegistrations });
         }
       }).catch(() => {});
 
