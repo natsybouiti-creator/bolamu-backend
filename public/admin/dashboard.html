@@ -366,6 +366,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
     <button class="nav-btn" id="nav-conflits" data-panel="conflits"><span class="material-symbols-outlined" style="font-size:18px;">gavel</span>Conflits</button>
     <button class="nav-btn" id="nav-smartflow" data-panel="smartflow"><span class="material-symbols-outlined" style="font-size:18px;">analytics</span>Smart Flow</button>
     <button class="nav-btn" id="nav-events" data-panel="events"><span class="material-symbols-outlined" style="font-size:18px;">event</span>Événements<span class="nav-badge amber-b" id="bdg-events">0</span></button>
+    <button class="nav-btn" id="nav-vouchers" data-panel="vouchers"><span class="material-symbols-outlined" style="font-size:18px;">local_offer</span>Vouchers</button>
   </nav>
   <div class="sidebar-foot">
     <div class="user-row">
@@ -803,6 +804,48 @@ tr:hover td{background:rgba(255,255,255,.018);}
       </div>
     </div>
 
+    <!-- PANEL VOUCHERS -->
+    <div id="panel-vouchers" class="panel">
+      <div class="section-hd">
+        <div><h2>Vouchers</h2><p>Gestion des bons de réduction Bolamu</p></div>
+      </div>
+
+      <!-- SECTION A: STATISTIQUES -->
+      <div class="stat-row">
+        <div class="stat-mini" data-testid="stat-vouch-gen"><div class="stat-ico"><span class="material-symbols-outlined" style="color:var(--primary)">local_offer</span></div><div><div class="stat-val" id="vouch-gen"></div><div class="stat-lbl">Générés ce mois</div></div></div>
+        <div class="stat-mini" data-testid="stat-vouch-val"><div class="stat-ico"><span class="material-symbols-outlined" style="color:var(--success)">check_circle</span></div><div><div class="stat-val" id="vouch-val"></div><div class="stat-lbl">Validés</div></div></div>
+        <div class="stat-mini" data-testid="stat-vouch-exp"><div class="stat-ico"><span class="material-symbols-outlined" style="color:var(--error)">cancel</span></div><div><div class="stat-val" id="vouch-exp"></div><div class="stat-lbl">Expirés</div></div></div>
+        <div class="stat-mini" data-testid="stat-vouch-tot"><div class="stat-ico"><span class="material-symbols-outlined" style="color:var(--warning)">payments</span></div><div><div class="stat-val" id="vouch-tot"> F</div><div class="stat-lbl">Valeur validée</div></div></div>
+      </div>
+
+      <!-- SECTION B: LISTE DES VOUCHERS -->
+      <div>
+        <div class="section-hd">
+          <div><h3>Liste des vouchers</h3></div>
+          <div style="display:flex;gap:8px;">
+            <select class="filter-sel" id="filter-vouchers">
+              <option value="">Tous</option>
+              <option value="active">Actifs</option>
+              <option value="used">Utilisés</option>
+              <option value="expired">Expirés</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-head">
+            <span class="tbl-title">Vouchers</span>
+            <span class="tbl-count" id="vouchers-count">—</span>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Code</th><th>Patient (BHP)</th><th>Partenaire</th><th>Valeur FCFA</th><th>Statut</th><th>Date génération</th><th>Date utilisation</th>
+            </tr></thead>
+            <tbody id="tbody-vouchers"><div class="loading">Chargement...</div></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 
 <footer class="bg-brand-navy py-8 px-container-margin text-white">
@@ -891,7 +934,7 @@ function showBannerErr(msg){
 /* -----------------------------------
    NAVIGATION
 ----------------------------------- */
-const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits',smartflow:'Smart Flow',events:'Événements'};
+const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits',smartflow:'Smart Flow',events:'Événements',vouchers:'Vouchers'};
 
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
@@ -918,7 +961,7 @@ function go(name){
   loadPanel(name);
 }
 function loadPanel(name){
-  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits,smartflow:loadSmartFlow,events:loadEvents};
+  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits,smartflow:loadSmartFlow,events:loadEvents,vouchers:loadVouchers};
   if(m[name])m[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
@@ -1398,6 +1441,64 @@ async function viewEventRegistrations(id){
     document.getElementById('modal-body').innerHTML=`<div class="modal-title">Inscrits à l'événement #${id}</div><div class="modal-sub">${rows.length} participant(s)</div><table><thead><tr><th>Téléphone</th><th>Nom</th><th>Date inscription</th><th>Check-in</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${r.phone||''}</td><td>${r.full_name||''}</td><td style="color:var(--muted)">${fs(r.created_at)}</td><td>${r.checked_in?badge('checked_in'):badge('pending')}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Aucun inscrit</td></tr>'}</tbody></table><div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Fermer</button></div>`;
     openModal();
   }catch(e){toast('Erreur chargement inscrits','err');}
+}
+
+/* -----------------------------------
+   VOUCHERS
+----------------------------------- */
+async function loadVouchers(){
+  try{
+    const filter=document.getElementById('filter-vouchers')?.value||'';
+    const res=await api('/admin/vouchers'+(filter?`?status=${filter}`:''));
+    const rows=res.data||[];
+    const cnt=document.getElementById('vouchers-count');
+    if(cnt)cnt.textContent=rows.length+' vouchers';
+    
+    // Statistiques
+    const now=new Date();
+    const thisMonth=rows.filter(v=>new Date(v.created_at).getMonth()===now.getMonth()&&new Date(v.created_at).getFullYear()===now.getFullYear());
+    kpi('vouch-gen',thisMonth.length);
+    kpi('vouch-val',rows.filter(v=>v.status==='used').length);
+    kpi('vouch-exp',rows.filter(v=>v.status==='expired').length);
+    const totalValue=rows.filter(v=>v.status==='used').reduce((s,v)=>s+(v.value_fcfa||0),0);
+    kpi('vouch-tot',fn(totalValue)+' F');
+    
+    const el=document.getElementById('tbody-vouchers');
+    if(!rows.length){
+      el.innerHTML='<tr><td colspan="7" class="empty">Aucun voucher</td></tr>';
+      return;
+    }
+    
+    // Fonction BHP : extraire les initiales du nom du patient
+    const getInitials=(name)=>{
+      if(!name)return'';
+      const parts=name.trim().split(/\s+/);
+      if(parts.length===1)return parts[0].substring(0,2).toUpperCase();
+      return parts.map(p=>p[0]).join('').toUpperCase().substring(0,2);
+    };
+    
+    // Badge de statut
+    const getVoucherBadge=(status)=>{
+      switch(status){
+        case 'active':return badge('active');
+        case 'used':return badge('used');
+        case 'expired':return badge('expired');
+        default:return badge(status);
+      }
+    };
+    
+    el.innerHTML=rows.map(v=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--accent)">${v.code||''}</td><td style="font-weight:500">${getInitials(v.patient_name)}</td><td>${v.partner_name||''}</td><td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fn(v.value_fcfa||0)} F</td><td>${getVoucherBadge(v.status)}</td><td style="color:var(--muted)">${fs(v.created_at)}</td><td style="color:var(--muted)">${v.used_at?fs(v.used_at):''}</td></tr>`).join('');
+    
+    // Ajouter l'écouteur sur le filtre
+    const filterSel=document.getElementById('filter-vouchers');
+    if(filterSel&&!filterSel.hasListener){
+      filterSel.hasListener=true;
+      filterSel.addEventListener('change',loadVouchers);
+    }
+  }catch(e){
+    console.error('[loadVouchers]',e);
+    document.getElementById('tbody-vouchers').innerHTML='<tr><td colspan="7" class="empty">Erreur</td></tr>';
+  }
 }
 
 function openNewContractModal(){
