@@ -2190,17 +2190,6 @@ class Component extends DCLogic {
             lng: parseFloat(e.longitude)
           }));
           this.setState({ events: this._events });
-
-          // Réappliquer les inscriptions si déjà chargées
-          if (this._myRegistrations && this._myRegistrations.length) {
-            const regIds = (this._registeredIds || []);
-            if (regIds.length) {
-              this._events = this._events.map(e => 
-                regIds.includes(e.dbId) ? Object.assign({}, e, { registered: true }) : e
-              );
-              this.setState({ events: this._events });
-            }
-          }
         }
       }).catch(() => {});
 
