@@ -2206,29 +2206,16 @@ class Component extends DCLogic {
             starts_at: new Date(reg.starts_at).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) + ' · ' + new Date(reg.starts_at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
             session_code: reg.session_code
           }));
-          this.setState({ myRegistrations: this._myRegistrations });
           
-          // Marquer les événements inscrits
-          const registeredIds = d.data.map(reg => reg.event_id || reg.id);
+          const registeredIds = d.data.map(reg => reg.event_id);
           this.setState((s) => ({
             events: s.events.map((e) => 
               registeredIds.includes(e.dbId) 
                 ? Object.assign({}, e, { registered: true }) 
                 : e
-            )
+            ),
+            myRegistrations: this._myRegistrations
           }));
-          // Mettre à jour _eventsActivite et _eventsSante aussi
-          if (this._eventsActivite) {
-            this._eventsActivite = this._eventsActivite.map((e) =>
-              registeredIds.includes(e.id)
-                ? Object.assign({}, e, { registered: true }) : e);
-          }
-          if (this._eventsSante) {
-            this._eventsSante = this._eventsSante.map((e) =>
-              registeredIds.includes(e.id)
-                ? Object.assign({}, e, { registered: true }) : e);
-          }
-          this.setState({});
         }
       }).catch(() => {});
 
@@ -2713,18 +2700,7 @@ class Component extends DCLogic {
       const d = await r.json();
       
       if (d.success) {
-        // Mise à jour events dans le state
         this.setState((s) => ({ events: s.events.map((e) => (e.dbId === id && !e.registered) ? Object.assign({}, e, { places: e.places + 1, registered: true }) : e) }));
-        // Mise à jour _eventsActivite et _eventsSante
-        if (this._eventsActivite) {
-          this._eventsActivite = this._eventsActivite.map((e) => 
-            e.id === id ? Object.assign({}, e, { registered: true }) : e);
-        }
-        if (this._eventsSante) {
-          this._eventsSante = this._eventsSante.map((e) => 
-            e.id === id ? Object.assign({}, e, { registered: true }) : e);
-        }
-        this.setState({});
         this.showToast('Inscription confirmée · +50 Zora après participation');
       } else {
         this.showToast(d.message || d.error || 'Inscription impossible', 'error');
