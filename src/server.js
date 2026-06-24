@@ -50,7 +50,8 @@ app.use(function(req, res, next) {
 // Servir les fichiers statiques (images, css, js du dossier public) - APRÈS la route GET '/'
 app.use(express.static(path.join(__dirname, '../public'), {
   maxAge: '7d',
-  etag: true
+  etag: true,
+  extensions: ['html']
 }));
 
 // Servir explicitement les pages statiques Zora sous /zora (AVANT les routes API et le catch-all)
