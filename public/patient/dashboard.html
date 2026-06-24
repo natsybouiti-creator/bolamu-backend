@@ -1125,8 +1125,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <div style="display: {{ ev.registered ? 'block' : 'none' }}; margin-top: 10px; width: 100%; background: #E8F5E9; color: #2E7D32; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; text-align: center;">Déjà inscrit ✓</div>
-      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="display: {{ ev.registered ? 'none' : 'block' }}; margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      <div style="{{ ev.inscritStyle }}">Déjà inscrit ✓</div>
+      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="{{ ev.participateStyle }}">Participer</button>
     </div>
   </div>
 </sc-for>
@@ -1361,8 +1361,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <div style="display: {{ ev.registered ? 'block' : 'none' }}; margin-top: 10px; width: 100%; background: #E8F5E9; color: #2E7D32; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; text-align: center;">Déjà inscrit ✓</div>
-      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="display: {{ ev.registered ? 'none' : 'block' }}; margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
+      <div style="{{ ev.inscritStyle }}">Déjà inscrit ✓</div>
+      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="{{ ev.participateStyle }}">Participer</button>
     </div>
   </div>
 </sc-for>
@@ -3172,12 +3172,20 @@ class Component extends DCLogic {
 
     const __evImg = { ev1: 'evMarche', ev2: 'evAtelier', ev3: 'evDepistage' };
     const __evR = (e) => (window.__resources && window.__resources[__evImg[e.id]]) || null;
-    const eventsView = s.events.map((e) => Object.assign({}, e, { img: (function(pillar) {
-      if (pillar === 'activite') return '/images/landing/marche sport.png';
-      if (pillar === 'nutrition') return '/images/landing/atelier-cuisine.png';
-      if (pillar === 'anti_infectieux') return '/images/landing/depistage.png';
-      return '/images/landing/defis-sportif.png';
-    })(e.pilier || e.piTint), participate: () => this.participate(e.dbId) }));
+    const eventsView = s.events.map((e) => {
+      const reg = Boolean(e.registered);
+      return Object.assign({}, e, {
+        img: (function(pillar) {
+          if (pillar === 'activite') return '/images/landing/marche sport.png';
+          if (pillar === 'nutrition') return '/images/landing/atelier-cuisine.png';
+          if (pillar === 'anti_infectieux') return '/images/landing/depistage.png';
+          return '/images/landing/defis-sportif.png';
+        })(e.pilier || e.piTint),
+        participate: () => this.participate(e.dbId),
+        participateStyle: reg ? 'display:none;margin-top:10px;width:100%;background:#003FB1;color:#fff;border:none;font-family:inherit;font-size:0.82rem;font-weight:700;padding:11px;border-radius:9999px;cursor:pointer;' : 'display:block;margin-top:10px;width:100%;background:#003FB1;color:#fff;border:none;font-family:inherit;font-size:0.82rem;font-weight:700;padding:11px;border-radius:9999px;cursor:pointer;',
+        inscritStyle: reg ? 'display:block;margin-top:10px;width:100%;background:#E8F5E9;color:#2E7D32;font-family:inherit;font-size:0.82rem;font-weight:700;padding:11px;border-radius:9999px;text-align:center;' : 'display:none;margin-top:10px;width:100%;background:#E8F5E9;color:#2E7D32;font-family:inherit;font-size:0.82rem;font-weight:700;padding:11px;border-radius:9999px;text-align:center;'
+      });
+    });
 
     const eventPlaces = s.events.map((e) => ({ name: e.title, type: 'événement', addr: e.loc, kind: 'event', tint: '#F5A623', icon: 'event_available', tel: '', registered: e.registered, focus: () => this.focusEvent(e.id), participate: () => this.participate(e.dbId) }));
 
