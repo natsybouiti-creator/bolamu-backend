@@ -2207,6 +2207,28 @@ class Component extends DCLogic {
             session_code: reg.session_code
           }));
           this.setState({ myRegistrations: this._myRegistrations });
+          
+          // Marquer les événements inscrits
+          const registeredIds = d.data.map(reg => reg.event_id || reg.id);
+          this.setState((s) => ({
+            events: s.events.map((e) => 
+              registeredIds.includes(e.dbId) 
+                ? Object.assign({}, e, { registered: true }) 
+                : e
+            )
+          }));
+          // Mettre à jour _eventsActivite et _eventsSante aussi
+          if (this._eventsActivite) {
+            this._eventsActivite = this._eventsActivite.map((e) =>
+              registeredIds.includes(e.id)
+                ? Object.assign({}, e, { registered: true }) : e);
+          }
+          if (this._eventsSante) {
+            this._eventsSante = this._eventsSante.map((e) =>
+              registeredIds.includes(e.id)
+                ? Object.assign({}, e, { registered: true }) : e);
+          }
+          this.setState({});
         }
       }).catch(() => {});
 
