@@ -2482,6 +2482,13 @@ class Component extends DCLogic {
     this.renderQR('dossier-qr', this.dossierQrText(), 66);
     this.initScratch();
     setTimeout(() => this.initCarousels(), 220);
+    // Rebind boutons Participer
+    document.querySelectorAll('[data-testid^="participate-"]').forEach((btn) => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = '1';
+      const id = parseInt(btn.dataset.testid.replace('participate-', ''));
+      btn.addEventListener('click', () => this.participate(id));
+    });
     this._onResize = () => this.refreshCarousels();
     window.addEventListener('resize', this._onResize);
   }
@@ -3033,6 +3040,13 @@ class Component extends DCLogic {
   componentDidUpdate() {
     if (this._cTO) return;
     this._cTO = setTimeout(() => { this._cTO = null; this.initCarousels(); }, 80);
+    // Rebind boutons Participer
+    document.querySelectorAll('[data-testid^="participate-"]').forEach((btn) => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = '1';
+      const id = parseInt(btn.dataset.testid.replace('participate-', ''));
+      btn.addEventListener('click', () => this.participate(id));
+    });
   }
 
   initCarousels() {
