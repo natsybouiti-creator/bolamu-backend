@@ -1125,12 +1125,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <sc-if cond="{{ ev.registered }}">
-        <div style="margin-top: 10px; width: 100%; background: #E8F5E9; color: #2E7D32; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; text-align: center;">Déjà inscrit ✓</div>
-      </sc-if>
-      <sc-if cond="{{ !ev.registered }}">
-        <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
-      </sc-if>
+      <div style="display: {{ ev.registered ? 'block' : 'none' }}; margin-top: 10px; width: 100%; background: #E8F5E9; color: #2E7D32; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; text-align: center;">Déjà inscrit ✓</div>
+      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="display: {{ ev.registered ? 'none' : 'block' }}; margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
     </div>
   </div>
 </sc-for>
@@ -1365,12 +1361,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.74rem; font-weight: 700; color: #434654;">{{ ev.places }} / {{ ev.cap }} inscrits</span>
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
-      <sc-if cond="{{ ev.registered }}">
-        <div style="margin-top: 10px; width: 100%; background: #E8F5E9; color: #2E7D32; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; text-align: center;">Déjà inscrit ✓</div>
-      </sc-if>
-      <sc-if cond="{{ !ev.registered }}">
-        <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
-      </sc-if>
+      <div style="display: {{ ev.registered ? 'block' : 'none' }}; margin-top: 10px; width: 100%; background: #E8F5E9; color: #2E7D32; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; text-align: center;">Déjà inscrit ✓</div>
+      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="display: {{ ev.registered ? 'none' : 'block' }}; margin-top: 10px; width: 100%; background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.82rem; font-weight: 700; padding: 11px; border-radius: 9999px; cursor: pointer;">Participer</button>
     </div>
   </div>
 </sc-for>
