@@ -3978,7 +3978,7 @@ function openEventPanel(eventId) {
   
   if (!token) return;
   
-  fetch('https://api.bolamu.co/api/v1/elonga/events/' + eventId, {
+  fetch('https://api.bolamu.co/api/v1/events/' + eventId, {
     headers: { 'Authorization': 'Bearer ' + token }
   })
   .then(r => r.json())
@@ -4017,7 +4017,7 @@ function openEventPanel(eventId) {
       panel.classList.add('active');
       
       // Fetch participants
-      fetch('https://api.bolamu.co/api/v1/elonga/events/' + eventId + '/participants', {
+      fetch('https://api.bolamu.co/api/v1/events/' + eventId + '/participants', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
