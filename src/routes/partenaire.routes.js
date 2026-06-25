@@ -1,5 +1,5 @@
 // ============================================================
-// BOLAMU — Routes Partenaire (login + stats)
+// BOLAMU — Routes Partenaire (login + stats + vouchers)
 // ============================================================
 const express = require('express');
 const router = express.Router();
@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { normalizePhone } = require('../utils/phone');
 const authMiddleware = require('../middleware/auth.middleware');
+const { validateVoucherHandler, getValidationsHandler } = require('../controllers/partenaire.controller');
 
 if (!process.env.JWT_SECRET) throw new Error('[FATAL] JWT_SECRET non défini');
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -141,5 +142,11 @@ router.get('/stats', authMiddleware, requirePartenaire, async (req, res) => {
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });
+
+// POST /api/v1/partenaire/voucher/validate — Valider un voucher Zora
+router.post('/voucher/validate', authMiddleware, requirePartenaire, validateVoucherHandler);
+
+// GET /api/v1/partenaire/validations — Liste des validations du jour
+router.get('/validations', authMiddleware, requirePartenaire, getValidationsHandler);
 
 module.exports = router;

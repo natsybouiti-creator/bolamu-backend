@@ -117,6 +117,10 @@ async function sendAutoMessage(phone, templateName, params) {
     message = `${params[0]}, vos résultats d'analyses\nsont disponibles sur bolamu.co.\nLaboratoire : ${params[1]}\nConsultez-les depuis votre espace patient.\n\nL'équipe Bolamu`;
   } else if (templateName === 'bolamu_nouvelle_ordonnance_pharmacie') {
     message = `Nouvelle ordonnance disponible.\nPatient : ${params[0]}\nMédecin : Dr. ${params[1]}\nConnectez-vous sur bolamu.co pour traiter.\n\nBolamu`;
+  } else if (templateName === 'bolamu_voucher_genere') {
+    message = `${params[0]}, votre voucher est prêt !\nCode : ${params[1]}\nValable chez : ${params[2]}\nExpire dans 48h.\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_voucher_utilise') {
+    message = `${params[0]}, votre voucher a été validé.\nRécompense : ${params[1]}\nPartenaire : ${params[2]}\n\nMerci de votre fidélité — L'équipe Bolamu`;
   } else {
     message = params.join(' ');
   }

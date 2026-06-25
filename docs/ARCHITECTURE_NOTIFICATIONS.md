@@ -177,6 +177,19 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
   - Déclencheur : POST /api/v1/lab/results/submit
   - Message : "{prenom_patient}, vos résultats d'analyses sont disponibles sur bolamu.co. Laboratoire : {nom_laboratoire} Consultez-les depuis votre espace patient. L'équipe Bolamu"
 
+## BOUCLE 6 — PARTENAIRES RÉCOMPENSES & ÉCONOMIE ZORA
+
+### Vouchers Zora
+- `bolamu_voucher_genere` : Voucher Zora généré
+  - Params : [prenom_patient, code_voucher, nom_partenaire]
+  - Déclencheur : POST /api/v1/vouchers/generate
+  - Message : "{prenom_patient}, votre voucher est prêt ! Code : {code_voucher} Valable chez : {nom_partenaire} Expire dans 48h. L'équipe Bolamu"
+
+- `bolamu_voucher_utilise` : Voucher Zora validé
+  - Params : [prenom_patient, nom_recompense, nom_partenaire]
+  - Déclencheur : POST /api/v1/partenaire/voucher/validate
+  - Message : "{prenom_patient}, votre voucher a été validé. Récompense : {nom_recompense} Partenaire : {nom_partenaire} Merci de votre fidélité — L'équipe Bolamu"
+
 ## RÈGLES D'ENVOI
 
 1. **Volume** : Jamais de WhatsApp pour chaque message chat (trop élevé)
@@ -200,3 +213,4 @@ ORDER BY created_at DESC LIMIT 3;
 - 25 juin 2026 : Ajout templates Boucle 3 (checkin_confirme, event_rappel, club_message)
 - 25 juin 2026 : Ajout templates Boucle 4 (consultation_terminee, rdv_confirme, ordonnance_prete)
 - 25 juin 2026 : Ajout templates Boucle 5 (ordonnance_dispensee, ordonnance_dispensee_medecin, nouvelle_ordonnance_pharmacie, resultats_disponibles)
+- 25 juin 2026 : Ajout templates Boucle 6 (bolamu_voucher_genere, bolamu_voucher_utilise)

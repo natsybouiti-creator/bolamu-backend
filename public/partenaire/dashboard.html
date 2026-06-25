@@ -406,37 +406,37 @@
     }
   }
 
-  // Load validation history
+  // Load validation history (Zora vouchers)
   async function loadValidationHistory() {
-    const data = await api('/vouchers/my');
+    const data = await api('/partenaire/validations');
     if (data && data.success) {
       const tbody = document.getElementById('validation-history');
-      const used = data.data.history || [];
-      if (used.length === 0) {
+      const validations = data.data || [];
+      if (validations.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--texte-doux);">Aucune validation</td></tr>';
         return;
       }
-      tbody.innerHTML = used.slice(0, 20).map(v => `
+      tbody.innerHTML = validations.slice(0, 20).map(v => `
         <tr>
-          <td><span class="badge badge-violet">${v.code}</span></td>
-          <td>${v.partner_name || '—'}</td>
-          <td>${v.fcfa_value || '—'}</td>
-          <td>${v.used_at ? new Date(v.used_at).toLocaleDateString('fr-FR') : '—'}</td>
-          <td>Code</td>
+          <td><span class="badge badge-violet">${v.code || '—'}</span></td>
+          <td>${v.patient_name || '—'}</td>
+          <td>${v.reward_name || '—'}</td>
+          <td>${v.validated_at ? new Date(v.validated_at).toLocaleDateString('fr-FR') : '—'}</td>
+          <td>${v.method || '—'}</td>
         </tr>
       `).join('');
     }
   }
 
-  // Validate code
+  // Validate code (Zora vouchers)
   async function validateCode(code) {
-    const data = await api('/vouchers/validate', {
+    const data = await api('/partenaire/voucher/validate', {
       method: 'POST',
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ voucher_code: code })
     });
     if (data && data.success) {
       document.getElementById('qr-result').classList.add('show');
-      document.getElementById('qr-result-value').textContent = `${data.data.patient_initiales} — ${data.data.fcfa_value} FCFA`;
+      document.getElementById('qr-result-value').textContent = `${data.data.patient_name} — ${data.data.reward_name}`;
       showToast('Voucher validé avec succès');
       loadStats();
       loadValidationHistory();
