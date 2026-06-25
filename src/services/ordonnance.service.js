@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { normalizePhone } = require('../utils/phoneUtils');
+const { normalizePhone } = require('../utils/phone');
 const { bhpAccessMiddleware, logAccessAttempt } = require('../middleware/bhpAccess');
 const whatsappService = require('./whatsapp-web.service');
 
