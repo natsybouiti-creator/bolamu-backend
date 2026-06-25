@@ -24,4 +24,23 @@ router.get('/streaks/me', authMiddleware, communityController.getMyStreak);
 router.post('/leaderboard/encourage', authMiddleware, communityController.encourageMember);
 router.post('/leaderboard/comment', authMiddleware, communityController.commentMember);
 
+// Follow un utilisateur
+router.post('/follow/:phone', authMiddleware, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const followerPhone = req.user.phone;
+    const followingPhone = req.params.phone;
+    
+    await pool.query(`
+      INSERT INTO follows (follower_phone, following_phone, created_at)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT DO NOTHING
+    `, [followerPhone, followingPhone]);
+    
+    res.json({ success: true, following: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

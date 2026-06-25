@@ -94,6 +94,35 @@ router.get('/:id/registrations', authMiddleware, async (req, res) => {
   }
 });
 
+// PATIENTS (auth JWT) - Liste des participants avec Zora points
+router.get('/:id/participants', authMiddleware, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const eventId = req.params.id;
+    
+    const result = await pool.query(`
+      SELECT u.phone, u.nom, u.prenom,
+        COALESCE(SUM(zl.points), 0) AS zora_points
+      FROM elonga_registrations er
+      JOIN users u ON u.phone = er.patient_phone
+      LEFT JOIN zora_ledger zl ON zl.user_phone = er.patient_phone
+      WHERE er.event_id = $1
+      GROUP BY u.phone, u.nom, u.prenom
+      ORDER BY zora_points DESC
+    `, [eventId]);
+    
+    const participants = result.rows.map(p => ({
+      phone: p.phone,
+      full_name: `${p.prenom || ''} ${p.nom || ''}`.trim() || 'Participant',
+      zora_points: parseInt(p.zora_points) || 0
+    }));
+    
+    ok(res, participants);
+  } catch (err) {
+    err(res, 500, err.message);
+  }
+});
+
 // ADMIN - Sprint 5
 router.put('/:id', authMiddleware.requireAdmin, updateEvent);
 router.delete('/:id', authMiddleware.requireAdmin, deleteEvent);

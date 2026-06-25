@@ -106,6 +106,27 @@ router.post('/conversations/:id/read', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/v1/chat/conversations
+ * Créer ou trouver une conversation entre deux utilisateurs
+ * body: { participant_phone }
+ */
+router.post('/conversations', authMiddleware, async (req, res) => {
+  try {
+    const { participant_phone } = req.body;
+    const myPhone = req.user.phone;
+
+    if (!participant_phone) {
+      return res.status(400).json({ success: false, message: 'participant_phone requis' });
+    }
+
+    const conversation = await chatService.getOrCreateConversation(myPhone, participant_phone);
+    res.json({ success: true, data: { conversation_id: conversation.id } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ============================================================
 // ANCIEN SYSTÈME — canal médecins (conservé pour compatibilité)
 // Les routes fixes sont déclarées AVANT /:medecin_phone dynamique
