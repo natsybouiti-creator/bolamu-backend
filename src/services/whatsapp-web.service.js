@@ -109,6 +109,14 @@ async function sendAutoMessage(phone, templateName, params) {
     message = `RDV confirmé, ${params[0]} !\nDr. ${params[1]} — ${params[2]}\nLieu : ${params[3]}\n\nL'équipe Bolamu`;
   } else if (templateName === 'bolamu_ordonnance_prete') {
     message = `Votre ordonnance est prête, ${params[0]}.\nPrésentez-vous en pharmacie avec votre\nQR code Bolamu.\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_ordonnance_dispensee') {
+    message = `Bonne nouvelle, ${params[0]} !\nVotre ordonnance a été dispensée par\nla pharmacie ${params[1]}.\nMédicaments récupérés le ${params[2]}.\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_ordonnance_dispensee_medecin') {
+    message = `Votre ordonnance pour ${params[0]} a été dispensée\npar la pharmacie ${params[1]}.\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_resultats_disponibles') {
+    message = `${params[0]}, vos résultats d'analyses\nsont disponibles sur bolamu.co.\nLaboratoire : ${params[1]}\nConsultez-les depuis votre espace patient.\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_nouvelle_ordonnance_pharmacie') {
+    message = `Nouvelle ordonnance disponible.\nPatient : ${params[0]}\nMédecin : Dr. ${params[1]}\nConnectez-vous sur bolamu.co pour traiter.\n\nBolamu`;
   } else {
     message = params.join(' ');
   }

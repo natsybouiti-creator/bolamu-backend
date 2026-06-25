@@ -6,6 +6,7 @@ const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 const { buildWameLink } = require('../services/wame.service');
 const { awardZora } = require('../services/zora.service');
+const { getPrescriptionsEnAttente, soumettreResultats, getResultats } = require('../services/lab.service');
 
 // ─── CRÉER UNE PRESCRIPTION LABO (médecin) ───────────────────────────────
 async function createLabPrescription(req, res) {
@@ -334,11 +335,51 @@ async function getLabPrescriptionByCode(req, res) {
     }
 }
 
+async function getPrescriptionsEnAttenteHandler(req, res) {
+    const phone = req.user?.phone;
+    if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
+    try {
+        const prescriptions = await getPrescriptionsEnAttente(phone);
+        return res.json({ success: true, data: prescriptions });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+async function soumettreResultatsHandler(req, res) {
+    const phone = req.user?.phone;
+    const { prescription_id, resultats } = req.body;
+    if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
+    if (!prescription_id || !resultats) return res.status(400).json({ success: false, message: 'prescription_id et resultats requis.' });
+    try {
+        const result = await soumettreResultats(prescription_id, phone, resultats);
+        return res.json({ success: true, data: result });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+async function getResultatsHandler(req, res) {
+    const phone = req.user?.phone;
+    const role = req.user?.role;
+    const { id } = req.params;
+    if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
+    try {
+        const resultats = await getResultats(id, phone, role);
+        return res.json({ success: true, data: resultats });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
 module.exports = {
     createLabPrescription,
     submitLabResults,
     getLabResultsByPatient,
     getLabResultsForLab,
     getLabPrescriptionByCode,
+    getPrescriptionsEnAttenteHandler,
+    soumettreResultatsHandler,
+    getResultatsHandler,
     upload
 };

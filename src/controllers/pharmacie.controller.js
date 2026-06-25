@@ -7,6 +7,7 @@ const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
 const logger = require('../config/logger');
+const { getOrdonnancesEnAttente, dispenserOrdonnance, getStats } = require('../services/pharmacie.service');
 
 function calculateTrustScore(data) {
     let score = 0;
@@ -169,4 +170,39 @@ async function updatePharmacieStatus(req, res) {
     }
 }
 
-module.exports = { registerPharmacie, getPharmacieProfile, updatePharmacieStatus };
+async function getOrdonnancesEnAttenteHandler(req, res) {
+    const phone = req.user?.phone;
+    if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
+    try {
+        const ordonnances = await getOrdonnancesEnAttente(phone);
+        return res.json({ success: true, data: ordonnances });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+async function dispenserOrdonnanceHandler(req, res) {
+    const phone = req.user?.phone;
+    const { ordonnance_id } = req.body;
+    if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
+    if (!ordonnance_id) return res.status(400).json({ success: false, message: 'ordonnance_id requis.' });
+    try {
+        const result = await dispenserOrdonnance(ordonnance_id, phone);
+        return res.json({ success: true, data: result });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+async function getStatsHandler(req, res) {
+    const phone = req.user?.phone;
+    if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
+    try {
+        const stats = await getStats(phone);
+        return res.json({ success: true, data: stats });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+module.exports = { registerPharmacie, getPharmacieProfile, updatePharmacieStatus, getOrdonnancesEnAttenteHandler, dispenserOrdonnanceHandler, getStatsHandler };

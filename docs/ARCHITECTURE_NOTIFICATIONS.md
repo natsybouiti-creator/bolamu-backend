@@ -153,6 +153,30 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
   - Déclencheur : POST /api/v1/ordonnances/:id/dispense
   - Message : "Votre ordonnance est prête, {prenom_patient}. Présentez-vous en pharmacie avec votre QR code Bolamu. L'équipe Bolamu"
 
+## BOUCLE 5 — RÉSEAU PARTENAIRES SANTÉ
+
+### Pharmacie
+- `bolamu_ordonnance_dispensee` : Ordonnance dispensée
+  - Params : [prenom_patient, nom_pharmacie, date_recuperation]
+  - Déclencheur : POST /api/v1/ordonnances/:id/dispense
+  - Message : "Bonne nouvelle, {prenom_patient} ! Votre ordonnance a été dispensée par la pharmacie {nom_pharmacie}. Médicaments récupérés le {date_recuperation}. L'équipe Bolamu"
+
+- `bolamu_ordonnance_dispensee_medecin` : Ordonnance dispensée (notification médecin)
+  - Params : [prenom_patient, nom_pharmacie]
+  - Déclencheur : POST /api/v1/ordonnances/:id/dispense
+  - Message : "Votre ordonnance pour {prenom_patient} a été dispensée par la pharmacie {nom_pharmacie}. L'équipe Bolamu"
+
+- `bolamu_nouvelle_ordonnance_pharmacie` : Nouvelle ordonnance disponible (pharmacie)
+  - Params : [nom_patient, nom_medecin]
+  - Déclencheur : POST /api/v1/ordonnances
+  - Message : "Nouvelle ordonnance disponible. Patient : {nom_patient} Médecin : Dr. {nom_medecin} Connectez-vous sur bolamu.co pour traiter. Bolamu"
+
+### Laboratoire
+- `bolamu_resultats_disponibles` : Résultats labo disponibles
+  - Params : [prenom_patient, nom_laboratoire]
+  - Déclencheur : POST /api/v1/lab/results/submit
+  - Message : "{prenom_patient}, vos résultats d'analyses sont disponibles sur bolamu.co. Laboratoire : {nom_laboratoire} Consultez-les depuis votre espace patient. L'équipe Bolamu"
+
 ## RÈGLES D'ENVOI
 
 1. **Volume** : Jamais de WhatsApp pour chaque message chat (trop élevé)
@@ -175,3 +199,4 @@ ORDER BY created_at DESC LIMIT 3;
 - 25 juin 2026 : Création document + templates Boucle 2
 - 25 juin 2026 : Ajout templates Boucle 3 (checkin_confirme, event_rappel, club_message)
 - 25 juin 2026 : Ajout templates Boucle 4 (consultation_terminee, rdv_confirme, ordonnance_prete)
+- 25 juin 2026 : Ajout templates Boucle 5 (ordonnance_dispensee, ordonnance_dispensee_medecin, nouvelle_ordonnance_pharmacie, resultats_disponibles)

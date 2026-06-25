@@ -10,6 +10,9 @@ const {
     getLabResultsByPatient,
     getLabResultsForLab,
     getLabPrescriptionByCode,
+    getPrescriptionsEnAttenteHandler,
+    soumettreResultatsHandler,
+    getResultatsHandler,
     upload
 } = require('../controllers/lab.controller');
 

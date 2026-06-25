@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { registerPharmacie, getPharmacieProfile, updatePharmacieStatus } = require('../controllers/pharmacie.controller');
+const { registerPharmacie, getPharmacieProfile, updatePharmacieStatus, getOrdonnancesEnAttenteHandler, dispenserOrdonnanceHandler, getStatsHandler } = require('../controllers/pharmacie.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const bcrypt = require('bcrypt');
 const pool = require('../config/db');
@@ -22,6 +22,9 @@ const upload = multer({
 router.post('/register', upload.single('document'), registerPharmacie);
 router.get('/profil', authMiddleware, getPharmacieProfile);
 router.patch('/:id/status', authMiddleware, updatePharmacieStatus);
+router.get('/ordonnances/attente', authMiddleware, getOrdonnancesEnAttenteHandler);
+router.post('/ordonnances/dispenser', authMiddleware, dispenserOrdonnanceHandler);
+router.get('/stats', authMiddleware, getStatsHandler);
 
 router.get('/all', authMiddleware, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
