@@ -124,6 +124,23 @@
 #participant-panel.active {
   display: block;
 }
+
+#club-panel {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #FAF8FF;
+  z-index: 1000;
+  overflow-y: auto;
+  animation: slideInUp 300ms ease;
+}
+
+#club-panel.active {
+  display: block;
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -1225,18 +1242,31 @@ svg.leaflet-image-layer.leaflet-interactive path {
         </div>
       </div>
 
+      <!-- CLUB PANEL (hidden by default) -->
+      <div id="club-panel">
+        <div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;">
+          <button onclick="closeClubPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;">
+            <span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>
+            Retour
+          </button>
+        </div>
+        <div id="club-panel-content" style="padding: 20px;">
+          <!-- Content will be dynamically filled -->
+        </div>
+      </div>
+
       <!-- GROUPES DE SPORT -->
       <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Rejoignez une équipe</h2>
       <div class="hscroll" style="display: flex; gap: 12px; padding-bottom: 8px; margin-bottom: 30px;">
         <sc-for list="{{ sportGroupsData }}" as="group" hint-placeholder-count="6">
-          <div style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div onclick="openClubPanel({{ group.id }})" style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; cursor: pointer;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
               <span class="material-symbols-outlined" style="color: #003FB1; font-size: 28px;">{{ group.icon }}</span>
               <div style="font-size: 0.86rem; font-weight: 700; color: #0A2463;">{{ group.name }}</div>
             </div>
             <div style="font-size: 0.74rem; color: #434654;">{{ group.member_count }} membres</div>
             <div style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ group.weekly_score }} pts</div>
-            <button onclick="{{ group.onJoin }}" style="{{ group.btnStyle }}">{{ group.btnLabel }}</button>
+            <button onclick="event.stopPropagation(); {{ group.onJoin }}" style="{{ group.btnStyle }}">{{ group.btnLabel }}</button>
           </div>
         </sc-for>
         <div onclick="{{ openCreateGroupModal }}" style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px dashed #C3C5D7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><span class="material-symbols-outlined" style="color: #2E6EE8; font-size: 32px;">add_circle</span><span style="font-size: 0.82rem; font-weight: 700; color: #0A2463; text-align: center;">Créer un groupe</span></div>
@@ -1244,17 +1274,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
       <!-- CLASSEMENT -->
       <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1rem; font-weight: 800; color: #0A2463;">Classement de la semaine</span>
-            <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.62rem; font-weight: 800; color: #00875f; background: rgba(0,201,167,0.12); padding: 3px 9px; border-radius: 9999px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #00C9A7; animation: livePulse 1.5s ease-in-out infinite;"></span>LIVE</span>
-          </div>
-          <select onchange="{{ leaderboardGroupChange }}" value="{{ leaderboardGroupId }}" style="padding: 6px 12px; border: 1px solid #C3C5D7; border-radius: 9999px; font-family: inherit; font-size: 0.78rem; color: #191B23; background: #fff;">
-            <option value="">Tous les groupes</option>
-            <sc-for list="{{ sportGroupsData }}" as="group">
-              <option value="{{ group.id }}">{{ group.name }}</option>
-            </sc-for>
-          </select>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+          <span style="font-size: 1rem; font-weight: 800; color: #0A2463;">Classement de la semaine</span>
+          <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.62rem; font-weight: 800; color: #00875f; background: rgba(0,201,167,0.12); padding: 3px 9px; border-radius: 9999px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #00C9A7; animation: livePulse 1.5s ease-in-out infinite;"></span>LIVE</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <sc-for list="{{ leaderboardView }}" as="lr" hint-placeholder-count="5">
@@ -4135,6 +4157,100 @@ function startChat(phone) {
     closeParticipantPanel();
     alert('Chat bientôt disponible');
   });
+}
+
+function openClubPanel(clubId) {
+  const panel = document.getElementById('club-panel');
+  const content = document.getElementById('club-panel-content');
+  const token = localStorage.getItem('bolamu_patient_token');
+  
+  if (!token) return;
+  
+  fetch('https://api.bolamu.co/api/v1/clubs/' + clubId, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success && d.data) {
+      const club = d.data;
+      const banner = club.banner_url || club.image_url || '';
+      const bannerStyle = banner 
+        ? `background-image: url('${banner}'); background-size: cover; background-position: center;`
+        : 'background: linear-gradient(135deg, #0A2463 0%, #003FB1 100%);';
+      
+      content.innerHTML = `
+        <div style="height: 220px; ${bannerStyle} border-radius: 20px; margin-bottom: 20px;"></div>
+        <h1 style="font-size: 1.8rem; font-weight: 800; color: #0A2463; margin: 0 0 16px 0;">${club.name || 'Club'}</h1>
+        <div style="display: flex; align-items: center; gap: 16px; font-size: 0.9rem; color: #434654; margin-bottom: 16px;">
+          <span><strong>${club.member_count || 0}</strong> membres</span>
+          <span style="color: #EDEDF8;">|</span>
+          <span><strong>${club.total_zora || 0}</strong> Zora cumulés</span>
+        </div>
+        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 24px;">
+          <p style="margin: 0; color: #434654; font-size: 0.9rem; line-height: 1.6;">${club.description || 'Rejoignez ce club pour gagner des points Zora ensemble !'}</p>
+        </div>
+        <h2 style="font-size: 1.1rem; font-weight: 800; color: #0A2463; margin: 0 0 12px 0;">Classement membres</h2>
+        <div id="club-members-list" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 100px;">
+          <div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Chargement...</div>
+        </div>
+        <button id="club-action-btn" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0A2463; color: #fff; border: none; padding: 14px 32px; border-radius: 9999px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(10,36,99,0.3);">Rejoindre</button>
+      `;
+      
+      panel.classList.add('active');
+      
+      // Fetch club members
+      fetch('https://api.bolamu.co/api/v1/clubs/' + clubId + '/members', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(md => {
+        if (md.success && md.data) {
+          const members = md.data.sort((a, b) => (b.zora_points || 0) - (a.zora_points || 0));
+          const listEl = document.getElementById('club-members-list');
+          
+          if (members.length === 0) {
+            listEl.innerHTML = '<div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Aucun membre pour le moment</div>';
+          } else {
+            let html = '';
+            members.forEach((m, i) => {
+              if (i === 0) {
+                html += `
+                  <div onclick="openParticipantPanel('${m.phone || ''}','${(m.full_name || 'Membre').replace(/'/g, "\\'")}',${m.zora_points || 0})" style="display: flex; align-items: center; gap: 12px; padding: 12px; background: linear-gradient(135deg, #F5A623 0%, #FF6B35 100%); border-radius: 12px; margin-bottom: 8px; cursor: pointer;">
+                    <span class="material-symbols-outlined" style="color: #fff; font-size: 24px;">emoji_events</span>
+                    <div style="flex: 1;">
+                      <div style="font-size: 0.95rem; font-weight: 800; color: #fff;">${m.full_name || 'Membre'}</div>
+                      <div style="font-size: 0.8rem; color: rgba(255,255,255,0.9);">${m.zora_points || 0} Zora</div>
+                    </div>
+                  </div>
+                `;
+              } else {
+                html += `
+                  <div onclick="openParticipantPanel('${m.phone || ''}','${(m.full_name || 'Membre').replace(/'/g, "\\'")}',${m.zora_points || 0})" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: ${i < members.length - 1 ? '1px solid #EDEDF8' : 'none'}; cursor: pointer;">
+                    <div style="width: 32px; height: 32px; background: #EDEDF8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #434654;">#${i + 1}</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 0.85rem; font-weight: 600; color: #0A2463;">${m.full_name || 'Membre'}</div>
+                    </div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #B0680A;">${m.zora_points || 0} Zora</div>
+                  </div>
+                `;
+              }
+            });
+            listEl.innerHTML = html;
+          }
+        }
+      }).catch(() => {
+        document.getElementById('club-members-list').innerHTML = '<div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Erreur de chargement</div>';
+      });
+    }
+  }).catch(() => {
+    content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Erreur de chargement</div>';
+    panel.classList.add('active');
+  });
+}
+
+function closeClubPanel() {
+  const panel = document.getElementById('club-panel');
+  panel.classList.remove('active');
 }
 </script>
 
