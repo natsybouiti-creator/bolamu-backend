@@ -1,6 +1,6 @@
 # ARCHITECTURE NOTIFICATIONS WHATSAPP — BOLAMU
-**Version :** 1.0 — 25 juin 2026  
-**Stack :** whatsapp-web.js (actif) → SIM dédiée MTN/Airtel (à venir)  
+**Version :** 2.0 — 26 juin 2026  
+**Stack :** WAHA (WhatsApp HTTP API) — moteur GOWS — hébergé sur Render  
 **Numéro actuel (test) :** +242069735418 (numéro perso Natsy — temporaire)  
 **Numéro cible (prod) :** SIM dédiée Bolamu — à acquérir (MTN ou Airtel Congo)
 
@@ -13,55 +13,90 @@
         ↓
 [Backend Node.js — trigger notification]
         ↓
-[whatsapp-web.service.js — sendAutoMessage()]
+[whatsapp-web.service.js — sendAutoMessage(phone, templateName, params)]
         ↓
-[whatsapp-web.js — client connecté SIM dédiée Bolamu]
+[POST https://waha-bolamu.onrender.com/api/sendText]
+   Header: X-Api-Key: WAHA_API_KEY
+        ↓
+[WAHA — moteur GOWS — session "default" — SIM dédiée Bolamu]
         ↓
 [Destinataire reçoit le message WhatsApp]
         ↓
-[INSERT → table notifications (type, canal, sent_at)]
+[INSERT → table notifications (user_phone, type, titre, message, canal, sent_at)]
 ```
 
-### Règle fondamentale
+### Règles fondamentales
 - **Un seul numéro expéditeur** : la SIM dédiée Bolamu (jamais le numéro perso de Natsy)
-- **Un seul service d'envoi** : `whatsapp-web.service.js` → fonction `sendAutoMessage(phone, templateName, params)`
-- **Fallback** : si client DISCONNECTED → log erreur + INSERT notifications avec sent_at = NULL
-- **Magic link pré-rempli** : chaque message d'activation/bienvenue contient un lien `https://bolamu.co/login?u={identifiant}&p={token}` qui pré-remplit les champs login
+- **Un seul service d'envoi** : `whatsapp-web.service.js` → `sendAutoMessage(phone, templateName, params)`
+- **Un seul appel HTTP** : `POST /api/sendText` vers WAHA avec `X-Api-Key`
+- **Fallback** : si WAHA répond erreur → log erreur + INSERT notifications avec `sent_at = NULL`
+- **Moteur GOWS** : pas de Chrome/Puppeteer — aucun crash "Execution context destroyed"
+- **Session persistée** : disque Render `/app/.sessions` — pas de QR à rescanner après redémarrage
+- **Magic link pré-rempli** : chaque message d'activation contient `https://bolamu.co/login?u={identifiant}&t={token}`
 
 ---
 
-## 2. NUMÉRO DÉDIÉ — PROCÉDURE DE BASCULE
+## 2. INFRASTRUCTURE WAHA
 
-### Quand la SIM est disponible
-1. Insérer la SIM dans un téléphone Android (pas iPhone — whatsapp-web.js incompatible avec iOS)
+### Déploiement Render
+- **Service** : `waha-bolamu` (Web Service Docker)
+- **Image** : `docker.io/devlikeapro/waha`
+- **Moteur** : `WHATSAPP_DEFAULT_ENGINE=GOWS` (pas WEBJS — pas de Chrome)
+- **Instance** : Standard (2 Go RAM, 1 CPU) — suffisant sans Chrome
+- **Disque persistant** : `/app/.sessions` — 1 GB — session survit aux redémarrages
+- **URL** : `https://waha-bolamu.onrender.com`
+- **Session** : `default`
+
+### Variables d'environnement (Render + .env local)
+```
+WAHA_API_KEY=<clé secrète — ne jamais committer>
+WAHA_BASE_URL=https://waha-bolamu.onrender.com
+WAHA_DASHBOARD_USERNAME=admin
+WAHA_DASHBOARD_PASSWORD=<mot de passe fort>
+WHATSAPP_RESTART_ALL_SESSIONS=True
+WHATSAPP_DEFAULT_ENGINE=GOWS
+```
+
+### Dashboard WAHA
+- URL : `https://waha-bolamu.onrender.com/dashboard`
+- Login : `WAHA_DASHBOARD_USERNAME` / `WAHA_DASHBOARD_PASSWORD`
+- Permet de voir l'état de la session, le numéro connecté, l'historique
+
+---
+
+## 3. PROCÉDURE DE BASCULE — SIM DÉDIÉE
+
+### Quand la SIM est disponible (~500 FCFA MTN ou Airtel)
+1. Insérer la SIM dans un téléphone Android (pas iPhone — incompatible)
 2. Créer un compte WhatsApp classique sur ce numéro
-3. Sur le serveur Render, modifier `.env` : `BOLAMU_WA_PHONE=+242XXXXXXXXX`
-4. Relancer whatsapp-web.js → scanner le nouveau QR code
-5. Supprimer `.wwebjs_auth/` (session ancienne) avant de rescanner
-6. Tester avec un envoi vers ton numéro perso — valider réception
-7. Le numéro Meta API (+242065207273) reste disponible pour la migration future vers l'API officielle quand une carte corporate NBA Gestion sera disponible
+3. Ouvrir le dashboard WAHA → `https://waha-bolamu.onrender.com/dashboard`
+4. Arrêter la session `default` → supprimer → recréer
+5. Scanner le nouveau QR code avec le téléphone Android SIM dédiée
+6. Mettre à jour `.env` : `BOLAMU_WA_PHONE=+242XXXXXXXXX`
+7. Tester un envoi vers le numéro perso Natsy — confirmer réception
+8. Commit : `chore: bascule SIM dédiée Bolamu WhatsApp`
+
+> Le numéro Meta API (+242065207273) reste disponible pour migration future vers l'API officielle quand une carte corporate NBA Gestion sera disponible.
 
 ---
 
-## 3. MAGIC LINK PRÉ-REMPLI
+## 4. MAGIC LINK PRÉ-REMPLI
 
-### Format du lien
+### Format
 ```
-https://bolamu.co/login?u={identifiant_encodé}&t={token_one_time}
+https://bolamu.co/login?u={identifiant_encodé_base64}&t={token_one_time}
 ```
-- `u` = identifiant (phone ou email) encodé en base64
-- `t` = token one-time 24h (stocké dans `qr_tokens`)
-- En cliquant : la page login se charge avec les champs pré-remplis
-- Le token expire après 1 utilisation ou 24h
+- `u` = identifiant (phone) encodé en base64
+- `t` = token one-time 24h stocké dans `qr_tokens`
+- Expire après 1 utilisation ou 24h
 
-### Implémentation frontend (à faire dans login.html)
+### Implémentation frontend (login.html)
 ```javascript
 const params = new URLSearchParams(window.location.search);
 if (params.get('u')) {
   document.getElementById('phone').value = atob(params.get('u'));
 }
 if (params.get('t')) {
-  // stocker le token, pré-remplir le champ password avec un placeholder visuel
   document.getElementById('password').setAttribute('data-token', params.get('t'));
   document.getElementById('password').placeholder = '••••••••  (pré-rempli)';
 }
@@ -69,9 +104,9 @@ if (params.get('t')) {
 
 ---
 
-## 4. TEMPLATES PAR RÔLE
+## 5. TEMPLATES PAR RÔLE
 
-### FORMAT STANDARD D'UN TEMPLATE
+### FORMAT STANDARD
 ```javascript
 case 'bolamu_NOM_DU_TEMPLATE': {
   message = `[contenu]\n\nL'équipe Bolamu`;
@@ -81,7 +116,7 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 
 ---
 
-### 4.1 PATIENTS
+### 5.1 PATIENTS
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
@@ -99,12 +134,12 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 | `bolamu_event_rappel` | 24h avant un événement Elonga | `[nom, titre_event, date, heure, lieu]` |
 | `bolamu_event_annule` | Événement annulé par animateur | `[nom, titre_event, date]` |
 | `bolamu_checkin_confirme` | QR check-in validé à un événement | `[nom, titre_event, points_zora]` |
-| `bolamu_partenaire_reduction` | Notification d'une réduction partenaire disponible | `[nom, partenaire, pourcentage, validite]` |
+| `bolamu_partenaire_reduction` | Réduction partenaire disponible | `[nom, partenaire, pourcentage, validite]` |
 | `bolamu_code_acces` | Premier accès / reset code | `[nom, code_otp]` |
 
 ---
 
-### 4.2 MÉDECINS
+### 5.2 MÉDECINS
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
@@ -116,7 +151,7 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 
 ---
 
-### 4.3 SECRÉTAIRES
+### 5.3 SECRÉTAIRES
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
@@ -126,7 +161,7 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 
 ---
 
-### 4.4 PHARMACIES
+### 5.4 PHARMACIES
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
@@ -136,7 +171,7 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 
 ---
 
-### 4.5 LABORATOIRES
+### 5.5 LABORATOIRES
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
@@ -146,7 +181,7 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 
 ---
 
-### 4.6 ANIMATEURS ELONGA
+### 5.6 ANIMATEURS ELONGA
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
@@ -159,7 +194,7 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 
 ---
 
-### 4.7 AGENTS COMMERCIAUX (company_rh / agent)
+### 5.7 AGENTS COMMERCIAUX
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
@@ -169,7 +204,7 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 
 ---
 
-### 4.8 RH ENTREPRISE (SmartFlow B2B)
+### 5.8 RH ENTREPRISE (SmartFlow B2B)
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
@@ -179,58 +214,58 @@ case 'bolamu_NOM_DU_TEMPLATE': {
 
 ---
 
-### 4.9 ADMIN BOLAMU
+### 5.9 ADMIN BOLAMU
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
-| `bolamu_admin_nouveau_partenaire` | Nouveau partenaire inscrit en attente de validation | `[nom_admin, nom_partenaire, type]` |
+| `bolamu_admin_nouveau_partenaire` | Nouveau partenaire inscrit en attente | `[nom_admin, nom_partenaire, type]` |
 | `bolamu_admin_event_soumis` | Animateur soumet un événement | `[nom_admin, titre_event, animateur, date]` |
 | `bolamu_admin_alerte_zora` | Anomalie détectée dans les transactions Zora | `[nom_admin, details]` |
 
 ---
 
-## 5. TEMPLATES ZORA (transversaux)
-
-Ces templates s'appliquent à tous les rôles concernés par la gamification.
+## 6. TEMPLATES ZORA (transversaux)
 
 | Code template | Déclencheur | Params |
 |---------------|-------------|--------|
 | `bolamu_zora_attribues` | Crédit Zora (check-in, soin, action) | `[nom, montant, solde, raison]` |
 | `bolamu_zora_depense` | Utilisation Zora chez partenaire | `[nom, montant, partenaire, solde_restant]` |
 | `bolamu_zora_expiration` | J-30 avant expiration | `[nom, montant_expiration, date_expiration]` |
-| `bolamu_zora_cadeau_recu` | Zora reçus via programme parrainage | `[nom, montant, parrain]` |
+| `bolamu_zora_cadeau_recu` | Zora reçus via parrainage | `[nom, montant, parrain]` |
 
 ---
 
-## 6. NOUVEAUX TEMPLATES À CRÉER
-
-Ces templates n'existent pas encore et doivent être ajoutés dans `whatsapp-web.service.js` :
+## 7. TEMPLATES À CRÉER (non encore implémentés)
 
 | Code template | Priorité | Boucle |
 |---------------|----------|--------|
-| `bolamu_animateur_event_valide` | HAUTE | Boucle 3 |
-| `bolamu_animateur_checkins` | HAUTE | Boucle 3 |
-| `bolamu_checkin_confirme` | HAUTE | Boucle 3 |
-| `bolamu_event_inscription` | HAUTE | Boucle 3 |
-| `bolamu_event_rappel` | MOYENNE | Boucle 3 |
-| `bolamu_rh_rapport_mensuel` | HAUTE | Boucle 4 (SmartFlow) |
-| `bolamu_partenaire_reduction` | MOYENNE | Boucle 5 |
-| `bolamu_zora_cadeau_recu` | MOYENNE | Boucle 5 |
-| `bolamu_admin_alerte_zora` | BASSE | Boucle 6 |
+| `bolamu_animateur_event_valide` | HAUTE | B3 |
+| `bolamu_animateur_checkins` | HAUTE | B3 |
+| `bolamu_checkin_confirme` | HAUTE | B3 |
+| `bolamu_event_inscription` | HAUTE | B3 |
+| `bolamu_event_rappel` | MOYENNE | B3 |
+| `bolamu_rh_rapport_mensuel` | HAUTE | B7 |
+| `bolamu_partenaire_reduction` | MOYENNE | B5 |
+| `bolamu_zora_cadeau_recu` | MOYENNE | B5 |
+| `bolamu_admin_alerte_zora` | BASSE | B6 |
 
 ---
 
-## 7. IMPLÉMENTATION — RÈGLES POUR CASCADE
+## 8. IMPLÉMENTATION — RÈGLES POUR CASCADE
 
-### Structure dans whatsapp-web.service.js
+### Structure whatsapp-web.service.js (appel HTTP WAHA)
 ```javascript
+const fetch = require('node-fetch');
+const { normalizePhone } = require('../utils/phone');
+
 async function sendAutoMessage(phone, templateName, params) {
+  const normalizedPhone = normalizePhone(phone);
   let message = '';
-  
+
   switch (templateName) {
-    
+
     case 'bolamu_bienvenue_patient_v4':
-      message = `Bienvenue sur Bolamu, ${params[0]} ! 🎉\n`
+      message = `Bienvenue sur Bolamu, ${params[0]} !\n`
         + `Votre compte patient est activé.\n\n`
         + `Connectez-vous ici (lien valide 24h) :\n${params[2]}\n\n`
         + `Identifiant : ${params[1]}\n\n`
@@ -239,15 +274,15 @@ async function sendAutoMessage(phone, templateName, params) {
 
     case 'bolamu_rdv_confirme':
       message = `Bonjour ${params[0]},\n`
-        + `Votre RDV Bolamu est confirmé ✅\n\n`
-        + `📅 ${params[1]} à ${params[2]}\n`
-        + `👨‍⚕️ ${params[3]}\n`
-        + `📍 ${params[4]}\n\n`
+        + `Votre RDV Bolamu est confirmé.\n\n`
+        + `Date : ${params[1]} à ${params[2]}\n`
+        + `Praticien : ${params[3]}\n`
+        + `Lieu : ${params[4]}\n\n`
         + `L'équipe Bolamu`;
       break;
 
     case 'bolamu_zora_attribues':
-      message = `Bonne nouvelle ${params[0]} ! ⭐\n`
+      message = `Bonne nouvelle ${params[0]} !\n`
         + `Vous venez de recevoir ${params[1]} Zora.\n`
         + `Solde total : ${params[2]} Zora\n`
         + `Raison : ${params[3]}\n\n`
@@ -261,19 +296,41 @@ async function sendAutoMessage(phone, templateName, params) {
       message = params.join(' ');
   }
 
-  await sendWhatsAppMessage(phone, message);
+  // Appel HTTP vers WAHA
+  const res = await fetch(`${process.env.WAHA_BASE_URL}/api/sendText`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-Key': process.env.WAHA_API_KEY
+    },
+    body: JSON.stringify({
+      chatId: `${normalizedPhone.replace('+', '')}@c.us`,
+      text: message,
+      session: 'default'
+    })
+  });
+
+  const sent_at = res.ok ? new Date() : null;
+
+  // Log en base
+  await pool.query(
+    `INSERT INTO notifications (user_phone, type, titre, message, canal, sent_at, created_at)
+     VALUES ($1, 'whatsapp_message', $2, $3, 'whatsapp', $4, NOW())`,
+    [normalizedPhone, templateName, message, sent_at]
+  );
+
+  if (!res.ok) throw new Error(`WAHA error: ${res.status}`);
 }
+
+module.exports = { sendAutoMessage };
 ```
 
 ### Règle d'appel depuis le backend
 ```javascript
-// Toujours appeler sendAutoMessage depuis whatsapp-web.service.js
-// JAMAIS appeler directement client.sendMessage()
-// TOUJOURS passer par sendAutoMessage(phone, templateName, params)
-
+// TOUJOURS appeler via sendAutoMessage — jamais d'appel HTTP WAHA direct
 const { sendAutoMessage } = require('../services/whatsapp-web.service');
 
-// Exemple dans auth.controller.js après création patient :
+// Exemple après création patient :
 await sendAutoMessage(
   patient.phone,
   'bolamu_bienvenue_patient_v4',
@@ -283,29 +340,39 @@ await sendAutoMessage(
 
 ---
 
-## 8. TABLE NOTIFICATIONS — RÉFÉRENCE
+## 9. TABLE NOTIFICATIONS — SCHÉMA RÉEL
 
 ```sql
-INSERT INTO notifications 
-  (user_phone, type, canal, content, sent_at, created_at)
-VALUES 
-  ($1, 'whatsapp_message', 'whatsapp', $2, NOW(), NOW());
-```
+-- Schéma actuel (migration_023 + corrections session)
+CREATE TABLE notifications (
+  id SERIAL PRIMARY KEY,
+  user_phone VARCHAR(20) NOT NULL REFERENCES users(phone),
+  type VARCHAR(50) NOT NULL CHECK (type IN ('whatsapp_message', ...)),
+  titre VARCHAR(100) NOT NULL,
+  message TEXT NOT NULL,
+  data JSONB DEFAULT '{}',
+  canal VARCHAR(20) DEFAULT 'push',
+  is_read BOOLEAN DEFAULT false,
+  sent_at TIMESTAMP,
+  read_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
 
-- `type` accepté : `whatsapp_message` (contrainte CHECK en place depuis migration_043)
-- `canal` : `whatsapp`
-- `content` : texte du message envoyé (pour audit)
-- `sent_at` : NULL si échec d'envoi
+-- Insert type correct (PAS content — la colonne n'existe pas)
+INSERT INTO notifications (user_phone, type, titre, message, canal, sent_at, created_at)
+VALUES ($1, 'whatsapp_message', $2, $3, 'whatsapp', NOW(), NOW());
+```
 
 ---
 
-## 9. CHECKLIST BASCULE SIM DÉDIÉE
+## 10. CHECKLIST BASCULE SIM DÉDIÉE (procédure WAHA)
 
-- [ ] SIM MTN ou Airtel achetée (numéro jamais utilisé)
-- [ ] Compte WhatsApp créé sur ce numéro (via téléphone Android)
+- [ ] SIM MTN ou Airtel achetée (~500 FCFA, numéro jamais utilisé WhatsApp)
+- [ ] Compte WhatsApp créé sur ce numéro (téléphone Android)
+- [ ] Dashboard WAHA ouvert : `https://waha-bolamu.onrender.com/dashboard`
+- [ ] Session `default` arrêtée et supprimée
+- [ ] Nouvelle session créée → QR scanné avec le téléphone SIM dédiée
+- [ ] Statut session = WORKING dans le dashboard
 - [ ] `.env` mis à jour : `BOLAMU_WA_PHONE=+242XXXXXXXXX`
-- [ ] `.wwebjs_auth/` supprimé sur le serveur
-- [ ] QR code scanné et session validée
 - [ ] Test envoi vers numéro perso Natsy — réception confirmée
-- [ ] Ancien numéro retiré de la config
-- [ ] Commit + push : "chore: bascule SIM dédiée Bolamu WhatsApp"
+- [ ] Commit : `chore: bascule SIM dédiée Bolamu WhatsApp (WAHA)`
