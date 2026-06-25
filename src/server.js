@@ -22,9 +22,8 @@ const { runMigrations } = require('./db/migrate');
 const { configurePush } = require('./services/push.service');
 configurePush();
 
-// Initialisation client WhatsApp Web
-const { initializeClient } = require('./services/whatsapp-web.service');
-initializeClient();
+// WhatsApp : WAHA (GOWS) tourne de façon autonome sur Render
+// Plus besoin d'initialiser de client WhatsApp au démarrage
 
 const app = express();
 app.set('trust proxy', 1);
