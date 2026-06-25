@@ -84,6 +84,29 @@
   direction: ltr;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Event panel animation */
+@keyframes slideInUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+#event-panel {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #FAF8FF;
+  z-index: 1000;
+  overflow-y: auto;
+  animation: slideInUp 300ms ease;
+}
+
+#event-panel.active {
+  display: block;
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -1127,7 +1150,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ ev.pts }}</span>
       </div>
       <div style="{{ ev.inscritStyle }}">Déjà inscrit ✓</div>
-      <button data-testid="participate-{{ ev.dbId }}" onclick="{{ ev.participate }}" style="{{ ev.participateStyle }}">Participer</button>
+      <button data-testid="participate-{{ ev.dbId }}" onclick="openEventPanel({{ ev.dbId }})" style="{{ ev.participateStyle }}">Participer</button>
     </div>
   </div>
 </sc-for>
@@ -1157,6 +1180,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
             </sc-for>
           </div>
         </sc-if>
+      </div>
+
+      <!-- EVENT PANEL (hidden by default) -->
+      <div id="event-panel">
+        <div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;">
+          <button onclick="closeEventPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;">
+            <span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>
+            Retour
+          </button>
+        </div>
+        <div id="event-panel-content" style="padding: 20px;">
+          <!-- Content will be dynamically filled -->
+        </div>
       </div>
 
       <!-- GROUPES DE SPORT -->
@@ -3876,6 +3912,107 @@ class Component extends DCLogic {
       dmnDocsEmptyStyle: { display: (this._dmnDocs && this._dmnDocs.length) ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' }
     };
   }
+}
+
+// Event panel functions (global scope)
+function openEventPanel(eventId) {
+  const panel = document.getElementById('event-panel');
+  const content = document.getElementById('event-panel-content');
+  const token = localStorage.getItem('bolamu_patient_token');
+  
+  if (!token) return;
+  
+  fetch('https://api.bolamu.co/api/v1/elonga/events/' + eventId, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success && d.data) {
+      const event = d.data;
+      const date = new Date(event.starts_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+      
+      content.innerHTML = `
+        <div style="height: 220px; background-image: url('${event.image_url || '/images/landing/garcons3Dbleu.png'}'); background-size: cover; background-position: center; border-radius: 20px; margin-bottom: 20px;"></div>
+        <span style="background: ${event.category_color || '#00C9A7'}; color: #fff; font-size: 0.7rem; font-weight: 800; padding: 6px 14px; border-radius: 9999px; display: inline-block; margin-bottom: 12px;">${event.category || 'Sport'}</span>
+        <h1 style="font-size: 1.8rem; font-weight: 800; color: #0A2463; margin: 0 0 16px 0;">${event.title}</h1>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #434654;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">location_on</span>
+          <span style="font-size: 0.9rem;">${event.location_name || event.location}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; color: #434654;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+          <span style="font-size: 0.9rem;">${date}</span>
+        </div>
+        <div style="background: rgba(0,201,167,0.12); color: #00875f; font-size: 0.8rem; font-weight: 800; padding: 8px 16px; border-radius: 9999px; display: inline-block; margin-bottom: 24px;">+${event.zora_points || 50} Zora</div>
+        <h2 style="font-size: 1.1rem; font-weight: 800; color: #0A2463; margin: 0 0 12px 0;">Règles</h2>
+        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 24px;">
+          <ol style="margin: 0; padding-left: 20px; color: #434654; font-size: 0.9rem; line-height: 1.6;">
+            <li>${event.description || 'Participez à cet événement pour gagner des points Zora.'}</li>
+          </ol>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #434654; margin-bottom: 24px;">${event.participant_count || 0} / ${event.capacity || 60} inscrits</div>
+        <h2 style="font-size: 1.1rem; font-weight: 800; color: #0A2463; margin: 0 0 12px 0;">Classement participants</h2>
+        <div id="participants-list" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 100px;">
+          <div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Chargement...</div>
+        </div>
+        <button id="participate-btn" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0A2463; color: #fff; border: none; padding: 14px 32px; border-radius: 9999px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(10,36,99,0.3);">Participer</button>
+      `;
+      
+      panel.classList.add('active');
+      
+      // Fetch participants
+      fetch('https://api.bolamu.co/api/v1/elonga/events/' + eventId + '/participants', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(pd => {
+        if (pd.success && pd.data) {
+          const participants = pd.data.sort((a, b) => (b.zora_points || 0) - (a.zora_points || 0));
+          const listEl = document.getElementById('participants-list');
+          
+          if (participants.length === 0) {
+            listEl.innerHTML = '<div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Aucun participant pour le moment</div>';
+          } else {
+            let html = '';
+            participants.forEach((p, i) => {
+              if (i === 0) {
+                html += `
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: linear-gradient(135deg, #F5A623 0%, #FF6B35 100%); border-radius: 12px; margin-bottom: 8px;">
+                    <span class="material-symbols-outlined" style="color: #fff; font-size: 24px;">emoji_events</span>
+                    <div style="flex: 1;">
+                      <div style="font-size: 0.95rem; font-weight: 800; color: #fff;">${p.full_name || 'Participant'}</div>
+                      <div style="font-size: 0.8rem; color: rgba(255,255,255,0.9);">${p.zora_points || 0} Zora</div>
+                    </div>
+                  </div>
+                `;
+              } else {
+                html += `
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: ${i < participants.length - 1 ? '1px solid #EDEDF8' : 'none'};">
+                    <div style="width: 32px; height: 32px; background: #EDEDF8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #434654;">#${i + 1}</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 0.85rem; font-weight: 600; color: #0A2463;">${p.full_name || 'Participant'}</div>
+                    </div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #B0680A;">${p.zora_points || 0} Zora</div>
+                  </div>
+                `;
+              }
+            });
+            listEl.innerHTML = html;
+          }
+        }
+      }).catch(() => {
+        document.getElementById('participants-list').innerHTML = '<div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Erreur de chargement</div>';
+      });
+    }
+  }).catch(() => {
+    content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Erreur de chargement</div>';
+    panel.classList.add('active');
+  });
+}
+
+function closeEventPanel() {
+  const panel = document.getElementById('event-panel');
+  panel.classList.remove('active');
 }
 </script>
 
