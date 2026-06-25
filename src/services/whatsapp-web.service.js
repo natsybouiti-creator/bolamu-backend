@@ -5,6 +5,8 @@ const path = require('path');
 const pool = require('../config/db');
 const PostgresStore = require('./whatsapp-session-store');
 
+const IS_RENDER = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
+
 let clientStatus = 'DISCONNECTED';
 let clientInstance = null;
 
@@ -43,6 +45,11 @@ function getClient() {
 }
 
 function initializeClient() {
+  if (IS_RENDER) {
+    console.log('[WhatsApp-Web] Désactivé sur Render — utilisation API Meta directe');
+    clientStatus = 'DISABLED';
+    return null;
+  }
   const client = getClient();
   if (!client.info) {
     client.initialize();
@@ -72,6 +79,13 @@ function getClientStatus() {
 }
 
 async function sendAutoMessage(phone, templateName, params) {
+  if (IS_RENDER || clientStatus !== 'READY') {
+    // Fallback API Meta sur Render
+    const { sendWhatsAppTemplate } = require('./whatsapp.service');
+    return await sendWhatsAppTemplate(phone, templateName, params);
+  }
+  
+  // whatsapp-web.js en local
   let message = '';
   if (templateName === 'bolamu_bienvenue_patient_v4') {
     message = `Bienvenue sur Bolamu, ${params[0]} !\nVotre compte patient est activé.\n\nConnectez-vous sur : https://bolamu.co\nIdentifiant : ${params[1]}\nMot de passe : ${params[2]}\n\nL'équipe Bolamu`;
