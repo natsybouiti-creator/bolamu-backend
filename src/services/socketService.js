@@ -1,0 +1,95 @@
+// ============================================================
+// BOLAMU — Boucle 2 : Socket.io Service temps réel
+// ============================================================
+
+let io = null;
+const rooms = new Map(); // conversation_id -> Set of socket IDs
+
+function initializeSocket(server) {
+  const { Server } = require('socket.io');
+  io = new Server(server, {
+    cors: {
+      origin: process.env.NODE_ENV === 'production' 
+        ? ['https://bolamu.co', 'https://www.bolamu.co', 'https://api.bolamu.co']
+        : ['http://localhost:3000', 'http://localhost:10000'],
+      methods: ['GET', 'POST']
+    }
+  });
+
+  io.on('connection', (socket) => {
+    console.log('[Socket.io] Client connecté:', socket.id);
+
+    // Rejoindre une room de conversation
+    socket.on('join_conversation', (conversationId) => {
+      socket.join(`conversation_${conversationId}`);
+      
+      if (!rooms.has(conversationId)) {
+        rooms.set(conversationId, new Set());
+      }
+      rooms.get(conversationId).add(socket.id);
+      
+      console.log(`[Socket.io] Socket ${socket.id} rejoint conversation_${conversationId}`);
+    });
+
+    // Quitter une room de conversation
+    socket.on('leave_conversation', (conversationId) => {
+      socket.leave(`conversation_${conversationId}`);
+      
+      if (rooms.has(conversationId)) {
+        rooms.get(conversationId).delete(socket.id);
+        if (rooms.get(conversationId).size === 0) {
+          rooms.delete(conversationId);
+        }
+      }
+      
+      console.log(`[Socket.io] Socket ${socket.id} a quitté conversation_${conversationId}`);
+    });
+
+    // Notification utilisateur rejoint un groupe
+    socket.on('user_joined_group', (data) => {
+      const { groupId, phone, firstName } = data;
+      io.to(`group_${groupId}`).emit('user_joined_group', {
+        phone,
+        firstName,
+        timestamp: new Date()
+      });
+    });
+
+    socket.on('disconnect', () => {
+      console.log('[Socket.io] Client déconnecté:', socket.id);
+      
+      // Nettoyer les rooms
+      for (const [conversationId, socketSet] of rooms.entries()) {
+        socketSet.delete(socket.id);
+        if (socketSet.size === 0) {
+          rooms.delete(conversationId);
+        }
+      }
+    });
+  });
+
+  console.log('[Socket.io] Service initialisé');
+}
+
+function emitToRoom(conversationId, event, data) {
+  if (io) {
+    io.to(`conversation_${conversationId}`).emit(event, data);
+  }
+}
+
+function emitToGroup(groupId, event, data) {
+  if (io) {
+    io.to(`group_${groupId}`).emit(event, data);
+  }
+}
+
+function getIo() {
+  return io;
+}
+
+module.exports = {
+  initializeSocket,
+  emitToRoom,
+  emitToGroup,
+  getIo
+};

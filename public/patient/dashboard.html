@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html><head><script>window.__resources = {"ZoraCoin": "assets/6afed6d9-2b35-4909-ae13-8d291a3205f0.html", "EventCard": "assets/dabc59bc-c73e-4751-a65b-0df41955aba5.html", "EarnCard": "assets/63bd4a49-1f58-4287-9db4-22011727b27c.html", "PlaceRow": "assets/84a7ac5c-8d39-44af-a978-ff47fa55d2a1.html", "SportGroup": "assets/7f692e40-9a85-47d3-a7c3-b52be7933f00.html", "FlashOffer": "assets/7b4e8de5-381c-40d1-888f-9082f639f999.html", "SettingRow": "assets/e074cd4d-f13f-44b0-859c-42be3a7be14d.html", "Partner": "assets/f2191c35-2309-4a9b-ba8d-a816741011d9.html", "LedgerRow": "assets/94c80ac0-007f-41c7-9fcc-470375b1512e.html", "logo": "assets/9a0c4233-2b12-4722-a9e0-63a78e03410a.png", "rwMtn": "assets/3cb0f183-7772-42d5-b4c7-1877fa8fd1e5.png", "evAtelier": "assets/c121bf47-e613-468e-b1fd-b14bec3604e6.png", "evMarche": "assets/efb560cc-d0ae-4282-9b92-4e0d9ed0a957.png", "rwSalle": "assets/74281079-78fe-4b7e-9bdb-9babaae16ddd.png", "rwStation": "assets/d84919a2-6d64-4d62-9250-76c4ab37195c.png", "rwDaffe": "assets/f5e5733e-503e-4b7c-9f51-06d6c1ead7e0.png", "rwAirtel": "assets/ba3a1d9f-c1af-41cc-8d85-dc2fd3730642.png", "zoraCoinGold": "assets/453fc187-9a9f-4087-aea5-b37a93b7d97a.png", "evDepistage": "assets/4c0f8da7-fa45-4af4-a345-1e58cd108e93.png"};</script>
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- standalone build: resource manifest -->
@@ -1002,7 +1003,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <dc-import name="ZoraCoin" size="22" no-float="{{ true }}" hint-size="22px,22px"></dc-import>
           <span style="font-size: 0.9rem; font-weight: 800; color: #B0680A;">{{ zoraTxt }} pts</span>
         </div>
-        <button onclick="{{ openChat }}" style="position: relative; height: 40px; width: 40px; border: 1px solid #E4E4F2; background: #fff; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+        <button onclick="{{ openChatReal }}" style="position: relative; height: 40px; width: 40px; border: 1px solid #E4E4F2; background: #fff; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
           <span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">forum</span>
           <span style="{{ chatBadgeStyle }}">{{ chatBadge }}</span>
         </button>
@@ -1161,20 +1162,33 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <!-- GROUPES DE SPORT -->
       <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Rejoignez une équipe</h2>
       <div class="hscroll" style="display: flex; gap: 12px; padding-bottom: 8px; margin-bottom: 30px;">
-        <dc-import name="SportGroup" icon="sports_basketball" gname="Basketball" members="34 membres" score="48 200 pts" hint-size="170px,180px"></dc-import>
-        <dc-import name="SportGroup" icon="sports_soccer" gname="Football" members="62 membres" score="91 400 pts" hint-size="170px,180px"></dc-import>
-        <dc-import name="SportGroup" icon="sports_tennis" gname="Tennis" members="19 membres" score="27 600 pts" hint-size="170px,180px"></dc-import>
-        <dc-import name="SportGroup" icon="pool" gname="Natation" members="23 membres" score="33 100 pts" hint-size="170px,180px"></dc-import>
-        <dc-import name="SportGroup" icon="directions_run" gname="Course à pied" members="48 membres" score="82 400 pts" hint-size="170px,180px"></dc-import>
-        <dc-import name="SportGroup" icon="directions_bike" gname="Cyclisme" members="26 membres" score="39 800 pts" hint-size="170px,180px"></dc-import>
-        <div onclick="{{ toastCreerGroupe }}" style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px dashed #C3C5D7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><span class="material-symbols-outlined" style="color: #2E6EE8; font-size: 32px;">add_circle</span><span style="font-size: 0.82rem; font-weight: 700; color: #0A2463; text-align: center;">Créer un groupe</span></div>
+        <sc-for list="{{ sportGroupsData }}" as="group" hint-placeholder-count="6">
+          <div style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span class="material-symbols-outlined" style="color: #003FB1; font-size: 28px;">{{ group.icon }}</span>
+              <div style="font-size: 0.86rem; font-weight: 700; color: #0A2463;">{{ group.name }}</div>
+            </div>
+            <div style="font-size: 0.74rem; color: #434654;">{{ group.member_count }} membres</div>
+            <div style="font-size: 0.78rem; font-weight: 800; color: #B0680A;">{{ group.weekly_score }} pts</div>
+            <button onclick="{{ group.onJoin }}" style="{{ group.btnStyle }}">{{ group.btnLabel }}</button>
+          </div>
+        </sc-for>
+        <div onclick="{{ openCreateGroupModal }}" style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px dashed #C3C5D7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><span class="material-symbols-outlined" style="color: #2E6EE8; font-size: 32px;">add_circle</span><span style="font-size: 0.82rem; font-weight: 700; color: #0A2463; text-align: center;">Créer un groupe</span></div>
       </div>
 
       <!-- CLASSEMENT -->
       <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-          <span style="font-size: 1rem; font-weight: 800; color: #0A2463;">Classement de la semaine</span>
-          <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.62rem; font-weight: 800; color: #00875f; background: rgba(0,201,167,0.12); padding: 3px 9px; border-radius: 9999px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #00C9A7; animation: livePulse 1.5s ease-in-out infinite;"></span>LIVE</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1rem; font-weight: 800; color: #0A2463;">Classement de la semaine</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.62rem; font-weight: 800; color: #00875f; background: rgba(0,201,167,0.12); padding: 3px 9px; border-radius: 9999px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #00C9A7; animation: livePulse 1.5s ease-in-out infinite;"></span>LIVE</span>
+          </div>
+          <select onchange="{{ leaderboardGroupChange }}" value="{{ leaderboardGroupId }}" style="padding: 6px 12px; border: 1px solid #C3C5D7; border-radius: 9999px; font-family: inherit; font-size: 0.78rem; color: #191B23; background: #fff;">
+            <option value="">Tous les groupes</option>
+            <sc-for list="{{ sportGroupsData }}" as="group">
+              <option value="{{ group.id }}">{{ group.name }}</option>
+            </sc-for>
+          </select>
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <sc-for list="{{ leaderboardView }}" as="lr" hint-placeholder-count="5">
@@ -1183,6 +1197,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
               <span style="{{ lr.avatarStyle }}">{{ lr.initials }}</span>
               <span style="flex: 1; font-size: 0.9rem; font-weight: 600; color: #191B23;">{{ lr.name }}</span>
               <span style="font-size: 0.85rem; font-weight: 800; color: #B0680A;">{{ lr.pts }}</span>
+            </div>
+            <div style="display: flex; gap: 8px; padding-left: 48px;">
+              <button onclick="{{ lr.onEncourage }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #FF6B35; font-family: inherit; font-size: 0.7rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 16px;">thumb_up</span>Encourager</button>
+              <button onclick="{{ lr.onComment }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #434654; font-family: inherit; font-size: 0.7rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-size: 16px;">chat_bubble</span>Commenter</button>
+            </div>
+            <div style="{{ lr.commentInputStyle }}">
+              <input type="text" placeholder="Commenter (max 140)..." oninput="{{ lr.commentInput }}" value="{{ lr.commentText }}" style="width: 100%; padding: 8px 12px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.78rem; color: #191B23;">
+              <button onclick="{{ lr.sendComment }}" style="margin-top: 6px; background: #003FB1; color: #fff; border: none; padding: 6px 12px; border-radius: 9999px; font-family: inherit; font-size: 0.72rem; font-weight: 700; cursor: pointer;">Envoyer</button>
             </div>
           </sc-for>
           <div style="{{ leaderboardEmptyStyle }}"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Classement bientôt disponible</span></div>
@@ -1797,19 +1819,32 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <button onclick="{{ chatCommunaute }}" style="{{ chatTabComm }}">Communauté</button>
       <button onclick="{{ chatMedecins }}" style="{{ chatTabMed }}">Médecins</button>
     </div>
-    <div style="flex: 1; overflow-y: auto; padding: 16px 20px;">
+    <div style="flex: 1; overflow-y: auto; padding: 16px 20px;" class="chat-messages-container">
       <div style="{{ chatCommStyle }}">
         <div style="display: flex; flex-direction: column; gap: 14px;">
-          <div style="background: #F3F3FE; border-radius: 16px; padding: 14px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="width: 34px; height: 34px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-2.jpg'); background-size: cover; background-position: center; background-color: #003FB1; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; flex-shrink: 0;">SB</span><div><div style="font-size: 0.82rem; font-weight: 700; color: #0A2463;">Sarah B.</div><div style="font-size: 0.66rem; color: #9498a8;">il y a 2 h</div></div></div>
-            <div style="font-size: 0.85rem; font-weight: 500; color: #191B23; margin-bottom: 10px;">A complété un bilan annuel complet <span style="font-weight: 800; color: #FF6B35;">+200 Zora</span></div>
-            <div style="display: flex; gap: 14px;"><button onclick="{{ toastChat }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #FF6B35; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 17px;">favorite</span>12</button><button onclick="{{ toastChat }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #434654; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-size: 17px;">chat_bubble</span>Commenter</button></div>
-          </div>
-          <div style="background: #F3F3FE; border-radius: 16px; padding: 14px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="width: 34px; height: 34px; border-radius: 9999px; background: #00C9A7; color: #06352c; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800;">RB</span><div><div style="font-size: 0.82rem; font-weight: 700; color: #0A2463;">Groupe Runners Brazza</div><div style="font-size: 0.66rem; color: #9498a8;">hier</div></div></div>
-            <div style="font-size: 0.85rem; font-weight: 500; color: #191B23; margin-bottom: 10px;">A gagné le défi de la semaine ! Bravo à tous les membres.</div>
-            <div style="display: flex; gap: 14px;"><button onclick="{{ toastChat }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #FF6B35; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 17px;">favorite</span>38</button><button onclick="{{ toastChat }}" style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: #434654; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0;"><span class="material-symbols-outlined" style="font-size: 17px;">person_add</span>Suivre</button></div>
-          </div>
+          <sc-if cond="{{ chatLoading }}">
+            <div style="text-align: center; padding: 40px; color: #9498a8;">
+              <span class="material-symbols-outlined" style="font-size: 32px; color: #D1D5DB;">hourglass_empty</span>
+              <div style="margin-top: 12px; font-size: 0.86rem; font-weight: 600;">Chargement des messages...</div>
+            </div>
+          </sc-if>
+          <sc-if cond="{{ !chatLoading && chatMessages.length === 0 }}">
+            <div style="text-align: center; padding: 40px; color: #9498a8;">
+              <span class="material-symbols-outlined" style="font-size: 32px; color: #D1D5DB;">forum</span>
+              <div style="margin-top: 12px; font-size: 0.86rem; font-weight: 600;">Aucun message</div>
+              <div style="font-size: 0.78rem; color: #9CA3AF;">Soyez le premier à poster !</div>
+            </div>
+          </sc-if>
+          <sc-for list="{{ chatMessages }}" as="msg" hint-placeholder-count="3">
+            <div style="{{ msg.isMine ? { background: 'rgba(0,201,167,0.12)', marginLeft: 'auto', maxWidth: '80%' } : { background: '#F3F3FE', maxWidth: '80%' } }}; border-radius: 16px; padding: 12px 14px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <span style="width: 30px; height: 30px; border-radius: 9999px; background: {{ msg.isMine ? '#00C9A7' : '#003FB1' }}; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; flex-shrink: 0;">{{ msg.initials }}</span>
+                <div style="font-size: 0.78rem; font-weight: 700; color: #0A2463;">{{ msg.senderName }}</div>
+                <div style="font-size: 0.66rem; color: #9498a8;">{{ msg.time }}</div>
+              </div>
+              <div style="font-size: 0.85rem; font-weight: 500; color: #191B23;">{{ msg.content }}</div>
+            </div>
+          </sc-for>
         </div>
       </div>
       <div style="{{ chatMedStyle }}">
@@ -1821,8 +1856,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
       </div>
     </div>
     <div style="padding: 14px 20px; border-top: 1px solid #EDEDF8; display: flex; gap: 8px;">
-      <input type="text" placeholder="Écrire un message…" style="flex: 1; padding: 11px 14px; border: 1px solid #C3C5D7; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; color: #191B23;">
-      <button onclick="{{ toastChat }}" style="width: 42px; height: 42px; border: none; border-radius: 9999px; background: #003FB1; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 20px;">send</span></button>
+      <input type="text" oninput="{{ chatInputInput }}" value="{{ chatInput }}" placeholder="Écrire un message…" style="flex: 1; padding: 11px 14px; border: 1px solid #C3C5D7; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; color: #191B23;">
+      <button onclick="{{ sendChatMessage }}" style="width: 42px; height: 42px; border: none; border-radius: 9999px; background: #003FB1; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 20px;">send</span></button>
     </div>
   </aside>
 
@@ -2067,6 +2102,8 @@ class Component extends DCLogic {
   state = {
     panel: 'accueil', suivreTab: 'zora', gagnerTab: 'sport', rewardIdx: 0, filterCategorie: 'tout',
     chatOpen: false, chatTab: 'communaute', profileOpen: false,
+    chatMessages: [], chatInput: '', chatConnected: false, chatLoading: false,
+    leaderboardGroupId: '',
     modal: false, editConst: false, qrUrg: false, labRes: false, voucherModal: false, voucherQrModal: false,
     dmnPasswordModal: false, dmnDocsModal: false, dmnQrModal: false, dmnPassword: '',
     rdvDoctorId: '', rdvDate: '', rdvSlot: '', rdvBooking: false,
@@ -2252,12 +2289,17 @@ class Component extends DCLogic {
           const iconMap = { course: 'directions_run', basketball: 'sports_basketball', football: 'sports_soccer', tennis: 'sports_tennis', natation: 'pool', cyclisme: 'directions_bike' };
           const colorMap = { turquoise: '#00C9A7', orange: '#FF6B35', primary: '#003FB1', gold: '#F5A623', navy: '#0A2463' };
           this._sportGroups = d.data.map(g => ({
+            id: g.id,
             icon: g.icon_name || iconMap[g.sport_type] || 'sports',
-            gname: g.name,
-            members: g.member_count + ' membre' + (g.member_count > 1 ? 's' : ''),
-            score: g.weekly_score.toLocaleString('fr-FR') + ' pts',
-            tint: colorMap[g.color_token] || '#003FB1',
-            isMember: g.is_member
+            name: g.name,
+            member_count: g.member_count,
+            weekly_score: g.weekly_score,
+            isMember: g.is_member,
+            btnStyle: g.is_member 
+              ? { background: 'rgba(0,201,167,0.12)', color: '#00875f', border: 'none', padding: '8px 12px', borderRadius: '9999px', fontFamily: 'inherit', fontSize: '0.74rem', fontWeight: 700, cursor: 'default' }
+              : { background: '#003FB1', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '9999px', fontFamily: 'inherit', fontSize: '0.74rem', fontWeight: 700, cursor: 'pointer' },
+            btnLabel: g.is_member ? 'Membre ✓' : 'Rejoindre',
+            onJoin: g.is_member ? null : () => this.joinGroup(g.id)
           }));
           this.setState({});
         }
@@ -3512,7 +3554,25 @@ class Component extends DCLogic {
       chatBadgeStyle: { display: 'none' },
       flashCount: '3',
       flashBadgeStyle: { background: '#BA1A1A', color: '#fff', fontSize: '0.6rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 10px', borderRadius: '9999px', animation: 'livePulse 1.5s ease-in-out infinite' },
-      leaderboardView: [],
+      leaderboardView: (this._leaderboard || []).map((lr, i) => {
+        const isOpen = this._commentOpenPhone === lr.phone;
+        return {
+          rowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: i < 4 ? '1px solid #EDEDF8' : 'none' },
+          rankStyle: { width: '28px', height: '28px', borderRadius: '9999px', background: i === 0 ? '#F5A623' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : '#F3F3FE', color: i < 3 ? '#fff' : '#434654', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem', fontWeight: 800, flexShrink: 0 },
+          avatarStyle: { width: '36px', height: '36px', borderRadius: '9999px', background: '#003FB1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem', fontWeight: 800, flexShrink: 0 },
+          rank: i + 1,
+          initials: (lr.full_name || lr.phone || 'U').charAt(0).toUpperCase(),
+          name: lr.full_name || '+242 *** *** ' + (lr.phone || '').slice(-4),
+          pts: lr.points_earned + ' pts',
+          phone: lr.phone,
+          onEncourage: () => this.encourageMember(lr.phone),
+          onComment: () => this.toggleCommentInput(lr.phone),
+          commentInputStyle: { display: isOpen ? 'block' : 'none', marginTop: '8px' },
+          commentText: (this._commentTexts || {})[lr.phone] || '',
+          commentInput: (e) => this.updateCommentText(lr.phone, e.target.value),
+          sendComment: () => this.sendComment(lr.phone)
+        };
+      }),
       leaderboardEmptyStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' },
       ledgerView: (this._ledger || []).map(function(e, i, arr) {
         var pos = (e.delta || 0) >= 0;
@@ -3539,6 +3599,209 @@ class Component extends DCLogic {
       toastNutrition: () => this.showToast('Suivi nutrition bientôt disponible'),
       toastHydratation: () => this.showToast('Suivi hydratation bientôt disponible'),
       toastCreerGroupe: () => this.showToast('Création de groupe bientôt disponible'),
+      openChatReal: async () => {
+        const s = this.state;
+        const token = localStorage.getItem('bolamu_patient_token');
+        if (!token) return;
+        
+        this.setState({ chatOpen: true, chatLoading: true });
+        
+        try {
+          // Charger les messages de la conversation communauté
+          const res = await fetch('https://api.bolamu.co/api/v1/community/chat/1/messages', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          const d = await res.json();
+          if (d.success && d.data) {
+            this._chatMessages = d.data;
+            this.setState({ chatMessages: d.data, chatLoading: false });
+          }
+          
+          // Se connecter à Socket.io
+          if (!this._socket) {
+            this._socket = io('https://api.bolamu.co');
+            this._socket.on('new_message', (msg) => {
+              this.setState({ chatMessages: [...this.state.chatMessages, msg] });
+              this.scrollToChatBottom();
+            });
+            this._socket.on('leaderboard_updated', (data) => {
+              if (data.top5) {
+                this._leaderboard = data.top5;
+                this.setState({});
+              }
+            });
+            this._socket.emit('join_conversation', { conversation_id: 1 });
+            this.setState({ chatConnected: true });
+          }
+        } catch (e) {
+          console.error('[Chat] Erreur:', e);
+          this.setState({ chatLoading: false });
+        }
+      },
+      sendChatMessage: async () => {
+        const s = this.state;
+        const token = localStorage.getItem('bolamu_patient_token');
+        if (!s.chatInput || !token) return;
+        
+        try {
+          const res = await fetch('https://api.bolamu.co/api/v1/community/chat/1/messages', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: s.chatInput })
+          });
+          const d = await res.json();
+          if (d.success && d.data) {
+            this.setState({ chatInput: '' });
+            // Émettre localement pour affichage immédiat
+            if (this._socket) {
+              this._socket.emit('new_message', d.data);
+            }
+          }
+        } catch (e) {
+          console.error('[Chat] Erreur envoi:', e);
+        }
+      },
+      scrollToChatBottom: () => {
+        const container = document.querySelector('.chat-messages-container');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      },
+      joinGroup: async (groupId) => {
+        const token = localStorage.getItem('bolamu_patient_token');
+        if (!token) return;
+        
+        try {
+          const res = await fetch('https://api.bolamu.co/api/v1/community/sport-groups/' + groupId + '/join', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          const d = await res.json();
+          if (d.success) {
+            // Recharger les groupes
+            const groupsRes = await fetch('https://api.bolamu.co/api/v1/sport-groups', {
+              headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const groupsData = await groupsRes.json();
+            if (groupsData.success && groupsData.data) {
+              const iconMap = { course: 'directions_run', basketball: 'sports_basketball', football: 'sports_soccer', tennis: 'sports_tennis', natation: 'pool', cyclisme: 'directions_bike' };
+              this._sportGroups = groupsData.data.map(g => ({
+                id: g.id,
+                icon: g.icon_name || iconMap[g.sport_type] || 'sports',
+                name: g.name,
+                member_count: g.member_count,
+                weekly_score: g.weekly_score,
+                isMember: g.is_member,
+                btnStyle: g.is_member 
+                  ? { background: 'rgba(0,201,167,0.12)', color: '#00875f', border: 'none', padding: '8px 12px', borderRadius: '9999px', fontFamily: 'inherit', fontSize: '0.74rem', fontWeight: 700, cursor: 'default' }
+                  : { background: '#003FB1', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '9999px', fontFamily: 'inherit', fontSize: '0.74rem', fontWeight: 700, cursor: 'pointer' },
+                btnLabel: g.is_member ? 'Membre ✓' : 'Rejoindre',
+                onJoin: g.is_member ? null : () => this.joinGroup(g.id)
+              }));
+              this.setState({});
+            }
+            this.showToast('Groupe rejoint !');
+          } else if (res.status === 409) {
+            this.showToast('Déjà membre de ce groupe');
+          } else {
+            this.showToast('Erreur lors de la jonction');
+          }
+        } catch (e) {
+          console.error('[Groupes] Erreur join:', e);
+          this.showToast('Erreur de connexion');
+        }
+      },
+      openCreateGroupModal: () => this.showToast('Création de groupe bientôt disponible'),
+      encourageMember: async (targetPhone) => {
+        const token = localStorage.getItem('bolamu_patient_token');
+        if (!token) return;
+        
+        try {
+          const res = await fetch('https://api.bolamu.co/api/v1/community/leaderboard/encourage', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ target_phone: targetPhone })
+          });
+          const d = await res.json();
+          if (d.success) {
+            this.showToast('Encouragement envoyé !');
+          } else {
+            this.showToast('Erreur lors de l\'encouragement');
+          }
+        } catch (e) {
+          console.error('[Leaderboard] Erreur encourage:', e);
+          this.showToast('Erreur de connexion');
+        }
+      },
+      toggleCommentInput: (targetPhone) => {
+        this._commentOpenPhone = targetPhone;
+        this.setState({});
+      },
+      updateCommentText: (targetPhone, text) => {
+        this._commentTexts = this._commentTexts || {};
+        this._commentTexts[targetPhone] = text;
+        this.setState({});
+      },
+      sendComment: async (targetPhone) => {
+        const token = localStorage.getItem('bolamu_patient_token');
+        const comment = (this._commentTexts || {})[targetPhone] || '';
+        if (!token || !comment) return;
+        
+        try {
+          const res = await fetch('https://api.bolamu.co/api/v1/community/leaderboard/comment', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ target_phone: targetPhone, comment })
+          });
+          const d = await res.json();
+          if (d.success) {
+            this._commentTexts[targetPhone] = '';
+            this._commentOpenPhone = null;
+            this.showToast('Commentaire envoyé !');
+            this.setState({});
+          } else {
+            this.showToast('Erreur lors de l\'envoi');
+          }
+        } catch (e) {
+          console.error('[Leaderboard] Erreur comment:', e);
+          this.showToast('Erreur de connexion');
+        }
+      },
+      leaderboardGroupChange: async (e) => {
+        const groupId = e.target.value;
+        this._leaderboardGroupId = groupId;
+        this.setState({ leaderboardGroupId: groupId });
+        
+        const token = localStorage.getItem('bolamu_patient_token');
+        if (!token) return;
+        
+        const url = groupId 
+          ? 'https://api.bolamu.co/api/v1/leaderboard/weekly?group_id=' + groupId
+          : 'https://api.bolamu.co/api/v1/leaderboard/weekly';
+        
+        try {
+          const res = await fetch(url, {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          const d = await res.json();
+          if (d.success && d.top) {
+            this._leaderboard = d.top.slice(0, 5);
+            this._myPosition = d.my_position;
+            this.setState({});
+          }
+        } catch (err) {
+          console.error('[Leaderboard] Erreur fetch:', err);
+        }
+      },
       toastChat: () => this.showToast('Chat bientôt disponible'),
       toastConvertir: () => this.showToast('Conversion Zora Cash bientôt disponible'),
       toastPdf: () => this.showToast('Téléchargement PDF bientôt disponible'),
@@ -3595,6 +3858,7 @@ class Component extends DCLogic {
       dmnQrModalStyle: this.modalBg(s.dmnQrModal),
       dmnPassword: s.dmnPassword,
       dmnPasswordInput: (e) => this.setState({ dmnPassword: e.target.value }),
+      chatInputInput: (e) => this.setState({ chatInput: e.target.value }),
       closeDmnPasswordModal: () => this.setState({ dmnPasswordModal: false, dmnPassword: '' }),
       closeDmnDocsModal: () => this.setState({ dmnDocsModal: false }),
       closeDmnQrModal: () => this.setState({ dmnQrModal: false }),

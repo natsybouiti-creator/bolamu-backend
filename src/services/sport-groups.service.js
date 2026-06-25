@@ -3,11 +3,13 @@
 // ============================================================
 
 const pool = require('../config/db');
+const { normalizePhone } = require('../utils/phone');
 
 /**
  * Rejoindre un groupe de sport
  */
 async function joinGroup({ phone, group_id }) {
+  const normalizedPhone = normalizePhone(phone);
   const client = await pool.connect();
 
   try {
@@ -16,7 +18,7 @@ async function joinGroup({ phone, group_id }) {
     // Vérifier si déjà membre
     const existingMember = await client.query(
       'SELECT id FROM sport_group_members WHERE group_id = $1 AND phone = $2',
-      [group_id, phone]
+      [group_id, normalizedPhone]
     );
 
     if (existingMember.rows.length > 0) {
@@ -27,7 +29,7 @@ async function joinGroup({ phone, group_id }) {
     // Ajouter le membre
     await client.query(
       'INSERT INTO sport_group_members (group_id, phone) VALUES ($1, $2)',
-      [group_id, phone]
+      [group_id, normalizedPhone]
     );
 
     // Incrémenter le compteur de membres
@@ -36,17 +38,25 @@ async function joinGroup({ phone, group_id }) {
       [group_id]
     );
 
+    // Upsert leaderboard_weekly
+    await client.query(
+      `INSERT INTO leaderboard_weekly (phone, week_start, points_earned)
+       VALUES ($1, date_trunc('week', NOW())::date, 0)
+       ON CONFLICT (phone, week_start) DO NOTHING`,
+      [normalizedPhone]
+    );
+
     await client.query('COMMIT');
 
     // Récupérer le nouveau compteur
-    const groupResult = await pool.query(
+    const memberCountResult = await pool.query(
       'SELECT member_count FROM sport_groups WHERE id = $1',
       [group_id]
     );
 
     return {
       success: true,
-      member_count: groupResult.rows[0].member_count
+      member_count: memberCountResult.rows[0].member_count
     };
   } catch (error) {
     await client.query('ROLLBACK');
@@ -61,6 +71,7 @@ async function joinGroup({ phone, group_id }) {
  * Quitter un groupe de sport
  */
 async function leaveGroup({ phone, group_id }) {
+  const normalizedPhone = normalizePhone(phone);
   const client = await pool.connect();
 
   try {
@@ -69,7 +80,7 @@ async function leaveGroup({ phone, group_id }) {
     // Supprimer le membre
     const result = await client.query(
       'DELETE FROM sport_group_members WHERE group_id = $1 AND phone = $2 RETURNING id',
-      [group_id, phone]
+      [group_id, normalizedPhone]
     );
 
     if (result.rows.length === 0) {
@@ -133,6 +144,8 @@ async function getGroups({ phone, city }) {
  * Mettre à jour le score d'un groupe
  */
 async function updateGroupScore({ group_id, points, phone }) {
+  const normalizedPhone = normalizePhone(phone);
+  
   await pool.query(
     'UPDATE sport_groups SET weekly_score = weekly_score + $1 WHERE id = $2',
     [points, group_id]
@@ -140,7 +153,7 @@ async function updateGroupScore({ group_id, points, phone }) {
 
   await pool.query(
     'UPDATE sport_group_members SET weekly_contribution = weekly_contribution + $1 WHERE group_id = $2 AND phone = $3',
-    [points, group_id, phone]
+    [points, group_id, normalizedPhone]
   );
 }
 

@@ -7,6 +7,7 @@ const db = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { subscribe, unsubscribe } = require('../services/push.service');
 const { handleWebhook, verifyWebhook } = require('../services/whatsapp.service');
+const { sendAutoMessage, getClientStatus } = require('../services/whatsapp-web.service');
 
 // ============================================================
 // 1. PUSH SUBSCRIPTIONS
@@ -204,18 +205,54 @@ router.post('/webhooks/whatsapp', async (req, res) => {
 // Retourner VAPID_PUBLIC_KEY pour le frontend
 router.get('/vapid-public-key', (req, res) => {
     const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
-    
+
     if (!vapidPublicKey) {
-        return res.status(500).json({ 
-            success: false, 
-            message: 'VAPID_PUBLIC_KEY non configuré' 
+        return res.status(500).json({
+            success: false,
+            message: 'VAPID_PUBLIC_KEY non configuré'
         });
     }
 
-    res.json({ 
-        success: true, 
-        vapidPublicKey 
+    res.json({
+        success: true,
+        vapidPublicKey
     });
+});
+
+// POST /api/v1/notifications/test-whatsapp (TEST TEMPORAIRE)
+// Test envoi message WhatsApp depuis le serveur connecté
+router.post('/test-whatsapp', async (req, res) => {
+    try {
+        const { phone, templateName, params } = req.body;
+
+        if (!phone || !templateName || !params) {
+            return res.status(400).json({
+                success: false,
+                message: 'phone, templateName et params sont requis'
+            });
+        }
+
+        const status = getClientStatus();
+        if (status !== 'READY') {
+            return res.status(400).json({
+                success: false,
+                message: 'Client WhatsApp non connecté',
+                status
+            });
+        }
+
+        await sendAutoMessage(phone, templateName, params);
+        res.json({
+            success: true,
+            message: 'Message envoyé avec succès'
+        });
+    } catch (error) {
+        console.error('[Test WhatsApp] Erreur:', error.message);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
 });
 
 module.exports = router;

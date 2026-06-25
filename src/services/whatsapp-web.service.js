@@ -1,6 +1,9 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const { Client, RemoteAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode');
+const fs = require('fs');
+const path = require('path');
 const pool = require('../config/db');
+const PostgresStore = require('./whatsapp-session-store');
 
 let clientStatus = 'DISCONNECTED';
 let clientInstance = null;
@@ -8,13 +11,22 @@ let clientInstance = null;
 function getClient() {
   if (!clientInstance) {
     clientInstance = new Client({
-      authStrategy: new LocalAuth({ dataPath: '.wwebjs_auth' }),
-      puppeteer: { args: ['--no-sandbox', '--disable-setuid-sandbox'] }
+      authStrategy: new RemoteAuth({
+        store: new PostgresStore(),
+        backupSyncIntervalMs: 300000,
+        clientId: 'bolamu-whatsapp'
+      }),
+      puppeteer: { 
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+      }
     });
 
-    clientInstance.on('qr', (qr) => {
-      console.log('\n📱 SCANNEZ CE QR CODE AVEC WHATSAPP :\n');
-      qrcode.generate(qr, { small: true });
+    clientInstance.on('qr', async (qr) => {
+      console.log('\n📱 QR CODE GÉNÉRÉ : qrcode-bolamu.png\n');
+      const qrPath = path.join(__dirname, '../../qrcode-bolamu.png');
+      await qrcode.toFile(qrPath, qr);
+      console.log(`📱 QR code sauvegardé : ${qrPath}`);
     });
 
     clientInstance.on('ready', () => {
@@ -65,6 +77,12 @@ async function sendAutoMessage(phone, templateName, params) {
     message = `Bienvenue sur Bolamu, ${params[0]} !\nVotre compte patient est activé.\n\nConnectez-vous sur : https://bolamu.co\nIdentifiant : ${params[1]}\nMot de passe : ${params[2]}\n\nL'équipe Bolamu`;
   } else if (templateName === 'bolamu_rdv_confirme') {
     message = `Votre RDV Bolamu est confirmé pour le ${params[0]} à ${params[1]}.`;
+  } else if (templateName === 'bolamu_groupe_rejoint') {
+    message = `Bienvenue dans le groupe ${params[0]}, ${params[1]} !\nVous faites maintenant partie de l'équipe.\nConnectez-vous sur bolamu.co pour voir le classement.\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_leaderboard_top3') {
+    message = `Bravo ${params[0]} !\nVous êtes ${params[1]}e du classement du groupe ${params[2]}.\nSolde Zora actuel : ${params[3]} points.\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_streak_milestone') {
+    message = `${params[1]} jours de streak consecutifs sur Bolamu, ${params[0]} !\nVous gagnez ${params[2]} Zora bonus.\nContinuez comme ca !\n\nL'équipe Bolamu`;
   } else {
     message = params.join(' ');
   }

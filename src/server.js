@@ -22,6 +22,10 @@ const { runMigrations } = require('./db/migrate');
 const { configurePush } = require('./services/push.service');
 configurePush();
 
+// Initialisation client WhatsApp Web
+const { initializeClient } = require('./services/whatsapp-web.service');
+initializeClient();
+
 const app = express();
 app.set('trust proxy', 1);
 
