@@ -3417,7 +3417,7 @@ class Component extends DCLogic {
       quizView: quizView,
       quizAnswered: s.quizPicked !== null,
       quizFeedback: s.quizPicked === null ? '' : (s.quizPicked === q.answer ? (q.feedbackOk || '') : (q.feedbackNo || '')),
-      zoraTxt: this.fmt(s.zora),
+      zoraTxt: this.fmt(Math.max(0, s.zora)),
       stepsTxt: this.fmt(s.steps),
       stepRingOffset: ring.toFixed(1),
       affordableView: affordableView,
