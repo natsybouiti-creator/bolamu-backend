@@ -133,6 +133,26 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
   - Déclencheur : POST /animateur/clubs/:id/notify
   - Message : "Message de votre club {nom_club} : {message_text}. Votre animateur Bolamu"
 
+## BOUCLE 4 — PARCOURS DE SOINS
+
+### Consultations
+- `bolamu_consultation_terminee` : Consultation terminée
+  - Params : [prenom_patient, nom_medecin, diagnostic]
+  - Déclencheur : POST /api/v1/consultations/:id/close
+  - Message : "Consultation terminée, {prenom_patient} ! Médecin : Dr. {nom_medecin}. Diagnostic : {diagnostic}. +50 Zora crédités. Téléchargez votre ordonnance sur bolamu.co. L'équipe Bolamu"
+
+### RDV
+- `bolamu_rdv_confirme` : RDV confirmé (secrétaire)
+  - Params : [prenom_patient, nom_medecin, date_heure, lieu]
+  - Déclencheur : PUT /secretariat/rdv/:id/status (status=confirmed)
+  - Message : "RDV confirmé, {prenom_patient} ! Dr. {nom_medecin} — {date_heure}. Lieu : {lieu}. L'équipe Bolamu"
+
+### Ordonnances
+- `bolamu_ordonnance_prete` : Ordonnance prête en pharmacie
+  - Params : [prenom_patient]
+  - Déclencheur : POST /api/v1/ordonnances/:id/dispense
+  - Message : "Votre ordonnance est prête, {prenom_patient}. Présentez-vous en pharmacie avec votre QR code Bolamu. L'équipe Bolamu"
+
 ## RÈGLES D'ENVOI
 
 1. **Volume** : Jamais de WhatsApp pour chaque message chat (trop élevé)
@@ -154,3 +174,4 @@ ORDER BY created_at DESC LIMIT 3;
 
 - 25 juin 2026 : Création document + templates Boucle 2
 - 25 juin 2026 : Ajout templates Boucle 3 (checkin_confirme, event_rappel, club_message)
+- 25 juin 2026 : Ajout templates Boucle 4 (consultation_terminee, rdv_confirme, ordonnance_prete)

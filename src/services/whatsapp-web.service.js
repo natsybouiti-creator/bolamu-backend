@@ -103,6 +103,12 @@ async function sendAutoMessage(phone, templateName, params) {
     message = `Rappel, ${params[0]} !\nL'événement ${params[1]} commence dans 1 heure.\nLieu : ${params[2]}\n\nL'équipe Bolamu`;
   } else if (templateName === 'bolamu_club_message') {
     message = `Message de votre club ${params[0]} :\n\n${params[1]}\n\nVotre animateur Bolamu`;
+  } else if (templateName === 'bolamu_consultation_terminee') {
+    message = `Consultation terminée, ${params[0]} !\nMédecin : Dr. ${params[1]}\nDiagnostic : ${params[2]}\n+50 Zora crédités.\n\nTéléchargez votre ordonnance sur bolamu.co\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_rdv_confirme_secretaire') {
+    message = `RDV confirmé, ${params[0]} !\nDr. ${params[1]} — ${params[2]}\nLieu : ${params[3]}\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_ordonnance_prete') {
+    message = `Votre ordonnance est prête, ${params[0]}.\nPrésentez-vous en pharmacie avec votre\nQR code Bolamu.\n\nL'équipe Bolamu`;
   } else {
     message = params.join(' ');
   }

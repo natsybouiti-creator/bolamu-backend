@@ -375,7 +375,9 @@ if (typeof BarcodeDetector !== 'undefined') {
         <div class="stat-card"><div class="stat-label">Patients suivis</div><div class="stat-value" id="s-patients">0</div><div class="stat-sub">Total cumulé</div></div>
       </div>
     </div>
-    <div class="section-header"><h2 class="section-title">RDV du jour</h2></div>
+    <div class="section-header"><h2 class="section-title">File d'attente</h2></div>
+    <div id="file-attente"><div class="loading">Chargement…</div></div>
+    <div class="section-header" style="margin-top:32px;"><h2 class="section-title">RDV du jour</h2></div>
     <div id="accueil-rdv"><div class="loading">Chargement…</div></div>
   </div>
   <div class="panel" id="panel-rdv">
@@ -692,6 +694,7 @@ function showTab(name,btn){
   btn.classList.add('active');
   if(name==='rdv')loadRdv();
   if(name==='patients')loadRdv();
+  if(name==='accueil'){loadRdv();loadFileAttente();}
 }
 function showTabMobile(name,btn){
   if (name !== 'scanner') { arreterScannerMedecin(); }
@@ -878,6 +881,36 @@ function renderHoraires(hours){
 }
 
 let allRdvData=[];
+async function loadFileAttente(){
+  try{
+    const res=await fetch(`${API}/consultations/queue`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
+    const data=await res.json();
+    const queue=data.data||data||[];
+    const el=document.getElementById('file-attente');
+    if(!queue||!queue.length){
+      el.innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">hourglass_empty</span></div><p>File d'attente vide.</p></div>`;
+      return;
+    }
+    el.innerHTML=`<div class="rdv-list">${queue.map(p=>`
+      <div class="rdv-card">
+        <div class="rdv-card-top">
+          <div class="rdv-patient"><div class="rdv-avatar"><span class="material-symbols-outlined">person</span></div><div>
+            <div class="rdv-name">${p.first_name} ${p.last_name||''}</div>
+            <div class="rdv-phone">${p.patient_phone}</div>
+          </div></div>
+          <span class="badge ${p.statut==='en_consultation'?'badge-termine':'badge-confirme'}">${p.statut==='en_consultation'?'En cours':'En attente'}</span>
+        </div>
+        <div class="rdv-meta"><span><span class="material-symbols-outlined">schedule</span> Arrivé à ${p.heure_arrivee?p.heure_arrivee.substring(0,5):'—'}</span><span><span class="material-symbols-outlined">description</span> ${p.motif||'—'}</span></div>
+        <div class="rdv-actions">
+          ${p.statut==='en_attente'?`<button class="btn-valider" data-action="ouvrir-consultation" data-patient="${p.patient_phone}" data-rdv-id="${p.id}"><span class="material-symbols-outlined">play_arrow</span> Appeler</button>`:''}
+        </div>
+      </div>
+    `).join('')}</div>`;
+  }catch(e){
+    document.getElementById('file-attente').innerHTML=`<div class="empty-state"><div class="empty-icon"><span class="material-symbols-outlined">error</span></div><p>Erreur chargement file d'attente.</p></div>`;
+  }
+}
+
 async function loadRdv(){
   try{
     const res=await fetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
@@ -953,9 +986,21 @@ function ouvrirValidation(rdvId,patientPhone,sessionCode,date,time,symptomesMoti
   currentRdv={rdvId,patientPhone,sessionCode,date,time,symptomesMotif};
   _currentPatientPhone = patientPhone;
   consultationStartTime=Date.now();
-  fetch(`${API}/appointments/${rdvId}/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'}}).catch(()=>{});
+  fetch(`${API}/consultations/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({patient_phone:patientPhone,rdv_id:rdvId})}).catch(()=>{});
   afficherEtapeCode();
   document.getElementById('modal-validation').classList.add('open');
+}
+
+async function ouvrirConsultation(patientPhone,rdvId){
+  try{
+    const res=await fetch(`${API}/consultations/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({patient_phone:patientPhone,rdv_id:rdvId})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.message||'Erreur ouverture consultation');
+    loadFileAttente();
+    alert('Consultation ouverte avec succès');
+  }catch(e){
+    alert('Erreur : '+e.message);
+  }
 }
 
 function afficherEtapeCode(){
@@ -1316,18 +1361,15 @@ async function confirmerValidation(){
   btn.disabled=true;btn.textContent='Validation en cours…';
   const dureeMinutes=Math.round((Date.now()-consultationStartTime)/60000);
   try{
-    const resVal=await fetch(`${API}/appointments/${currentRdv.rdvId}/validate`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({session_code:currentRdv.sessionCode,consultation_duration_minutes:dureeMinutes})});
+    const crMotif=document.getElementById('cr-motif').value.trim();
+    const crObservations=document.getElementById('cr-observations').value.trim();
+    const crDiagnostic=document.getElementById('cr-diagnostic').value.trim();
+    
+    const resVal=await fetch(`${API}/consultations/${currentRdv.rdvId}/close`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({diagnostic:crDiagnostic,anamnese:crMotif,examen_clinique:crObservations,notes:''})});
     const dataVal=await resVal.json();
-    if(!resVal.ok){
-      if(dataVal.message&&dataVal.message.includes('Compte rendu obligatoire')){
-        btn.disabled=false;btn.textContent='<span class="material-symbols-outlined">check_circle</span> Valider et créer l\'ordonnance';
-        alert('Erreur : '+dataVal.message+'\n\nLe compte rendu doit être soumis avant la validation.');
-        afficherEtapeCompteRendu();
-        return;
-      }
-      throw new Error(dataVal.message||'Erreur validation');
-    }
-    const resPres=await fetch(`${API}/prescriptions/create`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,medications,instructions:instructions||null})});
+    if(!resVal.ok)throw new Error(dataVal.message||'Erreur validation consultation');
+
+    const resPres=await fetch(`${API}/ordonnances`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({consultation_id:currentRdv.rdvId,items:[{medicament:medications,dosage:'',frequence:'',duree:'',instructions:instructions||''}]})});
     const dataPres=await resPres.json();
     if(!resPres.ok)throw new Error(dataPres.message||'Erreur ordonnance');
 
@@ -2136,6 +2178,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     if (action === 'ouvrir-validation') ouvrirValidation(id, patient, session, date, heure);
+    if (action === 'ouvrir-consultation') ouvrirConsultation(patient, id);
     if (action === 'ouvrir-labo') ouvrirModalLabo(id, patient);
     if (action === 'fermer-modal') fermerModal();
     if (action === 'verifier-code') verifierCode();

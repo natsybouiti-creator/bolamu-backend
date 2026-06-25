@@ -152,6 +152,8 @@ const chatRoutes            = require('./routes/chat.routes');
 const animateurRoutes       = require('./routes/animateur.routes');
 const voucherRoutes         = require('./routes/voucher.routes');
 const partenaireRoutes      = require('./routes/partenaire.routes');
+const consultationRoutes    = require('./routes/consultation.routes');
+const ordonnanceRoutes      = require('./routes/ordonnance.routes');
 
 // Routes BHP (Bolamu Health Data Protocol)
 try {
@@ -206,6 +208,8 @@ app.use('/api/v1/leaderboard',  require('./routes/leaderboard.routes'));
 app.use('/api/v1/streaks',      require('./routes/streak.routes'));
 app.use('/api/v1/chat',         chatRoutes);
 app.use('/api/v1/animateur',    animateurRoutes);
+app.use('/api/v1/consultations', consultationRoutes);
+app.use('/api/v1/ordonnances',  ordonnanceRoutes);
 app.use('/api/v1/wellness',     wellnessRoutes);
 app.use('/api/v1/clubs',        clubsRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
