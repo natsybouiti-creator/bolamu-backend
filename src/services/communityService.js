@@ -2,6 +2,26 @@ const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 const { recalculateBalance } = require('./zora.service');
 
+function validateGroupInput(name, sport) {
+  // Longueur
+  if (!name || name.length < 3 || name.length > 50) {
+    throw new Error('Nom invalide (3-50 caractères)');
+  }
+  // Caractères interdits (SQL injection)
+  const forbidden = /[';"\-\-\/\*\\]/;
+  if (forbidden.test(name)) {
+    throw new Error('Caractères non autorisés dans le nom');
+  }
+  // Sports autorisés uniquement
+  const sportsAutorises = [
+    'Football', 'Basketball', 'Tennis',
+    'Natation', 'Course', 'Cyclisme', 'Autre'
+  ];
+  if (!sportsAutorises.includes(sport)) {
+    throw new Error('Sport non autorisé');
+  }
+}
+
 async function getSportGroups() {
   const result = await pool.query(
     `SELECT sg.*, COUNT(sgm.phone) as member_count
@@ -15,6 +35,7 @@ async function getSportGroups() {
 }
 
 async function createSportGroup(name, sport, description, phone) {
+  validateGroupInput(name, sport);
   const normalizedPhone = normalizePhone(phone);
   const result = await pool.query(
     `INSERT INTO sport_groups (name, sport_type, description, city, created_by, is_active, created_at)
