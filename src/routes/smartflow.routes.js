@@ -6,7 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
-const { isSSP, enregistrerHorsCatalogue, getStatsPartenaire, genererExportPaie, getStatsAdmin } = require('../services/smartflow.service');
+const { isSSP, enregistrerHorsCatalogue, getStatsPartenaire, genererExportPaie, getStatsAdmin, calculerICP } = require('../services/smartflow.service');
 const { ok, err } = require('../utils/apiResponse');
 const { normalizePhone } = require('../utils/phone');
 const { ROLES } = require('../utils/constants');
@@ -850,6 +850,99 @@ router.post('/smartflow/rh/config/categories', authMiddleware, rhOnly, async (re
     err(res, 500, 'Erreur serveur');
   } finally {
     client.release();
+  }
+});
+
+/**
+ * GET /api/v1/smartflow/rh/icp/:mois
+ * Calculer l'Indice de Capital Productif (ICP) pour un mois donné
+ */
+router.get('/smartflow/rh/icp/:mois', authMiddleware, rhOnly, async (req, res) => {
+  const { mois } = req.params;
+
+  // Valider format mois (YYYY-MM)
+  if (!/^\d{4}-\d{2}$/.test(mois)) {
+    return err(res, 400, 'Format mois invalide (YYYY-MM)');
+  }
+
+  const pool = require('../config/db');
+
+  try {
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
+    const contractResult = await pool.query(
+      `SELECT cc.id
+       FROM company_contracts cc
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
+      [req.user.phone]
+    );
+
+    if (!contractResult.rows.length) {
+      return err(res, 404, 'Contrat d\'entreprise introuvable');
+    }
+
+    const contractId = contractResult.rows[0].id;
+
+    const result = await calculerICP(contractId, mois);
+
+    if (result.success) {
+      ok(res, result.data, result.message);
+    } else {
+      err(res, 500, result.message);
+    }
+
+  } catch (error) {
+    console.error('[SmartFlow RH ICP]', error.message);
+    err(res, 500, 'Erreur serveur');
+  }
+});
+
+/**
+ * GET /api/v1/smartflow/rh/rapport/:mois
+ * Récupérer le rapport SmartFlow (JSON) pour un mois donné
+ */
+router.get('/smartflow/rh/rapport/:mois', authMiddleware, rhOnly, async (req, res) => {
+  const { mois } = req.params;
+
+  // Valider format mois (YYYY-MM)
+  if (!/^\d{4}-\d{2}$/.test(mois)) {
+    return err(res, 400, 'Format mois invalide (YYYY-MM)');
+  }
+
+  const pool = require('../config/db');
+
+  try {
+    // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
+    const contractResult = await pool.query(
+      `SELECT cc.id
+       FROM company_contracts cc
+       WHERE cc.contact_phone = $1 OR cc.rh_phone = $1
+       LIMIT 1`,
+      [req.user.phone]
+    );
+
+    if (!contractResult.rows.length) {
+      return err(res, 404, 'Contrat d\'entreprise introuvable');
+    }
+
+    const contractId = contractResult.rows[0].id;
+
+    const reportResult = await pool.query(
+      `SELECT report_data, generated_at, sent_at
+       FROM smartflow_reports
+       WHERE contract_id = $1 AND mois = $2`,
+      [contractId, mois]
+    );
+
+    if (reportResult.rows.length === 0) {
+      return err(res, 404, 'Rapport introuvable pour ce mois');
+    }
+
+    ok(res, reportResult.rows[0]);
+
+  } catch (error) {
+    console.error('[SmartFlow RH Rapport]', error.message);
+    err(res, 500, 'Erreur serveur');
   }
 });
 

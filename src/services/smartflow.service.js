@@ -431,10 +431,143 @@ async function getStatsAdmin(mois = null) {
   }
 }
 
+/**
+ * Calculer l'Indice de Capital Productif (ICP) pour un contrat d'entreprise
+ * @param {number} contract_id - ID du contrat d'entreprise
+ * @param {string} mois - Mois au format YYYY-MM
+ * @returns {Promise<{success: boolean, message: string, data?: Object}>}
+ */
+async function calculerICP(contract_id, mois) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // 1. Récupérer tous les employés actifs du contrat
+    const employeesResult = await client.query(
+      `SELECT employee_phone FROM company_employees
+       WHERE contract_id = $1 AND status = 'active'`,
+      [contract_id]
+    );
+
+    const employees = employeesResult.rows;
+    const nb_employes = employees.length;
+    const nb_actifs = nb_employes; // Tous les employés actifs sont considérés actifs pour ICP
+
+    // 2. Compter wellness_actions du mois pour tous les employés
+    let totalWellnessPoints = 0;
+    for (const emp of employees) {
+      const wellnessResult = await client.query(
+        `SELECT COALESCE(SUM(zora_points), 0) as total_points
+         FROM wellness_actions
+         WHERE patient_phone = $1
+         AND TO_CHAR(validated_at, 'YYYY-MM') = $2`,
+        [emp.employee_phone, mois]
+      );
+      totalWellnessPoints += parseFloat(wellnessResult.rows[0].total_points) || 0;
+    }
+
+    const avg_wellness = nb_actifs > 0 ? totalWellnessPoints / nb_actifs : 0;
+
+    // 3. Compter consultations du mois (actes SSP via clearing_transactions)
+    const consultationsResult = await client.query(
+      `SELECT COUNT(*) as nb_consultations
+       FROM clearing_transactions
+       WHERE reference_type = 'appointment'
+       AND TO_CHAR(created_at, 'YYYY-MM') = $1`,
+      [mois]
+    );
+    const nb_consultations = parseInt(consultationsResult.rows[0].nb_consultations) || 0;
+
+    // 4. Compter ordonnances du mois
+    const ordonnancesResult = await client.query(
+      `SELECT COUNT(*) as nb_ordonnances
+       FROM prescriptions
+       WHERE TO_CHAR(created_at, 'YYYY-MM') = $1`,
+      [mois]
+    );
+    const nb_ordonnances = parseInt(ordonnancesResult.rows[0].nb_ordonnances) || 0;
+
+    // 5. Calculer score ICP
+    const taux_activite = nb_employes > 0 ? (nb_actifs / nb_employes * 100) : 0;
+    const score_icp = (taux_activite * 0.4)
+                    + (avg_wellness / 10 * 0.3)
+                    + (nb_employes > 0 ? (nb_consultations / nb_employes * 30) : 0);
+
+    // 6. UPSERT INTO icp_scores
+    await client.query(
+      `INSERT INTO icp_scores
+       (contract_id, mois, nb_employes, nb_actifs, taux_activite,
+        avg_wellness, nb_consultations, nb_ordonnances, score_icp, generated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+       ON CONFLICT (contract_id, mois)
+       DO UPDATE SET
+         nb_employes = EXCLUDED.nb_employes,
+         nb_actifs = EXCLUDED.nb_actifs,
+         taux_activite = EXCLUDED.taux_activite,
+         avg_wellness = EXCLUDED.avg_wellness,
+         nb_consultations = EXCLUDED.nb_consultations,
+         nb_ordonnances = EXCLUDED.nb_ordonnances,
+         score_icp = EXCLUDED.score_icp,
+         generated_at = NOW()`,
+      [contract_id, mois, nb_employes, nb_actifs, taux_activite,
+       avg_wellness, nb_consultations, nb_ordonnances, score_icp]
+    );
+
+    // 7. UPSERT INTO smartflow_reports
+    const reportData = {
+      contract_id,
+      mois,
+      nb_employes,
+      nb_actifs,
+      taux_activite: parseFloat(taux_activite.toFixed(2)),
+      avg_wellness: parseFloat(avg_wellness.toFixed(2)),
+      nb_consultations,
+      nb_ordonnances,
+      score_icp: parseFloat(score_icp.toFixed(2)),
+      generated_at: new Date().toISOString()
+    };
+
+    await client.query(
+      `INSERT INTO smartflow_reports
+       (contract_id, mois, report_data, generated_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (contract_id, mois)
+       DO UPDATE SET
+         report_data = EXCLUDED.report_data,
+         generated_at = NOW()`,
+      [contract_id, mois, JSON.stringify(reportData)]
+    );
+
+    await client.query('COMMIT');
+
+    return {
+      success: true,
+      message: 'ICP calculé avec succès',
+      data: {
+        score_icp: parseFloat(score_icp.toFixed(2)),
+        taux_activite: parseFloat(taux_activite.toFixed(2)),
+        avg_wellness: parseFloat(avg_wellness.toFixed(2)),
+        nb_employes,
+        nb_actifs,
+        nb_consultations,
+        nb_ordonnances
+      }
+    };
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    logger.error('[SmartFlow calculerICP]', error.message);
+    return { success: false, message: 'Erreur serveur' };
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   isSSP,
   enregistrerHorsCatalogue,
   getStatsPartenaire,
   genererExportPaie,
-  getStatsAdmin
+  getStatsAdmin,
+  calculerICP
 };

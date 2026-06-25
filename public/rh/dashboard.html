@@ -55,6 +55,8 @@
     .stat-card.hors .stat-value{color:var(--amber);}
     .stat-card.alerte{background:rgba(239,68,68,0.1);border-color:var(--error);}
     .stat-card.alerte .stat-value{color:var(--error);}
+    .stat-card.icp{background:rgba(0,63,177,0.1);border-color:var(--primary);}
+    .stat-card.icp .stat-value{color:var(--primary);}
     .table-card{background:var(--blanc);border-radius:16px;padding:24px;border:1px solid var(--line);box-shadow:var(--shadow-soft);margin-bottom:24px;}
     .table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
     .table-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:var(--navy);}
@@ -193,6 +195,7 @@
     <button class="tab" id="tab-employes" data-tab="employes">Détail employés</button>
     <button class="tab" id="tab-retenues" data-tab="retenues">Retenues du mois</button>
     <button class="tab" id="tab-export" data-tab="export">Export paie</button>
+    <button class="tab" id="tab-icp" data-tab="icp">ICP Mensuel</button>
     <button class="tab" id="tab-config" data-tab="config">Configuration</button>
   </div>
 
@@ -325,6 +328,53 @@
             <div style="font-size:14px;margin-bottom:8px;"><strong>Total hors catalogue :</strong> <span id="export-total-hors">—</span> FCFA</div>
           </div>
           <div style="font-size:13px;color:var(--turquoise);font-weight:600;"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Fichier prêt à importer dans votre système de paie</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-icp">
+      <div class="section-header">
+        <h2 class="section-title">ICP Mensuel</h2>
+        <div class="section-subtitle">Indice de Capital Productif de votre entreprise</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mois de calcul</label>
+        <input type="month" id="icp-mois" class="form-input">
+      </div>
+      <button class="btn-primary" id="btn-calculer-icp">Calculer ICP</button>
+      <div id="icp-result" style="margin-top:24px;display:none;">
+        <div class="top-grid">
+          <div class="stat-card icp">
+            <div class="stat-label">Score ICP</div>
+            <div class="stat-value" id="icp-score">—</div>
+            <div class="stat-sub">Indice global</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Taux d'activité</div>
+            <div class="stat-value" id="icp-taux">—</div>
+            <div class="stat-sub">% employés actifs</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Wellness moyen</div>
+            <div class="stat-value" id="icp-wellness">—</div>
+            <div class="stat-sub">Points Zora moyens</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Consultations</div>
+            <div class="stat-value" id="icp-consultations">—</div>
+            <div class="stat-sub">Nombre total</div>
+          </div>
+        </div>
+        <div class="table-card" style="margin-top:24px;">
+          <div class="table-header">
+            <div class="table-title">Détail ICP</div>
+            <button class="btn-primary" id="btn-telecharger-rapport">Télécharger rapport</button>
+          </div>
+          <div style="margin-bottom:16px;">
+            <div style="font-size:14px;margin-bottom:8px;"><strong>Employés :</strong> <span id="icp-employes">—</span></div>
+            <div style="font-size:14px;margin-bottom:8px;"><strong>Employés actifs :</strong> <span id="icp-actifs">—</span></div>
+            <div style="font-size:14px;margin-bottom:8px;"><strong>Ordonnances :</strong> <span id="icp-ordonnances">—</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -543,6 +593,9 @@
       const tabExport = document.getElementById('tab-export');
       if (tabExport) tabExport.addEventListener('click', () => showTab('export', tabExport));
 
+      const tabIcp = document.getElementById('tab-icp');
+      if (tabIcp) tabIcp.addEventListener('click', () => showTab('icp', tabIcp));
+
       const tabConfig = document.getElementById('tab-config');
       if (tabConfig) tabConfig.addEventListener('click', () => { showTab('config', tabConfig); loadCategoriesConfig(); });
 
@@ -560,6 +613,12 @@
 
       const btnSauvegarderCategories = document.getElementById('btn-sauvegarder-categories');
       if (btnSauvegarderCategories) btnSauvegarderCategories.addEventListener('click', sauvegarderCategoriesConfig);
+
+      const btnCalculerIcp = document.getElementById('btn-calculer-icp');
+      if (btnCalculerIcp) btnCalculerIcp.addEventListener('click', calculerICP);
+
+      const btnTelechargerRapport = document.getElementById('btn-telecharger-rapport');
+      if (btnTelechargerRapport) btnTelechargerRapport.addEventListener('click', telechargerRapport);
     });
 
     // RETENUES DU MOIS
@@ -712,6 +771,62 @@
           alert('Configuration des catégories sauvegardée !');
         } else {
           alert('Erreur lors de la sauvegarde : ' + (data.message || 'Erreur serveur'));
+        }
+      } catch(e) {
+        alert('Erreur de connexion.');
+      }
+    }
+
+    // ICP MENSUEL
+    async function calculerICP() {
+      const mois = document.getElementById('icp-mois').value;
+      if (!mois) { alert('Veuillez sélectionner un mois.'); return; }
+
+      try {
+        const res = await fetch(`${API}/smartflow/rh/icp/${mois}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const data = await res.json();
+
+        if (data.success && data.data) {
+          document.getElementById('icp-score').textContent = data.data.score_icp;
+          document.getElementById('icp-taux').textContent = data.data.taux_activite + '%';
+          document.getElementById('icp-wellness').textContent = data.data.avg_wellness.toFixed(2);
+          document.getElementById('icp-consultations').textContent = data.data.nb_consultations;
+          document.getElementById('icp-employes').textContent = data.data.nb_employes;
+          document.getElementById('icp-actifs').textContent = data.data.nb_actifs;
+          document.getElementById('icp-ordonnances').textContent = data.data.nb_ordonnances;
+          document.getElementById('icp-result').style.display = 'block';
+        } else {
+          alert('Erreur lors du calcul ICP : ' + (data.message || 'Erreur serveur'));
+        }
+      } catch(e) {
+        alert('Erreur de connexion.');
+      }
+    }
+
+    async function telechargerRapport() {
+      const mois = document.getElementById('icp-mois').value;
+      if (!mois) { alert('Veuillez sélectionner un mois.'); return; }
+
+      try {
+        const res = await fetch(`${API}/smartflow/rh/rapport/${mois}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const data = await res.json();
+
+        if (data.success && data.report_data) {
+          const blob = new Blob([JSON.stringify(data.report_data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `rapport_icp_${mois}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } else {
+          alert('Erreur lors du téléchargement : ' + (data.message || 'Erreur serveur'));
         }
       } catch(e) {
         alert('Erreur de connexion.');
