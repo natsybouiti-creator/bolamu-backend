@@ -6,7 +6,6 @@ const { normalizePhone } = require('../utils/phone');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { buildWameLink } = require('../services/wame.service');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
@@ -52,6 +51,8 @@ async function requestOtp(req, res) {
              ON CONFLICT (phone) DO UPDATE SET hashed_otp = $2, expires_at = $3, attempts = 0`,
             [normalizedPhone, hashedOtp, expiresAt]
         );
+        // TODO: Créer template bolamu_code_acces dans Meta pour OTP réel
+        // Pour le test, utilise simulateSendOtp (affiche dans les logs)
         simulateSendOtp(normalizedPhone, otpCode);
         return res.status(200).json({ success: true, message: "OTP envoyé" });
     } catch (err) {

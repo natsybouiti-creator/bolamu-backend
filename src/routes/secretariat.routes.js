@@ -351,6 +351,7 @@ router.get('/patients/search', authMiddleware, authMiddleware.requireSecretary, 
 // Liste médecins de la clinique
 router.get('/medecins', authMiddleware, authMiddleware.requireSecretary, async (req, res) => {
   res.set('Cache-Control', 'no-store');
+  console.log('[MEDECINS] req.user:', req.user);
   try {
     const clinicId = req.user.clinic_id;
     console.log('[MEDECINS] clinic_id:', clinicId);

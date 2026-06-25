@@ -8,6 +8,7 @@ const { normalizePhone } = require('../utils/phone');
 // Configuration depuis process.env uniquement
 const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+const SENDZEN_API_KEY = process.env.SENDZEN_API_KEY;
 
 // Templates WhatsApp
 const WHATSAPP_TEMPLATES = {
@@ -46,8 +47,9 @@ const WHATSAPP_TEMPLATES = {
         name: 'bolamu_bienvenue_patient_v4',
         category: 'UTILITY',
         language: 'fr',
-        description: 'Bienvenue patient (sans credentials)',
-        params: ['nom']
+        description: 'Bienvenue patient avec credentials',
+        params: ['nom', 'identifiant', 'mot_de_passe'],
+        text: 'Bienvenue sur Bolamu, {{1}} ! 🎉\nVotre compte patient est activé.\n\nConnectez-vous sur : https://bolamu.co\nIdentifiant : {{2}}\nMot de passe : {{3}}\n\nL\'équipe Bolamu'
     },
     bolamu_bienvenue_medecin_v4: {
         name: 'bolamu_bienvenue_medecin_v4',
@@ -310,10 +312,10 @@ async function sendWhatsAppTemplate(to, templateName, params = []) {
 
         logger.info('[WhatsApp] Template envoyé avec succès', { to: formattedPhone, templateName });
 
-        // INSERT dans notifications avec canal='whatsapp'
+        // INSERT dans notifications avec canal='whatsapp' - type existant
         await pool.query(`
             INSERT INTO notifications (user_phone, type, titre, message, data, canal, is_read, sent_at, created_at)
-            VALUES ($1, 'whatsapp_template', $2, $3, $4, 'whatsapp', FALSE, NOW(), NOW())
+            VALUES ($1, 'whatsapp_message', $2, $3, $4, 'whatsapp', FALSE, NOW(), NOW())
         `, [to, templateName, `WhatsApp Template: ${templateName}`, JSON.stringify(params)]);
 
         return true;
@@ -424,11 +426,58 @@ async function notifyEventRegistration(patient_phone, event, session_code) {
     }
 }
 
+// Envoyer message WhatsApp via SendZen API
+async function sendViaSendZen(phone, templateName, params = []) {
+    if (!SENDZEN_API_KEY) {
+        logger.error('[SendZen] SENDZEN_API_KEY non configuré');
+        return { success: false, error: 'SENDZEN_API_KEY non configuré' };
+    }
+
+    const formattedPhone = normalizePhone(phone || '');
+
+    try {
+        const url = 'https://api.sendzen.io/v1/messages';
+        
+        const body = {
+            type: 'template',
+            to: formattedPhone.replace('+', ''),
+            template: {
+                name: templateName,
+                lang_code: 'fr',
+                parameters: params.map(p => ({ type: 'text', text: p }))
+            }
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${SENDZEN_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            logger.error('[SendZen] Erreur envoi message:', data);
+            return { success: false, error: data };
+        }
+
+        logger.info('[SendZen] Message envoyé avec succès', { to: formattedPhone, templateName });
+        return { success: true, data };
+    } catch (error) {
+        logger.error('[SendZen] Erreur sendViaSendZen:', error.message);
+        return { success: false, error: error.message };
+    }
+}
+
 module.exports = {
     sendMessage,
     sendWhatsAppTemplate,
     handleWebhook,
     verifyWebhook,
     notifyEventRegistration,
+    sendViaSendZen,
     WHATSAPP_TEMPLATES
 };

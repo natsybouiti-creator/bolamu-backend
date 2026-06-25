@@ -1730,7 +1730,6 @@ if (typeof BarcodeDetector !== 'undefined') {
     }
 
     async function loadDashboardStats() {
-      const clinicId = getClinicId();
       const today = new Date().toISOString().split('T')[0];
       
       try {
@@ -2206,10 +2205,9 @@ if (typeof BarcodeDetector !== 'undefined') {
     }
 
     async function loadMedecins() {
-      const clinicId = getClinicId();
       const token = getToken();
       
-      console.log('[MEDECINS FRONTEND] clinic_id:', clinicId);
+      console.log('[MEDECINS FRONTEND] Chargement médecins via JWT');
       
       try {
         const res = await fetch(`${API}/secretariat/medecins`, {
@@ -2276,7 +2274,6 @@ if (typeof BarcodeDetector !== 'undefined') {
 
     async function loadClinicInfo() {
       const token = getToken();
-      const clinicId = getClinicId();
       const res = await fetch(`${API}/secretariat/clinic-info`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -2491,8 +2488,6 @@ if (typeof BarcodeDetector !== 'undefined') {
     }
 
     async function loadDoctorsSelect(selectId) {
-      const clinicId = getClinicId();
-      
       try {
         const result = await api(`/secretariat/medecins`);
         if (result && result.success) {
@@ -2935,7 +2930,6 @@ if (typeof BarcodeDetector !== 'undefined') {
     document.addEventListener('DOMContentLoaded', async () => {
       const token = getToken();
       const phone = getPhone();
-      const clinicId = getClinicId();
 
       if (!token || !phone) {
         window.location.href = '/secretaire/login.html';
