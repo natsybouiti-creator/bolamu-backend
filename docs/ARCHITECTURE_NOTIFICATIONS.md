@@ -114,6 +114,25 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
   - Déclencheur : Streak atteint 7, 14, 30 jours
   - Message : "{jours} jours de streak consecutifs sur Bolamu, {prenom} ! Vous gagnez {bonus_zora} Zora bonus. Continuez comme ca ! L'équipe Bolamu"
 
+## BOUCLE 3 — PRÉVENTION, ANIMATEURS & ELONGA
+
+### Événements Elonga
+- `bolamu_checkin_confirme` : Confirmation check-in événement
+  - Params : [prenom_patient, nom_evenement, zora_awarded]
+  - Déclencheur : POST /events/:id/checkin (animateur scanne QR)
+  - Message : "Présence confirmée, {prenom_patient} ! Vous avez participé à {nom_evenement}. +{zora_awarded} Zora crédités sur votre compte. L'équipe Bolamu"
+
+- `bolamu_event_rappel` : Rappel événement H-1
+  - Params : [prenom_patient, nom_evenement, lieu]
+  - Déclencheur : Cron 1 heure avant starts_at
+  - Message : "Rappel, {prenom_patient} ! L'événement {nom_evenement} commence dans 1 heure. Lieu : {lieu}. L'équipe Bolamu"
+
+### Clubs
+- `bolamu_club_message` : Message animateur aux membres club
+  - Params : [nom_club, message_text]
+  - Déclencheur : POST /animateur/clubs/:id/notify
+  - Message : "Message de votre club {nom_club} : {message_text}. Votre animateur Bolamu"
+
 ## RÈGLES D'ENVOI
 
 1. **Volume** : Jamais de WhatsApp pour chaque message chat (trop élevé)
@@ -134,3 +153,4 @@ ORDER BY created_at DESC LIMIT 3;
 ## MISES À JOUR
 
 - 25 juin 2026 : Création document + templates Boucle 2
+- 25 juin 2026 : Ajout templates Boucle 3 (checkin_confirme, event_rappel, club_message)

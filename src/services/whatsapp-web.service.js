@@ -97,6 +97,12 @@ async function sendAutoMessage(phone, templateName, params) {
     message = `Bravo ${params[0]} !\nVous êtes ${params[1]}e du classement du groupe ${params[2]}.\nSolde Zora actuel : ${params[3]} points.\n\nL'équipe Bolamu`;
   } else if (templateName === 'bolamu_streak_milestone') {
     message = `${params[1]} jours de streak consecutifs sur Bolamu, ${params[0]} !\nVous gagnez ${params[2]} Zora bonus.\nContinuez comme ca !\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_checkin_confirme') {
+    message = `Présence confirmée, ${params[0]} !\nVous avez participé à ${params[1]}.\n+${params[2]} Zora crédités sur votre compte.\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_event_rappel') {
+    message = `Rappel, ${params[0]} !\nL'événement ${params[1]} commence dans 1 heure.\nLieu : ${params[2]}\n\nL'équipe Bolamu`;
+  } else if (templateName === 'bolamu_club_message') {
+    message = `Message de votre club ${params[0]} :\n\n${params[1]}\n\nVotre animateur Bolamu`;
   } else {
     message = params.join(' ');
   }
