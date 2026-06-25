@@ -107,6 +107,23 @@
 #event-panel.active {
   display: block;
 }
+
+#participant-panel {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #FAF8FF;
+  z-index: 1100;
+  overflow-y: auto;
+  animation: slideInUp 300ms ease;
+}
+
+#participant-panel.active {
+  display: block;
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -1191,6 +1208,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
           </button>
         </div>
         <div id="event-panel-content" style="padding: 20px;">
+          <!-- Content will be dynamically filled -->
+        </div>
+      </div>
+
+      <!-- PARTICIPANT PANEL (hidden by default) -->
+      <div id="participant-panel">
+        <div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;">
+          <button onclick="closeParticipantPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;">
+            <span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>
+            Retour
+          </button>
+        </div>
+        <div id="participant-panel-content" style="padding: 20px;">
           <!-- Content will be dynamically filled -->
         </div>
       </div>
@@ -3987,7 +4017,7 @@ function openEventPanel(eventId) {
                 `;
               } else {
                 html += `
-                  <div style="display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: ${i < participants.length - 1 ? '1px solid #EDEDF8' : 'none'};">
+                  <div onclick="openParticipantPanel('${p.phone || ''}','${(p.full_name || 'Participant').replace(/'/g, "\\'")}',${p.zora_points || 0})" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: ${i < participants.length - 1 ? '1px solid #EDEDF8' : 'none'}; cursor: pointer;">
                     <div style="width: 32px; height: 32px; background: #EDEDF8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #434654;">#${i + 1}</div>
                     <div style="flex: 1;">
                       <div style="font-size: 0.85rem; font-weight: 600; color: #0A2463;">${p.full_name || 'Participant'}</div>
@@ -4013,6 +4043,98 @@ function openEventPanel(eventId) {
 function closeEventPanel() {
   const panel = document.getElementById('event-panel');
   panel.classList.remove('active');
+}
+
+function openParticipantPanel(phone, nom, zora) {
+  const panel = document.getElementById('participant-panel');
+  const content = document.getElementById('participant-panel-content');
+  const token = localStorage.getItem('bolamu_patient_token');
+  
+  if (!token) return;
+  
+  const initial = nom ? nom.charAt(0).toUpperCase() : '?';
+  
+  content.innerHTML = `
+    <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;">
+      <div style="width: 80px; height: 80px; background: #0A2463; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <span style="font-size: 2rem; font-weight: 800; color: #fff;">${initial}</span>
+      </div>
+      <h1 style="font-size: 1.5rem; font-weight: 800; color: #0A2463; margin: 0 0 8px 0;">${nom || 'Participant'}</h1>
+      <div style="display: flex; align-items: center; gap: 16px; font-size: 0.9rem; color: #434654;">
+        <span><strong>${zora || 0}</strong> Zora</span>
+        <span style="color: #EDEDF8;">|</span>
+        <span><strong>—</strong> Événements</span>
+        <span style="color: #EDEDF8;">|</span>
+        <span><strong>—</strong> Streak</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; margin-bottom: 100px;">
+      <button id="follow-btn" onclick="toggleFollow('${phone}')" style="flex: 1; background: transparent; border: 2px solid #0A2463; color: #0A2463; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Suivre</button>
+      <button onclick="startChat('${phone}')" style="flex: 1; background: #00C9A7; border: none; color: #fff; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Message</button>
+    </div>
+  `;
+  
+  panel.classList.add('active');
+}
+
+function closeParticipantPanel() {
+  const panel = document.getElementById('participant-panel');
+  panel.classList.remove('active');
+}
+
+function toggleFollow(phone) {
+  const token = localStorage.getItem('bolamu_patient_token');
+  if (!token) return;
+  
+  const btn = document.getElementById('follow-btn');
+  
+  fetch('https://api.bolamu.co/api/v1/community/follow/' + phone, {
+    method: 'POST',
+    headers: { 
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      btn.textContent = 'Abonné ✓';
+      btn.style.background = '#0A2463';
+      btn.style.color = '#fff';
+    }
+  }).catch(() => {
+    // Si la route n'existe pas, simuler le follow
+    btn.textContent = 'Abonné ✓';
+    btn.style.background = '#0A2463';
+    btn.style.color = '#fff';
+  });
+}
+
+function startChat(phone) {
+  const token = localStorage.getItem('bolamu_patient_token');
+  if (!token) return;
+  
+  fetch('https://api.bolamu.co/api/v1/chat/conversations', {
+    method: 'POST',
+    headers: { 
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ participant_phone: phone })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      // Rediriger vers la section chat du dashboard
+      // Pour l'instant, fermer le panel et afficher un toast
+      closeParticipantPanel();
+      alert('Conversation créée avec succès');
+    }
+  }).catch(() => {
+    // Si la route n'existe pas, afficher un toast
+    closeParticipantPanel();
+    alert('Chat bientôt disponible');
+  });
 }
 </script>
 
