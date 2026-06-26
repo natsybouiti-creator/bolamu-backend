@@ -121,25 +121,14 @@ router.post('/conversations', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'participant_phone requis' });
     }
 
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      
-      const convResult = await client.query(
-        `INSERT INTO conversations (type) VALUES ('patient_patient') RETURNING id`
-      );
-      const conversation_id = convResult.rows[0].id;
+    const convResult = await pool.query(
+      `INSERT INTO conversations (type) VALUES ('patient_patient') RETURNING id`
+    );
+    const conversation_id = convResult.rows[0].id;
 
-      await client.query('COMMIT');
-      return res.status(201).json({ success: true, conversation_id });
-    } catch (error) {
-      await client.query('ROLLBACK');
-      console.error('[chat/conversations]', error.message);
-      throw error;
-    } finally {
-      client.release();
-    }
+    return res.status(201).json({ success: true, conversation_id });
   } catch (error) {
+    console.error('[chat/conversations]', error.message);
     return res.status(500).json({ error: error.message });
   }
 });
