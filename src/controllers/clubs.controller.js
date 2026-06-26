@@ -160,12 +160,6 @@ async function leaveClub(req, res) {
       [id, normalizedPhone]
     );
 
-    // Décrémenter current_members
-    await client.query(
-      `UPDATE clubs SET current_members = GREATEST(current_members - 1, 0) WHERE id = $1`,
-      [id]
-    );
-
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
        VALUES ('club_left', $1, 'club_members', NULL, $2::jsonb)`,
