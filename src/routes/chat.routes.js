@@ -136,8 +136,13 @@ router.post('/conversations', authMiddleware, async (req, res) => {
       const conversation_id = convResult.rows[0].id;
 
       await client.query(
-        `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at) VALUES ($1, $2, 'member', NOW()), ($1, $3, 'member', NOW())`,
-        [conversation_id, normalizedMyPhone, normalizedOtherPhone]
+        `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at) VALUES ($1, $2, 'member', NOW())`,
+        [conversation_id, normalizedMyPhone]
+      );
+
+      await client.query(
+        `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at) VALUES ($1, $2, 'member', NOW())`,
+        [conversation_id, normalizedOtherPhone]
       );
 
       await client.query('COMMIT');
