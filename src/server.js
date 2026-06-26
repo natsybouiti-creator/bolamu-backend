@@ -173,6 +173,7 @@ try {
 app.use('/api/v1', standardLimiter);
 
 app.use('/api/v1/sport-groups', sportGroupsRoutes);
+app.use('/api/v1/community', require('./routes/community.routes'));
 
 app.use('/api/v1/auth',          authRoutes);
 app.use('/api/v1/patients',      patientRoutes);
