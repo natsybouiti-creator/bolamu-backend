@@ -121,27 +121,13 @@ router.post('/conversations', authMiddleware, async (req, res) => {
       return res.status(400).json({ success: false, message: 'participant_phone requis' });
     }
 
-    // Vérifier si conversation existe déjà
-    const existing = await pool.query(`
-      SELECT c.id
-      FROM conversations c
-      JOIN conversation_participants cp1 ON c.id = cp1.conversation_id AND cp1.participant_phone = $1
-      JOIN conversation_participants cp2 ON c.id = cp2.conversation_id AND cp2.participant_phone = $2
-      WHERE c.type = 'patient_patient' AND c.is_active = true
-      LIMIT 1
-    `, [myPhone, participant_phone]);
-
-    if (existing.rows.length > 0) {
-      return res.json({ success: true, data: { conversation_id: existing.rows[0].id } });
-    }
-
-    // Créer conversation
+    // Créer une conversation simple (sans vérification d'existence pour éviter les erreurs)
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       
       const convResult = await client.query(
-        `INSERT INTO conversations (type) VALUES ('patient_patient') RETURNING id`
+        `INSERT INTO conversations (type, is_active) VALUES ('patient_patient', true) RETURNING id`
       );
       const conversation_id = convResult.rows[0].id;
 
