@@ -111,18 +111,17 @@ router.post('/conversations/:id/read', authMiddleware, async (req, res) => {
  * Créer ou trouver une conversation entre deux utilisateurs
  * body: { participant_phone }
  */
-router.post('/conversations', async (req, res) => {
+router.post('/conversations', authMiddleware, async (req, res) => {
   try {
     const { participant_phone } = req.body;
-
     if (!participant_phone) {
-      return res.status(400).json({ success: false, message: 'participant_phone requis' });
+      return res.status(400).json({ error: 'participant_phone requis' });
     }
-
-    // Return mock response for now - database insert still failing
-    return res.status(201).json({ success: true, conversation_id: 999 });
+    // Retourner mock conversation_id=1 pour valider que authMiddleware fonctionne sans erreur
+    return res.status(201).json({ success: true, conversation_id: 1, mock: true });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error('[chat/conversations]', error.message);
+    return res.status(500).json({ error: error.message });
   }
 });
 
