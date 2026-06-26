@@ -102,15 +102,15 @@ router.get('/:id/participants', authMiddleware, async (req, res) => {
     
     const result = await pool.query(`
       SELECT
-        er.patient_phone AS phone,
+        er.phone,
         COALESCE(u.nom, '') AS nom,
         COALESCE(u.prenom, '') AS prenom,
         COALESCE(SUM(zl.points), 0) AS zora_total
       FROM elonga_registrations er
-      LEFT JOIN users u ON u.phone = er.patient_phone
-      LEFT JOIN zora_ledger zl ON zl.user_phone = er.patient_phone
+      LEFT JOIN users u ON u.phone = er.phone
+      LEFT JOIN zora_ledger zl ON zl.user_phone = er.phone
       WHERE er.event_id = $1
-      GROUP BY er.patient_phone, u.nom, u.prenom
+      GROUP BY er.phone, u.nom, u.prenom
       ORDER BY zora_total DESC
     `, [eventId]);
     
@@ -121,9 +121,9 @@ router.get('/:id/participants', authMiddleware, async (req, res) => {
     }));
     
     ok(res, participants);
-  } catch (err) {
-    console.error('[participants]', err.message);
-    err(res, 500, err.message);
+  } catch (error) {
+    console.error('[participants]', error.message);
+    return res.status(500).json({ error: error.message });
   }
 });
 
