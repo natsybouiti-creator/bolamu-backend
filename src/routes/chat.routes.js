@@ -116,33 +116,28 @@ router.post('/conversations', authMiddleware, async (req, res) => {
     const { participant_phone } = req.body;
     const myPhone = req.user.phone;
     const pool = require('../config/db');
-    const { normalizePhone } = require('../utils/phone');
 
     if (!participant_phone) {
       return res.status(400).json({ success: false, message: 'participant_phone requis' });
     }
-
-    const normalizedMyPhone = normalizePhone(myPhone);
-    const normalizedOtherPhone = normalizePhone(participant_phone);
 
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       
       const convResult = await client.query(
-        `INSERT INTO conversations (type, is_active, created_at) VALUES ($1, true, NOW()) RETURNING id`,
-        ['patient_patient']
+        `INSERT INTO conversations (type, is_active, created_at) VALUES ('patient_patient', true, NOW()) RETURNING id`
       );
       const conversation_id = convResult.rows[0].id;
 
       await client.query(
         `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at) VALUES ($1, $2, 'member', NOW())`,
-        [conversation_id, normalizedMyPhone]
+        [conversation_id, myPhone]
       );
 
       await client.query(
         `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at) VALUES ($1, $2, 'member', NOW())`,
-        [conversation_id, normalizedOtherPhone]
+        [conversation_id, participant_phone]
       );
 
       await client.query('COMMIT');
@@ -150,7 +145,7 @@ router.post('/conversations', authMiddleware, async (req, res) => {
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('[chat/conversations]', error.message);
-      throw error;
+      return res.status(500).json({ success: false, message: error.message });
     } finally {
       client.release();
     }
