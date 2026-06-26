@@ -111,7 +111,7 @@ router.post('/conversations/:id/read', authMiddleware, async (req, res) => {
  * Créer ou trouver une conversation entre deux utilisateurs
  * body: { participant_phone }
  */
-router.post('/conversations', async (req, res) => {
+router.post('/conversations', authMiddleware, async (req, res) => {
   try {
     const { participant_phone } = req.body;
 
