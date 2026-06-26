@@ -116,10 +116,14 @@ router.post('/conversations', authMiddleware, async (req, res) => {
     const { participant_phone } = req.body;
     const myPhone = req.user.phone;
     const pool = require('../config/db');
+    const { normalizePhone } = require('../utils/phone');
 
     if (!participant_phone) {
       return res.status(400).json({ success: false, message: 'participant_phone requis' });
     }
+
+    const normalizedMyPhone = normalizePhone(myPhone);
+    const normalizedOtherPhone = normalizePhone(participant_phone);
 
     const client = await pool.connect();
     try {
@@ -133,7 +137,7 @@ router.post('/conversations', authMiddleware, async (req, res) => {
 
       await client.query(
         `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at) VALUES ($1, $2, 'member', NOW()), ($1, $3, 'member', NOW())`,
-        [conversation_id, myPhone, participant_phone]
+        [conversation_id, normalizedMyPhone, normalizedOtherPhone]
       );
 
       await client.query('COMMIT');
