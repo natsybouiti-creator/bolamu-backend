@@ -115,15 +115,51 @@ router.post('/conversations', authMiddleware, async (req, res) => {
   try {
     const { participant_phone } = req.body;
     const myPhone = req.user.phone;
+    const pool = require('../config/db');
 
     if (!participant_phone) {
       return res.status(400).json({ success: false, message: 'participant_phone requis' });
     }
 
-    const conversation = await chatService.getOrCreateConversation(myPhone, participant_phone);
-    res.json({ success: true, data: { conversation_id: conversation.id } });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    // Vérifier si conversation existe déjà
+    const existing = await pool.query(`
+      SELECT c.id
+      FROM conversations c
+      JOIN conversation_participants cp1 ON c.id = cp1.conversation_id AND cp1.participant_phone = $1
+      JOIN conversation_participants cp2 ON c.id = cp2.conversation_id AND cp2.participant_phone = $2
+      WHERE c.type = 'patient_patient' AND c.is_active = true
+      LIMIT 1
+    `, [myPhone, participant_phone]);
+
+    if (existing.rows.length > 0) {
+      return res.json({ success: true, data: { conversation_id: existing.rows[0].id } });
+    }
+
+    // Créer conversation
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      
+      const convResult = await client.query(
+        `INSERT INTO conversations (type) VALUES ('patient_patient') RETURNING id`
+      );
+      const conversation_id = convResult.rows[0].id;
+
+      await client.query(
+        `INSERT INTO conversation_participants (conversation_id, participant_phone, joined_at) VALUES ($1, $2, NOW()), ($1, $3, NOW())`,
+        [conversation_id, myPhone, participant_phone]
+      );
+
+      await client.query('COMMIT');
+      return res.json({ success: true, data: { conversation_id } });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 

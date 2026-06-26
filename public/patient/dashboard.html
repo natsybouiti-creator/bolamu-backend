@@ -96,8 +96,8 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background: #FAF8FF;
   z-index: 1000;
   overflow-y: auto;
@@ -113,8 +113,8 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background: #FAF8FF;
   z-index: 1100;
   overflow-y: auto;
@@ -130,8 +130,8 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background: #FAF8FF;
   z-index: 1000;
   overflow-y: auto;
@@ -140,6 +140,12 @@
 
 #club-panel.active {
   display: block;
+}
+
+@media (max-width: 400px) {
+  #participant-actions {
+    flex-direction: column;
+  }
 }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1269,7 +1275,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
             <button onclick="event.stopPropagation(); {{ group.onJoin }}" style="{{ group.btnStyle }}">{{ group.btnLabel }}</button>
           </div>
         </sc-for>
-        <div onclick="{{ openCreateGroupModal }}" style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px dashed #C3C5D7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><span class="material-symbols-outlined" style="color: #2E6EE8; font-size: 32px;">add_circle</span><span style="font-size: 0.82rem; font-weight: 700; color: #0A2463; text-align: center;">Créer un groupe</span></div>
+        <div onclick="openCreateClubModal()" style="flex: 0 0 170px; scroll-snap-align: start; background: #fff; border: 1px dashed #C3C5D7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><span class="material-symbols-outlined" style="color: #2E6EE8; font-size: 32px;">add_circle</span><span style="font-size: 0.82rem; font-weight: 700; color: #0A2463; text-align: center;">Créer un groupe</span></div>
       </div>
 
       <!-- CLASSEMENT -->
@@ -4015,7 +4021,7 @@ function openEventPanel(eventId) {
         <div id="participants-list" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 100px;">
           <div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Chargement...</div>
         </div>
-        <button id="participate-btn" onclick="joinEvent('${eventId}')" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0A2463; color: #fff; border: none; padding: 14px 32px; border-radius: 9999px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(10,36,99,0.3);">Participer</button>
+        <button id="participate-btn" onclick="joinEvent('${eventId}')" style="position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 32px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); background: #0A2463; color: #fff; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 -4px 12px rgba(10,36,99,0.1);">Participer</button>
       `;
       
       panel.classList.add('active');
@@ -4099,8 +4105,10 @@ function openParticipantPanel(phone, nom, zora) {
       </div>
     </div>
     <div style="display: flex; gap: 12px; margin-bottom: 100px;">
-      <button id="follow-btn" onclick="toggleFollow('${phone}')" style="flex: 1; background: transparent; border: 2px solid #0A2463; color: #0A2463; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Suivre</button>
-      <button onclick="startChat('${phone}')" style="flex: 1; background: #00C9A7; border: none; color: #fff; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Message</button>
+      <div id="participant-actions" style="display: flex; gap: 12px;">
+        <button id="follow-btn" onclick="toggleFollow('${phone}')" style="flex: 1; background: transparent; border: 2px solid #0A2463; color: #0A2463; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Suivre</button>
+        <button onclick="startChat('${phone}')" style="flex: 1; background: #00C9A7; border: none; color: #fff; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Message</button>
+      </div>
     </div>
   `;
   
@@ -4201,7 +4209,7 @@ function openClubPanel(clubId) {
         <div id="club-members-list" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 100px;">
           <div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Chargement...</div>
         </div>
-        <button id="club-action-btn" onclick="joinClub('${clubId}')" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0A2463; color: #fff; border: none; padding: 14px 32px; border-radius: 9999px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(10,36,99,0.3);">Rejoindre</button>
+        <button id="club-action-btn" onclick="joinClub('${clubId}')" style="position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 32px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); background: #0A2463; color: #fff; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 -4px 12px rgba(10,36,99,0.1);">Rejoindre</button>
       `;
       
       panel.classList.add('active');
@@ -4311,7 +4319,79 @@ function joinClub(clubId) {
     btn.style.background = '#00C9A7';
   });
 }
+
+function openCreateClubModal() {
+  const modal = document.getElementById('create-club-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function closeCreateClubModal() {
+  const modal = document.getElementById('create-club-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function createClub() {
+  const token = localStorage.getItem('bolamu_patient_token');
+  if (!token) return;
+  
+  const name = document.getElementById('club-name-input').value;
+  const sportType = document.getElementById('club-sport-input').value;
+  
+  if (!name) {
+    alert('Nom du groupe requis');
+    return;
+  }
+  
+  fetch('https://api.bolamu.co/api/v1/clubs', {
+    method: 'POST',
+    headers: { 
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name, sport_type: sportType })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      alert('Groupe créé !');
+      closeCreateClubModal();
+      location.reload();
+    }
+  }).catch(() => {
+    alert('Erreur lors de la création');
+  });
+}
 </script>
+
+<!-- Modal Créer un groupe -->
+<div id="create-club-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1200; align-items: center; justify-content: center;">
+  <div style="background: #fff; border-radius: 20px; padding: 24px; width: 90%; max-width: 400px;">
+    <h2 style="font-size: 1.2rem; font-weight: 800; color: #0A2463; margin: 0 0 16px 0;">Créer un groupe</h2>
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #434654; margin-bottom: 8px;">Nom du groupe</label>
+      <input id="club-name-input" type="text" placeholder="Ex: Les Coureurs de Brazza" style="width: 100%; padding: 12px; border: 1px solid #EDEDF8; border-radius: 12px; font-size: 0.9rem;">
+    </div>
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #434654; margin-bottom: 8px;">Type de sport</label>
+      <select id="club-sport-input" style="width: 100%; padding: 12px; border: 1px solid #EDEDF8; border-radius: 12px; font-size: 0.9rem;">
+        <option value="football">Football</option>
+        <option value="basketball">Basketball</option>
+        <option value="running">Running</option>
+        <option value="fitness">Fitness</option>
+        <option value="yoga">Yoga</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <button onclick="closeCreateClubModal()" style="flex: 1; background: #EDEDF8; border: none; padding: 12px; border-radius: 12px; font-size: 0.9rem; font-weight: 700; color: #434654; cursor: pointer;">Annuler</button>
+      <button onclick="createClub()" style="flex: 1; background: #0A2463; border: none; padding: 12px; border-radius: 12px; font-size: 0.9rem; font-weight: 700; color: #fff; cursor: pointer;">Créer</button>
+    </div>
+  </div>
+</div>
 
 
 </body></html>
