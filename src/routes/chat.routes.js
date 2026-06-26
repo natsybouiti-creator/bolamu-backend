@@ -126,7 +126,7 @@ router.post('/conversations', authMiddleware, async (req, res) => {
       await client.query('BEGIN');
       
       const convResult = await client.query(
-        `INSERT INTO conversations (type, is_active) VALUES ('patient_patient', true) RETURNING id`
+        `INSERT INTO conversations (type, is_active, created_at) VALUES ('patient_patient', true, NOW()) RETURNING id`
       );
       const conversation_id = convResult.rows[0].id;
 
