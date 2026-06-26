@@ -65,9 +65,9 @@ async function joinClub(req, res) {
     const { phone } = req.user;
     const normalizedPhone = normalizePhone(phone);
 
-    // Vérifier que le club existe et n'est pas plein
+    // Vérifier que le club existe
     const clubResult = await client.query(
-      `SELECT id, name, max_members, current_members FROM clubs WHERE id = $1 AND is_active = TRUE`,
+      `SELECT id, name, max_members FROM clubs WHERE id = $1 AND is_active = TRUE`,
       [id]
     );
 
@@ -77,11 +77,6 @@ async function joinClub(req, res) {
     }
 
     const club = clubResult.rows[0];
-
-    if (club.current_members >= club.max_members) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ success: false, message: 'Club complet' });
-    }
 
     // Vérifier si déjà membre
     const existingMember = await client.query(
@@ -99,12 +94,6 @@ async function joinClub(req, res) {
       `INSERT INTO club_members (club_id, patient_phone, joined_at)
        VALUES ($1, $2, NOW())`,
       [id, normalizedPhone]
-    );
-
-    // Incrémenter current_members
-    await client.query(
-      `UPDATE clubs SET current_members = current_members + 1 WHERE id = $1`,
-      [id]
     );
 
     await client.query(
