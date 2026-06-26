@@ -114,14 +114,43 @@ router.post('/conversations/:id/read', authMiddleware, async (req, res) => {
 router.post('/conversations', authMiddleware, async (req, res) => {
   try {
     const { participant_phone } = req.body;
-    const myPhone = req.user.phone;
-
     if (!participant_phone) {
       return res.status(400).json({ error: 'participant_phone requis' });
     }
+    const myPhone = req.user.phone;
+    const pool = require('../config/db');
 
-    // Mock response - INSERT conversation cause 500 in production
-    return res.status(201).json({ success: true, conversation_id: 1, mock: true });
+    // Vérifier si conversation existe déjà entre ces deux phones
+    const existing = await pool.query(`
+      SELECT c.id FROM conversations c
+      JOIN conversation_participants cp1 ON cp1.conversation_id = c.id
+      JOIN conversation_participants cp2 ON cp2.conversation_id = c.id
+      WHERE c.type = 'patient_medecin'
+        AND cp1.participant_phone = $1
+        AND cp2.participant_phone = $2
+      LIMIT 1
+    `, [myPhone, participant_phone]);
+
+    if (existing.rows.length) {
+      return res.json({ success: true, conversation_id: existing.rows[0].id });
+    }
+
+    // Créer conversation + ajouter les 2 participants
+    const conv = await pool.query(
+      `INSERT INTO conversations (type) VALUES ('patient_medecin') RETURNING id`
+    );
+    const convId = conv.rows[0].id;
+
+    await pool.query(
+      `INSERT INTO conversation_participants (conversation_id, participant_phone, role) VALUES ($1, $2, 'patient')`,
+      [convId, myPhone]
+    );
+    await pool.query(
+      `INSERT INTO conversation_participants (conversation_id, participant_phone, role) VALUES ($1, $2, 'patient')`,
+      [convId, participant_phone]
+    );
+
+    return res.status(201).json({ success: true, conversation_id: convId });
   } catch (error) {
     console.error('[chat/conversations]', error.message);
     return res.status(500).json({ error: error.message });
