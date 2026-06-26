@@ -97,22 +97,22 @@ router.get('/:id/registrations', authMiddleware, async (req, res) => {
 // PATIENTS (auth JWT) - Liste des participants avec Zora points
 router.get('/:id/participants', authMiddleware, async (req, res) => {
   try {
+    const { id } = req.params;
     const pool = require('../config/db');
-    const eventId = req.params.id;
     
     const result = await pool.query(`
       SELECT
         er.phone,
-        COALESCE(u.nom, '') AS nom,
-        COALESCE(u.prenom, '') AS prenom,
+        COALESCE(u.first_name, '') AS prenom,
+        COALESCE(u.last_name, '') AS nom,
         COALESCE(SUM(zl.points), 0) AS zora_total
       FROM elonga_registrations er
       LEFT JOIN users u ON u.phone = er.phone
-      LEFT JOIN zora_ledger zl ON zl.user_phone = er.phone
+      LEFT JOIN zora_ledger zl ON zl.phone = er.phone
       WHERE er.event_id = $1
-      GROUP BY er.phone, u.nom, u.prenom
+      GROUP BY er.phone, u.first_name, u.last_name
       ORDER BY zora_total DESC
-    `, [eventId]);
+    `, [id]);
     
     const participants = result.rows.map(p => ({
       phone: p.phone,
@@ -120,7 +120,7 @@ router.get('/:id/participants', authMiddleware, async (req, res) => {
       zora_points: parseInt(p.zora_total) || 0
     }));
     
-    ok(res, participants);
+    return res.json({ success: true, data: participants });
   } catch (error) {
     console.error('[participants]', error.message);
     return res.status(500).json({ error: error.message });
