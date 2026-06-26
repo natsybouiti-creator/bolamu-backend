@@ -114,13 +114,32 @@ router.post('/conversations/:id/read', authMiddleware, async (req, res) => {
 router.post('/conversations', authMiddleware, async (req, res) => {
   try {
     const { participant_phone } = req.body;
+    const myPhone = req.user.phone;
+    const pool = require('../config/db');
+
     if (!participant_phone) {
       return res.status(400).json({ error: 'participant_phone requis' });
     }
-    // Retourner mock conversation_id=1 pour valider que authMiddleware fonctionne sans erreur
-    return res.status(201).json({ success: true, conversation_id: 1, mock: true });
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      
+      const convResult = await client.query(
+        `INSERT INTO conversations (type) VALUES ('patient_patient') RETURNING id`
+      );
+      const conversation_id = convResult.rows[0].id;
+
+      await client.query('COMMIT');
+      return res.status(201).json({ success: true, conversation_id });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('[chat/conversations]', error.message);
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
-    console.error('[chat/conversations]', error.message);
     return res.status(500).json({ error: error.message });
   }
 });
