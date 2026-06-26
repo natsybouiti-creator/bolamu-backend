@@ -135,11 +135,6 @@ router.post('/conversations', authMiddleware, async (req, res) => {
         [conversation_id, myPhone]
       );
 
-      await client.query(
-        `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at) VALUES ($1, $2, 'member', NOW())`,
-        [conversation_id, participant_phone]
-      );
-
       await client.query('COMMIT');
       return res.status(201).json({ success: true, conversation_id });
     } catch (error) {
