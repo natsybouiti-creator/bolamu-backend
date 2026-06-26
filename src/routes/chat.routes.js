@@ -132,7 +132,7 @@ router.post('/conversations', authMiddleware, async (req, res) => {
       const conversation_id = convResult.rows[0].id;
 
       await client.query(
-        `INSERT INTO conversation_participants (conversation_id, participant_phone, joined_at) VALUES ($1, $2, NOW()), ($1, $3, NOW())`,
+        `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at) VALUES ($1, $2, 'member', NOW()), ($1, $3, 'member', NOW())`,
         [conversation_id, myPhone, participant_phone]
       );
 
