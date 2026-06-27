@@ -540,7 +540,7 @@ function headers() {
 async function apiFetch(path, opts) {
   const h = headers();
   // Si FormData, ne pas ajouter Content-Type (le navigateur le gère automatiquement avec le boundary)
-  if (opts.body instanceof FormData) {
+  if (opts?.body instanceof FormData) {
     delete h['Content-Type'];
   }
   const r = await fetch(API + path, { headers: h, ...opts });
