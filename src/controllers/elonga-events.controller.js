@@ -42,7 +42,7 @@ async function getEvents(req, res) {
       query += ' AND ' + conditions.join(' AND ');
     }
     
-    query += ' ORDER BY e.starts_at ASC';
+    query += ' ORDER BY e.created_at DESC LIMIT 5';
     
     const result = await pool.query(query, params);
     
