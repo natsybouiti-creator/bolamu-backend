@@ -2840,7 +2840,7 @@ class Component extends DCLogic {
         this.setState((s) => ({ events: s.events.map((e) => (e.dbId === id && !e.registered) ? Object.assign({}, e, { places: e.places + 1, registered: true }) : e) }));
         this.showToast('Inscription confirmée · +50 Zora après participation');
       } else {
-        this.showToast(d.message || d.error || 'Inscription impossible', 'error');
+        this.showToast((d.error && d.error.message) || d.message || 'Inscription impossible', 'error');
       }
     } catch (e) {
       this.showToast('Erreur réseau — vérifie ta connexion', 'error');

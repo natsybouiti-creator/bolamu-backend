@@ -41,10 +41,16 @@ router.post('/:id/register', authMiddleware, async (req, res) => {
     if (result.success) {
       res.json({ success: true, places_restantes: result.places_restantes });
     } else {
-      res.status(400).json({ success: false, reason: result.reason });
+      if (result.reason === 'event_not_available') {
+        res.status(400).json({ success: false, error: { code: "EVENT_NOT_AVAILABLE", message: "Cet événement n'est pas disponible." } });
+      } else if (result.reason === 'event_full') {
+        res.status(400).json({ success: false, error: { code: "EVENT_FULL", message: "Cet événement est complet." } });
+      } else {
+        res.status(400).json({ success: false, error: { code: "UNKNOWN_ERROR", message: result.reason } });
+      }
     }
   } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
+    res.status(500).json({ success: false, error: { code: "SERVER_ERROR", message: "Une erreur est survenue." } });
   }
 });
 
