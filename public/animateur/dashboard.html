@@ -423,6 +423,10 @@
       <label class="form-label" for="evt-desc">Description</label>
       <textarea id="evt-desc" class="form-textarea" data-testid="evt-desc" placeholder="Détails de l'événement…"></textarea>
     </div>
+    <div class="form-group">
+      <label class="form-label" for="evt-cover">Photo de l'événement</label>
+      <input type="file" id="evt-cover" accept="image/*" class="form-input" data-testid="evt-cover">
+    </div>
     <div class="form-actions">
       <button class="btn btn-outline" onclick="closeModal('modal-event')">Annuler</button>
       <button class="btn btn-primary" id="btn-save-event" data-testid="btn-save-event" onclick="saveEvent()">
@@ -534,7 +538,12 @@ function headers() {
 }
 
 async function apiFetch(path, opts) {
-  const r = await fetch(API + path, { headers: headers(), ...opts });
+  const h = headers();
+  // Si FormData, ne pas ajouter Content-Type (le navigateur le gère automatiquement avec le boundary)
+  if (opts.body instanceof FormData) {
+    delete h['Content-Type'];
+  }
+  const r = await fetch(API + path, { headers: h, ...opts });
   if (r.status === 401 || r.status === 403) { logout(); return null; }
   return r.json();
 }
@@ -722,6 +731,7 @@ async function saveEvent() {
   const max_participants = document.getElementById('evt-max').value;
   const zora_reward = parseInt(document.getElementById('evt-zora').value) || 50;
   const description = document.getElementById('evt-desc').value.trim();
+  const coverFile = document.getElementById('evt-cover').files[0];
 
   if (!title || !pillar || !city || !location_name || !location_address || !starts_at || !ends_at) {
     showMsg('event-msg', 'Veuillez remplir tous les champs obligatoires (*).', 'error'); return;
@@ -730,9 +740,22 @@ async function saveEvent() {
   const btn = document.getElementById('btn-save-event');
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
 
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('pillar', pillar);
+  formData.append('city', city);
+  formData.append('location_name', location_name);
+  formData.append('location_address', location_address);
+  formData.append('starts_at', starts_at);
+  formData.append('ends_at', ends_at);
+  if (max_participants) formData.append('max_participants', parseInt(max_participants));
+  formData.append('zora_reward', zora_reward);
+  formData.append('description', description);
+  if (coverFile) formData.append('cover', coverFile);
+
   const data = await apiFetch('/animateur/events', {
     method: 'POST',
-    body: JSON.stringify({ title, pillar, city, location_name, location_address, starts_at, ends_at, max_participants: max_participants ? parseInt(max_participants) : null, zora_reward, description })
+    body: formData
   });
 
   btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">save</span> Enregistrer';

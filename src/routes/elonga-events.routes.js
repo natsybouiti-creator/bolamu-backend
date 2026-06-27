@@ -24,6 +24,7 @@ const {
 } = require('../services/event.service');
 const authMiddleware = require('../middleware/auth.middleware');
 const { ok, err } = require('../utils/apiResponse');
+const { upload, uploadEvent } = require('../middleware/uploadEvent');
 
 // PUBLICS
 router.get('/', getEvents);
@@ -127,8 +128,12 @@ router.put('/:id', authMiddleware.requireAdmin, updateEvent);
 router.delete('/:id', authMiddleware.requireAdmin, deleteEvent);
 
 // ADMIN - Sprint 7 : Créer événement avec status='pending'
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, upload.single('cover'), uploadEvent, async (req, res) => {
   try {
+    // Ajouter l'URL Cloudinary au body si upload réussi
+    if (req.cloudinaryUrl) {
+      req.body.cover_image_path = req.cloudinaryUrl;
+    }
     const result = await createEventService(req.body, req.user.phone);
     if (result.success) {
       ok(res, result);
