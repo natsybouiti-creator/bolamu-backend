@@ -1,26 +1,25 @@
 import { test as setup } from '@playwright/test';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const authFile = 'playwright/.auth/patient.json';
 
-setup('authenticate', async ({ page, request }) => {
-  const loginResponse = await request.post('http://localhost:3005/api/v1/auth/login', {
-    data: { phone: '+242069735418', password: 'TestNouveau2026!' }
-  });
+setup('authenticate', async ({ page }) => {
+  // Générer JWT directement sans passer par /auth/login (évite rate limiting)
+  const token = jwt.sign(
+    { phone: '+242069735418', role: 'patient' },
+    process.env.JWT_SECRET,
+    { expiresIn: '15min' }
+  );
 
-  if (!loginResponse.ok()) {
-    throw new Error(`Login failed: ${loginResponse.status()} ${await loginResponse.text()}`);
-  }
+  // Injecter le token dans localStorage
+  await page.addInitScript((accessToken) => {
+    localStorage.setItem('bolamu_patient_token', accessToken);
+    localStorage.setItem('bolamu_patient_phone', '+242069735418');
+  }, token);
 
-  const { accessToken } = await loginResponse.json();
-
-  // Injecter le token avant le chargement de la page
-  await page.addInitScript((token) => {
-    localStorage.setItem('bolamu_patient_token', token);
-  }, accessToken);
-
-  await page.goto('/patient/dashboard.html');
-  await page.waitForSelector('nav.top-nav', { timeout: 15000 });
-  
-  // Sauvegarde l'état complet (localStorage + cookies) dans un fichier
+  // Sauvegarder l'état sans naviguer (évite timeout dashboard)
   await page.context().storageState({ path: authFile });
 });

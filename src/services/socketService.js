@@ -83,6 +83,15 @@ function emitToGroup(groupId, event, data) {
   }
 }
 
+function emitToAll(event, data) {
+  if (!io) {
+    console.error('[Socket.io] emitToAll: io est NULL — event ' + event + ' NON émis');
+    return;
+  }
+  console.log('[Socket.io] emitToAll OK — event ' + event);
+  io.emit(event, data);
+}
+
 function getIo() {
   return io;
 }
@@ -91,5 +100,6 @@ module.exports = {
   initializeSocket,
   emitToRoom,
   emitToGroup,
+  emitToAll,
   getIo
 };

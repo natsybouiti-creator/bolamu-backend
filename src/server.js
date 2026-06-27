@@ -1,6 +1,7 @@
 ﻿require('./instrument');
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
@@ -11,6 +12,7 @@ const { standardLimiter } = require('./middleware/rateLimiter');
 const requestLogger = require('./middleware/requestLogger');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./config/logger');
+const { initializeSocket } = require('./services/socketService');
 
 // Validation des secrets (fail-fast en production)
 require('./config/secrets');
@@ -416,7 +418,13 @@ async function startServer() {
         await runMigrations();
         console.log('✅ Migrations terminées, démarrage du serveur...\n');
         
-        const server = app.listen(PORT, '0.0.0.0', async () => {
+        // Créer le serveur HTTP brut pour Socket.io
+        const server = http.createServer(app);
+        
+        // Initialiser Socket.io AVANT d'écouter
+        initializeSocket(server);
+        
+        server.listen(PORT, '0.0.0.0', async () => {
             console.log(`✅ Bolamu server running on port ${PORT}`);
             await initializeApp();
         });

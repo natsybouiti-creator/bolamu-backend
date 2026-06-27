@@ -5,6 +5,19 @@ const pool = require('../config/db');
 const chatService = require('./chat.service');
 const { updateStreak } = require('./streak.service');
 
+// Cache tiers config (table statique — TTL 5 min)
+// Cache 5 min : après modification d'un palier en base, le changement met jusqu'à 5 min
+// à être pris en compte (acceptable car config rarement modifiée).
+let _tiersCache = null;
+let _tiersCacheAt = 0;
+async function getTiersConfig() {
+  if (_tiersCache && Date.now() - _tiersCacheAt < 5 * 60 * 1000) return _tiersCache;
+  const res = await pool.query('SELECT * FROM zora_tiers_config WHERE is_active = TRUE ORDER BY min_points');
+  _tiersCache = res.rows;
+  _tiersCacheAt = Date.now();
+  return _tiersCache;
+}
+
 /**
  * Fonction principale awardZora
  * Crédite des points Zora à un utilisateur selon les règles et la taxonomie de preuve
@@ -75,68 +88,45 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
       return { success: false, reason: 'proof_manual_rejected' };
     }
     
-    // ÉTAPE 3 — IDEMPOTENCE
-    // Vérifier si (action_type, proof_reference) existe déjà dans ledger avec points > 0
-    const existingCredit = await client.query(
-      `SELECT id FROM zora_ledger 
-       WHERE action_type = $1 AND proof_reference = $2 AND points > 0`,
-      [action_type, proof_reference]
+    // ÉTAPES 3-5 — Idempotence + plafonds en un seul aller-retour Neon
+    const vRes = await client.query(
+      `SELECT
+        (SELECT COUNT(*) FROM zora_ledger
+         WHERE action_type = $1 AND proof_reference = $2 AND points > 0)               AS already_credited,
+        (SELECT COUNT(*) FROM zora_ledger
+         WHERE phone = $3 AND action_type = $1 AND earned_at >= CURRENT_DATE)           AS today_count,
+        (SELECT COALESCE(SUM(points), 0) FROM zora_ledger
+         WHERE phone = $3 AND category = $4 AND verified = TRUE AND expires_at > NOW()) AS category_total,
+        (SELECT COALESCE(total_earned, 0) FROM zora_points WHERE phone = $3)            AS total_earned,
+        (SELECT cap_percent FROM zora_category_caps WHERE category = $4)                AS cap_percent`,
+      [action_type, proof_reference, phone, rule.category]
     );
-    
-    if (existingCredit.rows.length > 0) {
+    const v = vRes.rows[0];
+
+    // ÉTAPE 3 — IDEMPOTENCE
+    if (parseInt(v.already_credited) > 0) {
       console.log(`[ZORA] Crédit déjà existant pour phone: ${phone}, action: ${action_type}, ref: ${proof_reference}`);
       await client.query('ROLLBACK');
       return { success: false, reason: 'already_credited' };
     }
-    
+
     // ÉTAPE 4 — PLAFOND JOURNALIER
-    if (rule.daily_cap) {
-      const todayCount = await client.query(
-        `SELECT COUNT(*) as count FROM zora_ledger 
-         WHERE phone = $1 AND action_type = $2 
-         AND earned_at >= CURRENT_DATE`,
-        [phone, action_type]
-      );
-      
-      if (parseInt(todayCount.rows[0].count) >= rule.daily_cap) {
-        console.log(`[ZORA] Plafond journalier atteint pour phone: ${phone}, action: ${action_type}`);
-        await client.query('ROLLBACK');
-        return { success: false, reason: 'daily_cap_reached' };
-      }
+    if (rule.daily_cap && parseInt(v.today_count) >= rule.daily_cap) {
+      console.log(`[ZORA] Plafond journalier atteint pour phone: ${phone}, action: ${action_type}`);
+      await client.query('ROLLBACK');
+      return { success: false, reason: 'daily_cap_reached' };
     }
-    
+
     // ÉTAPE 5 — PLAFOND CATÉGORIE
-    // Calculer le total gagné dans cette catégorie sur la période active
-    const categoryTotalResult = await client.query(
-      `SELECT SUM(points) as total FROM zora_ledger 
-       WHERE phone = $1 AND category = $2 
-       AND verified = TRUE AND expires_at > NOW()`,
-      [phone, rule.category]
-    );
-    
-    const categoryTotal = parseInt(categoryTotalResult.rows[0].total) || 0;
-    
-    // Récupérer le total_earned global
-    const pointsResult = await client.query(
-      'SELECT total_earned FROM zora_points WHERE phone = $1',
-      [phone]
-    );
-    
-    const totalEarned = pointsResult.rows.length > 0 ? parseInt(pointsResult.rows[0].total_earned) : 0;
-    const newTotalEarned = totalEarned + rule.points;
+    const categoryTotal    = parseInt(v.category_total) || 0;
+    const totalEarned      = parseInt(v.total_earned)   || 0;
+    const newTotalEarned   = totalEarned + rule.points;
     const newCategoryTotal = categoryTotal + rule.points;
-    
-    // Récupérer le cap_percent pour cette catégorie
-    const capResult = await client.query(
-      'SELECT cap_percent FROM zora_category_caps WHERE category = $1',
-      [rule.category]
-    );
-    
+
     // Plafond catégorie : ne s'applique QUE si total_earned >= 500 points
-    if (totalEarned >= 500 && capResult.rows.length > 0 && capResult.rows[0].cap_percent > 0) {
-      const capPercent = capResult.rows[0].cap_percent;
+    if (totalEarned >= 500 && v.cap_percent != null && parseFloat(v.cap_percent) > 0) {
+      const capPercent = parseFloat(v.cap_percent);
       const maxCategoryPoints = Math.floor(newTotalEarned * capPercent / 100);
-      
       if (newCategoryTotal > maxCategoryPoints) {
         console.log(`[ZORA] Plafond catégorie atteint pour phone: ${phone}, category: ${rule.category}`);
         await client.query('ROLLBACK');
@@ -175,13 +165,10 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     
     const updatedPoints = pointsUpdate.rows[0];
     
-    // ÉTAPE 7 — RECALCUL DU TIER
-    const tiersResult = await client.query(
-      'SELECT * FROM zora_tiers_config WHERE is_active = TRUE ORDER BY min_points'
-    );
-    
+    // ÉTAPE 7 — RECALCUL DU TIER (tiers lus depuis cache mémoire, pas de round-trip Neon)
+    const tiers = await getTiersConfig();
     let newTier = 'kimia';
-    for (const tier of tiersResult.rows) {
+    for (const tier of tiers) {
       if (updatedPoints.total_earned >= tier.min_points) {
         newTier = tier.tier_name;
       }
@@ -210,7 +197,21 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     );
     
     await client.query('COMMIT');
-    
+
+    // Émettre leaderboard_updated immédiatement après COMMIT, avant toute opération annexe
+    try {
+      const { getIo } = require('./socketService');
+      const io = getIo();
+      if (io) {
+        io.emit('leaderboard_updated', { phone, newBalance: updatedPoints.balance });
+        console.log('[Socket.io] leaderboard_updated émis pour', phone);
+      } else {
+        console.error('[Socket.io] getIo() a renvoyé NULL au moment de l\'émission');
+      }
+    } catch (e) {
+      console.error('[Socket.io] erreur émission:', e.message);
+    }
+
     // Mettre à jour le streak (non bloquant, hors transaction)
     setImmediate(async () => {
       try {

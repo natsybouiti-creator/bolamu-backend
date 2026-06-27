@@ -319,4 +319,21 @@ Après chaque boucle livrée, le Master Loop exécute le parcours complet :
 
 ---
 
+---
+
+## 10. NOTES TECHNIQUES
+
+### Socket.io — Module temps réel (B4 — juin 2026)
+- `src/services/socketService.js` : `initializeSocket(server)`, `emitToRoom()`, `emitToAll()`, `getIo()`
+- `src/server.js` : serveur HTTP brut (`http.createServer`) requis — `app.listen()` ne supporte pas Socket.io
+- Événements actifs : `new_message` (ciblé room), `leaderboard_updated` (broadcast global)
+- CORS Socket.io : `bolamu.co` uniquement en prod. Les clients Node.js (tests) ne transmettent pas d'Origin → connexion OK sans domaine whitelist
+
+### awardZora — Performance (optimisé juin 2026)
+- Optimisé de ~5 s à ~3 s (Neon DB Frankfurt, latence réseau)
+- Fusion Q2-Q6 : idempotence + daily_cap + category_total + total_earned + cap_percent en **1 seule requête** (était 5 séquentielles)
+- Cache `zora_tiers_config` : TTL 5 min en mémoire (`_tiersCache`). Après modification des paliers en base, prévoir **5 min de propagation** (ou redémarrer le serveur pour forcer)
+- Emit `leaderboard_updated` placé immédiatement après `COMMIT` (avant chatService.postAchievement) pour minimiser la latence Socket.io
+- Optimisation future possible : passer recalcul tier / postAchievement / stats en arrière-plan (`setImmediate`) pour viser <1 s si la latence Neon gêne en prod
+
 *PILOTAGE BOLAMU v3.0 — Document confidentiel — Juin 2025*

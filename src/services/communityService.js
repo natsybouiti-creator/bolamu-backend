@@ -254,8 +254,14 @@ async function sendMessage(phone, conversationId, content) {
     [conversationId, normalizedPhone, content]
   );
   
-  // Émettre via Socket.io (à implémenter dans socketService.js)
-  // TODO: socketService.emitToRoom(conversationId, 'new_message', result.rows[0]);
+  // Émettre via Socket.io
+  try {
+    const { emitToRoom } = require('./socketService');
+    emitToRoom(conversationId, 'new_message', result.rows[0]);
+  } catch (socketErr) {
+    console.error('[Socket.io] Échec émission new_message:', socketErr.message);
+    // ne jamais faire échouer l'envoi du message
+  }
   
   return result.rows[0];
 }
