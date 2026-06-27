@@ -51,6 +51,7 @@ async function getMyEventsController(req, res) {
 async function createElongaEventController(req, res) {
   try {
     const animateur_phone = req.user.phone;
+    if (req.cloudinaryUrl) req.body.cover_image_path = req.cloudinaryUrl;
     const result = await createElongaEvent(req.body, animateur_phone);
     res.status(201).json(result);
   } catch (error) {

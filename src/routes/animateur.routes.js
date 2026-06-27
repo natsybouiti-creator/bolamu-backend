@@ -19,6 +19,7 @@ const {
   getEventRegistrations 
 } = require('../controllers/animateur.controller');
 const logger = require('../config/logger');
+const { upload, uploadEvent } = require('../middleware/uploadEvent');
 
 if (!process.env.JWT_SECRET) {
     throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');
@@ -90,7 +91,7 @@ router.get('/stats', requireAnimateur, getStats);
 router.get('/events', requireAnimateur, getMyEvents);
 
 // ─── POST /events ─────────────────────────────────────────────────────────────
-router.post('/events', requireAnimateur, createElongaEvent);
+router.post('/events', requireAnimateur, upload.single('cover'), uploadEvent, createElongaEvent);
 
 // ─── GET /clubs ───────────────────────────────────────────────────────────────
 router.get('/clubs', requireAnimateur, getMyClubs);
