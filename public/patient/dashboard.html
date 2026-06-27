@@ -3702,7 +3702,7 @@ class Component extends DCLogic {
         
         try {
           // Charger les messages de la conversation communauté
-          const res = await fetch('https://api.bolamu.co/api/v1/community/chat/1/messages', {
+          const res = await fetch('https://api.bolamu.co/api/v1/chat/conversations/1/messages', {
             headers: { 'Authorization': 'Bearer ' + token }
           });
           const d = await res.json();
@@ -3738,7 +3738,7 @@ class Component extends DCLogic {
         if (!s.chatInput || !token) return;
         
         try {
-          const res = await fetch('https://api.bolamu.co/api/v1/community/chat/1/messages', {
+          const res = await fetch('https://api.bolamu.co/api/v1/chat/conversations/1/messages', {
             method: 'POST',
             headers: { 
               'Authorization': 'Bearer ' + token,
@@ -3769,14 +3769,14 @@ class Component extends DCLogic {
         if (!token) return;
         
         try {
-          const res = await fetch('https://api.bolamu.co/api/v1/community/sport-groups/' + groupId + '/join', {
+          const res = await fetch('https://api.bolamu.co/api/v1/clubs/' + groupId + '/join', {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + token }
           });
           const d = await res.json();
           if (d.success) {
             // Recharger les groupes
-            const groupsRes = await fetch('https://api.bolamu.co/api/v1/sport-groups', {
+            const groupsRes = await fetch('https://api.bolamu.co/api/v1/clubs', {
               headers: { 'Authorization': 'Bearer ' + token }
             });
             const groupsData = await groupsRes.json();
@@ -3810,28 +3810,7 @@ class Component extends DCLogic {
       },
       openCreateGroupModal: () => this.showToast('Création de groupe bientôt disponible'),
       encourageMember: async (targetPhone) => {
-        const token = localStorage.getItem('bolamu_patient_token');
-        if (!token) return;
-        
-        try {
-          const res = await fetch('https://api.bolamu.co/api/v1/community/leaderboard/encourage', {
-            method: 'POST',
-            headers: { 
-              'Authorization': 'Bearer ' + token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ target_phone: targetPhone })
-          });
-          const d = await res.json();
-          if (d.success) {
-            this.showToast('Encouragement envoyé !');
-          } else {
-            this.showToast('Erreur lors de l\'encouragement');
-          }
-        } catch (e) {
-          console.error('[Leaderboard] Erreur encourage:', e);
-          this.showToast('Erreur de connexion');
-        }
+        this.showToast('Fonctionnalité bientôt disponible');
       },
       toggleCommentInput: (targetPhone) => {
         this._commentOpenPhone = targetPhone;
@@ -3843,32 +3822,7 @@ class Component extends DCLogic {
         this.setState({});
       },
       sendComment: async (targetPhone) => {
-        const token = localStorage.getItem('bolamu_patient_token');
-        const comment = (this._commentTexts || {})[targetPhone] || '';
-        if (!token || !comment) return;
-        
-        try {
-          const res = await fetch('https://api.bolamu.co/api/v1/community/leaderboard/comment', {
-            method: 'POST',
-            headers: { 
-              'Authorization': 'Bearer ' + token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ target_phone: targetPhone, comment })
-          });
-          const d = await res.json();
-          if (d.success) {
-            this._commentTexts[targetPhone] = '';
-            this._commentOpenPhone = null;
-            this.showToast('Commentaire envoyé !');
-            this.setState({});
-          } else {
-            this.showToast('Erreur lors de l\'envoi');
-          }
-        } catch (e) {
-          console.error('[Leaderboard] Erreur comment:', e);
-          this.showToast('Erreur de connexion');
-        }
+        this.showToast('Fonctionnalité bientôt disponible');
       },
       leaderboardGroupChange: async (e) => {
         const groupId = e.target.value;
@@ -4119,31 +4073,7 @@ function closeParticipantPanel() {
 }
 
 function toggleFollow(phone) {
-  const token = localStorage.getItem('bolamu_patient_token');
-  if (!token) return;
-  
-  const btn = document.getElementById('follow-btn');
-  
-  fetch('https://api.bolamu.co/api/v1/community/follow/' + phone, {
-    method: 'POST',
-    headers: { 
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.success) {
-      btn.textContent = 'Abonné ✓';
-      btn.style.background = '#0A2463';
-      btn.style.color = '#fff';
-    }
-  }).catch(() => {
-    // Si la route n'existe pas, simuler le follow
-    btn.textContent = 'Abonné ✓';
-    btn.style.background = '#0A2463';
-    btn.style.color = '#fff';
-  });
+  showToast('Fonctionnalité bientôt disponible');
 }
 
 function startChat(phone) {
