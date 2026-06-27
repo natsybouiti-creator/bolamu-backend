@@ -21,7 +21,7 @@ async function getStatsController(req, res) {
   try {
     const animateur_phone = req.user.phone;
     const stats = await getStats(animateur_phone);
-    res.json(stats);
+    res.json({ success: true, data: stats });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] getStats error:', error);
     res.status(500).json({ error: 'Erreur récupération stats' });
@@ -37,7 +37,7 @@ async function getMyEventsController(req, res) {
     const animateur_phone = req.user.phone;
     const limit = parseInt(req.query.limit) || 20;
     const events = await getMyEvents(animateur_phone, limit);
-    res.json(events);
+    res.json({ success: true, data: events });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] getMyEvents error:', error);
     res.status(500).json({ error: 'Erreur récupération événements' });
@@ -67,7 +67,7 @@ async function getMyClubsController(req, res) {
   try {
     const animateur_phone = req.user.phone;
     const clubs = await getMyClubs(animateur_phone);
-    res.json(clubs);
+    res.json({ success: true, data: clubs });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] getMyClubs error:', error);
     res.status(500).json({ error: 'Erreur récupération clubs' });
@@ -82,7 +82,7 @@ async function getTodayCheckinsController(req, res) {
   try {
     const animateur_phone = req.user.phone;
     const checkins = await getTodayCheckins(animateur_phone);
-    res.json(checkins);
+    res.json({ success: true, data: checkins });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] getTodayCheckins error:', error);
     res.status(500).json({ error: 'Erreur récupération check-ins' });

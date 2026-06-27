@@ -50,19 +50,35 @@ async function getStats(animateur_phone) {
       [normalizedPhone]
     );
     
-    // Points Elonga distribués cette semaine
-    const pointsResult = await pool.query(
-      `SELECT COALESCE(SUM(points), 0) as total 
-       FROM elonga_points 
-       WHERE awarded_at >= DATE_TRUNC('week', CURRENT_DATE)`,
-      []
+    // Inscriptions totales sur les événements de l'animateur
+    const inscriptionsResult = await pool.query(
+      `SELECT COUNT(*) as count FROM elonga_registrations er
+       JOIN elonga_events e ON er.event_id = e.id
+       WHERE e.organizer_phone = $1`,
+      [normalizedPhone]
     );
-    
+
+    // Clubs assignés à l'animateur
+    const clubsResult = await pool.query(
+      `SELECT COUNT(*) as count FROM animateur_clubs
+       WHERE animateur_phone = $1`,
+      [normalizedPhone]
+    );
+
+    // Événements actifs
+    const actifsResult = await pool.query(
+      `SELECT COUNT(*) as count FROM elonga_events
+       WHERE organizer_phone = $1 AND status = 'active'`,
+      [normalizedPhone]
+    );
+
     return {
-      events_count: parseInt(eventsResult.rows[0].count),
-      checkins_today: parseInt(checkinsResult.rows[0].count),
-      members_active: parseInt(membersResult.rows[0].count),
-      elonga_points_week: parseInt(pointsResult.rows[0].total)
+      total_events:       parseInt(eventsResult.rows[0].count),
+      total_checkins:     parseInt(checkinsResult.rows[0].count),
+      total_membres:      parseInt(membersResult.rows[0].count),
+      total_inscriptions: parseInt(inscriptionsResult.rows[0].count),
+      total_clubs:        parseInt(clubsResult.rows[0].count),
+      events_actifs:      parseInt(actifsResult.rows[0].count)
     };
     
   } catch (error) {
