@@ -627,14 +627,31 @@ function renderEventsTable(bodyId, events, showQr) {
     return;
   }
   tbody.innerHTML = events.map(e => {
-    const statusBadge = e.status === 'published' ? '<span class="badge badge-green">Publié</span>' : '<span class="badge badge-grey">' + e.status + '</span>';
+    const statusBadge = e.status === 'published' ? '<span class="badge badge-green">Publié</span>' : 
+                       e.status === 'active' ? '<span class="badge badge-amber">Actif</span>' :
+                       e.status === 'completed' ? '<span class="badge badge-grey">Terminé</span>' :
+                       '<span class="badge badge-grey">' + e.status + '</span>';
     const date = e.starts_at ? new Date(e.starts_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
-    const actionsCell = showQr ? '<td style="display:flex;gap:8px;align-items:center">' +
-      '<button class="btn btn-outline btn-sm" data-testid="btn-view-registrations-' + e.id + '" onclick="openRegistrations(' + e.id + ',\'' + esc(e.title) + '\')">' +
+    
+    // Boutons d'action selon statut
+    let actionButtons = '';
+    if (showQr) {
+      actionButtons = '<button class="btn btn-outline btn-sm" data-testid="btn-view-registrations-' + e.id + '" onclick="openRegistrations(' + e.id + ',\'' + esc(e.title) + '\')">' +
         '<span class="material-symbols-outlined" style="font-size:16px">people</span> Inscrits' +
-      '</button>' +
-      '<button class="btn-icon" data-testid="btn-scan-event-' + e.id + '" title="Scanner QR" onclick="openQrScannerForEvent(' + e.id + ')"><span class="material-symbols-outlined">qr_code_scanner</span></button>' +
-    '</td>' : '';
+      '</button>';
+      
+      if (e.status === 'published') {
+        actionButtons += '<button class="btn btn-primary btn-sm" data-testid="btn-activate-' + e.id + '" onclick="activateEvent(' + e.id + ')">Activer</button>';
+      } else if (e.status === 'active') {
+        actionButtons += '<button class="btn btn-outline btn-sm" data-testid="btn-complete-' + e.id + '" onclick="completeEvent(' + e.id + ')">Terminer</button>';
+        actionButtons += '<button class="btn btn-outline btn-sm" data-testid="btn-qr-token-' + e.id + '" onclick="generateQrToken(' + e.id + ')">QR</button>';
+      }
+      
+      actionButtons += '<button class="btn-icon" data-testid="btn-scan-event-' + e.id + '" title="Scanner QR" onclick="openQrScannerForEvent(' + e.id + ')"><span class="material-symbols-outlined">qr_code_scanner</span></button>';
+    }
+    
+    const actionsCell = showQr ? '<td style="display:flex;gap:8px;align-items:center">' + actionButtons + '</td>' : '';
+    
     return '<tr><td style="font-weight:700">' + esc(e.title) + '</td>' +
       (showQr ? '<td><span class="badge badge-amber">' + esc(e.pillar) + '</span></td>' : '') +
       '<td>' + date + '</td>' +
@@ -725,6 +742,49 @@ async function saveEvent() {
     setTimeout(() => { closeModal('modal-event'); loadAll(); }, 1200);
   } else {
     showMsg('event-msg', (data && data.message) || 'Erreur lors de la création.', 'error');
+  }
+}
+
+// ── ACTIVATE EVENT ─────────────────────────────────────────────────────────────
+async function activateEvent(eventId) {
+  if (!confirm('Activer cet événement ? Les patients pourront commencer à scanner leur QR de check-in.')) return;
+  
+  const data = await apiFetch('/events/' + eventId + '/activate', {
+    method: 'PATCH'
+  });
+  
+  if (data && data.success) {
+    alert('Événement activé !');
+    loadEvents();
+  } else {
+    alert('Erreur : ' + (data && data.message));
+  }
+}
+
+// ── COMPLETE EVENT ─────────────────────────────────────────────────────────────
+async function completeEvent(eventId) {
+  if (!confirm('Terminer cet événement ? Les points Zora seront crédités aux participants check-in.')) return;
+  
+  const data = await apiFetch('/events/' + eventId + '/complete', {
+    method: 'PATCH'
+  });
+  
+  if (data && data.success) {
+    alert('Événement terminé ! ' + (data.zora_distributed || 0) + ' Zora distribués.');
+    loadEvents();
+  } else {
+    alert('Erreur : ' + (data && data.message));
+  }
+}
+
+// ── GENERATE QR TOKEN ──────────────────────────────────────────────────────────
+async function generateQrToken(eventId) {
+  const data = await apiFetch('/events/' + eventId + '/checkin-token');
+  
+  if (data && data.success && data.data && data.data.token) {
+    alert('Token QR : ' + data.data.token + '\n\nCe token est valide pour les check-ins de cet événement.');
+  } else {
+    alert('Erreur : ' + (data && data.message));
   }
 }
 
