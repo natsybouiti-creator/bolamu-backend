@@ -43,5 +43,12 @@ export default defineConfig({
       testMatch: /tests\/e2e\/(0[1-6])-.*\.spec\.js/,
       use: {},
     },
+    {
+      // Tests Clubs + Chat — pas de dépendance auth (JWT direct)
+      name: 'clubs-chat',
+      testMatch: /tests\/e2e\/07-clubs\.spec\.js/,
+      use: {},
+      dependencies: [],
+    },
   ],
 });

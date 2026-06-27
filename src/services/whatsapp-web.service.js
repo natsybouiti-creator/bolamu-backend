@@ -18,6 +18,7 @@ const TEMPLATE_TITRES = {
   'bolamu_rdv_rappel': 'Rappel RDV',
   'bolamu_rdv_annule': 'RDV annulé',
   'bolamu_groupe_rejoint': 'Groupe rejoint',
+  'bolamu_club_bienvenue': 'Bienvenue club',
   'bolamu_leaderboard_top3': 'Classement',
   'bolamu_streak_milestone': 'Streak atteint',
   'bolamu_checkin_confirme': 'Présence confirmée',
@@ -83,6 +84,8 @@ async function sendAutoMessage(phone, templateName, params) {
       message = `Votre RDV Bolamu est confirmé pour le ${params[0]} à ${params[1]}.`;
     } else if (templateName === 'bolamu_groupe_rejoint') {
       message = `Bienvenue dans le groupe ${params[0]}, ${params[1]} !\nVous faites maintenant partie de l'équipe.\nConnectez-vous sur bolamu.co pour voir le classement.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_club_bienvenue') {
+      message = `Bienvenue dans le club ${params[1]}, ${params[0]} !\nVous faites maintenant partie de la communauté.\nConnectez-vous sur bolamu.co pour voir les activités.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_leaderboard_top3') {
       message = `Bravo ${params[0]} !\nVous êtes ${params[1]}e du classement du groupe ${params[2]}.\nSolde Zora actuel : ${params[3]} points.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_streak_milestone') {

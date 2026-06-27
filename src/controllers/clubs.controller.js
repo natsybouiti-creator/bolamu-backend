@@ -3,7 +3,8 @@
 // ============================================================
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
-const logger = require('../config/logger');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
+// const logger = require('../config/logger');
 
 /**
  * GET /api/v1/clubs
@@ -12,7 +13,7 @@ const logger = require('../config/logger');
 async function getClubs(req, res) {
   try {
     const result = await pool.query(
-      `SELECT id, name, description, category, city, meeting_day, meeting_time, max_members, current_members, created_at
+      `SELECT id, name, description, category, sport_type, max_members, created_at
        FROM clubs
        WHERE is_active = TRUE
        ORDER BY name`
@@ -20,7 +21,7 @@ async function getClubs(req, res) {
 
     res.json({ success: true, clubs: result.rows });
   } catch (error) {
-    logger.error('[CLUBS] Erreur getClubs:', error.message);
+    console.error('[CLUBS] Erreur getClubs:', error.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 }
@@ -34,7 +35,7 @@ async function getClubById(req, res) {
     const { id } = req.params;
 
     const result = await pool.query(
-      `SELECT id, name, description, category, city, meeting_day, meeting_time, max_members, current_members, created_at
+      `SELECT id, name, description, category, sport_type, max_members, created_at
        FROM clubs
        WHERE id = $1 AND is_active = TRUE`,
       [id]
@@ -46,7 +47,7 @@ async function getClubById(req, res) {
 
     res.json({ success: true, club: result.rows[0] });
   } catch (error) {
-    logger.error('[CLUBS] Erreur getClubById:', error.message);
+    console.error('[CLUBS] Erreur getClubById:', error.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 }
@@ -104,12 +105,31 @@ async function joinClub(req, res) {
 
     await client.query('COMMIT');
 
-    logger.info(`[CLUBS] Patient ${normalizedPhone} a rejoint le club ${id}`);
+    console.log(`[CLUBS] Patient ${normalizedPhone} a rejoint le club ${id}`);
+
+    // Envoyer WhatsApp notification (non bloquant)
+    try {
+      const userResult = await pool.query(
+        `SELECT first_name FROM users WHERE phone = $1`,
+        [normalizedPhone]
+      );
+      const prenom = userResult.rows[0]?.first_name || '';
+      
+      console.log('[WAHA] joinClub — envoi vers', normalizedPhone, 'template bolamu_club_bienvenue');
+      await sendAutoMessage(normalizedPhone, 'bolamu_club_bienvenue', [
+        prenom,
+        club.name
+      ]);
+      console.log('[WAHA] joinClub — envoi OK');
+    } catch (err) {
+      console.error('[WAHA] joinClub — ERREUR:', err.message, err.stack);
+      // Ne pas bloquer si WhatsApp échoue
+    }
 
     res.json({ success: true, message: 'Club rejoint avec succès' });
   } catch (error) {
     await client.query('ROLLBACK');
-    logger.error('[CLUBS] Erreur joinClub:', error.message);
+    console.error('[CLUBS] Erreur joinClub:', error.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   } finally {
     client.release();
@@ -168,12 +188,12 @@ async function leaveClub(req, res) {
 
     await client.query('COMMIT');
 
-    logger.info(`[CLUBS] Patient ${normalizedPhone} a quitté le club ${id}`);
+    console.log(`[CLUBS] Patient ${normalizedPhone} a quitté le club ${id}`);
 
     res.json({ success: true, message: 'Club quitté avec succès' });
   } catch (error) {
     await client.query('ROLLBACK');
-    logger.error('[CLUBS] Erreur leaveClub:', error.message);
+    console.error('[CLUBS] Erreur leaveClub:', error.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   } finally {
     client.release();
@@ -190,7 +210,7 @@ async function getMyClubs(req, res) {
     const normalizedPhone = normalizePhone(phone);
 
     const result = await pool.query(
-      `SELECT c.id, c.name, c.description, c.category, c.city, c.meeting_day, c.meeting_time, cm.joined_at
+      `SELECT c.id, c.name, c.description, c.category, c.sport_type, cm.joined_at
        FROM clubs c
        JOIN club_members cm ON c.id = cm.club_id
        WHERE cm.patient_phone = $1 AND c.is_active = TRUE
@@ -200,7 +220,7 @@ async function getMyClubs(req, res) {
 
     res.json({ success: true, clubs: result.rows });
   } catch (error) {
-    logger.error('[CLUBS] Erreur getMyClubs:', error.message);
+    console.error('[CLUBS] Erreur getMyClubs:', error.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 }

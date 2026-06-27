@@ -9,6 +9,7 @@ const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { ok, err } = require('../utils/apiResponse');
 const { ROLES, PRO_ROLES } = require('../utils/constants');
 const { normalizePhone } = require('../utils/phone');
+const { wahaWebhook } = require('../controllers/waha-webhook.controller');
 
 function adminOnly(req, res, next) {
     if (req.user?.role !== 'admin') {
@@ -1506,5 +1507,9 @@ router.post('/diagnostics/whatsapp-send-test', async (req, res) => {
         });
     }
 });
+
+// ─── WAHA WEBHOOK (alertes session) ───────────────────────────────────────────
+// Pas d'authMiddleware - WAHA appelle sans token
+router.post('/waha-webhook', wahaWebhook);
 
 module.exports = router;
