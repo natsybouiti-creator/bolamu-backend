@@ -42,11 +42,11 @@ async function getStats(animateur_phone) {
     
     // Membres actifs dans les clubs assignés
     const membersResult = await pool.query(
-      `SELECT COUNT(DISTINCT cm.phone) as count 
+      `SELECT COUNT(DISTINCT cm.patient_phone) as count
        FROM club_members cm
        JOIN animateur_clubs ac ON cm.club_id = ac.club_id
-       WHERE ac.animateur_phone = $1 
-       AND cm.status = 'active'`,
+       WHERE ac.animateur_phone = $1
+       AND cm.is_active = TRUE`,
       [normalizedPhone]
     );
     
@@ -272,13 +272,12 @@ async function getMyClubs(animateur_phone) {
   
   try {
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         c.id,
         c.name,
         c.category,
-        c.location,
-        (SELECT COUNT(*) FROM club_members cm 
-         WHERE cm.club_id = c.id AND cm.status = 'active') as nb_membres
+        (SELECT COUNT(*) FROM club_members cm
+         WHERE cm.club_id = c.id AND cm.is_active = TRUE) as nb_membres
        FROM clubs c
        JOIN animateur_clubs ac ON c.id = ac.club_id
        WHERE ac.animateur_phone = $1
