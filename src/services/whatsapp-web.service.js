@@ -111,6 +111,14 @@ async function sendAutoMessage(phone, templateName, params) {
       message = `${params[0]}, votre voucher est prêt !\nCode : ${params[1]}\nValable chez : ${params[2]}\nExpire dans 48h.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_voucher_utilise') {
       message = `${params[0]}, votre voucher a été validé.\nRécompense : ${params[1]}\nPartenaire : ${params[2]}\n\nMerci de votre fidélité — L'équipe Bolamu`;
+    } else if (templateName === 'bolamu_event_inscription') {
+      message = `Inscription confirmée ✅\nÉvénement : ${params[1]}\nDate : ${params[2]}\nLieu : ${params[3]}\nVotre code de session : ${params[4]}\nPrésentez ce code à l'animateur le jour J.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_animateur_event_valide') {
+      message = `Événement validé ✅\nAnimateur : ${params[0]}\nÉvénement : ${params[1]}\nDate : ${params[2]}\nLieu : ${params[3]}\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_animateur_checkins') {
+      message = `Récapitulatif check-ins ✅\nAnimateur : ${params[0]}\nÉvénement : ${params[1]}\nCheck-ins : ${params[2]}\nZora distribués : ${params[3]}\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_zora_attribues') {
+      message = `Zora crédités 🎉\n${params[0]}, vous avez reçu ${params[1]} Zora.\nSolde total : ${params[2]} Zora\nRaison : ${params[3]}\n\nL'équipe Bolamu`;
     } else {
       message = params.join(' ');
     }
@@ -128,7 +136,7 @@ async function sendAutoMessage(phone, templateName, params) {
       body: JSON.stringify({
         chatId: chatId,
         text: message,
-        session: 'default'
+        session: 'Communaute'
       })
     });
     

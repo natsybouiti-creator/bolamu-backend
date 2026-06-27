@@ -5,7 +5,6 @@ const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
 const { normalizePhone } = require('../utils/phone');
-const { creditWellnessAction } = require('./wellness.service');
 
 /**
  * Inscrire un patient à un événement
@@ -174,22 +173,30 @@ async function checkinPatient(qr_token, animateur_phone, event_id) {
     
     // INSERT dans event_checkin_log
     const logResult = await client.query(
-      `INSERT INTO event_checkin_log (registration_id, event_id, patient_phone, animateur_phone, scan_method)
-       VALUES ($1, $2, $3, $4, 'qr_scan')
+      `INSERT INTO event_checkin_log (registration_id, event_id, patient_phone, animateur_phone, scan_method, checked_in_at)
+       VALUES ($1, $2, $3, $4, 'qr_scan', NOW())
        RETURNING id`,
       [registration.id, event_id, registration.patient_phone, normalizedAnimateur]
     );
     
-    // Appelle creditWellnessAction
+    // Créditer Zora directement (sans creditWellnessAction)
     let zora_credited = 0;
     try {
-      const wellnessResult = await creditWellnessAction(
-        registration.patient_phone,
-        'event_checkin',
-        registration.id,
-        normalizedAnimateur
+      // Récupérer zora_reward de l'événement
+      const eventRewardResult = await client.query(
+        `SELECT zora_reward FROM elonga_events WHERE id = $1`,
+        [event_id]
       );
-      zora_credited = wellnessResult.zora_credited || 0;
+      const zora_reward = eventRewardResult.rows[0]?.zora_reward || 50;
+      
+      // INSERT dans zora_ledger
+      await client.query(
+        `INSERT INTO zora_ledger (phone, points, category, action_type, proof_class, proof_source, proof_reference, verified, earned_at)
+         VALUES ($1, $2, 'event', 'event_checkin', 'ground_truth', 'elonga_events', $3, true, NOW())`,
+        [registration.patient_phone, zora_reward, event_id.toString()]
+      );
+      
+      zora_credited = zora_reward;
       
       // UPDATE zora_credited dans registration
       await client.query(
@@ -203,7 +210,7 @@ async function checkinPatient(qr_token, animateur_phone, event_id) {
         [zora_credited, logResult.rows[0].id]
       );
     } catch (wellnessErr) {
-      logger.warn('[EVENT] Erreur creditWellnessAction:', wellnessErr.message);
+      logger.warn('[EVENT] Erreur crédit Zora:', wellnessErr.message);
     }
     
     // Audit log
@@ -270,22 +277,30 @@ async function checkinByCode(session_code, animateur_phone, event_id) {
     
     // INSERT dans event_checkin_log
     const logResult = await client.query(
-      `INSERT INTO event_checkin_log (registration_id, event_id, patient_phone, animateur_phone, scan_method)
-       VALUES ($1, $2, $3, $4, 'code_manual')
+      `INSERT INTO event_checkin_log (registration_id, event_id, patient_phone, animateur_phone, scan_method, checked_in_at)
+       VALUES ($1, $2, $3, $4, 'code_manual', NOW())
        RETURNING id`,
       [registration.id, event_id, registration.patient_phone, normalizedAnimateur]
     );
     
-    // Appelle creditWellnessAction
+    // Créditer Zora directement (sans creditWellnessAction)
     let zora_credited = 0;
     try {
-      const wellnessResult = await creditWellnessAction(
-        registration.patient_phone,
-        'event_checkin',
-        registration.id,
-        normalizedAnimateur
+      // Récupérer zora_reward de l'événement
+      const eventRewardResult = await client.query(
+        `SELECT zora_reward FROM elonga_events WHERE id = $1`,
+        [event_id]
       );
-      zora_credited = wellnessResult.zora_credited || 0;
+      const zora_reward = eventRewardResult.rows[0]?.zora_reward || 50;
+      
+      // INSERT dans zora_ledger
+      await client.query(
+        `INSERT INTO zora_ledger (phone, points, category, action_type, proof_class, proof_source, proof_reference, verified, earned_at)
+         VALUES ($1, $2, 'event', 'event_checkin', 'ground_truth', 'elonga_events', $3, true, NOW())`,
+        [registration.patient_phone, zora_reward, event_id.toString()]
+      );
+      
+      zora_credited = zora_reward;
       
       // UPDATE zora_credited dans registration
       await client.query(
@@ -299,7 +314,7 @@ async function checkinByCode(session_code, animateur_phone, event_id) {
         [zora_credited, logResult.rows[0].id]
       );
     } catch (wellnessErr) {
-      logger.warn('[EVENT] Erreur creditWellnessAction:', wellnessErr.message);
+      logger.warn('[EVENT] Erreur crédit Zora:', wellnessErr.message);
     }
     
     // Audit log
@@ -338,11 +353,10 @@ async function getPatientRegistrations(patient_phone) {
   const result = await pool.query(
     `SELECT 
       er.id as registration_id,
-      er.session_code,
       er.status as registration_status,
       er.registered_at,
-      er.checked_in_at,
-      er.zora_credited,
+      er.checkin_at,
+      er.zora_awarded,
       e.id as event_id,
       e.title,
       e.description,
@@ -351,9 +365,9 @@ async function getPatientRegistrations(patient_phone) {
       e.ends_at,
       e.zora_reward,
       e.pillar
-     FROM event_registrations er
+     FROM elonga_registrations er
      JOIN elonga_events e ON er.event_id = e.id
-     WHERE er.patient_phone = $1
+     WHERE er.phone = $1
      ORDER BY e.starts_at DESC`,
     [normalizedPhone]
   );
@@ -538,6 +552,210 @@ async function getPendingEvents() {
   return result.rows;
 }
 
+/**
+ * Activer un événement (status: published → active)
+ * @param {number} event_id - ID de l'événement
+ * @param {string} actor_phone - Numéro de l'acteur (animateur ou admin)
+ * @returns {Promise<Object>} { success }
+ */
+async function activateEvent(event_id, actor_phone) {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const normalizedActor = normalizePhone(actor_phone);
+    
+    // Vérifier status actuel = 'published'
+    const eventResult = await client.query(
+      `SELECT status, title, starts_at, location_name FROM elonga_events WHERE id = $1`,
+      [event_id]
+    );
+    
+    if (eventResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'Événement non trouvé' };
+    }
+    
+    const event = eventResult.rows[0];
+    
+    if (event.status !== 'published') {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'Statut invalide : doit être published' };
+    }
+    
+    // UPDATE status → 'active'
+    await client.query(
+      `UPDATE elonga_events SET status = 'active' WHERE id = $1`,
+      [event_id]
+    );
+    
+    // Audit log
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_id, payload)
+       VALUES ('event_activate', $1, $2, $3::jsonb)`,
+      [normalizedActor, event_id, JSON.stringify({ event_id })]
+    );
+    
+    await client.query('COMMIT');
+    
+    // Notification WhatsApp (non bloquant)
+    try {
+      const { sendAutoMessage } = require('./whatsapp-web.service');
+      const userResult = await pool.query(
+        `SELECT first_name, last_name FROM users WHERE phone = $1`,
+        [normalizedActor]
+      );
+      const nom = userResult.rows[0] ? 
+        `${userResult.rows[0].first_name || ''} ${userResult.rows[0].last_name || ''}`.trim() : 
+        'Animateur';
+      
+      const dateStr = new Date(event.starts_at).toLocaleDateString('fr-FR', {
+        weekday: 'long', day: 'numeric', month: 'long'
+      });
+      
+      await sendAutoMessage(
+        normalizedActor,
+        'bolamu_animateur_event_valide',
+        [nom, event.title, dateStr, event.location_name]
+      );
+      logger.info('[EVENT] WhatsApp activate envoyé');
+    } catch (whatsappErr) {
+      logger.error('[EVENT] Erreur WhatsApp activate:', whatsappErr.message);
+    }
+    
+    return { success: true };
+    
+  } catch (error) {
+    await client.query('ROLLBACK');
+    logger.error('[EVENT] activateEvent error:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Compléter un événement (status: active → completed) + créditer Zora
+ * @param {number} event_id - ID de l'événement
+ * @param {string} actor_phone - Numéro de l'acteur (animateur ou admin)
+ * @returns {Promise<Object>} { success, checkins_count, zora_distributed }
+ */
+async function completeEvent(event_id, actor_phone) {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const normalizedActor = normalizePhone(actor_phone);
+    
+    // Vérifier status actuel = 'active'
+    const eventResult = await client.query(
+      `SELECT status, title, zora_reward FROM elonga_events WHERE id = $1`,
+      [event_id]
+    );
+    
+    if (eventResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'Événement non trouvé' };
+    }
+    
+    const event = eventResult.rows[0];
+    
+    if (event.status !== 'active') {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'Statut invalide : doit être active' };
+    }
+    
+    // Récupérer tous les check-ins validés (elonga_registrations)
+    const checkinsResult = await client.query(
+      `SELECT phone FROM elonga_registrations 
+       WHERE event_id = $1 AND status = 'checked_in'`,
+      [event_id]
+    );
+    
+    const checkins_count = checkinsResult.rows.length;
+    const zora_per_person = event.zora_reward || 50;
+    const zora_distributed = checkins_count * zora_per_person;
+    
+    // Note: Zora déjà crédités lors du check-in par processCheckin
+    // completeEvent ne fait que le récapitulatif + notifications
+    
+    // UPDATE status → 'completed'
+    await client.query(
+      `UPDATE elonga_events SET status = 'completed' WHERE id = $1`,
+      [event_id]
+    );
+    
+    // Audit log
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_id, payload)
+       VALUES ('event_complete', $1, $2, $3::jsonb)`,
+      [normalizedActor, event_id, JSON.stringify({ checkins_count, zora_distributed })]
+    );
+    
+    await client.query('COMMIT');
+    
+    // Notification WhatsApp (non bloquant)
+    try {
+      const { sendAutoMessage } = require('./whatsapp-web.service');
+      const userResult = await pool.query(
+        `SELECT first_name, last_name FROM users WHERE phone = $1`,
+        [normalizedActor]
+      );
+      const nom = userResult.rows[0] ? 
+        `${userResult.rows[0].first_name || ''} ${userResult.rows[0].last_name || ''}`.trim() : 
+        'Animateur';
+      
+      await sendAutoMessage(
+        normalizedActor,
+        'bolamu_animateur_checkins',
+        [nom, event.title, checkins_count.toString(), zora_distributed.toString()]
+      );
+      logger.info('[EVENT] WhatsApp complete envoyé');
+      
+      // Notification individuelle pour chaque participant
+      for (const row of checkinsResult.rows) {
+        try {
+          const participantResult = await pool.query(
+            `SELECT first_name, last_name FROM users WHERE phone = $1`,
+            [row.phone]
+          );
+          const participantName = participantResult.rows[0] ? 
+            `${participantResult.rows[0].first_name || ''} ${participantResult.rows[0].last_name || ''}`.trim() : 
+            'Participant';
+          
+          // Solde total Zora
+          const balanceResult = await pool.query(
+            `SELECT COALESCE(SUM(points), 0) as balance FROM zora_ledger WHERE phone = $1`,
+            [row.phone]
+          );
+          const solde_total = balanceResult.rows[0].balance;
+          
+          await sendAutoMessage(
+            row.phone,
+            'bolamu_zora_attribues',
+            [participantName, zora_per_person.toString(), solde_total.toString(), `Événement: ${event.title}`]
+          );
+        } catch (participantErr) {
+          logger.error('[EVENT] Erreur WhatsApp participant:', participantErr.message);
+        }
+      }
+    } catch (whatsappErr) {
+      logger.error('[EVENT] Erreur WhatsApp complete:', whatsappErr.message);
+    }
+    
+    return { success: true, checkins_count, zora_distributed };
+    
+  } catch (error) {
+    await client.query('ROLLBACK');
+    logger.error('[EVENT] completeEvent error:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   registerPatient,
   checkinPatient,
@@ -546,5 +764,7 @@ module.exports = {
   getEventRegistrations,
   publishEvent,
   createEvent,
-  getPendingEvents
+  getPendingEvents,
+  activateEvent,
+  completeEvent
 };

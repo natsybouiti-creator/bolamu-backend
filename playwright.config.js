@@ -8,7 +8,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'html',
   use: {
-    baseURL: 'https://bolamu.co',
+    baseURL: 'http://localhost:3005',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

@@ -3,7 +3,7 @@
 // ============================================================
 const pool = require('../config/db');
 const { awardZora } = require('./zora.service');
-const { sendWhatsAppTemplate } = require('./whatsapp.service');
+const { sendAutoMessage } = require('./whatsapp-web.service');
 
 // Fonctions utilitaires pour les dates
 function formatDate(isoDate) {
@@ -79,7 +79,7 @@ async function registerForEvent({ phone, event_id }) {
       );
       const prenom = userResult.rows[0]?.first_name || '';
       
-      await sendWhatsAppTemplate(phone, 'confirmation_checkin', [
+      await sendAutoMessage(phone, 'bolamu_event_inscription', [
         prenom,                                    // {{1}} prénom
         event.title,                               // {{2}} nom événement
         event.location_name,                       // {{3}} lieu
@@ -206,6 +206,7 @@ async function generateCheckinToken({ phone, event_id }) {
  * @returns {Promise<Object>} { success, points_credited }
  */
 async function processCheckin({ token, organizer_phone }) {
+  console.log('[ELONGA] processCheckin appelé avec token:', token.substring(0, 10) + '...');
   const client = await pool.connect();
   
   try {
@@ -304,13 +305,13 @@ async function processCheckin({ token, organizer_phone }) {
         );
         const prenom = userResult.rows[0]?.first_name || '';
         
-        // TODO: créer le template zora_event_checkin dans Meta (AUTHENTICATION/UTILITY)
-        // pour l'instant, utiliser confirmation_checkin qui existe déjà
-        await sendWhatsAppTemplate(tokenData.phone, 'confirmation_checkin', [
+        console.log('WAHA checkin — envoi vers', tokenData.phone, 'template bolamu_checkin_confirme');
+        await sendAutoMessage(tokenData.phone, 'bolamu_checkin_confirme', [
+          prenom,
           tokenData.event_title,
-          tokenData.zora_reward.toString(),
-          solde.toString()
+          tokenData.zora_reward.toString()
         ]);
+        console.log('WAHA checkin — envoi terminé');
       } catch (whatsappErr) {
         console.error('[ELONGA] Erreur envoi WhatsApp check-in:', whatsappErr);
         // Ne pas bloquer si WhatsApp échoue
