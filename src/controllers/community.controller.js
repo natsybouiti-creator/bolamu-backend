@@ -5,7 +5,7 @@ exports.getSportGroups = async (req, res) => {
     const groups = await communityService.getSportGroups();
     res.status(200).json({ success: true, data: groups });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -16,7 +16,7 @@ exports.createSportGroup = async (req, res) => {
     const group = await communityService.createSportGroup(name, sport, description, phone);
     res.status(201).json({ success: true, data: group });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -28,9 +28,9 @@ exports.joinGroup = async (req, res) => {
     res.status(200).json({ success: true, data: result });
   } catch (error) {
     if (error.message === 'ALREADY_MEMBER') {
-      res.status(409).json({ success: false, error: 'Déjà membre de ce groupe' });
+      res.status(409).json({ success: false, error: { code: 'ALREADY_MEMBER', message: 'Déjà membre de ce groupe' } });
     } else {
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
     }
   }
 };
@@ -42,7 +42,7 @@ exports.leaveGroup = async (req, res) => {
     await communityService.leaveGroup(phone, id);
     res.status(200).json({ success: true, message: 'Groupe quitté' });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -52,7 +52,7 @@ exports.getGroupMembers = async (req, res) => {
     const members = await communityService.getGroupMembers(id);
     res.status(200).json({ success: true, data: members });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -61,7 +61,7 @@ exports.getClubs = async (req, res) => {
     const clubs = await communityService.getClubs();
     res.status(200).json({ success: true, data: clubs });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -72,7 +72,7 @@ exports.createClub = async (req, res) => {
     const club = await communityService.createClub(name, description, sport, phone);
     res.status(201).json({ success: true, data: club });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -84,9 +84,9 @@ exports.joinClub = async (req, res) => {
     res.status(200).json({ success: true, data: result });
   } catch (error) {
     if (error.message === 'ALREADY_MEMBER') {
-      res.status(409).json({ success: false, error: 'Déjà membre de ce club' });
+      res.status(409).json({ success: false, error: { code: 'ALREADY_MEMBER', message: 'Déjà membre de ce club' } });
     } else {
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
     }
   }
 };
@@ -96,7 +96,7 @@ exports.getLeaderboard = async (req, res) => {
     const leaderboard = await communityService.getLeaderboard();
     res.status(200).json({ success: true, data: leaderboard });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -106,7 +106,7 @@ exports.getGroupLeaderboard = async (req, res) => {
     const leaderboard = await communityService.getGroupLeaderboard(group_id);
     res.status(200).json({ success: true, data: leaderboard });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -118,9 +118,9 @@ exports.getMessages = async (req, res) => {
     res.status(200).json({ success: true, data: messages });
   } catch (error) {
     if (error.message === 'NOT_MEMBER') {
-      res.status(403).json({ success: false, error: 'Accès non autorisé' });
+      res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Accès non autorisé' } });
     } else {
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
     }
   }
 };
@@ -134,9 +134,9 @@ exports.sendMessage = async (req, res) => {
     res.status(201).json({ success: true, data: message });
   } catch (error) {
     if (error.message === 'NOT_MEMBER') {
-      res.status(403).json({ success: false, error: 'Accès non autorisé' });
+      res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Accès non autorisé' } });
     } else {
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
     }
   }
 };
@@ -147,7 +147,7 @@ exports.getMyStreak = async (req, res) => {
     const streak = await communityService.getStreak(phone);
     res.status(200).json({ success: true, data: streak });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -158,7 +158,7 @@ exports.encourageMember = async (req, res) => {
     const result = await communityService.encourageMember(from_phone, target_phone);
     res.status(200).json({ success: true, data: result });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
 
@@ -167,11 +167,11 @@ exports.commentMember = async (req, res) => {
     const { target_phone, comment } = req.body;
     const from_phone = req.user.phone;
     if (!comment || comment.length > 140) {
-      return res.status(400).json({ success: false, error: 'Commentaire invalide (max 140 caractères)' });
+      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Commentaire invalide (max 140 caractères)' } });
     }
     const result = await communityService.commentMember(from_phone, target_phone, comment);
     res.status(201).json({ success: true, data: result });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: error.message } });
   }
 };
