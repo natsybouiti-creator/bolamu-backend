@@ -9,8 +9,8 @@
 | # | ACTEUR | TÉLÉPHONE | MOT DE PASSE | DASHBOARD |
 |---|---|---|---|---|
 | 1 | Admin | +242060000099 | bolamu2026 | admin/dashboard.html |
-| 2 | Agent | +242064000000 | bolamu2026 | agence/dashboard.html |
-| 3 | Agent | +242077000010 | bolamu2026 | agence/dashboard.html |
+| 2 | Agent | +242077000010 | bolamu2026 | agence/dashboard.html | ✅ ACTIF |
+| 3 | Agent | +242064000000 | bolamu2026 | agence/dashboard.html | ❌ INACTIF (401) |
 | 4 | Animateur | +242000000088 | bolamu2026 | animateur/dashboard.html |
 | 5 | Doctor | +242060000001 | bolamu2026 | medecin/dashboard.html |
 | 6 | Doctor | +242065452321 | bolamu2026 | medecin/dashboard.html |
