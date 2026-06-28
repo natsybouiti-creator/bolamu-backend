@@ -1568,10 +1568,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;"><span style="width: 4px; height: 18px; border-radius: 9999px; background: #003FB1;"></span><span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654;">Réseau partenaires</span></div>
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 16px; margin-bottom: 8px;">
           <div class="hscroll" style="display: flex; gap: 8px; padding-bottom: 10px; margin-bottom: 12px;">
-            <button onclick="{{ filterTout }}" style="{{ mfTout }}">Tout</button>
-            <button onclick="{{ filterClin }}" style="{{ mfClin }}">Cliniques</button>
-            <button onclick="{{ filterPharm }}" style="{{ mfPharm }}">Pharmacies</button>
-            <button onclick="{{ filterLabo }}" style="{{ mfLabo }}">Labos</button>
+            <button onclick="{{ filterTout }}" data-testid="filterTout" style="{{ mfTout }}">Tout</button>
+            <button onclick="{{ filterClin }}" data-testid="filterClin" style="{{ mfClin }}">Cliniques</button>
+            <button onclick="{{ filterPharm }}" data-testid="filterPharm" style="{{ mfPharm }}">Pharmacies</button>
+            <button onclick="{{ filterLabo }}" data-testid="filterLabo" style="{{ mfLabo }}">Labos</button>
           </div>
           <div id="reseau-map" style="height: 320px; border-radius: 14px; overflow: hidden; background: #EDEDF8; margin-bottom: 14px;"></div>
           <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -1823,14 +1823,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <button onclick="{{ goGagner }}" style="display: inline-flex; align-items: center; gap: 6px; background: none; border: none; color: #003FB1; font-family: inherit; font-weight: 700; font-size: 0.82rem; cursor: pointer; padding: 0; margin-bottom: 28px;">Pas de partie gratuite&nbsp;? Complétez un défi santé pour en gagner une<span class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span></button>
 
       <div class="hscroll" style="display: flex; gap: 8px; padding-bottom: 8px; margin-bottom: 24px;">
-        <button onclick="{{ filterCatTout }}" style="{{ chipCatTout }}">Tout</button>
-        <button onclick="{{ filterCatElec }}" style="{{ chipCatElec }}">Électronique</button>
-        <button onclick="{{ filterCatVoyage }}" style="{{ chipCatVoyage }}">Voyage</button>
-        <button onclick="{{ filterCatTelecom }}" style="{{ chipCatTelecom }}">Télécom</button>
-        <button onclick="{{ filterCatHotels }}" style="{{ chipCatHotels }}">Hôtels</button>
-        <button onclick="{{ filterCatSport }}" style="{{ chipCatSport }}">Sport</button>
-        <button onclick="{{ filterCatBeaute }}" style="{{ chipCatBeaute }}">Beauté</button>
-        <button onclick="{{ filterCatCarburant }}" style="{{ chipCatCarburant }}">Carburant</button>
+        <button onclick="{{ filterCatTout }}" data-testid="filterCatTout" style="{{ chipCatTout }}">Tout</button>
+        <button onclick="{{ filterCatElec }}" data-testid="filterCatElec" style="{{ chipCatElec }}">Électronique</button>
+        <button onclick="{{ filterCatVoyage }}" data-testid="filterCatVoyage" style="{{ chipCatVoyage }}">Voyage</button>
+        <button onclick="{{ filterCatTelecom }}" data-testid="filterCatTelecom" style="{{ chipCatTelecom }}">Télécom</button>
+        <button onclick="{{ filterCatHotels }}" data-testid="filterCatHotels" style="{{ chipCatHotels }}">Hôtels</button>
+        <button onclick="{{ filterCatSport }}" data-testid="filterCatSport" style="{{ chipCatSport }}">Sport</button>
+        <button onclick="{{ filterCatBeaute }}" data-testid="filterCatBeaute" style="{{ chipCatBeaute }}">Beauté</button>
+        <button onclick="{{ filterCatCarburant }}" data-testid="filterCatCarburant" style="{{ chipCatCarburant }}">Carburant</button>
       </div>
 
       <!-- OFFRES ÉCLAIR -->
@@ -1871,7 +1871,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
     <!-- ============================ PROFIL ============================ -->
     <section style="{{ profileStyle }}">
-      <button onclick="{{ closeProfile }}" style="display: inline-flex; align-items: center; gap: 6px; background: transparent; border: none; color: #434654; font-family: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer; margin-bottom: 18px; padding: 0;"><span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>Retour</button>
+      <button onclick="{{ closeProfile }}" data-testid="closeProfile" style="display: inline-flex; align-items: center; gap: 6px; background: transparent; border: none; color: #434654; font-family: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer; margin-bottom: 18px; padding: 0;"><span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>Retour</button>
       <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 24px; padding: 26px; margin-bottom: 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
         <span style="width: 72px; height: 72px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-2.jpg'); background-size: cover; background-position: center; background-color: #0A2463; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; flex-shrink: 0; box-shadow: 0 0 0 3px #F5A623;">{{ patientInitiales }}</span>
         <div><div style="font-size: 1.4rem; font-weight: 800; color: #0A2463;">{{ patientNom }}</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;"><span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0,63,177,0.1); border: 1px solid rgba(0,63,177,0.25); color: #003FB1; font-size: 0.66rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 13px;">workspace_premium</span>{{ zoraTierLabel }}</span><span style="font-size: 0.78rem; font-weight: 500; color: #434654;">Membre depuis {{ membreDepuis }}</span></div></div>
@@ -1887,7 +1887,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="shield" label="Confidentialité &amp; données" hint-size="100%,56px"></dc-import></div>
         <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="account_balance_wallet" label="Moyens de paiement (MoMo)" hint-size="100%,56px"></dc-import></div>
         <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="translate" label="Langue (FR / Lingala)" hint-size="100%,56px"></dc-import></div>
-        <div onclick="{{ logout }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="logout" label="Déconnexion" danger="{{ true }}" hint-size="100%,56px"></dc-import></div>
+        <div onclick="{{ logout }}" data-testid="logout" style="cursor: pointer;"><dc-import name="SettingRow" icon="logout" label="Déconnexion" danger="{{ true }}" hint-size="100%,56px"></dc-import></div>
       </div>
     </section>
   </main>
