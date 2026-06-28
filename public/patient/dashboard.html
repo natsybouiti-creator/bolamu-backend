@@ -2591,6 +2591,160 @@ class Component extends DCLogic {
     }
     // === FIN CÂBLAGE ===
 
+window.__bolamu_test = {
+
+  // Navigation
+  goAccueil:     () => this.setState({ panel: 'accueil', profileOpen: false }),
+  goGagner:      () => this.setState({ panel: 'gagner', profileOpen: false }),
+  goSuivre:      () => this.setState({ panel: 'suivre', profileOpen: false }),
+  goRecompenses: () => this.setState({ panel: 'reward', profileOpen: false }),
+  openProfile:   () => this.setState({ profileOpen: true }),
+  closeProfile:  () => this.setState({ profileOpen: false }),
+
+  // Sous-onglets
+  gagnerSport:    () => this.setState({ gagnerTab: 'sport' }),
+  gagnerSante:    () => this.setState({ gagnerTab: 'sante' }),
+  suivreZora:     () => this.setState({ suivreTab: 'zora' }),
+  suivreDossier:  () => this.setState({ suivreTab: 'dossier' }),
+
+  // Filtres partenaires
+  filterTout:  () => this.setMapFilter('tout'),
+  filterClin:  () => this.setMapFilter('cliniques'),
+  filterPharm: () => this.setMapFilter('pharmacies'),
+  filterLabo:  () => this.setMapFilter('labos'),
+
+  // Filtres récompenses
+  filterCatTout:      () => this.setState({ filterCategorie: 'tout' }),
+  filterCatElec:      () => this.setState({ filterCategorie: 'Électronique' }),
+  filterCatVoyage:    () => this.setState({ filterCategorie: 'Voyage' }),
+  filterCatTelecom:   () => this.setState({ filterCategorie: 'Télécom' }),
+  filterCatHotels:    () => this.setState({ filterCategorie: 'Hôtels' }),
+  filterCatSport:     () => this.setState({ filterCategorie: 'Sport' }),
+  filterCatBeaute:    () => this.setState({ filterCategorie: 'Beauté' }),
+  filterCatCarburant: () => this.setState({ filterCategorie: 'Carburant' }),
+
+  // Jeux
+  openScratch: () => this.openGame('scratch'),
+  openWheel:   () => this.openGame('wheel'),
+  openChest:   () => this.openGame('chest'),
+  openQuiz:    () => this.openGame('quiz'),
+  closeGame:   () => this.closeGame(),
+  spinWheel:   () => this.spinWheel(),
+  openChest0:  () => this.openChest(0),
+  openChest1:  () => this.openChest(1),
+  openChest2:  () => this.openChest(2),
+  pickQuiz0:   () => this.pickQuiz(0),
+  pickQuiz1:   () => this.pickQuiz(1),
+  pickQuiz2:   () => this.pickQuiz(2),
+  pickQuiz3:   () => this.pickQuiz(3),
+  playScratch: () => this.playScratch(),
+
+  // Événements
+  participate:                (id) => this.participate(id),
+  openEventPanel:             (id) => openEventPanel(id),
+  closeEventPanel:            ()   => closeEventPanel(),
+  cancelEventRegistration:    (id) => cancelEventRegistration(id),
+
+  // Clubs et groupes
+  openClubPanel:        (id) => openClubPanel(id),
+  closeClubPanel:       ()   => closeClubPanel(),
+  joinClub:             (id) => joinClub(id),
+  joinGroup:            (id) => this.joinGroup(id),
+  openCreateGroupModal: ()   => openCreateClubModal(),
+  closeCreateGroupModal:()   => closeCreateClubModal(),
+
+  // Chat
+  openChat:        () => this.setState({ chatOpen: true }),
+  openChatReal:    () => this.setState({ chatOpen: true }),
+  closeChat:       () => this.setState({ chatOpen: false }),
+  chatCommunaute:  () => this.setState({ chatTab: 'communaute' }),
+  chatMedecins:    () => this.setState({ chatTab: 'medecins' }),
+  sendChatMessage: () => this.sendChatMessage && this.sendChatMessage(),
+
+  // Modals DMN
+  openDmnPasswordModal:  () => this.setState({ dmnPasswordModal: true, dmnPassword: '' }),
+  closeDmnPasswordModal: () => this.setState({ dmnPasswordModal: false, dmnPassword: '' }),
+  confirmDmnPassword:    () => this.verifyDmnPassword(),
+  openDmnQrModal:        () => this.generateDmnQr(),
+  closeDmnQrModal:       () => this.setState({ dmnQrModal: false }),
+  openDmnDocs:           () => this.setState({ dmnDocsModal: true }),
+  closeDmnDocsModal:     () => this.setState({ dmnDocsModal: false }),
+  downloadDmnDoc:        (id) => this.downloadDmnDoc(id),
+
+  // QR urgence
+  openQrUrg:  () => { this.setState({ qrUrg: true }); this.renderQR('urg-qr', this.urgenceQrText(), 168); },
+  closeQrUrg: () => this.setState({ qrUrg: false }),
+
+  // Labo
+  openLabRes:  () => this.setState({ labRes: true }),
+  closeLabRes: () => this.setState({ labRes: false }),
+
+  // RDV
+  openModal:       () => this.setState({ modal: true }),
+  closeModal:      () => this.setState({ modal: false }),
+  rdvSelectDoctor: (id)   => this.rdvSelectDoctor({ target: { value: id } }),
+  rdvSelectDate:   (date) => this.rdvSelectDate({ target: { value: date } }),
+  rdvSelectSlot:   (slot) => this.rdvSelectSlot({ target: { value: slot } }),
+  confirmRdv:      () => this.confirmRdv(),
+
+  // Constantes médicales
+  openEditConst:       () => this.setState({ editConst: true }),
+  closeEditConst:      () => this.setState({ editConst: false }),
+  saveConst:           () => this.saveConst(),
+  setConstGroupe:      (v) => this.constGroupe({ target: { value: v } }),
+  setConstPoids:       (v) => this.constPoids({ target: { value: v } }),
+  setConstTaille:      (v) => this.constTaille({ target: { value: v } }),
+  setConstAllergies:   (v) => this.constAllergies({ target: { value: v } }),
+  setConstMaladies:    (v) => this.constMaladies({ target: { value: v } }),
+  setConstAntecedents: (v) => this.constAntecedents({ target: { value: v } }),
+  setConstTraitements: (v) => this.constTraitements({ target: { value: v } }),
+  setConstContactNom:  (v) => this.constContactNom({ target: { value: v } }),
+  setConstContactPhone:(v) => this.constContactPhone({ target: { value: v } }),
+  setConstContactLien: (v) => this.constContactLien({ target: { value: v } }),
+
+  // Vouchers
+  closeVoucherModal:   () => this.setState({ voucherModal: false }),
+  closeVoucherQrModal: () => this.setState({ voucherQrModal: false }),
+
+  // Leaderboard
+  encourageMember:     (phone)       => this.encourageMember(phone),
+  toggleCommentInput:  (phone)       => this.toggleCommentInput(phone),
+  updateCommentText:   (phone, text) => this.updateCommentText(phone, text),
+  sendComment:         (phone)       => this.sendComment(phone),
+  leaderboardGroupChange: (id)       => this.leaderboardGroupChange({ target: { value: id } }),
+
+  // Toasts
+  toastEncourager:  () => this.showToast('Classement bientôt disponible'),
+  toastActivite:    () => this.showToast('Suivi d\'activité bientôt disponible'),
+  toastSommeil:     () => this.showToast('Suivi du sommeil bientôt disponible'),
+  toastNutrition:   () => this.showToast('Suivi nutrition bientôt disponible'),
+  toastHydratation: () => this.showToast('Suivi hydratation bientôt disponible'),
+  toastCreerGroupe: () => this.showToast('Création de groupe bientôt disponible'),
+  toastChat:        () => this.showToast('Chat bientôt disponible'),
+  toastConvertir:   () => this.showToast('Conversion Zora Cash bientôt disponible'),
+  toastPdf:         () => this.showToast('Téléchargement PDF bientôt disponible'),
+  toastPartenaire:  () => this.showToast('Bientôt disponible'),
+  toastReserver:    () => this.showToast('Réservation bientôt disponible'),
+  toastPlanifier:   () => this.showToast('Planification bientôt disponible'),
+  toastWhatsapp:    () => this.showToast('Parrainage WhatsApp bientôt disponible'),
+
+  // Profil
+  logout:     () => this.logout(),
+  comingSoon: () => this.comingSoon(),
+  stop:       (e) => e && e.stopPropagation(),
+
+  // Inspection état
+  getState:       () => this.state,
+  getPanel:       () => this.state.panel,
+  getZora:        () => this._zoraBalance,
+  getEvents:      () => this._events,
+  getLedger:      () => this._ledger,
+  getConstantes:  () => this._constantes,
+  getVouchers:    () => this._vouchers,
+  getDmnDocs:     () => this._dmnDocs,
+  getLeaderboard: () => this._leaderboard
+};
+
     this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.gamesList = [
       { key: 'scratch', name: 'Grattage Zora', icon: 'touch_app', tint: '#00C9A7', gain: 'Jusqu\'à +100', badgeIcon: 'local_fire_department', badgeText: 'Populaire' },
