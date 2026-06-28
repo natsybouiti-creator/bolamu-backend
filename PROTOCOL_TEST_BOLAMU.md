@@ -110,7 +110,10 @@ Toujours passer par window.__bolamu_test.
   await page.evaluate(() => window.__bolamu_test.openClubPanel(ID))
   await page.evaluate(() => window.__bolamu_test.closeClubPanel())
   await page.evaluate(() => window.__bolamu_test.joinClub(ID))
-  await page.evaluate(() => window.__bolamu_test.joinGroup(ID))
+  // joinGroup appelle l'API directement (pas via this)
+  const result = await page.evaluate(async () => 
+    window.__bolamu_test.joinGroup(ID)
+  )
   await page.evaluate(() => window.__bolamu_test.openCreateGroupModal())
   await page.evaluate(() => window.__bolamu_test.closeCreateGroupModal())
 

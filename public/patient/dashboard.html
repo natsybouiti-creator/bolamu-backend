@@ -2649,7 +2649,16 @@ window.__bolamu_test = {
   openClubPanel:        (id) => openClubPanel(id),
   closeClubPanel:       ()   => closeClubPanel(),
   joinClub:             (id) => joinClub(id),
-  joinGroup:            (id) => this.joinGroup(id),
+  joinGroup: async (id) => {
+    const token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    const res = await fetch('https://api.bolamu.co/api/v1/clubs/' + id + '/join', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const d = await res.json();
+    return d;
+  },
   openCreateGroupModal: ()   => openCreateClubModal(),
   closeCreateGroupModal:()   => closeCreateClubModal(),
 
