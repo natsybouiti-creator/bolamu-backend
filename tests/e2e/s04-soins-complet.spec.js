@@ -127,7 +127,7 @@ test.describe('S04 — Parcours soins complet', () => {
       });
       const data = await r.json();
       if (data.success) {
-        localStorage.setItem('bolamu_secretaire_token', data.token);
+        localStorage.setItem('bolamu_secretaire_token', data.token); // secretariat/login utilise 'token' pas 'accessToken'
         localStorage.setItem('bolamu_secretaire_phone', phone);
       }
     }, ACCOUNTS.secretaire.phone, ACCOUNTS.secretaire.password);
@@ -184,7 +184,7 @@ test.describe('S04 — Parcours soins complet', () => {
       });
       const data = await r.json();
       if (data.success) {
-        localStorage.setItem('bolamu_doctor_token', data.data.access_token);
+        localStorage.setItem('bolamu_doctor_token', data.data.accessToken);
         localStorage.setItem('bolamu_doctor_phone', phone);
       }
     }, ACCOUNTS.medecin.phone, ACCOUNTS.medecin.password);
@@ -291,7 +291,7 @@ test.describe('S04 — Parcours soins complet', () => {
       });
       const data = await r.json();
       if (data.success) {
-        localStorage.setItem('bolamu_pharmacie_token', data.data.access_token);
+        localStorage.setItem('bolamu_pharmacie_token', data.data.accessToken);
         localStorage.setItem('bolamu_pharmacie_phone', phone);
       }
     }, ACCOUNTS.pharmacie.phone, ACCOUNTS.pharmacie.password);
@@ -354,7 +354,7 @@ test.describe('S04 — Parcours soins complet', () => {
       });
       const data = await r.json();
       if (data.success) {
-        localStorage.setItem('bolamu_laboratoire_token', data.data.access_token);
+        localStorage.setItem('bolamu_laboratoire_token', data.accessToken);
         localStorage.setItem('bolamu_laboratoire_phone', phone);
       }
     }, ACCOUNTS.laboratoire.phone, ACCOUNTS.laboratoire.password);
