@@ -1,5 +1,20 @@
 const rateLimit = require('express-rate-limit');
 
+// Comptes de test - skip rate limiting
+const TEST_PHONES = [
+  '+242069735418',
+  '+242060000001',
+  '+242060000099',
+  '+242077000001',
+  '+242077000002',
+  '+242077000003',
+  '+242066226116',
+  '+242068582563',
+  '+242063125478',
+  '+242064000000',
+  '+242000000088'
+];
+
 // Limiteur strict : 5 requêtes / 15 minutes
 // Pour les endpoints très sensibles (OTP, login)
 const strictLimiter = rateLimit({
@@ -8,6 +23,10 @@ const strictLimiter = rateLimit({
     message: { success: false, message: 'Trop de tentatives. Réessayez dans 15 minutes.' },
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => {
+      const phone = req.body?.phone;
+      return TEST_PHONES.includes(phone);
+    },
     handler: (req, res) => {
         // Audit log en cas de dépassement
         const pool = require('../config/db');
