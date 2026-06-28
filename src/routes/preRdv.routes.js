@@ -79,7 +79,11 @@ router.post('/renouvellement', authMiddleware, patientOnly, async (req, res) => 
         const patient_phone = req.user.phone;
 
         const result = await demanderRenouvellement(patient_phone, prescription_id, session_id_amina);
-        res.json(result);
+        if (result && result.success) {
+            res.json({ success: true, data: result.data || result, message: result.message || '' });
+        } else {
+            res.status(400).json({ success: false, error: { code: result && result.code || 'ERROR', message: result && result.message || 'Erreur.' } });
+        }
     } catch (error) {
         console.error('[Renouvellement] Erreur demande:', error.message);
         res.status(500).json({ success: false, message: 'Erreur serveur' });
@@ -94,7 +98,11 @@ router.patch('/renouvellement/:id/valider', authMiddleware, doctorOnly, async (r
         const doctor_phone = req.user.phone;
 
         const result = await validerRenouvellement(id, doctor_phone);
-        res.json(result);
+        if (result && result.success) {
+            res.json({ success: true, data: result.data || result, message: result.message || '' });
+        } else {
+            res.status(400).json({ success: false, error: { code: result && result.code || 'ERROR', message: result && result.message || 'Erreur.' } });
+        }
     } catch (error) {
         console.error('[Renouvellement] Erreur validation:', error.message);
         res.status(500).json({ success: false, message: error.message });
@@ -110,7 +118,11 @@ router.patch('/renouvellement/:id/refuser', authMiddleware, doctorOnly, async (r
         const doctor_phone = req.user.phone;
 
         const result = await refuserRenouvellement(id, doctor_phone, motif_refus);
-        res.json(result);
+        if (result && result.success) {
+            res.json({ success: true, data: result.data || result, message: result.message || '' });
+        } else {
+            res.status(400).json({ success: false, error: { code: result && result.code || 'ERROR', message: result && result.message || 'Erreur.' } });
+        }
     } catch (error) {
         console.error('[Renouvellement] Erreur refus:', error.message);
         res.status(500).json({ success: false, message: error.message });
@@ -125,7 +137,11 @@ router.get('/renouvellement', authMiddleware, async (req, res) => {
         const user_role = req.user.role;
 
         const result = await listerDemandes(user_phone, user_role);
-        res.json(result);
+        if (result && result.success) {
+            res.json({ success: true, data: result.data || result, message: result.message || '' });
+        } else {
+            res.status(400).json({ success: false, error: { code: result && result.code || 'ERROR', message: result && result.message || 'Erreur.' } });
+        }
     } catch (error) {
         console.error('[Renouvellement] Erreur liste:', error.message);
         res.status(500).json({ success: false, message: 'Erreur serveur' });
