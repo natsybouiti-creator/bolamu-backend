@@ -2558,8 +2558,24 @@ class Component extends DCLogic {
             this._qrExpiry = new Date(d.data.expires_at).getTime();
             this.renderQR('hero-qr', d.data.token, 90);
             this.setState({});
+          } else {
+            const el = document.getElementById('hero-qr');
+            if (el) el.innerHTML = 
+              '<div style="display:flex;flex-direction:column;align-items:center;' +
+              'justify-content:center;height:90px;gap:6px;">' +
+              '<span class="material-symbols-outlined" style="color:#FF6B35;font-size:28px">wifi_off</span>' +
+              '<span style="font-size:0.65rem;color:#434654;text-align:center">QR indisponible<br>Réessaie dans un instant</span>' +
+              '</div>';
           }
-        }).catch(() => {});
+        }).catch(() => {
+          const el = document.getElementById('hero-qr');
+          if (el) el.innerHTML = 
+            '<div style="display:flex;flex-direction:column;align-items:center;' +
+            'justify-content:center;height:90px;gap:6px;">' +
+            '<span class="material-symbols-outlined" style="color:#FF6B35;font-size:28px">wifi_off</span>' +
+            '<span style="font-size:0.65rem;color:#434654;text-align:center">Erreur réseau<br>Réessaie dans un instant</span>' +
+            '</div>';
+        });
       };
       loadQR();
       this._qrInterval = setInterval(() => {
@@ -3518,7 +3534,7 @@ class Component extends DCLogic {
       quizView: quizView,
       quizAnswered: s.quizPicked !== null,
       quizFeedback: s.quizPicked === null ? '' : (s.quizPicked === q.answer ? (q.feedbackOk || '') : (q.feedbackNo || '')),
-      zoraTxt: this.fmt(Math.max(0, s.zora)),
+      zoraTxt: (this._zoraBalance !== undefined && this._zoraBalance !== null) ? this.fmt(Math.max(0, this._zoraBalance)) : '—',
       stepsTxt: this.fmt(s.steps),
       stepRingOffset: ring.toFixed(1),
       affordableView: affordableView,
