@@ -49,8 +49,16 @@ const corsConfig = {
             return callback(null, true);
         }
 
-        console.warn(`[CORS] Origine rejetée : "${origin}"`);
-        return callback(new Error('Non autorisé par CORS'));
+        // Ignorer silencieusement les bots de monitoring
+        const monitoringBots = [
+          'bolamu-backend.onrender.com',
+          'api.bolamu.co'  // Sentry uptime bot origin
+        ];
+        if (monitoringBots.some(bot => origin.includes(bot))) {
+          return callback(null, false);
+        }
+
+        return callback(null, false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
