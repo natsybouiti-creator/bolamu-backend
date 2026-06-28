@@ -13,7 +13,7 @@ async function getWeeklyLeaderboard(req, res) {
   
   try {
     const result = await getLeaderboard({ phone, limit });
-    return res.json({ success: true, data: result });
+    return res.json(result);
   } catch (error) {
     console.error('[LEADERBOARD] Erreur getWeeklyLeaderboard:', error);
     return res.status(500).json({ success: false, message: 'Erreur serveur' });
@@ -27,7 +27,7 @@ async function getWeeklyLeaderboard(req, res) {
 async function getWeeklyTop3(req, res) {
   try {
     const result = await getTop3();
-    return res.json({ success: true, data: result });
+    return res.json(result);
   } catch (error) {
     console.error('[LEADERBOARD] Erreur getWeeklyTop3:', error);
     return res.status(500).json({ success: false, message: 'Erreur serveur' });
