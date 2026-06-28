@@ -184,7 +184,14 @@
         showMsg('Connexion réussie.', 'success');
         setTimeout(function() { window.location.href = '/partenaire/dashboard.html'; }, 900);
       } else {
-        showMsg(data.message || 'Numéro ou mot de passe incorrect.', 'error');
+        const errorMessages = {
+          missing_credentials: 'Numéro et mot de passe requis.',
+          invalid_phone: 'Numéro de téléphone invalide.',
+          invalid_credentials: 'Numéro ou mot de passe incorrect.',
+          account_inactive: 'Votre compte est inactif — contactez Bolamu.',
+          server_error: 'Erreur serveur — réessayez.'
+        };
+        showMsg(errorMessages[data.error] || data.message || 'Numéro ou mot de passe incorrect.', 'error');
         btn.disabled = false; btn.textContent = 'Accéder au tableau de bord';
       }
     } catch(e) {
