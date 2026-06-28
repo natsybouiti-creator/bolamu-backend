@@ -24,7 +24,7 @@ async function getStatsController(req, res) {
     res.json({ success: true, data: stats });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] getStats error:', error);
-    res.status(500).json({ error: 'Erreur récupération stats' });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Impossible de charger les statistiques.' } });
   }
 }
 
@@ -40,7 +40,7 @@ async function getMyEventsController(req, res) {
     res.json({ success: true, data: events });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] getMyEvents error:', error);
-    res.status(500).json({ error: 'Erreur récupération événements' });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Impossible de charger les événements.' } });
   }
 }
 
@@ -71,7 +71,7 @@ async function getMyClubsController(req, res) {
     res.json({ success: true, data: clubs });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] getMyClubs error:', error);
-    res.status(500).json({ error: 'Erreur récupération clubs' });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Impossible de charger les clubs.' } });
   }
 }
 
@@ -86,7 +86,7 @@ async function getTodayCheckinsController(req, res) {
     res.json({ success: true, data: checkins });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] getTodayCheckins error:', error);
-    res.status(500).json({ error: 'Erreur récupération check-ins' });
+    res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Impossible de charger les check-ins.' } });
   }
 }
 

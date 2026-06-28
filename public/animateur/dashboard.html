@@ -580,7 +580,10 @@ async function loadAll() {
 // ── STATS ─────────────────────────────────────────────────────────────────────
 async function loadStats() {
   const data = await apiFetch('/animateur/stats');
-  if (!data || !data.success) return;
+  if (!data || !data.success) {
+    console.warn((data && data.error && data.error.message) || 'Erreur chargement');
+    return;
+  }
   const s = data.data;
   document.getElementById('stat-events').textContent = s.total_events || 0;
   document.getElementById('stat-inscriptions').textContent = s.total_inscriptions || 0;
@@ -593,7 +596,10 @@ async function loadStats() {
 // ── EVENTS ────────────────────────────────────────────────────────────────────
 async function loadEvents() {
   const data = await apiFetch('/animateur/events?limit=50');
-  if (!data || !data.success) return;
+  if (!data || !data.success) {
+    console.warn((data && data.error && data.error.message) || 'Erreur chargement');
+    return;
+  }
   eventsCache = data.data || [];
   renderEventsTable('events-body', eventsCache, true);
   renderEventsTable('accueil-events-body', eventsCache.slice(0, 5), false);
@@ -606,7 +612,9 @@ async function loadTodayCheckins() {
   const tbody = document.getElementById('today-checkins-body');
 
   if (!data || !data.success) {
-    tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><span class="material-symbols-outlined">error</span><p class="empty-text">Erreur lors du chargement.</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><span class="material-symbols-outlined">error</span><p class="empty-text">' + 
+      ((data && data.error && data.error.message) || 'Erreur lors du chargement.') + 
+      '</p></div></td></tr>';
     return;
   }
 
@@ -892,7 +900,10 @@ function closeQrScanner() {
 // ── CLUBS ─────────────────────────────────────────────────────────────────────
 async function loadClubs() {
   const data = await apiFetch('/animateur/clubs');
-  if (!data || !data.success) return;
+  if (!data || !data.success) {
+    console.warn((data && data.error && data.error.message) || 'Erreur chargement');
+    return;
+  }
   clubsCache = data.data || [];
   renderClubs();
   populateClubSelects();
