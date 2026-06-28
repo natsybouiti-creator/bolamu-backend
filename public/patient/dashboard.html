@@ -3458,7 +3458,7 @@ class Component extends DCLogic {
       genderAdj: genderAdj,
       patientNom: (this._patientNom || 'Sarah Bemba').toUpperCase(),
       patientInitiales: (this._patientNom || 'Sarah Bemba').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(),
-      streakTxt: (this._streak || 0) + ' jour' + ((this._streak || 0) > 1 ? 's' : '') + ' d\'affilée',
+      streakTxt: (this._streak === undefined || this._streak === null) ? '—' : (this._streak + ' jour' + (this._streak > 1 ? 's' : '') + ' d\'affilée'),
       streakDays: (() => {
         const today = new Date();
         const todayN = new Date(today); todayN.setHours(0,0,0,0);
