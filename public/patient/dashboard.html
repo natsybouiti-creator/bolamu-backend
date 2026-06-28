@@ -1215,7 +1215,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
                   <div style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #434654; margin-bottom: 2px;"><span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>{{ reg.location_name }}</div>
                   <div style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #434654;"><span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>{{ reg.starts_at }}</div>
                 </div>
-                <div style="background: #003FB1; color: #fff; padding: 8px 14px; border-radius: 9999px; font-size: 0.74rem; font-weight: 700;">{{ reg.session_code }}</div>
+                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                  <div style="background: #003FB1; color: #fff; padding: 8px 14px; border-radius: 9999px; font-size: 0.74rem; font-weight: 700;">{{ reg.session_code }}</div>
+                  <button onclick="cancelEventRegistration('{{ reg.event_id }}')" style="background: #F3F3FE; border: 1px solid #EDEDF8; color: #BA1A1A; padding: 6px 12px; border-radius: 8px; font-size: 0.74rem; font-weight: 700; cursor: pointer;">Annuler</button>
+                </div>
               </div>
             </sc-for>
           </div>
@@ -4225,6 +4228,36 @@ function joinEvent(eventId) {
     btn.textContent = 'Inscrit ✓';
     btn.style.background = '#00C9A7';
   });
+}
+
+async function cancelEventRegistration(id) {
+  const token = localStorage.getItem('bolamu_patient_token');
+  if (!token) {
+    alert('Session expirée — reconnectez-vous');
+    window.location.href = '/patient/login.html';
+    return;
+  }
+  
+  if (!confirm('Veux-tu vraiment annuler ton inscription à cet événement ?')) {
+    return;
+  }
+  
+  try {
+    const r = await fetch('https://api.bolamu.co/api/v1/events/' + id + '/register', {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const d = await r.json();
+    if (d.success) {
+      alert('Inscription annulée avec succès');
+      window.location.reload();
+    } else {
+      const msgs = { not_registered: 'Tu n\'es pas inscrit à cet événement.' };
+      alert((d.error && d.error.message) || msgs[d.reason] || 'Annulation impossible');
+    }
+  } catch (e) {
+    alert('Erreur réseau — vérifie ta connexion');
+  }
 }
 
 function joinClub(clubId) {
