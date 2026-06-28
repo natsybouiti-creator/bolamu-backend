@@ -49,6 +49,7 @@ const corsConfig = {
             return callback(null, true);
         }
 
+        console.warn(`[CORS] Origine rejetée : "${origin}"`);
         return callback(new Error('Non autorisé par CORS'));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
