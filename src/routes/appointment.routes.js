@@ -267,7 +267,7 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
             }
         });
     } catch (err) {
-        res.status(500).json({ error: "Erreur serveur" });
+        res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Impossible de charger les rendez-vous.' } });
     }
 });
 
@@ -324,7 +324,7 @@ router.post('/:id/validate', authMiddleware, async (req, res) => {
         
         res.json({ success: true, message: "Consultation validée" });
     } catch (err) {
-        res.status(500).json({ error: "Erreur" });
+        res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Erreur lors de la validation.' } });
     }
 });
 
