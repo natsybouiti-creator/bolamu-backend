@@ -16,7 +16,7 @@ const { awardZora } = require('../services/zora.service');
 router.get('/slots/:doctor_id', async (req, res) => {
     const { doctor_id } = req.params;
     const { date } = req.query;
-    if (!date) return res.status(400).json({ error: "Date requise" });
+    if (!date) return res.status(400).json({ success: false, error: { code: 'MISSING_FIELD', message: 'Date requise.' } });
     try {
         // 1. Récupère le jour de la semaine de la date demandée
         const dateObj = new Date(date + 'T00:00:00');
@@ -100,7 +100,7 @@ router.get('/slots/:doctor_id', async (req, res) => {
         res.json({ success: true, slots: libresFinal, pris: tousPris, jour: date });
     } catch(err) {
         console.error('[SLOTS] Error:', err.message, err.stack);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Impossible de charger les créneaux.' } });
     }
 });
 
@@ -222,7 +222,7 @@ router.post('/book', authMiddleware, async (req, res) => {
 
         res.status(201).json({ success: true, appointment: result.rows[0] });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: 'Réservation impossible — réessaie.' } });
     }
 });
 

@@ -3102,8 +3102,17 @@ class Component extends DCLogic {
     })
     .then(r => r.json())
     .then(d => {
-      if (d.success) { this._slots = d.slots || []; this.setState({}); }
-    }).catch(() => {});
+      if (d.success) {
+        this._slots = d.slots || [];
+        this.setState({});
+      } else {
+        this._slots = [];
+        this.setState({});
+        this.showToast((d.error && d.error.message) || 'Impossible de charger les créneaux', 'error');
+      }
+    }).catch(() => {
+      this.showToast('Erreur réseau — vérifie ta connexion', 'error');
+    });
   }
 
   async confirmRdv() {
