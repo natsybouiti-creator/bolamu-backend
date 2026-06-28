@@ -6,7 +6,7 @@ const fs = require('fs');
 const pg = require('pg');
 require('dotenv').config();
 
-const API = 'http://localhost:3005/api/v1';
+const API = process.env.API_URL ? `${process.env.API_URL}/api/v1` : 'https://api.bolamu.co/api/v1';
 
 function readStoredToken() {
   try {

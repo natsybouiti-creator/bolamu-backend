@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Agence Dashboard — Design System & Responsive', () => {
   test('Desktop 1280px — Police, Couleurs, Icônes, Navigation', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('http://localhost:3005/agence/dashboard.html');
+    await page.goto((process.env.APP_URL || 'https://www.bolamu.co') + '/agence/dashboard.html');
     
     // Vérifier police Plus Jakarta Sans
     const fontFamily = await page.evaluate(() => 
@@ -47,7 +47,7 @@ test.describe('Agence Dashboard — Design System & Responsive', () => {
 
   test('Mobile 390px — Police, Couleurs, Icônes, Navigation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('http://localhost:3005/agence/dashboard.html');
+    await page.goto((process.env.APP_URL || 'https://www.bolamu.co') + '/agence/dashboard.html');
     
     // Vérifier police Plus Jakarta Sans
     const fontFamily = await page.evaluate(() => 
