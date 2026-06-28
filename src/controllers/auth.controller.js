@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { buildWameLink } = require('../services/wame.service');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 
 if (!process.env.JWT_SECRET) {
     throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');
@@ -275,11 +276,14 @@ async function registerPatient(req, res) {
             await client.query('COMMIT');
 
             try {
-                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_patient_v4', [`${first_name} ${last_name}`.trim()]);
+                await sendAutoMessage(normalizedPhone, 'bolamu_bienvenue_patient_v4', [
+                    `${first_name} ${last_name}`.trim(),
+                    normalizedPhone,
+                    initialPassword
+                ]);
             } catch (whatsappError) {
                 console.warn('[WhatsApp] Envoi bienvenue échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
             }
-            await sendOnboardingLink(normalizedPhone, `${first_name} ${last_name}`.trim(), 'patient');
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Gardez-le précieusement.`);
 
