@@ -3805,8 +3805,8 @@ class Component extends DCLogic {
               this.setState({});
             }
             this.showToast('Groupe rejoint !');
-          } else if (res.status === 409) {
-            this.showToast('Déjà membre de ce groupe');
+          } else if (res.status === 409 || res.status === 400) {
+            this.showToast(d.message || 'Déjà membre de ce groupe');
           } else {
             this.showToast('Erreur lors de la jonction');
           }
