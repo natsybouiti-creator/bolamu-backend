@@ -2742,6 +2742,23 @@ window.__bolamu_test = {
   comingSoon: () => this.comingSoon(),
   stop:       (e) => e && e.stopPropagation(),
 
+  login: async (phone, password) => {
+    const res = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, password })
+    }).then(r => r.json());
+    
+    if (res.success) {
+      // Stocker le token comme le dashboard le fait normalement
+      localStorage.setItem('token', res.accessToken);
+      window.__testState = window.__testState || {};
+      window.__testState.loginResponse = res;
+    }
+    
+    return res;
+  },
+
   // Inspection état
   getState:       () => this.state,
   getPanel:       () => this.state.panel,

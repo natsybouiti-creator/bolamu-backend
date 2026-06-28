@@ -1121,6 +1121,135 @@ async function geocodeRegisterAddress() {
     }
   } catch(e) { console.error('Géocodage échoué:', e); }
 }
+
+// ─── PROTOCOLE TEST BOLAMU (S02) ───
+let _lastApiResponse = null;
+let _lastError = null;
+
+window.__bolamu_test = {
+  // Étape 1 — Sélection rôle
+  selectionnerRole: (role) => {
+    selectRole(role);
+  },
+
+  // Étape 2 — Infos personnelles
+  remplirInfos: (phone, prenom, nom, dob, genre, ville) => {
+    if (phone) {
+      state.phone = phone;
+      const phoneInput = document.getElementById('f-phone');
+      if (phoneInput) phoneInput.value = phone;
+      updateFullPhone();
+    }
+    if (prenom) {
+      state.firstName = prenom;
+      const firstInput = document.getElementById('f-firstname');
+      if (firstInput) firstInput.value = prenom;
+    }
+    if (nom) {
+      state.lastName = nom;
+      const lastInput = document.getElementById('f-lastname');
+      if (lastInput) lastInput.value = nom;
+    }
+    if (dob) {
+      state.age = dob;
+      const ageInput = document.getElementById('f-age');
+      if (ageInput) ageInput.value = dob;
+    }
+    if (genre) {
+      state.gender = genre;
+      const genderInput = document.getElementById('f-gender');
+      if (genderInput) genderInput.value = genre;
+    }
+    if (ville) {
+      state.city = ville;
+      const cityInput = document.getElementById('f-city');
+      if (cityInput) cityInput.value = ville;
+    }
+  },
+
+  allerEtape2: () => {
+    goStep2();
+  },
+
+  // Étape 3 — Documents
+  uploaderCNI: async (fileBuffer) => {
+    const input = document.getElementById('input-id_card');
+    if (!input) return { success: false, error: 'Input id_card not found' };
+    
+    const file = new File([fileBuffer], 'cni.jpg', { type: 'image/jpeg' });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    input.files = dataTransfer.files;
+    
+    await uploadSecureFile(input, 'id_card');
+    return { success: !!state.docs.id_card, fileId: state.docs.id_card };
+  },
+
+  uploaderPhoto: async (fileBuffer) => {
+    const input = document.getElementById('reg-photo-input');
+    if (!input) return { success: false, error: 'Photo input not found' };
+    
+    const file = new File([fileBuffer], 'photo.jpg', { type: 'image/jpeg' });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    input.files = dataTransfer.files;
+    
+    regHandlePhotoUpload(input);
+    return { success: !!regPhotoData };
+  },
+
+  allerEtape3: () => {
+    goStep3();
+  },
+
+  // Étape 4 — CGU + soumission
+  accepterCGU: () => {
+    const checkbox = document.getElementById('cgu-check');
+    if (checkbox) {
+      checkbox.checked = true;
+      state.cguAccepted = true;
+    }
+  },
+
+  soumettre: async () => {
+    await finalRegister();
+    return { success: state.step > 4 };
+  },
+
+  // Lecture état
+  getState: () => {
+    return {
+      step: state.step,
+      role: state.role,
+      phone: state.fullPhone,
+      firstName: state.firstName,
+      lastName: state.lastName,
+      gender: state.gender,
+      age: state.age,
+      city: state.city,
+      docs: state.docs,
+      trustScore: state.trustScore,
+      cguAccepted: state.cguAccepted,
+      photoData: regPhotoData
+    };
+  },
+
+  getEtapeActuelle: () => {
+    return state.step;
+  },
+
+  getErreurs: () => {
+    const alertBox = document.getElementById('alert-box');
+    if (alertBox && alertBox.innerHTML) {
+      return alertBox.innerHTML;
+    }
+    return null;
+  },
+
+  getDerniereReponseAPI: () => {
+    return _lastApiResponse;
+  }
+};
 </script>
 </body>
 

@@ -1979,6 +1979,179 @@
       document.getElementById('rdv-date-agent').value = new Date().toISOString().split('T')[0];
       loadStatsGlobales();
     });
+
+    // ─── PROTOCOLE TEST S01 ───
+    let _testState = {
+      currentTab: 'accueil',
+      wizardStep: 1,
+      dernierPatient: null,
+      erreurs: []
+    };
+
+    window.__bolamu_test = {
+      // Connexion
+      login: async (phone, password) => {
+        try {
+          const res = await fetch('/api/v1/agence/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            localStorage.setItem('bolamu_agent_token', data.token);
+            localStorage.setItem('bolamu_agent_phone', data.agent.phone);
+            localStorage.setItem('bolamu_agent_name', data.agent.nom || 'Agent');
+            window.location.href = '/agence/dashboard.html';
+            return { success: true };
+          } else {
+            _testState.erreurs.push(data.message || 'Erreur connexion');
+            return { success: false, error: data.message || 'Erreur connexion' };
+          }
+        } catch(e) {
+          _testState.erreurs.push('Erreur réseau');
+          return { success: false, error: 'Erreur réseau' };
+        }
+      },
+
+      // Créer un dossier patient
+      ouvrirWizardSouscription: () => {
+        showTab('souscription');
+        _testState.currentTab = 'souscription';
+        _testState.wizardStep = 1;
+        _testState.dernierPatient = null;
+        _testState.erreurs = [];
+        // Reset wizard
+        wizardStep = 1;
+        wizardData = {};
+        updateWizardUI();
+        // Reset form fields
+        document.getElementById('w-phone').value = '';
+        document.getElementById('w-nom').value = '';
+        document.getElementById('w-prenom').value = '';
+        document.getElementById('w-dob').value = '';
+        document.getElementById('w-genre').value = '';
+        document.getElementById('w-ville').value = '';
+        document.getElementById('w-adresse').value = '';
+        document.getElementById('w-canal').value = '';
+        document.getElementById('w-proche-number').value = '';
+        document.getElementById('w-doc-type').value = '';
+        document.getElementById('w-doc-input').value = '';
+        document.getElementById('w-photo-data').value = '';
+        document.getElementById('w-plan-selected').value = '';
+        document.getElementById('w-payment-selected').value = '';
+        document.getElementById('w-momo-number').value = '';
+        document.getElementById('w-virement-ref').value = '';
+        // Reset UI selections
+        document.querySelectorAll('.canal-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('w-client-existing').classList.add('hidden');
+        document.getElementById('w-souscription-result').classList.add('hidden');
+        return { success: true };
+      },
+
+      remplirIdentite: (phone, nom, prenom, formule) => {
+        // Étape 1 : Identité
+        document.getElementById('w-phone').value = phone;
+        document.getElementById('w-nom').value = nom;
+        document.getElementById('w-prenom').value = prenom;
+        // DOB par défaut (18 ans)
+        const dob = new Date();
+        dob.setFullYear(dob.getFullYear() - 18);
+        document.getElementById('w-dob').value = dob.toISOString().split('T')[0];
+        document.getElementById('w-genre').value = 'homme';
+        document.getElementById('w-ville').value = 'Brazzaville';
+        document.getElementById('w-adresse').value = 'Test address';
+        // Canal par défaut
+        selectCanal('whatsapp');
+        // Valider et passer étape 2
+        if (validateStep(1)) {
+          wizardNext(1);
+          _testState.wizardStep = 2;
+          // Sélectionner formule (étape 3)
+          setTimeout(() => {
+            const planCard = document.querySelector(`.plan-card[data-plan="${formule}"]`);
+            if (planCard) {
+              planCard.click();
+              document.getElementById('w-plan-selected').value = formule;
+              // Passer à étape 4
+              if (validateStep(3)) {
+                wizardNext(3);
+                _testState.wizardStep = 4;
+              }
+            }
+          }, 500);
+          return { success: true };
+        } else {
+          _testState.erreurs.push('Validation identité échouée');
+          return { success: false, error: 'Validation identité échouée' };
+        }
+      },
+
+      uploaderDocument: async (type, fileBuffer) => {
+        // Étape 2 : Documents
+        document.getElementById('w-doc-type').value = type;
+        // Simuler upload photo
+        const dataUrl = `data:image/jpeg;base64,${fileBuffer}`;
+        setPhotoPreview(dataUrl);
+        // Valider et passer étape 3
+        if (validateStep(2)) {
+          wizardNext(2);
+          _testState.wizardStep = 3;
+          return { success: true };
+        } else {
+          _testState.erreurs.push('Validation documents échouée');
+          return { success: false, error: 'Validation documents échouée' };
+        }
+      },
+
+      validerSouscription: async () => {
+        // Étape 4 : Paiement
+        // Sélectionner paiement par défaut (espèces)
+        const paymentCard = document.querySelector('.payment-card[data-method="especes"]');
+        if (paymentCard) {
+          paymentCard.click();
+        }
+        // Confirmer souscription
+        try {
+          await confirmerSouscriptionComplete();
+          // Capturer dernier patient créé depuis wizardData
+          _testState.dernierPatient = {
+            phone: wizardData.phone,
+            nom: wizardData.nom,
+            prenom: wizardData.prenom,
+            plan: wizardData.plan
+          };
+          _testState.wizardStep = 1;
+          return { success: true, patient: _testState.dernierPatient };
+        } catch(e) {
+          _testState.erreurs.push(e.message || 'Erreur souscription');
+          return { success: false, error: e.message || 'Erreur souscription' };
+        }
+      },
+
+      // Lecture état
+      getState: () => {
+        return {
+          currentTab: _testState.currentTab,
+          wizardStep: _testState.wizardStep,
+          dernierPatient: _testState.dernierPatient,
+          erreurs: _testState.erreurs,
+          wizardData: wizardData,
+          selectedCanal: selectedCanal,
+          photoData: photoData ? 'loaded' : 'empty'
+        };
+      },
+
+      getDernierPatientCree: () => {
+        return _testState.dernierPatient;
+      },
+
+      getErreurs: () => {
+        return _testState.erreurs;
+      }
+    };
   </script>
 </body>
 </html>
