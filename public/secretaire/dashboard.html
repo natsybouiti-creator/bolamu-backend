@@ -2542,7 +2542,7 @@ if (typeof BarcodeDetector !== 'undefined') {
         return;
       }
       
-      await api('/secretariat/rdv-manuel', {
+      const response = await api('/secretariat/rdv-manuel', {
         method: 'POST',
         body: JSON.stringify({
           patient_phone: phone,
@@ -2554,6 +2554,11 @@ if (typeof BarcodeDetector !== 'undefined') {
           created_by: 'secretariat'
         })
       });
+      
+      if (!response.success) {
+        alert(response.message || 'Erreur lors de la création du rendez-vous');
+        return;
+      }
       
       closeModal('modal-rdv-manuel');
       loadDashboardStats();
