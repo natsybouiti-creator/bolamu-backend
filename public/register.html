@@ -346,6 +346,8 @@
         <div id="pill-3" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all bg-outline-variant/30 text-on-surface-variant">3</div>
         <div class="flex-1 h-1 bg-outline-variant/30 rounded-full"></div>
         <div id="pill-4" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all bg-outline-variant/30 text-on-surface-variant">4</div>
+        <div class="flex-1 h-1 bg-outline-variant/30 rounded-full"></div>
+        <div id="pill-5" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all bg-outline-variant/30 text-on-surface-variant">5</div>
       </div>
       <p id="step-label" class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Étape 1 sur 4</p>
       <h2 id="step-title" class="text-xl font-extrabold text-brand-navy mb-1">Choisissez votre rôle</h2>
@@ -386,7 +388,17 @@ const state = {
   pharmacyName:'', responsibleName:'', rccmNumber:'',
   labName:'', directorName:'', agrementNumber:'',
   niu: '',
-  trustScore:30, cguAccepted:false
+  trustScore:30, cguAccepted:false,
+  // Étape 5 — abonnement / paiement
+  selectedPlan:'', selectedAmount:0, selectedOperator:'MTN',
+  subscriptionId:null, patientToken:'', paymentReference:''
+};
+
+// Plans abonnement — libellés d'affichage (base = essentiel/standard/premium)
+const PLAN_INFO = {
+  essentiel: { label:'MOTO',   amount:2000,  desc:'Accès de base' },
+  standard:  { label:'NDEKO',  amount:5000,  desc:'Accès standard' },
+  premium:   { label:'LIBOTA', amount:10000, desc:'Accès premium' }
 };
 
 // Configuration des documents requis par rôle
@@ -431,8 +443,9 @@ function updateHeader(label,title,sub){
   document.getElementById('step-label').textContent=label;
   document.getElementById('step-title').textContent=title;
   document.getElementById('step-sub').textContent=sub;
-  for(let i=1;i<=4;i++){
+  for(let i=1;i<=5;i++){
     const pill=document.getElementById('pill-'+i);
+    if(!pill)continue;
     if(i<state.step){pill.className='w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all pill-done';}
     else if(i===state.step){pill.className='w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all pill-active';}
     else{pill.className='w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all pill-inactive';}
@@ -446,7 +459,7 @@ function showAlert(msg,type='error'){
 
 function renderStep1(){
   state.step=1;
-  updateHeader('Étape 1 sur 4','Choisissez votre rôle','Bolamu s\'adapte à votre profil pour vous offrir la meilleure expérience.');
+  updateHeader('Étape 1 sur 5','Choisissez votre rôle','Bolamu s\'adapte à votre profil pour vous offrir la meilleure expérience.');
   document.getElementById('step-content').innerHTML=`
     <div class="role-cards-grid">
       <div class="role-card ${state.role==='patient'?'selected':''}" id="role-patient">
@@ -493,7 +506,7 @@ function renderStep2(){
   const isDoctor=state.role==='doctor';
   const isPatient=state.role==='patient';
   const roleLabels={patient:'Patient',doctor:'Médecin',pharmacie:'Pharmacie',laboratoire:'Laboratoire'};
-  updateHeader('Étape 2 sur 4','Vos informations',`Créez votre compte ${roleLabels[state.role]} Bolamu.`);
+  updateHeader('Étape 2 sur 5','Vos informations',`Créez votre compte ${roleLabels[state.role]} Bolamu.`);
 
   const countryOptions=COUNTRIES.map(c=>`<option value="${c.code}" ${c.code===state.countryCode?'selected':''}>${c.flag} ${c.code}</option>`).join('');
   let extraFields='';
@@ -624,7 +637,7 @@ async function fetchUploadToken(){
 
 function renderStep3(){
   state.step=3;
-  updateHeader('Étape 3 sur 4','Vos documents','Téléversez les documents requis pour valider votre dossier.');
+  updateHeader('Étape 3 sur 5','Vos documents','Téléversez les documents requis pour valider votre dossier.');
   const isDoctor=state.role==='doctor';
   const isPharma=state.role==='pharmacie';
   const isLabo=state.role==='laboratoire';
@@ -858,7 +871,7 @@ function goStep4(){
 
 function renderStep4(){
   state.step=4;
-  updateHeader('Étape 4 sur 4','Conditions d\'utilisation','Dernière étape avant d\'accéder à Bolamu.');
+  updateHeader('Étape 4 sur 5','Conditions d\'utilisation','Plus qu\'une étape : votre abonnement.');
   document.getElementById('step-content').innerHTML=`
     <div class="cgu-box">
       <strong>Conditions Générales d'Utilisation Bolamu</strong><br><br>
@@ -916,14 +929,21 @@ async function finalRegister(){
     const res=await fetch(`${API}${endpoint}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json();
     if(data.success){
-      renderConfirmation();
+      // Stocker un éventuel token de session pour les appels paiement authentifiés
+      const tok = data.accessToken || data.token || (data.data && data.data.accessToken);
+      if(tok){
+        state.patientToken = tok;
+        try{ localStorage.setItem('bolamu_patient_token', tok); localStorage.setItem('bolamu_patient_phone', state.fullPhone); }catch(_){}
+      }
+      if(state.role==='patient'){ renderStep5(); }
+      else { renderConfirmation(); }
     }else{showAlert(data.message||'Erreur lors de la création du compte.');btn.disabled=false;btn.textContent='Créer mon compte Bolamu';}
   }catch(e){showAlert('Erreur de connexion au serveur.');btn.disabled=false;btn.textContent='Créer mon compte Bolamu';}
 }
 
 function renderConfirmation(){
   updateHeader('Inscription terminée','Compte créé','Merci de votre confiance.');
-  for(let i=1;i<=4;i++){const pill=document.getElementById('pill-'+i);if(pill)pill.className='step-pill done';}
+  for(let i=1;i<=5;i++){const pill=document.getElementById('pill-'+i);if(pill)pill.className='w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all pill-done';}
   document.getElementById('step-content').innerHTML=`
     <div style="text-align:center;padding:24px 8px;">
       <div style="width:72px;height:72px;border-radius:50%;background:rgba(0,201,167,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
@@ -938,6 +958,159 @@ function renderConfirmation(){
       </p>
       <a href="/login.html" class="btn-primary" style="display:inline-block;text-decoration:none;text-align:center;">Aller à la connexion</a>
     </div>`;
+}
+
+// ─── ÉTAPE 5 — ABONNEMENT & PAIEMENT ───────────────────────────────────────────
+function s5PlanCard(key){
+  const p=PLAN_INFO[key];
+  const active=state.selectedPlan===key;
+  return `<div class="s5-plan${active?' active':''}" data-plan="${key}" onclick="selectPlanCard('${key}')">
+    ${key==='standard'?'<span class="s5-badge">Recommandé</span>':''}
+    <div class="s5-plan-label">${p.label}</div>
+    <div class="s5-plan-amount">${p.amount.toLocaleString('fr-FR')}<span> XAF/mois</span></div>
+    <div class="s5-plan-desc">${p.desc}</div>
+  </div>`;
+}
+
+function renderStep5(){
+  state.step=5;
+  updateHeader('Étape 5 sur 5','Votre abonnement','Choisissez votre formule et activez votre compte.');
+  document.getElementById('step-content').innerHTML=`
+    <style>
+      .s5-title{font-size:1.25rem;font-weight:700;color:#0A2463;margin:0 0 16px;}
+      .s5-plans{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px;}
+      .s5-plan{position:relative;background:#fff;border:1px solid #C3C5D7;border-radius:24px;padding:18px 14px;cursor:pointer;text-align:center;transition:all .2s cubic-bezier(.4,0,.2,1);}
+      .s5-plan:hover{border-color:#003FB1;}
+      .s5-plan.active{border:2px solid #00C9A7;box-shadow:0 8px 24px rgba(0,63,177,.12);}
+      .s5-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#DBE1FF;color:#003DAB;font-size:.625rem;font-weight:800;letter-spacing:.05em;padding:4px 12px;border-radius:9999px;white-space:nowrap;}
+      .s5-plan-label{font-size:1rem;font-weight:800;color:#0A2463;margin-bottom:6px;}
+      .s5-plan-amount{font-size:1.05rem;font-weight:800;color:#003FB1;}
+      .s5-plan-amount span{font-size:.7rem;font-weight:600;color:#434654;}
+      .s5-plan-desc{font-size:.75rem;color:#434654;font-weight:500;margin-top:6px;}
+      .s5-recap{background:#F3F3FE;border-radius:12px;padding:12px 16px;font-size:.9rem;color:#191B23;margin-bottom:16px;}
+      .s5-tabs{display:flex;gap:10px;margin-bottom:16px;}
+      .s5-tab{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:2px solid #C3C5D7;color:#0A2463;border-radius:9999px;padding:10px 14px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:inherit;}
+      .s5-tab.active{border-color:#003FB1;background:#DBE1FF;}
+      .s5-dot{width:12px;height:12px;border-radius:9999px;display:inline-block;}
+      .s5-help{font-size:.82rem;color:#434654;font-weight:500;margin:0 0 12px;}
+      .s5-steps{font-size:.85rem;color:#191B23;line-height:1.9;margin:0 0 12px;padding-left:20px;}
+      .s5-ref-row{display:flex;gap:8px;}
+      .s5-ref-row .form-input{flex:1;}
+    </style>
+    <h3 class="s5-title">Choisissez votre plan Bolamu</h3>
+    <div class="s5-plans">
+      ${s5PlanCard('essentiel')}${s5PlanCard('standard')}${s5PlanCard('premium')}
+    </div>
+    <div id="s5-payment" style="display:none;">
+      <div class="s5-recap" id="s5-recap"></div>
+      <div class="s5-tabs">
+        <button type="button" id="tab-mtn" class="s5-tab active" onclick="switchPayTab('MTN')"><span class="s5-dot" style="background:#FFCC00;"></span> MTN MoMo</button>
+        <button type="button" id="tab-airtel" class="s5-tab" onclick="switchPayTab('AIRTEL')"><span class="s5-dot" style="background:#E40000;"></span> Airtel Money</button>
+      </div>
+      <div id="pane-mtn">
+        <p class="s5-help">Appuyez sur le bouton — votre téléphone composera automatiquement le code de paiement.</p>
+        <button type="button" id="btn-payer-mtn" class="btn-step" onclick="payerMtn()">Payer avec MTN MoMo →</button>
+        <p class="s5-help" style="margin-top:16px;">Après paiement, entrez votre référence de transaction :</p>
+        <div class="s5-ref-row">
+          <input id="input-reference-mtn" class="form-input" type="text" placeholder="Réf. SMS MTN">
+          <button type="button" id="btn-confirmer-mtn" class="btn-step-outline" onclick="confirmerPaiement('MTN')">Valider</button>
+        </div>
+      </div>
+      <div id="pane-airtel" style="display:none;">
+        <ol class="s5-steps">
+          <li>Composez <strong>*128*3*3#</strong></li>
+          <li>Sélectionnez <strong>3</strong> (Paiement marchand)</li>
+          <li>Numéro marchand : <strong>057430079</strong></li>
+          <li>Montant : <strong id="s5-airtel-amount"></strong> XAF</li>
+          <li>Entrez votre PIN et confirmez</li>
+        </ol>
+        <button type="button" id="btn-payer-airtel" class="btn-step-outline" onclick="payerAirtel()">Ouvrir le menu Airtel →</button>
+        <p class="s5-help" style="margin-top:16px;">Après paiement, entrez votre référence de transaction :</p>
+        <div class="s5-ref-row">
+          <input id="input-reference-airtel" class="form-input" type="text" placeholder="Réf. SMS Airtel">
+          <button type="button" id="btn-confirmer-airtel" class="btn-step-outline" onclick="confirmerPaiement('AIRTEL')">Valider</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function selectPlanCard(plan){
+  if(!PLAN_INFO[plan])return;
+  state.selectedPlan=plan;
+  state.selectedAmount=PLAN_INFO[plan].amount;
+  document.querySelectorAll('.s5-plan').forEach(el=>{
+    el.classList.toggle('active', el.dataset.plan===plan);
+  });
+  const pay=document.getElementById('s5-payment');
+  if(pay)pay.style.display='block';
+  const recap=document.getElementById('s5-recap');
+  if(recap)recap.innerHTML=`Plan <strong>${PLAN_INFO[plan].label}</strong> — ${PLAN_INFO[plan].amount.toLocaleString('fr-FR')} XAF / mois`;
+  const aa=document.getElementById('s5-airtel-amount');
+  if(aa)aa.textContent=PLAN_INFO[plan].amount.toLocaleString('fr-FR');
+}
+
+function switchPayTab(op){
+  state.selectedOperator=op;
+  const tm=document.getElementById('tab-mtn'), ta=document.getElementById('tab-airtel');
+  const pm=document.getElementById('pane-mtn'), pa=document.getElementById('pane-airtel');
+  if(tm)tm.classList.toggle('active', op==='MTN');
+  if(ta)ta.classList.toggle('active', op==='AIRTEL');
+  if(pm)pm.style.display=op==='MTN'?'block':'none';
+  if(pa)pa.style.display=op==='AIRTEL'?'block':'none';
+}
+
+function s5AuthHeaders(){
+  const t=state.patientToken||localStorage.getItem('bolamu_patient_token')||'';
+  const h={'Content-Type':'application/json'};
+  if(t)h['Authorization']='Bearer '+t;
+  return h;
+}
+
+async function payerMtn(){
+  if(!state.selectedPlan)return showAlert('Choisissez d\'abord un plan.');
+  const montant=state.selectedAmount;
+  try{ window.location.href='tel:'+encodeURIComponent('*105*6*503215*'+montant+'#'); }catch(_){}
+  try{
+    const res=await fetch(`${API}/payments/momo/request`,{method:'POST',headers:s5AuthHeaders(),body:JSON.stringify({amount:montant,plan:state.selectedPlan})});
+    const d=await res.json();
+    if(d&&d.reference_id){ state.paymentReference=d.reference_id; }
+  }catch(_){}
+}
+
+async function payerAirtel(){
+  if(!state.selectedPlan)return showAlert('Choisissez d\'abord un plan.');
+  const montant=state.selectedAmount;
+  try{ window.location.href='tel:'+encodeURIComponent('*128*3*3#'); }catch(_){}
+  try{
+    const res=await fetch(`${API}/payments/airtel/request`,{method:'POST',headers:s5AuthHeaders(),body:JSON.stringify({amount:montant,plan:state.selectedPlan})});
+    const d=await res.json();
+    if(d&&d.reference_id){ state.paymentReference=d.reference_id; }
+  }catch(_){}
+}
+
+async function confirmerPaiement(operator){
+  if(!state.selectedPlan)return showAlert('Choisissez d\'abord un plan.');
+  const refInput=document.getElementById(operator==='MTN'?'input-reference-mtn':'input-reference-airtel');
+  const ref=(refInput&&refInput.value.trim())||state.paymentReference;
+  if(!ref)return showAlert('Entrez votre référence de transaction.');
+  try{
+    const initRes=await fetch(`${API}/subscriptions/initiate`,{method:'POST',headers:s5AuthHeaders(),body:JSON.stringify({plan:state.selectedPlan,operator})});
+    const initData=await initRes.json();
+    if(!initData.success)return showAlert(initData.message||'Erreur lors de l\'initiation.');
+    state.subscriptionId=initData.subscription_id;
+    const confRes=await fetch(`${API}/subscriptions/confirm`,{method:'POST',headers:s5AuthHeaders(),body:JSON.stringify({subscription_id:state.subscriptionId,payment_reference:ref})});
+    const confData=await confRes.json();
+    if(confData.success){ renderStep5Success(); }
+    else { showAlert(confData.message||'Erreur lors de la confirmation.'); }
+  }catch(e){ showAlert('Erreur de connexion au serveur.'); }
+}
+
+function renderStep5Success(){
+  updateHeader('Souscription enregistrée','Paiement en vérification','Merci de votre confiance.');
+  for(let i=1;i<=5;i++){const pill=document.getElementById('pill-'+i);if(pill)pill.className='w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all pill-done';}
+  document.getElementById('step-content').innerHTML=`
+    <div class="alert-success" style="text-align:center;">✓ Votre paiement est en cours de vérification. Vous recevrez une confirmation WhatsApp sous 24h.</div>
+    <a href="/patient/dashboard.html" class="btn-step" style="display:inline-block;text-decoration:none;text-align:center;margin-top:8px;">Terminer</a>`;
 }
 
 renderStep1();
@@ -1130,6 +1303,13 @@ window.__bolamu_test = {
   // Étape 1 — Sélection rôle
   selectionnerRole: (role) => {
     selectRole(role);
+  },
+
+  // Étape 5 — Sélection plan abonnement (wrapper minimal sur data-plan)
+  selectionnerPlan: (plan) => {
+    if (!document.querySelector('[data-plan]')) { renderStep5(); }
+    selectPlanCard(plan);
+    return { success: state.selectedPlan === plan, plan: state.selectedPlan };
   },
 
   // Étape 2 — Infos personnelles

@@ -1881,6 +1881,23 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 18px; text-align: center;"><div style="font-size: 1.6rem; font-weight: 800; color: #0A2463;">{{ streakRecord }}</div><div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #434654; margin-top: 4px;">Streak record</div></div>
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 18px; text-align: center;"><div style="font-size: 1.6rem; font-weight: 800; color: #0A2463;">{{ eventsCount }}</div><div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #434654; margin-top: 4px;">Événements</div></div>
       </div>
+      <!-- ===== MON ABONNEMENT ===== -->
+      <div id="abonnement-card" class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 24px; padding: 22px; margin-bottom: 18px; max-width: 560px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px;">
+          <div style="font-size: 1.05rem; font-weight: 800; color: #0A2463;">Mon Abonnement</div>
+          {{ abonnementStatutBadge }}
+        </div>
+        <div style="{{ abonnementInfoStyle }}">
+          <div style="font-size: 0.9rem; color: #434654; margin-bottom: 6px;">Plan : <strong style="color: #0A2463;">{{ abonnementCardPlan }}</strong></div>
+          <div style="font-size: 0.9rem; color: #434654; margin-bottom: 6px;">Montant : <strong style="color: #0A2463;">{{ abonnementCardAmount }}</strong></div>
+          <div style="font-size: 0.9rem; color: #434654; margin-bottom: 14px;">Prochain renouvellement : <strong style="color: #0A2463;">{{ abonnementCardNext }}</strong></div>
+          <a href="/register.html" style="display: inline-block; text-decoration: none; background: transparent; border: 2px solid #C3C5D7; color: #0A2463; padding: 10px 22px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem;">Changer de plan</a>
+        </div>
+        <div style="{{ abonnementEmptyStyle }}">
+          <p style="font-size: 0.9rem; color: #434654; margin: 0 0 14px;">Vous n'avez pas d'abonnement actif.</p>
+          <a href="/register.html" style="display: inline-block; text-decoration: none; background: #003FB1; color: #fff; padding: 10px 22px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem;">Souscrire</a>
+        </div>
+      </div>
       <div style="display: flex; flex-direction: column; gap: 10px; max-width: 560px;">
         <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="person" label="Mes informations" hint-size="100%,56px"></dc-import></div>
         <div onclick="{{ comingSoon }}" style="cursor: pointer;"><dc-import name="SettingRow" icon="notifications" label="Notifications" hint-size="100%,56px"></dc-import></div>
@@ -2420,13 +2437,20 @@ class Component extends DCLogic {
       })
       .then(r => r.json())
       .then(d => {
-        if (d.success && d.data) {
-          const planMap = { essentiel: 'Bolamu Essentiel', standard: 'Bolamu Standard', premium: 'Bolamu Premium' };
-          this._abonnement = planMap[d.data.plan] || d.data.plan || 'Bolamu Essentiel';
-          this._abonnementStatus = d.data.status || 'active';
-          this.setState({});
+        const sub = d.subscription || d.data;
+        if (d.success && sub && sub.plan) {
+          const planMapTxt = { essentiel: 'Bolamu Essentiel', standard: 'Bolamu Standard', premium: 'Bolamu Premium' };
+          const planMapLabel = { essentiel: 'MOTO', standard: 'NDEKO', premium: 'LIBOTA' };
+          this._abonnement = planMapTxt[sub.plan] || sub.plan;
+          this._abonnementStatus = sub.status || 'active';
+          this._subPlanLabel = planMapLabel[sub.plan] || sub.plan;
+          this._subAmount = sub.amount_fcfa || 0;
+          this._subNext = sub.next_billing_date || null;
+        } else {
+          this._subPlanLabel = null;
         }
-      }).catch(() => {});
+        this.setState({});
+      }).catch(() => { this._subPlanLabel = null; this.setState({}); });
 
       // Constantes médicales
       fetch('https://api.bolamu.co/api/v1/patients/constantes/' + encodeURIComponent(phone), {
@@ -3669,6 +3693,20 @@ window.__bolamu_test = {
       sportGroupsData: this._sportGroups || [],
       ledgerData: this._ledger || [],
       abonnementTxt: this._abonnement || 'Bolamu Essentiel',
+      // Carte "Mon Abonnement" (profil)
+      abonnementInfoStyle: this._subPlanLabel ? '' : 'display:none;',
+      abonnementEmptyStyle: this._subPlanLabel ? 'display:none;' : '',
+      abonnementCardPlan: this._subPlanLabel || '—',
+      abonnementCardAmount: this._subAmount ? (this._subAmount.toLocaleString('fr-FR') + ' XAF / mois') : '—',
+      abonnementCardNext: this._subNext ? new Date(this._subNext).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—',
+      abonnementStatutBadge: (() => {
+        if (!this._subPlanLabel) return '';
+        const s = this._abonnementStatus;
+        if (s === 'active') return '<span style="background:#D4F5EE;color:#005344;padding:4px 14px;border-radius:9999px;font-size:0.72rem;font-weight:800;">&#10003; Actif</span>';
+        if (s === 'pending') return '<span style="background:#FFF3CD;color:#856404;padding:4px 14px;border-radius:9999px;font-size:0.72rem;font-weight:800;">En attente</span>';
+        if (s === 'suspended') return '<span style="background:#FFE4E1;color:#BA1A1A;padding:4px 14px;border-radius:9999px;font-size:0.72rem;font-weight:800;">Suspendu</span>';
+        return '';
+      })(),
       // Constantes médicales
       groupeSanguin: (this._constantes && this._constantes.groupe_sanguin) || 'Non renseigné',
       allergies: (this._constantes && this._constantes.allergies) || 'Aucune connue',
