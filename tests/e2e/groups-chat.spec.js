@@ -11,6 +11,9 @@ const TEST_PATIENT_PHONE = '+242069735418';
 function readStoredToken() {
   try {
     const state = JSON.parse(fs.readFileSync('playwright/.auth/patient.json', 'utf8'));
+    // Nouveau format simplifié: {"token": "..."}
+    if (state.token) return state.token;
+    // Ancien format Playwright: {origins: [{localStorage: [{name, value}]}]}
     for (const origin of (state.origins || [])) {
       for (const item of (origin.localStorage || [])) {
         if (item.name === 'bolamu_patient_token') return item.value;
@@ -224,6 +227,7 @@ test.describe('Chat médecin privé', () => {
 
   test('Test 10 — Chat médecin privé', async () => {
     const TEST_DOCTOR_PHONE = '+242060000001';
+    const channel = `medecin_${TEST_DOCTOR_PHONE}`;
 
     const response = await authFetch('/chat/medecin/messages', {
       method: 'POST',
@@ -238,8 +242,8 @@ test.describe('Chat médecin privé', () => {
     expect(data.success).toBe(true);
     expect(data.data).toHaveProperty('id');
 
-    // Vérifier que le message est dans le canal privé
-    const channelResponse = await authFetch(`/chat/medecin/messages?doctor_phone=${TEST_DOCTOR_PHONE}`);
+    // Vérifier que le message est dans le canal privé (via route directe /:channel/messages)
+    const channelResponse = await authFetch(`/chat/${channel}/messages`);
     const channelData = await channelResponse.json();
 
     expect(channelData.success).toBe(true);

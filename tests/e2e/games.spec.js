@@ -12,6 +12,9 @@ const TEST_PHONE = '+242069735418';
 function readStoredToken() {
   try {
     const state = JSON.parse(fs.readFileSync('playwright/.auth/patient.json', 'utf8'));
+    // Nouveau format simplifié: {"token": "..."}
+    if (state.token) return state.token;
+    // Ancien format Playwright: {origins: [{localStorage: [{name, value}]}]}
     for (const origin of (state.origins || [])) {
       for (const item of (origin.localStorage || [])) {
         if (item.name === 'bolamu_patient_token') return item.value;

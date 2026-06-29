@@ -1508,6 +1508,43 @@ router.post('/diagnostics/whatsapp-send-test', async (req, res) => {
     }
 });
 
+// ─── NETTOYAGE DONNÉES DE TEST (E2E Playwright) ───────────────────────────────
+// Sécurité stricte : n'agit QUE sur les numéros de test (+24206TEST / +24206EMP).
+// audit_log NON supprimé (règle insert-only). users supprimé uniquement pour les
+// comptes synthétiques de test, jamais pour des données réelles.
+router.delete('/test/cleanup', authMiddleware, adminOnly, async (req, res) => {
+    const { phones } = req.body || {};
+    if (!Array.isArray(phones)) {
+        return res.status(400).json({ success: false, message: 'phones[] requis.' });
+    }
+
+    const phonesValides = phones.filter(
+        p => typeof p === 'string' && (p.startsWith('+24206TEST') || p.startsWith('+24206EMP'))
+    );
+
+    if (phonesValides.length === 0) {
+        return res.json({ success: true, message: 'Aucun numéro de test à nettoyer', cleaned: [] });
+    }
+
+    // Chaque requête isolée : un schéma absent/différent ne bloque pas le reste
+    const safeDelete = async (sql, params) => {
+        try {
+            await pool.query(sql, params);
+        } catch (e) {
+            console.warn(`[TEST CLEANUP] ${e.message}`);
+        }
+    };
+
+    // Supprimer les données liées AVANT users (contraintes FK sur phone)
+    await safeDelete('DELETE FROM zora_ledger WHERE phone = ANY($1)', [phonesValides]);
+    await safeDelete('DELETE FROM subscriptions WHERE patient_phone = ANY($1)', [phonesValides]);
+    await safeDelete('DELETE FROM documents WHERE uploaded_by = ANY($1)', [phonesValides]);
+    await safeDelete('DELETE FROM users WHERE phone = ANY($1)', [phonesValides]);
+
+    console.log(`[TEST CLEANUP] Nettoyage effectué pour : ${phonesValides.join(', ')}`);
+    return res.json({ success: true, cleaned: phonesValides });
+});
+
 // ─── WAHA WEBHOOK (alertes session) ───────────────────────────────────────────
 // Pas d'authMiddleware - WAHA appelle sans token
 router.post('/waha-webhook', wahaWebhook);

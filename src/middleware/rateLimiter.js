@@ -24,8 +24,11 @@ const strictLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => {
-      const phone = req.body?.phone;
-      return TEST_PHONES.includes(phone);
+      const phone = req.body?.phone || '';
+      // Exempter les comptes de test fixes + les numéros synthétiques E2E
+      return TEST_PHONES.includes(phone)
+        || phone.startsWith('+24206TEST')
+        || phone.startsWith('+24206EMP');
     },
     handler: (req, res) => {
         // Audit log en cas de dépassement

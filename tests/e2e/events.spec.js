@@ -11,6 +11,9 @@ const API = process.env.API_URL ? `${process.env.API_URL}/api/v1` : 'https://api
 function readStoredToken() {
   try {
     const state = JSON.parse(fs.readFileSync('playwright/.auth/patient.json', 'utf8'));
+    // Format simple : {"token": "..."}
+    if (state.token) return state.token;
+    // Format Playwright complet avec origins/localStorage
     for (const origin of (state.origins || [])) {
       for (const item of (origin.localStorage || [])) {
         if (item.name === 'bolamu_patient_token') return item.value;

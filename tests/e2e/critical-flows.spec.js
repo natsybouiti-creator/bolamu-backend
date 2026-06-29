@@ -13,15 +13,7 @@ const PATIENT   = { phone: '+242069735418', password: process.env.TEST_PATIENT_P
 // ─── Lecture tokens stockés (évite le rate limiter) ─────────
 function readToken(role) {
   try {
-    if (role === 'patient') {
-      const state = JSON.parse(fs.readFileSync('playwright/.auth/patient.json', 'utf8'));
-      for (const origin of (state.origins || [])) {
-        for (const item of (origin.localStorage || [])) {
-          if (item.name === 'bolamu_patient_token') return item.value;
-        }
-      }
-      return '';
-    }
+    // Format unifié : tous les rôles utilisent {"token": "..."}
     return JSON.parse(fs.readFileSync(`playwright/.auth/${role}.json`, 'utf8')).token || '';
   } catch (_) {}
   return '';
