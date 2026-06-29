@@ -32,6 +32,7 @@ router.get('/:id', getEventById);
 
 // PATIENTS (auth JWT)
 router.delete('/:id/register', authMiddleware, cancelEventRegistration);
+router.patch('/:id/cancel', authMiddleware, cancelEventRegistration); // Alias frontend
 router.get('/:id/checkin-token', authMiddleware, getCheckinToken);
 
 // PATIENTS (auth JWT) - Sprint 7 : Inscription via elonga-events.service.js

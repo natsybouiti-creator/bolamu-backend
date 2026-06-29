@@ -1549,4 +1549,45 @@ router.delete('/test/cleanup', authMiddleware, adminOnly, async (req, res) => {
 // Pas d'authMiddleware - WAHA appelle sans token
 router.post('/waha-webhook', wahaWebhook);
 
+// ─── ALIAS COLLECTE (OVP/SEPA) ───────────────────────────────────────────────
+// Alias pour compatibilité frontend - routes existantes dans collecte.routes.js
+router.get('/ovp/pending', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+          o.user_phone as phone,
+          s.plan,
+          o.montant_total,
+          o.created_at
+       FROM ovp_documents o
+       LEFT JOIN subscriptions s ON s.patient_phone = o.user_phone AND s.is_active = TRUE
+       WHERE o.statut IN ('genere', 'envoye')
+       ORDER BY o.created_at DESC`
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[OVP PENDING]', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+router.get('/sepa/pending', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+          b.patient_phone as phone,
+          b.plan,
+          b.amount_fcfa,
+          b.created_at
+       FROM bank_transfer_requests b
+       WHERE b.status = 'pending' AND b.canal_type = 'sepa_diaspora'
+       ORDER BY b.created_at DESC`
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[SEPA PENDING]', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 module.exports = router;
