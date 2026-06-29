@@ -115,12 +115,14 @@ test.describe.serial('S02 — Souscription en ligne', () => {
     try {
       await page.goto('https://www.bolamu.co/patient/dashboard.html');
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForSelector('#profile', { timeout: 5000 });
+      await page.click('[data-testid="btn-profil"]');
+      await page.click('[data-testid="menu-abonnement"]');
+      await page.waitForSelector('#abonnement-panel.active', { timeout: 5000 });
       const subCheck = await apiCall('/patients/check-subscription?phone=+242069735418', 'GET', null, token);
       expect(subCheck.has_active_subscription).toBe(true);
       expect(subCheck.subscription.plan).toBe('essentiel');
       resultats.database = { statut: '✅', details: 'subscription active essentiel' };
-      screenshots.push(await screenshot(page, 's02', 5, 'souscription-active'));
+      screenshots.push(await screenshot(page, 's02', 5, 'abonnement-actif'));
     } catch (err) {
       bugs.push({ code: 'BUG-S02-05', description: err.message });
       throw err;
