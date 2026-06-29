@@ -905,8 +905,8 @@ function renderStep4(){
       </div>
       <div id="pane-mtn">
         <ol class="s4-steps">
-          <li>Composez <strong>*105*6*503215*[MONTANT]#</strong></li>
-          <li>Validez avec votre code PIN</li>
+          <li>Composez <strong>*105*6*503215*<span id="s4-mtn-amount"></span>#</strong></li>
+          <li>Validez avec votre code PIN puis #OK</li>
           <li>Notez la référence de transaction reçue par SMS</li>
         </ol>
       </div>
@@ -1048,6 +1048,8 @@ function selectPlanCard(plan){
   if(recap)recap.innerHTML=`Plan <strong>${PLAN_INFO[plan].label}</strong> — ${PLAN_INFO[plan].amount.toLocaleString('fr-FR')} XAF / mois`;
   const aa=document.getElementById('s4-airtel-amount');
   if(aa)aa.textContent=PLAN_INFO[plan].amount.toLocaleString('fr-FR');
+  const ma=document.getElementById('s4-mtn-amount');
+  if(ma)ma.textContent=PLAN_INFO[plan].amount.toLocaleString('fr-FR');
 }
 
 function switchPayTab(op){
@@ -1070,6 +1072,7 @@ function s5AuthHeaders(){
 }
 
 function validateStep4(){
+  console.log('valider cliqué');
   const tid=document.getElementById('input-transaction-id');
   const val=tid?tid.value.trim():'';
   const err=document.getElementById('s4-error');
@@ -1125,6 +1128,8 @@ document.addEventListener('click', function(e) {
   if (e.target.closest('#btn-back-step3')) { renderStep2(); return; }
   if (e.target.closest('#btn-step3')) { goStep4(); return; }
   if (e.target.closest('#btn-back-step4')) { renderStep3(); return; }
+  if (e.target.closest('#btn-validate-step4')) { validateStep4(); return; }
+  if (e.target.closest('#btn-back-step5')) { renderStep4(); return; }
   if (e.target.closest('#btn-register')) { finalRegister(); return; }
   
   // Upload zones (dynamiques par clé)
