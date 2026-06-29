@@ -78,7 +78,7 @@ test.describe.serial('S02 — Souscription en ligne', () => {
 
   test('ÉTAPE 3 — Initier paiement MoMo', async () => {
     try {
-      const momoRes = await apiCall('/momo/request', 'POST', { amount: 5000, phone: '+242069735418' }, token);
+      const momoRes = await apiCall('/momo/request', 'POST', { amount: 2000, plan: 'essentiel', phone: '+242069735418' }, token);
       expect(momoRes.success).toBe(true);
       expect(momoRes.data.reference_id).toBeTruthy();
       resultats.backend = { statut: '✅', details: 'momo/request → reference_id' };

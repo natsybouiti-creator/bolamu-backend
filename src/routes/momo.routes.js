@@ -129,6 +129,9 @@ async function handlePaymentSuccess(phone, referenceId) {
 // ─── POST /request ────────────────────────────────────────────────────────────
 router.post('/request', authMiddleware, async (req, res) => {
     try {
+        console.log('[S02-DEBUG] body reçu:', req.body);
+        console.log('[S02-DEBUG] user:', req.user);
+        
         const phone = req.user?.phone;
         if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
 
