@@ -1868,9 +1868,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; color: #FF6B35; font-size: 22px;">bolt</span><span style="font-size: 0.95rem; font-weight: 800; color: #fff;">OFFRES ÉCLAIR</span><span style="{{ flashBadgeStyle }}">{{ flashCount }} disponibles</span></div>
         <div style="font-size: 0.78rem; font-weight: 500; color: rgba(255,255,255,0.5); margin-bottom: 16px;">Ces offres expirent ce soir à minuit.</div>
         <div class="hscroll" style="display: flex; gap: 14px; padding-bottom: 6px;">
-          <dc-import name="FlashOffer" icon="smartphone" cat="Télécom" title="Crédit MTN 5 000F" old="700" now="500 pts" timer="{{ offerTxt }}" urgent="{{ offerUrgent }}" hint-size="230px,250px"></dc-import>
-          <dc-import name="FlashOffer" icon="hotel" cat="Hôtels" title="Nuitée Hilton PNR" old="3 000" now="2 500 pts" timer="{{ offerTxt }}" urgent="{{ offerUrgent }}" hint-size="230px,250px"></dc-import>
-          <dc-import name="FlashOffer" icon="local_gas_station" cat="Carburant" title="Plein essence 15L" old="1 000" now="800 pts" timer="{{ offerTxt }}" urgent="{{ offerUrgent }}" hint-size="230px,250px"></dc-import>
+          <div onclick="window._appState.showToast('Bientôt disponible')" style="cursor:pointer;"><dc-import name="FlashOffer" icon="smartphone" cat="Télécom" title="Crédit MTN 5 000F" old="700" now="500 pts" timer="{{ offerTxt }}" urgent="{{ offerUrgent }}" hint-size="230px,250px"></dc-import></div>
+          <div onclick="window._appState.showToast('Bientôt disponible')" style="cursor:pointer;"><dc-import name="FlashOffer" icon="hotel" cat="Hôtels" title="Nuitée Hilton PNR" old="3 000" now="2 500 pts" timer="{{ offerTxt }}" urgent="{{ offerUrgent }}" hint-size="230px,250px"></dc-import></div>
+          <div onclick="window._appState.showToast('Bientôt disponible')" style="cursor:pointer;"><dc-import name="FlashOffer" icon="local_gas_station" cat="Carburant" title="Plein essence 15L" old="1 000" now="800 pts" timer="{{ offerTxt }}" urgent="{{ offerUrgent }}" hint-size="230px,250px"></dc-import></div>
         </div>
       </div>
 
@@ -2260,7 +2260,7 @@ class Component extends DCLogic {
       const phone = payload.phone;
 
       // Profil patient
-      fetch('https://api.bolamu.co/api/v1/patients/profil?phone=' + encodeURIComponent(phone), {
+      fetch('https://www.bolamu.co/api/v1/patients/profil?phone=' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2278,7 +2278,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Solde Zora
-      fetch('https://api.bolamu.co/api/v1/zora/balance', {
+      fetch('https://www.bolamu.co/api/v1/zora/balance', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2302,7 +2302,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Streak
-      fetch('https://api.bolamu.co/api/v1/streaks/me', {
+      fetch('https://www.bolamu.co/api/v1/streaks/me', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2315,7 +2315,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Événements Elonga
-      fetch('https://api.bolamu.co/api/v1/events', {
+      fetch('https://www.bolamu.co/api/v1/events', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2350,7 +2350,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Mes inscriptions événements
-      fetch('https://api.bolamu.co/api/v1/events/my/registrations', {
+      fetch('https://www.bolamu.co/api/v1/events/my/registrations', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2378,7 +2378,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Leaderboard
-      fetch('https://api.bolamu.co/api/v1/leaderboard/weekly', {
+      fetch('https://www.bolamu.co/api/v1/leaderboard/weekly', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2391,7 +2391,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Palier Zora (réutilise la réponse balance)
-      fetch('https://api.bolamu.co/api/v1/zora/balance?phone=' + encodeURIComponent(phone), {
+      fetch('https://www.bolamu.co/api/v1/zora/balance?phone=' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2407,7 +2407,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Groupes de sport
-      fetch('https://api.bolamu.co/api/v1/sport-groups', {
+      fetch('https://www.bolamu.co/api/v1/sport-groups', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2433,7 +2433,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Ledger Zora
-      fetch('https://api.bolamu.co/api/v1/zora/ledger?limit=10', {
+      fetch('https://www.bolamu.co/api/v1/zora/ledger?limit=10', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2445,7 +2445,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Abonnement patient
-      fetch('https://api.bolamu.co/api/v1/patients/subscription?phone=' + encodeURIComponent(phone), {
+      fetch('https://www.bolamu.co/api/v1/patients/subscription?phone=' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2466,7 +2466,7 @@ class Component extends DCLogic {
       }).catch(() => { this._subPlanLabel = null; this.setState({}); });
 
       // Constantes médicales
-      fetch('https://api.bolamu.co/api/v1/patients/constantes/' + encodeURIComponent(phone), {
+      fetch('https://www.bolamu.co/api/v1/patients/constantes/' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2478,7 +2478,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Timeline consultations
-      fetch('https://api.bolamu.co/api/v1/reports/patient/' + encodeURIComponent(phone) + '/timeline', {
+      fetch('https://www.bolamu.co/api/v1/reports/patient/' + encodeURIComponent(phone) + '/timeline', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2491,7 +2491,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Historique accès dossier
-      fetch('https://api.bolamu.co/api/v1/reports/access-log/' + encodeURIComponent(phone), {
+      fetch('https://www.bolamu.co/api/v1/reports/access-log/' + encodeURIComponent(phone), {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2503,7 +2503,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Config jeux Zora
-      fetch('https://api.bolamu.co/api/v1/zora/games/config', {
+      fetch('https://www.bolamu.co/api/v1/zora/games/config', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2515,7 +2515,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Liste des médecins (modal RDV)
-      fetch('https://api.bolamu.co/api/v1/doctors', {
+      fetch('https://www.bolamu.co/api/v1/doctors', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2527,7 +2527,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // Récompenses Zora (marketplace réelle)
-      fetch('https://api.bolamu.co/api/v1/zora/rewards', {
+      fetch('https://www.bolamu.co/api/v1/zora/rewards', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2560,7 +2560,7 @@ class Component extends DCLogic {
       });
 
       // Bons d'achat patient (chantier 2)
-      fetch('https://api.bolamu.co/api/v1/vouchers/my', {
+      fetch('https://www.bolamu.co/api/v1/vouchers/my', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2572,7 +2572,7 @@ class Component extends DCLogic {
       }).catch(() => {});
 
       // DMN access log (chantier 3)
-      fetch('https://api.bolamu.co/api/v1/dmn/access-log', {
+      fetch('https://www.bolamu.co/api/v1/dmn/access-log', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -2585,7 +2585,7 @@ class Component extends DCLogic {
 
       // QR Code identification patient (rotating 60s)
       const loadQR = () => {
-        fetch('https://api.bolamu.co/api/v1/qr/generate', {
+        fetch('https://www.bolamu.co/api/v1/qr/generate', {
           headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(r => r.json())
@@ -2692,7 +2692,7 @@ window.__bolamu_test = {
   joinGroup: async (id) => {
     const token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
-    const res = await fetch('https://api.bolamu.co/api/v1/clubs/' + id + '/join', {
+    const res = await fetch('https://www.bolamu.co/api/v1/clubs/' + id + '/join', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -2872,7 +2872,7 @@ window.__bolamu_test = {
     const token = localStorage.getItem('bolamu_patient_token');
     if (!token) { this.showToast('Session expirée'); return; }
     try {
-      const res = await fetch('https://api.bolamu.co/api/v1/vouchers/generate', {
+      const res = await fetch('https://www.bolamu.co/api/v1/vouchers/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ program_id: r.id })
@@ -2904,7 +2904,7 @@ window.__bolamu_test = {
     const password = this.state.dmnPassword;
     if (!password) { this.showToast('Mot de passe requis'); return; }
     try {
-      const res = await fetch('https://api.bolamu.co/api/v1/dmn/download/verify', {
+      const res = await fetch('https://www.bolamu.co/api/v1/dmn/download/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ password })
@@ -2915,7 +2915,7 @@ window.__bolamu_test = {
         this._dmnTokenExpires = d.expires_at;
         this.setState({ dmnPasswordModal: false, dmnPassword: '' });
         // Charger la liste des documents depuis summary
-        fetch('https://api.bolamu.co/api/v1/dmn/summary', {
+        fetch('https://www.bolamu.co/api/v1/dmn/summary', {
           headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(r => r.json())
@@ -2937,7 +2937,7 @@ window.__bolamu_test = {
     const dmnToken = this._dmnToken;
     if (!dmnToken) { this.showToast('Token expiré — re-vérifiez votre mot de passe'); return; }
     try {
-      const res = await fetch('https://api.bolamu.co/api/v1/dmn/download/' + docId, {
+      const res = await fetch('https://www.bolamu.co/api/v1/dmn/download/' + docId, {
         headers: { 'Authorization': 'Bearer ' + dmnToken }
       });
       const d = await res.json();
@@ -2955,7 +2955,7 @@ window.__bolamu_test = {
     const token = localStorage.getItem('bolamu_patient_token');
     if (!token) { this.showToast('Session expirée'); return; }
     try {
-      const res = await fetch('https://api.bolamu.co/api/v1/dmn/qr-payload', {
+      const res = await fetch('https://www.bolamu.co/api/v1/dmn/qr-payload', {
         headers: { 'Authorization': 'Bearer ' + token }
       });
       const d = await res.json();
@@ -3069,7 +3069,7 @@ window.__bolamu_test = {
     }
 
     try {
-      const r = await fetch('https://api.bolamu.co/api/v1/events/' + id + '/register', {
+      const r = await fetch('https://www.bolamu.co/api/v1/events/' + id + '/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
       });
@@ -3154,7 +3154,7 @@ window.__bolamu_test = {
     this.setState({ wheelSpinning: true, wheelDeg: target, wheelResult: null });
 
     try {
-      const r = await fetch('https://api.bolamu.co/api/v1/zora/games/play', {
+      const r = await fetch('https://www.bolamu.co/api/v1/zora/games/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ game_type: 'wheel', play_type: 'free' })
@@ -3190,7 +3190,7 @@ window.__bolamu_test = {
     }
 
     try {
-      const r = await fetch('https://api.bolamu.co/api/v1/zora/games/play', {
+      const r = await fetch('https://www.bolamu.co/api/v1/zora/games/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ game_type: 'chest', play_type: 'free' })
@@ -3222,7 +3222,7 @@ window.__bolamu_test = {
     const correct = i === q.answer;
 
     try {
-      const r = await fetch('https://api.bolamu.co/api/v1/zora/games/play', {
+      const r = await fetch('https://www.bolamu.co/api/v1/zora/games/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ game_type: 'quiz', play_type: 'free' })
@@ -3251,7 +3251,7 @@ window.__bolamu_test = {
     }
 
     try {
-      const r = await fetch('https://api.bolamu.co/api/v1/zora/games/play', {
+      const r = await fetch('https://www.bolamu.co/api/v1/zora/games/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ game_type: 'scratch', play_type: 'free' })
@@ -3307,7 +3307,7 @@ window.__bolamu_test = {
     }
 
     try {
-      const r = await fetch('https://api.bolamu.co/api/v1/patients/constantes', {
+      const r = await fetch('https://www.bolamu.co/api/v1/patients/constantes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify(body)
@@ -3336,7 +3336,7 @@ window.__bolamu_test = {
     if (!rdvDoctorId || !rdvDate) { this._slots = []; this.setState({}); return; }
     const token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
-    fetch('https://api.bolamu.co/api/v1/appointments/slots/' + encodeURIComponent(rdvDoctorId) + '?date=' + encodeURIComponent(rdvDate), {
+    fetch('https://www.bolamu.co/api/v1/appointments/slots/' + encodeURIComponent(rdvDoctorId) + '?date=' + encodeURIComponent(rdvDate), {
       headers: { 'Authorization': 'Bearer ' + token }
     })
     .then(r => r.json())
@@ -3366,7 +3366,7 @@ window.__bolamu_test = {
     const patientPhone = this._patientPhone || localStorage.getItem('bolamu_patient_phone') || '';
     this.setState({ rdvBooking: true });
     try {
-      const r = await fetch('https://api.bolamu.co/api/v1/appointments/book', {
+      const r = await fetch('https://www.bolamu.co/api/v1/appointments/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ patient_phone: patientPhone, doctor_id: rdvDoctorId, date: rdvDate, time: rdvSlot })
@@ -3404,7 +3404,7 @@ window.__bolamu_test = {
     if (!token) { this.showToast('Session expirée — reconnectez-vous', 'error'); return; }
     if (!rewardId) { this.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); this.initScratch(); return; }
     try {
-      const r = await fetch('https://api.bolamu.co/api/v1/zora/redeem', {
+      const r = await fetch('https://www.bolamu.co/api/v1/zora/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ reward_id: rewardId })
@@ -3945,7 +3945,7 @@ window.__bolamu_test = {
         
         try {
           // Charger les messages de la conversation communauté
-          const res = await fetch('https://api.bolamu.co/api/v1/chat/conversations/1/messages', {
+          const res = await fetch('https://www.bolamu.co/api/v1/chat/conversations/1/messages', {
             headers: { 'Authorization': 'Bearer ' + token }
           });
           const d = await res.json();
@@ -3956,7 +3956,7 @@ window.__bolamu_test = {
           
           // Se connecter à Socket.io
           if (!this._socket) {
-            this._socket = io('https://api.bolamu.co');
+            this._socket = io('https://www.bolamu.co');
             this._socket.on('new_message', (msg) => {
               this.setState({ chatMessages: [...this.state.chatMessages, msg] });
               this.scrollToChatBottom();
@@ -3981,7 +3981,7 @@ window.__bolamu_test = {
         if (!s.chatInput || !token) return;
         
         try {
-          const res = await fetch('https://api.bolamu.co/api/v1/chat/conversations/1/messages', {
+          const res = await fetch('https://www.bolamu.co/api/v1/chat/conversations/1/messages', {
             method: 'POST',
             headers: { 
               'Authorization': 'Bearer ' + token,
@@ -4012,14 +4012,14 @@ window.__bolamu_test = {
         if (!token) return;
         
         try {
-          const res = await fetch('https://api.bolamu.co/api/v1/clubs/' + groupId + '/join', {
+          const res = await fetch('https://www.bolamu.co/api/v1/clubs/' + groupId + '/join', {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + token }
           });
           const d = await res.json();
           if (d.success) {
             // Recharger les groupes
-            const groupsRes = await fetch('https://api.bolamu.co/api/v1/clubs', {
+            const groupsRes = await fetch('https://www.bolamu.co/api/v1/clubs', {
               headers: { 'Authorization': 'Bearer ' + token }
             });
             const groupsData = await groupsRes.json();
@@ -4076,8 +4076,8 @@ window.__bolamu_test = {
         if (!token) return;
         
         const url = groupId 
-          ? 'https://api.bolamu.co/api/v1/leaderboard/weekly?group_id=' + groupId
-          : 'https://api.bolamu.co/api/v1/leaderboard/weekly';
+          ? 'https://www.bolamu.co/api/v1/leaderboard/weekly?group_id=' + groupId
+          : 'https://www.bolamu.co/api/v1/leaderboard/weekly';
         
         try {
           const res = await fetch(url, {
@@ -4179,7 +4179,7 @@ function openEventPanel(eventId) {
   
   if (!token) return;
   
-  fetch('https://api.bolamu.co/api/v1/events/' + eventId, {
+  fetch('https://www.bolamu.co/api/v1/events/' + eventId, {
     headers: { 'Authorization': 'Bearer ' + token }
   })
   .then(r => r.json())
@@ -4222,7 +4222,7 @@ function openEventPanel(eventId) {
       panel.classList.add('active');
       
       // Fetch participants
-      fetch('https://api.bolamu.co/api/v1/events/' + eventId + '/participants', {
+      fetch('https://www.bolamu.co/api/v1/events/' + eventId + '/participants', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -4323,7 +4323,7 @@ function startChat(phone) {
   const token = localStorage.getItem('bolamu_patient_token');
   if (!token) return;
   
-  fetch('https://api.bolamu.co/api/v1/chat/conversations', {
+  fetch('https://www.bolamu.co/api/v1/chat/conversations', {
     method: 'POST',
     headers: { 
       'Authorization': 'Bearer ' + token,
@@ -4337,12 +4337,12 @@ function startChat(phone) {
       // Rediriger vers la section chat du dashboard
       // Pour l'instant, fermer le panel et afficher un toast
       closeParticipantPanel();
-      alert('Conversation créée avec succès');
+      window._appState.showToast('Conversation créée avec succès');
     }
   }).catch(() => {
     // Si la route n'existe pas, afficher un toast
     closeParticipantPanel();
-    alert('Chat bientôt disponible');
+    window._appState.showToast('Chat bientôt disponible');
   });
 }
 
@@ -4353,7 +4353,7 @@ function openClubPanel(clubId) {
   
   if (!token) return;
   
-  fetch('https://api.bolamu.co/api/v1/clubs/' + clubId, {
+  fetch('https://www.bolamu.co/api/v1/clubs/' + clubId, {
     headers: { 'Authorization': 'Bearer ' + token }
   })
   .then(r => r.json())
@@ -4386,7 +4386,7 @@ function openClubPanel(clubId) {
       panel.classList.add('active');
       
       // Fetch club members
-      fetch('https://api.bolamu.co/api/v1/clubs/' + clubId + '/members', {
+      fetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/members', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
@@ -4544,6 +4544,7 @@ function openAbonnementPanel() {
   
   html += '</div>';
   content.innerHTML = html;
+  window._selectedPaymentMethod = 'mtn';
 }
 
 function closeAbonnementPanel() {
@@ -4595,21 +4596,41 @@ function selectPaymentMethod(method) {
 function validateSubscription() {
   const transactionId = document.getElementById('transaction-id').value;
   if (!transactionId) {
-    alert('Veuillez entrer l\'ID de transaction');
+    window._appState.showToast('Veuillez entrer l\'ID de transaction');
     return;
   }
   
   if (!window._selectedPlan || !window._selectedPaymentMethod) {
-    alert('Veuillez sélectionner un plan et une méthode de paiement');
+    window._appState.showToast('Veuillez sélectionner un plan et une méthode de paiement');
     return;
   }
   
   const token = localStorage.getItem('bolamu_patient_token');
   if (!token) return;
   
-  // TODO: Implement API call to validate subscription
-  alert('Abonnement validé avec succès ! (Simulation)');
-  closeAbonnementPanel();
+  fetch('https://www.bolamu.co/api/v1/payments/momo/request', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify({
+      plan: window._selectedPlan.planId,
+      amount: window._selectedPlan.amount
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      window._appState.showToast('Abonnement validé avec succès !');
+      closeAbonnementPanel();
+    } else {
+      window._appState.showToast(d.message || 'Erreur lors de la validation', 'error');
+    }
+  })
+  .catch(() => {
+    window._appState.showToast('Erreur réseau — vérifie ta connexion', 'error');
+  });
 }
 
 function joinEvent(eventId) {
@@ -4618,7 +4639,7 @@ function joinEvent(eventId) {
   
   const btn = document.getElementById('participate-btn');
   
-  fetch('https://api.bolamu.co/api/v1/events/' + eventId + '/register', {
+  fetch('https://www.bolamu.co/api/v1/events/' + eventId + '/register', {
     method: 'POST',
     headers: { 
       'Authorization': 'Bearer ' + token,
@@ -4630,7 +4651,7 @@ function joinEvent(eventId) {
     if (d.success) {
       btn.textContent = 'Inscrit ✓';
       btn.style.background = '#00C9A7';
-      alert('Inscription réussie ! +50 Zora crédités');
+      window._appState.showToast('Inscription réussie ! +50 Zora crédités');
     }
   }).catch(() => {
     btn.textContent = 'Inscrit ✓';
@@ -4641,7 +4662,7 @@ function joinEvent(eventId) {
 async function cancelEventRegistration(id) {
   const token = localStorage.getItem('bolamu_patient_token');
   if (!token) {
-    alert('Session expirée — reconnectez-vous');
+    window._appState.showToast('Session expirée — reconnectez-vous');
     window.location.href = '/patient/login.html';
     return;
   }
@@ -4651,7 +4672,7 @@ async function cancelEventRegistration(id) {
   }
   
   try {
-    const r = await fetch('https://api.bolamu.co/api/v1/events/' + id + '/register', {
+    const r = await fetch('https://www.bolamu.co/api/v1/events/' + id + '/register', {
       method: 'DELETE',
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -4674,7 +4695,7 @@ function joinClub(clubId) {
   
   const btn = document.getElementById('club-action-btn');
   
-  fetch('https://api.bolamu.co/api/v1/clubs/' + clubId + '/join', {
+  fetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/join', {
     method: 'POST',
     headers: { 
       'Authorization': 'Bearer ' + token,
@@ -4715,11 +4736,11 @@ function createClub() {
   const sportType = document.getElementById('club-sport-input').value;
   
   if (!name) {
-    alert('Nom du groupe requis');
+    window._appState.showToast('Nom du groupe requis');
     return;
   }
   
-  fetch('https://api.bolamu.co/api/v1/clubs', {
+  fetch('https://www.bolamu.co/api/v1/clubs', {
     method: 'POST',
     headers: { 
       'Authorization': 'Bearer ' + token,
@@ -4730,12 +4751,12 @@ function createClub() {
   .then(r => r.json())
   .then(d => {
     if (d.success) {
-      alert('Groupe créé !');
+      window._appState.showToast('Groupe créé !');
       closeCreateClubModal();
       location.reload();
     }
   }).catch(() => {
-    alert('Erreur lors de la création');
+    window._appState.showToast('Erreur lors de la création');
   });
 }
 </script>
