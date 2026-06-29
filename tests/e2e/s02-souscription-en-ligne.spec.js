@@ -78,12 +78,14 @@ test.describe.serial('S02 — Souscription en ligne', () => {
 
   test('ÉTAPE 3 — Initier paiement MoMo', async () => {
     try {
-      const momoRes = await apiCall('/momo/request', 'POST', { amount: 2000, plan: 'essentiel', phone: '+242069735418' }, token);
+      const momoRes = await apiCall('/payments/momo/request', 'POST', { amount: 2000, plan: 'essentiel', phone: '+242069735418' }, token);
+      console.log('[S02-DEBUG] Réponse API momo/request:', JSON.stringify(momoRes, null, 2));
       expect(momoRes.success).toBe(true);
       expect(momoRes.data.reference_id).toBeTruthy();
       resultats.backend = { statut: '✅', details: 'momo/request → reference_id' };
       screenshots.push(await screenshot(page, 's02', 3, 'paiement-initie'));
     } catch (err) {
+      console.log('[S02-DEBUG] Erreur API momo/request:', err.message);
       bugs.push({ code: 'BUG-S02-03', description: err.message });
       throw err;
     }
@@ -91,7 +93,7 @@ test.describe.serial('S02 — Souscription en ligne', () => {
 
   test('ÉTAPE 4 — Simuler webhook succès', async () => {
     try {
-      const webhookRes = await apiCall('/momo/simulate-success', 'POST', { reference_id: 'TEST_REF_001' }, token);
+      const webhookRes = await apiCall('/payments/momo/simulate-success', 'POST', { reference_id: 'TEST_REF_001' }, token);
       expect(webhookRes.success).toBe(true);
     } catch (err) {
       bugs.push({ code: 'BUG-S02-04', description: err.message });

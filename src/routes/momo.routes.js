@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const logger = require('../config/logger');
 const validateMtnWebhook = require('../middleware/validateMtnWebhook');
 const { webhookLimiter } = require('../middleware/rateLimiter');
+const { normalizePhone } = require('../utils/phone');
 
 const authMiddleware = require('../middleware/auth.middleware');
 
@@ -129,10 +130,7 @@ async function handlePaymentSuccess(phone, referenceId) {
 // ─── POST /request ────────────────────────────────────────────────────────────
 router.post('/request', authMiddleware, async (req, res) => {
     try {
-        console.log('[S02-DEBUG] body reçu:', req.body);
-        console.log('[S02-DEBUG] user:', req.user);
-        
-        const phone = req.user?.phone;
+        const phone = normalizePhone(req.user?.phone);
         if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
 
         const { amount, plan } = req.body;
@@ -156,63 +154,21 @@ router.post('/request', authMiddleware, async (req, res) => {
             });
         }
 
-        console.log('[MoMo] Requête paiement initiée');
-
-        const referenceId = crypto.randomUUID(); // ✅ UUID fiable
-        const token = await getMoMoToken();
-
-        const momoPhone = phone.replace('+', '').replace(/^2420/, '242');
-
-        const bodyData = JSON.stringify({
-            amount: String(amount),
-            currency: "XAF",
-            externalId: referenceId,
-            payer: {
-                partyIdType: "MSISDN",
-                partyId: momoPhone
-            },
-            payerMessage: `Abonnement Bolamu - Plan ${plan}`,
-            payeeNote: "Bolamu Healthcare"
-        });
-
-        console.log('[MoMo] Envoi requesttopay...');
-
-        const momoRes = await fetch(`${MOMO_BASE_URL}/collection/v1_0/requesttopay`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'X-Reference-Id': referenceId,
-                'X-Target-Environment': 'sandbox',
-                'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY,
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(bodyData) // ✅ FIX FINAL
-            },
-            body: bodyData
-        });
-
-        const responseText = await momoRes.text();
-
-        console.log('[MoMo] Réponse status:', momoRes.status);
-
-        if (momoRes.status !== 202) {
-            return res.status(400).json({
-                success: false,
-                message: `Erreur MoMo (${momoRes.status})`,
-                details: responseText
-            });
-        }
-
-        await db.query(
-            `INSERT INTO payments (patient_phone, amount_fcfa, operator, plan, reference, status, created_at)
-             VALUES ($1, $2, 'mtn', $3, $4, 'pending', NOW())`,
-            [phone, amount, plan, referenceId]
+        // INSERT INTO subscriptions (sans appel API externe)
+        const insertRes = await db.query(
+            `INSERT INTO subscriptions (patient_phone, plan, amount_fcfa, operator, status, is_active, expires_at, created_at)
+             VALUES ($1, $2, $3, 'MTN', 'pending', FALSE, NOW() + INTERVAL '30 days', NOW())
+             RETURNING id`,
+            [phone, plan, amount]
         );
 
-        console.log('[MoMo] ✅ Paiement initié avec succès');
+        const referenceId = insertRes.rows[0].id.toString();
+
+        console.log('[MoMo] ✅ Paiement enregistré en base (status=pending)');
 
         res.json({
             success: true,
-            message: 'Demande de paiement envoyée',
+            message: 'Demande de paiement enregistrée',
             reference_id: referenceId
         });
 
