@@ -4441,14 +4441,27 @@ function closeClubPanel() {
 }
 
 function openAbonnementPanel() {
-  console.log('abonnement clic');
   const panel = document.getElementById('abonnement-panel');
   const content = document.getElementById('abonnement-panel-content');
+  
+  // Ouvrir le panel IMMÉDIATEMENT
+  panel.classList.add('active');
+  
+  // Afficher un loader pendant le chargement
+  content.innerHTML = '<div style="text-align:center;padding:40px;">' +
+    '<span class="material-symbols-outlined" ' +
+    'style="font-size:32px;color:#D1D5DB;">hourglass_empty</span>' +
+    '<div style="margin-top:12px;font-size:0.86rem;' +
+    'font-weight:600;color:#9498a8;">Chargement...</div></div>';
+  
   const token = localStorage.getItem('bolamu_patient_token');
+  if (!token) {
+    content.innerHTML = '<div style="text-align:center;padding:40px;' +
+      'color:#BA1A1A;">Session expirée — reconnectez-vous</div>';
+    return;
+  }
   
-  if (!token) return;
-  
-  // Get subscription data from the component state
+  // Récupérer les données d'abonnement
   const planLabel = window._appState?._subPlanLabel || null;
   const amount = window._appState?._subAmount || 0;
   const nextBilling = window._appState?._subNext || null;
@@ -4531,7 +4544,6 @@ function openAbonnementPanel() {
   
   html += '</div>';
   content.innerHTML = html;
-  panel.classList.add('active');
 }
 
 function closeAbonnementPanel() {
