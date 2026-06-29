@@ -50,6 +50,8 @@ test.describe.serial('S02 — Souscription en ligne', () => {
 
   test('ÉTAPE 1 — Vérifier statut abonnement', async () => {
     try {
+      await page.goto('https://www.bolamu.co/patient/dashboard.html');
+      await page.waitForLoadState('domcontentloaded');
       const subCheck = await apiCall('/patients/check-subscription?phone=+242069735418', 'GET', null, token);
       expect(subCheck.success).toBe(true);
       resultats.backend = { statut: '✅', details: 'check-subscription répond' };
@@ -102,6 +104,7 @@ test.describe.serial('S02 — Souscription en ligne', () => {
         { 'x-test-secret': process.env.TEST_SECRET || 'bolamu-test-2026' }
       );
       expect(webhookRes.success).toBe(true);
+      screenshots.push(await screenshot(page, 's02', 4, 'webhook-succes'));
     } catch (err) {
       bugs.push({ code: 'BUG-S02-04', description: err.message });
       throw err;
@@ -110,11 +113,14 @@ test.describe.serial('S02 — Souscription en ligne', () => {
 
   test('ÉTAPE 5 — Vérifier subscription active', async () => {
     try {
+      await page.goto('https://www.bolamu.co/patient/dashboard.html');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForSelector('#profile', { timeout: 5000 });
       const subCheck = await apiCall('/patients/check-subscription?phone=+242069735418', 'GET', null, token);
-      expect(subCheck.data.active).toBe(true);
-      expect(subCheck.data.current_plan).toBe('essentiel');
+      expect(subCheck.has_active_subscription).toBe(true);
+      expect(subCheck.subscription.plan).toBe('essentiel');
       resultats.database = { statut: '✅', details: 'subscription active essentiel' };
-      screenshots.push(await screenshot(page, 's02', 4, 'souscription-active'));
+      screenshots.push(await screenshot(page, 's02', 5, 'souscription-active'));
     } catch (err) {
       bugs.push({ code: 'BUG-S02-05', description: err.message });
       throw err;
