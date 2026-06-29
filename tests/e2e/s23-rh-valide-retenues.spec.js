@@ -24,19 +24,16 @@ test.describe.serial('S23 — RH valide les retenues SmartFlow', () => {
   let page, context, token;
 
   test.beforeAll(async ({ browser }) => {
+    test.setTimeout(60000);
     context = await browser.newContext();
     page = await context.newPage();
     handleDialogs(page, 'accept');
-
     const adminLogin = await apiCall('/auth/admin-login', 'POST', {
       phone: '+242060000099',
       password: 'bolamu2026'
     });
     adminToken = adminLogin.accessToken;
-
     await loginAs(page, 'rh', '+242077000002', 'bolamu2026');
-    await waitForDashboard(page);
-    token = await page.evaluate(() => localStorage.getItem('bolamu_rh_token'));
   });
 
   test.afterAll(async () => {

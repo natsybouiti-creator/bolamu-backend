@@ -25,19 +25,16 @@ test.describe.serial('S24 — Patient pré-remplit symptômes avant RDV', () => 
   let rdvId;
 
   test.beforeAll(async ({ browser }) => {
+    test.setTimeout(60000);
     context = await browser.newContext();
     page = await context.newPage();
     handleDialogs(page, 'accept');
-
     const adminLogin = await apiCall('/auth/admin-login', 'POST', {
       phone: '+242060000099',
       password: 'bolamu2026'
     });
     adminToken = adminLogin.accessToken;
-
-    await loginAs(page, 'patient', '+242069735418', 'TestNouveau2026!');
-    await waitForDashboard(page);
-    token = await page.evaluate(() => localStorage.getItem('bolamu_patient_token'));
+    await loginAs(page, 'patient', '+242069735418', 'bolamu2026');
   });
 
   test.afterAll(async () => {

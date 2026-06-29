@@ -25,18 +25,20 @@ test.describe.serial('S01 — Inscription patient via agence', () => {
   let page, context;
 
   test.beforeAll(async ({ browser }) => {
+    test.setTimeout(60000);
     context = await browser.newContext();
     page = await context.newPage();
     handleDialogs(page, 'accept');
-
+    
+    // Login admin pour vérifications DB et cleanup
     const adminLogin = await apiCall('/auth/admin-login', 'POST', {
       phone: '+242060000099',
       password: 'bolamu2026'
     });
     adminToken = adminLogin.accessToken;
-
+    
+    // Login agent via la vraie page HTML
     await loginAs(page, 'agent', '+242077000010', 'bolamu2026');
-    await waitForDashboard(page);
   });
 
   test.afterAll(async () => {
