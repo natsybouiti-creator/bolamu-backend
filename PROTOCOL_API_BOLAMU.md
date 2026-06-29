@@ -467,3 +467,17 @@
 3. **Ajouter PUT /api/v1/doctors/constantes-patient** pour permettre aux médecins de mettre à jour les constantes d'un patient
 4. **Corriger les chemins admin** pour OVP/SEPA/clearing/events
 5. **Standardiser les endpoints partenaire** pour les vouchers
+
+---
+
+## Endpoints backend confirmés hors audit initial
+
+Ces endpoints existent dans le backend mais n'ont pas été détectés lors de l'audit initial des dashboards frontend.
+
+| Méthode | Endpoint | Fichier | Ligne | Utilisation |
+|---------|----------|---------|-------|-------------|
+| GET | /api/v1/admin/smartflow/stats | smartflow.routes.js | 957 | Statistiques Smart Flow admin |
+| POST | /api/v1/zora/earn | zora.routes.js | 78 | Crédit manuel Zora Points (admin) |
+| POST | /api/v1/tiers-payant/initier | tiers-payant.routes.js | 23 | Initier transaction tiers payant |
+| PATCH | /api/v1/tiers-payant/:id/valider | tiers-payant.routes.js | 26 | Valider transaction tiers payant |
+| GET | /api/v1/tiers-payant/mes-transactions | tiers-payant.routes.js | 29 | Liste transactions partenaire |

@@ -50,7 +50,7 @@ test.describe.serial('S20 — Tiers-payant pharmacie', () => {
 
   test('ÉTAPE 1 — Vérifier adhérent', async () => {
     try {
-      const adherentRes = await apiCall('/agence/verifier-adherent?q=+242069735418', 'GET', null, token);
+      const adherentRes = await apiCall('/qr/verify?phone=+242069735418', 'GET', null, token);
       expect(adherentRes.success).toBe(true);
       expect(adherentRes.data.subscription_plan).toBeTruthy();
       resultats.backend = { statut: '✅', details: `adhérent ${adherentRes.data.full_name}` };

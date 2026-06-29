@@ -49,7 +49,7 @@ test.describe.serial('S27 — Admin supervise la plateforme', () => {
 
   test('ÉTAPE 1 — Événements en attente', async () => {
     try {
-      const pendingEvents = await apiCall('/events/admin/events/pending', 'GET', null, token);
+      const pendingEvents = await apiCall('/admin/events/pending', 'GET', null, token);
       expect(pendingEvents.success).toBe(true);
       resultats.backend = { statut: '✅', details: `${pendingEvents.data?.length} événements en attente` };
       screenshots.push(await screenshot(page, 's27', 1, 'pending-events'));
@@ -61,7 +61,7 @@ test.describe.serial('S27 — Admin supervise la plateforme', () => {
 
   test('ÉTAPE 2 — Publier premier événement en attente', async () => {
     try {
-      const pendingEvents = await apiCall('/events/admin/events/pending', 'GET', null, token);
+      const pendingEvents = await apiCall('/admin/events/pending', 'GET', null, token);
       if (pendingEvents.data?.length > 0) {
         const publishRes = await apiCall(`/events/${pendingEvents.data[0].id}/publish`, 'PATCH', null, token);
         expect(publishRes.success).toBe(true);
