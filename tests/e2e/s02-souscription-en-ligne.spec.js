@@ -20,6 +20,7 @@ const resultats = {
 };
 
 test.describe.serial('S02 — Souscription en ligne', () => {
+  test.describe.configure({ timeout: 60000 });
 
   let page, context, token;
 

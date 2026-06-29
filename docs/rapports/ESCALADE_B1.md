@@ -31,7 +31,31 @@
 
 **Cause :** La table subscriptions utilise la colonne `patient_phone`, pas `phone`
 
-**Statut :** ✅ Corrigé - commit en attente
+**Statut :** ✅ Corrigé - pushé
+
+---
+
+## BUG-S02-02 — window.__bolamu_test.selectionnerPlan manquant
+
+**Scénario :** S02  
+**Étape :** ÉTAPE 2 — Choisir plan essentiel
+
+**Erreur exacte :**
+```
+TypeError: window.__bolamu_test.selectionnerPlan is not a function
+```
+
+**Fichiers concernés :**
+- `public/patient/dashboard.html` (protocole window.__bolamu_test)
+- `tests/e2e/s02-souscription-en-ligne.spec.js` (ligne 65 - appel selectionnerPlan)
+
+**Cause :** Le dashboard patient n'a pas la fonction `selectionnerPlan` dans le protocole `window.__bolamu_test`
+
+**Solution recommandée :**
+1. Ajouter la fonction `selectionnerPlan` dans `window.__bolamu_test` du dashboard patient
+2. Ou modifier le spec S02 pour utiliser l'API directe au lieu du protocole
+
+**Nécessite :** Frontend (ajout fonction dans protocole patient)
 
 ---
 
@@ -93,9 +117,10 @@ Voir BUG-S02-01.
 
 ---
 
-## Bugs escaladés : 4
+## Bugs escaladés : 5
 
 - BUG-S01-06 — verifier-adherent ne trouve pas le patient existant
 - BUG-S02-01 — check-subscription mauvaise colonne SQL ✅ Corrigé
+- BUG-S02-02 — window.__bolamu_test.selectionnerPlan manquant
 - BUG-S03-01 — Login patient échoue (même bug que S02)
 - BUG-S26-01 — Login animateur échoue (page fermée)

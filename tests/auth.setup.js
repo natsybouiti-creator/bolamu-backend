@@ -1,12 +1,13 @@
 import { test as setup } from '@playwright/test';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const authFile = 'playwright/.auth/patient.json';
 
-setup('authenticate', async ({ page }) => {
+setup('authenticate', async () => {
   // Générer JWT directement sans passer par /auth/login (évite rate limiting)
   const token = jwt.sign(
     { phone: '+242069735418', role: 'patient' },
@@ -14,12 +15,16 @@ setup('authenticate', async ({ page }) => {
     { expiresIn: '15min' }
   );
 
-  // Injecter le token dans localStorage
-  await page.addInitScript((accessToken) => {
-    localStorage.setItem('bolamu_patient_token', accessToken);
-    localStorage.setItem('bolamu_patient_phone', '+242069735418');
-  }, token);
-
-  // Sauvegarder l'état sans naviguer (évite timeout dashboard)
-  await page.context().storageState({ path: authFile });
+  // Stocker au format Playwright state avec localStorage
+  const state = {
+    origins: [{
+      origin: 'https://api.bolamu.co',
+      localStorage: [
+        { name: 'bolamu_patient_token', value: token },
+        { name: 'bolamu_patient_phone', value: '+242069735418' }
+      ]
+    }]
+  };
+  
+  fs.writeFileSync(authFile, JSON.stringify(state));
 });

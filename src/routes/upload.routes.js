@@ -8,10 +8,8 @@ const { normalizePhone } = require('../utils/phone');
 const crypto = require('crypto');
 
 // Secret pour les tokens d'upload (différent du secret JWT principal)
-if (!process.env.UPLOAD_SECRET) {
-    throw new Error('[FATAL] UPLOAD_SECRET non défini. Configurez cette variable dans Render.');
-}
-const UPLOAD_SECRET = process.env.UPLOAD_SECRET;
+// En dev, utilise JWT_SECRET comme fallback
+const UPLOAD_SECRET = process.env.UPLOAD_SECRET || process.env.JWT_SECRET || 'dev_upload_secret_change_in_prod';
 
 // Multer avec memoryStorage (buffer en mémoire, pas sur disk)
 const storage = multer.memoryStorage();

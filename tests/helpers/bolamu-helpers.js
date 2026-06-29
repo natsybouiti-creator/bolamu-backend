@@ -1,8 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 
-const BASE_URL = 'https://www.bolamu.co';
-const API_URL = 'https://api.bolamu.co/api/v1';
+const BASE_URL = process.env.TEST_BASE_URL || 'https://www.bolamu.co';
+const API_URL = process.env.TEST_API_URL || 'https://api.bolamu.co/api/v1';
 
 const COMPTES = {
   patient:     { phone: '+242069735418', password: 'TestNouveau2026!' },
@@ -18,16 +18,16 @@ const COMPTES = {
 };
 
 const LOGIN_CONFIG = {
-  patient:     { url: '/patient/login.html',     tokenKey: 'bolamu_patient_token',    dashboardPattern: '**/patient/dashboard.html' },
-  agent:       { url: '/agence/login.html',      tokenKey: 'bolamu_agent_token',      dashboardPattern: '**/agence/dashboard.html' },
-  admin:       { url: '/admin/login.html',       tokenKey: 'bolamu_admin_token',      dashboardPattern: '**/admin/dashboard.html' },
-  medecin:     { url: '/medecin/login.html',     tokenKey: 'bolamu_medecin_token',    dashboardPattern: '**/medecin/dashboard.html' },
-  secretaire:  { url: '/secretaire/login.html',  tokenKey: 'bolamu_secretaire_token', dashboardPattern: '**/secretaire/dashboard.html' },
-  pharmacie:   { url: '/pharmacie/login.html',   tokenKey: 'bolamu_pharmacie_token',  dashboardPattern: '**/pharmacie/dashboard.html' },
-  laboratoire: { url: '/laboratoire/login.html', tokenKey: 'bolamu_labo_token',       dashboardPattern: '**/laboratoire/dashboard.html' },
-  partenaire:  { url: '/partenaire/login.html',  tokenKey: 'bolamu_partenaire_token', dashboardPattern: '**/partenaire/dashboard.html' },
-  rh:          { url: '/rh/login.html',          tokenKey: 'bolamu_rh_token',         dashboardPattern: '**/rh/dashboard.html' },
-  animateur:   { url: '/animateur/login.html',   tokenKey: 'bolamu_animateur_token',  dashboardPattern: '**/animateur/dashboard.html' },
+  patient:     { url: '/login.html',             tokenKey: 'bolamu_patient_token',    dashboardPattern: '**/patient/dashboard.html',    phoneId: '#phone-input', passwordId: '#password-input' },
+  agent:       { url: '/agence/login.html',      tokenKey: 'bolamu_agent_token',      dashboardPattern: '**/agence/dashboard.html',      phoneId: '#phone',      passwordId: '#password' },
+  admin:       { url: '/admin/login.html',       tokenKey: 'bolamu_admin_token',      dashboardPattern: '**/admin/dashboard.html',       phoneId: '#phone',      passwordId: '#password' },
+  medecin:     { url: '/login.html',             tokenKey: 'bolamu_medecin_token',    dashboardPattern: '**/medecin/dashboard.html',    phoneId: '#phone-input', passwordId: '#password-input' },
+  secretaire:  { url: '/secretaire/login.html',  tokenKey: 'bolamu_secretaire_token', dashboardPattern: '**/secretaire/dashboard.html', phoneId: '#phone',      passwordId: '#password' },
+  pharmacie:   { url: '/login.html',             tokenKey: 'bolamu_pharmacie_token',  dashboardPattern: '**/pharmacie/dashboard.html',  phoneId: '#phone-input', passwordId: '#password-input' },
+  laboratoire: { url: '/login.html',             tokenKey: 'bolamu_labo_token',       dashboardPattern: '**/laboratoire/dashboard.html',phoneId: '#phone-input', passwordId: '#password-input' },
+  partenaire:  { url: '/partenaire/login.html',  tokenKey: 'bolamu_partenaire_token', dashboardPattern: '**/partenaire/dashboard.html',phoneId: '#phone',      passwordId: '#password' },
+  rh:          { url: '/rh/login.html',          tokenKey: 'bolamu_rh_token',         dashboardPattern: '**/rh/dashboard.html',         phoneId: '#phone',      passwordId: '#password' },
+  animateur:   { url: '/animateur/login.html',   tokenKey: 'bolamu_animateur_token',  dashboardPattern: '**/animateur/dashboard.html', phoneId: '#phone',      passwordId: '#password' },
 };
 
 // Login via la vraie page login HTML
@@ -35,15 +35,25 @@ async function loginAs(page, role, phone, password) {
   const config = LOGIN_CONFIG[role];
   if (!config) throw new Error(`Rôle inconnu : ${role}`);
 
-  await page.goto(`${BASE_URL}${config.url}`);
-  await page.waitForLoadState('networkidle');
+  // Bloquer le chargement des polices (3.9MB MaterialSymbolsOutlined.woff2)
+  await page.route('**/*.woff2', route => route.abort());
+  await page.route('**/*.woff', route => route.abort());
+  await page.route('**/*.ttf', route => route.abort());
 
-  await page.fill('#phone', phone || COMPTES[role].phone);
-  await page.fill('#password', password || COMPTES[role].password);
+  await page.goto(`${BASE_URL}${config.url}`);
+  await page.waitForLoadState('domcontentloaded');
+
+  // Attendre que les champs soient visibles
+  await page.waitForSelector(config.phoneId, { state: 'visible', timeout: 10000 });
+  await page.fill(config.phoneId, phone || COMPTES[role].phone);
+  await page.fill(config.passwordId, password || COMPTES[role].password);
+  
+  // Attendre que le bouton soit enabled
+  await page.waitForSelector('#btn-login', { state: 'visible', timeout: 5000 });
   await page.click('#btn-login');
 
   await page.waitForURL(config.dashboardPattern, { timeout: 15000 });
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   const token = await page.evaluate(
     (key) => localStorage.getItem(key),

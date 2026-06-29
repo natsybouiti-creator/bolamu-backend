@@ -882,6 +882,146 @@ tr:hover td{background:rgba(255,255,255,.018);}
    AUTH
 ----------------------------------- */
 const API   = 'https://api.bolamu.co/api/v1';
+
+/* -----------------------------------
+   PROTOCOLE TEST BOLAMU — S26
+   Langue commune entre Playwright et le dashboard admin
+------------------------------------ */
+window.__bolamu_test = {
+  // État interne pour les tests
+  _errors: [],
+  _state: {
+    currentPanel: null,
+    pendingList: [],
+    auditLogs: [],
+    stats: null
+  },
+
+  // Connexion
+  login: async (phone, password) => {
+    // Naviguer vers la page de login
+    window.location.href = '/admin/login.html';
+    // Le login effectif se fait via doLogin() dans login.html
+    // Cette fonction est un point d'entrée pour les tests
+    return { redirected: true };
+  },
+
+  // Dossiers en attente
+  getDossiersEnAttente: async () => {
+    try {
+      await loadPending();
+      const listEl = document.getElementById('pending-list');
+      if (listEl) {
+        window.__bolamu_test._state.pendingList = Array.from(listEl.querySelectorAll('tr')).map(tr => {
+          const cells = tr.querySelectorAll('td');
+          return {
+            phone: cells[0]?.textContent?.trim() || '',
+            name: cells[1]?.textContent?.trim() || '',
+            role: cells[2]?.textContent?.trim() || '',
+            status: cells[3]?.textContent?.trim() || ''
+          };
+        });
+      }
+      return window.__bolamu_test._state.pendingList;
+    } catch (e) {
+      window.__bolamu_test._errors.push(`getDossiersEnAttente: ${e.message}`);
+      throw e;
+    }
+  },
+
+  validerDossier: async (phone, motif) => {
+    try {
+      await validateUser(phone);
+      window.__bolamu_test._errors = []; // Clear errors on success
+      return { success: true, phone };
+    } catch (e) {
+      window.__bolamu_test._errors.push(`validerDossier: ${e.message}`);
+      throw e;
+    }
+  },
+
+  refuserDossier: async (phone, motif) => {
+    try {
+      await rejectUser(phone);
+      window.__bolamu_test._errors = []; // Clear errors on success
+      return { success: true, phone };
+    } catch (e) {
+      window.__bolamu_test._errors.push(`refuserDossier: ${e.message}`);
+      throw e;
+    }
+  },
+
+  // Gestion comptes
+  suspendreCompte: async (phone, raison) => {
+    try {
+      await suspendUser(phone);
+      window.__bolamu_test._errors = []; // Clear errors on success
+      return { success: true, phone };
+    } catch (e) {
+      window.__bolamu_test._errors.push(`suspendreCompte: ${e.message}`);
+      throw e;
+    }
+  },
+
+  // Logs et stats
+  getLogsBHP: async () => {
+    try {
+      await loadAudit();
+      const listEl = document.getElementById('audit-list');
+      if (listEl) {
+        window.__bolamu_test._state.auditLogs = Array.from(listEl.querySelectorAll('tbody tr')).map(tr => {
+          const cells = tr.querySelectorAll('td');
+          return {
+            event: cells[0]?.textContent?.trim() || '',
+            actor: cells[1]?.textContent?.trim() || '',
+            date: cells[2]?.textContent?.trim() || ''
+          };
+        });
+      }
+      return window.__bolamu_test._state.auditLogs;
+    } catch (e) {
+      window.__bolamu_test._errors.push(`getLogsBHP: ${e.message}`);
+      throw e;
+    }
+  },
+
+  getStatistiques: async () => {
+    try {
+      await loadOverview();
+      window.__bolamu_test._state.stats = {
+        patients: document.getElementById('kv-patients')?.textContent || '0',
+        doctors: document.getElementById('kv-doctors')?.textContent || '0',
+        rdv: document.getElementById('kv-rdv')?.textContent || '0',
+        pharma: document.getElementById('kv-pharma')?.textContent || '0',
+        rev: document.getElementById('kv-rev')?.textContent || '0',
+        presc: document.getElementById('kv-presc')?.textContent || '0',
+        pending: document.getElementById('kv-pending')?.textContent || '0',
+        fraud: document.getElementById('kv-fraud')?.textContent || '0'
+      };
+      return window.__bolamu_test._state.stats;
+    } catch (e) {
+      window.__bolamu_test._errors.push(`getStatistiques: ${e.message}`);
+      throw e;
+    }
+  },
+
+  // Lecture état
+  getState: () => {
+    const activePanel = document.querySelector('.panel.active');
+    window.__bolamu_test._state.currentPanel = activePanel?.id?.replace('panel-', '') || null;
+    return {
+      ...window.__bolamu_test._state,
+      isLoggedIn: !!localStorage.getItem('bolamu_admin_token'),
+      adminPhone: localStorage.getItem('bolamu_admin_phone'),
+      role: localStorage.getItem('bolamu_role')
+    };
+  },
+
+  getErreurs: () => {
+    return [...window.__bolamu_test._errors];
+  }
+};
+
 const token = localStorage.getItem('bolamu_admin_token');
 const phone = localStorage.getItem('bolamu_admin_phone');
 const role  = localStorage.getItem('bolamu_role');
@@ -2459,146 +2599,6 @@ if (typeof initNavigation === 'function') {
     const btn = e.target.closest('[data-action="load-overview"]');
     if (btn) loadOverview();
   });
-})();
-
-/* -----------------------------------
-   PROTOCOLE TEST BOLAMU — S26
-   Langue commune entre Playwright et le dashboard admin
------------------------------------- */
-window.__bolamu_test = {
-  // État interne pour les tests
-  _errors: [],
-  _state: {
-    currentPanel: null,
-    pendingList: [],
-    auditLogs: [],
-    stats: null
-  },
-
-  // Connexion
-  login: async (phone, password) => {
-    // Naviguer vers la page de login
-    window.location.href = '/admin/login.html';
-    // Le login effectif se fait via doLogin() dans login.html
-    // Cette fonction est un point d'entrée pour les tests
-    return { redirected: true };
-  },
-
-  // Dossiers en attente
-  getDossiersEnAttente: async () => {
-    try {
-      await loadPending();
-      const listEl = document.getElementById('pending-list');
-      if (listEl) {
-        window.__bolamu_test._state.pendingList = Array.from(listEl.querySelectorAll('tr')).map(tr => {
-          const cells = tr.querySelectorAll('td');
-          return {
-            phone: cells[0]?.textContent?.trim() || '',
-            name: cells[1]?.textContent?.trim() || '',
-            role: cells[2]?.textContent?.trim() || '',
-            status: cells[3]?.textContent?.trim() || ''
-          };
-        });
-      }
-      return window.__bolamu_test._state.pendingList;
-    } catch (e) {
-      window.__bolamu_test._errors.push(`getDossiersEnAttente: ${e.message}`);
-      throw e;
-    }
-  },
-
-  validerDossier: async (phone, motif) => {
-    try {
-      await validateUser(phone);
-      window.__bolamu_test._errors = []; // Clear errors on success
-      return { success: true, phone };
-    } catch (e) {
-      window.__bolamu_test._errors.push(`validerDossier: ${e.message}`);
-      throw e;
-    }
-  },
-
-  refuserDossier: async (phone, motif) => {
-    try {
-      await rejectUser(phone);
-      window.__bolamu_test._errors = []; // Clear errors on success
-      return { success: true, phone };
-    } catch (e) {
-      window.__bolamu_test._errors.push(`refuserDossier: ${e.message}`);
-      throw e;
-    }
-  },
-
-  // Gestion comptes
-  suspendreCompte: async (phone, raison) => {
-    try {
-      await suspendUser(phone);
-      window.__bolamu_test._errors = []; // Clear errors on success
-      return { success: true, phone };
-    } catch (e) {
-      window.__bolamu_test._errors.push(`suspendreCompte: ${e.message}`);
-      throw e;
-    }
-  },
-
-  // Logs et stats
-  getLogsBHP: async () => {
-    try {
-      await loadAudit();
-      const listEl = document.getElementById('audit-list');
-      if (listEl) {
-        window.__bolamu_test._state.auditLogs = Array.from(listEl.querySelectorAll('tbody tr')).map(tr => {
-          const cells = tr.querySelectorAll('td');
-          return {
-            event: cells[0]?.textContent?.trim() || '',
-            actor: cells[1]?.textContent?.trim() || '',
-            date: cells[2]?.textContent?.trim() || ''
-          };
-        });
-      }
-      return window.__bolamu_test._state.auditLogs;
-    } catch (e) {
-      window.__bolamu_test._errors.push(`getLogsBHP: ${e.message}`);
-      throw e;
-    }
-  },
-
-  getStatistiques: async () => {
-    try {
-      await loadOverview();
-      window.__bolamu_test._state.stats = {
-        patients: document.getElementById('kv-patients')?.textContent || '0',
-        doctors: document.getElementById('kv-doctors')?.textContent || '0',
-        rdv: document.getElementById('kv-rdv')?.textContent || '0',
-        pharma: document.getElementById('kv-pharma')?.textContent || '0',
-        rev: document.getElementById('kv-rev')?.textContent || '0',
-        presc: document.getElementById('kv-presc')?.textContent || '0',
-        pending: document.getElementById('kv-pending')?.textContent || '0',
-        fraud: document.getElementById('kv-fraud')?.textContent || '0'
-      };
-      return window.__bolamu_test._state.stats;
-    } catch (e) {
-      window.__bolamu_test._errors.push(`getStatistiques: ${e.message}`);
-      throw e;
-    }
-  },
-
-  // Lecture état
-  getState: () => {
-    const activePanel = document.querySelector('.panel.active');
-    window.__bolamu_test._state.currentPanel = activePanel?.id?.replace('panel-', '') || null;
-    return {
-      ...window.__bolamu_test._state,
-      isLoggedIn: !!localStorage.getItem('bolamu_admin_token'),
-      adminPhone: localStorage.getItem('bolamu_admin_phone'),
-      role: localStorage.getItem('bolamu_role')
-    };
-  },
-
-  getErreurs: () => {
-    return [...window.__bolamu_test._errors];
-  }
-};
 </script>
 
 </body>

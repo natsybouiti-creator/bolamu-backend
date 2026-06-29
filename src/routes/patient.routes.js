@@ -96,6 +96,26 @@ router.get('/check-subscription', authMiddleware, async (req, res) => {
     }
 });
 
+// Abonnement courant du patient connecté (JWT) — pour le dashboard
+router.get('/subscription', authMiddleware, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user?.phone || '');
+        if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
+
+        const result = await pool.query(
+            `SELECT id, plan, status, operator, amount_fcfa, next_billing_date, payment_reference
+             FROM subscriptions
+             WHERE patient_phone = $1 AND status IN ('active', 'pending')
+             ORDER BY created_at DESC LIMIT 1`,
+            [phone]
+        );
+        res.json({ success: true, subscription: result.rows[0] || null });
+    } catch (err) {
+        console.error('[patients/subscription]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
 router.post('/change-password', authMiddleware, async (req, res) => {
   const phone = req.user.phone;
   const { old_password, new_password } = req.body;

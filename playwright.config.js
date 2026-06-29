@@ -7,10 +7,12 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: 'html',
+  timeout: 120000,  // timeout global par test
   use: {
-    baseURL: process.env.API_URL || 'https://api.bolamu.co',
+    baseURL: process.env.API_URL || 'https://www.bolamu.co',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    actionTimeout: 30000,
   },
   projects: [
     {

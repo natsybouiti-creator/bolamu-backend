@@ -313,4 +313,35 @@ router.post('/webhook', webhookLimiter, validateMtnWebhook, async (req, res) => 
     }
 });
 
+// ─── POST /simulate-success (tests uniquement — désactivé en production) ──────
+router.post('/simulate-success', authMiddleware, async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ success: false, message: 'Endpoint désactivé en production.' });
+    }
+    const { subscription_id } = req.body;
+    if (!subscription_id) {
+        return res.status(400).json({ success: false, message: 'subscription_id requis.' });
+    }
+    try {
+        const r = await db.query(
+            `UPDATE subscriptions
+             SET status = 'active', is_active = TRUE, started_at = NOW(),
+                 expires_at = DATE_TRUNC('month', NOW()) + INTERVAL '1 month',
+                 next_billing_date = (DATE_TRUNC('month', NOW()) + INTERVAL '1 month')::date,
+                 updated_at = NOW()
+             WHERE id = $1
+             RETURNING patient_phone`,
+            [subscription_id]
+        );
+        if (!r.rows.length) {
+            return res.status(404).json({ success: false, message: 'Souscription introuvable.' });
+        }
+        await db.query(`UPDATE users SET is_active = TRUE WHERE phone = $1`, [r.rows[0].patient_phone]);
+        res.json({ success: true });
+    } catch (e) {
+        console.error('[momo/simulate-success]', e.message);
+        res.status(500).json({ success: false });
+    }
+});
+
 module.exports = router;

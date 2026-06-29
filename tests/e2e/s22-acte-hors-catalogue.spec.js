@@ -9,7 +9,6 @@ const {
 } = require('../helpers/bolamu-helpers');
 
 const PHONES_TEST = [];
-let adminToken;
 const bugs = [];
 const screenshots = [];
 const resultats = {
@@ -28,12 +27,6 @@ test.describe.serial('S22 — Prestataire enregistre acte hors-catalogue', () =>
     page = await context.newPage();
     handleDialogs(page, 'accept');
 
-    const adminLogin = await apiCall('/auth/admin-login', 'POST', {
-      phone: '+242060000099',
-      password: 'bolamu2026'
-    });
-    adminToken = adminLogin.accessToken;
-
     await loginAs(page, 'medecin', '+242060000001', 'bolamu2026');
     await waitForDashboard(page);
     token = await page.evaluate(() => localStorage.getItem('bolamu_medecin_token'));
@@ -41,9 +34,6 @@ test.describe.serial('S22 — Prestataire enregistre acte hors-catalogue', () =>
 
   test.afterAll(async () => {
     genererRapport('S22', 'Prestataire enregistre acte hors-catalogue', resultats, bugs, screenshots);
-    if (PHONES_TEST.length > 0) {
-      await apiCall('/admin/test/cleanup', 'DELETE', { phones: PHONES_TEST }, adminToken);
-    }
     await context.close();
   });
 

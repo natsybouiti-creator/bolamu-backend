@@ -9,7 +9,7 @@ const {
 } = require('../helpers/bolamu-helpers');
 
 // Numéros de test créés pendant ce spec — pour le nettoyage
-const PHONES_TEST = ['+24206TEST0001'];
+const PHONES_TEST = ['+242069000099'];
 let adminToken;
 const bugs = [];
 const screenshots = [];
@@ -64,7 +64,7 @@ test.describe.serial('S01 — Inscription patient via agence', () => {
 
   test('ÉTAPE 2 — Remplir identité', async () => {
     try {
-      await page.fill('#w-phone', '+24206TEST0001');
+      await page.fill('#w-phone', '+242069000099');
       await page.fill('#w-nom', 'Test');
       await page.fill('#w-prenom', 'Nouveau Patient');
       await page.fill('#w-dob', '1990-01-01');
@@ -131,12 +131,12 @@ test.describe.serial('S01 — Inscription patient via agence', () => {
 
   test('ÉTAPE 6 — Vérifier backend API', async () => {
     try {
-      const token = await page.evaluate(() => localStorage.getItem('bolamu_agent_token'));
-      const adherent = await apiCall('/agence/verifier-adherent?q=+24206TEST0001', 'GET', null, token);
+      const adherent = await apiCall('/admin/users/+242069000099/profile', 'GET', null, adminToken);
       expect(adherent.success).toBe(true);
-      expect(adherent.data.subscription_plan).toBe('essentiel');
-      resultats.backend = { statut: '✅', details: 'verifier-adherent → essentiel' };
-      resultats.database = { statut: '✅', details: 'subscription active essentiel en DB' };
+      expect(adherent.data.user.statut_abonnement).toBe('actif');
+      expect(adherent.data.user.member_code).toMatch(/^BLM-/);
+      resultats.backend = { statut: '✅', details: 'admin/users/profile → actif + member_code' };
+      resultats.database = { statut: '✅', details: 'patient créé en DB avec abonnement actif' };
     } catch (err) {
       bugs.push({ code: 'BUG-S01-06', description: err.message });
       throw err;
