@@ -106,12 +106,13 @@ async function getState(page) {
 }
 
 // Appel API direct depuis Node (pas depuis le browser)
-async function apiCall(endpoint, method = 'GET', body = null, token = null) {
+async function apiCall(endpoint, method = 'GET', body = null, token = null, extraHeaders = {}) {
   const options = {
     method,
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extraHeaders
     },
   };
   if (body) options.body = JSON.stringify(body);

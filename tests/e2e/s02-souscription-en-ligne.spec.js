@@ -22,7 +22,7 @@ const resultats = {
 test.describe.serial('S02 — Souscription en ligne', () => {
   test.describe.configure({ timeout: 60000 });
 
-  let page, context, token;
+  let page, context, token, referenceId;
 
   test.beforeAll(async ({ browser }) => {
     context = await browser.newContext();
@@ -81,7 +81,8 @@ test.describe.serial('S02 — Souscription en ligne', () => {
       const momoRes = await apiCall('/payments/momo/request', 'POST', { amount: 2000, plan: 'essentiel', phone: '+242069735418' }, token);
       console.log('[S02-DEBUG] Réponse API momo/request:', JSON.stringify(momoRes, null, 2));
       expect(momoRes.success).toBe(true);
-      expect(momoRes.data.reference_id).toBeTruthy();
+      expect(momoRes.reference_id).toBeTruthy();
+      referenceId = momoRes.reference_id;
       resultats.backend = { statut: '✅', details: 'momo/request → reference_id' };
       screenshots.push(await screenshot(page, 's02', 3, 'paiement-initie'));
     } catch (err) {
@@ -93,7 +94,13 @@ test.describe.serial('S02 — Souscription en ligne', () => {
 
   test('ÉTAPE 4 — Simuler webhook succès', async () => {
     try {
-      const webhookRes = await apiCall('/payments/momo/simulate-success', 'POST', { reference_id: 'TEST_REF_001' }, token);
+      const webhookRes = await apiCall(
+        '/payments/momo/simulate-success',
+        'POST',
+        { subscription_id: referenceId },
+        token,
+        { 'x-test-secret': process.env.TEST_SECRET || 'bolamu-test-2026' }
+      );
       expect(webhookRes.success).toBe(true);
     } catch (err) {
       bugs.push({ code: 'BUG-S02-04', description: err.message });

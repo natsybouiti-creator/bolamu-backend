@@ -274,8 +274,16 @@ router.post('/webhook', webhookLimiter, validateMtnWebhook, async (req, res) => 
 
 // ─── POST /simulate-success (tests uniquement — désactivé en production) ──────
 router.post('/simulate-success', authMiddleware, async (req, res) => {
+    // Protection : secret requis en production
+    const testSecret = process.env.TEST_SECRET;
     if (process.env.NODE_ENV === 'production') {
-        return res.status(403).json({ success: false, message: 'Endpoint désactivé en production.' });
+        const headerSecret = req.headers['x-test-secret'];
+        if (!testSecret || headerSecret !== testSecret) {
+            return res.status(403).json({
+                success: false,
+                message: 'Endpoint réservé aux tests.'
+            });
+        }
     }
     const { subscription_id } = req.body;
     if (!subscription_id) {
