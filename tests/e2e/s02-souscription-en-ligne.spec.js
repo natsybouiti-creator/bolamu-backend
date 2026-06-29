@@ -62,6 +62,10 @@ test.describe.serial('S02 — Souscription en ligne', () => {
 
   test('ÉTAPE 2 — Choisir plan essentiel', async () => {
     try {
+      // Naviguer vers register.html pour accéder au protocole window.__bolamu_test
+      await page.goto('https://www.bolamu.co/register.html');
+      await page.waitForLoadState('domcontentloaded');
+      
       await page.evaluate(() => window.__bolamu_test.selectionnerPlan('essentiel'));
       await page.waitForTimeout(1000);
       resultats.frontend = { statut: '✅', details: 'Plan essentiel sélectionné' };
