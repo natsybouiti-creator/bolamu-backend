@@ -80,7 +80,7 @@ router.get('/check-subscription', authMiddleware, async (req, res) => {
         const result = await pool.query(
             `SELECT status, plan, expires_at 
              FROM subscriptions 
-             WHERE phone = $1 AND status = 'active' AND expires_at > NOW() 
+             WHERE patient_phone = $1 AND status = 'active' AND expires_at > NOW() 
              ORDER BY expires_at DESC LIMIT 1`,
             [phone]
         );
