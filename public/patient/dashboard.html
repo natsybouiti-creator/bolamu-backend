@@ -85,6 +85,7 @@
 </style>
 </head>
 <body>
+<script>console.log('[DASHBOARD VERSION] MODIFIED - Leaflet NaN fix applied');</script>
 <div style="min-height: 100vh; background: #FAF8FF;">
 
   <!-- ===== HEADER ===== -->
@@ -1631,10 +1632,16 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
     A._eventsMap = map; A._eventMarkers = []; var bounds = [];
     A.state.events.forEach(function (e) {
+      console.log('[LEAFLET DEBUG] Event lat/lng:', e.lat, e.lng, e.title);
+      const lat = Number(e.lat), lng = Number(e.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        console.warn('[MAP] event coords invalides, ignoré:', e.id ?? e);
+        return;
+      }
       var icon = L.divIcon({ className: '', html: '<span style="display:block;width:20px;height:20px;border-radius:50%;background:#F5A623;border:2px solid #fff;box-shadow:0 0 0 3px rgba(245,166,35,0.4);"></span>', iconSize: [20, 20], iconAnchor: [10, 10] });
-      var m = L.marker([e.lat, e.lng], { icon: icon }).addTo(map);
+      var m = L.marker([lat, lng], { icon: icon }).addTo(map);
       m.bindPopup('<strong>' + e.title + '</strong><br>' + e.loc);
-      A._eventMarkers.push({ m: m, id: e.id }); bounds.push([e.lat, e.lng]);
+      A._eventMarkers.push({ m: m, id: e.id }); bounds.push([lat, lng]);
     });
     if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
     setTimeout(function () { map.invalidateSize(); }, 250);
@@ -1652,12 +1659,18 @@
     var tintByType = { clinique: '#003FB1', pharmacie: '#00C9A7', laboratoire: '#FF6B35' };
     var bounds = [];
     A.etabs.forEach(function (x) {
+      console.log('[LEAFLET DEBUG] Etab lat/lng:', x.lat, x.lng, x.name);
+      const lat = Number(x.lat), lng = Number(x.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        console.warn('[MAP] etab coords invalides, ignoré:', x.id ?? x);
+        return;
+      }
       var c = tintByType[x.type] || '#003FB1';
       var ring = x.partner ? 'box-shadow:0 0 0 3px rgba(255,107,53,0.55);' : '';
       var icon = L.divIcon({ className: '', html: '<span style="display:block;width:18px;height:18px;border-radius:50%;background:' + c + ';border:2px solid #fff;' + ring + '"></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
-      var m = L.marker([x.lat, x.lng], { icon: icon }).addTo(map);
+      var m = L.marker([lat, lng], { icon: icon }).addTo(map);
       m.bindPopup('<strong>' + x.name + '</strong><br>' + x.addr);
-      A._reseauMarkers.push({ m: m, type: x.type, id: x.id }); bounds.push([x.lat, x.lng]);
+      A._reseauMarkers.push({ m: m, type: x.type, id: x.id }); bounds.push([lat, lng]);
     });
     if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
     setTimeout(function () { map.invalidateSize(); }, 250);
@@ -2238,9 +2251,182 @@
       .then(function (r) { return r.json(); }).then(function (d) { if (d.success) { A.showToast('Groupe créé !'); closeCreateClubModal(); location.reload(); } }).catch(function () { A.showToast('Erreur lors de la création'); });
   };
 
+  /* --------------------------- PROTOCOLE DE TEST window.__bolamu_test --------------------------- */
+  console.log('[DASHBOARD] Exposition du protocole window.__bolamu_test');
+  window.__bolamu_test = {
+    // Navigation entre sections
+    goAccueil: () => A.goAccueil(),
+    goGagner: () => A.goGagner(),
+    goSuivre: () => A.goSuivre(),
+    goRecompenses: () => A.goRecompenses(),
+    openProfile: () => A.openProfile(),
+    closeProfile: () => A.closeProfile(),
+    
+    // Sous-onglets
+    gagnerSport: () => A.gagnerSport(),
+    gagnerSante: () => A.gagnerSante(),
+    suivreZora: () => A.suivreZora(),
+    suivreDossier: () => A.suivreDossier(),
+    
+    // Filtres réseau partenaires
+    filterTout: () => A.filterTout(),
+    filterClin: () => A.filterClin(),
+    filterPharm: () => A.filterPharm(),
+    filterLabo: () => A.filterLabo(),
+    
+    // Filtres récompenses
+    filterCatTout: () => A.filterCat('tout'),
+    filterCatElec: () => A.filterCat('elec'),
+    filterCatVoyage: () => A.filterCat('voyage'),
+    filterCatTelecom: () => A.filterCat('telecom'),
+    filterCatHotels: () => A.filterCat('hotels'),
+    filterCatSport: () => A.filterCat('sport'),
+    filterCatBeaute: () => A.filterCat('beaute'),
+    filterCatCarburant: () => A.filterCat('carburant'),
+    
+    // Jeux
+    openScratch: () => A.openGame('scratch'),
+    openWheel: () => A.openGame('wheel'),
+    openChest: (i) => A.openChest(i),
+    openQuiz: () => A.openGame('quiz'),
+    closeGame: () => A.closeGame(),
+    spinWheel: () => A.spinWheel(),
+    openChest0: () => A.openChest(0),
+    openChest1: () => A.openChest(1),
+    openChest2: () => A.openChest(2),
+    pickQuiz0: () => A.pickQuiz(0),
+    pickQuiz1: () => A.pickQuiz(1),
+    pickQuiz2: () => A.pickQuiz(2),
+    pickQuiz3: () => A.pickQuiz(3),
+    playScratch: () => A.playScratch(),
+    
+    // Événements
+    participate: (id) => A.participate(id),
+    openEventPanel: (eventId) => window.openEventPanel(eventId),
+    closeEventPanel: () => window.closeEventPanel(),
+    cancelEventRegistration: (id) => window.cancelEventRegistration(id),
+    
+    // Clubs et groupes
+    openClubPanel: (clubId) => window.openClubPanel(clubId),
+    closeClubPanel: () => window.closeClubPanel(),
+    joinClub: (clubId) => window.joinClub(clubId),
+    joinGroup: (groupId) => A.joinGroup(groupId),
+    openCreateGroupModal: () => window.openCreateClubModal(),
+    closeCreateGroupModal: () => window.closeCreateClubModal(),
+    
+    // Chat
+    openChat: () => A.openChatReal(),
+    openChatReal: () => A.openChatReal(),
+    closeChat: () => A.closeChat(),
+    chatCommunaute: () => A.chatCommunaute(),
+    chatMedecins: () => A.chatMedecins(),
+    sendChatMessage: () => A.sendChatMessage(),
+    
+    // Modals DMN
+    openDmnPasswordModal: () => A.openDmnPasswordModal(),
+    closeDmnPasswordModal: () => A.closeDmnPasswordModal(),
+    confirmDmnPassword: () => A.confirmDmnPassword(),
+    openDmnQrModal: () => A.openDmnQrModal(),
+    closeDmnQrModal: () => A.closeDmnQrModal(),
+    openDmnDocs: () => A.openDmnPasswordModal(),
+    closeDmnDocsModal: () => A.closeDmnDocsModal(),
+    downloadDmnDoc: (docId) => A.downloadDmnDoc(docId),
+    
+    // Modal QR urgence
+    openQrUrg: () => A.openQrUrg(),
+    closeQrUrg: () => A.closeQrUrg(),
+    
+    // Modal résultats labo
+    openLabRes: () => A.openLabRes(),
+    closeLabRes: () => A.closeLabRes(),
+    
+    // Modal RDV
+    openModal: () => A.openModal(),
+    closeModal: () => A.closeModal(),
+    rdvSelectDoctor: (doctorId) => A.rdvSelectDoctor({ target: { value: doctorId } }),
+    rdvSelectDate: (date) => A.rdvSelectDate({ target: { value: date } }),
+    rdvSelectSlot: (slot) => A.rdvSelectSlot({ target: { value: slot } }),
+    confirmRdv: () => A.confirmRdv(),
+    
+    // Modal constantes médicales
+    openEditConst: () => A.openEditConst(),
+    closeEditConst: () => A.closeEditConst(),
+    setConstGroupe: (val) => A.constField('groupe_sanguin', val),
+    setConstPoids: (val) => A.constField('poids', val),
+    setConstTaille: (val) => A.constField('taille', val),
+    setConstAllergies: (val) => A.constField('allergies', val),
+    setConstMaladies: (val) => A.constField('maladies_chroniques', val),
+    setConstAntecedents: (val) => A.constField('antecedents_medicaux', val),
+    setConstTraitements: (val) => A.constField('traitements_en_cours', val),
+    setConstContactNom: (val) => A.constField('contact_urgence_nom', val),
+    setConstContactPhone: (val) => A.constField('contact_urgence_phone', val),
+    setConstContactLien: (val) => A.constField('contact_urgence_lien', val),
+    saveConst: () => A.saveConst(),
+    
+    // Abonnement (panel patient dashboard)
+    selectionnerPlan: (planId) => {
+      const planMap = {
+        essentiel: { id: 'essentiel', label: 'MOTO', amount: 2000 },
+        standard: { id: 'standard', label: 'NDEKO', amount: 5000 },
+        premium: { id: 'premium', label: 'LIBOTA', amount: 10000 }
+      };
+      const plan = planMap[planId];
+      if (plan) {
+        A.selectPlan(plan.id, plan.label, plan.amount);
+      }
+    },
+    validateSubscription: () => A.validateSubscription(),
+    
+    // Vouchers
+    closeVoucherModal: () => A.closeVoucherModal(),
+    closeVoucherQrModal: () => A.closeVoucherQrModal(),
+    
+    // Leaderboard (fonctions manquantes → fallback)
+    encourageMember: (phone) => A.comingSoon(),
+    toggleCommentInput: (phone) => A.comingSoon(),
+    updateCommentText: (phone, text) => A.comingSoon(),
+    sendComment: (phone) => A.comingSoon(),
+    leaderboardGroupChange: (groupId) => A.comingSoon(),
+    
+    // Toasts
+    toastEncourager: () => A.toastEncourager(),
+    toastActivite: () => A.toastActivite(),
+    toastSommeil: () => A.toastSommeil(),
+    toastNutrition: () => A.toastNutrition(),
+    toastHydratation: () => A.toastHydratation(),
+    toastConvertir: () => A.toastConvertir(),
+    toastPdf: () => A.toastPdf(),
+    toastCreerGroupe: () => A.comingSoon(),
+    toastChat: () => A.comingSoon(),
+    toastPartenaire: () => A.toastPartenaire(),
+    toastReserver: () => A.toastReserver(),
+    toastPlanifier: () => A.toastPlanifier(),
+    toastWhatsapp: () => A.toastWhatsapp(),
+    
+    // Profil
+    logout: () => A.logout(),
+    comingSoon: () => A.comingSoon(),
+    stop: (e) => A.stop(e),
+    
+    // Inspection état
+    getState: () => ({ ...A.state }),
+    getPanel: () => A.state.panel,
+    getZora: () => A.state.zora,
+    getEvents: () => A.state.events,
+    getLedger: () => A._ledger,
+    getConstantes: () => A._constantes,
+    getVouchers: () => A._vouchers,
+    getDmnDocs: () => A._dmnDocs,
+    getLeaderboard: () => A._leaderboard,
+  };
+
   /* --------------------------- DÉMARRAGE --------------------------- */
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', A.init);
-  else A.init();
+  try {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', A.init);
+    else A.init();
+  } catch (e) {
+    console.error('[INIT FAIL]', e.message, e.stack);
+  }
 })();
 
 </script>
