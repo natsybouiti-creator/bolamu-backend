@@ -3940,7 +3940,7 @@ window.__bolamu_test = {
       stop: (e) => e.stopPropagation(),
       logout: () => this.logout(),
       comingSoon: () => this.comingSoon(),
-      openAbonnementPanel: () => this.setState({ abonnementOpen: true }),
+      openAbonnementPanel: () => { this.setState({ abonnementOpen: true }); window.scrollTo(0, 0); },
       closeAbonnementPanel: () => this.setState({ abonnementOpen: false }),
       abonnementPanelStyle: { display: s.abonnementOpen ? 'block' : 'none', position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#FAF8FF', zIndex: 1000, overflowY: 'auto' },
       constForm: s.constForm,
