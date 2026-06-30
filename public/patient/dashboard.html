@@ -1282,9 +1282,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
       </div>
 
       <!-- ABONNEMENT PANEL (hidden by default) -->
-      <div id="abonnement-panel">
+      <div id="abonnement-panel" style="{{ abonnementPanelStyle }}">
         <div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;">
-          <button onclick="closeAbonnementPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;">
+          <button onclick="{{ closeAbonnementPanel }}" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;">
             <span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>
             Retour
           </button>
@@ -2231,7 +2231,7 @@ class Component extends DCLogic {
     chatOpen: false, chatTab: 'communaute', profileOpen: false,
     chatMessages: [], chatInput: '', chatConnected: false, chatLoading: false,
     leaderboardGroupId: '',
-    modal: false, editConst: false, qrUrg: false, labRes: false, voucherModal: false, voucherQrModal: false,
+    modal: false, editConst: false, qrUrg: false, labRes: false, voucherModal: false, voucherQrModal: false, abonnementOpen: false,
     dmnPasswordModal: false, dmnDocsModal: false, dmnQrModal: false, dmnPassword: '',
     rdvDoctorId: '', rdvDate: '', rdvSlot: '', rdvBooking: false,
     game: null, freeGames: 3,
@@ -3855,7 +3855,9 @@ window.__bolamu_test = {
       stop: (e) => e.stopPropagation(),
       logout: () => this.logout(),
       comingSoon: () => this.comingSoon(),
-      openAbonnementPanel: () => { setTimeout(() => openAbonnementPanel(), 0); },
+      openAbonnementPanel: () => this.setState({ abonnementOpen: true }),
+      closeAbonnementPanel: () => this.setState({ abonnementOpen: false }),
+      abonnementPanelStyle: { display: s.abonnementOpen ? 'block' : 'none', position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#FAF8FF', zIndex: 1000, overflowY: 'auto' },
       constForm: s.constForm,
       constValGroupe: s.constForm.groupe_sanguin || '',
       constValPoids: s.constForm.poids || '',
@@ -4441,117 +4443,6 @@ function closeClubPanel() {
   panel.classList.remove('active');
 }
 
-function openAbonnementPanel() {
-  const panel = document.getElementById('abonnement-panel');
-  const content = document.getElementById('abonnement-panel-content');
-  
-  // Ouvrir le panel IMMÉDIATEMENT
-  panel.classList.add('active');
-  
-  // Afficher un loader pendant le chargement
-  content.innerHTML = '<div style="text-align:center;padding:40px;">' +
-    '<span class="material-symbols-outlined" ' +
-    'style="font-size:32px;color:#D1D5DB;">hourglass_empty</span>' +
-    '<div style="margin-top:12px;font-size:0.86rem;' +
-    'font-weight:600;color:#9498a8;">Chargement...</div></div>';
-  
-  const token = localStorage.getItem('bolamu_patient_token');
-  if (!token) {
-    content.innerHTML = '<div style="text-align:center;padding:40px;' +
-      'color:#BA1A1A;">Session expirée — reconnectez-vous</div>';
-    return;
-  }
-  
-  // Récupérer les données d'abonnement
-  const planLabel = window._appState?._subPlanLabel || null;
-  const amount = window._appState?._subAmount || 0;
-  const nextBilling = window._appState?._subNext || null;
-  const status = window._appState?._abonnementStatus || 'active';
-  
-  const statusMap = {
-    active: '<span style="background:#D4F5EE;color:#005344;padding:4px 14px;border-radius:9999px;font-size:0.72rem;font-weight:800;">✓ Actif</span>',
-    pending: '<span style="background:#FFF3CD;color:#856404;padding:4px 14px;border-radius:9999px;font-size:0.72rem;font-weight:800;">⏳ En attente</span>',
-    suspended: '<span style="background:#FFE4E1;color:#BA1A1A;padding:4px 14px;border-radius:9999px;font-size:0.72rem;font-weight:800;">⛔ Suspendu</span>'
-  };
-  
-  let html = '<div style="max-width: 500px; margin: 0 auto;">';
-  
-  if (planLabel) {
-    // Has active subscription
-    html += `
-      <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 20px; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-          <span style="font-size: 1.1rem; font-weight: 800; color: #0A2463;">Mon Abonnement</span>
-          ${statusMap[status] || ''}
-        </div>
-        <div style="font-size: 0.9rem; color: #434654; margin-bottom: 8px;">Plan : <strong style="color: #0A2463;">${planLabel}</strong></div>
-        <div style="font-size: 0.9rem; color: #434654; margin-bottom: 8px;">Montant : <strong style="color: #0A2463;">${amount.toLocaleString('fr-FR')} XAF / mois</strong></div>
-        <div style="font-size: 0.9rem; color: #434654; margin-bottom: 16px;">Renouvellement : <strong style="color: #0A2463;">${nextBilling ? new Date(nextBilling).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</strong></div>
-        <div style="border-top: 1px solid #EDEDF8; padding-top: 16px; margin-top: 16px;">
-          <p style="font-size: 0.9rem; color: #434654; margin: 0 0 14px;">Vous souhaitez changer de plan ?</p>
-        </div>
-      </div>
-    `;
-  }
-  
-  // Plan selection cards
-  const plans = [
-    { id: 'essentiel', label: 'MOTO', amount: 2000 },
-    { id: 'standard', label: 'NDEKO', amount: 5000 },
-    { id: 'premium', label: 'LIBOTA', amount: 10000 }
-  ];
-  
-  html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px;">';
-  plans.forEach(plan => {
-    const isActive = planLabel === plan.label;
-    const activeStyle = isActive ? 'background: #00C9A7; color: #fff; border-color: #00C9A7;' : 'background: #fff; color: #0A2463; border-color: #EDEDF8;';
-    html += `
-      <div onclick="selectPlan('${plan.id}', '${plan.label}', ${plan.amount})" style="cursor: pointer; border: 2px solid ${isActive ? '#00C9A7' : '#EDEDF8'}; border-radius: 16px; padding: 16px; text-align: center; ${isActive ? 'background: rgba(0,201,167,0.1);' : 'background: #fff;'}">
-        <div style="font-size: 1.1rem; font-weight: 800; color: ${isActive ? '#00C9A7' : '#0A2463'};">${plan.label}</div>
-        <div style="font-size: 0.85rem; font-weight: 600; color: ${isActive ? '#00C9A7' : '#434654'}; margin-top: 4px;">${plan.amount.toLocaleString('fr-FR')} XAF</div>
-        ${isActive ? '<div style="font-size: 0.7rem; font-weight: 700; color: #00C9A7; margin-top: 6px;">Actif</div>' : ''}
-      </div>
-    `;
-  });
-  html += '</div>';
-  
-  // Payment section (hidden by default, shown when plan selected)
-  html += `
-    <div id="payment-section" style="display: none; background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 20px;">
-      <div style="font-size: 1rem; font-weight: 800; color: #0A2463; margin-bottom: 16px;">Paiement pour <span id="selected-plan-label"></span></div>
-      
-      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-        <button onclick="selectPaymentMethod('mtn')" id="btn-mtn" style="flex: 1; padding: 10px; border: 2px solid #003FB1; background: #003FB1; color: #fff; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">MTN MoMo</button>
-        <button onclick="selectPaymentMethod('airtel')" id="btn-airtel" style="flex: 1; padding: 10px; border: 2px solid #EDEDF8; background: #fff; color: #434654; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">Airtel Money</button>
-      </div>
-      
-      <div id="payment-instructions" style="background: rgba(0,63,177,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
-        <div style="font-size: 0.85rem; font-weight: 700; color: #0A2463; margin-bottom: 8px;">Instructions :</div>
-        <ol style="font-size: 0.8rem; color: #434654; margin: 0; padding-left: 18px; line-height: 1.6;">
-          <li>Allez dans votre application MoMo</li>
-          <li>Transférez <strong id="payment-amount"></strong> XAF au numéro <strong>+242065207273</strong></li>
-          <li>Entrez l'ID de transaction ci-dessous</li>
-        </ol>
-      </div>
-      
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">ID Transaction</label>
-        <input type="text" id="transaction-id" placeholder="Ex: 1234567890" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23;">
-      </div>
-      
-      <button onclick="validateSubscription()" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 14px; border-radius: 12px; font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer;">Valider</button>
-    </div>
-  `;
-  
-  html += '</div>';
-  content.innerHTML = html;
-  window._selectedPaymentMethod = 'mtn';
-}
-
-function closeAbonnementPanel() {
-  const panel = document.getElementById('abonnement-panel');
-  panel.classList.remove('active');
-}
 
 function selectPlan(planId, planLabel, amount) {
   const paymentSection = document.getElementById('payment-section');
