@@ -1,23 +1,26 @@
 # RAPPORT S02 — Souscription en ligne
 ## Statut : ⚠️ PARTIEL
-## Date : 2026-06-29T12:59:34.355Z
+## Date : 2026-06-29T22:56:08.827Z
 
 ## Résultats par couche
 
 | Couche | Statut | Détails |
 |--------|--------|--------|
-| backend | ✅ | check-subscription répond |
+| backend | ✅ | momo/request → reference_id |
 | database | ⏳ |  |
-| frontend | ⏳ |  |
+| frontend | ✅ | Plan essentiel sélectionné |
 | whatsapp | ➖ | Aucun |
 
 ## Bugs identifiés
 
-- **BUG-S02-02** : page.evaluate: TypeError: window.__bolamu_test.selectionnerPlan is not a function
-    at eval (eval at evaluate (:303:30), <anonymous>:1:28)
-    at UtilityScript.evaluate (<anonymous>:305:16)
-    at UtilityScript.<anonymous> (<anonymous>:1:44)
+- **BUG-S02-05** : page.waitForSelector: Timeout 5000ms exceeded.
+Call log:
+[2m  - waiting for locator('#abonnement-panel.active') to be visible[22m
+
 
 ## Screenshots
 
 - screenshots-s02/01-statut-compte.png
+- screenshots-s02/02-plan-selectionne.png
+- screenshots-s02/03-paiement-initie.png
+- screenshots-s02/04-webhook-succes.png

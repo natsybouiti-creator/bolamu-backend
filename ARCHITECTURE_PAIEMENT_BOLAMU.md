@@ -1,6 +1,6 @@
 # ARCHITECTURE_PAIEMENT_BOLAMU.md
 > Document de référence — Paiements & Abonnements — Bolamu / NBA GESTION SARLU
-> Version 1.1 — Juin 2026
+> Version 1.2 — Juin 2026
 
 ---
 
@@ -244,6 +244,142 @@ validated_at          TIMESTAMP
 
 ---
 
+---
+
+## 11. SYSTÈME DE VÉRIFICATION DES PAIEMENTS
+
+### Phase beta — Vérification semi-manuelle
+
+Flux complet :
+
+```
+Patient paie via USSD (MTN ou Airtel)
+        ↓
+Patient reçoit SMS de confirmation opérateur
+contenant l'identifiant de transaction
+        ↓
+Patient entre cet identifiant dans l'UI
+(étape 4 du register OU drawer "Mon Abonnement" dashboard)
+        ↓
+Backend enregistre en DB :
+  status = 'pending'
+  payment_reference = identifiant saisi
+        ↓
+Admin reçoit notification WhatsApp :
+"Nouvelle souscription à valider —
+ [NOM] [PLAN] [OPERATEUR] Réf: [REF]"
+        ↓
+Admin vérifie sur son téléphone marchand
+que le SMS de réception correspond
+        ↓
+Admin clique "Activer" dans le dashboard admin
+        ↓
+Patient reçoit WhatsApp de confirmation ✅
+```
+
+### Vérification automatique future — SMS scraping Android (V1.5)
+
+Un téléphone Android dédié avec **2 puces SIM** :
+- Puce 1 : MTN `503215` (compte marchand)
+- Puce 2 : Airtel `057430079` (compte marchand)
+
+Une application Android intercepte chaque SMS de confirmation
+et envoie un webhook POST vers le backend :
+
+```
+POST /api/v1/payments/webhook/sms
+Body: {
+  operator: 'MTN' | 'AIRTEL',
+  reference: string,
+  amount: number,
+  sender_phone: string,
+  raw_sms: string
+}
+```
+
+Le backend croise la référence avec les subscriptions
+en `status='pending'` et active automatiquement
+si `amount` + `reference` correspondent.
+
+### Décisions API opérateurs
+
+| Décision | Statut |
+|----------|--------|
+| API MTN Collections en phase beta | ❌ Non — flux USSD pur |
+| API Airtel en phase beta | ❌ Non — flux USSD pur |
+| Flux USSD côté patient | ✅ Oui |
+| SMS scraping Android | ✅ V1.5 — téléphone dédié |
+| API opérateurs V2 | ✅ Quand volume justifie négociation |
+
+---
+
+## 12. ENDPOINT /payments/momo/request — COMPORTEMENT CORRECT
+
+Ce endpoint **NE fait PAS d'appel API externe MTN**.
+Il enregistre uniquement la demande en base.
+
+```
+POST /api/v1/payments/momo/request
+Auth : patient JWT
+Body : { amount, plan, phone }
+
+Logique :
+  1. Valider amount + plan cohérents (via platform_config)
+  2. Récupérer phone depuis req.user.phone (normalizePhone obligatoire)
+  3. INSERT INTO subscriptions :
+       patient_phone = normalizePhone(phone)
+       plan          = plan
+       amount_fcfa   = amount
+       operator      = 'MTN'
+       status        = 'pending'
+       is_active     = FALSE
+       expires_at    = NOW() + INTERVAL '30 days'
+  4. Retourner { success: true, reference_id: [id inséré] }
+
+❌ Aucun appel vers api.mtn.com ou équivalent
+❌ Aucun appel vers un service externe quelconque
+```
+
+Même comportement pour `POST /api/v1/payments/airtel/request`
+avec `operator = 'AIRTEL'`.
+
+---
+
+## 13. WEBHOOK SMS SCRAPING — Spécification endpoint
+
+```
+POST /api/v1/payments/webhook/sms
+Auth : clé secrète webhook (header X-Webhook-Secret)
+Body : {
+  operator: 'MTN' | 'AIRTEL',
+  reference: string,      -- référence transaction SMS
+  amount: number,         -- montant en XAF
+  sender_phone: string,   -- numéro expéditeur (compte marchand)
+  raw_sms: string         -- texte brut du SMS reçu
+}
+
+Logique :
+  1. Vérifier X-Webhook-Secret
+  2. Chercher subscription WHERE :
+       payment_reference = reference
+       AND amount_fcfa = amount
+       AND operator = operator
+       AND status = 'pending'
+  3. Si trouvée → UPDATE status = 'active',
+                          is_active = TRUE,
+                          validated_at = NOW()
+  4. Envoyer WhatsApp patient :
+     "Votre abonnement Bolamu [PLAN] est activé ! ✓"
+  5. Retourner { success: true }
+
+⚠️ À implémenter en V1.5 quand le téléphone Android est configuré
+```
+
+---
+
 *Document maintenu par : Natsy Bouiti — NBA GESTION SARLU*  
-*Dernière mise à jour : Juin 2026 — Calendrier OVP révisé (prélèvement 1er du mois)*  
-*Prochaine révision : à l'activation des credentials API MTN Collections*
+*Dernière mise à jour : Juin 2026*  
+*— Calendrier OVP révisé (prélèvement 1er du mois)*  
+*— Système vérification paiements documenté (semi-manuel + SMS scraping)*  
+*— Décision confirmée : zéro appel API externe en phase beta*  
+*Prochaine révision : à l'activation du SMS scraping Android (V1.5)*

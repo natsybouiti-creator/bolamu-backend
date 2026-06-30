@@ -116,7 +116,9 @@ test.describe.serial('S02 — Souscription en ligne', () => {
       await page.goto('https://www.bolamu.co/patient/dashboard.html');
       await page.waitForLoadState('domcontentloaded');
       await page.click('[data-testid="btn-profil"]');
+      await page.waitForTimeout(500);
       await page.click('[data-testid="menu-abonnement"]');
+      await page.waitForTimeout(1000);
       await page.waitForSelector('#abonnement-panel.active', { timeout: 5000 });
       const subCheck = await apiCall('/patients/check-subscription?phone=+242069735418', 'GET', null, token);
       expect(subCheck.has_active_subscription).toBe(true);
