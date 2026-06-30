@@ -1915,7 +1915,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <button onclick="{{ comingSoon }}" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><dc-import name="SettingRow" icon="person" label="Mes informations" hint-size="100%,56px"></dc-import></button>
         <button onclick="{{ comingSoon }}" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><dc-import name="SettingRow" icon="notifications" label="Notifications" hint-size="100%,56px"></dc-import></button>
         <button onclick="{{ comingSoon }}" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><dc-import name="SettingRow" icon="shield" label="Confidentialité &amp; données" hint-size="100%,56px"></dc-import></button>
-        <button onclick="openAbonnementPanel()" data-testid="menu-abonnement" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><dc-import name="SettingRow" icon="workspace_premium" label="Mon Abonnement" hint-size="100%,56px"></dc-import></button>
+        <button onclick="{{ openAbonnementPanel }}" data-testid="menu-abonnement" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><dc-import name="SettingRow" icon="workspace_premium" label="Mon Abonnement" hint-size="100%,56px"></dc-import></button>
         <button onclick="{{ comingSoon }}" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><dc-import name="SettingRow" icon="translate" label="Langue (FR / Lingala)" hint-size="100%,56px"></dc-import></button>
         <button onclick="{{ logout }}" data-testid="logout" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><dc-import name="SettingRow" icon="logout" label="Déconnexion" danger="{{ true }}" hint-size="100%,56px"></dc-import></button>
       </div>
@@ -3855,6 +3855,7 @@ window.__bolamu_test = {
       stop: (e) => e.stopPropagation(),
       logout: () => this.logout(),
       comingSoon: () => this.comingSoon(),
+      openAbonnementPanel: () => openAbonnementPanel(),
       constForm: s.constForm,
       constValGroupe: s.constForm.groupe_sanguin || '',
       constValPoids: s.constForm.poids || '',
