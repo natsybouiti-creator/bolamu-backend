@@ -3855,7 +3855,7 @@ window.__bolamu_test = {
       stop: (e) => e.stopPropagation(),
       logout: () => this.logout(),
       comingSoon: () => this.comingSoon(),
-      openAbonnementPanel: () => openAbonnementPanel(),
+      openAbonnementPanel: () => { setTimeout(() => openAbonnementPanel(), 0); },
       constForm: s.constForm,
       constValGroupe: s.constForm.groupe_sanguin || '',
       constValPoids: s.constForm.poids || '',
