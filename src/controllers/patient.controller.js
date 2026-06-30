@@ -85,12 +85,12 @@ async function registerPatient(req, res) {
 
 // ─── ABONNEMENT ACTIF ─────────────────────────────────────────────────────────
 async function getSubscription(req, res) {
-    const phone = normalizePhone(req.query.phone || '');
+    const phone = normalizePhone(req.user?.phone || req.query.phone || '');
     if (!phone) return res.status(400).json({ success: false, message: 'Paramètre phone manquant.' });
 
     try {
         const result = await pool.query(
-            `SELECT plan, amount_fcfa, status, started_at, expires_at
+            `SELECT plan, amount_fcfa, status, started_at, expires_at, next_billing_date
              FROM subscriptions
              WHERE patient_phone = $1 AND status = 'active' AND is_active = TRUE AND expires_at > NOW()
              ORDER BY started_at DESC LIMIT 1`,
