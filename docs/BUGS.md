@@ -128,6 +128,18 @@
 
 ---
 
+### BUG-011: Test S27 envoie un format incompatible à /zora/earn
+**Sévérité :** 🟠 MOYEN
+**Module :** Tests E2E - S27
+**Description :** Le test appelle POST /zora/earn avec { phone, points, reason } mais la route exige { phone, action_type, proof_class, proof_reference } (voir src/routes/zora.routes.js). La requête échoue donc systématiquement en 400, et expect(zoraEarnRes.success).toBe(true) devrait faire échouer le test à cette étape -- à vérifier si c'était bien le cas en B1 ou si un autre mécanisme masquait l'échec.
+**Impact :** Test S27 non fonctionnel - l'étape 4 (crédit Zora manuel) échoue systématiquement
+**Statut :** 🔴 OUVERT
+**Assigné à :** À assigner
+**Date découverte :** 1 juillet 2026
+**Recommandation :** Corriger le test avec les vrais action_type/proof_class valides (consulter src/services/zora.service.js pour la liste des action_type acceptés par awardZora avant de choisir des valeurs). Traité en B2, pas dans ce chantier harnais.
+
+---
+
 ## BUGS CORRIGÉS (HISTORIQUE)
 
 *(Aucun bug corrigé dans cette session)*
@@ -136,12 +148,12 @@
 
 ## STATISTIQUES
 
-- **Total bugs :** 6
+- **Total bugs :** 7
 - **Critiques :** 2
-- **Moyens :** 3
+- **Moyens :** 4
 - **Mineurs :** 1
 - **Corrigés :** 0
-- **Ouverts :** 6
+- **Ouverts :** 7
 
 ---
 
