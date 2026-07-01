@@ -85,9 +85,16 @@ async function upgradeAbonnement(patient_phone, nouveau_plan, coupon_code) {
         const currentSub = currentSubResult.rows[0];
         const ancien_plan = currentSub.plan;
 
-        // calculProrata pour obtenir montant_du
-        const prorataResult = await calculProrata(patient_phone, ancien_plan, nouveau_plan, new Date());
-        let montant_du = prorataResult.montant_du;
+        // Lire le prix du nouveau plan depuis platform_config (règle métier : upgrade = prix plein)
+        const configResult = await client.query(
+            `SELECT config_value FROM platform_config WHERE config_key = $1`,
+            [`price_${nouveau_plan.toLowerCase()}`]
+        );
+        if (!configResult.rows.length) {
+            await client.query('ROLLBACK');
+            throw new Error(`Prix du plan ${nouveau_plan} introuvable`);
+        }
+        let montant_du = parseFloat(configResult.rows[0].config_value);
 
         // Si coupon_code : validateCoupon puis ajuster montant_du
         let coupon_applique = null;
@@ -154,8 +161,7 @@ async function upgradeAbonnement(patient_phone, nouveau_plan, coupon_code) {
                 data: {
                     ancien_plan,
                     nouveau_plan,
-                    montant_du,
-                    prorata: prorataResult
+                    montant_du
                 }
             };
         }
@@ -168,7 +174,6 @@ async function upgradeAbonnement(patient_phone, nouveau_plan, coupon_code) {
             success: true,
             payment_required: true,
             montant_du,
-            prorata: prorataResult,
             coupon_applique
         };
 

@@ -80,6 +80,30 @@
 
 ---
 
+### BUG-007: Subscriptions multiples actives pour un même patient
+**Sévérité :** 🟠 MOYEN
+**Module :** Backend - Subscriptions
+**Description :** Les runs de test empilent des subscriptions actives sans désactiver les précédentes. Le patient +242069735418 a 3 subscriptions 'active' simultanées.
+**Impact :** Incohérence de données - un patient ne devrait avoir qu'UNE subscription active
+**Statut :** 🔴 OUVERT
+**Assigné à :** À assigner
+**Date découverte :** 30 juin 2026
+**Recommandation :** La création de subscription devrait désactiver l'ancienne (UPDATE subscriptions SET status = 'inactive' WHERE patient_phone = $1 AND status = 'active') avant d'insérer la nouvelle.
+
+---
+
+### BUG-008: handlePaymentSuccess n'écrit pas historique_abonnements pour upgrades
+**Sévérité :** 🟠 MOYEN
+**Module :** Backend - Paiements
+**Description :** Lorsqu'un paiement upgrade est confirmé via webhook MoMo/Airtel, handlePaymentSuccess crée un nouvel abonnement mais n'écrit pas dans historique_abonnements. L'historique des upgrades est donc incomplet.
+**Impact :** Historique d'audit manquant pour les upgrades payants
+**Statut :** 🔴 OUVERT
+**Assigné à :** À assigner
+**Date découverte :** 1 juillet 2026
+**Recommandation :** Ajouter un flag is_upgrade dans la table payments lors de l'initiation, et faire écrire historique_abonnements dans handlePaymentSuccess si is_upgrade=true. À traiter après B1.
+
+---
+
 ## BUGS CORRIGÉS (HISTORIQUE)
 
 *(Aucun bug corrigé dans cette session)*

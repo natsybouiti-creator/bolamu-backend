@@ -49,7 +49,8 @@ test.describe.serial('S03 — Renouvellement avec upgrade', () => {
 
   test('ÉTAPE 1 — Voir abonnement actuel', async () => {
     try {
-      const subRes = await apiCall('/patients/subscription', 'GET', null, token);
+      const subRes = await apiCall('/patients/subscription?phone=+242069735418', 'GET', null, token);
+      console.log('[S03-DEBUG] Réponse API subscription:', JSON.stringify(subRes, null, 2));
       expect(subRes.success).toBe(true);
       expect(subRes.data.plan).toBe('essentiel');
       resultats.backend = { statut: '✅', details: 'subscription = essentiel' };
@@ -62,10 +63,11 @@ test.describe.serial('S03 — Renouvellement avec upgrade', () => {
 
   test('ÉTAPE 2 — Initier upgrade vers premium', async () => {
     try {
-      const upgradeRes = await apiCall('/patients/subscription/upgrade', 'PATCH', { new_plan: 'premium' }, token);
+      const upgradeRes = await apiCall('/patients/subscription/upgrade', 'PATCH', { nouveau_plan: 'premium' }, token);
+      console.log('[S03-DEBUG] Réponse API upgrade:', JSON.stringify(upgradeRes, null, 2));
       expect(upgradeRes.success).toBe(true);
-      expect(upgradeRes.data.prorata_amount).toBeGreaterThan(0);
-      resultats.frontend = { statut: '✅', details: `prorata ${upgradeRes.data.prorata_amount}` };
+      expect(upgradeRes.montant_du).toBeGreaterThan(0);
+      resultats.frontend = { statut: '✅', details: `montant_du ${upgradeRes.montant_du}` };
       screenshots.push(await screenshot(page, 's03', 2, 'upgrade-initie'));
     } catch (err) {
       bugs.push({ code: 'BUG-S03-02', description: err.message });
@@ -75,7 +77,8 @@ test.describe.serial('S03 — Renouvellement avec upgrade', () => {
 
   test('ÉTAPE 3 — Payer différentiel', async () => {
     try {
-      const momoRes = await apiCall('/momo/request', 'POST', { amount: 15000, phone: '+242069735418' }, token);
+      const momoRes = await apiCall('/payments/momo/request', 'POST', { amount: 10000, plan: 'premium' }, token);
+      console.log('[S03-DEBUG] Réponse API momo/request:', JSON.stringify(momoRes, null, 2));
       expect(momoRes.success).toBe(true);
     } catch (err) {
       bugs.push({ code: 'BUG-S03-03', description: err.message });
