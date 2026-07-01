@@ -21,12 +21,18 @@ const resultats = {
 
 test.describe.serial('S21 — Agence importe employés B2B', () => {
 
-  let page, context, token;
+  let page, context, token, adminToken;
 
   test.beforeAll(async ({ browser }) => {
     context = await browser.newContext();
     page = await context.newPage();
     handleDialogs(page, 'accept');
+
+    const adminLogin = await apiCall('/auth/admin-login', 'POST', {
+      phone: '+242060000099',
+      password: 'bolamu2026'
+    });
+    adminToken = adminLogin.accessToken;
 
     await loginAs(page, 'agent', '+242077000010', 'bolamu2026');
     await waitForDashboard(page);
@@ -35,6 +41,9 @@ test.describe.serial('S21 — Agence importe employés B2B', () => {
 
   test.afterAll(async () => {
     genererRapport('S21', 'Agence importe employés B2B', resultats, bugs, screenshots);
+    if (PHONES_TEST.length > 0) {
+      await apiCall('/admin/test/cleanup', 'DELETE', { phones: PHONES_TEST }, adminToken);
+    }
     await context.close();
   });
 
