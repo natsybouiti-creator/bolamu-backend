@@ -16,6 +16,7 @@ export default defineConfig({
   projects: [
     {
       name: 'soins',
+      dependencies: ['reset'],
       testMatch: /tests\/e2e\/(s04|s05|s06|s07|s20)-.*\.spec\.js/,
       use: {
         ...devices['Desktop Chrome'],
