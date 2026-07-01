@@ -121,14 +121,6 @@ async function upgradeAbonnement(patient_phone, nouveau_plan, coupon_code) {
                 [nouveau_plan, new_expires_at, currentSub.id]
             );
 
-            // INSERT historique_abonnements
-            await client.query(
-                `INSERT INTO historique_abonnements 
-                    (patient_phone, ancien_plan, nouveau_plan, montant_du, coupon_applique, date_upgrade)
-                 VALUES ($1, $2, $3, $4, $5, NOW())`,
-                [patient_phone, ancien_plan, nouveau_plan, montant_du, JSON.stringify(coupon_applique)]
-            );
-
             // Appliquer le coupon si présent
             if (coupon_applique) {
                 await applyCoupon(coupon_applique.coupon_id, patient_phone, currentSub.id, coupon_applique.montant_remise);
@@ -142,6 +134,19 @@ async function upgradeAbonnement(patient_phone, nouveau_plan, coupon_code) {
             ).catch(() => {});
 
             await client.query('COMMIT');
+
+            // INSERT historique_abonnements (audit, hors transaction critique, via pool indépendant)
+            try {
+                await pool.query(
+                    `INSERT INTO historique_abonnements 
+                        (patient_phone, ancien_plan, nouveau_plan, montant_du, coupon_applique, date_upgrade)
+                     VALUES ($1, $2, $3, $4, $5, NOW())`,
+                    [patient_phone, ancien_plan, nouveau_plan, montant_du, JSON.stringify(coupon_applique)]
+                );
+            } catch (auditError) {
+                console.error('[upgradeAbonnement] Échec insertion historique_abonnements (non bloquant):', auditError.message);
+                // L'upgrade est déjà validé, on ne rollback pas
+            }
 
             return {
                 success: true,
