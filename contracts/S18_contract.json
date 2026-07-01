@@ -1,0 +1,43 @@
+{
+  "scenario_id": "S18",
+  "title": "Patient consulte le leaderboard Zora",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s18-leaderboard-zora.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "frontend_layer": {
+    "steps": [],
+    "note": "Fichier source indique explicitement : 'Frontend non testé (pages web non accessibles)'. Ce scénario ne couvre en réalité que backend + DB, malgré son statut '✅ VALIDÉ' en B1. Il ne doit pas être compté comme une preuve 3-couches."
+  },
+  "backend_layer": {
+    "expected_calls": [
+      {
+        "method": "GET",
+        "endpoint": "/leaderboard/weekly/top3",
+        "auth": "aucune (public)",
+        "expected_response_shape": { "success": true }
+      },
+      {
+        "method": "GET",
+        "endpoint": "/leaderboard/weekly",
+        "auth": "token patient",
+        "expected_response_shape": { "success": true }
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT count(*) FROM zora_ledger WHERE user_phone = '+242069735418'",
+        "note": "vérifie simplement que la table source du leaderboard contient des données pour ce compte -- ne valide pas le classement lui-même"
+      }
+    ]
+  },
+  "known_gaps": [
+    "Frontend jamais testé pour ce scénario -- le statut 'validé' en B1 est trompeur (voir synthèse B1). À compléter avant B2 avec un vrai test UI si le leaderboard est affiché quelque part dans le dashboard patient.",
+    "Dépend directement du solde zora_ledger du compte +242069735418, lui-même pollué par S13/S27 qui ne nettoient pas leurs crédits Zora -- ce test peut donner un résultat différent selon l'ordre d'exécution de la suite."
+  ]
+}

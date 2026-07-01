@@ -1,0 +1,54 @@
+{
+  "scenario_id": "S21",
+  "title": "Agence importe des employés (B2B SmartFlow)",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s21-agence-import-employes.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "agent", "phone": "+242077000010" }
+    ],
+    "synthetic_accounts_created_by_test": [
+      "+242069000095", "+242069000094", "+242069000093"
+    ]
+  },
+  "frontend_layer": {
+    "steps": [],
+    "note": "Import fait directement via API, pas d'action UI testée dans ce fichier malgré resultats.frontend attendu -- à clarifier avec Cascade si une UI d'import existe et doit être couverte."
+  },
+  "backend_layer": {
+    "expected_calls": [
+      {
+        "method": "POST",
+        "endpoint": "/agence/import-employes",
+        "body_summary": "company_id + liste de 3 employés (phone, full_name, plan)",
+        "expected_response_shape": { "success": true, "data": { "created_count": 3 } }
+      },
+      {
+        "method": "GET",
+        "endpoint": "/agence/employees?company_id=COMPANY_TEST_001",
+        "expected_field": "data.length > 0"
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT count(*) FROM users WHERE phone IN ('+242069000095','+242069000094','+242069000093')",
+        "expected": { "count": "3" }
+      },
+      {
+        "query": "SELECT count(*) FROM subscriptions WHERE patient_phone IN ('+242069000095','+242069000094','+242069000093') AND status = 'active'",
+        "expected": { "count": "3" }
+      },
+      {
+        "query": "SELECT count(*) FROM company_employees WHERE company_id = 'COMPANY_TEST_001'",
+        "expected": { "count": "3" }
+      }
+    ]
+  },
+  "known_gaps": [
+    "BUG CONFIRMÉ (pas juste un gap) : PHONES_TEST contient bien les 3 numéros synthétiques, mais afterAll() n'appelle jamais /admin/test/cleanup -- contrairement à S04/S08/S13/S22/S27 qui au moins ont le code de cleanup (même si PHONES_TEST vide le rend inopérant). Ici le code de cleanup est carrément absent. Conséquence : 3 users + 3 subscriptions + 3 company_employees permanents créés à CHAQUE run, jamais supprimés. Sur N runs, la table users grossit de 3N lignes synthétiques 'COMPANY_TEST_001'.",
+    "Priorité : ce cas est plus grave que les autres known_gaps -- il pollue users et subscriptions, pas seulement des logs. À corriger avant tout nouveau run de S21."
+  ],
+  "recommended_fix": "Ajouter dans afterAll() : if (PHONES_TEST.length > 0) { await apiCall('/admin/test/cleanup', 'DELETE', { phones: PHONES_TEST }, adminToken); } -- nécessite aussi de charger adminToken dans beforeAll(), absent du fichier actuel."
+}

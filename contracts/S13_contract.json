@@ -1,0 +1,59 @@
+{
+  "scenario_id": "S13",
+  "title": "Check-in patient à un événement Elonga (scan QR)",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s13-checkin-evenement.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "admin", "phone": "+242060000099" },
+      { "role": "patient", "phone": "+242069735418" },
+      { "role": "animateur", "phone": "+242000000088" }
+    ],
+    "note": "Nécessite qu'une inscription (registration) existante avec checkin_token existe déjà pour ce patient sur un événement -- sinon myRegs.data[0] est undefined et l'étape 2 échoue silencieusement sur un tableau vide plutôt que sur une vraie erreur métier."
+  },
+  "frontend_layer": {
+    "steps": [
+      { "action": "window.__bolamu_test.openDmnQrModal()", "context": "page patient" }
+    ]
+  },
+  "backend_layer": {
+    "expected_calls": [
+      {
+        "method": "GET",
+        "endpoint": "/events/my/registrations",
+        "context": "token patient",
+        "expected_field": "data.length > 0, data[0].checkin_token présent"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/events/{eventId}/checkin",
+        "context": "token animateur",
+        "body": { "token": "checkinToken" },
+        "expected_response_shape": { "success": true, "points_credited": 30 }
+      },
+      {
+        "method": "GET",
+        "endpoint": "/events/my/registrations",
+        "context": "token patient, après check-in",
+        "expected_field": "data[0].checked_in == true"
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT checked_in FROM elonga_registrations WHERE patient_phone = '+242069735418' ORDER BY id DESC LIMIT 1",
+        "expected": { "checked_in": "true" }
+      },
+      {
+        "query": "SELECT count(*) FROM event_checkin_log WHERE patient_phone = '+242069735418' AND zora_credited = true",
+        "note": "vérifie que le crédit Zora n'a été appliqué qu'une fois par check-in réel, pas dupliqué"
+      }
+    ]
+  },
+  "known_gaps": [
+    "PHONES_TEST vide -> aucun cleanup. Chaque run crédite +30 Zora au patient réel et ajoute une ligne event_checkin_log. Sur plusieurs runs, le solde Zora de ce compte devient artificiellement élevé -- risque de fausser tout futur test sur le leaderboard (S18) ou les seuils de tier (Kimia/Liboso/Nkembo/Elonga).",
+    "Aucune vérification que le check-in n'est pas rejouable (double check-in sur le même événement) -- à ajouter comme cas de test explicite avant B2, car c'est le même type de règle 'un seul actif/valide à la fois' que BUG-007 et BUG-010."
+  ],
+  "waitForTimeout_present": true
+}

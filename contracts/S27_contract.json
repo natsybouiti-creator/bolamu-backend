@@ -1,0 +1,43 @@
+{
+  "scenario_id": "S27",
+  "title": "Admin supervise la plateforme",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s27-admin-supervise.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "admin", "phone": "+242060000099" },
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "frontend_layer": {
+    "steps": [],
+    "note": "resultats.frontend est rempli par l'étape 2 (publication événement) qui est en réalité un appel API PATCH, pas une interaction UI -- même mislabeling que S22."
+  },
+  "backend_layer": {
+    "expected_calls": [
+      { "method": "GET", "endpoint": "/admin/events/pending" },
+      { "method": "PATCH", "endpoint": "/events/{eventId}/publish", "condition": "seulement si un événement pending existe" },
+      { "method": "GET", "endpoint": "/admin/smartflow/stats?mois=2026-07" },
+      {
+        "method": "POST",
+        "endpoint": "/zora/earn",
+        "body": { "phone": "+242069735418", "points": 100, "reason": "Crédit manuel test admin Playwright" },
+        "expected_response_shape": { "success": true }
+      },
+      { "method": "GET", "endpoint": "/patients/search?q=+242069735418", "expected_field": "data[0].full_name présent" }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT balance FROM zora_ledger WHERE user_phone = '+242069735418' ORDER BY id DESC LIMIT 1",
+        "note": "vérifie seulement que le crédit a été appliqué, pas que le montant est correct dans l'absolu (dépend du solde précédent, lui-même pollué)"
+      }
+    ]
+  },
+  "known_gaps": [
+    "PHONES_TEST vide -> aucun cleanup. Ce scénario crédite manuellement +100 Zora sur le patient réel à CHAQUE run, en plus des +30 de S13. C'est la deuxième source directe de pollution du solde Zora du compte +242069735418, avec un libellé de test explicite ('Crédit manuel test admin Playwright') qui reste visible dans l'historique du compte -- pas acceptable si ce compte sert un jour de démo.",
+    "L'étape de publication d'événement est conditionnelle ('si un événement pending existe') -- si aucun événement n'est en attente au moment du run, cette étape ne teste rien mais reste marquée comme passée. Le contrat doit distinguer 'passé car testé' de 'passé car sauté'."
+  ],
+  "recommended_fix": "Créer un compte patient dédié 'zora_test' séparé du patient de test fonctionnel +242069735418, pour isoler la pollution du solde Zora, ou ajouter un vrai cleanup (reset manuel du solde en fin de test)."
+}

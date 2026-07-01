@@ -1,0 +1,63 @@
+{
+  "scenario_id": "S26",
+  "title": "Notification automatique après action X",
+  "version": "1.0",
+  "created": "2026-06-21",
+  "preconditions": {
+    "test_accounts": [
+      {
+        "role": "patient",
+        "phone": "+242069735418",
+        "expected_state_before": "aucun abonnement actif, historique vide"
+      },
+      {
+        "role": "animateur",
+        "phone": "+242000000088",
+        "expected_state_before": "compte actif, zone assignée"
+      }
+    ],
+    "db_state_required": [
+      "SELECT count(*) FROM subscriptions WHERE patient_phone = '+242069735418' AND is_active = true -- attendu: 0"
+    ]
+  },
+  "frontend_layer": {
+    "steps": [
+      {
+        "action": "click",
+        "selector": "[data-testid='action-x-button']",
+        "assertion_exact": "le texte du bouton doit être exactement 'Confirmer' (pas de regex large)"
+      }
+    ],
+    "success_condition": "un toast avec le texte exact 'Action enregistrée' apparaît dans les 5s (waitForSelector, jamais waitForTimeout)"
+  },
+  "backend_layer": {
+    "expected_calls": [
+      {
+        "method": "POST",
+        "endpoint": "/api/action-x",
+        "expected_response_shape": { "success": true, "data": { "id": "number" } },
+        "must_not_be_silent_failure": true
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT status FROM audit_log WHERE action = 'action_x' AND patient_phone = '+242069735418' ORDER BY created_at DESC LIMIT 1",
+        "expected": { "status": "success" }
+      },
+      {
+        "query": "SELECT count(*) FROM subscriptions WHERE patient_phone = '+242069735418' AND is_active = true",
+        "expected_max": 1,
+        "note": "règle métier : jamais plus d'un abonnement actif simultané (cf BUG-007)"
+      }
+    ]
+  },
+  "cleanup": {
+    "required": true,
+    "steps": [
+      "réinitialiser subscriptions.is_active pour +242069735418 à l'état initial",
+      "vider audit_log de test si insert_only le permet (sinon marquer test_run_id)"
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "scenario_id": "S22",
+  "title": "Prestataire enregistre un acte hors-catalogue SmartFlow",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s22-acte-hors-catalogue.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "medecin", "phone": "+242060000001" },
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "frontend_layer": {
+    "steps": [],
+    "note": "resultats.frontend est en réalité rempli par l'étape 3 (stats prestataire), pas par une vraie interaction UI -- mislabeling à corriger dans le fichier source."
+  },
+  "backend_layer": {
+    "expected_calls": [
+      {
+        "method": "GET",
+        "endpoint": "/smartflow/medicaments/check?nom=Ciprofloxacine",
+        "expected_field": "data.type présent (SSP ou hors-catalogue)"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/smartflow/hors-catalogue",
+        "body_summary": "patient_phone, medicament, montant=8500, type_acte='pharmacie'",
+        "expected_response_shape": { "success": true, "data": { "transaction_id": "présent" } },
+        "expected_status": "pending_validation"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/smartflow/stats/moi?mois=2026-07",
+        "expected_field": "success == true"
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT status FROM smartflow_transactions WHERE patient_phone = '+242069735418' ORDER BY transaction_id DESC LIMIT 1",
+        "expected": { "status": "pending_validation" }
+      }
+    ]
+  },
+  "known_gaps": [
+    "PHONES_TEST vide -> aucun cleanup. Chaque run ajoute une transaction smartflow_transactions à 8500 FCFA en pending_validation sur le patient réel. Si un jour ces transactions pending sont traitées par un job de validation automatique ou remontent dans un rapport financier, elles pollueront des vrais chiffres -- à traiter avant toute mise en prod de la validation automatique SmartFlow."
+  ]
+}

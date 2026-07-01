@@ -1,0 +1,46 @@
+{
+  "scenario_id": "S08",
+  "title": "Patient génère son QR d'identité médicale",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s08-qr-identite-medicale.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "admin", "phone": "+242060000099" },
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "frontend_layer": {
+    "steps": [
+      { "action": "window.__bolamu_test.openQrUrg()", "assertion": "#qr-modal visible" },
+      { "action": "window.__bolamu_test.closeQrUrg()" }
+    ]
+  },
+  "backend_layer": {
+    "expected_calls": [
+      {
+        "method": "GET",
+        "endpoint": "/dmn/qr-payload",
+        "expected_response_shape": { "success": true, "data": { "payload": "string non vide" } }
+      },
+      {
+        "method": "GET",
+        "endpoint": "/dmn/access-log",
+        "expected_response_shape": { "success": true, "data": { "logs": "array" } },
+        "expected_field": "logs contient au moins une entrée event_type == 'qr_scan'"
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT event_type FROM dmn_access_log WHERE user_phone = '+242069735418' ORDER BY created_at DESC LIMIT 1",
+        "expected": { "event_type": "qr_scan" }
+      }
+    ]
+  },
+  "known_gaps": [
+    "PHONES_TEST vide -> aucun cleanup. Chaque run ajoute une ligne dmn_access_log sur le compte patient réel. À surveiller : ce log est un journal d'accès à des données médicales sensibles (BHP), une pollution par des runs de test répétés peut fausser un futur audit de sécurité."
+  ],
+  "waitForTimeout_present": true,
+  "waitForTimeout_note": "Fermeture QR utilise waitForTimeout — à remplacer par waitForSelector sur disparition du modal."
+}

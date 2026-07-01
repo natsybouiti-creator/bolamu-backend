@@ -1,0 +1,46 @@
+{
+  "scenario_id": "S04",
+  "title": "Patient prend un RDV médecin",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s04-rdv-medecin.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "admin", "phone": "+242060000099" },
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "frontend_layer": {
+    "steps": [
+      { "action": "window.__bolamu_test.goAccueil()" },
+      { "action": "window.__bolamu_test.openModal()", "assertion": "#rdv-modal visible" },
+      { "action": "window.__bolamu_test.rdvSelectDoctor('1')" },
+      { "action": "window.__bolamu_test.rdvSelectDate('2026-07-15')" },
+      { "action": "window.__bolamu_test.rdvSelectSlot('09:00')" },
+      { "action": "window.__bolamu_test.confirmRdv()" }
+    ],
+    "success_condition": "state.last_appointment_id truthy ET state.session_code truthy via getState()"
+  },
+  "backend_layer": {
+    "expected_calls": [
+      {
+        "method": "GET",
+        "endpoint": "/appointments/patient/+242069735418",
+        "expected_response_shape": { "success": true, "appointments": "array non vide" },
+        "expected_field": "appointments[0].status == 'confirme'"
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT status, session_code FROM appointments WHERE patient_phone = '+242069735418' ORDER BY id DESC LIMIT 1",
+        "expected": { "status": "confirme" }
+      }
+    ]
+  },
+  "known_gaps": [
+    "PHONES_TEST est vide dans ce fichier -> aucun cleanup n'est exécuté. Le RDV créé reste en base à chaque run sur le compte patient réel +242069735418. Impact cumulatif à surveiller (nombre d'appointments qui grossit indéfiniment)."
+  ],
+  "waitForTimeout_present": true,
+  "waitForTimeout_note": "Toutes les étapes utilisent page.waitForTimeout() au lieu d'attentes conditionnelles — viole la règle harnais section 5. À corriger avant de considérer ce scénario 'validé' au sens du protocole."
+}
