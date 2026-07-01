@@ -343,12 +343,12 @@ async function notifyClub(club_id, animateur_phone, message_type, params) {
     let failedCount = 0;
     
     for (const member of membersResult.rows) {
-      try {
-        await sendAutoMessage(member.patient_phone, message_type, params);
+      const ok = await sendAutoMessage(member.patient_phone, message_type, params);
+      if (ok) {
         sentCount++;
-      } catch (err) {
-        logger.warn('[ANIMATEUR] Erreur envoi WhatsApp:', err.message);
+      } else {
         failedCount++;
+        logger.warn('[ANIMATEUR] Échec envoi WhatsApp à', member.patient_phone);
       }
     }
     

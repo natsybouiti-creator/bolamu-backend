@@ -133,7 +133,7 @@ async function notifyClubController(req, res) {
     }
     
     const result = await notifyClub(parseInt(club_id), animateur_phone, message_type, params);
-    res.json(result);
+    res.json({ success: true, data: result });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] notifyClub error:', error);
     res.status(500).json({ error: error.message });
