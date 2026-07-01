@@ -334,8 +334,8 @@ async function notifyClub(club_id, animateur_phone, message_type, params) {
     
     // Récupère tous les membres actifs du club
     const membersResult = await pool.query(
-      `SELECT phone FROM club_members 
-       WHERE club_id = $1 AND status = 'active'`,
+      `SELECT patient_phone FROM club_members 
+       WHERE club_id = $1 AND is_active = TRUE`,
       [club_id]
     );
     
@@ -344,7 +344,7 @@ async function notifyClub(club_id, animateur_phone, message_type, params) {
     
     for (const member of membersResult.rows) {
       try {
-        await sendAutoMessage(member.phone, message_type, params);
+        await sendAutoMessage(member.patient_phone, message_type, params);
         sentCount++;
       } catch (err) {
         logger.warn('[ANIMATEUR] Erreur envoi WhatsApp:', err.message);
