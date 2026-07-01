@@ -388,3 +388,23 @@ FLUX PAIEMENT :
 TÂCHES OUVERTES (à finir en priorité) :
 - express.raw Airtel webhook → ajouter avant express.json() dans server.js
 - REDIS_URL → configurer sur Render pour activer BullMQ workers
+
+---
+
+## HARNESS — RÈGLES NON NÉGOCIABLES
+
+- Tu n'as JAMAIS le droit de déclarer un scénario "validé", "affiché" ou
+  "confirmé" sans coller le contenu brut du verdict JSON produit par
+  verify_scenario.js. Une phrase comme "le test passe" sans le JSON joint
+  est un manquement au protocole.
+- Tu n'as JAMAIS le droit d'élargir une assertion de test (ex: passer d'un
+  sélecteur précis à un sélecteur générique, ou d'un texte exact à un
+  regex large) sans montrer le diff exact et attendre validation explicite.
+- Interdiction absolue de waitForTimeout — utiliser des attentes conditionnelles
+  (waitForSelector, waitForResponse, networkidle avec timeout explicite).
+- Un script de test jetable (non commité, non versionné dans /tests) ne
+  compte pas comme preuve. Seul un run passant par run_harness_loop.sh compte.
+- Si un test échoue 2 fois de suite après ton fix, tu t'arrêtes et tu
+  remontes le verdict JSON brut plutôt que de tenter un 3e fix à l'aveugle.
+- Commits chirurgicaux uniquement : un commit = un bug ou une feature,
+  jamais un commit "corrections diverses".
