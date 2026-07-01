@@ -37,7 +37,7 @@ export default defineConfig({
       },
       dependencies: ['setup', 'reset'],
       teardown: 'restore',
-      testIgnore: /tests\/e2e\/(0[1-6])-/,
+      testIgnore: /tests\/e2e\/(0[1-6]|s04|s05|s06|s07|s20)-/,
     },
     {
       // Tests API E2E critiques — pas de browser, pas de dépendance auth
@@ -51,6 +51,16 @@ export default defineConfig({
       testMatch: /tests\/e2e\/07-clubs\.spec\.js/,
       use: {},
       dependencies: [],
+    },
+    {
+      // Tests Soins (s04/s05/s06/s07/s20) — nécessitent reset audit
+      name: 'soins',
+      testMatch: /tests\/e2e\/(s04|s05|s06|s07|s20)-.*\.spec\.js/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+      dependencies: ['reset'],
+      teardown: 'restore',
     },
   ],
 });
