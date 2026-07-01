@@ -104,6 +104,18 @@
 
 ---
 
+### BUG-009: Bouton notification animateur cassé
+**Sévérité :** 🔴 CRITIQUE
+**Module :** Frontend - Dashboard Animateur
+**Description :** Les fonctions sendNotification() et sendClubNotif() envoient {message} mais le backend attend {message_type, params}. Le handler retourne 400 systématiquement. Les animateurs ne peuvent notifier aucun club.
+**Impact :** Fonctionnalité critique inutilisable — les animateurs ne peuvent envoyer de messages WhatsApp à leurs clubs
+**Statut :** ✅ CORRIGÉ (1 juillet 2026)
+**Assigné à :** Cascade
+**Date découverte :** 1 juillet 2026
+**Recommandation :** Corrigé — les fonctions frontend envoient maintenant {message_type: 'bolamu_club_message', params: [nom_club, message]}.
+
+---
+
 ## BUGS CORRIGÉS (HISTORIQUE)
 
 *(Aucun bug corrigé dans cette session)*
