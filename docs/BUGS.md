@@ -116,6 +116,18 @@
 
 ---
 
+### BUG-010: Comptage notification animateur non fiable
+**Sévérité :** 🟠 HIGH
+**Module :** Backend - Animateur Service
+**Description :** notifyClub (animateur.service.js) incrémentait sentCount même quand l'envoi WhatsApp échouait. sendAutoMessage (whatsapp-web.service.js) retourne false en cas d'échec mais la valeur de retour n'était jamais vérifiée. Le try/catch de notifyClub ne pouvait jamais s'exécuter puisque sendAutoMessage ne throw jamais. Résultat : sent_count=1, failed_count=0 même avec un numéro fictif, signal trompeur pour l'animateur.
+**Impact :** Un animateur pouvait croire avoir notifié son club alors que rien n'était parti. Comptage non fiable des notifications.
+**Statut :** ✅ CORRIGÉ (1 juillet 2026)
+**Assigné à :** Cascade
+**Date découverte :** 1 juillet 2026
+**Recommandation :** Corrigé — notifyClub vérifie maintenant explicitement le retour booléen de sendAutoMessage (const ok = await sendAutoMessage(...); if (ok) sentCount++; else { failedCount++; logger.warn(...) }). En même temps, le format de réponse du controller a été corrigé pour respecter le standard {success, data}. Fichiers modifiés : src/services/animateur.service.js + src/controllers/animateur.controller.js.
+
+---
+
 ## BUGS CORRIGÉS (HISTORIQUE)
 
 *(Aucun bug corrigé dans cette session)*

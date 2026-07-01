@@ -84,16 +84,18 @@
 ### /animateur/clubs/:id/notify (POST)
 **Statut :** ✅ CORRIGÉ (1 juillet 2026)
 
-**Problème corrigé :**
+**Problèmes corrigés :**
 - Frontend envoyait `{ message }` mais backend attendait `{ message_type, params }`
 - Handler retournait 400 systématiquement (message_type et params requis)
 - Template WhatsApp attendu : `bolamu_club_message` avec params `[nom_club, message]`
+- Controller retournait la réponse nue `{ sent_count, failed_count }` au lieu du standard `{ success, data }`
 
 **Action effectuée :**
 - Correction de sendNotification() et sendClubNotif() dans public/animateur/dashboard.html
 - Envoi maintenant `{ message_type: 'bolamu_club_message', params: [nom_club, message] }`
 - Protocole test sendNotificationToClub() aligné sur le même format
-- BUG-009 documenté dans docs/BUGS.md
+- Controller notifyClubController corrigé pour retourner `{ success: true, data: { sent_count, failed_count } }`
+- BUG-009 et BUG-010 documentés dans docs/BUGS.md
 
 ---
 
