@@ -1,0 +1,42 @@
+{
+  "scenario_id": "S06",
+  "title": "Patient consulte son DMN et confirme accès document par mot de passe",
+  "version": "1.0",
+  "source_extraction": "verifie Cascade, tests/e2e/s06-acces-dmn.spec.js + code source dmn.routes.js/dmn.service.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "api_layer": {
+    "checks": [
+      {
+        "step": "summary",
+        "method": "GET",
+        "endpoint": "/dmn/summary",
+        "expected_response_shape": { "success": true }
+      },
+      {
+        "step": "access-log",
+        "method": "GET",
+        "endpoint": "/dmn/access-log",
+        "expected_response_shape": { "success": true, "data": { "logs": "array" } }
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT access_type FROM dmn_access_log WHERE patient_phone = '+242069735418' AND access_type = 'consultation' AND accessed_at > NOW() - INTERVAL '15 minutes' ORDER BY accessed_at DESC LIMIT 1",
+        "expected": { "access_type": "consultation" },
+        "note": "trace laissee par l'appel GET /dmn/summary"
+      },
+      {
+        "query": "SELECT access_type FROM dmn_access_log WHERE patient_phone = '+242069735418' AND access_type = 'download' AND accessed_at > NOW() - INTERVAL '15 minutes' ORDER BY accessed_at DESC LIMIT 1",
+        "expected": { "access_type": "download" },
+        "note": "trace laissee par la confirmation du mot de passe (route /dmn/download/verify), verifiee via logAccess ligne 65 de dmn.routes.js"
+      }
+    ]
+  },
+  "requires_human_review": false
+}
