@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { normalizePhone } = require('../utils/phone.utils');
+const { normalizePhone } = require('../utils/phone');
 
 /**
  * Service Score Bolamu — Calcul du score de bien-être/engagement patient
