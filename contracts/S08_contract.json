@@ -26,15 +26,15 @@
         "method": "GET",
         "endpoint": "/dmn/access-log",
         "expected_response_shape": { "success": true, "data": { "logs": "array" } },
-        "expected_field": "logs contient au moins une entrée event_type == 'qr_scan'"
+        "expected_field": "logs contient au moins une entrée access_type == 'qr_scan'"
       }
     ]
   },
   "db_layer": {
     "checks": [
       {
-        "query": "SELECT event_type FROM dmn_access_log WHERE user_phone = '+242069735418' ORDER BY created_at DESC LIMIT 1",
-        "expected": { "event_type": "qr_scan" }
+        "query": "SELECT access_type FROM dmn_access_log WHERE patient_phone = '+242069735418' AND accessed_at > NOW() - INTERVAL '15 minutes' ORDER BY accessed_at DESC LIMIT 1",
+        "expected": { "access_type": "qr_scan" }
       }
     ]
   },

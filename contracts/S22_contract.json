@@ -37,8 +37,8 @@
   "db_layer": {
     "checks": [
       {
-        "query": "SELECT status FROM smartflow_transactions WHERE patient_phone = '+242069735418' ORDER BY transaction_id DESC LIMIT 1",
-        "expected": { "status": "pending_validation" }
+        "query": "SELECT statut FROM hors_catalogue_transactions WHERE patient_phone = '+242069735418' AND created_at > NOW() - INTERVAL '15 minutes' ORDER BY id DESC LIMIT 1",
+        "expected": { "statut": "notifie" }
       }
     ]
   },

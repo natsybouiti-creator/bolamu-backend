@@ -42,8 +42,8 @@
   "db_layer": {
     "checks": [
       {
-        "query": "SELECT checked_in FROM elonga_registrations WHERE patient_phone = '+242069735418' ORDER BY id DESC LIMIT 1",
-        "expected": { "checked_in": "true" }
+        "query": "SELECT status, zora_awarded FROM elonga_registrations WHERE phone = '+242069735418' AND checkin_at > NOW() - INTERVAL '15 minutes' ORDER BY id DESC LIMIT 1",
+        "expected": { "status": "checked_in", "zora_awarded": true }
       },
       {
         "query": "SELECT count(*) FROM event_checkin_log WHERE patient_phone = '+242069735418' AND zora_credited = true",

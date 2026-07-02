@@ -30,7 +30,7 @@
   "db_layer": {
     "checks": [
       {
-        "query": "SELECT balance FROM zora_ledger WHERE user_phone = '+242069735418' ORDER BY id DESC LIMIT 1",
+        "query": "SELECT points FROM zora_ledger WHERE phone = '+242069735418' AND earned_at > NOW() - INTERVAL '15 minutes' ORDER BY id DESC LIMIT 1",
         "note": "vérifie seulement que le crédit a été appliqué, pas que le montant est correct dans l'absolu (dépend du solde précédent, lui-même pollué)"
       }
     ]
