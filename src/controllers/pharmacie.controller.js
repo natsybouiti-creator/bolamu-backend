@@ -121,8 +121,7 @@ async function registerPharmacie(req, res) {
 }
 
 async function getPharmacieProfile(req, res) {
-    const { phone } = req.query;
-    if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
+    const phone = req.user.phone;
     const normalizedPhone = normalizePhone(phone);
     try {
         const result = await pool.query(

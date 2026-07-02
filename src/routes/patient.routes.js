@@ -51,8 +51,7 @@ router.patch('/subscription/upgrade', authMiddleware, idempotencyMiddleware('/su
 
 router.get('/profil', authMiddleware, async (req, res) => {
     try {
-        const phone = normalizePhone(req.query.phone || '');
-        if (!phone) return res.status(400).json({ success: false, message: 'Numéro de téléphone requis' });
+        const phone = normalizePhone(req.user.phone);
 
         const result = await pool.query(
             `SELECT phone, full_name, gender, birth_date, city, neighborhood, bolamu_id, is_active, created_at 
@@ -74,8 +73,7 @@ router.get('/profil', authMiddleware, async (req, res) => {
 
 router.get('/check-subscription', authMiddleware, async (req, res) => {
     try {
-        const phone = normalizePhone(req.query.phone || '');
-        if (!phone) return res.status(400).json({ success: false, message: 'Numéro de téléphone requis' });
+        const phone = normalizePhone(req.user.phone);
 
         const result = await pool.query(
             `SELECT status, plan, expires_at 

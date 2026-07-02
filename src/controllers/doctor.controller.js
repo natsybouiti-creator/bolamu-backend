@@ -217,8 +217,7 @@ async function updateDoctorStatus(req, res) {
 }
 
 async function getDoctorProfile(req, res) {
-    const phone = normalizePhone(req.query.phone || '');
-    if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
+    const phone = normalizePhone(req.user.phone);
     
     try {
         const result = await pool.query(

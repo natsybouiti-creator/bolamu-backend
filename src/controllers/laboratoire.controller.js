@@ -128,8 +128,7 @@ async function registerLaboratoire(req, res) {
 }
 
 async function getLaboratoireProfile(req, res) {
-    const { phone } = req.query;
-    if (!phone) return res.status(400).json({ success: false, message: 'Phone requis.' });
+    const phone = req.user.phone;
     
     // Normalisation du numéro
     const normalizedPhone = normalizePhone(phone);
