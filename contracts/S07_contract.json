@@ -1,0 +1,39 @@
+{
+  "scenario_id": "S07",
+  "title": "Patient met à jour ses constantes médicales et reçoit Zora",
+  "version": "1.0",
+  "source_extraction": "verifie Cascade, tests/e2e/s07-constantes-medicales.spec.js + code source dmn.routes.js/constantes-medicales.controller.js/wellness.service.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "api_layer": {
+    "checks": [
+      {
+        "step": "update",
+        "method": "POST",
+        "endpoint": "/dmn/update",
+        "expected_response_shape": { "success": true }
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT constantes_remplies_par, constantes_updated_at FROM users WHERE phone = '+242069735418' AND constantes_updated_at > NOW() - INTERVAL '15 minutes' ORDER BY constantes_updated_at DESC LIMIT 1",
+        "expected": { "constantes_remplies_par": "patient" }
+      },
+      {
+        "query": "SELECT action_type FROM wellness_actions WHERE patient_phone = '+242069735418' AND action_type = 'dossier_update' AND created_at > NOW() - INTERVAL '15 minutes' ORDER BY id DESC LIMIT 1",
+        "expected": { "action_type": "dossier_update" }
+      },
+      {
+        "query": "SELECT points, action_type, proof_class, proof_source, recording_method FROM zora_ledger WHERE phone = '+242069735418' AND action_type = 'dossier_update' AND earned_at > NOW() - INTERVAL '15 minutes' ORDER BY id DESC LIMIT 1",
+        "expected": { "action_type": "dossier_update", "proof_class": "system_event", "proof_source": "bolamu", "recording_method": "auto_recorded" },
+        "note": "montant de points (attendu +30 selon le spec) depend du bareme zora_earn_rules, non verrouille en dur ici"
+      }
+    ]
+  },
+  "requires_human_review": false
+}
