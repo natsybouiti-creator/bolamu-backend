@@ -32,7 +32,7 @@ foreach ($SC in $Scenarios) {
     Write-Host "Fichier resolu : $SpecFile"
 
     $env:DOTENV_CONFIG_QUIET = "true"
-    $RawOutput = & npx playwright test $SpecFile --project=soins --reporter=json 2>&1
+    $RawOutput = & npx playwright test $SpecFile --project=soins --reporter=json --headed --workers=1 2>&1
     $Lines = $RawOutput -split "`n"
     $JsonStartIndex = 0
     for ($i = 0; $i -lt $Lines.Count; $i++) {

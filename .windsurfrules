@@ -408,3 +408,10 @@ TÂCHES OUVERTES (à finir en priorité) :
   remontes le verdict JSON brut plutôt que de tenter un 3e fix à l'aveugle.
 - Commits chirurgicaux uniquement : un commit = un bug ou une feature,
   jamais un commit "corrections diverses".
+
+## MODE D'EXÉCUTION PLAYWRIGHT
+- Tous les runs du harnais (run_harness_loop.ps1) doivent s'exécuter
+  en mode --headed (navigateur visible), jamais headless, pour permettre
+  la validation visuelle humaine en temps réel.
+- Ajouter --headed --workers=1 à la commande npx playwright test dans
+  run_harness_loop.ps1.
