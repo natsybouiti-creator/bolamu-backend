@@ -51,6 +51,12 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
   - Params : [prenom, labo]
   - Déclencheur : Résultats uploadés
 
+#### Urgence
+- `bolamu_urgence_dossier_consulte` : Alerte consultation dossier urgence
+  - Params : [nom_patient, date, heure]
+  - Déclencheur : GET /api/v1/qr/urgence (scan QR urgence public)
+  - Message : "Alerte Bolamu\nLe dossier médical d'urgence de {nom_patient} vient d'être consulté le {date} à {heure}. Si vous n'êtes pas à l'origine de cet accès ou si la situation vous inquiète, contactez immédiatement le patient ou les secours. L'équipe Bolamu"
+
 ### MÉDECIN
 
 #### Validation

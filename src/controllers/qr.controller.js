@@ -38,14 +38,14 @@ const generateQRToken = async (req, res) => {
 };
 
 const verifyQRToken = async (req, res) => {
-  const { token } = req.query || req.body;
+  const token = req.body?.token || req.query?.token;
   const partnerPhone = req.user.phone;
   if (!token) {
     return res.status(400).json({ success: false, message: 'Token manquant.' });
   }
   try {
     const tokenRes = await pool.query(
-      `SELECT qt.*, u.full_name, u.phone as patient_phone FROM qr_tokens qt JOIN users u ON u.phone = qt.user_phone WHERE qt.token = $1`,
+      `SELECT qt.*, u.full_name, u.phone as patient_phone, u.bolamu_id, u.zora_balance_visible_qr FROM qr_tokens qt JOIN users u ON u.phone = qt.user_phone WHERE qt.token = $1`,
       [token]
     );
     if (tokenRes.rows.length === 0) {
@@ -67,6 +67,17 @@ const verifyQRToken = async (req, res) => {
     );
     const hasConvention = convRes.rows.length > 0;
     const convention = convRes.rows[0] || null;
+    
+    // Solde Zora uniquement si consentement patient activé
+    let zoraBalance = null;
+    if (qrToken.zora_balance_visible_qr) {
+      const zoraRes = await pool.query(
+        `SELECT COALESCE(SUM(points), 0) as balance FROM zora_ledger WHERE phone = $1`,
+        [qrToken.user_phone]
+      );
+      zoraBalance = zoraRes.rows[0].balance;
+    }
+    
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2::jsonb)`,
       [partnerPhone, JSON.stringify({ patient_phone: qrToken.user_phone, token })]
@@ -76,10 +87,12 @@ const verifyQRToken = async (req, res) => {
       data: {
         phone: qrToken.user_phone,
         full_name: qrToken.full_name,
+        bolamu_id: qrToken.bolamu_id,
         is_active: hasActiveSub,
         plan_nom: sub ? sub.plan : null,
         subscription_end: sub ? sub.expires_at : null,
         convention: convention,
+        zora_balance: zoraBalance,
         token_expires_at: qrToken.expires_at
       }
     });
@@ -123,14 +136,106 @@ async function accessEmergencyDossier(req, res) {
     return res.status(400).json({ success: false, message: 'Token manquant.' });
   }
   try {
-    const qrSecret = process.env.JWT_QR_SECRET || process.env.JWT_SECRET;
-    const decoded = jwt.verify(token, qrSecret);
-    if (decoded.type !== 'emergency_qr') {
-      return res.status(403).json({ success: false, message: 'Token invalide.' });
+    // Vérifier si c'est un token UUID (nouveau système unifié) ou JWT (ancien système)
+    let patientPhone;
+    let isNewToken = false;
+    let jwtExpiresAt = null;
+    
+    try {
+      // Essayer d'abord le décodage JWT (ancien système)
+      const qrSecret = process.env.JWT_QR_SECRET || process.env.JWT_SECRET;
+      const decoded = jwt.verify(token, qrSecret);
+      if (decoded.type !== 'emergency_qr') {
+        return res.status(403).json({ success: false, message: 'Token invalide.' });
+      }
+      patientPhone = decoded.patient_phone;
+      jwtExpiresAt = decoded.exp * 1000;
+    } catch (jwtErr) {
+      // Si JWT échoue, essayer le token UUID (nouveau système unifié)
+      const tokenRes = await pool.query(
+        `SELECT qt.*, u.full_name, u.phone as patient_phone, u.groupe_sanguin, u.allergies, u.traitements_en_cours, u.contact_urgence_nom, u.contact_urgence_phone 
+         FROM qr_tokens qt 
+         JOIN users u ON u.phone = qt.user_phone 
+         WHERE qt.token = $1`,
+        [token]
+      );
+      if (tokenRes.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'QR Code invalide ou expiré.' });
+      }
+      const qrToken = tokenRes.rows[0];
+      if (new Date() > new Date(qrToken.expires_at)) {
+        return res.status(410).json({ success: false, message: 'QR Code expiré. Demandez au patient d\'en générer un nouveau.' });
+      }
+      patientPhone = qrToken.patient_phone;
+      isNewToken = true;
+      
+      const user = qrToken;
+      const doctorResult = await pool.query(
+        `SELECT d.full_name, d.specialty, d.phone 
+         FROM doctors d
+         INNER JOIN appointments a ON d.id = a.doctor_id
+         WHERE a.patient_phone = $1
+         ORDER BY a.appointment_date DESC
+         LIMIT 1`,
+        [patientPhone]
+      );
+      const treatingDoctor = doctorResult.rows.length > 0 ? doctorResult.rows[0] : null;
+      
+      // Audit log distinct pour accès urgence
+      await pool.query(
+        `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED_URGENCE', $1, 'qr_tokens', NULL, $2::jsonb)`,
+        [req.ip || 'unknown', JSON.stringify({ patient_phone: patientPhone, token, method: 'public_scan' })]
+      );
+      
+      // Log l'accès au dossier pour historique patient (dossier_access_log)
+      const logDossierAccess = require('./consultation-report.controller').logDossierAccess;
+      setImmediate(() => {
+        logDossierAccess(patientPhone, 'emergency_qr', 'emergency', 'urgence_qr', req.ip);
+      });
+      
+      // Notification WhatsApp au contact d'urgence si renseigné
+      if (user.contact_urgence_phone) {
+        const { sendAutoMessage } = require('../services/whatsapp-web.service');
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        
+        setImmediate(async () => {
+          try {
+            await sendAutoMessage(
+              user.contact_urgence_phone,
+              'bolamu_urgence_dossier_consulte',
+              [user.full_name, dateStr, heureStr]
+            );
+          } catch (wahaErr) {
+            console.error('[accessEmergencyDossier] Notification urgence échouée:', wahaErr.message);
+          }
+        });
+      }
+      
+      return res.json({
+        success: true,
+        data: {
+          patient: {
+            full_name: user.full_name,
+            phone: user.phone,
+            allergies: user.allergies || 'Non renseigné',
+            groupe_sanguin: user.groupe_sanguin || 'Non renseigné',
+            traitements_en_cours: user.traitements_en_cours || 'Non renseigné'
+          },
+          treating_doctor: treatingDoctor ? {
+            full_name: treatingDoctor.full_name,
+            specialty: treatingDoctor.specialty,
+            phone: treatingDoctor.phone
+          } : null,
+          token_expires_at: qrToken.expires_at
+        }
+      });
     }
-    const patientPhone = decoded.patient_phone;
+    
+    // Ancien système JWT (fallback)
     const userResult = await pool.query(
-      `SELECT full_name, phone, allergies, groupe_sanguin, traitements_en_cours FROM users WHERE phone = $1`,
+      `SELECT full_name, phone, allergies, groupe_sanguin, traitements_en_cours, contact_urgence_nom, contact_urgence_phone FROM users WHERE phone = $1`,
       [patientPhone]
     );
     if (userResult.rows.length === 0) {
@@ -147,10 +252,39 @@ async function accessEmergencyDossier(req, res) {
       [patientPhone]
     );
     const treatingDoctor = doctorResult.rows.length > 0 ? doctorResult.rows[0] : null;
+    
+    // Audit log pour ancien système
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED_URGENCE', $1, 'users', NULL, $2::jsonb)`,
+      [req.ip || 'unknown', JSON.stringify({ patient_phone: patientPhone, method: 'jwt_fallback' })]
+    );
+    
+    // Log l'accès au dossier pour historique patient (dossier_access_log)
     const logDossierAccess = require('./consultation-report.controller').logDossierAccess;
     setImmediate(() => {
       logDossierAccess(patientPhone, 'emergency_qr', 'emergency', 'urgence_qr', req.ip);
     });
+    
+    // Notification WhatsApp pour ancien système
+    if (user.contact_urgence_phone) {
+      const { sendAutoMessage } = require('../services/whatsapp-web.service');
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('fr-FR');
+      const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      
+      setImmediate(async () => {
+        try {
+          await sendAutoMessage(
+            user.contact_urgence_phone,
+            'bolamu_urgence_dossier_consulte',
+            [user.full_name, dateStr, heureStr]
+          );
+        } catch (wahaErr) {
+          console.error('[accessEmergencyDossier] Notification urgence échouée:', wahaErr.message);
+        }
+      });
+    }
+    
     return res.json({
       success: true,
       data: {
@@ -166,7 +300,7 @@ async function accessEmergencyDossier(req, res) {
           specialty: treatingDoctor.specialty,
           phone: treatingDoctor.phone
         } : null,
-        token_expires_at: decoded.exp * 1000
+        token_expires_at: jwtExpiresAt
       }
     });
   } catch (error) {

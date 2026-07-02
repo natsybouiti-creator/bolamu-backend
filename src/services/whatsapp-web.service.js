@@ -64,7 +64,8 @@ const TEMPLATE_TITRES = {
   'bolamu_rh_employe_inscrit': 'Employé inscrit',
   'bolamu_admin_nouveau_partenaire': 'Nouveau partenaire',
   'bolamu_admin_event_soumis': 'Événement soumis',
-  'bolamu_admin_alerte_zora': 'Alerte Zora'
+  'bolamu_admin_alerte_zora': 'Alerte Zora',
+  'bolamu_urgence_dossier_consulte': 'Alerte urgence'
 };
 
 async function sendAutoMessage(phone, templateName, params) {
@@ -122,6 +123,14 @@ async function sendAutoMessage(phone, templateName, params) {
       message = `Récapitulatif check-ins ✅\nAnimateur : ${params[0]}\nÉvénement : ${params[1]}\nCheck-ins : ${params[2]}\nZora distribués : ${params[3]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_zora_attribues') {
       message = `Zora crédités 🎉\n${params[0]}, vous avez reçu ${params[1]} Zora.\nSolde total : ${params[2]} Zora\nRaison : ${params[3]}\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_urgence_dossier_consulte') {
+      message = `Alerte Bolamu\n` 
+        + `Le dossier médical d'urgence de ${params[0]} vient d'être ` 
+        + `consulté le ${params[1]} à ${params[2]}.\n\n` 
+        + `Si vous n'êtes pas à l'origine de cet accès ou si la ` 
+        + `situation vous inquiète, contactez immédiatement le patient ` 
+        + `ou les secours.\n\n` 
+        + `L'équipe Bolamu`;
     } else {
       message = params.join(' ');
     }

@@ -1652,7 +1652,7 @@ if (typeof BarcodeDetector !== 'undefined') {
     };
     const storage = safeStorage();
 
-    const API = 'https://api.bolamu.co/api/v1';
+    const API = 'https://www.bolamu.co/api/v1';
     let currentTab = 'accueil';
     let currentDoctorId = null;
 
@@ -2292,7 +2292,24 @@ if (typeof BarcodeDetector !== 'undefined') {
     }
 
     function openUrgence() {
-      openRdvManuel();
+      // Rediriger vers la page publique d'urgence avec le token scanné si disponible
+      const token = window._lastScannedQrToken;
+      if (token) {
+        // Extraire le token depuis l'URL si nécessaire
+        let tokenValue = token;
+        try {
+          const url = new URL(token);
+          if (url.searchParams.has('token')) {
+            tokenValue = url.searchParams.get('token');
+          }
+        } catch (e) {
+          // Utiliser la valeur brute si ce n'est pas une URL
+        }
+        window.open(`https://www.bolamu.co/urgence?token=${tokenValue}`, '_blank');
+      } else {
+        // Si aucun token scanné, ouvrir le scanner d'abord
+        openScannerModal();
+      }
     }
 
     function closeModal(modalId) {
@@ -2883,6 +2900,10 @@ if (typeof BarcodeDetector !== 'undefined') {
       const resultDiv = document.getElementById('scanner-sec-result');
       const statusDiv = document.getElementById('scanner-sec-status');
       const token = getToken();
+      
+      // Stocker le QR scanné pour usage urgence
+      window._lastScannedQrToken = qrData;
+      
       statusDiv.textContent = 'Vérification en cours...';
       statusDiv.style.color = 'var(--turquoise)';
       if (resultDiv) {
@@ -2898,37 +2919,41 @@ if (typeof BarcodeDetector !== 'undefined') {
         const res = await fetch(`${API}/qr/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ qr_token: qrToken })
+          body: JSON.stringify({ token: qrToken })
         });
         const data = await res.json();
-        if (data.success && data.patient) {
-          const p = data.patient;
+        if (data.success && data.data) {
+          const a = data.data;
           statusDiv.textContent = 'Adhérent identifié';
+          const zoraHtml = a.zora_balance !== null ? 
+            `<div><strong>Solde Zora:</strong> ${a.zora_balance} pts</div>` : '';
+          const conventionHtml = a.convention ? 
+            `<div><strong>Convention:</strong> ${a.convention.partner_name || 'Oui'} (${a.convention.discount_rate}% remise)</div>` : '';
           if (resultDiv) resultDiv.innerHTML = `
             <div style="background:rgba(0,201,167,0.1);border-radius:12px;padding:20px;border:1px solid var(--turquoise);">
               <div style="font-size:16px;font-weight:700;color:var(--turquoise);margin-bottom:12px;">Adhérent identifié</div>
               <div style="display:grid;gap:8px;font-size:13px;">
-                <div><strong>Nom :</strong> ${p.full_name || '—'}</div>
-                <div><strong>Téléphone :</strong> ${p.phone || '—'}</div>
-                <div><strong>Abonnement :</strong> ${p.statut_abonnement || '—'}</div>
-                <div><strong>Plan :</strong> ${p.plan_nom || '—'}</div>
+                <div><strong>Nom :</strong> ${a.full_name || '—'}</div>
+                <div><strong>Téléphone :</strong> ${a.phone || '—'}</div>
+                <div><strong>Bolamu ID :</strong> ${a.bolamu_id || '—'}</div>
+                <div><strong>Abonnement :</strong> ${a.plan_nom || 'Aucun'}</div>
+                <div><strong>Statut :</strong> <span style="color:${a.is_active ? 'var(--turquoise)' : '#dc3545'};font-weight:600;">${a.is_active ? 'Actif' : 'Inactif'}</span></div>
+                ${zoraHtml}
+                ${conventionHtml}
+                ${a.subscription_end ? `<div><strong>Fin abonnement:</strong> ${new Date(a.subscription_end).toLocaleDateString('fr-FR')}</div>` : ''}
               </div>
-              <button onclick="closeScannerModal(); openRdvForPatient('${p.phone}');" style="margin-top:14px;width:100%;padding:11px;background:var(--role-secretaire);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Prendre RDV</button>
+              <button onclick="closeScannerModal(); openRdvForPatient('${a.phone}');" style="margin-top:14px;width:100%;padding:11px;background:var(--role-secretaire);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Prendre RDV</button>
             </div>
           `;
         } else {
           statusDiv.textContent = 'QR invalide';
-          statusDiv.style.color = 'var(--error)';
-          if (resultDiv) resultDiv.innerHTML = `
-            <div style="background:#fef2f2;border-radius:12px;padding:20px;border:1px solid #ef4444;">
-              <div style="font-size:14px;font-weight:700;color:#b91c1c;">${data.message || 'Adhérent non reconnu'}</div>
-            </div>
-          `;
+          statusDiv.style.color = '#dc3545';
+          if (resultDiv) resultDiv.innerHTML = `<div style="color:#dc3545;font-size:13px;">${data.message || 'QR code invalide'}</div>`;
         }
       } catch(e) {
-        statusDiv.textContent = 'Erreur de connexion';
-        statusDiv.style.color = 'var(--error)';
-        if (resultDiv) resultDiv.innerHTML = '<div style="background:#fef2f2;border-radius:12px;padding:20px;font-size:13px;color:#b91c1c;">Erreur de connexion au serveur.</div>';
+        statusDiv.textContent = 'Erreur de vérification';
+        statusDiv.style.color = '#dc3545';
+        if (resultDiv) resultDiv.innerHTML = '<div style="color:#dc3545;font-size:13px;">Erreur de connexion au serveur.</div>';
       }
     }
 

@@ -59,9 +59,26 @@
           <div class="error-text">Veuillez scanner un QR code Bolamu valide.</div>
         </div>`;
     }else{
-      fetch(`https://api.bolamu.co/api/v1/qr/urgence?token=${token}`)
-        .then(res=>res.json())
-        .then(data=>{
+      // Écran de confirmation avant accès données médicales
+      content.innerHTML=`
+        <div class="card" style="text-align:center;">
+          <div class="error-icon" style="font-size:48px;margin-bottom:16px;">⚠️</div>
+          <div class="alert-title" style="font-size:20px;margin-bottom:12px;">Données médicales sensibles</div>
+          <div class="alert-text" style="color:#5A6E8C;font-size:16px;line-height:1.6;margin-bottom:24px;">
+            Vous êtes sur le point d'accéder au dossier médical d'urgence d'un patient.<br><br>
+            <strong>Confirmez qu'il s'agit d'une urgence réelle.</strong>
+          </div>
+          <button onclick="confirmEmergency()" style="background:#BA1A1A;color:#fff;border:none;padding:16px 32px;border-radius:12px;font-weight:700;font-size:16px;cursor:pointer;width:100%;">
+            Confirmer l'urgence
+          </button>
+        </div>
+      `;
+      
+      window.confirmEmergency = function() {
+        content.innerHTML='<div class="loading">Chargement des données...</div>';
+        fetch(`https://www.bolamu.co/api/v1/qr/urgence?token=${token}`)
+          .then(res=>res.json())
+          .then(data=>{
           if(!data.success){
             if(data.message.includes('expiré')){
               content.innerHTML=`
@@ -125,6 +142,7 @@
               <div class="error-text">Impossible de charger les données. Veuillez réessayer.</div>
             </div>`;
         });
+      };
     }
   </script>
 </body>

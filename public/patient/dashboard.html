@@ -1504,7 +1504,7 @@
   // Navigation
   A.goAccueil = function () { A.setState({ panel: 'accueil', profileOpen: false }); window.scrollTo(0, 0); };
   A.goGagner = function () { A.setState({ panel: 'gagner', profileOpen: false }); window.scrollTo(0, 0); setTimeout(function () { if (A.state.gagnerTab === 'sante') { A.initReseauMap(); A.applyReseauFilter(); } else { A.initEventsMap(); } }, 80); };
-  A.goSuivre = function () { A.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); A.renderQR('dossier-qr', A.dossierQrText(), 66); };
+  A.goSuivre = function () { A.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); };
   A.goRecompenses = function () { A.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); A.initScratch(); };
   A.openProfile = function () { A.setState({ profileOpen: true }); window.scrollTo(0, 0); };
   A.closeProfile = function () { A.setState({ profileOpen: false }); };
@@ -1513,7 +1513,7 @@
   A.gagnerSport = function () { A.setState({ gagnerTab: 'sport' }); setTimeout(function () { A.initEventsMap(); }, 60); };
   A.gagnerSante = function () { A.setState({ gagnerTab: 'sante' }); setTimeout(function () { A.initReseauMap(); A.applyReseauFilter(); }, 60); };
   A.suivreZora = function () { A.setState({ suivreTab: 'zora' }); };
-  A.suivreDossier = function () { A.setState({ suivreTab: 'dossier' }); A.renderQR('dossier-qr', A.dossierQrText(), 66); };
+  A.suivreDossier = function () { A.setState({ suivreTab: 'dossier' }); };
 
   // Filtres
   A.filterTout = function () { A.setMapFilter('tout'); };
@@ -1528,7 +1528,7 @@
   A.closeModal = function () { A.setState({ modal: false }); };
   A.openLabRes = function () { A.setState({ labRes: true }); };
   A.closeLabRes = function () { A.setState({ labRes: false }); };
-  A.openQrUrg = function () { A.setState({ qrUrg: true }); A.renderQR('urg-qr', A.urgenceQrText(), 168); };
+  A.openQrUrg = function () { A.setState({ qrUrg: true }); A.renderQR('urg-qr', 'https://www.bolamu.co/urgence?token=' + (A._qrToken || ''), 168); };
   A.closeQrUrg = function () { A.setState({ qrUrg: false }); };
   A.stop = function (e) { if (e) e.stopPropagation(); };
 
@@ -1618,8 +1618,6 @@
     else if (attempt < 40) { setTimeout(function () { A.renderQR(id, text, size, attempt + 1); }, 150); }
   };
   A.patientMembreId = function () { return A._patientId ? ('BLM-' + String(A._patientId).replace('BOL-', '')) : 'BLM-0000'; };
-  A.dossierQrText = function () { return 'BOLAMU:' + A.patientMembreId(); };
-  A.urgenceQrText = function () { var c = A._constantes || {}; return 'BOLAMU:URGENCE:' + A.patientMembreId() + ':' + (c.groupe_sanguin || 'NA') + ':' + (c.allergies || 'NA'); };
 
   A.initEventsMap = function (attempt) {
     attempt = attempt || 0;
@@ -1954,7 +1952,6 @@
     A.renderPartners();
     A.renderRdvDoctors();
     A.sync();
-    A.renderQR('dossier-qr', A.dossierQrText(), 66);
     A.initScratch();
     setTimeout(function () { A.initCarousels(); }, 220);
     A._onResize = function () { A.refreshCarousels(); };
@@ -2047,13 +2044,16 @@
     fetch('https://www.bolamu.co/api/v1/dmn/access-log', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data; A.renderAccessLog(); } }).catch(function () {});
 
     var loadQR = function () {
+      if (A._qrRefreshing) return;
+      A._qrRefreshing = true;
       fetch('https://www.bolamu.co/api/v1/qr/generate', H).then(function (r) { return r.json(); }).then(function (d) {
-        if (d.success && d.data) { A._qrToken = d.data.token; A._qrExpiry = new Date(d.data.expires_at).getTime(); A.renderQR('hero-qr', d.data.token, 90); }
+        A._qrRefreshing = false;
+        if (d.success && d.data) { A._qrToken = d.data.token; A._qrExpiry = new Date(d.data.expires_at).getTime(); var qrUrl = 'https://www.bolamu.co/urgence?token=' + d.data.token; A.renderQR('hero-qr', qrUrl, 90); }
         else { var el = $('hero-qr'); if (el) el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;gap:6px;"><span class="material-symbols-outlined" style="color:#FF6B35;font-size:28px">wifi_off</span><span style="font-size:0.65rem;color:#434654;text-align:center">QR indisponible<br>Réessaie dans un instant</span></div>'; }
-      }).catch(function () { var el = $('hero-qr'); if (el) el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;gap:6px;"><span class="material-symbols-outlined" style="color:#FF6B35;font-size:28px">wifi_off</span><span style="font-size:0.65rem;color:#434654;text-align:center">Erreur réseau<br>Réessaie dans un instant</span></div>'; });
+      }).catch(function () { A._qrRefreshing = false; var el = $('hero-qr'); if (el) el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;gap:6px;"><span class="material-symbols-outlined" style="color:#FF6B35;font-size:28px">wifi_off</span><span style="font-size:0.65rem;color:#434654;text-align:center">Erreur réseau<br>Réessaie dans un instant</span></div>'; });
     };
     loadQR();
-    A._qrInterval = setInterval(function () { var remaining = Math.max(0, Math.floor((A._qrExpiry - Date.now()) / 1000)); A._qrRemaining = remaining; if (remaining <= 2) loadQR(); setText('qrRemaining', remaining); }, 1000);
+    A._qrInterval = setInterval(function () { var remaining = Math.max(0, Math.floor((A._qrExpiry - Date.now()) / 1000)); A._qrRemaining = remaining; if (remaining <= 60) loadQR(); setText('qrRemaining', remaining); }, 1000);
   };
 
   A.rewardImgFallback = function (cat) { var map = { 'Télécom': '/images/landing/zora-mtn.png', 'Carburant': '/images/landing/station.png', 'Sport': '/images/landing/salledesport.jpg', 'Voyage': '/images/landing/zora-asky.png', 'Hôtels': '/images/landing/zora-hilton-pnr.png', 'Beauté': '/images/landing/zora-salon-beaute.png', 'Santé': '/images/landing/daffe.png' }; return map[cat] || '/images/landing/zora-mtn.png'; };
