@@ -1,6 +1,6 @@
 # ARCHITECTURE_PAIEMENT_BOLAMU.md
 > Document de référence — Paiements & Abonnements — Bolamu / NBA GESTION SARLU
-> Version 1.2 — Juin 2026
+> Version 1.0 — Juin 2026
 
 ---
 
@@ -41,16 +41,15 @@ Déclenché automatiquement chaque mois via **Ordre de Virement Permanent (OVP)*
 **Calendrier de prélèvement — contexte Congo Brazzaville :**
 
 > Les salaires congolais sont versés dans la fenêtre **25 du mois → 5 du mois suivant**.  
-> Le prélèvement est planifié le **1er du mois suivant**, soit immédiatement après la fin  
-> de la fenêtre de versement, pour maximiser le taux de succès.
+> Le prélèvement est donc planifié après cette fenêtre pour maximiser le taux de succès.
 
 | Événement | Date |
 |-----------|------|
 | Fenêtre salaires | 25 → 5 du mois suivant |
-| Prélèvement OVP | **1er du mois** |
-| Relance si échec | **5 du mois** |
-| Délai de grâce | jusqu'au **10 du mois** |
-| Suspension abonnement | **10 du mois** si toujours impayé |
+| Prélèvement OVP | **7 du mois** |
+| Relance si échec | **10 du mois** |
+| Délai de grâce | jusqu'au **15 du mois** |
+| Suspension abonnement | **15 du mois** si toujours impayé |
 | Notification WhatsApp | à chaque étape (relance + suspension) |
 
 > **Date fixe pour tous les abonnés** — pas de date anniversaire individuelle.
@@ -189,7 +188,7 @@ operator              VARCHAR(20)  -- 'MTN' | 'AIRTEL'
 payment_reference     VARCHAR(100) -- référence SMS opérateur
 status                VARCHAR(20)  -- 'pending' | 'active' | 'suspended' | 'expired'
 start_date            DATE
-next_billing_date     DATE         -- toujours le 1er du mois suivant
+next_billing_date     DATE         -- toujours le 7 du mois suivant
 created_at            TIMESTAMP DEFAULT NOW()
 validated_by          INTEGER REFERENCES users(id) -- admin qui valide
 validated_at          TIMESTAMP
@@ -203,16 +202,16 @@ validated_at          TIMESTAMP
 | `POST` | `/api/v1/subscriptions/confirm` | Patient soumet sa référence de transaction |
 | `PUT` | `/api/v1/admin/subscriptions/:id/validate` | Admin active l'abonnement |
 | `GET` | `/api/v1/patient/subscription` | Patient consulte son abonnement actif |
-| `POST` | `/api/v1/subscriptions/suspend` | Suspension automatique le 10 (cron job) |
+| `POST` | `/api/v1/subscriptions/suspend` | Suspension automatique le 15 (cron job) |
 
 ---
 
 ## 8. CRON JOBS REQUIS
 
 ```
-1er du mois → Déclencher prélèvement OVP + notifier admin
-5  du mois → Relance WhatsApp patients en échec OVP
-10 du mois → Suspendre abonnements toujours impayés + notifier patients
+7  du mois → Déclencher prélèvement OVP + notifier admin
+10 du mois → Relance WhatsApp patients en échec OVP
+15 du mois → Suspendre abonnements toujours impayés + notifier patients
 ```
 
 ---
@@ -238,148 +237,11 @@ validated_at          TIMESTAMP
 1. **Pas d'API MoMo en phase initiale** — flux USSD pur, zéro dépendance externe.
 2. **Bolamu absorbe les frais marchands** — tarifs affichés nets pour le patient.
 3. **Renégociation taux préférentiel** prévue quand le volume le justifie.
-4. **OVP bancaire** pour les renouvellements — prélèvement le **1er du mois** (post fenêtre salaires).
+4. **OVP bancaire** pour les renouvellements — prélèvement le 7 du mois.
 5. **Canal agence prioritaire** — le self-service MoMo est complémentaire, pas principal.
 6. **Activation semi-manuelle** en phase beta — automatisation complète en V2.
 
 ---
 
----
-
-## 11. SYSTÈME DE VÉRIFICATION DES PAIEMENTS
-
-### Phase beta — Vérification semi-manuelle
-
-Flux complet :
-
-```
-Patient paie via USSD (MTN ou Airtel)
-        ↓
-Patient reçoit SMS de confirmation opérateur
-contenant l'identifiant de transaction
-        ↓
-Patient entre cet identifiant dans l'UI
-(étape 4 du register OU drawer "Mon Abonnement" dashboard)
-        ↓
-Backend enregistre en DB :
-  status = 'pending'
-  payment_reference = identifiant saisi
-        ↓
-Admin reçoit notification WhatsApp :
-"Nouvelle souscription à valider —
- [NOM] [PLAN] [OPERATEUR] Réf: [REF]"
-        ↓
-Admin vérifie sur son téléphone marchand
-que le SMS de réception correspond
-        ↓
-Admin clique "Activer" dans le dashboard admin
-        ↓
-Patient reçoit WhatsApp de confirmation ✅
-```
-
-### Vérification automatique future — SMS scraping Android (V1.5)
-
-Un téléphone Android dédié avec **2 puces SIM** :
-- Puce 1 : MTN `503215` (compte marchand)
-- Puce 2 : Airtel `057430079` (compte marchand)
-
-Une application Android intercepte chaque SMS de confirmation
-et envoie un webhook POST vers le backend :
-
-```
-POST /api/v1/payments/webhook/sms
-Body: {
-  operator: 'MTN' | 'AIRTEL',
-  reference: string,
-  amount: number,
-  sender_phone: string,
-  raw_sms: string
-}
-```
-
-Le backend croise la référence avec les subscriptions
-en `status='pending'` et active automatiquement
-si `amount` + `reference` correspondent.
-
-### Décisions API opérateurs
-
-| Décision | Statut |
-|----------|--------|
-| API MTN Collections en phase beta | ❌ Non — flux USSD pur |
-| API Airtel en phase beta | ❌ Non — flux USSD pur |
-| Flux USSD côté patient | ✅ Oui |
-| SMS scraping Android | ✅ V1.5 — téléphone dédié |
-| API opérateurs V2 | ✅ Quand volume justifie négociation |
-
----
-
-## 12. ENDPOINT /payments/momo/request — COMPORTEMENT CORRECT
-
-Ce endpoint **NE fait PAS d'appel API externe MTN**.
-Il enregistre uniquement la demande en base.
-
-```
-POST /api/v1/payments/momo/request
-Auth : patient JWT
-Body : { amount, plan, phone }
-
-Logique :
-  1. Valider amount + plan cohérents (via platform_config)
-  2. Récupérer phone depuis req.user.phone (normalizePhone obligatoire)
-  3. INSERT INTO subscriptions :
-       patient_phone = normalizePhone(phone)
-       plan          = plan
-       amount_fcfa   = amount
-       operator      = 'MTN'
-       status        = 'pending'
-       is_active     = FALSE
-       expires_at    = NOW() + INTERVAL '30 days'
-  4. Retourner { success: true, reference_id: [id inséré] }
-
-❌ Aucun appel vers api.mtn.com ou équivalent
-❌ Aucun appel vers un service externe quelconque
-```
-
-Même comportement pour `POST /api/v1/payments/airtel/request`
-avec `operator = 'AIRTEL'`.
-
----
-
-## 13. WEBHOOK SMS SCRAPING — Spécification endpoint
-
-```
-POST /api/v1/payments/webhook/sms
-Auth : clé secrète webhook (header X-Webhook-Secret)
-Body : {
-  operator: 'MTN' | 'AIRTEL',
-  reference: string,      -- référence transaction SMS
-  amount: number,         -- montant en XAF
-  sender_phone: string,   -- numéro expéditeur (compte marchand)
-  raw_sms: string         -- texte brut du SMS reçu
-}
-
-Logique :
-  1. Vérifier X-Webhook-Secret
-  2. Chercher subscription WHERE :
-       payment_reference = reference
-       AND amount_fcfa = amount
-       AND operator = operator
-       AND status = 'pending'
-  3. Si trouvée → UPDATE status = 'active',
-                          is_active = TRUE,
-                          validated_at = NOW()
-  4. Envoyer WhatsApp patient :
-     "Votre abonnement Bolamu [PLAN] est activé ! ✓"
-  5. Retourner { success: true }
-
-⚠️ À implémenter en V1.5 quand le téléphone Android est configuré
-```
-
----
-
-*Document maintenu par : Natsy Bouiti — NBA GESTION SARLU*  
-*Dernière mise à jour : Juin 2026*  
-*— Calendrier OVP révisé (prélèvement 1er du mois)*  
-*— Système vérification paiements documenté (semi-manuel + SMS scraping)*  
-*— Décision confirmée : zéro appel API externe en phase beta*  
-*Prochaine révision : à l'activation du SMS scraping Android (V1.5)*
+*Document maintenu par : Natsy Bouiti — NBA GESTION SARLU*
+*Prochaine révision : à l'activation des credentials API MTN Collections*
