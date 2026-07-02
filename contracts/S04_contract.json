@@ -33,7 +33,7 @@
   "db_layer": {
     "checks": [
       {
-        "query": "SELECT status, session_code FROM appointments WHERE patient_phone = '+242069735418' ORDER BY id DESC LIMIT 1",
+        "query": "SELECT status, session_code FROM appointments WHERE patient_phone = '+242069735418' AND created_at > NOW() - INTERVAL '15 minutes' ORDER BY id DESC LIMIT 1",
         "expected": { "status": "confirme" }
       }
     ]

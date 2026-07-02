@@ -1,13 +1,13 @@
 # RAPPORT S01 — Inscription patient via agence
 ## Statut : ✅ VALIDÉ
-## Date : 2026-06-29T11:40:07.105Z
+## Date : 2026-06-30T16:19:46.083Z
 
 ## Résultats par couche
 
 | Couche | Statut | Détails |
 |--------|--------|--------|
 | backend | ✅ | admin/users/profile → actif + member_code |
-| database | ✅ | patient créé en DB avec abonnement actif |
+| database | ✅ | SELECT users → patient créé avec abonnement actif |
 | frontend | ✅ | Souscription confirmée (panneau résultat) |
 | whatsapp | ⏳ | bolamu_bienvenue_patient_v4 (vérif. manuelle) |
 

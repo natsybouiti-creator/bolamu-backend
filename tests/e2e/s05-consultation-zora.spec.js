@@ -34,7 +34,7 @@ test.describe.serial('S05 — Consultation validée', () => {
     contextMedecin = await browser.newContext();
     pageMedecin = await contextMedecin.newPage();
     handleDialogs(pageMedecin, 'accept');
-    await loginAs(pageMedecin, 'medecin', '+242060000001', 'bolamu2026');
+    await loginAs(pageMedecin, 'medecin', '+242066622157', 'Bolamu2026');
     await waitForDashboard(pageMedecin);
     tokenMedecin = await pageMedecin.evaluate(() => localStorage.getItem('bolamu_medecin_token'));
   });
@@ -49,7 +49,7 @@ test.describe.serial('S05 — Consultation validée', () => {
 
   test('ÉTAPE 1 — Récupérer RDV du patient', async () => {
     try {
-      const rdvList = await apiCall('/appointments/doctor/+242060000001', 'GET', null, tokenMedecin);
+      const rdvList = await apiCall('/appointments/doctor/+242066622157', 'GET', null, tokenMedecin);
       expect(rdvList.success).toBe(true);
       expect(rdvList.data.length).toBeGreaterThan(0);
       rdvId = rdvList.data[0].id;

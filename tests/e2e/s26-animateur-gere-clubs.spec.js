@@ -74,9 +74,12 @@ test.describe.serial('S26 — Animateur gère ses clubs et notifie les membres',
     try {
       const clubs = await apiCall('/animateur/clubs', 'GET', null, token);
       if (clubs.data?.[0]) {
-        const notifRes = await apiCall(`/animateur/clubs/${clubs.data[0].id}/notify`, 'POST', {
-          message: 'Activité sportive samedi matin 7h au stade !'
+        const club = clubs.data[0];
+        const notifRes = await apiCall(`/animateur/clubs/${club.id}/notify`, 'POST', {
+          message_type: 'bolamu_club_message',
+          params: [club.name, 'Activité sportive samedi matin 7h au stade !']
         }, token);
+        console.log('[S26 ÉTAPE 3] Réponse API notification brute :', JSON.stringify(notifRes, null, 2));
         expect(notifRes.success).toBe(true);
         resultats.database = { statut: '✅', details: `${notifRes.data.notified_count} membres notifiés` };
         screenshots.push(await screenshot(page, 's26', 2, 'notification-envoyee'));

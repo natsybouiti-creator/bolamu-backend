@@ -7,6 +7,8 @@ const {
   loginAs, waitForDashboard, uploadFixture, handleDialogs,
   apiCall, screenshot, genererRapport
 } = require('../helpers/bolamu-helpers');
+const { Pool } = require('pg');
+require('dotenv').config();
 
 // Numéros de test créés pendant ce spec — pour le nettoyage
 const PHONES_TEST = ['+242069000099'];
@@ -129,14 +131,29 @@ test.describe.serial('S01 — Inscription patient via agence', () => {
     }
   });
 
-  test('ÉTAPE 6 — Vérifier backend API', async () => {
+  test('ÉTAPE 6 — Vérifier backend API + persistance DB', async () => {
     try {
+      // Backend API
       const adherent = await apiCall('/admin/users/+242069000099/profile', 'GET', null, adminToken);
       expect(adherent.success).toBe(true);
       expect(adherent.data.user.statut_abonnement).toBe('actif');
       expect(adherent.data.user.member_code).toMatch(/^BLM-/);
       resultats.backend = { statut: '✅', details: 'admin/users/profile → actif + member_code' };
-      resultats.database = { statut: '✅', details: 'patient créé en DB avec abonnement actif' };
+
+      // Database SELECT (lecture seule)
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      try {
+        const dbResult = await pool.query(
+          `SELECT phone, statut_abonnement, member_code FROM users WHERE phone = $1`,
+          ['+242069000099']
+        );
+        expect(dbResult.rows.length).toBeGreaterThan(0);
+        expect(dbResult.rows[0].statut_abonnement).toBe('actif');
+        expect(dbResult.rows[0].member_code).toMatch(/^BLM-/);
+        resultats.database = { statut: '✅', details: 'SELECT users → patient créé avec abonnement actif' };
+      } finally {
+        await pool.end();
+      }
     } catch (err) {
       bugs.push({ code: 'BUG-S01-06', description: err.message });
       throw err;

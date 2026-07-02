@@ -52,7 +52,7 @@ async function loginAs(page, role, phone, password) {
   await page.waitForSelector('#btn-login', { state: 'visible', timeout: 5000 });
   await page.click('#btn-login');
 
-  await page.waitForURL(config.dashboardPattern, { timeout: 15000 });
+  await page.waitForURL(config.dashboardPattern, { timeout: 15000, waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('domcontentloaded');
 
   const token = await page.evaluate(
@@ -76,7 +76,6 @@ async function waitForProtocol(page) {
 
 // Attendre chargement complet + protocole
 async function waitForDashboard(page) {
-  await page.waitForLoadState('networkidle');
   await waitForProtocol(page);
 }
 
