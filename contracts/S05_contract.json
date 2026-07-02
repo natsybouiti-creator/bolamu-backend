@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S05",
+  "title": "Médecin ouvre et valide une consultation, patient reçoit Zora",
+  "version": "1.0",
+  "source_extraction": "verifie Cascade, tests/e2e/s05-consultation-zora.spec.js + code source appointment.routes.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "doctor", "phone": "+242060000001" },
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "api_layer": {
+    "checks": [
+      {
+        "step": "open",
+        "method": "POST",
+        "endpoint": "/appointments/:id/open",
+        "expected_response_shape": { "success": true },
+        "expected_field": "status == 'en_cours'"
+      },
+      {
+        "step": "validate",
+        "method": "POST",
+        "endpoint": "/appointments/:id/validate",
+        "expected_response_shape": { "success": true },
+        "expected_field": "zora_awarded > 0"
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT status, validated_at FROM appointments WHERE patient_phone = '+242069735418' AND validated_at > NOW() - INTERVAL '15 minutes' ORDER BY id DESC LIMIT 1",
+        "expected": { "status": "termine" }
+      },
+      {
+        "query": "SELECT points, action_type, proof_class, proof_source FROM zora_ledger WHERE phone = '+242069735418' AND action_type = 'consultation' AND earned_at > NOW() - INTERVAL '15 minutes' ORDER BY id DESC LIMIT 1",
+        "expected": { "action_type": "consultation", "proof_class": "system_event", "proof_source": "appointment_system" },
+        "note": "le montant de points depend du bareme zora_earn_rules, non verrouille en dur ici"
+      }
+    ]
+  },
+  "requires_human_review": false
+}
