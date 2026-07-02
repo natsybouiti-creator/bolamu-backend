@@ -7,6 +7,7 @@ const patientController = require('../controllers/patient.controller');
 const bcrypt = require('bcrypt');
 const idempotencyMiddleware = require('../middleware/idempotency');
 const { upgradeAbonnement } = require('../services/prorata.service');
+const { calculerScoreBolamu } = require('../services/scoreBolamu.service');
 
 const register = patientController.registerPatient || ((req, res) => {
     res.status(501).json({ success: false, message: "Fonction d'inscription non configurée" });
@@ -141,6 +142,18 @@ router.get('/search', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('[patients-search]', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// GET /api/patient/score-bienetre - Score Bolamu du patient connecté
+router.get('/score-bienetre', authMiddleware, async (req, res) => {
+  try {
+    const patientPhone = req.user.phone;
+    const scoreData = await calculerScoreBolamu(patientPhone);
+    res.json({ success: true, data: scoreData });
+  } catch (error) {
+    console.error('[score-bienetre]', error.message);
+    res.status(500).json({ success: false, message: 'Erreur lors du calcul du score' });
   }
 });
 

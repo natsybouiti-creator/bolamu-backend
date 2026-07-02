@@ -139,13 +139,13 @@
               <div style="height: 104px; background: #F3F3FE; border: 1px solid #E4E4F2; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; overflow: visible;">
                 <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;">
                   <div style="position: relative; width: 58px; height: 58px; flex-shrink: 0;">
-                    <svg width="58" height="58" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="#E4E4F2" stroke-width="7"></circle><circle id="step-ring" cx="36" cy="36" r="30" fill="none" stroke="#FF6B35" stroke-width="7" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition: stroke-dashoffset 0.1s linear;"></circle></svg>
-                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #FF6B35; font-size: 22px;">directions_walk</span></div>
+                    <svg width="58" height="58" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="#E4E4F2" stroke-width="7"></circle><circle id="score-ring" cx="36" cy="36" r="30" fill="none" stroke="#003FB1" stroke-width="7" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition: stroke-dashoffset 0.5s ease;"></circle></svg>
+                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 22px;">favorite</span></div>
                   </div>
                   <div style="min-width: 0;">
-                    <div style="display: flex; align-items: baseline; gap: 3px;"><span class="b-stepsTxt" style="font-size: 1.3rem; font-weight: 800; color: #0A2463; line-height: 1;">0</span><span style="font-size: 0.68rem; font-weight: 700; color: #9498a8;">/ 10 000</span></div>
-                    <div style="font-size: 0.7rem; font-weight: 700; color: #434654;">pas aujourd'hui</div>
-                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 5px;"><span class="zcoin" style="width:14px;height:14px;font-size:8px;">Z</span><span style="font-size: 0.68rem; font-weight: 800; color: #B0680A;">+85 Zora</span></div>
+                    <div style="display: flex; align-items: baseline; gap: 3px;"><span id="scoreBolamu" class="b-scoreBolamu" style="font-size: 1.3rem; font-weight: 800; color: #0A2463; line-height: 1;">—</span><span style="font-size: 0.68rem; font-weight: 700; color: #9498a8;">/ 100</span></div>
+                    <div style="font-size: 0.7rem; font-weight: 700; color: #434654;">Score Bolamu</div>
+                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 5px;" id="score-tendance"><span style="font-size: 0.68rem; font-weight: 800; color: #00875f;">—</span></div>
                   </div>
                 </div>
                 <div style="width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
@@ -239,10 +239,10 @@
       <div id="sportTab" style="display: block;">
         <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px;">
           <div class="enter" style="background: #0A2463; border-radius: 18px; padding: 16px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;"><span style="background: rgba(255,107,53,0.18); color: #FF6B35; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 9px; border-radius: 9999px;">Défi jour</span><span style="display: inline-flex; align-items: center; gap: 3px; color: #F5A623; font-size: 0.78rem; font-weight: 800;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 14px;">star</span>+25</span></div>
-            <div style="font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 12px;">Marcher 10 000 pas</div>
-            <div style="background: rgba(255,255,255,0.1); border-radius: 9999px; height: 6px; overflow: hidden; margin-bottom: 7px;"><div style="height: 100%; width: 70%; background: linear-gradient(90deg, #FF6B35, #F5A623); border-radius: 9999px;"></div></div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.68rem; font-weight: 600; color: rgba(255,255,255,0.5);"><span>70%</span><span id="defi1" class="b-defi1Txt" style="color: rgba(255,255,255,0.5); font-weight: 600;">Expire dans —</span></div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;"><span style="background: rgba(255,107,53,0.18); color: #FF6B35; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 9px; border-radius: 9999px;">Défi jour</span><span style="display: inline-flex; align-items: center; gap: 3px; color: #F5A623; font-size: 0.78rem; font-weight: 800;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 14px;">star</span>+40</span></div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 12px;">Participer à un événement Elonga sport cette semaine</div>
+            <div style="background: rgba(255,255,255,0.1); border-radius: 9999px; height: 6px; overflow: hidden; margin-bottom: 7px;"><div id="defi-progress" style="height: 100%; width: 0%; background: linear-gradient(90deg, #FF6B35, #F5A623); border-radius: 9999px;"></div></div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.68rem; font-weight: 600; color: rgba(255,255,255,0.5);"><span id="defi-status">Pas encore inscrit</span><span id="defi1" class="b-defi1Txt" style="color: rgba(255,255,255,0.5); font-weight: 600;">Expire dans —</span></div>
           </div>
           <div class="enter" style="background: #0A2463; border-radius: 18px; padding: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;"><span style="background: rgba(255,107,53,0.18); color: #FF6B35; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 9px; border-radius: 9999px;">Défi jour</span><span style="display: inline-flex; align-items: center; gap: 3px; color: #F5A623; font-size: 0.78rem; font-weight: 800;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 14px;">star</span>+10</span></div>
@@ -1014,6 +1014,36 @@
     setText('defi2Txt', 'Expire dans ' + A.remain(ends.defi2 || 0));
     setText('offerTxt', A.remain(ends.offer || 0) + ' restantes');
     setText('qrRemaining', A._qrRemaining || 60);
+
+    // Mise à jour statut défi événement Elonga sport (semaine courante)
+    if (A._myRegistrations && A._myRegistrations.length > 0) {
+      var now = new Date();
+      var weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+      var weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      var hasSportEventThisWeek = A._myRegistrations.some(function (reg) {
+        var regDate = new Date(reg.starts_at);
+        return regDate >= weekStart && regDate <= weekEnd;
+      });
+
+      var statusEl = $('defi-status');
+      var progressEl = $('defi-progress');
+      if (statusEl && progressEl) {
+        if (hasSportEventThisWeek) {
+          statusEl.textContent = 'Inscrit ✓';
+          statusEl.style.color = '#00875f';
+          progressEl.style.width = '100%';
+        } else {
+          statusEl.textContent = 'Pas encore inscrit cette semaine';
+          statusEl.style.color = 'rgba(255,255,255,0.5)';
+          progressEl.style.width = '0%';
+        }
+      }
+    }
   };
 
   /* --------------------------- NAV / PANELS --------------------------- */
@@ -1134,7 +1164,6 @@
     setText('patientPrenom', A._patientPrenom || 'Sarah');
     setText('genderAdj', genderAdj);
     setText('patientsToNext', 'À ' + A.fmt(A._zoraPointsToNext || 500) + ' pts du palier ' + (A._zoraNextTier || 'Liboso'));
-    setText('stepsTxt', A.fmt(s.steps));
     setText('streakTxt', (A._streak === undefined || A._streak === null) ? '—' : (A._streak + ' jour' + (A._streak > 1 ? 's' : '') + ' d\'affilée'));
     setText('freeCount', s.freeGames);
     setText('membreTel', A._patientPhone || localStorage.getItem('bolamu_patient_phone') || '');
@@ -1177,9 +1206,6 @@
     setText('voucherCode', A._voucherCode || '');
     setText('voucherQrPartner', A._voucherQrPartner || '');
     setText('voucherQrCode', A._voucherQrCode || '');
-    // ring pas
-    var ring = 188.5 * (1 - Math.min(1, s.steps / 10000));
-    var rc = $('step-ring'); if (rc) rc.setAttribute('stroke-dashoffset', ring.toFixed(1));
     A.syncTimers();
   };
 
@@ -1936,11 +1962,11 @@
       } catch (e) { /* token invalide : on reste sur les valeurs par défaut */ }
     }
 
-    // Compteurs animés (valeurs démo identiques à l'original : 1250 / 7432)
-    if (A.reduce) { A.state.zora = 1250; A.state.steps = 7432; A.renderScalars(); }
+    // Compteurs animés (valeurs démo identiques à l'original : 1250)
+    if (A.reduce) { A.state.zora = 1250; A.renderScalars(); }
     else {
       var dur = 1200, start = performance.now();
-      var tick = function (t) { var pr = Math.min(1, (t - start) / dur); var e = 1 - Math.pow(1 - pr, 3); A.state.zora = Math.round(1250 * e); A.state.steps = Math.round(7432 * e); setText('stepsTxt', A.fmt(A.state.steps)); var rc = $('step-ring'); if (rc) rc.setAttribute('stroke-dashoffset', (188.5 * (1 - Math.min(1, A.state.steps / 10000))).toFixed(1)); if (pr < 1) A._raf = requestAnimationFrame(tick); };
+      var tick = function (t) { var pr = Math.min(1, (t - start) / dur); var e = 1 - Math.pow(1 - pr, 3); A.state.zora = Math.round(1250 * e); if (pr < 1) A._raf = requestAnimationFrame(tick); };
       A._raf = requestAnimationFrame(tick);
     }
 
@@ -1970,6 +1996,38 @@
     }).catch(function () {});
 
     fetch('https://www.bolamu.co/api/v1/streaks/me', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success) { A._streak = d.current_streak || 0; A._longestStreak = d.longest_streak || 0; A.sync(); } }).catch(function () {});
+
+    // Score Bolamu
+    fetch('https://www.bolamu.co/api/v1/patients/score-bienetre', H).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success && d.data) {
+        A._scoreBolamu = d.data.score;
+        A._scoreTendance = d.data.tendance;
+        A._scoreLabel = d.data.label;
+        setText('scoreBolamu', d.data.score !== null ? d.data.score : '—');
+        var tendanceEl = $('score-tendance');
+        if (tendanceEl) {
+          var tendanceIcon = d.data.tendance === 'up' ? '↑' : d.data.tendance === 'down' ? '↓' : '=';
+          var tendanceColor = d.data.tendance === 'up' ? '#00875f' : d.data.tendance === 'down' ? '#BA1A1A' : '#9498a8';
+          tendanceEl.innerHTML = '<span style="color: ' + tendanceColor + '; font-size: 0.68rem; font-weight: 800;">' + tendanceIcon + ' vs période précédente</span>';
+        }
+        // Mise à jour anneau SVG
+        var ring = $('score-ring');
+        if (ring && d.data.score !== null) {
+          var offset = 188.5 * (1 - Math.min(1, d.data.score / 100));
+          ring.setAttribute('stroke-dashoffset', offset.toFixed(1));
+        }
+      } else if (d.data && d.data.score === null) {
+        // Patient nouveau : pas encore assez de données
+        setText('scoreBolamu', '—');
+        var tendanceEl = $('score-tendance');
+        if (tendanceEl) {
+          tendanceEl.innerHTML = '<span style="color: #9498a8; font-size: 0.68rem; font-weight: 800;">Données insuffisantes</span>';
+        }
+      }
+    }).catch(function (err) {
+      console.error('[Score Bolamu] Erreur:', err);
+      setText('scoreBolamu', '—');
+    });
 
     fetch('https://www.bolamu.co/api/v1/events', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data) {
