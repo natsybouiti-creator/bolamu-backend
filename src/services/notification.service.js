@@ -145,6 +145,10 @@ function getNotificationContent(type, data) {
         labo_resultats_patient: {
             titre: 'Résultats labo disponibles',
             message: data.message || 'Les résultats labo de votre patient sont disponibles.'
+        },
+        encouragement: {
+            titre: 'Encouragement reçu',
+            message: (data.sender_name || 'Un membre') + ' vous a encouragé sur le classement hebdomadaire !'
         }
     };
 

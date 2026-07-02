@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 const { recalculateBalance } = require('./zora.service');
+const { notify } = require('./notification.service');
 
 function validateGroupInput(name, sport) {
   // Longueur
@@ -393,6 +394,40 @@ async function encourageMember(fromPhone, targetPhone) {
   const normalizedFrom = normalizePhone(fromPhone);
   const normalizedTarget = normalizePhone(targetPhone);
 
+  // Vérifier que le destinataire existe et est un patient
+  const targetRoleResult = await pool.query(
+    'SELECT role FROM users WHERE phone = $1',
+    [normalizedTarget]
+  );
+
+  if (targetRoleResult.rows.length === 0) {
+    throw new Error('TARGET_NOT_FOUND');
+  }
+
+  if (targetRoleResult.rows[0].role !== 'patient') {
+    throw new Error('TARGET_NOT_PATIENT');
+  }
+
+  // Vérifier rate limiting : 1 pouce par expéditeur → destinataire par 24h
+  const existingEncouragement = await pool.query(
+    `SELECT COUNT(*) as count
+     FROM leaderboard_encouragements
+     WHERE from_phone = $1 AND target_phone = $2
+       AND created_at >= NOW() - INTERVAL '24 hours'`,
+    [normalizedFrom, normalizedTarget]
+  );
+
+  if (parseInt(existingEncouragement.rows[0].count) > 0) {
+    throw new Error('ALREADY_ENCOURAGED_TODAY');
+  }
+
+  // Récupérer le nom de l'expéditeur pour la notification
+  const senderResult = await pool.query(
+    'SELECT first_name, full_name FROM users WHERE phone = $1',
+    [normalizedFrom]
+  );
+  const senderName = senderResult.rows[0]?.first_name || senderResult.rows[0]?.full_name || 'Un membre';
+
   const result = await pool.query(
     `INSERT INTO leaderboard_encouragements (from_phone, target_phone, created_at)
      VALUES ($1, $2, NOW())
@@ -400,8 +435,17 @@ async function encourageMember(fromPhone, targetPhone) {
     [normalizedFrom, normalizedTarget]
   );
 
-  // Émettre socket event au target_phone (via socketService)
-  // TODO: implémenter socket.emit('encouragement_received', { from: normalizedFrom })
+  // Envoyer notification WhatsApp au destinataire
+  setImmediate(async () => {
+    try {
+      await notify(normalizedTarget, 'encouragement', {
+        sender_name: senderName,
+        sender_phone: normalizedFrom
+      });
+    } catch (err) {
+      console.error('[Community] Erreur notification encouragement:', err.message);
+    }
+  });
 
   return { success: true, id: result.rows[0].id };
 }

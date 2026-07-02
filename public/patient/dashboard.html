@@ -242,7 +242,7 @@
           <div id="leaderboard-list"></div>
           <div id="leaderboard-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Classement bientôt disponible</span></div>
         </div>
-        <button onclick="A.toastEncourager()" style="margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir tout · Encourager</button>
+        <button onclick="A.openLeaderboardModal()" style="margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir tout · Encourager</button>
       </div>
     </section>
 
@@ -546,6 +546,10 @@
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 18px; text-align: center;"><div class="b-streakRecord" style="font-size: 1.6rem; font-weight: 800; color: #0A2463;">—</div><div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #434654; margin-top: 4px;">Streak record</div></div>
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 18px; text-align: center;"><div class="b-eventsCount" style="font-size: 1.6rem; font-weight: 800; color: #0A2463;">—</div><div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #434654; margin-top: 4px;">Événements</div></div>
       </div>
+      <h3 style="margin: 22px 0 12px; font-size: 1.15rem; font-weight: 800; color: #0A2463;">Encouragements reçus</h3>
+      <div id="encouragements-received-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;">
+        <div style="text-align: center; padding: 18px; font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun encouragement pour le moment</div>
+      </div>
       <div style="display: flex; flex-direction: column; gap: 10px; max-width: 560px;">
         <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">person</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Mes informations</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
         <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">notifications</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Notifications</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
@@ -811,6 +815,19 @@
       <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0,63,177,0.08); color: #003FB1; font-size: 0.74rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; margin-bottom: 14px;"><span class="material-symbols-outlined" style="font-size: 15px;">schedule</span>Valable 24h — informations d'urgence</div>
       <p style="margin: 0 0 20px; font-size: 0.78rem; font-weight: 500; color: #434654;">Présentez ce code à un professionnel de santé pour un accès immédiat à votre dossier médical.</p>
       <button data-testid="close-dmn-qr-btn" onclick="A.closeDmnQrModal()" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Fermer</button>
+    </div>
+  </div>
+
+  <!-- ===== MODAL CLASSEMENT HEBDOMADAIRE ===== -->
+  <div id="modal-leaderboard" class="modal-bg" onclick="A.closeLeaderboardModal()">
+    <div onclick="A.stop(event)" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 480px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #0A2463;">Classement de la semaine</h3>
+        <button onclick="A.closeLeaderboardModal()" style="background: #F3F3FE; border: none; width: 36px; height: 36px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">close</span></button>
+      </div>
+      <div id="leaderboard-modal-list" style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="text-align: center; padding: 24px; font-size: 0.86rem; font-weight: 600; color: #9498a8;">Chargement...</div>
+      </div>
     </div>
   </div>
 
@@ -1651,8 +1668,88 @@
     if (r.cost <= zoraBalance) A.redeemVoucher(r); else A.showToast('Solde Zora insuffisant');
   };
 
+  // Modale classement hebdomadaire
+  A.openLeaderboardModal = function () {
+    show($('modal-leaderboard'), true);
+    A._loadWeeklyLeaderboard();
+  };
+
+  A.closeLeaderboardModal = function () {
+    show($('modal-leaderboard'), false);
+  };
+
+  A._loadWeeklyLeaderboard = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    var H = { headers: { 'Authorization': 'Bearer ' + token } };
+    fetch('https://www.bolamu.co/api/v1/patients/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success && d.data) {
+        A._weeklyLeaderboard = d.data;
+        A.renderLeaderboardModal();
+      } else {
+        $('leaderboard-modal-list').innerHTML = '<div style="text-align: center; padding: 24px; font-size: 0.86rem; font-weight: 600; color: #9498a8;">Classement vide cette semaine</div>';
+      }
+    }).catch(function () {
+      $('leaderboard-modal-list').innerHTML = '<div style="text-align: center; padding: 24px; font-size: 0.86rem; font-weight: 600; color: #9498a8;">Erreur de chargement</div>';
+    });
+  };
+
+  A.renderLeaderboardModal = function () {
+    var list = A._weeklyLeaderboard || [];
+    var el = $('leaderboard-modal-list'); if (!el) return;
+    if (list.length === 0) {
+      el.innerHTML = '<div style="text-align: center; padding: 24px; font-size: 0.86rem; font-weight: 600; color: #9498a8;">Classement vide cette semaine</div>';
+      return;
+    }
+    el.innerHTML = list.map(function (item, i) {
+      var rankBg = i === 0 ? '#F5A623' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : '#EDEDF8';
+      var rankCol = i === 0 ? '#fff' : i === 1 ? '#fff' : i === 2 ? '#fff' : '#434654';
+      var initials = (item.first_name || item.full_name || 'M').charAt(0).toUpperCase() + (item.last_name || '').charAt(0).toUpperCase();
+      var isSelf = item.phone === A._patientPhone;
+      var points = parseInt(item.weekly_points) || 0;
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #EDEDF8;' + (isSelf ? 'background:rgba(0,63,177,0.04);' : '') + '">' +
+        '<span style="width:28px;height:28px;border-radius:9999px;background:' + rankBg + ';color:' + rankCol + ';display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;flex-shrink:0;">' + (i + 1) + '</span>' +
+        '<span style="width:36px;height:36px;border-radius:9999px;background:#003FB1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;flex-shrink:0;">' + esc(initials) + '</span>' +
+        '<span style="flex:1;font-size:0.9rem;font-weight:600;color:#191B23;">' + esc(item.full_name || item.first_name + ' ' + item.last_name) + (isSelf ? ' (vous)' : '') + '</span>' +
+        '<span style="font-size:0.85rem;font-weight:800;color:#B0680A;">' + esc(points) + ' pts</span>' +
+        (!isSelf ? '<button onclick="A.encourageMember(\'' + esc(item.phone) + '\')" style="display:inline-flex;align-items:center;gap:4px;background:none;border:none;color:#FF6B35;font-family:inherit;font-size:0.7rem;font-weight:700;cursor:pointer;padding:0;margin-left:8px;"><span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1;font-size:16px;">thumb_up</span>Encourager</button>' : '') +
+        '</div>';
+    }).join('');
+  };
+
+  A.encourageMember = function (targetPhone) {
+    var token = localStorage.getItem('bolamu_patient_token');
+    var H = { headers: { 'Authorization': 'Bearer ' + token }, method: 'POST', body: JSON.stringify({ target_phone: targetPhone }) };
+    fetch('https://www.bolamu.co/api/v1/patients/encourage', H).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success) {
+        A.showToast('Encouragement envoyé !');
+      } else {
+        A.showToast(d.message || 'Erreur');
+      }
+    }).catch(function () {
+      A.showToast('Erreur de connexion');
+    });
+  };
+
+  A.renderEncouragementsReceived = function () {
+    var list = A._encouragementsReceived || [];
+    var el = $('encouragements-received-list'); if (!el) return;
+    if (list.length === 0) {
+      el.innerHTML = '<div style="text-align: center; padding: 18px; font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun encouragement pour le moment</div>';
+      return;
+    }
+    el.innerHTML = list.map(function (item) {
+      var date = new Date(item.created_at);
+      var dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      var initials = (item.sender_name || 'M').charAt(0).toUpperCase();
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border:1px solid #EDEDF8;border-radius:14px;">' +
+        '<span style="width:36px;height:36px;border-radius:9999px;background:#003FB1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;flex-shrink:0;">' + esc(initials) + '</span>' +
+        '<div style="flex:1;"><div style="font-size:0.9rem;font-weight:700;color:#0A2463;">' + esc(item.sender_name) + '</div><div style="font-size:0.74rem;font-weight:500;color:#434654;margin-top:2px;">vous a encouragé</div></div>' +
+        '<div style="font-size:0.7rem;font-weight:600;color:#9498a8;">' + esc(dateStr) + '</div></div>';
+    }).join('');
+  };
+
   // Toasts
-  A.toastEncourager = function () { A.showToast('Classement bientôt disponible'); };
+  A.toastEncourager = function () { A.openLeaderboardModal(); };
   A.toastActivite = function () { A.showToast('Suivi d\'activité bientôt disponible'); };
   A.toastSommeil = function () { A.showToast('Suivi du sommeil bientôt disponible'); };
   A.toastNutrition = function () { A.showToast('Suivi nutrition bientôt disponible'); };
@@ -2036,6 +2133,14 @@
     }).catch(function () {});
 
     fetch('https://www.bolamu.co/api/v1/streaks/me', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success) { A._streak = d.current_streak || 0; A._longestStreak = d.longest_streak || 0; A.sync(); } }).catch(function () {});
+
+    // Encouragements reçus
+    fetch('https://www.bolamu.co/api/v1/patients/encouragements/received', H).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success && d.data) {
+        A._encouragementsReceived = d.data;
+        A.renderEncouragementsReceived();
+      }
+    }).catch(function () {});
 
     // Score Bolamu
     fetch('https://www.bolamu.co/api/v1/patients/score-bienetre', H).then(function (r) { return r.json(); }).then(function (d) {

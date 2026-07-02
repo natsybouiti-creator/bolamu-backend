@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');
 const idempotencyMiddleware = require('../middleware/idempotency');
 const { upgradeAbonnement } = require('../services/prorata.service');
 const { calculerScoreBolamu } = require('../services/scoreBolamu.service');
+const { encourageMember } = require('../services/communityService');
 
 const register = patientController.registerPatient || ((req, res) => {
     res.status(501).json({ success: false, message: "Fonction d'inscription non configurée" });
@@ -189,6 +190,95 @@ router.get('/consultations/recentes', authMiddleware, async (req, res) => {
     res.json({ success: true, data: consultations });
   } catch (err) {
     console.error('[consultations-recentes]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// GET /api/v1/patients/leaderboard/weekly - Classement hebdomadaire
+router.get('/leaderboard/weekly', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT u.phone, u.full_name, u.first_name, u.last_name, u.photo_url,
+              SUM(zl.points) as weekly_points
+       FROM users u
+       JOIN zora_ledger zl ON zl.phone = u.phone
+       WHERE u.role = 'patient'
+         AND u.is_active = true
+         AND zl.earned_at >= date_trunc('week', NOW())
+       GROUP BY u.phone, u.full_name, u.first_name, u.last_name, u.photo_url
+       ORDER BY weekly_points DESC
+       LIMIT 50`
+    );
+
+    const leaderboard = result.rows.map((row, index) => ({
+      rank: index + 1,
+      phone: row.phone,
+      full_name: row.full_name,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      photo_url: row.photo_url,
+      weekly_points: parseInt(row.weekly_points) || 0
+    }));
+
+    res.json({ success: true, data: leaderboard });
+  } catch (err) {
+    console.error('[leaderboard-weekly]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// POST /api/v1/patients/encourage - Envoyer un encouragement
+router.post('/encourage', authMiddleware, async (req, res) => {
+  try {
+    const { target_phone } = req.body;
+    const senderPhone = normalizePhone(req.user.phone);
+
+    if (!target_phone) {
+      return res.status(400).json({ success: false, message: 'target_phone requis' });
+    }
+
+    const result = await encourageMember(senderPhone, target_phone);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[encourage]', err.message);
+    if (err.message === 'ALREADY_ENCOURAGED_TODAY') {
+      return res.status(429).json({ success: false, message: 'Vous avez déjà encouragé ce membre aujourd\'hui' });
+    }
+    if (err.message === 'TARGET_NOT_FOUND') {
+      return res.status(404).json({ success: false, message: 'Destinataire introuvable' });
+    }
+    if (err.message === 'TARGET_NOT_PATIENT') {
+      return res.status(400).json({ success: false, message: 'TARGET_NOT_PATIENT' });
+    }
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// GET /api/v1/patients/encouragements/received - Encouragements reçus
+router.get('/encouragements/received', authMiddleware, async (req, res) => {
+  try {
+    const phone = normalizePhone(req.user.phone);
+
+    const result = await pool.query(
+      `SELECT le.from_phone, u.full_name, u.first_name, u.photo_url, le.created_at
+       FROM leaderboard_encouragements le
+       JOIN users u ON u.phone = le.from_phone
+       WHERE le.target_phone = $1
+       ORDER BY le.created_at DESC
+       LIMIT 10`,
+      [phone]
+    );
+
+    const encouragements = result.rows.map(row => ({
+      from_phone: row.from_phone,
+      sender_name: row.full_name || row.first_name || 'Un membre',
+      photo_url: row.photo_url,
+      created_at: row.created_at
+    }));
+
+    res.json({ success: true, data: encouragements });
+  } catch (err) {
+    console.error('[encouragements-received]', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
