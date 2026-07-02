@@ -16,7 +16,7 @@ async function executionReelle() {
     const rdvResult = await client.query(
       `INSERT INTO rendez_vous 
        (patient_phone, doctor_phone, scheduled_at, motif, status)
-       VALUES ('+242069735418', '+242065207273', 
+       VALUES ('+242069735418', '+242060000001', 
                NOW() + INTERVAL '1 hour', 'Test QA B4', 'confirmed')
        RETURNING id`
     );
@@ -28,7 +28,7 @@ async function executionReelle() {
     const consultationResult = await client.query(
       `INSERT INTO consultations
        (patient_phone, doctor_phone, motif, status, rdv_id)
-       VALUES ('+242069735418', '+242065207273', 
+       VALUES ('+242069735418', '+242060000001', 
                'Test QA B4', 'open', $1)
        RETURNING id`,
       [rdvId]
@@ -42,7 +42,7 @@ async function executionReelle() {
       `INSERT INTO ordonnances
        (consultation_id, patient_phone, doctor_phone, status)
        VALUES ($1, '+242069735418', 
-               '+242065207273', 'active')
+               '+242060000001', 'active')
        RETURNING id`,
       [consultationId]
     );
@@ -78,7 +78,7 @@ async function executionReelle() {
       await client.query(
         `INSERT INTO audit_log
          (phone, action, resource_type, resource_id, payload)
-         VALUES ('+242065207273', 'view_history', 'health_record', '+242069735418', '{"patient_phone": "+242069735418", "accessor_role": "medecin"}'::jsonb)`
+         VALUES ('+242060000001', 'view_history', 'health_record', '+242069735418', '{"patient_phone": "+242069735418", "accessor_role": "medecin"}'::jsonb)`
       );
       console.log(`✓ Accès BHP loggué`);
     } catch (e) {

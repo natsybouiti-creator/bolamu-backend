@@ -148,8 +148,8 @@
                     <div style="display: flex; align-items: center; gap: 4px; margin-top: 5px;" id="score-tendance"><span style="font-size: 0.68rem; font-weight: 800; color: #00875f;">—</span></div>
                   </div>
                 </div>
-                <div style="width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                  <div style="width: 80px; height: 100px; background-image: url('/images/landing/garcons3Dbleu.png'); background-size: contain; background-position: bottom center; background-repeat: no-repeat; animation: zoraFloat 4s ease-in-out infinite;"></div>
+                <div style="width: 104px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 104px; height: 100%; background-image: url('/images/landing/garcons3Dbleu.png'); background-size: cover; background-position: bottom center; background-repeat: no-repeat; animation: zoraFloat 4s ease-in-out infinite;"></div>
                 </div>
               </div>
             </div>
@@ -191,17 +191,38 @@
       <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Événements près de chez vous</h2>
       <div class="col2" id="events-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px;"></div>
 
-      <!-- MES ÉVÉNEMENTS -->
-      <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Mes événements</h2>
-      <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px; margin-bottom: 30px;">
-        <div id="myreg-empty">
-          <div style="text-align: center; padding: 30px; color: #9CA3AF;">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: #D1D5DB;">event_busy</span>
-            <div style="margin-top: 12px; font-size: 0.9rem; font-weight: 600;">Aucune inscription</div>
-            <div style="font-size: 0.8rem; color: #9CA3AF;">Participez à un événement pour le voir ici</div>
+      <!-- MES ÉVÉNEMENTS + MES CONSULTATIONS -->
+      <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px;">
+        <!-- MES ÉVÉNEMENTS -->
+        <div>
+          <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Mes événements</h2>
+          <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px;">
+            <div id="myreg-empty">
+              <div style="text-align: center; padding: 30px; color: #9CA3AF;">
+                <span class="material-symbols-outlined" style="font-size: 48px; color: #D1D5DB;">event_busy</span>
+                <div style="margin-top: 12px; font-size: 0.9rem; font-weight: 600;">Aucune inscription</div>
+                <div style="font-size: 0.8rem; color: #9CA3AF;">Participez à un événement pour le voir ici</div>
+              </div>
+            </div>
+            <div id="myreg-list" style="display: none; flex-direction: column; gap: 12px;"></div>
           </div>
         </div>
-        <div id="myreg-list" style="display: none; flex-direction: column; gap: 12px;"></div>
+
+        <!-- MES CONSULTATIONS -->
+        <div>
+          <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Mes consultations</h2>
+          <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px;">
+            <div id="consultations-empty">
+              <div style="text-align: center; padding: 30px; color: #9CA3AF;">
+                <span class="material-symbols-outlined" style="font-size: 48px; color: #D1D5DB;">medical_services</span>
+                <div style="margin-top: 12px; font-size: 0.9rem; font-weight: 600;">Aucune consultation</div>
+                <div style="font-size: 0.8rem; color: #9CA3AF;">Vos consultations apparaîtront ici</div>
+              </div>
+            </div>
+            <div id="consultations-list" style="display: none; flex-direction: column; gap: 12px;"></div>
+            <button id="consultations-voir-plus" onclick="A.goSuivre(); A.setSuivreTab('dossier');" style="display: none; margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir plus</button>
+          </div>
+        </div>
       </div>
 
       <!-- GROUPES DE SPORT -->
@@ -989,6 +1010,7 @@
     A.renderAffordable();
     A.renderEvents();
     A.renderMyReg();
+    A.renderMesConsultationsAccueil();
     A.renderSportGroups();
     A.renderLeaderboard();
     A.renderLedger();
@@ -1271,6 +1293,24 @@
     }).join('');
   };
 
+  A.renderMesConsultationsAccueil = function () {
+    var list = A._recentConsultations || [];
+    show($('consultations-empty'), list.length === 0);
+    var el = $('consultations-list'); if (!el) return;
+    el.style.display = list.length ? 'flex' : 'none';
+    var voirPlusBtn = $('consultations-voir-plus');
+    if (voirPlusBtn) voirPlusBtn.style.display = list.length >= 4 ? 'block' : 'none';
+    el.innerHTML = list.map(function (c) {
+      var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
+      var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
+      return '<div style="display:flex;align-items:center;gap:14px;padding:14px;background:#FAF8FF;border-radius:14px;border:1px solid #EDEDF8;">' +
+        '<div style="flex:1;"><div style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:4px;">' + esc(c.doctor_name) + '</div>' +
+        '<div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#434654;margin-bottom:2px;"><span class="material-symbols-outlined" style="font-size:14px;">medical_services</span>' + esc(c.specialty) + '</div>' +
+        '<div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#434654;"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>' + esc(c.date) + '</div></div>' +
+        '<div style="background:' + statusBg + ';color:' + statusColor + ';padding:6px 12px;border-radius:9999px;font-size:0.74rem;font-weight:700;">' + esc(c.status) + '</div></div>';
+    }).join('');
+  };
+
   A.renderSportGroups = function () {
     var el = $('sportgroups-list'); if (!el) return;
     var groups = A._sportGroups || [];
@@ -1374,9 +1414,9 @@
     el.innerHTML = rewards.map(function (r, idx) {
       var canAfford = r.cost <= zoraBalance;
       var btn = 'margin-top:8px;background:' + (canAfford ? 'rgba(0,63,177,0.08)' : '#F3F3FE') + ';color:' + (canAfford ? '#003FB1' : '#9498a8') + ';border:none;font-family:inherit;font-size:0.72rem;font-weight:800;padding:6px 12px;border-radius:9999px;cursor:' + (canAfford ? 'pointer' : 'not-allowed') + ';';
-      return '<div style="flex:0 0 210px;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #EDEDF8;border-radius:16px;padding:12px;">' +
-        '<span style="width:56px;height:56px;border-radius:14px;overflow:hidden;background:#F3F3FE;flex-shrink:0;display:block;"><span style="display:block;width:100%;height:100%;background-image:url(\'' + r.img + '\');background-size:cover;background-position:center;background-color:#EDEDF8;"></span></span>' +
-        '<div style="flex:1;min-width:0;"><div style="font-size:0.84rem;font-weight:700;color:#0A2463;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(r.name) + '</div>' +
+      return '<div style="flex:0 0 210px;position:relative;display:flex;align-items:center;background:#fff;border:1px solid #EDEDF8;border-radius:16px;overflow:hidden;">' +
+        '<span style="width:90px;height:100%;flex-shrink:0;display:block;background-image:url(\'' + r.img + '\');background-size:cover;background-position:center;background-color:#EDEDF8;"></span>' +
+        '<div style="flex:1;min-width:0;padding:12px 12px 12px 14px;"><div style="font-size:0.84rem;font-weight:700;color:#0A2463;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(r.name) + '</div>' +
         '<div style="display:flex;align-items:center;gap:4px;margin-top:4px;">' + coin(15, true) + '<span style="font-size:0.78rem;font-weight:800;color:#B0680A;">' + A.fmt(r.cost) + ' Zora</span></div>' +
         '<button onclick="A.exchangeReward(' + idx + ')" style="' + btn + '">' + (canAfford ? 'Échanger' : 'Solde insuffisant') + '</button></div></div>';
     }).join('');
@@ -2079,6 +2119,8 @@
     fetch('https://www.bolamu.co/api/v1/zora/games/config', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._gamesConfig = d.data; } }).catch(function () {});
 
     fetch('https://www.bolamu.co/api/v1/doctors', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data && d.data.doctors) { A._doctors = d.data.doctors; A.renderRdvDoctors(); } }).catch(function () {});
+
+    fetch('https://www.bolamu.co/api/v1/patients/consultations/recentes', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._recentConsultations = d.data; A.renderMesConsultationsAccueil(); } }).catch(function () {});
 
     fetch('https://www.bolamu.co/api/v1/zora/rewards', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && Array.isArray(d.data) && d.data.length) { A.rewards = d.data.map(function (rw) { return { id: rw.id, name: rw.title, cost: rw.points_cost, img: A.rewardImgByTitle(rw.title || rw.name || '', rw.category || rw.cat), seed: 'rw' + rw.id, cat: rw.category || rw.cat || 'tout' }; }); }

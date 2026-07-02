@@ -157,4 +157,40 @@ router.get('/score-bienetre', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/patient/consultations/recentes - 4 dernières consultations du patient
+router.get('/consultations/recentes', authMiddleware, async (req, res) => {
+  try {
+    const phone = normalizePhone(req.user.phone);
+    const now = new Date();
+
+    const result = await pool.query(
+      `SELECT c.id, c.started_at, c.status,
+              d.full_name as doctor_name, d.specialty
+       FROM consultations c
+       LEFT JOIN doctors d ON d.phone = c.doctor_phone
+       WHERE c.patient_phone = $1
+       ORDER BY c.started_at DESC
+       LIMIT 4`,
+      [phone]
+    );
+
+    const consultations = result.rows.map(c => {
+      const startedAt = new Date(c.started_at);
+      const isPast = startedAt < now;
+      return {
+        id: c.id,
+        doctor_name: c.doctor_name || 'Médecin',
+        specialty: c.specialty || 'Généraliste',
+        date: startedAt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
+        status: isPast ? 'Terminée' : 'À venir'
+      };
+    });
+
+    res.json({ success: true, data: consultations });
+  } catch (err) {
+    console.error('[consultations-recentes]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
 module.exports = router;
