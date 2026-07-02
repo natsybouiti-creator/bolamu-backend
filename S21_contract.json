@@ -1,0 +1,53 @@
+{
+  "scenario_id": "S21",
+  "title": "Agence importe des employés (B2B SmartFlow)",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s21-agence-import-employes.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "agent", "phone": "+242077000010" }
+    ],
+    "synthetic_accounts_created_by_test": [
+      "+242069000095", "+242069000094", "+242069000093"
+    ]
+  },
+  "frontend_layer": {
+    "steps": [],
+    "note": "Import fait directement via API, pas d'action UI testée dans ce fichier malgré resultats.frontend attendu -- à clarifier avec Cascade si une UI d'import existe et doit être couverte."
+  },
+  "backend_layer": {
+    "expected_calls": [
+      {
+        "method": "POST",
+        "endpoint": "/agence/import-employes",
+        "body_summary": "company_id + liste de 3 employés (phone, full_name, plan)",
+        "expected_response_shape": { "success": true, "data": { "created_count": 3 } }
+      },
+      {
+        "method": "GET",
+        "endpoint": "/agence/employees?company_id=COMPANY_TEST_001",
+        "expected_field": "data.length > 0"
+      }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT count(*) FROM users WHERE phone IN ('+242069000095','+242069000094','+242069000093')",
+        "expected": { "count": "3" }
+      },
+      {
+        "query": "SELECT count(*) FROM subscriptions WHERE patient_phone IN ('+242069000095','+242069000094','+242069000093') AND status = 'active'",
+        "expected": { "count": "3" }
+      },
+      {
+        "query": "SELECT count(*) FROM company_employees WHERE company_id = 'COMPANY_TEST_001'",
+        "expected": { "count": "3" }
+      }
+    ]
+  },
+  "known_gaps": [
+    "RÉSOLU (1 juillet 2026) : afterAll() appelle désormais /admin/test/cleanup avec adminToken chargé en beforeAll. Vérifié sur diff, pas encore re-testé en exécution réelle -- à confirmer lors du premier vrai run dans le harnais."
+  ],
+  "recommended_fix": "Corrigé. Confirmation d'exécution nécessaire avant de retirer ce gap complètement."
+}

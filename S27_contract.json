@@ -1,0 +1,43 @@
+{
+  "scenario_id": "S27",
+  "title": "Admin supervise la plateforme",
+  "version": "1.0",
+  "source_extraction": "brut Cascade, tests/e2e/s27-admin-supervise.spec.js",
+  "preconditions": {
+    "test_accounts": [
+      { "role": "admin", "phone": "+242060000099" },
+      { "role": "patient", "phone": "+242069735418" }
+    ]
+  },
+  "frontend_layer": {
+    "steps": [],
+    "note": "resultats.frontend est rempli par l'étape 2 (publication événement) qui est en réalité un appel API PATCH, pas une interaction UI -- même mislabeling que S22."
+  },
+  "backend_layer": {
+    "expected_calls": [
+      { "method": "GET", "endpoint": "/admin/events/pending" },
+      { "method": "PATCH", "endpoint": "/events/{eventId}/publish", "condition": "seulement si un événement pending existe" },
+      { "method": "GET", "endpoint": "/admin/smartflow/stats?mois=2026-07" },
+      {
+        "method": "POST",
+        "endpoint": "/zora/earn",
+        "body": { "phone": "+242069735418", "points": 100, "reason": "Crédit manuel test admin Playwright" },
+        "expected_response_shape": { "success": true }
+      },
+      { "method": "GET", "endpoint": "/patients/search?q=+242069735418", "expected_field": "data[0].full_name présent" }
+    ]
+  },
+  "db_layer": {
+    "checks": [
+      {
+        "query": "SELECT balance FROM zora_ledger WHERE user_phone = '+242069735418' ORDER BY id DESC LIMIT 1",
+        "note": "vérifie seulement que le crédit a été appliqué, pas que le montant est correct dans l'absolu (dépend du solde précédent, lui-même pollué)"
+      }
+    ]
+  },
+  "known_gaps": [
+    "BUG-011 (nouveau, 1 juillet 2026) : l'appel POST /zora/earn dans ce test envoie { phone, points, reason } mais la route réelle exige { phone, action_type, proof_class, proof_reference } -- la requête échoue systématiquement en 400. La pollution Zora que ce contrat craignait initialement n'a probablement jamais eu lieu (l'échec intervient avant le crédit), mais le test lui-même ne valide rien à cette étape. Ce scénario ne doit pas être compté comme '✅ validé' pour l'étape 4 tant que BUG-011 n'est pas corrigé -- traitement prévu en B2, hors scope harnais.",
+    "L'étape de publication d'événement reste conditionnelle ('si un événement pending existe') -- si aucun événement n'est en attente au moment du run, cette étape ne teste rien mais reste marquée comme passée."
+  ],
+  "recommended_fix": "Ne pas corriger dans ce chantier harnais -- nécessite de connaître les action_type/proof_class valides côté zora.service.js. À traiter en B2 avec BUG-011."
+}
