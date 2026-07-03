@@ -9,6 +9,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -18,6 +19,13 @@ const upload = multer({
         allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Format non supporté.'));
     }
 });
+
+const handleMulterError = (err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
+  }
+  next(err);
+};
 
 router.post('/register', upload.single('document'), registerPharmacie);
 router.get('/profil', authMiddleware, getPharmacieProfile);
@@ -53,6 +61,43 @@ router.post('/change-password', authMiddleware, async (req, res) => {
     res.json({ success: true, message: 'Mot de passe modifié avec succès' });
   } catch(e) {
     console.error('[change-password]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// POST /api/v1/pharmacies/photo - Upload photo de profil
+router.post('/photo', authMiddleware, upload.single('photo'), handleMulterError, async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Aucune photo fournie' });
+    }
+
+    const phone = normalizePhone(req.user.phone);
+
+    // Upload vers Cloudinary
+    const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/photos', {
+      public_id: `pharmacie_${phone}_${Date.now()}`,
+      transformation: { width: 400, height: 400, crop: 'fill' }
+    });
+
+    // Mettre à jour la table pharmacies
+    const r = await pool.query(
+      'UPDATE pharmacies SET photo_url = $1 WHERE phone = $2',
+      [uploadResult.secure_url, phone]
+    );
+    if (r.rowCount === 0) {
+      return res.status(404).json({ success: false, message: 'Profil pharmacie introuvable' });
+    }
+
+    // Mettre à jour la table users aussi pour cohérence
+    await pool.query(
+      'UPDATE users SET photo_url = $1 WHERE phone = $2',
+      [uploadResult.secure_url, phone]
+    );
+
+    res.json({ success: true, photo_url: uploadResult.secure_url });
+  } catch (err) {
+    console.error('[pharmacie-photo]', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
