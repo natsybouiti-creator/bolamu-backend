@@ -210,54 +210,66 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
     }
 
     // 7. Vouchers expirant 48h avant — Sprint 6A
-    const vouchersExpiringResult = await db.query(
-      `SELECT v.patient_phone, u.first_name, v.title, v.partner_name, v.expires_at
-       FROM zora_vouchers v
-       JOIN users u ON u.phone = v.patient_phone
-       WHERE v.is_active = TRUE
-       AND v.expires_at BETWEEN NOW() + INTERVAL '47 hours' AND NOW() + INTERVAL '49 hours'`
-    );
-    
-    for (const row of vouchersExpiringResult.rows) {
-      try {
-        const date = new Date(row.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-        await sendWhatsAppTemplate(row.patient_phone, 'voucher_expirant', [
-          row.title,
-          row.partner_name,
-          date
-        ]);
-        nb_traites++;
-        allDetails.push(`Rappel voucher expirant envoyé : ${row.patient_phone}`);
-      } catch (err) {
-        nb_erreurs++;
-        allDetails.push(`Erreur rappel voucher ${row.patient_phone}`);
+    try {
+      const vouchersExpiringResult = await db.query(
+        `SELECT v.phone, u.first_name, r.title, p.name as partner_name, v.expires_at
+         FROM zora_vouchers v
+         JOIN users u ON u.phone = v.phone
+         JOIN zora_rewards r ON v.reward_id = r.id
+         JOIN zora_partners p ON v.partner_id = p.id
+         WHERE v.status = 'active'
+         AND v.expires_at BETWEEN NOW() + INTERVAL '47 hours' AND NOW() + INTERVAL '49 hours'`
+      );
+      
+      for (const row of vouchersExpiringResult.rows) {
+        try {
+          const date = new Date(row.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+          await sendWhatsAppTemplate(row.phone, 'voucher_expirant', [
+            row.title,
+            row.partner_name,
+            date
+          ]);
+          nb_traites++;
+          allDetails.push(`Rappel voucher expirant envoyé : ${row.phone}`);
+        } catch (err) {
+          nb_erreurs++;
+          allDetails.push(`Erreur rappel voucher ${row.phone}`);
+        }
       }
+    } catch (vouchersErr) {
+      nb_erreurs++;
+      allDetails.push(`Erreur requête vouchers : ${vouchersErr.message}`);
     }
 
     // 8. Rappels RDV 24h avant — Sprint 6A
-    const rdvReminderResult = await db.query(
-      `SELECT a.patient_phone, u.first_name, a.appointment_date, a.appointment_time, d.full_name as doctor_name, d.address
-       FROM appointments a
-       JOIN users u ON u.patient_phone = u.phone
-       JOIN doctors d ON a.doctor_id = d.id
-       WHERE a.status = 'confirme'
-       AND a.appointment_date = CURRENT_DATE + INTERVAL '1 day'`
-    );
-    
-    for (const row of rdvReminderResult.rows) {
-      try {
-        const heure = row.appointment_time;
-        await sendWhatsAppTemplate(row.patient_phone, 'rappel_rdv_24h', [
-          heure,
-          row.doctor_name,
-          row.address || 'Cabinet médical'
-        ]);
-        nb_traites++;
-        allDetails.push(`Rappel RDV envoyé : ${row.patient_phone}`);
-      } catch (err) {
-        nb_erreurs++;
-        allDetails.push(`Erreur rappel RDV ${row.patient_phone}`);
+    try {
+      const rdvReminderResult = await db.query(
+        `SELECT a.patient_phone, u.first_name, a.appointment_date, a.appointment_time, d.full_name as doctor_name, d.address
+         FROM appointments a
+         JOIN users u ON u.phone = a.patient_phone
+         JOIN doctors d ON a.doctor_id = d.id
+         WHERE a.status = 'confirme'
+         AND a.appointment_date = CURRENT_DATE + INTERVAL '1 day'`
+      );
+      
+      for (const row of rdvReminderResult.rows) {
+        try {
+          const heure = row.appointment_time;
+          await sendWhatsAppTemplate(row.patient_phone, 'rappel_rdv_24h', [
+            heure,
+            row.doctor_name,
+            row.address || 'Cabinet médical'
+          ]);
+          nb_traites++;
+          allDetails.push(`Rappel RDV envoyé : ${row.patient_phone}`);
+        } catch (err) {
+          nb_erreurs++;
+          allDetails.push(`Erreur rappel RDV ${row.patient_phone}`);
+        }
       }
+    } catch (rdvErr) {
+      nb_erreurs++;
+      allDetails.push(`Erreur requête RDV : ${rdvErr.message}`);
     }
 
     // 9. Calculer classement hebdo — Sprint 6A
