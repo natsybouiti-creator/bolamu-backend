@@ -9,6 +9,20 @@ const idempotencyMiddleware = require('../middleware/idempotency');
 const { upgradeAbonnement } = require('../services/prorata.service');
 const { calculerScoreBolamu } = require('../services/scoreBolamu.service');
 const { encourageMember } = require('../services/communityService');
+const { uploadToCloudinary } = require('../utils/cloudinary');
+const multer = require('multer');
+const upload = multer({ 
+  storage: multer.memoryStorage(), 
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+// Middleware pour gérer les erreurs multer
+const handleMulterError = (err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
+  }
+  next(err);
+};
 
 const register = patientController.registerPatient || ((req, res) => {
     res.status(501).json({ success: false, message: "Fonction d'inscription non configurée" });
@@ -279,6 +293,48 @@ router.get('/encouragements/received', authMiddleware, async (req, res) => {
     res.json({ success: true, data: encouragements });
   } catch (err) {
     console.error('[encouragements-received]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// POST /api/v1/patients/photo - Upload photo de profil
+router.post('/photo', authMiddleware, upload.single('photo'), handleMulterError, async (req, res) => {
+  try {
+    console.log('[patient-photo] req.file:', req.file ? 'present' : 'missing');
+    console.log('[patient-photo] req.user:', req.user ? 'present' : 'missing');
+    
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Aucune photo fournie' });
+    }
+
+    const phone = normalizePhone(req.user.phone);
+    console.log('[patient-photo] phone:', phone);
+
+    // Upload vers Cloudinary
+    const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/photos', {
+      public_id: `patient_${phone}_${Date.now()}`,
+      transformation: { width: 400, height: 400, crop: 'fill' }
+    });
+
+    console.log('[patient-photo] uploadResult:', uploadResult.secure_url);
+
+    // Mettre à jour la table users
+    await pool.query(
+      'UPDATE users SET photo_url = $1 WHERE phone = $2',
+      [uploadResult.secure_url, phone]
+    );
+
+    res.json({ success: true, photo_url: uploadResult.secure_url });
+  } catch (err) {
+    console.error('[patient-photo] ERROR:', err);
+    console.error('[patient-photo] ERROR message:', err.message);
+    console.error('[patient-photo] ERROR stack:', err.stack);
+    
+    // Gestion spécifique erreur multer LIMIT_FILE_SIZE
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
+    }
+    
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });

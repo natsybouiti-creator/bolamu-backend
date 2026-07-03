@@ -538,7 +538,13 @@
     <section id="sec-profil" style="display: none;">
       <button onclick="A.closeProfile()" data-testid="closeProfile" style="display: inline-flex; align-items: center; gap: 6px; background: transparent; border: none; color: #434654; font-family: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer; margin-bottom: 18px; padding: 0;"><span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>Retour</button>
       <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 24px; padding: 26px; margin-bottom: 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
-        <span style="width: 72px; height: 72px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-2.jpg'); background-size: cover; background-position: center; background-color: #0A2463; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; flex-shrink: 0; box-shadow: 0 0 0 3px #F5A623;"><span class="b-patientInitiales">—</span></span>
+        <div style="position: relative; width: 72px; height: 72px; flex-shrink: 0;">
+          <span id="profile-photo-container" style="width: 72px; height: 72px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-2.jpg'); background-size: cover; background-position: center; background-color: #0A2463; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; box-shadow: 0 0 0 3px #F5A623;"><span class="b-patientInitiales">—</span></span>
+          <label for="photo-upload" style="position: absolute; bottom: -4px; right: -4px; width: 28px; height: 28px; background: #003FB1; border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <span class="material-symbols-outlined" style="font-size: 16px; color: #fff;">add_a_photo</span>
+          </label>
+          <input type="file" id="photo-upload" accept="image/*" style="display: none;" onchange="A.uploadProfilePhoto(event)">
+        </div>
         <div><div class="b-patientNom" style="font-size: 1.4rem; font-weight: 800; color: #0A2463;">SARAH BEMBA</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;"><span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0,63,177,0.1); border: 1px solid rgba(0,63,177,0.25); color: #003FB1; font-size: 0.66rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 13px;">workspace_premium</span><span class="b-zoraTierLabel">—</span></span><span style="font-size: 0.78rem; font-weight: 500; color: #434654;">Membre depuis <span class="b-membreDepuis">—</span></span></div></div>
       </div>
       <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px;">
@@ -1765,6 +1771,51 @@
   A.logout = function () { localStorage.clear(); window.location.href = '/login.html'; };
   A.comingSoon = function () { A.showToast('Bientôt disponible'); };
 
+  A.uploadProfilePhoto = function (event) {
+    var file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      A.showToast('Photo trop volumineuse (max 5MB)');
+      return;
+    }
+
+    var token = localStorage.getItem('bolamu_patient_token');
+    var formData = new FormData();
+    formData.append('photo', file);
+
+    fetch('https://www.bolamu.co/api/v1/patients/photo', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: formData
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success) {
+        A.showToast('Photo mise à jour !');
+        A._patientPhotoUrl = d.photo_url;
+        A.renderProfilePhoto();
+      } else {
+        A.showToast(d.message || 'Erreur upload');
+      }
+    }).catch(function () {
+      A.showToast('Erreur de connexion');
+    });
+  };
+
+  A.renderProfilePhoto = function () {
+    var photoContainer = $('profile-photo-container');
+    if (!photoContainer) return;
+
+    if (A._patientPhotoUrl) {
+      photoContainer.style.backgroundImage = 'url(' + A._patientPhotoUrl + ')';
+      photoContainer.innerHTML = '';
+    } else {
+      var initials = (A._patientPrenom || '').charAt(0).toUpperCase() + (A._patientNom || '').charAt(0).toUpperCase();
+      photoContainer.style.backgroundImage = 'none';
+      photoContainer.style.backgroundColor = '#0A2463';
+      photoContainer.innerHTML = initials || '—';
+    }
+  };
+
   A.showToast = function (msg) {
     A.state.toast = msg; A.renderToast();
     if (A._toastT) clearTimeout(A._toastT);
@@ -2125,7 +2176,7 @@
   A._loadAll = function (token, phone) {
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
     fetch('https://www.bolamu.co/api/v1/patients/profil?phone=' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
-      if (d.success && d.data) { A._patientPrenom = (d.data.full_name || '').split(' ')[0]; A._patientNom = d.data.full_name || ''; A._patientPhone = d.data.phone || ''; A._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel'; A._patientId = d.data.bolamu_id || ''; A._patientData = d.data; A.setState({ gender: d.data.gender }); }
+      if (d.success && d.data) { A._patientPrenom = (d.data.full_name || '').split(' ')[0]; A._patientNom = d.data.full_name || ''; A._patientPhone = d.data.phone || ''; A._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel'; A._patientId = d.data.bolamu_id || ''; A._patientData = d.data; A._patientPhotoUrl = d.data.photo_url; A.setState({ gender: d.data.gender }); A.renderProfilePhoto(); }
     }).catch(function () {});
 
     fetch('https://www.bolamu.co/api/v1/zora/balance', H).then(function (r) { return r.json(); }).then(function (d) {

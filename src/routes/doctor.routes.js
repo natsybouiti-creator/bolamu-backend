@@ -5,6 +5,8 @@ const pool = require('../config/db');
 const { registerDoctor, getDoctors, updateDoctorStatus, getDoctorProfile, generatePatientQRCode, createTimeSlot, getTimeSlots, updateTimeSlot, updateDoctorProfile, deleteTimeSlot } = require('../controllers/doctor.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const bcrypt = require('bcrypt');
+const { uploadToCloudinary } = require('../utils/cloudinary');
+const { normalizePhone } = require('../utils/phone');
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -54,6 +56,46 @@ router.post('/change-password', authMiddleware, async (req, res) => {
     res.json({ success: true, message: 'Mot de passe modifié avec succès' });
   } catch(e) {
     console.error('[change-password]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// POST /api/v1/doctors/photo - Upload photo de profil
+router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Aucune photo fournie' });
+    }
+
+    const phone = normalizePhone(req.user.phone);
+
+    // Upload vers Cloudinary
+    const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/photos', {
+      public_id: `doctor_${phone}_${Date.now()}`,
+      transformation: { width: 400, height: 400, crop: 'fill' }
+    });
+
+    // Mettre à jour la table doctors
+    await pool.query(
+      'UPDATE doctors SET photo_url = $1 WHERE phone = $2',
+      [uploadResult.secure_url, phone]
+    );
+
+    // Mettre à jour la table users aussi pour cohérence
+    await pool.query(
+      'UPDATE users SET photo_url = $1 WHERE phone = $2',
+      [uploadResult.secure_url, phone]
+    );
+
+    res.json({ success: true, photo_url: uploadResult.secure_url });
+  } catch (err) {
+    console.error('[doctor-photo]', err.message);
+    
+    // Gestion spécifique erreur multer LIMIT_FILE_SIZE
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
+    }
+    
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
