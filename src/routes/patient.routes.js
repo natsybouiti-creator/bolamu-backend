@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const idempotencyMiddleware = require('../middleware/idempotency');
 const { upgradeAbonnement } = require('../services/prorata.service');
 const { calculerScoreBolamu } = require('../services/scoreBolamu.service');
-const { encourageMember } = require('../services/communityService');
+const { encourageMember, calculateBadges } = require('../services/communityService');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const multer = require('multer');
 const upload = multer({ 
@@ -335,6 +335,140 @@ router.post('/photo', authMiddleware, upload.single('photo'), handleMulterError,
       return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
     }
     
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// PATCH /api/v1/patients/profil-social - Mettre à jour le profil social
+router.patch('/profil-social', authMiddleware, async (req, res) => {
+  try {
+    const phone = normalizePhone(req.user.phone);
+    const { bio, city, statut_disponibilite, interets } = req.body;
+
+    // Validation statut_disponibilite
+    const statutsAutorises = ['Cherche partenaire de sport', 'Ouvert à rejoindre une équipe', 'Non précisé'];
+    if (statut_disponibilite && !statutsAutorises.includes(statut_disponibilite)) {
+      return res.status(400).json({ success: false, message: 'Statut de disponibilité invalide' });
+    }
+
+    // Validation bio (max 300 caractères)
+    if (bio && bio.length > 300) {
+      return res.status(400).json({ success: false, message: 'Bio trop longue (max 300 caractères)' });
+    }
+
+    // Construction de la requête UPDATE dynamique
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (bio !== undefined) {
+      updates.push(`bio = $${paramCount++}`);
+      values.push(bio || null);
+    }
+
+    if (city !== undefined) {
+      updates.push(`city = $${paramCount++}`);
+      values.push(city || null);
+    }
+
+    if (statut_disponibilite !== undefined) {
+      updates.push(`statut_disponibilite = $${paramCount++}`);
+      values.push(statut_disponibilite || null);
+    }
+
+    if (interets !== undefined) {
+      updates.push(`interets = $${paramCount++}`);
+      values.push(interets || null);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ success: false, message: 'Aucun champ à mettre à jour' });
+    }
+
+    values.push(phone);
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE phone = $${paramCount}`;
+
+    await pool.query(query, values);
+
+    res.json({ success: true, message: 'Profil social mis à jour' });
+  } catch (err) {
+    console.error('[profil-social] ERROR:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// GET /api/v1/patients/profil-social/:phone - Lire le profil social (public)
+router.get('/profil-social/:phone', async (req, res) => {
+  try {
+    const targetPhone = normalizePhone(req.params.phone);
+
+    const result = await pool.query(
+      `SELECT bio, city, statut_disponibilite, interets, photo_url, 
+              full_name, first_name, last_name, created_at
+       FROM users 
+       WHERE phone = $1`,
+      [targetPhone]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+    }
+
+    const user = result.rows[0];
+
+    // Stats Zora (réutilise requête existante)
+    const zoraResult = await pool.query(
+      `SELECT COALESCE(SUM(points), 0) as zora_gagnes
+       FROM zora_ledger
+       WHERE phone = $1
+         AND earned_at >= date_trunc('week', NOW())`,
+      [targetPhone]
+    );
+    const zora_gagnes = parseInt(zoraResult.rows[0]?.zora_gagnes) || 0;
+
+    // Stats Streak (réutilise requête existante)
+    const streakResult = await pool.query(
+      'SELECT current_streak FROM user_streaks WHERE phone = $1',
+      [targetPhone]
+    );
+    const streak = streakResult.rows[0]?.current_streak || 0;
+
+    // Stats Événements (réutilise requête existante)
+    const eventsResult = await pool.query(
+      `SELECT COUNT(*) as count
+       FROM elonga_registrations
+       WHERE phone = $1
+         AND status IN ('registered', 'checked_in')`,
+      [targetPhone]
+    );
+    const evenements = parseInt(eventsResult.rows[0]?.count) || 0;
+
+    const stats = {
+      zora_gagnes,
+      streak,
+      evenements
+    };
+
+    // Calcul des badges
+    const badges = await calculateBadges(targetPhone);
+
+    res.json({
+      success: true,
+      data: {
+        bio: user.bio,
+        city: user.city,
+        statut_disponibilite: user.statut_disponibilite,
+        interets: user.interets,
+        photo_url: user.photo_url,
+        full_name: user.full_name,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        badges,
+        stats
+      }
+    });
+  } catch (err) {
+    console.error('[profil-social] ERROR:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });

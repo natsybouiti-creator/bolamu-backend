@@ -464,6 +464,45 @@ async function commentMember(fromPhone, targetPhone, comment) {
   return { success: true, id: result.rows[0].id, comment };
 }
 
+async function calculateBadges(phone) {
+  const normalizedPhone = normalizePhone(phone);
+  
+  // Badge 1: Série en feu (longest_streak >= 7)
+  const streakResult = await pool.query(
+    'SELECT longest_streak FROM user_streaks WHERE phone = $1',
+    [normalizedPhone]
+  );
+  const serie_en_feu = streakResult.rows.length > 0 && streakResult.rows[0].longest_streak >= 7;
+  
+  // Badge 2: Membre fidèle (créé il y a au moins 6 mois)
+  const userResult = await pool.query(
+    'SELECT created_at FROM users WHERE phone = $1',
+    [normalizedPhone]
+  );
+  const membre_fidele = userResult.rows.length > 0 && 
+    userResult.rows[0].created_at <= new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000);
+  
+  // Badge 3: Top classement (dans le top 10 du leaderboard hebdo - réutilise requête point 6)
+  const leaderboardResult = await pool.query(
+    `SELECT u.phone
+     FROM users u
+     JOIN zora_ledger zl ON zl.phone = u.phone
+     WHERE u.role = 'patient'
+       AND u.is_active = true
+       AND zl.earned_at >= date_trunc('week', NOW())
+     GROUP BY u.phone
+     ORDER BY SUM(zl.points) DESC
+     LIMIT 10`
+  );
+  const top_classement = leaderboardResult.rows.some(row => row.phone === normalizedPhone);
+  
+  return {
+    serie_en_feu,
+    membre_fidele,
+    top_classement
+  };
+}
+
 module.exports = {
   getSportGroups,
   createSportGroup,
@@ -481,5 +520,6 @@ module.exports = {
   updateStreak,
   updateLeaderboard,
   encourageMember,
-  commentMember
+  commentMember,
+  calculateBadges
 };

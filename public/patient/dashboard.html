@@ -74,6 +74,7 @@
     .top-nav { display: none !important; }
     .bottom-nav { display: flex !important; }
     .col2 { grid-template-columns: 1fr !important; }
+    .profil-edit-grid { grid-template-columns: 1fr !important; }
     .hide-mobile { display: none !important; }
     .pad-main { padding: 18px 14px 110px !important; }
     .hero-mascotte { height: 130px !important; }
@@ -538,10 +539,10 @@
     <section id="sec-profil" style="display: none;">
       <button onclick="A.closeProfile()" data-testid="closeProfile" style="display: inline-flex; align-items: center; gap: 6px; background: transparent; border: none; color: #434654; font-family: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer; margin-bottom: 18px; padding: 0;"><span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>Retour</button>
       <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 24px; padding: 26px; margin-bottom: 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
-        <div style="position: relative; width: 72px; height: 72px; flex-shrink: 0;">
-          <span id="profile-photo-container" style="width: 72px; height: 72px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-2.jpg'); background-size: cover; background-position: center; background-color: #0A2463; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; box-shadow: 0 0 0 3px #F5A623;"><span class="b-patientInitiales">—</span></span>
-          <label for="photo-upload" style="position: absolute; bottom: -4px; right: -4px; width: 28px; height: 28px; background: #003FB1; border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-            <span class="material-symbols-outlined" style="font-size: 16px; color: #fff;">add_a_photo</span>
+        <div style="position: relative; width: 104px; height: 104px; flex-shrink: 0;">
+          <span id="profile-photo-container" style="width: 104px; height: 104px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/avatar-2.jpg'); background-size: cover; background-position: center; background-color: #0A2463; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; box-shadow: 0 0 0 3px #F5A623;"><span class="b-patientInitiales">—</span></span>
+          <label for="photo-upload" style="position: absolute; bottom: -4px; right: -4px; width: 32px; height: 32px; background: #003FB1; border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: #fff;">add_a_photo</span>
           </label>
           <input type="file" id="photo-upload" accept="image/*" style="display: none;" onchange="A.uploadProfilePhoto(event)">
         </div>
@@ -552,17 +553,59 @@
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 18px; text-align: center;"><div class="b-streakRecord" style="font-size: 1.6rem; font-weight: 800; color: #0A2463;">—</div><div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #434654; margin-top: 4px;">Streak record</div></div>
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 18px; text-align: center;"><div class="b-eventsCount" style="font-size: 1.6rem; font-weight: 800; color: #0A2463;">—</div><div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #434654; margin-top: 4px;">Événements</div></div>
       </div>
+      
+      <!-- Panneau d'édition profil social (desktop: colonne droite, mobile: empilé) -->
+      <div class="profil-edit-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+        <div style="display: flex; flex-direction: column; gap: 10px; max-width: 560px;">
+          <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">person</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Mes informations</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
+          <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">notifications</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Notifications</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
+          <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">shield</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Confidentialité &amp; données</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
+          <button onclick="A.openAbonnementPanel()" data-testid="menu-abonnement" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">workspace_premium</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Mon Abonnement</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
+          <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">translate</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Langue (FR / Lingala)</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
+          <button onclick="A.logout()" data-testid="logout" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #BA1A1A;">logout</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #BA1A1A;">Déconnexion</span></span></button>
+        </div>
+        
+        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 20px;">
+          <h3 style="margin: 0 0 16px; font-size: 1rem; font-weight: 800; color: #0A2463;">Modifier mon profil social</h3>
+          
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #434654; margin-bottom: 6px;">Bio</label>
+              <textarea id="edit-bio" maxlength="300" placeholder="Parlez-nous de vous..." oninput="A.updateBioCounter()" style="width: 100%; min-height: 80px; padding: 10px 12px; border: 1px solid #EDEDF8; border-radius: 10px; font-size: 0.86rem; font-family: inherit; resize: vertical; outline: none; transition: border-color 0.2s;"></textarea>
+              <div style="text-align: right; font-size: 0.72rem; color: #9498a8; margin-top: 4px;"><span id="bio-counter">0</span>/300</div>
+            </div>
+            
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #434654; margin-bottom: 6px;">Ville</label>
+              <input type="text" id="edit-city" placeholder="Ex: Brazzaville" style="width: 100%; padding: 10px 12px; border: 1px solid #EDEDF8; border-radius: 10px; font-size: 0.86rem; font-family: inherit; outline: none; transition: border-color 0.2s;">
+            </div>
+            
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #434654; margin-bottom: 6px;">Statut de disponibilité</label>
+              <select id="edit-disponibilite" style="width: 100%; padding: 10px 12px; border: 1px solid #EDEDF8; border-radius: 10px; font-size: 0.86rem; font-family: inherit; outline: none; transition: border-color 0.2s; background: #fff;">
+                <option value="">Non précisé</option>
+                <option value="Cherche partenaire de sport">Cherche partenaire de sport</option>
+                <option value="Ouvert à rejoindre une équipe">Ouvert à rejoindre une équipe</option>
+              </select>
+            </div>
+            
+            <div>
+              <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #434654; margin-bottom: 6px;">Intérêts / Sports favoris</label>
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="new-interet" placeholder="Ajouter un intérêt..." style="flex: 1; padding: 8px 12px; border: 1px solid #EDEDF8; border-radius: 10px; font-size: 0.86rem; font-family: inherit; outline: none; transition: border-color 0.2s;">
+                <button onclick="A.addInteret()" style="padding: 8px 16px; background: #003FB1; color: #fff; border: none; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit;">Ajouter</button>
+              </div>
+              <div id="interets-tags" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px;"></div>
+            </div>
+            
+            <button onclick="A.saveProfilSocial()" style="width: 100%; padding: 12px; background: #003FB1; color: #fff; border: none; border-radius: 12px; font-size: 0.92rem; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px;">Enregistrer mon profil</button>
+          </div>
+        </div>
+      </div>
+      
       <h3 style="margin: 22px 0 12px; font-size: 1.15rem; font-weight: 800; color: #0A2463;">Encouragements reçus</h3>
       <div id="encouragements-received-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;">
         <div style="text-align: center; padding: 18px; font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun encouragement pour le moment</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 10px; max-width: 560px;">
-        <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">person</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Mes informations</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
-        <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">notifications</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Notifications</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
-        <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">shield</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Confidentialité &amp; données</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
-        <button onclick="A.openAbonnementPanel()" data-testid="menu-abonnement" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">workspace_premium</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Mon Abonnement</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
-        <button onclick="A.comingSoon()" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #003FB1;">translate</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #0A2463;">Langue (FR / Lingala)</span><span class="material-symbols-outlined" style="font-size: 20px; color: #C3C5D7;">chevron_right</span></span></button>
-        <button onclick="A.logout()" data-testid="logout" style="width:100%; background:none; border:none; padding:0; cursor:pointer; text-align:left; display:block;"><span style="display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; height: 56px; padding: 0 18px;"><span class="material-symbols-outlined" style="font-size: 22px; color: #BA1A1A;">logout</span><span style="flex: 1; font-size: 0.92rem; font-weight: 700; color: #BA1A1A;">Déconnexion</span></span></button>
       </div>
     </section>
   </main>
@@ -1595,7 +1638,7 @@
   A.goGagner = function () { A.setState({ panel: 'gagner', profileOpen: false }); window.scrollTo(0, 0); setTimeout(function () { if (A.state.gagnerTab === 'sante') { A.initReseauMap(); A.applyReseauFilter(); } else { A.initEventsMap(); } }, 80); };
   A.goSuivre = function () { A.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); };
   A.goRecompenses = function () { A.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); A.initScratch(); };
-  A.openProfile = function () { A.setState({ profileOpen: true }); window.scrollTo(0, 0); };
+  A.openProfile = function () { A.setState({ profileOpen: true }); window.scrollTo(0, 0); A.loadProfilSocial(); };
   A.closeProfile = function () { A.setState({ profileOpen: false }); };
 
   // Sous-onglets
@@ -1813,6 +1856,99 @@
       photoContainer.style.backgroundImage = 'none';
       photoContainer.style.backgroundColor = '#0A2463';
       photoContainer.innerHTML = initials || '—';
+    }
+  };
+
+  // Profil social
+  A._interets = [];
+
+  A.addInteret = function () {
+    var input = $('new-interet');
+    var value = input.value.trim();
+    if (!value) return;
+    if (A._interets.indexOf(value) !== -1) {
+      A.showToast('Cet intérêt existe déjà');
+      return;
+    }
+    if (A._interets.length >= 10) {
+      A.showToast('Maximum 10 intérêts');
+      return;
+    }
+    A._interets.push(value);
+    input.value = '';
+    A.renderInterets();
+  };
+
+  A.removeInteret = function (index) {
+    A._interets.splice(index, 1);
+    A.renderInterets();
+  };
+
+  A.renderInterets = function () {
+    var container = $('interets-tags');
+    if (!container) return;
+    container.innerHTML = A._interets.map(function (interet, index) {
+      return '<span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,63,177,0.1); color: #003FB1; padding: 4px 10px; border-radius: 9999px; font-size: 0.78rem; font-weight: 600;">' + interet + '<button onclick="A.removeInteret(' + index + ')" style="background: none; border: none; color: #003FB1; cursor: pointer; padding: 0; margin-left: 4px;"><span class="material-symbols-outlined" style="font-size: 14px;">close</span></button></span>';
+    }).join('');
+  };
+
+  A.loadProfilSocial = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    var H = { headers: { 'Authorization': 'Bearer ' + token } };
+    fetch('https://www.bolamu.co/api/v1/patients/profil-social/' + encodeURIComponent(A._patientPhone), H).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success && d.data) {
+        var bioInput = $('edit-bio');
+        var cityInput = $('edit-city');
+        var dispoSelect = $('edit-disponibilite');
+        if (bioInput) { bioInput.value = d.data.bio || ''; A.updateBioCounter(); }
+        if (cityInput) { cityInput.value = d.data.city || ''; }
+        if (dispoSelect) { dispoSelect.value = d.data.statut_disponibilite || ''; }
+        if (d.data.interets && Array.isArray(d.data.interets)) {
+          A._interets = d.data.interets;
+          A.renderInterets();
+        }
+      }
+    }).catch(function () {});
+  };
+
+  A.saveProfilSocial = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    var bioInput = $('edit-bio');
+    var cityInput = $('edit-city');
+    var dispoSelect = $('edit-disponibilite');
+    var data = {};
+    if (bioInput) data.bio = bioInput.value;
+    if (cityInput) data.city = cityInput.value;
+    if (dispoSelect) data.statut_disponibilite = dispoSelect.value;
+    data.interets = A._interets;
+    var H = { 
+      headers: { 
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      } 
+    };
+    fetch('https://www.bolamu.co/api/v1/patients/profil-social', {
+      method: 'PATCH',
+      headers: H.headers,
+      body: JSON.stringify(data)
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success) {
+        A.showToast('Profil social mis à jour !');
+      } else {
+        A.showToast(d.message || 'Erreur');
+      }
+    }).catch(function () {
+      A.showToast('Erreur de connexion');
+    });
+  };
+
+  A.updateBioCounter = function () {
+    var bioInput = $('edit-bio');
+    var counter = $('bio-counter');
+    if (bioInput && counter) {
+      counter.textContent = bioInput.value.length;
     }
   };
 
@@ -2428,8 +2564,81 @@
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
     var initial = nom ? nom.charAt(0).toUpperCase() : '?';
-    content.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;"><div style="width: 80px; height: 80px; background: #0A2463; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><span style="font-size: 2rem; font-weight: 800; color: #fff;">' + initial + '</span></div><h1 style="font-size: 1.5rem; font-weight: 800; color: #0A2463; margin: 0 0 8px 0;">' + (nom || 'Participant') + '</h1><div style="display: flex; align-items: center; gap: 16px; font-size: 0.9rem; color: #434654;"><span><strong>' + (zora || 0) + '</strong> Zora</span><span style="color: #EDEDF8;">|</span><span><strong>—</strong> Événements</span><span style="color: #EDEDF8;">|</span><span><strong>—</strong> Streak</span></div></div><div style="display: flex; gap: 12px; margin-bottom: 100px;"><div id="participant-actions" style="display: flex; gap: 12px;"><button id="follow-btn" onclick="toggleFollow(\'' + phone + '\')" style="flex: 1; background: transparent; border: 2px solid #0A2463; color: #0A2463; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Suivre</button><button onclick="startChat(\'' + phone + '\')" style="flex: 1; background: #00C9A7; border: none; color: #fff; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Message</button></div></div>';
+    
+    content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Chargement...</div>';
     panel.classList.add('active');
+    
+    fetch('https://www.bolamu.co/api/v1/patients/profil-social/' + encodeURIComponent(phone), {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.success && d.data) {
+        var data = d.data;
+        var bio = data.bio || 'Aucune bio renseignée';
+        var city = data.city || '—';
+        var statut = data.statut_disponibilite || 'Non précisé';
+        var interets = data.interets && Array.isArray(data.interets) ? data.interets : [];
+        var badges = data.badges || {};
+        var stats = data.stats || { zora_gagnes: 0, streak: 0, evenements: 0 };
+        
+        var interetsHtml = interets.length > 0 
+          ? interets.map(function (i) { return '<span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,63,177,0.1); color: #003FB1; padding: 4px 10px; border-radius: 9999px; font-size: 0.78rem; font-weight: 600;">' + i + '</span>'; }).join(' ')
+          : '<span style="color: #9498a8; font-size: 0.86rem;">Aucun intérêt renseigné</span>';
+        
+        var badgesHtml = '';
+        if (badges.serie_en_feu) badgesHtml += '<span style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #FF6B35, #F5A623); color: #fff; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;"><span class="material-symbols-outlined" style="font-size: 14px;">local_fire_department</span>Série en feu</span> ';
+        if (badges.membre_fidele) badgesHtml += '<span style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #003FB1, #0A2463); color: #fff; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;"><span class="material-symbols-outlined" style="font-size: 14px;">workspace_premium</span>Membre fidèle</span> ';
+        if (badges.top_classement) badgesHtml += '<span style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #00C9A7, #00875f); color: #fff; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;"><span class="material-symbols-outlined" style="font-size: 14px;">emoji_events</span>Top classement</span> ';
+        if (!badgesHtml) badgesHtml = '<span style="color: #9498a8; font-size: 0.86rem;">Aucun badge</span>';
+        
+        var photoHtml = data.photo_url 
+          ? '<div style="width: 80px; height: 80px; background-image: url(' + data.photo_url + '); background-size: cover; background-position: center; border-radius: 50%; margin-bottom: 16px;"></div>'
+          : '<div style="width: 80px; height: 80px; background: #0A2463; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><span style="font-size: 2rem; font-weight: 800; color: #fff;">' + initial + '</span></div>';
+        
+        content.innerHTML = 
+          '<div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;">' +
+            photoHtml +
+            '<h1 style="font-size: 1.5rem; font-weight: 800; color: #0A2463; margin: 0 0 8px 0;">' + (nom || 'Participant') + '</h1>' +
+            '<div style="display: flex; align-items: center; gap: 16px; font-size: 0.9rem; color: #434654;">' +
+              '<span><strong>' + (stats.zora_gagnes || 0) + '</strong> Zora</span>' +
+              '<span style="color: #EDEDF8;">|</span>' +
+              '<span><strong>' + (stats.evenements || 0) + '</strong> Événements</span>' +
+              '<span style="color: #EDEDF8;">|</span>' +
+              '<span><strong>' + (stats.streak || 0) + '</strong> Streak</span>' +
+            '</div>' +
+          '</div>' +
+          '<div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 20px; margin-bottom: 18px;">' +
+            '<h3 style="margin: 0 0 12px; font-size: 1rem; font-weight: 800; color: #0A2463;">Profil social</h3>' +
+            '<div style="display: flex; flex-direction: column; gap: 12px;">' +
+              '<div><div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 4px;">Bio</div><div style="font-size: 0.9rem; color: #434654;">' + bio + '</div></div>' +
+              '<div><div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 4px;">Ville</div><div style="font-size: 0.9rem; color: #434654;">' + city + '</div></div>' +
+              '<div><div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 4px;">Disponibilité</div><div style="font-size: 0.9rem; color: #434654;">' + statut + '</div></div>' +
+              '<div><div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 4px;">Intérêts</div><div style="display: flex; flex-wrap: wrap; gap: 6px;">' + interetsHtml + '</div></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 20px; margin-bottom: 18px;">' +
+            '<h3 style="margin: 0 0 12px; font-size: 1rem; font-weight: 800; color: #0A2463;">Badges</h3>' +
+            '<div style="display: flex; flex-wrap: wrap; gap: 8px;">' + badgesHtml + '</div>' +
+          '</div>' +
+          '<div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 20px; margin-bottom: 18px;">' +
+            '<h3 style="margin: 0 0 12px; font-size: 1rem; font-weight: 800; color: #0A2463;">Clubs rejoints</h3>' +
+            '<div style="color: #9498a8; font-size: 0.86rem;">Aucun club rejoint</div>' +
+          '</div>' +
+          '<div style="display: flex; gap: 12px; margin-bottom: 100px;">' +
+            '<div id="participant-actions" style="display: flex; gap: 12px; width: 100%;">' +
+              '<button id="follow-btn" onclick="toggleFollow(\'' + phone + '\')" style="flex: 1; background: transparent; border: 2px solid #0A2463; color: #0A2463; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Suivre</button>' +
+              '<button onclick="startChat(\'' + phone + '\')" style="flex: 1; background: #00C9A7; border: none; color: #fff; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Message</button>' +
+              '<button onclick="window.encourageMember(\'' + phone + '\')" style="flex: 1; background: #F5A623; border: none; color: #fff; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Encourager</button>' +
+            '</div>' +
+          '</div>';
+      } else {
+        content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Erreur de chargement</div>';
+      }
+    })
+    .catch(function () {
+      content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Erreur de chargement</div>';
+    });
   };
   window.closeParticipantPanel = function () { document.getElementById('participant-panel').classList.remove('active'); };
   window.toggleFollow = function (phone) { A.showToast('Fonctionnalité bientôt disponible'); };
