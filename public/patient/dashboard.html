@@ -2419,13 +2419,13 @@
       A._rewardsLoaded = true; A.renderAffordable();
     }).catch(function () {
       A.rewards = [
-        { name: 'Crédit MTN 5 000F', cost: 500, img: '/images/landing/zora-mtn.png', cat: 'Télécom' },
+        { name: 'Crédit MTN 5 000F', cost: 500, img: '/images/landing/zora-mtn.webp', cat: 'Télécom' },
         { name: 'Data Airtel 1Go', cost: 300, img: '/images/landing/zora-airtel.jpg', cat: 'Télécom' },
         { name: 'Bon pharmacie Daffé', cost: 250, img: '/images/landing/daffe.png', cat: 'Santé' },
         { name: 'Plein essence 30L', cost: 800, img: '/images/landing/station.png', cat: 'Carburant' },
         { name: 'Abonnement salle sport', cost: 1200, img: '/images/landing/salledesport.jpg', cat: 'Sport' },
         { name: 'Vol ASKY BZV-PNR', cost: 2000, img: '/images/landing/zora-asky.png', cat: 'Voyage' },
-        { name: 'Nuitée Hilton PNR', cost: 2500, img: '/images/landing/zora-hilton-pnr.png', cat: 'Hôtels' },
+        { name: 'Nuitée Hilton PNR', cost: 2500, img: '/images/landing/zora-hilton-pnr.webp', cat: 'Hôtels' },
         { name: 'Salon beauté', cost: 900, img: '/images/landing/zora-salon-beaute.png', cat: 'Beauté' }
       ];
       A._rewardsLoaded = true; A.renderAffordable();
@@ -2448,16 +2448,16 @@
     A._qrInterval = setInterval(function () { var remaining = Math.max(0, Math.floor((A._qrExpiry - Date.now()) / 1000)); A._qrRemaining = remaining; if (remaining <= 60) loadQR(); setText('qrRemaining', remaining); }, 1000);
   };
 
-  A.rewardImgFallback = function (cat) { var map = { 'Télécom': '/images/landing/zora-mtn.png', 'Carburant': '/images/landing/station.png', 'Sport': '/images/landing/salledesport.jpg', 'Voyage': '/images/landing/zora-asky.png', 'Hôtels': '/images/landing/zora-hilton-pnr.png', 'Beauté': '/images/landing/zora-salon-beaute.png', 'Santé': '/images/landing/daffe.png' }; return map[cat] || '/images/landing/zora-mtn.png'; };
+  A.rewardImgFallback = function (cat) { var map = { 'Télécom': '/images/landing/zora-mtn.webp', 'Carburant': '/images/landing/station.png', 'Sport': '/images/landing/salledesport.jpg', 'Voyage': '/images/landing/zora-asky.png', 'Hôtels': '/images/landing/zora-hilton-pnr.webp', 'Beauté': '/images/landing/zora-salon-beaute.png', 'Santé': '/images/landing/daffe.png' }; return map[cat] || '/images/landing/zora-mtn.webp'; };
   A.rewardImgByTitle = function (title, cat) {
     var t = (title || '').toLowerCase();
-    if (t.includes('mtn')) return '/images/landing/zora-mtn.png';
+    if (t.includes('mtn')) return '/images/landing/zora-mtn.webp';
     if (t.includes('airtel')) return '/images/landing/zora-airtel.jpg';
     if (t.includes('daff') || t.includes('pharmacie')) return '/images/landing/daffe.png';
     if (t.includes('essence') || t.includes('carburant') || t.includes('station')) return '/images/landing/station.png';
     if (t.includes('salle') || t.includes('sport') || t.includes('gym')) return '/images/landing/salledesport.jpg';
     if (t.includes('asky') || t.includes('vol') || t.includes('avion')) return '/images/landing/zora-asky.png';
-    if (t.includes('hilton') || t.includes('hotel') || t.includes('nuit')) return '/images/landing/zora-hilton-pnr.png';
+    if (t.includes('hilton') || t.includes('hotel') || t.includes('nuit')) return '/images/landing/zora-hilton-pnr.webp';
     if (t.includes('salon') || t.includes('beaut')) return '/images/landing/zora-salon-beaute.png';
     if (t.includes('airfrance') || t.includes('air france')) return '/images/landing/zora-airfrance.png';
     if (t.includes('retrait') || t.includes('momo') || t.includes('cash')) return '/images/landing/zora-retrait-momo.png';
