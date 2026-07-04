@@ -146,7 +146,8 @@ const agenceRoutes         = require('./routes/agence.routes');
 const zoraRoutes           = require('./routes/zora.routes');
 const zoraMarketplaceRoutes = require('./routes/zora-marketplace.routes');
 const zoraGamesRoutes       = require('./routes/zora-games.routes');
-const sportGroupsRoutes     = require('./routes/sport-groups.routes');
+// DEPRECATED (Task B4) — remplacé par clubs.routes.js (implémentation canonique)
+// const sportGroupsRoutes     = require('./routes/sport-groups.routes');
 const wellnessRoutes        = require('./routes/wellness.routes');
 const clubsRoutes           = require('./routes/clubs.routes');
 const chatRoutes            = require('./routes/chat.routes');
@@ -175,8 +176,9 @@ try {
 // Appliquer le rate limiting standard sur toutes les routes API (sauf webhook)
 app.use('/api/v1', standardLimiter);
 
-app.use('/api/v1/sport-groups', sportGroupsRoutes);
-app.use('/api/v1/community', require('./routes/community.routes'));
+// DEPRECATED (Task B4) — sport-groups et community remplacés par clubs.routes.js
+// app.use('/api/v1/sport-groups', sportGroupsRoutes);
+// app.use('/api/v1/community', require('./routes/community.routes'));
 
 app.use('/api/v1/auth',          authRoutes);
 app.use('/api/v1/patients',      patientRoutes);
