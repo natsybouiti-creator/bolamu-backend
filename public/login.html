@@ -302,7 +302,8 @@ async function doForgotPassword() {
 async function checkMagicLink() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
-  if (!token) return;
+  const phone = urlParams.get('phone');
+  if (!token || phone) return; // lien avec "phone" = géré par checkForgotPasswordLink()
 
   // Nettoie l'URL immédiatement
   history.replaceState({}, document.title, window.location.pathname);
@@ -342,6 +343,31 @@ async function checkMagicLink() {
   }
 }
 
+async function checkForgotPasswordLink() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const phone = params.get('phone');
+  if (!token || !phone) return;
+
+  // Nettoie l'URL immédiatement
+  history.replaceState({}, document.title, window.location.pathname);
+
+  try {
+    const res = await fetch(`https://api.bolamu.co/api/v1/auth/login-token?token=${token}`);
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('phone-input').value = data.phone;
+      document.getElementById('password-input').value = data.password;
+      // Soumission automatique après 1s pour UX fluide
+      setTimeout(() => document.getElementById('btn-login').click(), 1000);
+    } else {
+      showMsg(data.message || 'Ce lien de connexion est expiré ou déjà utilisé.', 'error');
+    }
+  } catch (e) {
+    console.error('[ForgotPasswordLink]', e);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('eye-icon').addEventListener('click', togglePassword);
   document.getElementById('btn-login').addEventListener('click', doLogin);
@@ -349,6 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-forgot').addEventListener('click', doForgotPassword);
   document.getElementById('back-login-link').addEventListener('click', showLogin);
   checkMagicLink();
+  checkForgotPasswordLink();
 });
 </script>
 

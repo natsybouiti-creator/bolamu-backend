@@ -126,9 +126,9 @@ async function sendAutoMessage(phone, templateName, params) {
       message = `Zora crédités 🎉\n${params[0]}, vous avez reçu ${params[1]} Zora.\nSolde total : ${params[2]} Zora\nRaison : ${params[3]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_mot_de_passe_oublie') {
       message = `Bonjour ${params[0]},\n`
-        + `Votre nouveau mot de passe temporaire Bolamu est :\n\n`
-        + `*${params[1]}*\n\n`
-        + `Connectez-vous sur bolamu.co et changez-le dès que possible.\n\n`
+        + `Votre mot de passe Bolamu a été réinitialisé.\n\n`
+        + `Connectez-vous en un clic (lien valide 24h) :\n${params[1]}\n\n`
+        + `Si ce n'est pas vous, contactez-nous immédiatement.\n\n`
         + `L'équipe Bolamu`;
     } else if (templateName === 'bolamu_bienvenue_medecin_v4') {
       message = `Bienvenue sur Bolamu, Dr ${params[0]} !\n`

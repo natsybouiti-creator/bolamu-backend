@@ -185,8 +185,19 @@ async function forgotPassword(req, res) {
             [passwordHash, normalizedPhone]
         );
 
+        const loginToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+        await pool.query(
+            `INSERT INTO login_tokens (phone, token, password_snapshot, expires_at)
+             VALUES ($1, $2, $3, $4)`,
+            [normalizedPhone, loginToken, newPassword, expiresAt]
+        );
+
+        const magicLink = `https://bolamu.co/login.html?phone=${encodeURIComponent(normalizedPhone)}&token=${loginToken}`;
+
         try {
-            await sendAutoMessage(normalizedPhone, 'bolamu_mot_de_passe_oublie', [user.full_name || normalizedPhone, newPassword]);
+            await sendAutoMessage(normalizedPhone, 'bolamu_mot_de_passe_oublie', [user.full_name || normalizedPhone, magicLink]);
         } catch (whatsappError) {
             console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
         }
@@ -196,6 +207,30 @@ async function forgotPassword(req, res) {
         return res.status(200).json({ success: true, message: 'Nouveau mot de passe envoyé par WhatsApp.' });
     } catch (err) {
         console.error('[forgotPassword]', err.message);
+        return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
+// ============================================================
+// 4bis. LOGIN TOKEN (magic link mot de passe oublié)
+// ============================================================
+async function getLoginToken(req, res) {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ success: false, message: 'Token requis.' });
+
+    try {
+        const result = await pool.query(
+            `SELECT * FROM login_tokens WHERE token = $1 AND used_at IS NULL AND expires_at > NOW()`,
+            [token]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Lien expiré ou déjà utilisé.' });
+
+        const row = result.rows[0];
+        await pool.query(`UPDATE login_tokens SET used_at = NOW() WHERE token = $1`, [token]);
+
+        return res.json({ success: true, phone: row.phone, password: row.password_snapshot });
+    } catch (err) {
+        console.error('[getLoginToken]', err.message);
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
 }
@@ -749,7 +784,7 @@ async function logout(req, res) {
     }
 }
 
-module.exports = { requestOtp, verifyOtp, login, forgotPassword, registerPatient, registerDoctor, registerPharmacie, registerLaboratoire, refreshToken, logout };
+module.exports = { requestOtp, verifyOtp, login, forgotPassword, getLoginToken, registerPatient, registerDoctor, registerPharmacie, registerLaboratoire, refreshToken, logout };
 
 
 

@@ -13,6 +13,7 @@ const {
     verifyOtp,
     login,
     forgotPassword,
+    getLoginToken,
     registerPatient,
     registerDoctor,
     registerPharmacie,
@@ -34,6 +35,7 @@ router.post('/request-otp', strictLimiter, requestOtp);
 router.post('/verify-otp', strictLimiter, verifyOtp);
 router.post('/login', strictLimiter, login);
 router.post('/forgot-password', strictLimiter, forgotPassword);
+router.get('/login-token', strictLimiter, getLoginToken);
 
 // ─── REGISTER ─────────────────────────────────────────────────────────────────
 router.post('/register/patient',     strictLimiter, registerPatient);
