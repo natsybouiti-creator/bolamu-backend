@@ -56,7 +56,7 @@ const verifyQRToken = async (req, res) => {
       return res.status(410).json({ success: false, message: 'QR Code expiré. Demandez au patient d\'en générer un nouveau.' });
     }
     const subCheck = await pool.query(
-      `SELECT s.id, s.plan, s.expires_at, pc.config_value as monthly_cap FROM subscriptions s LEFT JOIN platform_config pc ON pc.config_key = 'tiers_payant_monthly_cap' WHERE s.patient_phone = $1 AND s.status = 'active' AND s.expires_at >= NOW() LIMIT 1`,
+      `SELECT id, plan, expires_at FROM subscriptions WHERE patient_phone = $1 AND status = 'active' AND expires_at >= NOW() LIMIT 1`,
       [qrToken.user_phone]
     );
     const hasActiveSub = subCheck.rows.length > 0;

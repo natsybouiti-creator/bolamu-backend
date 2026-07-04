@@ -11,7 +11,7 @@ async function createConvention(req, res) {
 
     // Seuls pharmacie et laboratoire peuvent avoir des conventions
     if (partner_type !== 'pharmacie' && partner_type !== 'laboratoire') {
-        return res.status(400).json({ success: false, message: 'Seuls pharmacie et laboratoire peuvent avoir des conventions tiers payant.' });
+        return res.status(400).json({ success: false, message: 'Seuls pharmacie et laboratoire peuvent avoir des conventions de remise partenaire.' });
     }
 
     const client = await pool.connect();
