@@ -47,25 +47,9 @@ const bhpAccessMiddleware = (allowedRoles) =>
         });
       }
 
-      // 3. Médecin CMS : consultation active requise
-      if (user.role === 'cms_medecin' && record) {
-        const rdv = await db.query(
-          `SELECT id FROM appointments 
-           WHERE doctor_id=$1 AND patient_id=$2
-           AND status='en_cours' AND DATE(scheduled_at)=CURRENT_DATE`,
-          [user.id, record.patient_id]
-        );
-        if (!rdv.rows.length) {
-          await logAccessAttempt(
-            recordId, user, 
-            'ACCESS_DENIED_NO_ACTIVE_RDV', req.ip
-          );
-          return res.status(403).json({ 
-            success: false, 
-            error: 'BHP_NO_ACTIVE_CONSULTATION' 
-          });
-        }
-      }
+      // Note: la vérification "consultation active requise" spécifique à cms_medecin
+      // a été retirée lors de la fusion cms_medecin→doctor (migration_058) — cf. anomalies
+      // du rapport de fusion des rôles : ce rôle n'avait 0 utilisateur réel.
 
       // 4. Log accès autorisé
       await logAccessAttempt(

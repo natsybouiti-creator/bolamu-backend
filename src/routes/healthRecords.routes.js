@@ -41,10 +41,10 @@ router.post('/',
 );
 
 // GET — Lire le carnet de santé d'un patient
-// Rôles : patient (le sien), doctor/cms_medecin (consentement requis par BHP v1.2)
+// Rôles : patient (le sien), doctor (consentement requis par BHP v1.2)
 router.get('/patient/:patientId',
   authMiddleware,
-  bhpAccessMiddleware(['patient', 'doctor', 'cms_medecin', 'admin']),
+  bhpAccessMiddleware(['patient', 'doctor', 'admin']),
   async (req, res) => {
     try {
       const { patientId } = req.params;
@@ -58,10 +58,10 @@ router.get('/patient/:patientId',
         });
       }
 
-      // BHP v1.2 : doctor et cms_medecin ne voient que les enregistrements
+      // BHP v1.2 : doctor ne voit que les enregistrements
       // pour lesquels le patient a accordé son consentement (consent_granted = true).
       // Patient et admin voient tout (patient = ses propres données, admin = supervision).
-      const requiresConsent = ['doctor', 'cms_medecin'].includes(req.user.role);
+      const requiresConsent = req.user.role === 'doctor';
       const result = await db.query(
         `SELECT * FROM health_records
          WHERE patient_id=$1
