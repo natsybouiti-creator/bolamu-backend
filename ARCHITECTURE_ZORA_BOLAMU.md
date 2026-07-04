@@ -1120,6 +1120,8 @@ ALTER TABLE zora_wallets ADD COLUMN frozen_reason VARCHAR(50); -- SUSPENDED | EX
 
 ## 19. Onboarding et authentification partenaire récompense
 
+> **Note (Tâche D, nettoyage des rôles)** : La validation voucher est assurée par le rôle `partenaire`. Les rôles `reward_partner` et `health_partner` sont abandonnés — jamais implémentés dans le code.
+
 ### 19.1 Rôle système
 
 Le partenaire récompense utilise le rôle `reward_partner` dans la table `users` — aligné sur la convention existante Bolamu (6 rôles : `patient`, `medecin`, `secretaire`, `pharmacie`, `laboratoire`, `admin`). On ajoute `reward_partner` comme 7e rôle.
