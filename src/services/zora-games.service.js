@@ -4,7 +4,7 @@
 const crypto = require('crypto');
 const pool = require('../config/db');
 const { awardZora } = require('./zora.service');
-const { sendWhatsAppTemplate } = require('./whatsapp.service');
+const { sendAutoMessage } = require('./whatsapp-web.service');
 
 /**
  * Vérifier les parties jouées aujourd'hui
@@ -282,7 +282,7 @@ async function playGame({ phone, game_type, play_type }) {
               quiz: 'quiz santé'
             };
 
-            await sendWhatsAppTemplate(phone, 'gain_jeu_zora', [
+            await sendAutoMessage(phone, 'gain_jeu_zora', [
               pointsWon.toString(),
               gameLabels[game_type] || 'jeu',
               solde.toString()

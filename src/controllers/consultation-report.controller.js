@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const { awardZora } = require('../services/zora.service');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { normalizePhone } = require('../utils/phone');
 
 // ─── SOUMETTRE UN COMPTE RENDU DE CONSULTATION (médecin) ─────────────────
@@ -82,7 +82,7 @@ async function submitReport(req, res) {
                     );
                     const medecin = doctorResult.rows[0]?.full_name || 'Dr.';
 
-                    await sendWhatsAppTemplate(patient_phone, 'gain_zora_consultation', [
+                    await sendAutoMessage(patient_phone, 'gain_zora_consultation', [
                         medecin,
                         '50',
                         solde.toString()
