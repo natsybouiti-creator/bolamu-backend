@@ -23,7 +23,7 @@ function adminOnly(req, res, next) {
 
 // Middleware partner only
 function partnerOnly(req, res, next) {
-    if (!['doctor', 'pharmacy', 'laboratory'].includes(req.user?.role)) {
+    if (!['doctor', 'pharmacie', 'laboratoire'].includes(req.user?.role)) {
         return res.status(403).json({ success: false, message: 'Accès réservé aux partenaires.' });
     }
     next();
