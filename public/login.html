@@ -261,8 +261,11 @@ async function doLogin() {
     if (res.ok && data.success) {
       const role = data.role;
       if (role === 'patient') {
-        localStorage.setItem('bolamu_patient_token', data.accessToken);
-        localStorage.setItem('bolamu_patient_phone', data.phone);
+        const _phone = data.phone;
+        localStorage.setItem('bolamu_patient_token_' + _phone, data.accessToken);
+        localStorage.setItem('bolamu_patient_token', data.accessToken); // compatibilité
+        localStorage.setItem('bolamu_patient_phone', _phone);
+        localStorage.setItem('bolamu_patient_refresh', data.refreshToken || '');
       } else {
         localStorage.setItem(`bolamu_${role}_token`, data.accessToken);
         localStorage.setItem(`bolamu_${role}_phone`, data.phone);
@@ -318,8 +321,16 @@ async function checkMagicLink() {
 
     if (data.success) {
       const role = data.user.role;
-      localStorage.setItem(`bolamu_${role}_token`, data.token);
-      localStorage.setItem(`bolamu_${role}_phone`, data.user.phone);
+      const _phone = data.user.phone;
+      if (role === 'patient') {
+        localStorage.setItem('bolamu_patient_token_' + _phone, data.token);
+        localStorage.setItem('bolamu_patient_token', data.token); // compatibilité
+        localStorage.setItem('bolamu_patient_phone', _phone);
+        localStorage.setItem('bolamu_patient_refresh', data.refreshToken || '');
+      } else {
+        localStorage.setItem(`bolamu_${role}_token`, data.token);
+        localStorage.setItem(`bolamu_${role}_phone`, _phone);
+      }
       localStorage.setItem('bolamu_role', role);
 
       const dashboards = {
@@ -376,6 +387,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('back-login-link').addEventListener('click', showLogin);
   checkMagicLink();
   checkForgotPasswordLink();
+
+  const reason = new URLSearchParams(window.location.search).get('reason');
+  if (reason === 'session_expired') {
+    showMsg('Votre session a expiré. Veuillez vous reconnecter.', 'error');
+  }
 });
 </script>
 
