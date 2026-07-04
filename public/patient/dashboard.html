@@ -2323,13 +2323,14 @@
     A.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     var token = localStorage.getItem('bolamu_patient_token');
-    // En aperçu (pas de token) : on NE redirige PAS vers login afin de pouvoir
-    // visualiser le rendu. En production, décommenter la redirection ci-dessous.
     if (token) {
       try {
         var phone = JSON.parse(atob(token.split('.')[1])).phone;
         A._loadAll(token, phone);
       } catch (e) { /* token invalide : on reste sur les valeurs par défaut */ }
+    } else {
+      window.location.href = '/login.html';
+      return;
     }
 
     // Compteurs animés (valeurs démo identiques à l'original : 1250)
