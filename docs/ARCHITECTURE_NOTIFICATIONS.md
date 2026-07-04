@@ -11,6 +11,51 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 - **Email** : Resend (optionnel)
 - **Push** : Web Push VAPID (optionnel)
 
+## INFRASTRUCTURE WAHA
+
+**Stack** : WAHA (WhatsApp HTTP API) — moteur GOWS — hébergé sur Render.
+**Numéro cible (prod)** : SIM dédiée Bolamu (MTN ou Airtel Congo).
+
+### Schéma d'architecture globale
+
+```
+[Événement plateforme]
+        ↓
+[Backend Node.js — trigger notification]
+        ↓
+[whatsapp-web.service.js — sendAutoMessage(phone, templateName, params)]
+        ↓
+[POST https://waha-bolamu.onrender.com/api/sendText]
+   Header: X-Api-Key: WAHA_API_KEY
+        ↓
+[WAHA — moteur GOWS — session "default" — SIM dédiée Bolamu]
+        ↓
+[Destinataire reçoit le message WhatsApp]
+        ↓
+[INSERT → table notifications (user_phone, type, titre, message, canal, sent_at)]
+```
+
+### Règles fondamentales infra
+
+- **Un seul numéro expéditeur** : la SIM dédiée Bolamu.
+- **Un seul service d'envoi** : `whatsapp-web.service.js` → `sendAutoMessage(phone, templateName, params)`.
+- **Un seul appel HTTP** : `POST /api/sendText` vers WAHA avec `X-Api-Key`.
+- **Fallback** : si WAHA répond erreur → log erreur + INSERT `notifications` avec `sent_at = NULL`.
+- **Moteur GOWS** : pas de Chrome/Puppeteer — aucun crash "Execution context destroyed".
+- **Session persistée** : disque Render `/app/.sessions` — pas de QR à rescanner après redémarrage.
+- **Meta API (`whatsapp.service.js`, `graph.facebook.com`) est abandonnée** — WAHA est le seul canal WhatsApp actif. Migration des appels restants en cours (voir suivi séparé).
+
+### Procédure de bascule vers la SIM dédiée
+
+1. Insérer la SIM dans un téléphone Android (pas iPhone — incompatible).
+2. Créer un compte WhatsApp classique sur ce numéro.
+3. Ouvrir le dashboard WAHA → `https://waha-bolamu.onrender.com/dashboard`.
+4. Arrêter la session `default` → supprimer → recréer.
+5. Scanner le nouveau QR code avec le téléphone Android SIM dédiée.
+6. Mettre à jour `.env` : `BOLAMU_WA_PHONE=+242XXXXXXXXX`.
+7. Tester un envoi vers un numéro personnel — confirmer réception.
+8. Commit : `chore: bascule SIM dédiée Bolamu WhatsApp`.
+
 ## TEMPLATES PAR RÔLE
 
 ### PATIENT
@@ -204,6 +249,36 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 4. **Opt-out** : Respecter préférences utilisateur (table user_preferences)
 5. **Traçabilité** : Toute notification insérée dans table notifications avec sent_at
 
+## SCHÉMA SQL — TABLE NOTIFICATIONS
+
+```sql
+-- Schéma actuel (migration_023 + corrections session + migration_052 link/metadata)
+CREATE TABLE notifications (
+  id SERIAL PRIMARY KEY,
+  user_phone VARCHAR(20) NOT NULL REFERENCES users(phone),
+  type VARCHAR(50) NOT NULL CHECK (type IN (
+    'rdv_confirme','rdv_rappel','rdv_annule','paiement_recu',
+    'abonnement_expire','abonnement_renouvele','conflit_update',
+    'message_recu','alerte_systeme','whatsapp_message','encouragement',
+    'new_like','new_comment','new_follower'
+  )),
+  titre VARCHAR(100) NOT NULL,
+  message TEXT NOT NULL,
+  link VARCHAR(300),
+  data JSONB DEFAULT '{}',
+  metadata JSONB DEFAULT '{}',
+  canal VARCHAR(20) DEFAULT 'push' CHECK (canal IN ('push','whatsapp','sms','email','in_app')),
+  is_read BOOLEAN DEFAULT false,
+  sent_at TIMESTAMP,
+  read_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert type correct (PAS content — la colonne n'existe pas)
+INSERT INTO notifications (user_phone, type, titre, message, canal, sent_at, created_at)
+VALUES ($1, 'whatsapp_message', $2, $3, 'whatsapp', NOW(), NOW());
+```
+
 ## PREUVE D'ENVOI
 
 ```sql
@@ -220,3 +295,4 @@ ORDER BY created_at DESC LIMIT 3;
 - 25 juin 2026 : Ajout templates Boucle 4 (consultation_terminee, rdv_confirme, ordonnance_prete)
 - 25 juin 2026 : Ajout templates Boucle 5 (ordonnance_dispensee, ordonnance_dispensee_medecin, nouvelle_ordonnance_pharmacie, resultats_disponibles)
 - 25 juin 2026 : Ajout templates Boucle 6 (bolamu_voucher_genere, bolamu_voucher_utilise)
+- 4 juillet 2026 : Fusion de l'infrastructure WAHA (schéma architecture, procédure bascule SIM, schéma SQL table notifications) depuis "ARCHITECTURE_NOTIFICATIONS_BOLAMU (1).md" (désormais SUPERSEDED) — Meta API confirmée abandonnée, WAHA seul canal actif

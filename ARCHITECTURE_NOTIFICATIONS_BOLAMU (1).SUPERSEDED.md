@@ -1,4 +1,7 @@
 # ARCHITECTURE NOTIFICATIONS WHATSAPP — BOLAMU
+
+> **SUPERSEDED — Contenu fusionné dans `docs/ARCHITECTURE_NOTIFICATIONS.md` (schéma d'architecture, infrastructure WAHA, procédure bascule SIM, schéma SQL table notifications). Voir ce document pour toute référence à jour.**
+
 **Version :** 2.0 — 26 juin 2026  
 **Stack :** WAHA (WhatsApp HTTP API) — moteur GOWS — hébergé sur Render  
 **Numéro actuel (test) :** +242069735418 (numéro perso Natsy — temporaire)  
