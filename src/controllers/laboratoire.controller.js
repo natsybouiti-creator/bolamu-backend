@@ -78,11 +78,13 @@ async function registerLaboratoire(req, res) {
             await client.query(`UPDATE users SET role = 'laboratoire' WHERE id = $1`, [userId]);
         }
 
+        const agentPhone = req.user?.role === 'agent_bolamu' ? normalizePhone(req.user.phone) : null;
+
         const newLab = await client.query(
-            `INSERT INTO laboratories (phone, user_id, name, director_name, rccm_number, agrement_number, city, neighborhood, status, is_active, member_code, document_url, document_public_id, trust_score, momo_number)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14)
+            `INSERT INTO laboratories (phone, user_id, name, director_name, rccm_number, agrement_number, city, neighborhood, status, is_active, member_code, document_url, document_public_id, trust_score, momo_number, agent_phone)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14,$15)
              RETURNING id, phone, name, status, member_code, trust_score`,
-            [normalizedPhone, userId, name, director_name, rccm_number, agrement_number || null, city, neighborhood || null, autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || normalizedPhone]
+            [normalizedPhone, userId, name, director_name, rccm_number, agrement_number || null, city, neighborhood || null, autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || normalizedPhone, agentPhone]
         );
 
         if (documentUrl) {

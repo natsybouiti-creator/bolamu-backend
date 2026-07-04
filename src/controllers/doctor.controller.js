@@ -85,15 +85,17 @@ async function registerDoctor(req, res) {
             await client.query(`UPDATE users SET full_name = $1, role = 'doctor' WHERE id = $2`, [full_name, userId]);
         }
 
+        const agentPhone = req.user?.role === 'agent_bolamu' ? normalizePhone(req.user.phone) : null;
+
         const newDoctor = await client.query(
             `INSERT INTO doctors
                 (phone, user_id, full_name, specialty, registration_number,
                  city, neighborhood, bio, status, is_active, member_code,
-                 document_url, document_public_id, trust_score, momo_number)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14)
+                 document_url, document_public_id, trust_score, momo_number, agent_phone)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14,$15)
              RETURNING id, phone, full_name, specialty, city, status, member_code, trust_score, created_at`,
             [normalizedPhone, userId, full_name, specialty, registration_number, city, neighborhood || null, bio || null,
-             autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || normalizedPhone]
+             autoStatus, memberCode, documentUrl, documentPublicId, score, momo_number || normalizedPhone, agentPhone]
         );
 
         // Création automatique des disponibilités par défaut (lun-ven 08h-17h)

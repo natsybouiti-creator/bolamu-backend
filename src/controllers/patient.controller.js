@@ -36,16 +36,19 @@ async function registerPatient(req, res) {
         );
         const bolamuId = `BLM-${idRes.rows[0].next}`;
 
+        const agentPhone = req.user?.role === 'agent_bolamu' ? normalizePhone(req.user.phone) : null;
+
         const newUser = await client.query(
             `INSERT INTO users
                 (phone, full_name, birth_date, gender, role, bolamu_id, is_active,
-                 momo_number, cgu_accepted, cgu_accepted_at, onboarding_completed, created_at)
-             VALUES ($1,$2,$3,$4,'patient',$5,TRUE,$6,$7,NOW(),TRUE,NOW())
+                 momo_number, cgu_accepted, cgu_accepted_at, onboarding_completed, created_at, agent_phone)
+             VALUES ($1,$2,$3,$4,'patient',$5,TRUE,$6,$7,NOW(),TRUE,NOW(),$8)
              RETURNING id, phone, full_name, bolamu_id, created_at`,
             [
                 phone, full_name, birth_date || null, gender || null,
                 bolamuId, momo_number || phone,
-                cgu_accepted === 'true' || cgu_accepted === true
+                cgu_accepted === 'true' || cgu_accepted === true,
+                agentPhone
             ]
         );
 
