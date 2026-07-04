@@ -3386,12 +3386,11 @@
       if (listEl) listEl.innerHTML = '<div class="feed-loading"><span class="material-symbols-outlined rotating">autorenew</span></div>';
     }
 
-    var token = localStorage.getItem('bolamu_patient_token');
-    var H = { headers: { 'Authorization': 'Bearer ' + token } };
     var params = new URLSearchParams({ page: A._feedPage, limit: 10 });
     if (A._feedCity) params.append('city', A._feedCity);
 
-    fetch('https://www.bolamu.co/api/v1/feed?' + params, H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://www.bolamu.co/api/v1/feed?' + params, {}).then(function (r) { return r && r.json(); }).then(function (d) {
+      if (!d) return;
       var container = $('feed-posts-list');
       if (reset && container) container.innerHTML = '';
 
@@ -3445,11 +3444,9 @@
   };
 
   A.toggleLike = function (postId, btn) {
-    var token = localStorage.getItem('bolamu_patient_token');
-    fetch('https://www.bolamu.co/api/v1/feed/' + postId + '/like', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token }
-    }).then(function (r) { return r.json(); }).then(function (data) {
+    apiFetch('https://www.bolamu.co/api/v1/feed/' + postId + '/like', { method: 'POST' })
+      .then(function (r) { return r && r.json(); }).then(function (data) {
+      if (!data) return;
       var icon = btn.querySelector('.material-symbols-outlined');
       var countText = btn.childNodes[btn.childNodes.length - 1];
       var currentCount = parseInt(countText.textContent.trim()) || 0;
@@ -3519,10 +3516,10 @@
 
   /* --------------------------- STORIES --------------------------- */
   A.loadStories = function () {
-    var token = localStorage.getItem('bolamu_patient_token');
-    fetch('https://www.bolamu.co/api/v1/stories', { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(function (r) { return r.json(); })
+    apiFetch('https://www.bolamu.co/api/v1/stories', {})
+      .then(function (r) { return r && r.json(); })
       .then(function (d) {
+        if (!d) return;
         A._currentStories = d.data || [];
         A.renderStoriesBar(A._currentStories);
       }).catch(function (err) { console.error('[stories] loadStories:', err); });
@@ -3580,11 +3577,7 @@
       }
     }
 
-    var token = localStorage.getItem('bolamu_patient_token');
-    fetch('https://www.bolamu.co/api/v1/stories/' + story.id + '/view', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token }
-    }).catch(function () {});
+    apiFetch('https://www.bolamu.co/api/v1/stories/' + story.id + '/view', { method: 'POST' }).catch(function () {});
 
     $('story-progress').style.width = '0%';
     if (A._storyTimer) clearInterval(A._storyTimer);
@@ -3658,10 +3651,10 @@
 
   /* --------------------------- SUGGESTIONS / FOLLOW --------------------------- */
   A.loadSuggestions = function () {
-    var token = localStorage.getItem('bolamu_patient_token');
-    fetch('https://www.bolamu.co/api/v1/feed/suggestions', { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(function (r) { return r.json(); })
+    apiFetch('https://www.bolamu.co/api/v1/feed/suggestions', {})
+      .then(function (r) { return r && r.json(); })
       .then(function (d) {
+        if (!d) return;
         var list = $('suggestions-list');
         if (!list) return;
         list.innerHTML = '';
@@ -3685,22 +3678,18 @@
   };
 
   A.followUser = function (phone, btn) {
-    var token = localStorage.getItem('bolamu_patient_token');
-    fetch('https://www.bolamu.co/api/v1/follows/' + phone, {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token }
-    }).then(function (r) { return r.json(); }).then(function (data) {
-      if (data.success) { btn.textContent = 'Suivi'; btn.classList.add('following'); btn.disabled = true; }
+    apiFetch('https://www.bolamu.co/api/v1/follows/' + phone, { method: 'POST' })
+      .then(function (r) { return r && r.json(); }).then(function (data) {
+      if (data && data.success) { btn.textContent = 'Suivi'; btn.classList.add('following'); btn.disabled = true; }
     }).catch(function (err) { console.error('[follows] followUser:', err); });
   };
 
   /* --------------------------- NOTIFICATIONS (cloche header) --------------------------- */
   A.loadUnreadCount = function () {
-    var token = localStorage.getItem('bolamu_patient_token');
-    if (!token) return;
-    fetch('https://www.bolamu.co/api/v1/notifications/unread-count', { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(function (r) { return r.json(); })
+    apiFetch('https://www.bolamu.co/api/v1/notifications/unread-count', {})
+      .then(function (r) { return r && r.json(); })
       .then(function (data) {
+        if (!data) return;
         var badge = $('notif-badge');
         if (badge) {
           badge.textContent = data.count || 0;
@@ -3717,10 +3706,10 @@
   };
 
   A.loadNotifications = function () {
-    var token = localStorage.getItem('bolamu_patient_token');
-    fetch('https://www.bolamu.co/api/v1/notifications', { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(function (r) { return r.json(); })
+    apiFetch('https://www.bolamu.co/api/v1/notifications', {})
+      .then(function (r) { return r && r.json(); })
       .then(function (data) {
+        if (!data) return;
         var list = $('notif-list');
         if (!list) return;
         list.innerHTML = '';
@@ -3735,19 +3724,13 @@
             '<div class="notif-item-title">' + A.escapeHtml(n.titre) + '</div>' +
             (n.message ? '<div class="notif-item-body">' + A.escapeHtml(n.message) + '</div>' : '');
           div.onclick = function () {
-            fetch('https://www.bolamu.co/api/v1/notifications/' + n.id + '/read', {
-              method: 'PATCH',
-              headers: { 'Authorization': 'Bearer ' + token }
-            }).catch(function () {});
+            apiFetch('https://www.bolamu.co/api/v1/notifications/' + n.id + '/read', { method: 'PATCH' }).catch(function () {});
             div.classList.remove('unread');
             if (n.link) window.location = n.link;
           };
           list.appendChild(div);
         });
-        fetch('https://www.bolamu.co/api/v1/notifications/read-all', {
-          method: 'PATCH',
-          headers: { 'Authorization': 'Bearer ' + token }
-        }).catch(function () {});
+        apiFetch('https://www.bolamu.co/api/v1/notifications/read-all', { method: 'PATCH' }).catch(function () {});
         var badge = $('notif-badge');
         if (badge) badge.style.display = 'none';
       }).catch(function (err) { console.error('[notif] loadNotifications:', err); });
