@@ -131,7 +131,7 @@ authMiddleware.requireSecretary = (req, res, next) => {
 // 4. Middleware pour l'accès RH Grand Compte
 authMiddleware.requireRH = (req, res, next) => {
     if (!req.user) return res.status(401).json({ success: false, message: 'Non authentifié' });
-    if (!['company_rh', 'admin'].includes(req.user.role)) {
+    if (!['rh', 'admin'].includes(req.user.role)) {
         return res.status(403).json({ success: false, message: 'Accès réservé aux RH entreprise' });
     }
     next();

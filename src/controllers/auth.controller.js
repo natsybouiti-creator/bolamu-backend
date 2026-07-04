@@ -149,7 +149,7 @@ async function login(req, res) {
             case 'doctor':      redirectUrl = '/medecin/dashboard.html'; break;
             case 'pharmacie':   redirectUrl = '/pharmacie/dashboard.html'; break;
             case 'laboratoire': redirectUrl = '/laboratoire/dashboard.html'; break;
-            case 'company_rh':  redirectUrl = '/rh/dashboard.html'; break;
+            case 'rh':          redirectUrl = '/rh/dashboard.html'; break;
         }
         
         return res.status(200).json({
