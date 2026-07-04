@@ -6,7 +6,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { normalizePhone } = require('../utils/phone');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 
 // ─── RÈGLES D'ATTRIBUTION ─────────────────────────────────────────────────────
 const CREDIT_RULES = {
@@ -109,7 +109,7 @@ router.post('/grant', authMiddleware, async (req, res) => {
         const credit = await addCredits(phone, parseInt(amount), reason, 'earn');
 
         try {
-            await sendWhatsAppTemplate(phone, 'bolamu_credits_ajoutes_solde', [amount.toString(), credit.balance.toString(), reason]);
+            await sendAutoMessage(phone, 'bolamu_credits_ajoutes_solde', [amount.toString(), credit.balance.toString(), reason]);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu Credits : +${amount} crédits ajoutés ! Solde : ${credit.balance} crédits. Motif : ${reason}`);
         } catch(e) {}
@@ -157,7 +157,7 @@ router.post('/distribute-monthly', authMiddleware, async (req, res) => {
                 );
 
                 try { 
-                    await sendWhatsAppTemplate(p.phone, 'bolamu_credits_mensuels', [amount.toString()]);
+                    await sendAutoMessage(p.phone, 'bolamu_credits_mensuels', [amount.toString()]);
                     // TODO: supprimer sendBolamuSms après validation WhatsApp
                     // await sendBolamuSms(p.phone, `Bolamu Credits : +${amount} crédits ce mois ! Utilisez-les chez nos partenaires santé. Voir sur votre dashboard.`); 
                 } catch(e) {}
@@ -231,7 +231,7 @@ router.post('/spend', authMiddleware, async (req, res) => {
 
         try {
             const discount = Math.floor(amount / 100) * partner.rows[0].discount_per_100_credits;
-            await sendWhatsAppTemplate(phone, 'bolamu_credits_depenses', [amount.toString(), partner.rows[0].name, discount.toString(), updated.balance.toString()]);
+            await sendAutoMessage(phone, 'bolamu_credits_depenses', [amount.toString(), partner.rows[0].name, discount.toString(), updated.balance.toString()]);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu Credits : -${amount} crédits chez ${partner.rows[0].name}. Réduction obtenue : ${discount}%. Solde restant : ${updated.balance} crédits.`);
         } catch(e) {}

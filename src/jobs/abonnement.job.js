@@ -2,7 +2,6 @@ const cron = require('node-cron');
 const db = require('../config/db');
 const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { normalizePhone } = require('../utils/phone');
 const { computeWeeklyLeaderboard } = require('../services/leaderboard.service');
@@ -32,7 +31,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       for (const row of rappelsResult.rows) {
         try {
           const phone = normalizePhone(row.patient_phone);
-          await sendWhatsAppTemplate(phone, 'abonnement_expire', []);
+          await sendAutoMessage(phone, 'abonnement_expire', []);
           nb_traites++;
           allDetails.push(`Rappel J-30 envoyé : ${phone}`);
         } catch (err) {
@@ -111,7 +110,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       for (const phone of phones) {
         try {
           const normalizedPhone = normalizePhone(phone);
-          await sendWhatsAppTemplate(normalizedPhone, 'abonnement_expire', []);
+          await sendAutoMessage(normalizedPhone, 'abonnement_expire', []);
           nb_traites++;
           allDetails.push(`Notification expiration envoyée : ${normalizedPhone}`);
         } catch (err) {
@@ -225,7 +224,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       for (const row of vouchersExpiringResult.rows) {
         try {
           const date = new Date(row.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-          await sendWhatsAppTemplate(row.phone, 'voucher_expirant', [
+          await sendAutoMessage(row.phone, 'voucher_expirant', [
             row.title,
             row.partner_name,
             date

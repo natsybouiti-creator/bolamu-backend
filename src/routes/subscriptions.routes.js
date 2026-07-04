@@ -8,7 +8,7 @@ const router = express.Router();
 const db = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { normalizePhone } = require('../utils/phone');
-const whatsapp = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 
 const VALID_PLANS = ['essentiel', 'standard', 'premium'];
 const VALID_OPERATORS = ['MTN', 'AIRTEL'];
@@ -119,7 +119,7 @@ router.post('/confirm', authMiddleware, async (req, res) => {
         // Notification WhatsApp admin (best-effort, non bloquant)
         try {
             const adminPhone = process.env.ADMIN_NOTIFY_PHONE || '+242060000099';
-            await whatsapp.sendWhatsAppTemplate(adminPhone, 'bolamu_souscription_a_valider', [
+            await sendAutoMessage(adminPhone, 'bolamu_souscription_a_valider', [
                 PLAN_LABEL[sub.plan] || sub.plan,
                 sub.operator,
                 payment_reference
@@ -214,7 +214,7 @@ router.put('/:id/validate', authMiddleware, async (req, res) => {
 
         // Notification WhatsApp patient (best-effort)
         try {
-            await whatsapp.sendWhatsAppTemplate(sub.patient_phone, 'bolamu_abonnement_active', [
+            await sendAutoMessage(sub.patient_phone, 'bolamu_abonnement_active', [
                 PLAN_LABEL[sub.plan] || sub.plan
             ]);
         } catch (_) { /* non bloquant */ }

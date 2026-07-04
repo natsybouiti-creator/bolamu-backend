@@ -348,7 +348,7 @@ async function notifyVoucherGenere(patient_phone, voucher_data) {
     ];
 
     try {
-        const ok = await sendWhatsAppTemplate(phone, 'voucher_expirant', params);
+        const ok = await sendAutoMessage(phone, 'voucher_expirant', params);
         await _saveWhatsAppNotif(phone, 'voucher_expirant', { params, voucher_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
         return ok;
     } catch (err) {

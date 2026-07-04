@@ -6,6 +6,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { ok, err } = require('../utils/apiResponse');
 const { ROLES, PRO_ROLES } = require('../utils/constants');
 const { normalizePhone } = require('../utils/phone');
@@ -861,7 +862,7 @@ router.post('/credits/grant', authMiddleware, adminOnly, async (req, res) => {
         await pool.query(`UPDATE users SET credits_balance=credits_balance+$1 WHERE phone=$2`, [parseInt(amount), phone]);
         await pool.query(`INSERT INTO credit_transactions (phone, type, amount, reason, balance_after) SELECT $1,'earn',$2,$3,(SELECT balance FROM credits WHERE phone=$1)`, [phone, parseInt(amount), reason]);
         try { 
-            await sendWhatsAppTemplate(phone, 'bolamu_credits_ajoutes', [amount.toString(), reason]);
+            await sendAutoMessage(phone, 'bolamu_credits_ajoutes', [amount.toString(), reason]);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu Credits : +${amount} crédits ajoutés ! Motif : ${reason}. Consultez votre dashboard.`); 
         } catch(e) {}
