@@ -68,7 +68,7 @@ async function joinClub(req, res) {
 
     // Vérifier que le club existe
     const clubResult = await client.query(
-      `SELECT id, name, max_members FROM clubs WHERE id = $1 AND is_active = TRUE`,
+      `SELECT id, name, max_members, conversation_id FROM clubs WHERE id = $1 AND is_active = TRUE`,
       [id]
     );
 
@@ -96,6 +96,16 @@ async function joinClub(req, res) {
        VALUES ($1, $2, NOW())`,
       [id, normalizedPhone]
     );
+
+    // Ajouter au chat interne du club, s'il existe
+    if (club.conversation_id) {
+      await client.query(
+        `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at)
+         VALUES ($1, $2, 'member', NOW())
+         ON CONFLICT DO NOTHING`,
+        [club.conversation_id, normalizedPhone]
+      );
+    }
 
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
@@ -160,7 +170,7 @@ async function leaveClub(req, res) {
 
     // Vérifier que le club existe
     const clubResult = await client.query(
-      `SELECT id, name FROM clubs WHERE id = $1 AND is_active = TRUE`,
+      `SELECT id, name, conversation_id FROM clubs WHERE id = $1 AND is_active = TRUE`,
       [id]
     );
 
@@ -187,6 +197,14 @@ async function leaveClub(req, res) {
       `DELETE FROM club_members WHERE club_id = $1 AND patient_phone = $2`,
       [id, normalizedPhone]
     );
+
+    // Retirer du chat interne du club, s'il existe
+    if (club.conversation_id) {
+      await client.query(
+        `DELETE FROM conversation_participants WHERE conversation_id = $1 AND participant_phone = $2`,
+        [club.conversation_id, normalizedPhone]
+      );
+    }
 
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
@@ -233,10 +251,109 @@ async function getMyClubs(req, res) {
   }
 }
 
+/**
+ * GET /api/v1/clubs/:id/messages
+ * Messages du chat interne au club (membres uniquement)
+ */
+async function getClubMessages(req, res) {
+  try {
+    const { id } = req.params;
+    const { phone } = req.user;
+    const normalizedPhone = normalizePhone(phone);
+
+    const clubResult = await pool.query(
+      `SELECT conversation_id FROM clubs WHERE id = $1 AND is_active = TRUE`,
+      [id]
+    );
+
+    if (clubResult.rows.length === 0 || !clubResult.rows[0].conversation_id) {
+      return res.status(404).json({ success: false, message: 'Club ou conversation introuvable' });
+    }
+
+    const conversationId = clubResult.rows[0].conversation_id;
+
+    const memberCheck = await pool.query(
+      `SELECT id FROM conversation_participants WHERE conversation_id = $1 AND participant_phone = $2`,
+      [conversationId, normalizedPhone]
+    );
+
+    if (memberCheck.rows.length === 0) {
+      return res.status(403).json({ success: false, message: 'Accès réservé aux membres du club' });
+    }
+
+    const result = await pool.query(
+      `SELECT m.id, m.sender_phone, m.content, m.sent_at, u.first_name, u.last_name
+       FROM messages m
+       LEFT JOIN users u ON m.sender_phone = u.phone
+       WHERE m.conversation_id = $1 AND m.is_deleted = false
+       ORDER BY m.sent_at ASC`,
+      [conversationId]
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('[CLUBS] Erreur getClubMessages:', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+}
+
+/**
+ * POST /api/v1/clubs/:id/messages
+ * Envoyer un message dans le chat interne au club (membres uniquement)
+ */
+async function sendClubMessage(req, res) {
+  try {
+    const { id } = req.params;
+    const { phone } = req.user;
+    const { content } = req.body;
+    const normalizedPhone = normalizePhone(phone);
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ success: false, message: 'Message vide' });
+    }
+
+    const clubResult = await pool.query(
+      `SELECT conversation_id FROM clubs WHERE id = $1 AND is_active = TRUE`,
+      [id]
+    );
+
+    if (clubResult.rows.length === 0 || !clubResult.rows[0].conversation_id) {
+      return res.status(404).json({ success: false, message: 'Club ou conversation introuvable' });
+    }
+
+    const conversationId = clubResult.rows[0].conversation_id;
+
+    const memberCheck = await pool.query(
+      `SELECT id FROM conversation_participants WHERE conversation_id = $1 AND participant_phone = $2`,
+      [conversationId, normalizedPhone]
+    );
+
+    if (memberCheck.rows.length === 0) {
+      return res.status(403).json({ success: false, message: 'Accès réservé aux membres du club' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO messages (conversation_id, sender_phone, content, type, sent_at, is_deleted)
+       VALUES ($1, $2, $3, 'text', NOW(), false)
+       RETURNING *`,
+      [conversationId, normalizedPhone, content.trim()]
+    );
+
+    await pool.query(`UPDATE conversations SET last_message_at = NOW() WHERE id = $1`, [conversationId]);
+
+    res.status(201).json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('[CLUBS] Erreur sendClubMessage:', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+}
+
 module.exports = {
   getClubs,
   getClubById,
   joinClub,
   leaveClub,
-  getMyClubs
+  getMyClubs,
+  getClubMessages,
+  sendClubMessage
 };
