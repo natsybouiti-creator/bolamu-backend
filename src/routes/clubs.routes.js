@@ -11,7 +11,9 @@ const {
   leaveClub,
   getMyClubs,
   getClubMessages,
-  sendClubMessage
+  sendClubMessage,
+  kickMember,
+  deactivateClub
 } = require('../controllers/clubs.controller');
 
 // Public
@@ -26,6 +28,10 @@ router.get('/my', authMiddleware, getMyClubs);
 // Chat interne au club (membres uniquement)
 router.get('/:id/messages', authMiddleware, getClubMessages);
 router.post('/:id/messages', authMiddleware, sendClubMessage);
+
+// Administration (réservé animateur du club, ou admin pour la désactivation)
+router.post('/:id/kick/:phone', authMiddleware, kickMember);
+router.delete('/:id', authMiddleware, deactivateClub);
 
 // Créer un club
 router.post('/', authMiddleware, async (req, res) => {

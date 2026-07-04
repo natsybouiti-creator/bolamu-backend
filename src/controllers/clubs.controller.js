@@ -13,7 +13,7 @@ const { sendAutoMessage } = require('../services/whatsapp-web.service');
 async function getClubs(req, res) {
   try {
     const result = await pool.query(
-      `SELECT id, name, description, category, sport_type, max_members, created_at
+      `SELECT id, name, description, category, sport_type, max_members, animateur_phone, created_at
        FROM clubs
        WHERE is_active = TRUE
        ORDER BY name`
@@ -35,9 +35,14 @@ async function getClubById(req, res) {
     const { id } = req.params;
 
     const result = await pool.query(
-      `SELECT id, name, description, category, sport_type, max_members, created_at
-       FROM clubs
-       WHERE id = $1 AND is_active = TRUE`,
+      `SELECT c.id, c.name, c.description, c.category, c.sport_type, c.max_members,
+              c.animateur_phone, c.conversation_id, c.created_at,
+              (SELECT COUNT(*) FROM club_members WHERE club_id = c.id) AS member_count,
+              (SELECT COALESCE(SUM(zl.points), 0) FROM club_members cm
+                 JOIN zora_ledger zl ON zl.phone = cm.patient_phone
+                 WHERE cm.club_id = c.id) AS total_zora
+       FROM clubs c
+       WHERE c.id = $1 AND c.is_active = TRUE`,
       [id]
     );
 
@@ -236,11 +241,12 @@ async function getMyClubs(req, res) {
     const normalizedPhone = normalizePhone(phone);
 
     const result = await pool.query(
-      `SELECT c.id, c.name, c.description, c.category, c.sport_type, cm.joined_at
+      `SELECT c.id, c.name, c.description, c.category, c.sport_type,
+              c.animateur_phone, c.conversation_id, cm.joined_at
        FROM clubs c
-       JOIN club_members cm ON c.id = cm.club_id
-       WHERE cm.patient_phone = $1 AND c.is_active = TRUE
-       ORDER BY cm.joined_at DESC`,
+       LEFT JOIN club_members cm ON c.id = cm.club_id AND cm.patient_phone = $1
+       WHERE c.is_active = TRUE AND (cm.patient_phone = $1 OR c.animateur_phone = $1)
+       ORDER BY COALESCE(cm.joined_at, c.created_at) DESC`,
       [normalizedPhone]
     );
 
@@ -348,6 +354,143 @@ async function sendClubMessage(req, res) {
   }
 }
 
+/**
+ * POST /api/v1/clubs/:id/kick/:phone
+ * Exclure un membre du club (réservé à l'animateur du club)
+ */
+async function kickMember(req, res) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { id, phone: targetPhoneParam } = req.params;
+    const requesterPhone = normalizePhone(req.user.phone);
+    const targetPhone = normalizePhone(targetPhoneParam);
+
+    const clubResult = await client.query(
+      `SELECT id, name, animateur_phone, conversation_id FROM clubs WHERE id = $1 AND is_active = TRUE`,
+      [id]
+    );
+
+    if (clubResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Club introuvable' });
+    }
+
+    const club = clubResult.rows[0];
+
+    if (club.animateur_phone !== requesterPhone) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ success: false, message: 'Réservé à l\'animateur du club' });
+    }
+
+    if (targetPhone === club.animateur_phone) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'L\'animateur ne peut pas s\'auto-exclure' });
+    }
+
+    const existingMember = await client.query(
+      `SELECT id FROM club_members WHERE club_id = $1 AND patient_phone = $2`,
+      [id, targetPhone]
+    );
+
+    if (existingMember.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Ce membre ne fait pas partie du club' });
+    }
+
+    await client.query(
+      `DELETE FROM club_members WHERE club_id = $1 AND patient_phone = $2`,
+      [id, targetPhone]
+    );
+
+    if (club.conversation_id) {
+      await client.query(
+        `DELETE FROM conversation_participants WHERE conversation_id = $1 AND participant_phone = $2`,
+        [club.conversation_id, targetPhone]
+      );
+    }
+
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('club_member_kicked', $1, 'club_members', NULL, $2::jsonb)`,
+      [requesterPhone, JSON.stringify({ club_id: id, club_name: club.name, target_phone: targetPhone })]
+    );
+
+    await client.query('COMMIT');
+
+    console.log(`[CLUBS] ${requesterPhone} a exclu ${targetPhone} du club ${id}`);
+
+    res.json({ success: true, message: 'Membre exclu du club' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[CLUBS] Erreur kickMember:', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * DELETE /api/v1/clubs/:id
+ * Désactivation (soft delete) d'un club — réservé à l'animateur ou à un admin
+ */
+async function deactivateClub(req, res) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { id } = req.params;
+    const requesterPhone = normalizePhone(req.user.phone);
+    const requesterRole = req.user.role;
+
+    const clubResult = await client.query(
+      `SELECT id, name, animateur_phone, is_active FROM clubs WHERE id = $1`,
+      [id]
+    );
+
+    if (clubResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Club introuvable' });
+    }
+
+    const club = clubResult.rows[0];
+
+    if (club.animateur_phone !== requesterPhone && requesterRole !== 'admin') {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ success: false, message: 'Réservé à l\'animateur du club ou à un admin' });
+    }
+
+    if (!club.is_active) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'Club déjà désactivé' });
+    }
+
+    await client.query(
+      `UPDATE clubs SET is_active = FALSE WHERE id = $1`,
+      [id]
+    );
+
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('club_deactivated', $1, 'clubs', $2, $3::jsonb)`,
+      [requesterPhone, id, JSON.stringify({ club_name: club.name })]
+    );
+
+    await client.query('COMMIT');
+
+    console.log(`[CLUBS] ${requesterPhone} a désactivé le club ${id}`);
+
+    res.json({ success: true, message: 'Club désactivé' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[CLUBS] Erreur deactivateClub:', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   getClubs,
   getClubById,
@@ -355,5 +498,7 @@ module.exports = {
   leaveClub,
   getMyClubs,
   getClubMessages,
-  sendClubMessage
+  sendClubMessage,
+  kickMember,
+  deactivateClub
 };
