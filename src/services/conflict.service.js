@@ -100,7 +100,7 @@ async function transitionStatut(conflict_id, nouveau_statut, acteur_phone, acteu
 
         const ancien_statut = conflictResult.rows[0].statut;
 
-        // Vérifier que la transition est valide (sauf pour super_admin)
+        // Vérifier que la transition est valide (sauf pour admin — super_admin fusionné, cf. migration_057)
         if (!isSuperAdmin) {
             const validTransitions = VALID_TRANSITIONS[ancien_statut] || [];
             if (!validTransitions.includes(nouveau_statut)) {

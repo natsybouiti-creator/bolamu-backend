@@ -12,7 +12,7 @@ const {
 
 // Middleware pour vérifier le rôle admin
 function adminOnly(req, res, next) {
-    if (req.user?.role !== 'admin' && req.user?.role !== 'super_admin') {
+    if (req.user?.role !== 'admin') {
         return res.status(403).json({ success: false, message: 'Accès réservé aux administrateurs.' });
     }
     next();

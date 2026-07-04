@@ -21,16 +21,8 @@ const {
 
 // Middleware pour vérifier le rôle admin
 function adminOnly(req, res, next) {
-    if (req.user?.role !== 'admin' && req.user?.role !== 'super_admin') {
+    if (req.user?.role !== 'admin') {
         return res.status(403).json({ success: false, message: 'Accès réservé aux administrateurs.' });
-    }
-    next();
-}
-
-// Middleware pour vérifier le rôle super_admin
-function superAdminOnly(req, res, next) {
-    if (req.user?.role !== 'super_admin') {
-        return res.status(403).json({ success: false, message: 'Accès réservé au super administrateur.' });
     }
     next();
 }

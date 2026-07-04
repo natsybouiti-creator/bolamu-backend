@@ -56,7 +56,7 @@ async function getConflict(req, res) {
         const conflict = conflictResult.rows[0];
 
         // Vérifier les droits d'accès
-        if (requestRole !== 'admin' && requestRole !== 'super_admin') {
+        if (requestRole !== 'admin') {
             if (requestRole === 'patient' && conflict.patient_phone !== requestPhone) {
                 return res.status(403).json({ success: false, message: 'Accès refusé.' });
             }
@@ -173,7 +173,7 @@ async function updateStatut(req, res) {
     const { statut, commentaire } = req.body;
     const requestPhone = req.user.phone;
     const requestRole = req.user.role;
-    const isSuperAdmin = requestRole === 'super_admin';
+    const isSuperAdmin = requestRole === 'admin';
 
     if (!statut) {
         return res.status(400).json({ success: false, message: 'Statut requis.' });
@@ -231,7 +231,7 @@ async function assignAgentController(req, res) {
     }
 }
 
-// ─── ESCALADER AU SUPER ADMIN (admin → super_admin) ────────────────────────────
+// ─── ESCALADER (marqueur de priorité — super_admin fusionné dans admin, cf. migration_057) ──
 async function escaladeSupAdmin(req, res) {
     const { id } = req.params;
     const requestPhone = req.user.phone;
@@ -272,7 +272,7 @@ async function resolveConflict(req, res) {
             [resolution, id]
         );
 
-        await transitionStatut(id, 'resolved', requestPhone, requestRole, 'Conflit résolu', requestRole === 'super_admin');
+        await transitionStatut(id, 'resolved', requestPhone, requestRole, 'Conflit résolu', requestRole === 'admin');
 
         return res.json({ success: true, message: 'Conflit résolu avec succès.' });
     } catch (error) {
@@ -288,7 +288,7 @@ async function closeConflict(req, res) {
     const requestRole = req.user.role;
 
     try {
-        await transitionStatut(id, 'closed', requestPhone, requestRole, 'Conflit fermé', requestRole === 'super_admin');
+        await transitionStatut(id, 'closed', requestPhone, requestRole, 'Conflit fermé', requestRole === 'admin');
         return res.json({ success: true, message: 'Conflit fermé avec succès.' });
     } catch (error) {
         console.error('[closeConflict]', error.message);
