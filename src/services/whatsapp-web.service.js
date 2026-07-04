@@ -42,6 +42,7 @@ const TEMPLATE_TITRES = {
   'bolamu_partenaire_reduction': 'Réduction partenaire',
   'bolamu_renouvellement_abonnement': 'Renouvellement abonnement',
   'bolamu_code_acces': 'Code d\'accès',
+  'bolamu_mot_de_passe_oublie': 'Mot de passe',
   'bolamu_magic_link': 'Lien connexion',
   'bolamu_medecin_nouveau_rdv': 'Nouveau RDV',
   'bolamu_medecin_rdv_annule': 'RDV annulé',
@@ -123,6 +124,30 @@ async function sendAutoMessage(phone, templateName, params) {
       message = `Récapitulatif check-ins ✅\nAnimateur : ${params[0]}\nÉvénement : ${params[1]}\nCheck-ins : ${params[2]}\nZora distribués : ${params[3]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_zora_attribues') {
       message = `Zora crédités 🎉\n${params[0]}, vous avez reçu ${params[1]} Zora.\nSolde total : ${params[2]} Zora\nRaison : ${params[3]}\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_mot_de_passe_oublie') {
+      message = `Bonjour ${params[0]},\n`
+        + `Votre nouveau mot de passe temporaire Bolamu est :\n\n`
+        + `*${params[1]}*\n\n`
+        + `Connectez-vous sur bolamu.co et changez-le dès que possible.\n\n`
+        + `L'équipe Bolamu`;
+    } else if (templateName === 'bolamu_bienvenue_medecin_v4') {
+      message = `Bienvenue sur Bolamu, Dr ${params[0]} !\n`
+        + `Votre compte médecin est activé.\n\n`
+        + `Connectez-vous ici (lien valide 24h) :\n${params[2]}\n\n`
+        + `Identifiant : ${params[1]}\n\n`
+        + `L'équipe Bolamu`;
+    } else if (templateName === 'bolamu_bienvenue_pharmacie') {
+      message = `Bienvenue sur Bolamu, ${params[0]} !\n`
+        + `Votre compte pharmacie est activé.\n\n`
+        + `Connectez-vous ici (lien valide 24h) :\n${params[2]}\n\n`
+        + `Identifiant : ${params[1]}\n\n`
+        + `L'équipe Bolamu`;
+    } else if (templateName === 'bolamu_bienvenue_laboratoire') {
+      message = `Bienvenue sur Bolamu, ${params[0]} !\n`
+        + `Votre compte laboratoire est activé.\n\n`
+        + `Connectez-vous ici (lien valide 24h) :\n${params[2]}\n\n`
+        + `Identifiant : ${params[1]}\n\n`
+        + `L'équipe Bolamu`;
     } else if (templateName === 'bolamu_urgence_dossier_consulte') {
       message = `Alerte Bolamu\n` 
         + `Le dossier médical d'urgence de ${params[0]} vient d'être ` 

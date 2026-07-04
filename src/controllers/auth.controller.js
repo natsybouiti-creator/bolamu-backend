@@ -175,17 +175,18 @@ async function forgotPassword(req, res) {
     try {
         const userResult = await pool.query(`SELECT * FROM users WHERE phone = $1`, [normalizedPhone]);
         if (!userResult.rows.length) return res.status(404).json({ success: false, message: 'Compte introuvable.' });
-        
+        const user = userResult.rows[0];
+
         const newPassword = generatePassword();
         const passwordHash = await bcrypt.hash(newPassword, 10);
-        
+
         await pool.query(
             `UPDATE users SET password_hash = $1, password_must_change = true WHERE phone = $2`,
             [passwordHash, normalizedPhone]
         );
-        
+
         try {
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_code_acces', [newPassword]);
+            await sendAutoMessage(normalizedPhone, 'bolamu_mot_de_passe_oublie', [user.full_name || normalizedPhone, newPassword]);
         } catch (whatsappError) {
             console.warn('[WhatsApp] Envoi mot de passe échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
         }
@@ -413,13 +414,13 @@ async function registerDoctor(req, res) {
         }
 
         const user = newUser.rows[0];
-        
+
+        const magicLink = await sendOnboardingLink(normalizedPhone, user.full_name || '', 'doctor');
         try {
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_medecin_v4', [user.full_name || '']);
+            await sendAutoMessage(normalizedPhone, 'bolamu_bienvenue_medecin_v4', [user.full_name || '', normalizedPhone, magicLink || '']);
         } catch (whatsappError) {
             console.warn('[WhatsApp] Envoi bienvenue échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
         }
-        await sendOnboardingLink(normalizedPhone, user.full_name || '', 'doctor');
         // TODO: supprimer sendBolamuSms après validation WhatsApp
         // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
@@ -521,13 +522,13 @@ async function registerPharmacie(req, res) {
         }
 
         const user = newUser.rows[0];
-        
+
+        const magicLink = await sendOnboardingLink(normalizedPhone, user.full_name || '', 'pharmacie');
         try {
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_pharmacie_v3', [user.full_name || '']);
+            await sendAutoMessage(normalizedPhone, 'bolamu_bienvenue_pharmacie', [user.full_name || '', normalizedPhone, magicLink || '']);
         } catch (whatsappError) {
             console.warn('[WhatsApp] Envoi bienvenue échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
         }
-        await sendOnboardingLink(normalizedPhone, user.full_name || '', 'pharmacie');
         // TODO: supprimer sendBolamuSms après validation WhatsApp
         // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
@@ -629,13 +630,13 @@ async function registerLaboratoire(req, res) {
         }
 
         const user = newUser.rows[0];
-        
+
+        const magicLink = await sendOnboardingLink(normalizedPhone, user.full_name || '', 'laboratoire');
         try {
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_labo_v4', [user.full_name || '']);
+            await sendAutoMessage(normalizedPhone, 'bolamu_bienvenue_laboratoire', [user.full_name || '', normalizedPhone, magicLink || '']);
         } catch (whatsappError) {
             console.warn('[WhatsApp] Envoi bienvenue échoué (non bloquant)', { phone: normalizedPhone, error: whatsappError.message });
         }
-        await sendOnboardingLink(normalizedPhone, user.full_name || '', 'laboratoire');
         // TODO: supprimer sendBolamuSms après validation WhatsApp
         // await sendBolamuSms(normalizedPhone, `Bolamu - Bienvenue ! Votre mot de passe : ${initialPassword}. Votre dossier est en cours de validation, vous recevrez une confirmation sous 24-48h.`);
         
