@@ -27,7 +27,8 @@ if (!process.env.JWT_SECRET) {
 }
 const JWT_SECRET = process.env.JWT_SECRET;
 const ACCESS_TOKEN_EXPIRES = '15m';
-const REFRESH_TOKEN_EXPIRES = '7d';
+// Fallback si absent de platform_config (config_key = 'refresh_token_ttl_days')
+const REFRESH_TOKEN_EXPIRES_DAYS = 7;
 const ADMIN_ROLES = ['admin', 'content_admin'];
 
 // ─── OTP & LOGIN ──────────────────────────────────────────────────────────────
@@ -163,10 +164,14 @@ router.post('/admin-login', strictLimiter, async (req, res) => {
             { expiresIn: ACCESS_TOKEN_EXPIRES }
         );
 
-        // Refresh token (7 jours)
+        // Refresh token (durée pilotée par platform_config, jamais hardcodée)
         const refreshToken = crypto.randomBytes(64).toString('hex');
         const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+        const refreshTtlConfig = await pool.query(
+            `SELECT config_value FROM platform_config WHERE config_key = 'refresh_token_ttl_days'`
+        );
+        const refreshTokenTtlDays = parseInt(refreshTtlConfig.rows[0]?.config_value || String(REFRESH_TOKEN_EXPIRES_DAYS));
+        const expiresAt = new Date(Date.now() + refreshTokenTtlDays * 24 * 60 * 60 * 1000);
 
         // Stocker le refresh token
         await pool.query(
