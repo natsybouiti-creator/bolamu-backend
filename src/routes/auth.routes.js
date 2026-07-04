@@ -166,7 +166,7 @@ router.post('/admin-login', strictLimiter, async (req, res) => {
 
         // Refresh token (durée pilotée par platform_config, jamais hardcodée)
         const refreshToken = crypto.randomBytes(64).toString('hex');
-        const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+        const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
         const refreshTtlConfig = await pool.query(
             `SELECT config_value FROM platform_config WHERE config_key = 'refresh_token_ttl_days'`
         );
