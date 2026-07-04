@@ -2,7 +2,7 @@
 // BOLAMU — Contrôleur Patients (Complet)
 // ============================================================
 const pool = require('../config/db');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const bcrypt = require('bcrypt');
 const { normalizePhone } = require('../utils/phone');
 const logger = require('../config/logger');
@@ -58,7 +58,7 @@ async function registerPatient(req, res) {
         await client.query('COMMIT');
 
         try {
-            await sendWhatsAppTemplate(phone, 'bolamu_inscription_patient_id', [full_name, bolamuId]);
+            await sendAutoMessage(phone, 'bolamu_inscription_patient_id', [full_name, bolamuId]);
         } catch (e) { console.log('WhatsApp non envoyé'); }
 
         return res.status(201).json({

@@ -10,7 +10,7 @@ const { normalizePhone } = require('../utils/phone');
 const authMiddleware = require('../middleware/auth.middleware');
 const crypto = require('crypto');
 const { uploadToCloudinary } = require('../utils/cloudinary');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
 
 if (!process.env.JWT_SECRET) {
@@ -403,7 +403,7 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
 
     // Envoyer bienvenue + magic link par WhatsApp
     try {
-      await sendWhatsAppTemplate(phone, 'bolamu_bienvenue_patient_v4', [`${prenom} ${nom}`.trim()]);
+      await sendAutoMessage(phone, 'bolamu_bienvenue_patient_v4', [`${prenom} ${nom}`.trim()]);
     } catch (whatsappError) {
       console.warn('[WhatsApp] Envoi bienvenue échoué (non bloquant)', { phone, error: whatsappError.message });
     }

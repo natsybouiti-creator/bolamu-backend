@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { normalizePhone } = require('../utils/phone');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
 const {
@@ -99,8 +100,8 @@ router.post('/secretaires', authMiddleware, partnerOnly, async (req, res) => {
         // WhatsApp bienvenue + mot de passe au secrétaire
         try {
             const normalizedPhone = normalizePhone(phone);
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_secretaire_bienvenue_v4', [`${prenom} ${nom}`.trim()]);
-            await sendWhatsAppTemplate(normalizedPhone, 'bolamu_code_acces', [tempPassword]);
+            await sendAutoMessage(normalizedPhone, 'bolamu_secretaire_bienvenue_v4', [`${prenom} ${nom}`.trim()]);
+            await sendAutoMessage(normalizedPhone, 'bolamu_code_acces', [tempPassword]);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu: Bienvenue! Mot de passe temp: ${tempPassword}. Changez-le dès connexion.`);
         } catch (whatsappError) {

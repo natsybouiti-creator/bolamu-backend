@@ -4,6 +4,7 @@
 
 const pool = require('../config/db');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { normalizePhone } = require('../utils/phone');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const logger = require('../config/logger');
@@ -101,9 +102,9 @@ async function registerLaboratoire(req, res) {
 
         try {
             if (autoStatus === 'verified') {
-                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_labo', [name, memberCode]);
+                await sendAutoMessage(normalizedPhone, 'bolamu_bienvenue_laboratoire', [name, memberCode]);
             } else {
-                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_inscription_labo_pending', [name, score.toString()]);
+                await sendAutoMessage(normalizedPhone, 'bolamu_inscription_labo_pending', [name, score.toString()]);
             }
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // const msg = autoStatus === 'verified'

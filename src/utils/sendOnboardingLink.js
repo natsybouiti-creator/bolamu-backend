@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { generateOnboardingToken, getOnboardingExpiry, buildOnboardingLink } = require('./onboarding');
 
 /**
@@ -22,7 +22,7 @@ async function sendOnboardingLink(phone, fullName, role) {
 
         const onboardingLink = buildOnboardingLink(token);
 
-        await sendWhatsAppTemplate(phone, 'bolamu_magic_link', [fullName, onboardingLink]);
+        await sendAutoMessage(phone, 'bolamu_magic_link', [fullName, onboardingLink]);
 
         console.log('[Onboarding] Magic link envoyé', { phone, role });
         return onboardingLink;

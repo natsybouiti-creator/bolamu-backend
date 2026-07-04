@@ -4,6 +4,7 @@
 
 const pool = require('../config/db');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
 const logger = require('../config/logger');
@@ -137,9 +138,9 @@ async function registerDoctor(req, res) {
 
         try {
             if (autoStatus === 'verified') {
-                await sendWhatsAppTemplate(phone, 'bolamu_bienvenue_medecin', [full_name, memberCode]);
+                await sendAutoMessage(phone, 'bolamu_bienvenue_medecin_v4', [full_name, memberCode]);
             } else {
-                await sendWhatsAppTemplate(phone, 'bolamu_inscription_medecin_pending', [full_name, score.toString()]);
+                await sendAutoMessage(phone, 'bolamu_inscription_medecin_pending', [full_name, score.toString()]);
             }
         } catch (e) { console.warn('[WhatsApp] Envoi bienvenue médecin échoué (non bloquant):', e.message); }
 

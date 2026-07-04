@@ -4,6 +4,7 @@
 
 const pool = require('../config/db');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
 const logger = require('../config/logger');
@@ -99,9 +100,9 @@ async function registerPharmacie(req, res) {
 
         try {
             if (autoStatus === 'verified') {
-                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_bienvenue_pharmacie', [name, memberCode]);
+                await sendAutoMessage(normalizedPhone, 'bolamu_bienvenue_pharmacie', [name, memberCode]);
             } else {
-                await sendWhatsAppTemplate(normalizedPhone, 'bolamu_inscription_pharmacie_pending', [name, score.toString()]);
+                await sendAutoMessage(normalizedPhone, 'bolamu_inscription_pharmacie_pending', [name, score.toString()]);
             }
         } catch (e) { console.error('[Pharmacie] WhatsApp non envoyé:', e.message); }
 
