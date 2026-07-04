@@ -66,7 +66,42 @@ const TEMPLATE_TITRES = {
   'bolamu_admin_nouveau_partenaire': 'Nouveau partenaire',
   'bolamu_admin_event_soumis': 'Événement soumis',
   'bolamu_admin_alerte_zora': 'Alerte Zora',
-  'bolamu_urgence_dossier_consulte': 'Alerte urgence'
+  'bolamu_urgence_dossier_consulte': 'Alerte urgence',
+  'bolamu_secretaire_bienvenue_v4': 'Bienvenue',
+  'bolamu_inscription_patient_id': 'Inscription confirmée',
+  'bolamu_inscription_medecin_pending': 'Inscription reçue',
+  'bolamu_inscription_pharmacie_pending': 'Inscription reçue',
+  'bolamu_inscription_labo_pending': 'Inscription reçue',
+  'rappel_rdv_24h': 'Rappel RDV',
+  'bolamu_labo_valide': 'Laboratoire validé',
+  'bolamu_labo_rejete': 'Inscription rejetée',
+  'bolamu_medecin_valide': 'Médecin validé',
+  'bolamu_medecin_rejete': 'Inscription rejetée',
+  'bolamu_pharmacie_rejetee': 'Inscription rejetée',
+  'bolamu_pharmacie_suspendue': 'Compte suspendu',
+  'bolamu_hors_catalogue_patient': 'Acte hors catalogue',
+  'bolamu_hors_catalogue_rh': 'Acte hors catalogue employé',
+  'abonnement_expire': 'Abonnement expiré',
+  'voucher_expirant': 'Voucher expirant',
+  'bolamu_souscription_a_valider': 'Souscription à valider',
+  'bolamu_abonnement_active': 'Abonnement activé',
+  'bolamu_credits_ajoutes': 'Crédits ajoutés',
+  'bolamu_credits_ajoutes_solde': 'Crédits ajoutés',
+  'bolamu_credits_mensuels': 'Crédits mensuels',
+  'bolamu_credits_depenses': 'Crédits dépensés',
+  'bolamu_compte_valide': 'Compte validé',
+  'bolamu_compte_rejete': 'Compte rejeté',
+  'bolamu_compte_suspendu': 'Compte suspendu',
+  'bolamu_compte_banni': 'Compte banni',
+  'bolamu_compte_suspendu_fraude': 'Compte suspendu',
+  'bolamu_compte_banni_admin': 'Compte banni',
+  'bolamu_compte_reactive': 'Compte réactivé',
+  'bolamu_secretaire_reactive': 'Compte réactivé',
+  'bolamu_secretaire_desactive': 'Compte désactivé',
+  'gain_jeu_zora': 'Zora gagnés',
+  'gain_zora_consultation': 'Zora gagnés',
+  'bolamu_batch_notification': 'Notification Bolamu',
+  'bolamu_notification_fallback': 'Notification Bolamu'
 };
 
 async function sendAutoMessage(phone, templateName, params) {
@@ -156,6 +191,82 @@ async function sendAutoMessage(phone, templateName, params) {
         + `situation vous inquiète, contactez immédiatement le patient ` 
         + `ou les secours.\n\n` 
         + `L'équipe Bolamu`;
+    } else if (templateName === 'bolamu_secretaire_bienvenue_v4') {
+      message = `Bienvenue sur Bolamu, ${params[0]} !\nVotre compte secrétaire est activé.\nVotre mot de passe temporaire vous suit dans un message séparé.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_code_acces') {
+      message = `Voici votre code d'accès Bolamu : ${params[0]}\nConnectez-vous sur bolamu.co et changez-le dès votre première connexion.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_magic_link') {
+      message = `Bonjour ${params[0]},\nVotre lien de connexion Bolamu (valide 24h) :\n${params[1]}\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_inscription_patient_id') {
+      message = `Bonjour ${params[0]},\nVotre inscription Bolamu est confirmée.\nVotre identifiant patient : ${params[1]}\nConservez-le précieusement.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_inscription_medecin_pending') {
+      message = `Bonjour Dr ${params[0]},\nVotre inscription Bolamu a été reçue.\nScore de confiance initial : ${params[1]}/100.\nVérification sous 24h avant activation.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_inscription_pharmacie_pending') {
+      message = `Cher partenaire,\nL'inscription de ${params[0]} a été reçue.\nScore de confiance initial : ${params[1]}/100.\nVérification sous 24h avant activation.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_inscription_labo_pending') {
+      message = `Cher partenaire,\nL'inscription de ${params[0]} a été reçue.\nScore de confiance initial : ${params[1]}/100.\nVérification sous 24h avant activation.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'rappel_rdv_24h') {
+      message = `Rappel : votre RDV Bolamu est demain à ${params[0]}.\nMédecin : Dr ${params[1]}\nLieu : ${params[2]}\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_labo_valide') {
+      message = `Cher partenaire,\nLe laboratoire ${params[0]} est validé sur Bolamu.\nCode membre : ${params[1]}\nVous pouvez désormais recevoir des prescriptions.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_labo_rejete') {
+      message = `Cher partenaire,\nVotre inscription laboratoire n'a pas été validée.\nMotif : ${params[0]}\nContactez le support Bolamu pour plus d'informations.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_medecin_valide') {
+      message = `Bonjour Dr ${params[0]},\nVotre compte médecin est validé sur Bolamu.\nCode membre : ${params[1]}\nVous pouvez désormais recevoir des patients.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_medecin_rejete') {
+      message = `Bonjour,\nVotre inscription médecin n'a pas été validée.\nMotif : ${params[0]}\nContactez le support Bolamu pour plus d'informations.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_pharmacie_validee') {
+      message = `Cher partenaire,\nLa pharmacie ${params[0]} est validée sur Bolamu.\nCode membre : ${params[1]}\nVous pouvez désormais recevoir des ordonnances.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_pharmacie_rejetee') {
+      message = `Cher partenaire,\nL'inscription de ${params[0]} n'a pas été validée.\nMotif : ${params[1]}\nContactez le support Bolamu pour plus d'informations.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_pharmacie_suspendue') {
+      message = `Cher partenaire,\nLe compte de ${params[0]} a été suspendu sur Bolamu.\nContactez le support pour connaître le motif et les suites.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_hors_catalogue_patient') {
+      message = `Bonjour,\nActe hors catalogue SSP : ${params[0]}\nMontant à régler directement au prestataire : ${params[1]} FCFA\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_hors_catalogue_rh') {
+      message = `Cher partenaire RH,\nActe hors catalogue pour l'employé ${params[2]} : ${params[0]}\nMontant : ${params[1]} FCFA\n\nL'équipe Bolamu`;
+    } else if (templateName === 'abonnement_expire') {
+      message = `Bonjour,\nVotre abonnement Bolamu a expiré.\nRenouvelez-le sur bolamu.co pour continuer à profiter de vos avantages santé.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'voucher_expirant') {
+      message = `Bonjour,\nVotre voucher "${params[0]}" chez ${params[1]} expire le ${params[2]}.\nPensez à l'utiliser avant cette date.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_souscription_a_valider') {
+      message = `Nouvelle souscription à valider.\nPlan : ${params[0]}\nOpérateur : ${params[1]}\nRéférence paiement : ${params[2]}\n\nBolamu Admin`;
+    } else if (templateName === 'bolamu_abonnement_active') {
+      message = `Bonjour,\nVotre abonnement Bolamu ${params[0]} est maintenant actif.\nProfitez de vos avantages santé dès aujourd'hui.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_credits_ajoutes') {
+      message = `Bonjour,\n${params[0]} crédits Bolamu ont été ajoutés à votre compte.\nMotif : ${params[1]}\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_credits_ajoutes_solde') {
+      message = `Bonjour,\n${params[0]} crédits ajoutés (motif : ${params[2]}).\nNouveau solde : ${params[1]} crédits.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_credits_mensuels') {
+      message = `Bonjour,\nVos ${params[0]} crédits Bolamu mensuels ont été crédités.\nBonne santé avec Bolamu !\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_credits_depenses') {
+      message = `Bonjour,\n${params[0]} crédits utilisés chez ${params[1]} (réduction ${params[2]} FCFA).\nSolde restant : ${params[3]} crédits.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_compte_valide') {
+      message = `Bonjour ${params[0]},\nVotre compte Bolamu est validé.\nVous pouvez désormais vous connecter et profiter de tous les services.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_compte_rejete') {
+      message = `Bonjour,\nVotre compte Bolamu n'a pas été validé.\nMotif : ${params[0]}\nContactez le support Bolamu pour plus d'informations.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_compte_suspendu') {
+      message = `Bonjour,\nVotre compte Bolamu a été suspendu.\nMotif : ${params[0]}\nContactez le support Bolamu pour connaître les suites.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_compte_banni') {
+      message = `Bonjour,\nVotre compte Bolamu a été banni automatiquement suite à une détection de fraude.\nMotif : ${params[0]}\nContactez le support Bolamu si vous contestez cette décision.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_compte_suspendu_fraude') {
+      message = `Bonjour,\nVotre compte Bolamu a été suspendu suite à une activité suspecte détectée automatiquement.\nContactez le support Bolamu pour plus d'informations.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_compte_banni_admin') {
+      message = `Bonjour,\nVotre compte Bolamu a été banni par décision d'un administrateur.\nMotif : ${params[0]}\nContactez le support Bolamu si vous contestez cette décision.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_compte_reactive') {
+      message = `Bonjour,\nVotre compte Bolamu a été réactivé.\nVous pouvez de nouveau vous connecter.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_secretaire_reactive') {
+      message = `Bonjour,\nVotre compte secrétaire Bolamu a été réactivé.\nConnectez-vous dès maintenant.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_secretaire_desactive') {
+      message = `Bonjour,\nVotre compte secrétaire Bolamu a été désactivé.\nContactez votre partenaire pour plus d'informations.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'gain_jeu_zora') {
+      message = `Bravo !\nVous avez gagné ${params[0]} Zora au jeu ${params[1]}.\nSolde total : ${params[2]} Zora\n\nL'équipe Bolamu`;
+    } else if (templateName === 'gain_zora_consultation') {
+      message = `Consultation terminée avec Dr ${params[0]}.\n+${params[1]} Zora crédités.\nSolde total : ${params[2]} Zora\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_batch_notification') {
+      message = `${params[0]}\n\nL'équipe Bolamu`;
+    } else if (templateName === 'bolamu_notification_fallback') {
+      message = `${params[0]}\n\nL'équipe Bolamu`;
     } else {
       message = params.join(' ');
     }
