@@ -3,7 +3,6 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
@@ -202,7 +201,7 @@ async function updateDoctorStatus(req, res) {
                 suspended: ['bolamu_compte_suspendu',  [reason || 'Activité suspecte']]
             };
             if (templateMap[status]) {
-                await sendWhatsAppTemplate(doc.phone, templateMap[status][0], templateMap[status][1]);
+                await sendAutoMessage(doc.phone, templateMap[status][0], templateMap[status][1]);
             }
         } catch (e) {
             logger.error('[updateDoctorStatus] WhatsApp error:', e.message);

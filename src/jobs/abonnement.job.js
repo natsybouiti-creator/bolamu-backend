@@ -3,6 +3,7 @@ const db = require('../config/db');
 const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
 const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { normalizePhone } = require('../utils/phone');
 const { computeWeeklyLeaderboard } = require('../services/leaderboard.service');
 
@@ -195,7 +196,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
     for (const row of eventsReminderResult.rows) {
       try {
         const heure = new Date(row.starts_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        await sendWhatsAppTemplate(row.phone, 'rappel_evenement', [
+        await sendAutoMessage(row.phone, 'bolamu_event_rappel', [
           row.first_name,
           row.title,
           heure,
@@ -255,7 +256,7 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       for (const row of rdvReminderResult.rows) {
         try {
           const heure = row.appointment_time;
-          await sendWhatsAppTemplate(row.patient_phone, 'rappel_rdv_24h', [
+          await sendAutoMessage(row.patient_phone, 'rappel_rdv_24h', [
             heure,
             row.doctor_name,
             row.address || 'Cabinet médical'

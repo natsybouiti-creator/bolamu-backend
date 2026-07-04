@@ -6,6 +6,7 @@ const logger = require('../config/logger');
 const { sendToUser } = require('./push.service');
 const { sendMessage } = require('./whatsapp.service');
 const { sendWhatsAppTemplate } = require('./whatsapp.service');
+const { sendAutoMessage } = require('./whatsapp-web.service');
 const { getIo } = require('./socketService');
 
 // ============================================================
@@ -249,7 +250,7 @@ async function notifyRdvConfirme(patient_phone, rdv_data) {
     ];
 
     try {
-        const ok = await sendWhatsAppTemplate(phone, 'bolamu_rdv_confirme', params);
+        const ok = await sendAutoMessage(phone, 'bolamu_rdv_confirme', params);
         await _saveWhatsAppNotif(phone, 'bolamu_rdv_confirme', { params, rdv_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
         if (!ok) {
             buildWameLink(phone, 'rdv_confirme', {
@@ -279,12 +280,12 @@ async function notifyEvenementInscription(patient_phone, event_data) {
     ];
 
     try {
-        const ok = await sendWhatsAppTemplate(phone, 'rappel_evenement', params);
-        await _saveWhatsAppNotif(phone, 'rappel_evenement', { params, event_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
+        const ok = await sendAutoMessage(phone, 'bolamu_event_rappel', params);
+        await _saveWhatsAppNotif(phone, 'bolamu_event_rappel', { params, event_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
         return ok;
     } catch (err) {
         logger.error('[WA Notif] notifyEvenementInscription:', err.message);
-        await _saveWhatsAppNotif(phone, 'rappel_evenement', { params, event_data }, 'failed');
+        await _saveWhatsAppNotif(phone, 'bolamu_event_rappel', { params, event_data }, 'failed');
         return false;
     }
 }
@@ -299,7 +300,7 @@ async function notifyClubInscription(patient_phone, club_data) {
     ];
 
     try {
-        const ok = await sendWhatsAppTemplate(phone, 'rappel_evenement', params);
+        const ok = await sendAutoMessage(phone, 'bolamu_event_rappel', params);
         await _saveWhatsAppNotif(phone, 'bolamu_club_inscription', { params, club_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
         return ok;
     } catch (err) {
@@ -328,7 +329,7 @@ async function notifyZoraAttribues(patient_phone, points, reason) {
     ];
 
     try {
-        const ok = await sendWhatsAppTemplate(phone, 'confirmation_checkin', params);
+        const ok = await sendAutoMessage(phone, 'bolamu_checkin_confirme', params);
         await _saveWhatsAppNotif(phone, 'bolamu_zora_attribues', { points, reason, solde }, ok ? 'sent' : 'failed', ok ? new Date() : null);
         return ok;
     } catch (err) {

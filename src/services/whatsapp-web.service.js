@@ -83,7 +83,7 @@ async function sendAutoMessage(phone, templateName, params) {
     if (templateName === 'bolamu_bienvenue_patient_v4') {
       message = `Bienvenue sur Bolamu, ${params[0]} !\nVotre compte patient est activé.\n\nConnectez-vous sur : https://bolamu.co\nIdentifiant : ${params[1]}\nMot de passe : ${params[2]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_rdv_confirme') {
-      message = `Votre RDV Bolamu est confirmé pour le ${params[0]} à ${params[1]}.`;
+      message = `Bonjour ${params[0]},\nVotre RDV Bolamu est confirmé.\nMédecin : Dr ${params[3]}\nDate : ${params[1]} à ${params[2]}\nLieu : ${params[4]}\nCode session : ${params[5]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_groupe_rejoint') {
       message = `Bienvenue dans le groupe ${params[0]}, ${params[1]} !\nVous faites maintenant partie de l'équipe.\nConnectez-vous sur bolamu.co pour voir le classement.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_club_bienvenue') {
@@ -95,7 +95,7 @@ async function sendAutoMessage(phone, templateName, params) {
     } else if (templateName === 'bolamu_checkin_confirme') {
       message = `Présence confirmée, ${params[0]} !\nVous avez participé à ${params[1]}.\n+${params[2]} Zora crédités sur votre compte.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_event_rappel') {
-      message = `Rappel, ${params[0]} !\nL'événement ${params[1]} commence dans 1 heure.\nLieu : ${params[2]}\n\nL'équipe Bolamu`;
+      message = `Rappel, ${params[0]} !\nL'événement ${params[1]} approche : demain à ${params[2]}.\nLieu : ${params[3]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_club_message') {
       message = `Message de votre club ${params[0]} :\n\n${params[1]}\n\nVotre animateur Bolamu`;
     } else if (templateName === 'bolamu_consultation_terminee') {
@@ -117,7 +117,7 @@ async function sendAutoMessage(phone, templateName, params) {
     } else if (templateName === 'bolamu_voucher_utilise') {
       message = `${params[0]}, votre voucher a été validé.\nRécompense : ${params[1]}\nPartenaire : ${params[2]}\n\nMerci de votre fidélité — L'équipe Bolamu`;
     } else if (templateName === 'bolamu_event_inscription') {
-      message = `Inscription confirmée ✅\nÉvénement : ${params[1]}\nDate : ${params[2]}\nLieu : ${params[3]}\nVotre code de session : ${params[4]}\nPrésentez ce code à l'animateur le jour J.\n\nL'équipe Bolamu`;
+      message = `Inscription confirmée ✅\nÉvénement : ${params[1]}\nLieu : ${params[2]}\nDate : ${params[3]}\nHeure : ${params[4]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_animateur_event_valide') {
       message = `Événement validé ✅\nAnimateur : ${params[0]}\nÉvénement : ${params[1]}\nDate : ${params[2]}\nLieu : ${params[3]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_animateur_checkins') {

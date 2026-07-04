@@ -6,7 +6,7 @@
 
 const pool = require('../config/db');
 const logger = require('../config/logger');
-const { sendWhatsAppTemplate } = require('./whatsapp.service');
+const { sendAutoMessage } = require('./whatsapp-web.service');
 const { sendToUser } = require('./push.service');
 
 /**
@@ -96,7 +96,7 @@ async function enregistrerHorsCatalogue(data) {
     // Notification patient
     const patientMessage = `Bolamu : Acte hors catalogue : ${libelle} — ${prix_plein} FCFA à régler directement au prestataire`;
     try {
-      await sendWhatsAppTemplate(patient_phone, 'bolamu_hors_catalogue_patient', [libelle, prix_plein.toString()]);
+      await sendAutoMessage(patient_phone, 'bolamu_hors_catalogue_patient', [libelle, prix_plein.toString()]);
       // TODO: supprimer sendBolamuSms après validation WhatsApp
       // await sendBolamuSms(patient_phone, patientMessage);
       await sendToUser(patient_phone, {
@@ -112,15 +112,18 @@ async function enregistrerHorsCatalogue(data) {
     // Notification RH si grand compte
     if (company_contract_id) {
       try {
+        // TODO: requête cassée — company_employees n'a pas de colonne company_contract_id
+        // ni role (FK réelle = contract_id, pas de colonne role). Feature SmartFlow RH
+        // non fonctionnelle tant que ce sujet séparé n'est pas corrigé.
         const rhCheck = await client.query(
-          `SELECT phone FROM company_employees 
+          `SELECT phone FROM company_employees
            WHERE company_contract_id = $1 AND role = 'company_rh' AND status = 'active'`,
           [company_contract_id]
         );
-        
+
         if (rhCheck.rows.length > 0) {
           const rhPhone = rhCheck.rows[0].phone;
-          await sendWhatsAppTemplate(rhPhone, 'bolamu_hors_catalogue_rh', [libelle, prix_plein.toString(), patient_phone]);
+          await sendAutoMessage(rhPhone, 'bolamu_hors_catalogue_rh', [libelle, prix_plein.toString(), patient_phone]);
           const rhMessage = `Bolamu : Hors catalogue ${libelle} — ${prix_plein} FCFA pour employé ${patient_phone}`;
           await sendToUser(rhPhone, {
             titre: 'Hors catalogue employé',

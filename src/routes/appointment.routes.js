@@ -7,7 +7,7 @@ const { normalizePhone } = require('../utils/phone');
 // --- SERVICE DE NOTIFICATION UNIFIÉ ---
 const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { awardZora } = require('../services/zora.service');
 
 // --- ROUTES ---
@@ -195,7 +195,7 @@ router.post('/book', authMiddleware, async (req, res) => {
                 // Notifications WhatsApp templates (non bloquant)
                 try {
                     // Patient
-                    sendWhatsAppTemplate(patient_phone, 'bolamu_rdv_confirme', [
+                    sendAutoMessage(patient_phone, 'bolamu_rdv_confirme', [
                         patientFirstNameAppt,
                         date,
                         time,
@@ -205,7 +205,7 @@ router.post('/book', authMiddleware, async (req, res) => {
                     ]);
                     // Médecin
                     if (doctorPhone) {
-                        sendWhatsAppTemplate(doctorPhone, 'bolamu_rdv_confirme', [
+                        sendAutoMessage(doctorPhone, 'bolamu_rdv_confirme', [
                             doctorName,
                             date,
                             time,

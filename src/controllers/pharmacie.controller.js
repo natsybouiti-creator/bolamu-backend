@@ -3,7 +3,6 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
@@ -155,11 +154,11 @@ async function updatePharmacieStatus(req, res) {
         const p = result.rows[0];
         try {
             if (status === 'verified') {
-                await sendWhatsAppTemplate(p.phone, 'bolamu_pharmacie_validee', [p.name, p.member_code]);
+                await sendAutoMessage(p.phone, 'bolamu_pharmacie_validee', [p.name, p.member_code]);
             } else if (status === 'rejected') {
-                await sendWhatsAppTemplate(p.phone, 'bolamu_pharmacie_rejetee', [p.name, reason || 'Dossier incomplet']);
+                await sendAutoMessage(p.phone, 'bolamu_pharmacie_rejetee', [p.name, reason || 'Dossier incomplet']);
             } else if (status === 'suspended') {
-                await sendWhatsAppTemplate(p.phone, 'bolamu_pharmacie_suspendue', [p.name]);
+                await sendAutoMessage(p.phone, 'bolamu_pharmacie_suspendue', [p.name]);
             }
         } catch (e) {
             logger.error('[updatePharmacieStatus] WhatsApp error:', e.message);
