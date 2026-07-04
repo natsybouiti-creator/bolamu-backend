@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { normalizePhone } = require('../utils/phone');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
@@ -182,9 +181,9 @@ router.patch('/secretaires/:phone/toggle', authMiddleware, partnerOnly, async (r
         // SMS notification
         try {
             if (newStatus) {
-                await sendWhatsAppTemplate(phone, 'bolamu_secretaire_reactive', []);
+                await sendAutoMessage(phone, 'bolamu_secretaire_reactive', []);
             } else {
-                await sendWhatsAppTemplate(phone, 'bolamu_secretaire_desactive', []);
+                await sendAutoMessage(phone, 'bolamu_secretaire_desactive', []);
             }
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // const message = newStatus ? 'Bolamu: Compte réactivé. Connectez-vous maintenant.' : 'Bolamu: Compte désactivé. Contactez votre partenaire.';

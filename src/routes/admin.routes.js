@@ -5,7 +5,6 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
 const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const { ok, err } = require('../utils/apiResponse');
 const { ROLES, PRO_ROLES } = require('../utils/constants');
@@ -228,7 +227,7 @@ router.post('/validate-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            await sendWhatsAppTemplate(phone, 'bolamu_compte_valide', [name]);
+            await sendAutoMessage(phone, 'bolamu_compte_valide', [name]);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // const msg = `Bolamu : Félicitations ${name} ! Votre dossier a été validé. Connectez-vous sur api.bolamu.co`;
             // await sendBolamuSms(phone, msg);
@@ -268,7 +267,7 @@ router.post('/reject-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            await sendWhatsAppTemplate(phone, 'bolamu_compte_rejete', [reason || 'Dossier incomplet']);
+            await sendAutoMessage(phone, 'bolamu_compte_rejete', [reason || 'Dossier incomplet']);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // const msg = `Bolamu : Votre dossier n'a pas été validé. Motif : ${reason || 'Dossier incomplet'}. Contactez le support.`;
             // await sendBolamuSms(phone, msg);
@@ -308,7 +307,7 @@ router.post('/suspend-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            await sendWhatsAppTemplate(phone, 'bolamu_compte_suspendu', [reason || 'Décision administrative']);
+            await sendAutoMessage(phone, 'bolamu_compte_suspendu', [reason || 'Décision administrative']);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // const msg = `Bolamu : Votre compte a été suspendu. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`;
             // await sendBolamuSms(phone, msg);
@@ -348,7 +347,7 @@ router.post('/ban-user', authMiddleware, adminOnly, async (req, res) => {
         }
 
         try {
-            await sendWhatsAppTemplate(phone, 'bolamu_compte_banni', [reason || 'Décision administrative']);
+            await sendAutoMessage(phone, 'bolamu_compte_banni', [reason || 'Décision administrative']);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // const msg = `Bolamu : Votre compte a été banni définitivement. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`;
             // await sendBolamuSms(phone, msg);
@@ -411,7 +410,7 @@ router.patch('/fraud/:id/suspend', authMiddleware, adminOnly, async (req, res) =
         await pool.query(`UPDATE pharmacies SET is_active = FALSE, status = 'suspended' WHERE phone = $1`, [phone]).catch(() => {});
         await pool.query(`UPDATE laboratories SET is_active = FALSE, status = 'suspended' WHERE phone = $1`, [phone]).catch(() => {});
         try { 
-            await sendWhatsAppTemplate(phone, 'bolamu_compte_suspendu_fraude', []);
+            await sendAutoMessage(phone, 'bolamu_compte_suspendu_fraude', []);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu : Votre compte a été suspendu suite à une activité suspecte détectée. Contactez le support.`); 
         } catch(e) {}
@@ -527,7 +526,7 @@ router.patch('/users/:phone/ban', authMiddleware, adminOnly, async (req, res) =>
         await pool.query(`UPDATE pharmacies SET is_active=FALSE, status='suspended' WHERE phone=$1`, [phone]).catch(() => {});
         await pool.query(`UPDATE laboratories SET is_active=FALSE, status='suspended' WHERE phone=$1`, [phone]).catch(() => {});
         try { 
-            await sendWhatsAppTemplate(phone, 'bolamu_compte_banni_admin', [reason || 'Décision administrative']);
+            await sendAutoMessage(phone, 'bolamu_compte_banni_admin', [reason || 'Décision administrative']);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu : Votre compte a été suspendu. Motif : ${reason || 'Décision administrative'}. Pour contester, contactez le support.`); 
         } catch(e) {}
@@ -550,7 +549,7 @@ router.patch('/users/:phone/unban', authMiddleware, adminOnly, async (req, res) 
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
         const u = result.rows[0];
         try { 
-            await sendWhatsAppTemplate(phone, 'bolamu_compte_reactive', []);
+            await sendAutoMessage(phone, 'bolamu_compte_reactive', []);
             // TODO: supprimer sendBolamuSms après validation WhatsApp
             // await sendBolamuSms(phone, `Bolamu : Votre compte a été réactivé. Vous pouvez vous reconnecter sur api.bolamu.co`); 
         } catch(e) {}
