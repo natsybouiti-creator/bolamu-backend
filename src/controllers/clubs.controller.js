@@ -126,6 +126,14 @@ async function joinClub(req, res) {
       // Ne pas bloquer si WhatsApp échoue
     }
 
+    // Post système automatique dans le feed réseau social (non bloquant)
+    try {
+      const feedService = require('../services/feed.service');
+      await feedService.postClubJoined(normalizedPhone, club.name);
+    } catch (feedError) {
+      console.error('[CLUBS] Erreur post feed (non bloquante):', feedError.message);
+    }
+
     res.json({ success: true, message: 'Club rejoint avec succès' });
   } catch (error) {
     await client.query('ROLLBACK');

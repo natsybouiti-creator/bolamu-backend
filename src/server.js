@@ -232,6 +232,9 @@ app.use('/api/v1',              conflictRoutes);
 app.use('/api/v1',              couponRoutes);
 app.use('/api/v1',              smartflowRoutes);
 app.use('/api/v1',              symptomsRoutes);
+app.use('/api/v1/feed',          require('./routes/feed.routes'));
+app.use('/api/v1/stories',       require('./routes/stories.routes'));
+app.use('/api/v1/follows',       require('./routes/follows.routes'));
 // ============================================================
 // 4. ROUTES WEB
 // ============================================================
@@ -349,6 +352,11 @@ const PORT = process.env.PORT || 3005;
 const { jobAbonnement } = require('./jobs/abonnement.job');
 jobAbonnement.start();
 console.log('[CRON] Job abonnement quotidien démarré (02h00 Brazzaville)');
+
+// Job cron nettoyage stories expirées — démarrage automatique
+const { jobStoriesCleanup } = require('./cron/stories-cleanup');
+jobStoriesCleanup.start();
+console.log('[CRON] Job nettoyage stories expirées démarré (toutes les heures)');
 
 // Job cron wellness — démarrage automatique
 const { startWellnessCron } = require('./jobs/wellness.cron');

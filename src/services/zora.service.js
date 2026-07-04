@@ -233,7 +233,15 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     }
     
     console.log(`[ZORA] Crédit réussi pour phone: ${phone}, action: ${action_type}, points: ${rule.points}, tier: ${newTier}`);
-    
+
+    // Post système automatique dans le feed réseau social (non bloquant)
+    try {
+      const feedService = require('./feed.service');
+      await feedService.postZoraEarned(phone, rule.points, action_type);
+    } catch (feedError) {
+      console.error('[ZORA] Erreur post feed (non bloquante):', feedError.message);
+    }
+
     return {
       success: true,
       points: rule.points,

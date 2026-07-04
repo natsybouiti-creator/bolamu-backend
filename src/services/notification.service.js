@@ -6,6 +6,32 @@ const logger = require('../config/logger');
 const { sendToUser } = require('./push.service');
 const { sendMessage } = require('./whatsapp.service');
 const { sendWhatsAppTemplate } = require('./whatsapp.service');
+const { getIo } = require('./socketService');
+
+// ============================================================
+// RÉSEAU SOCIAL — notification légère (in-app uniquement)
+// Pas de cascade WhatsApp/Push/SMS : utilisé pour les interactions
+// sociales à faible enjeu (like, commentaire, nouvel abonné).
+// ============================================================
+async function notifyLite({ user_phone, type, titre, message, link, metadata = {} }) {
+    try {
+        const result = await pool.query(`
+            INSERT INTO notifications (user_phone, type, titre, message, link, metadata, canal, is_read, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6::jsonb, 'in_app', FALSE, NOW())
+            RETURNING *
+        `, [user_phone, type, titre, message || null, link || null, JSON.stringify(metadata)]);
+
+        const io = getIo();
+        if (io) {
+            io.to(`user:${user_phone}`).emit('notification', result.rows[0]);
+        }
+
+        return result.rows[0];
+    } catch (err) {
+        logger.error('[notification.service] Erreur notifyLite:', err.message);
+        return null;
+    }
+}
 
 // Fonction centrale de notification
 async function notify(user_phone, type, data = {}) {
@@ -333,6 +359,7 @@ async function notifyVoucherGenere(patient_phone, voucher_data) {
 
 module.exports = {
     notify,
+    notifyLite,
     hasActivePushSubscription,
     notifyRdvConfirme,
     notifyEvenementInscription,

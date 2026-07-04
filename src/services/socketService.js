@@ -19,6 +19,18 @@ function initializeSocket(server) {
   io.on('connection', (socket) => {
     console.log('[Socket.io] Client connecté:', socket.id);
 
+    // Rejoindre une room personnelle (notifications réseau social : likes, commentaires, follows)
+    socket.on('authenticate', (token) => {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.join(`user:${decoded.phone}`);
+        socket.emit('authenticated', { status: 'ok' });
+      } catch (err) {
+        socket.emit('auth_error', { message: 'Token invalide' });
+      }
+    });
+
     // Rejoindre une room de conversation
     socket.on('join_conversation', (conversationId) => {
       socket.join(`conversation_${conversationId}`);

@@ -71,7 +71,7 @@ router.get('/', authMiddleware, async (req, res) => {
         const offset = (page - 1) * limit;
 
         const result = await db.query(`
-            SELECT id, type, titre, message, data, canal, is_read, sent_at, read_at, created_at
+            SELECT id, type, titre, message, link, data, canal, is_read, sent_at, read_at, created_at
             FROM notifications
             WHERE user_phone = $1
             ORDER BY created_at DESC

@@ -317,9 +317,17 @@ async function processCheckin({ token, organizer_phone }) {
         // Ne pas bloquer si WhatsApp échoue
       }
     }
-    
-    return { 
-      success: true, 
+
+    // Post système automatique dans le feed réseau social (non bloquant)
+    try {
+      const feedService = require('./feed.service');
+      await feedService.postEventCheckin(tokenData.phone, tokenData.event_title);
+    } catch (feedError) {
+      console.error('[ELONGA] Erreur post feed (non bloquante):', feedError.message);
+    }
+
+    return {
+      success: true,
       points_credited: zoraResult.success ? tokenData.zora_reward : 0
     };
     
