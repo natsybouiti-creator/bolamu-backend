@@ -150,6 +150,7 @@ async function login(req, res) {
             case 'pharmacie':   redirectUrl = '/pharmacie/dashboard.html'; break;
             case 'laboratoire': redirectUrl = '/laboratoire/dashboard.html'; break;
             case 'rh':          redirectUrl = '/rh/dashboard.html'; break;
+            case 'agent_bolamu': redirectUrl = '/agent/dashboard.html'; break;
         }
         
         return res.status(200).json({
