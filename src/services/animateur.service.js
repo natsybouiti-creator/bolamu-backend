@@ -10,7 +10,7 @@ const {
   checkinByCode,
   getEventRegistrations 
 } = require('./event.service');
-const { sendAutoMessage } = require('./whatsapp-web.service');
+const { sendAutoMessage } = require('./whatsapp.service');
 const logger = require('../config/logger');
 
 /**

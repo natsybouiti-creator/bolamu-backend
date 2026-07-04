@@ -4,8 +4,8 @@
 const pool = require('../config/db');
 const logger = require('../config/logger');
 const { sendToUser } = require('./push.service');
-const { sendMessage } = require('./whatsapp.service');
-const { sendAutoMessage } = require('./whatsapp-web.service');
+const { sendMessage } = require('./whatsapp.service.META.DEPRECATED');
+const { sendAutoMessage } = require('./whatsapp.service');
 const { getIo } = require('./socketService');
 
 // ============================================================

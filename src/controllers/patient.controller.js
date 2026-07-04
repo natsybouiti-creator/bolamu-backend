@@ -2,7 +2,7 @@
 // BOLAMU — Contrôleur Patients (Complet)
 // ============================================================
 const pool = require('../config/db');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 const bcrypt = require('bcrypt');
 const { normalizePhone } = require('../utils/phone');
 const logger = require('../config/logger');

@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 const { bhpAccessMiddleware, logAccessAttempt } = require('../middleware/bhpAccess');
-const whatsappService = require('./whatsapp-web.service');
+const whatsappService = require('./whatsapp.service');
 
 async function createOrdonnance(consultation_id, doctor_phone, items) {
   const client = await db.connect();

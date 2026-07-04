@@ -9,7 +9,7 @@ const bcrypt = require('bcrypt');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { buildWameLink } = require('../services/wame.service');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 
 if (!process.env.JWT_SECRET) {
     throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');

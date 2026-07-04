@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 const zoraService = require('./zora.service');
-const whatsappService = require('./whatsapp-web.service');
+const whatsappService = require('./whatsapp.service');
 
 async function openConsultation(doctor_phone, patient_phone, rdv_id) {
   const client = await db.connect();

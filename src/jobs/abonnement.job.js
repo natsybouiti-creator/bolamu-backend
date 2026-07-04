@@ -2,7 +2,7 @@ const cron = require('node-cron');
 const db = require('../config/db');
 const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
 const { computeWeeklyLeaderboard } = require('../services/leaderboard.service');
 

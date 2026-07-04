@@ -1,6 +1,6 @@
 const { Worker } = require('bullmq');
 const db = require('../config/db');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 const { connection } = require('../config/redis');
 
 let smsWorker = null;

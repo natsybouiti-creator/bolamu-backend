@@ -6,7 +6,7 @@
 
 const pool = require('../config/db');
 const logger = require('../config/logger');
-const { sendAutoMessage } = require('./whatsapp-web.service');
+const { sendAutoMessage } = require('./whatsapp.service');
 const { sendToUser } = require('./push.service');
 
 /**

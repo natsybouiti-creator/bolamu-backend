@@ -91,7 +91,7 @@ async function registerPatient(patient_phone, event_id) {
     
     // Notification WhatsApp (non bloquant)
     try {
-      const { notifyEventRegistration } = require('./whatsapp.service');
+      const { notifyEventRegistration } = require('./whatsapp.service.META.DEPRECATED');
       const waResult = await notifyEventRegistration(normalizedPhone, event, session_code);
       logger.info('[EVENT] WhatsApp envoyé:', JSON.stringify(waResult));
     } catch (whatsappErr) {
@@ -601,7 +601,7 @@ async function activateEvent(event_id, actor_phone) {
     
     // Notification WhatsApp (non bloquant)
     try {
-      const { sendAutoMessage } = require('./whatsapp-web.service');
+      const { sendAutoMessage } = require('./whatsapp.service');
       const userResult = await pool.query(
         `SELECT first_name, last_name FROM users WHERE phone = $1`,
         [normalizedActor]
@@ -698,7 +698,7 @@ async function completeEvent(event_id, actor_phone) {
     
     // Notification WhatsApp (non bloquant)
     try {
-      const { sendAutoMessage } = require('./whatsapp-web.service');
+      const { sendAutoMessage } = require('./whatsapp.service');
       const userResult = await pool.query(
         `SELECT first_name, last_name FROM users WHERE phone = $1`,
         [normalizedActor]

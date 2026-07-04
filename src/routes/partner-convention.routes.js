@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const pool = require('../config/db');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
 const {

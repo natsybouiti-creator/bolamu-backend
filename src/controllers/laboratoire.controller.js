@@ -3,7 +3,7 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const logger = require('../config/logger');

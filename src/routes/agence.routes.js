@@ -10,7 +10,7 @@ const { normalizePhone } = require('../utils/phone');
 const authMiddleware = require('../middleware/auth.middleware');
 const crypto = require('crypto');
 const { uploadToCloudinary } = require('../utils/cloudinary');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
 
 if (!process.env.JWT_SECRET) {

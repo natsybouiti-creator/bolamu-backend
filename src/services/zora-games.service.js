@@ -4,7 +4,7 @@
 const crypto = require('crypto');
 const pool = require('../config/db');
 const { awardZora } = require('./zora.service');
-const { sendAutoMessage } = require('./whatsapp-web.service');
+const { sendAutoMessage } = require('./whatsapp.service');
 
 /**
  * Vérifier les parties jouées aujourd'hui

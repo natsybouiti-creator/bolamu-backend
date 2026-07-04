@@ -6,7 +6,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { normalizePhone } = require('../utils/phone');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 
 // ─── RÈGLES D'ATTRIBUTION ─────────────────────────────────────────────────────
 const CREDIT_RULES = {

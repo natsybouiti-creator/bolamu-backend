@@ -7,7 +7,7 @@ const { normalizePhone } = require('../utils/phone');
 // --- SERVICE DE NOTIFICATION UNIFIÉ ---
 const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 const { awardZora } = require('../services/zora.service');
 
 // --- ROUTES ---

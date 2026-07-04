@@ -195,7 +195,7 @@ async function accessEmergencyDossier(req, res) {
       
       // Notification WhatsApp au contact d'urgence si renseigné
       if (user.contact_urgence_phone) {
-        const { sendAutoMessage } = require('../services/whatsapp-web.service');
+        const { sendAutoMessage } = require('../services/whatsapp.service');
         const now = new Date();
         const dateStr = now.toLocaleDateString('fr-FR');
         const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -267,7 +267,7 @@ async function accessEmergencyDossier(req, res) {
     
     // Notification WhatsApp pour ancien système
     if (user.contact_urgence_phone) {
-      const { sendAutoMessage } = require('../services/whatsapp-web.service');
+      const { sendAutoMessage } = require('../services/whatsapp.service');
       const now = new Date();
       const dateStr = now.toLocaleDateString('fr-FR');
       const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });

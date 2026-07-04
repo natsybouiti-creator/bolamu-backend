@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 const { awardZora } = require('../services/zora.service');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
 
 // ─── SOUMETTRE UN COMPTE RENDU DE CONSULTATION (médecin) ─────────────────

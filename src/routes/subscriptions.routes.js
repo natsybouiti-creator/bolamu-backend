@@ -8,7 +8,7 @@ const router = express.Router();
 const db = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { normalizePhone } = require('../utils/phone');
-const { sendAutoMessage } = require('../services/whatsapp-web.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 
 const VALID_PLANS = ['essentiel', 'standard', 'premium'];
 const VALID_OPERATORS = ['MTN', 'AIRTEL'];

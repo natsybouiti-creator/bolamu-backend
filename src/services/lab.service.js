@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
-const { sendAutoMessage } = require('./whatsapp-web.service');
+const { sendAutoMessage } = require('./whatsapp.service');
 
 async function getPrescriptionsEnAttente(lab_phone) {
   const normalizedPhone = normalizePhone(lab_phone);

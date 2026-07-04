@@ -5,7 +5,7 @@
 const crypto = require('crypto');
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
-const { sendAutoMessage } = require('./whatsapp-web.service');
+const { sendAutoMessage } = require('./whatsapp.service');
 
 /**
  * Génère un code UUID 8 chars uppercase

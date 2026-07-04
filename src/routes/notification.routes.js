@@ -6,8 +6,8 @@ const router = express.Router();
 const db = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { subscribe, unsubscribe } = require('../services/push.service');
-const { handleWebhook, verifyWebhook } = require('../services/whatsapp.service');
-const { sendAutoMessage, getClientStatus } = require('../services/whatsapp-web.service');
+const { handleWebhook, verifyWebhook } = require('../services/whatsapp.service.META.DEPRECATED');
+const { sendAutoMessage, getClientStatus } = require('../services/whatsapp.service');
 
 // ============================================================
 // 1. PUSH SUBSCRIPTIONS
