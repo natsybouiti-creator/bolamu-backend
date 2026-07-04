@@ -1,6 +1,6 @@
 const { Worker } = require('bullmq');
 const { sendToUser } = require('../services/push.service');
-const { sendWhatsAppTemplate } = require('../services/whatsapp.service');
+const { sendAutoMessage } = require('../services/whatsapp-web.service');
 const db = require('../config/db');
 const { connection } = require('../config/redis');
 
@@ -35,7 +35,7 @@ if (!connection) {
       const { phones, message } = payload;
       for (const phone of phones) {
         try {
-          await sendWhatsAppTemplate(phone, 'bolamu_batch_notification', [message]);
+          await sendAutoMessage(phone, 'bolamu_batch_notification', [message]);
           itemsProcessed++;
         } catch (err) {
           errorsCount++;

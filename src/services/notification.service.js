@@ -5,7 +5,6 @@ const pool = require('../config/db');
 const logger = require('../config/logger');
 const { sendToUser } = require('./push.service');
 const { sendMessage } = require('./whatsapp.service');
-const { sendWhatsAppTemplate } = require('./whatsapp.service');
 const { sendAutoMessage } = require('./whatsapp-web.service');
 const { getIo } = require('./socketService');
 
@@ -78,7 +77,7 @@ async function notify(user_phone, type, data = {}) {
         // Canal fallback : SMS uniquement si WhatsApp ET Push ont échoué
         if (sentChannels.length === 0) {
             try {
-                await sendWhatsAppTemplate(user_phone, 'bolamu_notification_fallback', [message]);
+                await sendAutoMessage(user_phone, 'bolamu_notification_fallback', [message]);
                 // TODO: supprimer sendBolamuSms après validation WhatsApp
                 // await sendBolamuSms(user_phone, message);
                 sentChannels.push('whatsapp');
