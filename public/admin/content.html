@@ -211,6 +211,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
     <button class="nav-item" id="nav-plans" data-action="show-panel" data-panel="plans"><span class="icon">💰</span> Offres & Tarifs</button>
     <button class="nav-item" id="nav-textes" data-action="show-panel" data-panel="textes"><span class="icon">✏️</span> Textes du site</button>
     <button class="nav-item" id="nav-reseaux" data-action="show-panel" data-panel="reseaux"><span class="icon">📲</span> Réseaux sociaux</button>
+    <div class="nav-section">Administration</div>
+    <button class="nav-item" id="nav-stats" data-action="show-panel" data-panel="stats"><span class="icon">📊</span> Statistiques</button>
+    <button class="nav-item" id="nav-users" data-action="show-panel" data-panel="users"><span class="icon">👥</span> Utilisateurs</button>
   </nav>
   <div class="sidebar-footer">
     <div class="admin-info">
@@ -346,6 +349,39 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
       </div>
     </div>
 
+    <!-- STATISTIQUES (lecture seule — GET /admin/stats) -->
+    <div class="panel" id="panel-stats">
+      <div class="editor-banner">
+        <div class="editor-banner-icon">📊</div>
+        <div><div class="editor-banner-title">Statistiques globales</div><div class="editor-banner-sub">Vue d'ensemble en lecture seule.</div></div>
+      </div>
+      <div id="stats-grid" class="art-stats-bar" style="grid-template-columns:repeat(4,1fr);">
+        <div class="loading-state" style="grid-column:1/-1"><div class="loading-spin"></div><span>Chargement...</span></div>
+      </div>
+    </div>
+
+    <!-- UTILISATEURS (lecture seule — GET /admin/users) -->
+    <div class="panel" id="panel-users">
+      <div class="editor-banner">
+        <div class="editor-banner-icon">👥</div>
+        <div><div class="editor-banner-title">Utilisateurs</div><div class="editor-banner-sub">Liste en lecture seule — aucune action de modération ici.</div></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:var(--noir3);">
+            <th style="padding:8px 10px;text-align:left;">Téléphone</th>
+            <th style="padding:8px 10px;text-align:left;">Nom</th>
+            <th style="padding:8px 10px;text-align:left;">Rôle</th>
+            <th style="padding:8px 10px;text-align:left;">Statut</th>
+            <th style="padding:8px 10px;text-align:left;">Créé le</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr><td colspan="5" style="padding:14px;text-align:center;opacity:.6;">Chargement...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
@@ -435,7 +471,7 @@ function hideBootBanner(){const b=document.getElementById('ed-boot-banner');if(b
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
 
-const panelTitles={articles:'Articles & Blog',vitrine:'Vitrine & Hero',plans:'Offres & Tarifs',textes:'Textes du site',reseaux:'Réseaux sociaux'};
+const panelTitles={articles:'Articles & Blog',vitrine:'Vitrine & Hero',plans:'Offres & Tarifs',textes:'Textes du site',reseaux:'Réseaux sociaux',stats:'Statistiques',users:'Utilisateurs'};
 
 function showPanel(name,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -446,7 +482,7 @@ function showPanel(name,btn){
   loadPanel(name);
 }
 function loadPanel(name){
-  const fn={articles:loadArticles,vitrine:loadVitrine,plans:loadPlans,textes:loadTextes,reseaux:loadReseaux};
+  const fn={articles:loadArticles,vitrine:loadVitrine,plans:loadPlans,textes:loadTextes,reseaux:loadReseaux,stats:loadStats,users:loadUsersList};
   if(fn[name])fn[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
@@ -465,6 +501,48 @@ function closeModal(){document.getElementById('modal').classList.remove('open');
 function logout(){localStorage.clear();window.location.replace('/admin/login.html');}
 
 function spinnerHTML(label=''){return `<div class="loading-state" style="${label?'':'grid-column:1/-1'}"><div class="loading-spin"></div><span>${label||'Chargement...'}</span></div>`;}
+
+/* ══════════════════════════════════════════
+   STATISTIQUES (lecture seule)
+══════════════════════════════════════════ */
+async function loadStats(){
+  const grid=document.getElementById('stats-grid');
+  grid.innerHTML=spinnerHTML();
+  try{
+    const res=await api('/admin/stats');
+    const d=res.data||{};
+    const u=d.users||{},rev=d.revenue||{};
+    grid.innerHTML=`
+      <div class="art-stat"><div class="art-stat-icon">🧑</div><div><div class="art-stat-val">${u.patients??'—'}</div><div class="art-stat-lbl">Patients</div></div></div>
+      <div class="art-stat"><div class="art-stat-icon">🩺</div><div><div class="art-stat-val">${u.doctors??'—'}</div><div class="art-stat-lbl">Médecins</div></div></div>
+      <div class="art-stat"><div class="art-stat-icon">💊</div><div><div class="art-stat-val">${u.pharmacies??'—'}</div><div class="art-stat-lbl">Pharmacies</div></div></div>
+      <div class="art-stat"><div class="art-stat-icon">🔬</div><div><div class="art-stat-val">${u.laboratories??'—'}</div><div class="art-stat-lbl">Laboratoires</div></div></div>
+      <div class="art-stat"><div class="art-stat-icon">✅</div><div><div class="art-stat-val">${u.active_subscriptions??'—'}</div><div class="art-stat-lbl">Abonnements actifs</div></div></div>
+      <div class="art-stat"><div class="art-stat-icon">🆕</div><div><div class="art-stat-val">${u.new_today??'—'}</div><div class="art-stat-lbl">Inscrits aujourd'hui</div></div></div>
+      <div class="art-stat"><div class="art-stat-icon">💰</div><div><div class="art-stat-val">${(rev.month??0).toLocaleString('fr-FR')}</div><div class="art-stat-lbl">Revenu FCFA (mois)</div></div></div>
+      <div class="art-stat"><div class="art-stat-icon">📈</div><div><div class="art-stat-val">${(rev.total??0).toLocaleString('fr-FR')}</div><div class="art-stat-lbl">Revenu FCFA (total)</div></div></div>`;
+  }catch(e){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;opacity:.6;padding:14px;">Erreur de chargement</div>';}
+}
+
+/* ══════════════════════════════════════════
+   UTILISATEURS (lecture seule)
+══════════════════════════════════════════ */
+async function loadUsersList(){
+  const tbody=document.getElementById('users-tbody');
+  tbody.innerHTML='<tr><td colspan="5" style="padding:14px;text-align:center;opacity:.6;">Chargement...</td></tr>';
+  try{
+    const res=await api('/admin/users');
+    const rows=res.data||[];
+    tbody.innerHTML=rows.length?rows.map(u=>`
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 10px;">${u.phone||'—'}</td>
+        <td style="padding:8px 10px;">${u.full_name||u.pro_name||'—'}</td>
+        <td style="padding:8px 10px;">${u.role||'—'}</td>
+        <td style="padding:8px 10px;">${u.banned?'Banni':(u.is_active?'Actif':'Inactif')}</td>
+        <td style="padding:8px 10px;">${u.created_at?new Date(u.created_at).toLocaleDateString('fr-FR'):'—'}</td>
+      </tr>`).join(''):'<tr><td colspan="5" style="padding:14px;text-align:center;opacity:.6;">Aucun utilisateur</td></tr>';
+  }catch(e){tbody.innerHTML='<tr><td colspan="5" style="padding:14px;text-align:center;opacity:.6;">Erreur de chargement</td></tr>';}
+}
 
 /* ══════════════════════════════════════════
    ARTICLES

@@ -28,8 +28,18 @@ function adminOrAgent(req, res, next) {
     next();
 }
 
+// Périmètre content_admin élargi (décision produit) : lecture seule sur
+// /admin/stats et /admin/users uniquement — aucune route financière, de
+// modération ou de configuration n'utilise ce garde.
+function adminOrContentAdmin(req, res, next) {
+    if (!['admin', 'content_admin'].includes(req.user?.role)) {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux administrateurs.' });
+    }
+    next();
+}
+
 // ─── STATS GLOBALES ───────────────────────────────────────────────────────────
-router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
+router.get('/stats', authMiddleware, adminOrContentAdmin, async (req, res) => {
     try {
         const [
             patients, doctors, pharmacies, laboratories,
@@ -433,7 +443,7 @@ router.patch('/fraud/:id/suspend', authMiddleware, adminOnly, async (req, res) =
 });
 
 // ─── TOUS LES UTILISATEURS ────────────────────────────────────────────────────
-router.get('/users', authMiddleware, adminOnly, async (req, res) => {
+router.get('/users', authMiddleware, adminOrContentAdmin, async (req, res) => {
     const { role, search, page = 1 } = req.query;
     const limit = 50;
     const offset = (parseInt(page) - 1) * limit;
