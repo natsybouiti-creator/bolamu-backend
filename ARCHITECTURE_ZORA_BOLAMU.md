@@ -1,4 +1,7 @@
 # ARCHITECTURE_ZORA_BOLAMU.md
+
+> ⚠️ **STATUT DE CE DOCUMENT** : ce document est une **SPÉCIFICATION CIBLE** (vision produit). Le schéma qu'il décrit (`zora_wallets` UUID, `zora_offers`, `zora_campaigns`) ne correspond pas au schéma réel en production. Le schéma réel est documenté dans `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.5 et `ARCHITECTURE_BOLAMU_OVERVIEW.md` §3.3.
+
 **Version 1.1 — Juillet 2026**
 **NBA Gestion SARLU — Bolamu Platform**
 **Statut : RÉFÉRENCE FONDATRICE — ne pas modifier sans validation PDG**

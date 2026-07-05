@@ -1,4 +1,7 @@
 # PILOTAGE BOLAMU
+
+> ⚠️ **DOCUMENT HISTORIQUE (juin 2025)** — certaines affirmations sont obsolètes : `wame.service.js` n'est pas le seul service WhatsApp (le canal actif est `whatsapp.service.js`/`sendAutoMessage()`), plusieurs noms de fichiers ne correspondent plus aux fichiers réels. Consulter `ARCHITECTURE_BOLAMU_OVERVIEW.md` pour l'état actuel.
+
 **Document de référence opérationnelle — Architecture Agents & Boucles Métier**
 *Juin 2025 — v3.0*
 
