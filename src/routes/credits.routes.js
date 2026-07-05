@@ -261,7 +261,7 @@ router.get('/partners', async (req, res) => {
 });
 
 // ─── ADMIN : TOUS LES COMPTES CRÉDITS ─────────────────────────────────────────
-router.get('/admin/all', authMiddleware, async (req, res) => {
+router.get('/admin/all', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT c.*, 
@@ -280,7 +280,7 @@ router.get('/admin/all', authMiddleware, async (req, res) => {
 });
 
 // ─── ADMIN : GÉRER LES PARTENAIRES ────────────────────────────────────────────
-router.post('/partners', authMiddleware, async (req, res) => {
+router.post('/partners', authMiddleware, adminOnly, async (req, res) => {
     const { name, category, description, discount_per_100_credits, min_credits, city, partner_phone } = req.body;
     if (!name || !category) return res.status(400).json({ success: false, message: 'name et category requis.' });
     try {
@@ -295,7 +295,7 @@ router.post('/partners', authMiddleware, async (req, res) => {
     }
 });
 
-router.patch('/partners/:id', authMiddleware, async (req, res) => {
+router.patch('/partners/:id', authMiddleware, adminOnly, async (req, res) => {
     const { id } = req.params;
     const { is_active, discount_per_100_credits } = req.body;
     try {
