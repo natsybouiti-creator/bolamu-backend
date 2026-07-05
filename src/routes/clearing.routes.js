@@ -6,7 +6,7 @@ const router = express.Router();
 const db = require('../config/db');
 const crypto = require('crypto');
 const authMiddleware = require('../middleware/auth.middleware');
-const { runClearing } = require('../scripts/clearing-mensuel');
+const { calculerReversement, validerClearing } = require('../services/billing.service');
 
 // ─── CONFIG MTN DISBURSEMENT (versements sortants) ───────────────────────────────
 const MOMO_BASE_URL = 'https://sandbox.momodeveloper.mtn.com';
@@ -144,12 +144,23 @@ async function sendAirtelPayment(momoNumber, amount, reference) {
 // ─── GET /pending ───────────────────────────────────────────────────────────────
 router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
     try {
+        // Taux CDR par type de partenaire (platform_config — jamais hardcodé).
+        // Ne s'applique qu'à pharmacie/laboratoire : le type 'partenaire' de
+        // clearing_transactions correspond aux règlements de vouchers Zora
+        // (zora-voucher.service.js), un mécanisme distinct de la CDR par
+        // abonnement (§7 ARCHITECTURE_FINANCIERE_BOLAMU.md) — pas de taux à afficher.
+        const ratesResult = await db.query(
+            `SELECT config_key, config_value FROM platform_config
+             WHERE config_key IN ('partner_rate_pharmacie', 'partner_rate_laboratoire', 'partner_rate_clinique')`
+        );
+        const rateByType = {};
+        ratesResult.rows.forEach(r => { rateByType[r.config_key.replace('partner_rate_', '')] = parseFloat(r.config_value); });
+
         const result = await db.query(
             `SELECT
                 pp.*,
                 u.full_name as partner_name,
-                pz.zone_name,
-                pz.fee_per_adherent
+                pz.zone_name
              FROM partner_payouts pp
              LEFT JOIN partner_zones pz ON pz.partner_phone = pp.partner_phone AND pz.partner_type = pp.partner_type
              LEFT JOIN users u ON u.phone = pp.partner_phone
@@ -157,11 +168,15 @@ router.get('/pending', authMiddleware, adminOnly, async (req, res) => {
              ORDER BY pp.period_start DESC, pp.partner_phone`
         );
 
-        // Détecter opérateur pour chaque payout
-        const payouts = result.rows.map(p => ({
-            ...p,
-            operator: detectOperator(p.momo_number)
-        }));
+        // Détecter opérateur + taux CDR pour chaque payout
+        const payouts = result.rows.map(p => {
+            const rate = rateByType[p.partner_type];
+            return {
+                ...p,
+                operator: detectOperator(p.momo_number),
+                taux_cdr: rate != null ? +(rate * 100).toFixed(2) : null
+            };
+        });
 
         res.json({ success: true, payouts });
     } catch (e) {
@@ -197,10 +212,60 @@ router.get('/dashboard', authMiddleware, adminOnly, async (req, res) => {
 });
 
 // ─── POST /run ───────────────────────────────────────────────────────────────────
+// Calcule et clôture les clearing_transactions pending du mois en cours par
+// partenaire, crée les partner_payouts correspondants (billing.service.js).
 router.post('/run', authMiddleware, adminOnly, async (req, res) => {
     try {
-        await runClearing();
-        res.json({ success: true, message: 'Clearing exécuté avec succès.' });
+        const now = new Date();
+        const periode = {
+            debut: new Date(now.getFullYear(), now.getMonth(), 1),
+            fin: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+        };
+
+        // partner_payouts.partner_type est un ENUM restreint à
+        // clinique/pharmacie/laboratoire (vérifié sur Neon) — le type
+        // 'partenaire' de clearing_transactions (règlements vouchers Zora,
+        // zora-voucher.service.js) ne peut pas y être inséré : mécanisme de
+        // règlement distinct, hors périmètre de ce pipeline CDR.
+        const partnersResult = await db.query(
+            `SELECT DISTINCT partner_phone, partner_type
+             FROM clearing_transactions
+             WHERE status = 'pending' AND partner_type IN ('pharmacie', 'laboratoire', 'clinique')
+             AND created_at BETWEEN $1 AND $2`,
+            [periode.debut, periode.fin]
+        );
+
+        const details = [];
+        let montant_total = 0;
+
+        for (const row of partnersResult.rows) {
+            const apercu = await calculerReversement(row.partner_phone, row.partner_type, periode);
+            if (!apercu.nb_transactions) continue;
+            const { cleared_count, total_fcfa } = await validerClearing(row.partner_phone, row.partner_type, periode);
+            if (cleared_count > 0) {
+                montant_total += total_fcfa;
+                details.push({
+                    partner_phone: row.partner_phone,
+                    partner_type: row.partner_type,
+                    nb_transactions: cleared_count,
+                    montant_fcfa: total_fcfa
+                });
+            }
+        }
+
+        await db.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, payload)
+             VALUES ('clearing.run', $1, 'partner_payouts', $2::jsonb)`,
+            [req.user.phone, JSON.stringify({ periode, partenaires_traites: details.length, montant_total, details })]
+        ).catch(() => {});
+
+        res.json({
+            success: true,
+            message: `Clearing exécuté : ${details.length} partenaire(s) traité(s), ${montant_total} FCFA au total.`,
+            partenaires_traites: details.length,
+            montant_total,
+            details
+        });
     } catch (e) {
         console.error('POST /clearing/run error:', e.message);
         res.status(500).json({ success: false, message: 'Erreur lors de l\'exécution du clearing.' });
