@@ -1102,7 +1102,7 @@ router.post('/company-contracts', authMiddleware, adminOnly, async (req, res) =>
     const reference = `BOL-B2B-${company_code}-${today}`;
 
     // Récupérer le prix du plan depuis platform_config
-    const priceKey = payment_mode === 'annual' ? `price_annual_${plan}` : `price_${plan}`;
+    const priceKey = payment_mode === 'annual' ? `price_${plan}_annual` : `price_${plan}`;
     const priceResult = await client.query(
       `SELECT config_value FROM platform_config WHERE config_key = $1`,
       [priceKey]
