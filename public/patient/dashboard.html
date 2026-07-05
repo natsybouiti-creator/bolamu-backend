@@ -1830,10 +1830,24 @@
     el.innerHTML = list.map(function (c) {
       var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
       var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
-      return '<div style="display:flex;align-items:center;gap:14px;padding:14px;background:#FAF8FF;border-radius:14px;border:1px solid #EDEDF8;">' +
-        '<div style="flex:1;"><div style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:4px;">' + esc(c.doctor_name) + '</div>' +
+      var medsHtml = '';
+      if (c.medications && c.medications.length) {
+        medsHtml = '<div style="width:100%;margin-top:8px;padding-top:8px;border-top:1px solid #EDEDF8;">' +
+          c.medications.map(function (m) {
+            // is_ssp est calculé depuis la migration_059 — les ordonnances
+            // antérieures ont is_ssp=null (jamais évalué), à ne pas confondre
+            // avec false (confirmé hors catalogue).
+            var color = m.is_ssp === true ? '#00875f' : (m.is_ssp === false ? '#BA1A1A' : '#9498a8');
+            var label = m.is_ssp === true ? 'Gratuit (SSP)' : (m.is_ssp === false ? 'À votre charge' : 'Statut non évalué');
+            return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:0.7rem;padding:2px 0;">' +
+              '<span style="color:#434654;">' + esc(m.medicament) + '</span>' +
+              '<span style="color:' + color + ';font-weight:700;">' + label + '</span></div>';
+          }).join('') + '</div>';
+      }
+      return '<div style="display:flex;align-items:center;gap:14px;padding:14px;background:#FAF8FF;border-radius:14px;border:1px solid #EDEDF8;flex-wrap:wrap;">' +
+        '<div style="flex:1;min-width:200px;"><div style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:4px;">' + esc(c.doctor_name) + '</div>' +
         '<div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#434654;margin-bottom:2px;"><span class="material-symbols-outlined" style="font-size:14px;">medical_services</span>' + esc(c.specialty) + '</div>' +
-        '<div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#434654;"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>' + esc(c.date) + '</div></div>' +
+        '<div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#434654;"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>' + esc(c.date) + '</div>' + medsHtml + '</div>' +
         '<div style="background:' + statusBg + ';color:' + statusColor + ';padding:6px 12px;border-radius:9999px;font-size:0.74rem;font-weight:700;">' + esc(c.status) + '</div></div>';
     }).join('');
   };

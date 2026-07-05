@@ -189,6 +189,29 @@ router.get('/consultations/recentes', authMiddleware, async (req, res) => {
       [phone]
     );
 
+    // Statut SSP/hors-catalogue des médicaments prescrits pendant chaque
+    // consultation — pour que le patient voie ce qui est gratuit vs à sa charge
+    // (migration_059). is_ssp est calculé une seule fois à la prescription,
+    // jamais recalculé ici.
+    const consultationIds = result.rows.map(c => c.id);
+    let itemsByConsultation = {};
+    if (consultationIds.length > 0) {
+      const itemsResult = await pool.query(
+        `SELECT o.consultation_id, oi.medicament, oi.is_ssp
+         FROM ordonnances o
+         JOIN ordonnance_items oi ON oi.ordonnance_id = o.id
+         WHERE o.consultation_id = ANY($1)`,
+        [consultationIds]
+      );
+      itemsByConsultation = itemsResult.rows.reduce((acc, row) => {
+        (acc[row.consultation_id] = acc[row.consultation_id] || []).push({
+          medicament: row.medicament,
+          is_ssp: row.is_ssp
+        });
+        return acc;
+      }, {});
+    }
+
     const consultations = result.rows.map(c => {
       const startedAt = new Date(c.started_at);
       const isPast = startedAt < now;
@@ -197,7 +220,8 @@ router.get('/consultations/recentes', authMiddleware, async (req, res) => {
         doctor_name: c.doctor_name || 'Médecin',
         specialty: c.specialty || 'Généraliste',
         date: startedAt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
-        status: isPast ? 'Terminée' : 'À venir'
+        status: isPast ? 'Terminée' : 'À venir',
+        medications: itemsByConsultation[c.id] || []
       };
     });
 

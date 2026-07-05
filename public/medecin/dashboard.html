@@ -1373,11 +1373,18 @@ async function confirmerValidation(){
     const dataPres=await resPres.json();
     if(!resPres.ok)throw new Error(dataPres.message||'Erreur ordonnance');
 
+    const sspItemsHtml=(dataPres.data?.items||[]).map(function(it){
+      const badge=it.is_ssp
+        ?'<span style="color:#00875f;font-weight:700;">Gratuit (SSP)</span>'
+        :'<span style="color:#BA1A1A;font-weight:700;">Hors catalogue — facturé au tarif de la pharmacie</span>';
+      return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:0.8rem;margin-top:4px;"><span>${it.medicament}</span>${badge}</div>`;
+    }).join('');
     document.getElementById('modal-content').innerHTML=`
       <div class="validation-success">
         <div class="success-icon"><span class="material-symbols-outlined">check_circle</span></div>
         <div class="success-title">Consultation validée !</div>
         <div class="success-sub">L'ordonnance numérique a été créée et est accessible aux pharmacies partenaires Bolamu.<br><br>Code patient : <strong style="font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:2px;">${currentRdv.sessionCode}</strong></div>
+        ${sspItemsHtml?`<div style="text-align:left;background:#F3F3FE;border-radius:12px;padding:10px 14px;margin-top:8px;">${sspItemsHtml}</div>`:''}
         <button class="btn-primary" data-action="fermer-modal-load">Fermer</button>
       </div>`;
   }catch(e){btn.disabled=false;btn.textContent='<span class="material-symbols-outlined">check_circle</span> Valider et créer l\'ordonnance';alert('Erreur : '+e.message);}
@@ -1542,7 +1549,8 @@ async function envoyerPrescriptionLabo(rdvId,patientPhone){
     if(!res.ok)throw new Error(data.message||'Erreur prescription');
     fermerModalLabo();
     const prescriptionCode=data.data?.prescription_code||'N/A';
-    alert(`<span class="material-symbols-outlined">check_circle</span> Prescription créée.\n\nCode à donner au patient : ${prescriptionCode}`);
+    const sspLabel=data.data?.is_ssp?'Gratuit (SSP)':'Hors catalogue — facturé au tarif du laboratoire';
+    alert(`Prescription créée.\n\nCode à donner au patient : ${prescriptionCode}\nStatut : ${sspLabel}`);
   }catch(e){btn.disabled=false;btn.textContent='<span class="material-symbols-outlined">science</span> Envoyer';alert('Erreur : '+e.message);}
 }
 

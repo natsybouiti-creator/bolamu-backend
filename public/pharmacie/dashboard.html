@@ -695,7 +695,11 @@ async function scanOrdonnance() {
     
     for (const med of medicationsList) {
       try {
-        const checkRes = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(med.trim())}`, {
+        // Anciennement /smartflow/medicaments/check (isSSP sans filtre type, ne
+        // matchait pas un texte libre avec posologie — ex. "Amoxicilline 500mg -
+        // 3x/jour" ne matchait jamais "Amoxicilline" du catalogue). Repointé vers
+        // /ssp-catalog/check (isSSPFreeText, migration_059) qui corrige ce bug.
+        const checkRes = await fetch(`${API}/ssp-catalog/check?nom=${encodeURIComponent(med.trim())}&type=medicament`, {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         const checkData = await checkRes.json();

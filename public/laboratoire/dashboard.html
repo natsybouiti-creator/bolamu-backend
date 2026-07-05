@@ -793,7 +793,11 @@ async function searchPrescriptionByCode() {
     
     for (const examen of examensList) {
       try {
-        const checkRes = await fetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(examen.trim())}`, {
+        // Anciennement /smartflow/medicaments/check (isSSP sans filtre type,
+        // cherchait aussi bien dans les médicaments que les examens, et ne
+        // matchait pas un texte libre). Repointé vers /ssp-catalog/check
+        // (isSSPFreeText, type=examen, migration_059).
+        const checkRes = await fetch(`${API}/ssp-catalog/check?nom=${encodeURIComponent(examen.trim())}&type=examen`, {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         const checkData = await checkRes.json();
