@@ -3,6 +3,7 @@ const logger = require('../config/logger');
 const { normalizePhone } = require('../utils/phone');
 const { buildWameLink } = require('../services/wame.service');
 const { isSSPFreeText } = require('../services/smartflow.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 
 // ─── CRÉER UNE ORDONNANCE (médecin après validation consultation) ─────────────
 async function createPrescription(req, res) {
@@ -131,6 +132,12 @@ async function getPrescriptionBySession(req, res) {
 }
 
 // ─── CONFIRMER DÉLIVRANCE (pharmacie) ────────────────────────────────────────
+// Génère un clearing_transactions à la dispensation (avant : aucun clearing
+// généré par ce circuit, contrairement à pharmacie.service.js::dispenserOrdonnance()
+// — voir ARCHITECTURE_SOINS_BOLAMU.md §3). Tarif lu depuis platform_config
+// (migration_060) : la référence dispenserOrdonnance() lisait
+// partner_zones.tarif_fcfa, colonne inexistante sur la table réelle — jamais
+// fonctionnelle, non reproduite ici.
 async function deliverPrescription(req, res) {
     const { prescription_id, pharmacie_phone, session_code } = req.body;
 
@@ -141,8 +148,9 @@ async function deliverPrescription(req, res) {
         });
     }
 
+    const client = await pool.connect();
     try {
-        const check = await pool.query(
+        const check = await client.query(
             `SELECT * FROM prescriptions WHERE id = $1`,
             [prescription_id]
         );
@@ -158,7 +166,12 @@ async function deliverPrescription(req, res) {
             });
         }
 
-        const result = await pool.query(
+        const patient_phone_delivered = check.rows[0].patient_phone;
+        const doctor_phone_delivered = check.rows[0].doctor_phone;
+
+        await client.query('BEGIN');
+
+        const result = await client.query(
             `UPDATE prescriptions
              SET status = 'delivered',
                  pharmacie_phone = $1,
@@ -168,23 +181,44 @@ async function deliverPrescription(req, res) {
             [pharmacie_phone, prescription_id]
         );
 
-        // Log audit
-        const patient_phone_delivered = check.rows[0].patient_phone;
-        await pool.query(
-            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('prescription_delivered', $1, 'prescriptions', $2, $3::jsonb)`,
-            [pharmacie_phone, prescription_id, JSON.stringify({ session_code, patient_phone: patient_phone_delivered })]
+        // Tarif clearing CDR (platform_config, jamais hardcodé)
+        const tarifRes = await client.query(
+            `SELECT config_value FROM platform_config WHERE config_key = 'tarif_clearing_pharmacie'`
+        );
+        const tarif = parseInt(tarifRes.rows[0]?.config_value, 10) || 2500;
+
+        await client.query(
+            `INSERT INTO clearing_transactions (partner_phone, partner_type, reference_id, reference_type, amount_fcfa, status)
+             VALUES ($1, 'pharmacie', $2, 'prescription', $3, 'pending')`,
+            [normalizePhone(pharmacie_phone), prescription_id, tarif]
         );
 
-        logger.info('[PRESCRIPTION] Ordonnance délivrée', { prescription_id });
+        // Log audit
+        await client.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('prescription_delivered', $1, 'prescriptions', $2, $3::jsonb)`,
+            [pharmacie_phone, prescription_id, JSON.stringify({ session_code, patient_phone: patient_phone_delivered, tarif_fcfa: tarif })]
+        );
 
-        // Notification asynchrone au patient
+        await client.query('COMMIT');
+
+        logger.info('[PRESCRIPTION] Ordonnance délivrée', { prescription_id, tarif });
+
+        // Notifications asynchrones patient + médecin (non bloquant)
         setImmediate(async () => {
             try {
-                const { notify } = require('../services/notification.service');
-                await notify(patient_phone_delivered, 'message_recu', {
-                    message: `Votre ordonnance a été délivrée. Merci d'avoir utilisé une pharmacie partenaire Bolamu.`
-                });
+                const [patientRow, pharmacieRow] = await Promise.all([
+                    pool.query(`SELECT first_name FROM users WHERE phone = $1`, [patient_phone_delivered]),
+                    pool.query(`SELECT name FROM pharmacies WHERE phone = $1`, [normalizePhone(pharmacie_phone)])
+                ]);
+                const patientName = patientRow.rows[0]?.first_name || 'Patient';
+                const pharmacieName = pharmacieRow.rows[0]?.name || 'la pharmacie';
+                const dateRecuperation = new Date().toLocaleDateString('fr-FR');
+
+                await sendAutoMessage(patient_phone_delivered, 'bolamu_ordonnance_dispensee', [patientName, pharmacieName, dateRecuperation]);
+                if (doctor_phone_delivered) {
+                    await sendAutoMessage(doctor_phone_delivered, 'bolamu_ordonnance_dispensee_medecin', [patientName, pharmacieName]);
+                }
             } catch (e) { console.error('[NOTIFY DELIVER]', e.message); }
         });
 
@@ -195,8 +229,11 @@ async function deliverPrescription(req, res) {
         });
 
     } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
         console.error('[deliverPrescription] Erreur :', error.message);
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    } finally {
+        client.release();
     }
 }
 
