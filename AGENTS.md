@@ -177,7 +177,7 @@ Un problème à la fois. Jamais de correction en masse sans accord explicite.
 **Mission :** Assurer la cohérence entre les routes backend et les appels frontend.
 **Périmètre :** Tous les fichiers routes/*.js + appels fetch frontend.
 **Routes montées (server.js) :** auth, patients, doctors, appointments, payments,
-prescriptions, pharmacies, laboratories, admin, credits, momo, airtel, telemedicine,
+prescriptions, pharmacies, laboratories, admin, credits, momo, airtel,
 qr, reports, lab, ratings, payouts, bank-transfer, clearing, collecte, conventions,
 tiers-payant, constantes-medicales, conflicts, coupons, notifications, secretariat,
 preRdv, articles, map, smartflow, ai-consult, push, admin/documents, health-records,
