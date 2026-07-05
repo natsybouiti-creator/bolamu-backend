@@ -905,68 +905,30 @@
       window.location.href = '/agence/login.html';
     }
 
-    // ─── Catalogue SSP (identique au dashboard secrétaire) ───
-    const CATALOGUE_SSP = [
-      { nom: "Paludisme simple (diagnostic + TDR + traitement ACT)", cat: "medecine", couvert: true },
-      { nom: "Infections respiratoires (rhinopharyngite, angine, sinusite, otite, bronchite)", cat: "medecine", couvert: true },
-      { nom: "Maladies diarrhéiques (gastroentérite, diarrhée aiguë)", cat: "medecine", couvert: true },
-      { nom: "Infections urinaires basses (cystite, urétrite)", cat: "medecine", couvert: true },
-      { nom: "Infections cutanées (impétigo, furoncle, gale, teigne)", cat: "medecine", couvert: true },
-      { nom: "Grippe et syndromes grippaux", cat: "medecine", couvert: true },
-      { nom: "Conjonctivite infectieuse", cat: "medecine", couvert: true },
-      { nom: "HTA — contrôle tensionnel et suivi ambulatoire", cat: "medecine", couvert: true },
-      { nom: "Diabète type 2 stable — surveillance et éducation thérapeutique", cat: "medecine", couvert: true },
-      { nom: "Asthme stable — contrôle et renouvellement traitement", cat: "medecine", couvert: true },
-      { nom: "Drépanocytose en phase stable", cat: "medecine", couvert: true },
-      { nom: "Épilepsie stable sous traitement", cat: "medecine", couvert: true },
-      { nom: "Plaies simples, sutures, pansements", cat: "medecine", couvert: true },
-      { nom: "Entorses légères", cat: "medecine", couvert: true },
-      { nom: "Brûlures superficielles limitées (moins de 5% surface corporelle)", cat: "medecine", couvert: true },
-      { nom: "Céphalées et migraines", cat: "medecine", couvert: true },
-      { nom: "Fièvre isolée", cat: "medecine", couvert: true },
-      { nom: "Troubles anxieux et dépressifs légers à modérés", cat: "medecine", couvert: true },
-      { nom: "Kinésithérapie simple post-traumatique", cat: "medecine", couvert: true },
-      { nom: "Soins palliatifs de base — gestion douleur paliers 1 et 2", cat: "medecine", couvert: true },
-      { nom: "Consultations prénatales CPN 1 à 8 (protocole OMS)", cat: "maternite", couvert: true },
-      { nom: "Dépistage prénatal (anémie, paludisme gestationnel, syphilis, VIH)", cat: "maternite", couvert: true },
-      { nom: "Consultations post-natales jusqu'à 6 semaines", cat: "maternite", couvert: true },
-      { nom: "Suivi nourrisson 0 à 5 ans (croissance, nutrition, développement)", cat: "maternite", couvert: true },
-      { nom: "Planification familiale — conseil et prescription contraceptifs", cat: "maternite", couvert: true },
-      { nom: "Dépistage HTA, diabète, VIH, hépatites, tuberculose", cat: "prevention", couvert: true },
-      { nom: "Éducation à l'hygiène (eau, assainissement, lavage des mains)", cat: "prevention", couvert: true },
-      { nom: "Sensibilisation vaccinale et orientation PEV Congo", cat: "prevention", couvert: true },
-      { nom: "Prévention paludisme (moustiquaires, conseils)", cat: "prevention", couvert: true },
-      { nom: "Artéméther + Luméfantrine (ACT) — paludisme", cat: "medicaments", couvert: true },
-      { nom: "Amoxicilline — angines, infections respiratoires et urinaires", cat: "medicaments", couvert: true },
-      { nom: "Paracétamol — douleur et fièvre", cat: "medicaments", couvert: true },
-      { nom: "Metformine et Glibenclamide — diabète", cat: "medicaments", couvert: true },
-      { nom: "Amlodipine, Énalapril, Hydrochlorothiazide — HTA", cat: "medicaments", couvert: true },
-      { nom: "Salbutamol inhalateur — asthme", cat: "medicaments", couvert: true },
-      { nom: "Sulfate ferreux + Acide folique — grossesse et anémie", cat: "medicaments", couvert: true },
-      { nom: "Sels de Réhydratation Orale (SRO)", cat: "medicaments", couvert: true },
-      { nom: "Cotrimoxazole — urinaire, prévention VIH", cat: "medicaments", couvert: true },
-      { nom: "Médicaments hors liste OMS SSP — tarif préférentiel -10 à -15%", cat: "medicaments", couvert: false },
-      { nom: "TDR Paludisme", cat: "examens", couvert: true },
-      { nom: "Numération Formule Sanguine (NFS)", cat: "examens", couvert: true },
-      { nom: "Glycémie à jeun et HbA1c", cat: "examens", couvert: true },
-      { nom: "ECBU (infections urinaires)", cat: "examens", couvert: true },
-      { nom: "TDR VIH (1 et 2)", cat: "examens", couvert: true },
-      { nom: "Antigène HBs (hépatite B)", cat: "examens", couvert: true },
-      { nom: "TPHA / VDRL (syphilis)", cat: "examens", couvert: true },
-      { nom: "Groupe sanguin et Rhésus", cat: "examens", couvert: true },
-      { nom: "Bilan lipidique (cholestérol total, LDL, HDL, triglycérides)", cat: "examens", couvert: true },
-      { nom: "Bacilloscopie BK (tuberculose)", cat: "examens", couvert: true },
-      { nom: "Scanner, IRM, sérologies spécialisées — tarif préférentiel -10 à -15%", cat: "examens", couvert: false },
-      { nom: "Chirurgie (sauf petits actes infirmiers)", cat: "hors", couvert: false },
-      { nom: "Hospitalisation longue durée (plus de 24h)", cat: "hors", couvert: false },
-      { nom: "Réanimation et soins intensifs — orienter SAMU 1515", cat: "hors", couvert: false },
-      { nom: "Accouchement — orienter maternité partenaire", cat: "hors", couvert: false },
-      { nom: "Imagerie lourde (scanner, IRM)", cat: "hors", couvert: false },
-      { nom: "Soins dentaires lourds", cat: "hors", couvert: false },
-      { nom: "Chimiothérapie et oncologie", cat: "hors", couvert: false },
-      { nom: "Psychiatrie lourde", cat: "hors", couvert: false },
-    ];
-    const CAT_LABELS = { medecine:'Médecine générale', maternite:'Maternité et Enfant', prevention:'Prévention', medicaments:'Médicaments', examens:'Examens biologiques', hors:'Hors catalogue' };
+    // ─── Catalogue SSP — chargé depuis /api/v1/ssp-catalog (source réelle
+    // ssp_catalog, identique au dashboard secrétaire). Un item present ici =
+    // couvert (gratuit) pour tout abonné actif. Tout ce qui n'y figure pas est
+    // hors catalogue, facture au tarif du partenaire (jamais de reduction
+    // Bolamu negociee). ───
+    let CATALOGUE_SSP = [];
+
+    async function loadCatalogueSSP() {
+      try {
+        const token = getToken();
+        const res = await fetch(`${API}/ssp-catalog`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+          CATALOGUE_SSP = data.data.map(item => ({
+            nom: item.nom,
+            cat: item.type,
+            categorie: item.categorie,
+            couvert: item.est_ssp
+          }));
+        }
+      } catch (e) {
+        console.error('[Catalogue SSP] Erreur chargement:', e.message);
+      }
+    }
 
     function checkMotifCoverage(value) {
       const div = document.getElementById('motif-coverage-result');
@@ -978,7 +940,7 @@
         div.textContent = "Couvert par l'abonnement Bolamu — accès libre sans avance de frais.";
       } else {
         div.className = 'motif-coverage-result hors-catalogue';
-        div.textContent = "Hors catalogue SSP — tarif préférentiel -10 à -15% applicable. Orienter vers le médecin pour devis.";
+        div.textContent = "Hors catalogue SSP — facturé au tarif du partenaire. Orienter vers le médecin pour devis.";
       }
     }
 
@@ -1042,6 +1004,7 @@
             <select id="motif-select" onchange="checkMotifCoverage(this.value)">
               <option value="">Sélectionner un motif</option>
               ${CATALOGUE_SSP.map(item => `<option value="${item.couvert}">${item.nom}</option>`).join('')}
+              <option value="false">Autre motif (non listé — hors catalogue)</option>
             </select>
             <div id="motif-coverage-result" class="motif-coverage-result"></div>
           </div>`;
@@ -1978,6 +1941,7 @@
       document.getElementById('verify-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') verifierAdherent(); });
       document.getElementById('rdv-date-agent').value = new Date().toISOString().split('T')[0];
       loadStatsGlobales();
+      loadCatalogueSSP();
     });
 
     // ─── PROTOCOLE TEST S01 ───

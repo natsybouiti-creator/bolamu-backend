@@ -909,14 +909,16 @@ async function chargerClinique() {
 
 async function chargerCatalogue() {
   try {
-    const data = await api('/smartflow/catalogue');
+    // Anciennement /smartflow/catalogue (endpoint inexistant, jamais construit) —
+    // reconnecté à /ssp-catalog, la vraie source (ssp_catalog, migration_034).
+    const data = await api('/ssp-catalog');
     if (data.success) {
       const container = document.getElementById('catalogue-list');
       const filters = document.getElementById('catalogue-filters');
       container.innerHTML = '';
       filters.innerHTML = '';
-      
-      const categories = [...new Set(data.catalogue.map(item => item.categorie))];
+
+      const categories = [...new Set(data.data.map(item => item.categorie))];
       categories.forEach(cat => {
         const btn = document.createElement('button');
         btn.className = 'px-sm py-xs bg-surface-container text-on-surface-variant rounded-full text-xs font-bold border border-outline-variant hover:bg-primary hover:text-on-primary transition-colors';
@@ -924,8 +926,8 @@ async function chargerCatalogue() {
         btn.onclick = () => filterCatalogueByCategory(cat);
         filters.appendChild(btn);
       });
-      
-      data.catalogue.forEach(item => {
+
+      data.data.forEach(item => {
         const card = document.createElement('div');
         card.className = 'bg-surface-container-low rounded-lg p-sm flex justify-between items-center';
         card.dataset.category = item.categorie;
@@ -934,7 +936,7 @@ async function chargerCatalogue() {
             <p class="font-semibold text-sm text-on-surface">${item.nom}</p>
             <p class="text-xs text-outline">${item.categorie}</p>
           </div>
-          <span class="text-xs font-bold text-primary">${item.prix || 'Gratuit'}</span>
+          <span class="text-xs font-bold text-primary">${item.est_ssp ? 'Gratuit (SSP)' : 'Hors catalogue'}</span>
         `;
         container.appendChild(card);
       });
