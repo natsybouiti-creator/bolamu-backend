@@ -16,6 +16,14 @@ const CREDIT_RULES = {
     laboratoire: { monthly: 150 }
 };
 
+// ─── ADMIN ONLY MIDDLEWARE (même pattern que payouts.routes.js / clearing.routes.js) ──
+function adminOnly(req, res, next) {
+    if (req.user?.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux administrateurs.' });
+    }
+    next();
+}
+
 // ─── OBTENIR LE SOLDE D'UN UTILISATEUR ───────────────────────────────────────
 router.get('/balance', authMiddleware, async (req, res) => {
     const phone = req.user.phone;
@@ -98,7 +106,7 @@ router.get('/balance/:phone', authMiddleware, async (req, res) => {
 });
 
 // ─── ATTRIBUTION MANUELLE (admin) ────────────────────────────────────────────
-router.post('/grant', authMiddleware, async (req, res) => {
+router.post('/grant', authMiddleware, adminOnly, async (req, res) => {
     const { phone, amount, reason } = req.body;
     if (!phone || !amount || !reason) {
         return res.status(400).json({ success: false, message: 'phone, amount, reason requis.' });
@@ -126,7 +134,7 @@ router.post('/grant', authMiddleware, async (req, res) => {
 });
 
 // ─── ATTRIBUTION AUTOMATIQUE MENSUELLE (tous les utilisateurs actifs) ─────────
-router.post('/distribute-monthly', authMiddleware, async (req, res) => {
+router.post('/distribute-monthly', authMiddleware, adminOnly, async (req, res) => {
     try {
         const results = { distributed: 0, errors: 0, details: [] };
 
