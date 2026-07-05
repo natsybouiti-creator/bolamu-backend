@@ -663,7 +663,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
         </div>
         <div class="card">
           <div style="font-size:12px;opacity:.7">
-            Abonnés actifs</div>
+            Transactions clearées</div>
           <div id="kpi-cdr-abonnes" style="font-size:24px;font-weight:700">—</div>
         </div>
       </div>
@@ -678,7 +678,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
       <table>
         <thead><tr>
           <th>Partenaire</th><th>Type</th><th>Zone</th>
-          <th>Abonnés zone</th><th>Taux CDR</th>
+          <th>Nb transactions</th><th>Taux CDR</th>
           <th>Montant FCFA</th><th>Statut</th><th>Action</th>
         </tr></thead>
         <tbody id="tbody-clearing"></tbody>
@@ -2150,15 +2150,15 @@ async function loadClearing() {
     document.getElementById('kpi-cdr-count').textContent =
       fn(rows.length);
     document.getElementById('kpi-cdr-abonnes').textContent =
-      fn(rows.reduce((sum, r) => sum + (r.nb_abonnes || 0), 0));
+      fn(rows.reduce((sum, r) => sum + (r.member_count || 0), 0));
 
     document.getElementById('tbody-clearing').innerHTML =
       rows.length ? rows.map(r => `<tr>
         <td>${r.partner_phone}</td>
         <td>${r.partner_type}</td>
-        <td>${r.zone || '—'}</td>
-        <td>${fn(r.nb_abonnes || 0)}</td>
-        <td>${r.taux_cdr || 0}%</td>
+        <td>${r.zone_name || '—'}</td>
+        <td>${fn(r.member_count || 0)}</td>
+        <td>${r.taux_cdr != null ? r.taux_cdr + '%' : '—'}</td>
         <td style="font-weight:600">${fn(r.amount_fcfa || 0)} FCFA</td>
         <td>${badge(r.status || 'en_attente')}</td>
         <td><button data-onclick="marquerVerse" data-arg="${r.id}">
@@ -2177,8 +2177,8 @@ async function lancerClearing() {
     'Cette opération génère les lignes de versement ' +
     'pour tous les partenaires actifs.')) return;
   try {
-    await api('/clearing/run', { method: 'POST' });
-    toast('Calcul CDR lancé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> — rechargement dans 3s');
+    const d = await api('/clearing/run', { method: 'POST' });
+    toast(`<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> ${d.partenaires_traites||0} partenaire(s) traité(s), ${fn(d.montant_total||0)} FCFA — rechargement dans 3s`);
     setTimeout(loadClearing, 3000);
   } catch(e) { toast('Erreur calcul CDR', 'error'); }
 }
