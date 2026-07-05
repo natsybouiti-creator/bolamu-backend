@@ -179,9 +179,9 @@ router.post('/souscrire', requireAgent, async (req, res) => {
       const memberCode = `BLM-${String(codeRes.rows[0].next).padStart(5, '0')}`;
       const fullName = `${prenom || ''} ${nom || ''}`.trim() || patient_phone;
       await client.query(
-        `INSERT INTO users (phone, full_name, first_name, last_name, role, is_active, statut_abonnement, member_code)
-         VALUES ($1, $2, $3, $4, 'patient', true, 'en_attente', $5)`,
-        [patient_phone, fullName, prenom || null, nom || null, memberCode]
+        `INSERT INTO users (phone, full_name, first_name, last_name, role, is_active, statut_abonnement, member_code, agent_phone)
+         VALUES ($1, $2, $3, $4, 'patient', true, 'en_attente', $5, $6)`,
+        [patient_phone, fullName, prenom || null, nom || null, memberCode, normalizePhone(req.user.phone)]
       );
     }
 
@@ -335,13 +335,14 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
           (phone, full_name, first_name, last_name, date_of_birth, gender, city, address,
            role, is_active, statut_abonnement, member_code,
            doc_type, doc_numero, niu, rib, email, cgu_accepted_at, created_by, created_at, updated_at,
-           password_hash, photo_url, temp_password_must_change, proche_number)
+           password_hash, photo_url, temp_password_must_change, proche_number, agent_phone)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'patient', true, 'en_attente', $9,
           $10, $11, $12, $13, $14, $15, $16, NOW(), NOW(),
-          $17, $18, true, $19)`,
+          $17, $18, true, $19, $20)`,
         [phone, fullName, prenom, nom, dob, genre, ville, adresse || null,
          memberCode, docType || null, docNumero || null, niu || null, rib || null, email || null,
-         cguAcceptedAt || null, created_by || null, hashedPassword, photoUrl, proche_number || null]
+         cguAcceptedAt || null, created_by || null, hashedPassword, photoUrl, proche_number || null,
+         normalizePhone(req.user.phone)]
       );
     } else {
       // Patient existant : mettre à jour les informations
@@ -585,9 +586,9 @@ router.post('/import-employes', requireAgent, async (req, res) => {
           const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
           await client.query(
-            `INSERT INTO users (phone, full_name, first_name, last_name, role, is_active, statut_abonnement, member_code, password_hash, temp_password_must_change)
-             VALUES ($1, $2, $3, $4, 'patient', true, 'en_attente', $5, $6, true)`,
-            [phone, fullName, prenom, nom, memberCode, hashedPassword]
+            `INSERT INTO users (phone, full_name, first_name, last_name, role, is_active, statut_abonnement, member_code, password_hash, temp_password_must_change, agent_phone)
+             VALUES ($1, $2, $3, $4, 'patient', true, 'en_attente', $5, $6, true, $7)`,
+            [phone, fullName, prenom, nom, memberCode, hashedPassword, normalizePhone(req.user.phone)]
           );
         } else {
           memberCode = existing.rows[0].member_code;
