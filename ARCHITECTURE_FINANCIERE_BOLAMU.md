@@ -69,6 +69,155 @@ Remise partenaire (tiers payant) appliquée directement au point de soin pharmac
 
 ---
 
+## 2bis. Clearing par zone — spécification cible (à construire)
+
+**⚠️ Distinction avec §2** : le §2 documente l'état constaté (stub vide, service orphelin).
+Cette section documente le **comportement cible voulu**, qui remplace entièrement le
+mécanisme actuel une fois construit. Rien ci-dessous n'existe encore dans le code.
+
+### Principe métier
+Chaque abonné et chaque partenaire est rattaché à une **zone géographique** (ex.
+BZV-A1 Moungali, PNR-A1 Lumumba — zonage stratégique défini en amont, 5 zones
+Brazzaville / 4 zones Pointe-Noire). Chaque mois :
+1. Prélèvement des abonnés patients : du 1er au 5.
+2. Agrégation du nombre d'abonnés actifs par zone à la date de clôture (le 5).
+3. Répartition du montant CDR de chaque zone entre les partenaires qui y sont
+   rattachés, selon les taux déjà en vigueur (30% clinique / 12,5% pharmacie /
+   7,5% laboratoire, `platform_config` — voir §7), **indépendamment du nombre de
+   consultations réalisées** par le partenaire.
+4. Virement bancaire déclenché avant le 5 du mois, avec preuve conservée.
+
+### Base de données
+
+**Table `zones` (nouvelle)**
+```sql
+CREATE TABLE zones (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(20) UNIQUE NOT NULL,      -- ex. 'BZV-A1', 'PNR-A1'
+  ville VARCHAR(50) NOT NULL,             -- 'Brazzaville' | 'Pointe-Noire'
+  nom VARCHAR(100) NOT NULL,              -- 'Moungali', 'Lumumba'
+  phase VARCHAR(10) DEFAULT 'P1',         -- P1/P2, aligné sur le zonage stratégique
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**Colonnes à ajouter**
+- `users.zone_id` (FK → `zones.id`, NULL autorisé tant que non renseigné)
+  — déclarée par le patient à l'onboarding (quartier de résidence).
+- `doctors.zone_id`, `pharmacies.zone_id`, `laboratories.zone_id` (FK → `zones.id`,
+  NOT NULL pour un partenaire validé — impossible d'activer un partenaire sans zone).
+
+**Coordonnées bancaires partenaires (nouvelle table, séparée pour isolement sécurité —
+voir `ARCHITECTURE_SECURITE_REGLEMENTAIRE_BOLAMU.md` pour le chiffrement requis)**
+```sql
+CREATE TABLE partner_bank_accounts (
+  id SERIAL PRIMARY KEY,
+  partner_type VARCHAR(20) NOT NULL,      -- 'pharmacie' | 'laboratoire' | 'clinique'
+  partner_phone VARCHAR(20) NOT NULL,     -- FK logique vers doctors/pharmacies/laboratories
+  titulaire_compte VARCHAR(200) NOT NULL,
+  iban_encrypted TEXT NOT NULL,           -- RIB/IBAN chiffré au repos (pgcrypto ou
+                                           -- chiffrement applicatif — jamais en clair)
+  banque VARCHAR(100) NOT NULL,
+  document_rib_url TEXT,                  -- scan RIB/attestation bancaire (Cloudinary)
+  is_verified BOOLEAN DEFAULT FALSE,      -- validé par admin avant tout virement
+  verified_by VARCHAR(20),
+  verified_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**Table des lots de virement mensuel (nouvelle, remplace la logique manquante de §2)**
+```sql
+CREATE TABLE virements_zone (
+  id SERIAL PRIMARY KEY,
+  periode VARCHAR(7) NOT NULL,            -- '2026-07'
+  zone_id INTEGER REFERENCES zones(id),
+  partner_type VARCHAR(20) NOT NULL,
+  partner_phone VARCHAR(20) NOT NULL,
+  nb_abonnes_zone INTEGER NOT NULL,        -- base de calcul, figée au moment du calcul
+  montant_du INTEGER NOT NULL,             -- FCFA, calculé depuis le taux CDR
+  statut VARCHAR(20) DEFAULT 'calcule',    -- calcule → pret → valide → vire → echoue
+  reference_virement VARCHAR(100),         -- référence bancaire une fois exécuté
+  preuve_url TEXT,                         -- reçu/preuve de virement (Cloudinary)
+  date_limite DATE NOT NULL,               -- le 5 du mois concerné
+  date_execution TIMESTAMP,
+  executed_by VARCHAR(20),                 -- admin qui a validé l'exécution
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(periode, zone_id, partner_phone)
+);
+```
+
+### Backend
+
+**Onboarding partenaire (extension du flux existant)** — au moment de l'inscription
+partenaire (agent ou auto-inscription), ajout obligatoire avant validation admin :
+- Sélection de la zone de rattachement (liste des `zones` actives).
+- Upload du RIB/document bancaire (`document_rib_url`).
+- INSERT `partner_bank_accounts` (`is_verified=FALSE` par défaut).
+- Un partenaire ne peut passer `is_active=TRUE` que si `zone_id` ET un
+  `partner_bank_accounts.is_verified=TRUE` existent — contrainte applicative à
+  ajouter au workflow de validation admin déjà documenté dans `ARCHITECTURE_RBAC_GLOBAL_BOLAMU.md`.
+
+**Onboarding patient (extension du flux existant)** — à l'inscription, champ
+obligatoire "quartier / zone de rattachement" (liste déroulante des `zones` actives
+de sa ville) → `users.zone_id`.
+
+**Job mensuel `calculerVirementsZone(periode)`** (remplace `runClearing()` stub) :
+1. Pour chaque zone active : `COUNT(users WHERE zone_id=X AND subscriptions actives)`.
+2. Calcule le montant CDR total de la zone (nb abonnés × prix plan moyen × taux CDR global).
+3. Répartit entre les partenaires vérifiés de la zone selon leur type (30/12,5/7,5%).
+4. INSERT `virements_zone` (`statut='calcule'`), génère le fichier de virement groupé
+   (format attendu par Ecobank Omni — à confirmer avec la banque) + preuve pré-remplie.
+5. Passe `statut='pret'`, notifie l'admin (WhatsApp) que le lot est prêt à valider.
+
+**Déclencheur** : cron le 1er du mois (calcul), deadline le 5 (exécution) —
+`ENABLE_CLEARING_ZONE_CRON` (variable d'environnement, cohérent avec le pattern
+`ENABLE_WELLNESS_CRON` déjà existant).
+
+**Exécution du virement — palier explicite selon confirmation bancaire** :
+- **Palier 1 (immédiat, sans dépendance API)** : `POST /virements-zone/:id/executer`
+  (admin) — le fichier de virement groupé est déjà généré automatiquement à l'étape
+  précédente ; l'admin l'exécute manuellement dans Ecobank Omni puis confirme dans
+  Bolamu (upload preuve, `statut='vire'`). Le calcul, la préparation et la preuve
+  sont 100% automatiques ; seule l'exécution bancaire elle-même reste un geste humain.
+- **Palier 2 (si Ecobank confirme un accès API/host-to-host)** : le même endpoint
+  appelle directement l'API de virement, récupère la référence et la preuve
+  automatiquement, sans intervention admin — à activer dès confirmation bancaire,
+  sans changement de schéma.
+
+**Sécurité** : `partner_bank_accounts.iban_encrypted` jamais retourné en clair par
+aucun endpoint sauf au moment de la génération du fichier de virement (accès admin
+uniquement) ; chaque accès à ce champ loggé dans `audit_log` (cohérent avec la
+politique documentée dans `ARCHITECTURE_SECURITE_REGLEMENTAIRE_BOLAMU.md` §5).
+
+### Frontend
+
+**Onboarding patient** (`register.html`) : ajout d'un champ "Zone / quartier"
+(liste déroulante dépendante de la ville sélectionnée).
+
+**Onboarding partenaire** (formulaire d'inscription partenaire, via agent ou
+auto-inscription) : ajout zone de rattachement + upload RIB/document bancaire,
+avec message clair indiquant que ces informations conditionnent le versement mensuel.
+
+**Admin — nouvelle section "Clearing par zone"** (`admin/dashboard.html`) :
+tableau des lots `virements_zone` du mois (zone, partenaire, montant, statut),
+bouton "Exécuter" (Palier 1) ou statut auto (Palier 2), upload de preuve,
+export du fichier de virement groupé.
+
+**Partenaire — section "Mes versements"** (nouvelle, sur chaque dashboard partenaire
+concerné) : historique des `virements_zone` le concernant, statut, preuve téléchargeable.
+
+### Points de vigilance de cette spec (à trancher avant construction)
+- Confirmer avec Ecobank si un accès API/host-to-host existe réellement pour NBA
+  Gestion SARLU (détermine si Palier 2 est atteignable à court terme).
+- Format exact du fichier de virement groupé attendu par Ecobank Omni (CSV ? MT101 ?
+  format propriétaire ?) — à obtenir du conseiller bancaire.
+- Politique en cas d'abonnés insuffisants dans une zone (montant CDR trop faible ou
+  nul un mois donné) — pas de règle définie à ce jour.
+
+---
+
 ## 3. Remise partenaire (ex tiers-payant)
 
 **Base de données** : `transactions_remise_partenaire` (renommée de `transactions_tiers_payant`, migration_054), `partner_conventions` (préexistante, migration_005).
