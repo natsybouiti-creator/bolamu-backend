@@ -1370,11 +1370,10 @@ router.patch('/doctors/:phone/rehabilitate', authMiddleware, adminOnly, async (r
 });
 
 // ============================================================
-// DIAGNOSTIC TEMPORAIRE — À SUPPRIMER APRÈS TEST
+// DIAGNOSTIC WHATSAPP (Meta legacy)
+// TODO: migrer vers diagnostic WAHA quand implémenté — Meta API
+// abandonnée (whatsapp.service.META.DEPRECATED.js)
 // ============================================================
-
-// Clé secrète temporaire pour diagnostic (à retirer après test)
-const DIAG_KEY = 'BOLAMU_DIAG_2024_XK9M2P4Q7R';
 
 // GET : Tester validité token
 router.get('/diagnostics/whatsapp-token', authMiddleware, adminOnly, async (req, res) => {
@@ -1427,15 +1426,9 @@ router.get('/diagnostics/whatsapp-token', authMiddleware, adminOnly, async (req,
     }
 });
 
-// POST : Envoyer message test WhatsApp (avec clé secrète query string)
-router.post('/diagnostics/whatsapp-send-test', async (req, res) => {
+// POST : Envoyer message test WhatsApp
+router.post('/diagnostics/whatsapp-send-test', authMiddleware, adminOnly, async (req, res) => {
     try {
-        const { diag_key } = req.query;
-
-        if (diag_key !== DIAG_KEY) {
-            return res.status(403).json({ success: false, message: 'Clé diagnostique invalide' });
-        }
-
         const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
         const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
