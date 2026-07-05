@@ -736,6 +736,12 @@
                 <option value="virement">Virement</option>
               </select>
             </div>
+            <div class="form-group">
+              <label>Contrat entreprise (optionnel)</label>
+              <select id="import-contract-select">
+                <option value="">Aucun — patients individuels</option>
+              </select>
+            </div>
             <button class="btn-primary" id="btn-import-employes-preview">Importer un fichier Excel / CSV</button>
 
             <!-- Preview -->
@@ -1809,6 +1815,20 @@
     // ─── Import employés en masse ───
     let importEmployesData = [];
 
+    async function loadContractsForImport() {
+      try {
+        const res = await fetch(`${API}/admin/company-contracts`, {
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+        const data = await res.json();
+        const sel = document.getElementById('import-contract-select');
+        if (sel && data.success && data.data) {
+          sel.innerHTML = '<option value="">Aucun — patients individuels</option>' +
+            data.data.map(c => `<option value="${c.id}">${c.company_name}</option>`).join('');
+        }
+      } catch (e) { /* non bloquant — le sélecteur reste sur "Aucun" */ }
+    }
+
     function normalizePhone(phone) {
       const digits = phone.replace(/\D/g, '');
       if (digits.length === 10 && digits.startsWith('0')) {
@@ -1913,10 +1933,11 @@
       }
 
       try {
+        const contractId = document.getElementById('import-contract-select').value || undefined;
         const res = await fetch(`${API}/agence/import-employes`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-          body: JSON.stringify({ employes: importEmployesData })
+          body: JSON.stringify({ employes: importEmployesData, contract_id: contractId })
         });
         const data = await res.json();
         if (data.success) {
@@ -1942,6 +1963,7 @@
       document.getElementById('rdv-date-agent').value = new Date().toISOString().split('T')[0];
       loadStatsGlobales();
       loadCatalogueSSP();
+      loadContractsForImport();
     });
 
     // ─── PROTOCOLE TEST S01 ───
