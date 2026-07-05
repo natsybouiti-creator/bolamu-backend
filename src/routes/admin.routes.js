@@ -892,34 +892,76 @@ router.get('/credits', authMiddleware, adminOnly, async (req, res) => {
 });
 // POST /admin/subscriptions/activate
 router.post('/subscriptions/activate', authMiddleware, adminOnly, async (req, res) => {
+  const phone = normalizePhone(req.body.phone || '');
+  const { plan, billing = 'monthly', notes } = req.body;
+  if (!phone || !plan) {
+    return res.status(400).json({ success: false, message: 'phone et plan requis.' });
+  }
+  if (!['essentiel', 'standard', 'premium'].includes(plan)) {
+    return res.status(400).json({ success: false, message: 'Plan invalide.' });
+  }
+
+  const client = await pool.connect();
   try {
-    const adminCheck = await pool.query(`SELECT * FROM users WHERE phone = $1 AND role = 'admin'`, [req.user.phone]);
-    if (!adminCheck.rows.length) return res.status(403).json({ success: false, message: 'Accès refusé' });
-    const { phone, plan, billing = 'monthly', notes } = req.body;
+    const userCheck = await client.query(`SELECT id FROM users WHERE phone = $1`, [phone]);
+    if (!userCheck.rows.length) {
+      return res.status(404).json({ success: false, message: 'Patient introuvable.' });
+    }
+
     // Récupérer les tarifs depuis platform_config
     const configKey = billing === 'annual' ? `price_${plan}_annual` : `price_${plan}`;
-    const configRes = await db.query(
+    const configRes = await client.query(
         `SELECT config_value FROM platform_config WHERE config_key = $1`,
         [configKey]
     );
     if (!configRes.rows.length) {
-        return res.status(400).json({ success: false, message: 'Plan invalide.' });
+        return res.status(400).json({ success: false, message: 'Tarif introuvable pour ce plan.' });
     }
     const amount = parseInt(configRes.rows[0].config_value);
     const startDate = new Date();
     const endDate = new Date();
     billing === 'annual' ? endDate.setFullYear(endDate.getFullYear()+1) : endDate.setMonth(endDate.getMonth()+1);
-    await db.query(
+
+    await client.query('BEGIN');
+
+    // Pas de contrainte UNIQUE sur patient_phone (vérifié sur Neon — seule PK sur id) :
+    // désactiver l'abonnement actif existant plutôt qu'un ON CONFLICT invalide.
+    await client.query(
+      `UPDATE subscriptions SET is_active=FALSE, status='expired', updated_at=NOW()
+       WHERE patient_phone=$1 AND is_active=TRUE`,
+      [phone]
+    );
+
+    const subRes = await client.query(
       `INSERT INTO subscriptions (patient_phone, plan, status, amount_fcfa, started_at, expires_at, activated_by, notes)
        VALUES ($1,$2,'active',$3,$4,$5,'admin',$6)
-       ON CONFLICT (patient_phone) DO UPDATE SET plan=EXCLUDED.plan, status='active', amount_fcfa=EXCLUDED.amount_fcfa,
-       started_at=EXCLUDED.started_at, expires_at=EXCLUDED.expires_at, activated_by='admin', notes=EXCLUDED.notes, updated_at=NOW()`,
+       RETURNING id`,
       [phone, plan, amount, startDate, endDate, notes||null]
     );
-    await db.query(`UPDATE users SET is_active=TRUE, updated_at=NOW() WHERE phone=$1`, [phone]);
-    await db.query(`INSERT INTO audit_log (event_type, actor_phone, target_table) VALUES ('subscription_manual_activation',$1,'subscriptions')`, [req.user.phone]);
+    const subscriptionId = subRes.rows[0].id;
+
+    await client.query(`UPDATE users SET is_active=TRUE, updated_at=NOW() WHERE phone=$1`, [phone]);
+
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('subscription_manual_activation', $1, 'subscriptions', $2, $3::jsonb)`,
+      [req.user.phone, subscriptionId, JSON.stringify({ patient_phone: phone, plan, billing, amount })]
+    );
+
+    await client.query('COMMIT');
+
+    try {
+      await sendAutoMessage(phone, 'bolamu_abonnement_active', [plan]);
+    } catch (_) { /* non bloquant */ }
+
     res.json({ success:true, message:`Abonnement ${plan} activé pour ${phone}`, expires_at:endDate });
-  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+  } catch(e) {
+    await client.query('ROLLBACK');
+    console.error('[admin/subscriptions/activate]', e.message);
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  } finally {
+    client.release();
+  }
 });
 
 // ─── MIGRATION DOCUMENTS VERS NOUVELLE TABLE DOCUMENTS ───────────────────────
