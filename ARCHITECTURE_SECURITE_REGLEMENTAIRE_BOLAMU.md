@@ -144,7 +144,7 @@ Le `.env` réel en production (vu précédemment dans le cadre du travail sur ce
 5. **Injection SQL potentielle (CVSS 7.8)** — `docs/SECURITY-SQL-AUDIT.md` conclut à une base saine : recherche exhaustive de concaténation de chaînes dans les requêtes SQL, **aucune vulnérabilité trouvée**, 100% des requêtes auditées utilisent des placeholders paramétrés (`$1, $2...`).
 6. **Job cron facturation qui plantait à 500 abonnés (CVSS 7.5)**.
 
-Statut déclaré à l'issue du sprint : « prêt pour lancement commercial ». Ce sprint date du 20 mai 2026 — il ne couvre pas les anomalies plus récentes documentées dans les autres documents d'architecture de cette passe, qui restent à traiter séparément. Une de ces anomalies (`POST /credits/grant`/`POST /credits/distribute-monthly` sans contrôle de rôle admin, relevée dans `ARCHITECTURE_FINANCIERE_BOLAMU.md` §6) a depuis été corrigée hors du périmètre documentaire de cette passe (`fix(security): controle role admin sur credits grant/distribute-monthly`).
+Statut déclaré à l'issue du sprint : « prêt pour lancement commercial ». Ce sprint date du 20 mai 2026 — il ne couvre pas les anomalies plus récentes documentées dans les autres documents d'architecture de cette passe, qui restent à traiter séparément. Une de ces anomalies (5 routes de `src/routes/credits.routes.js` sans contrôle de rôle admin — `grant`, `distribute-monthly`, `admin/all`, `partners` POST/PATCH — relevée dans `ARCHITECTURE_FINANCIERE_BOLAMU.md` §6) a depuis été corrigée en deux temps, hors du périmètre documentaire de cette passe (`fix(security): controle role admin sur credits grant/distribute-monthly` puis `fix(security): controle role admin sur credits admin/all, partners create/update`).
 
 ---
 
