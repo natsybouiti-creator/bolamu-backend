@@ -18,6 +18,16 @@ function adminOnly(req, res, next) {
     next();
 }
 
+// Lecture seule des contrats entreprise ouverte aussi à l'agent terrain
+// (sélecteur de contrat lors de l'import employés, agence.routes.js) —
+// n'autorise que la consultation, jamais création/modification/suppression.
+function adminOrAgent(req, res, next) {
+    if (!['admin', 'agent_bolamu'].includes(req.user?.role)) {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux administrateurs et agents.' });
+    }
+    next();
+}
+
 // ─── STATS GLOBALES ───────────────────────────────────────────────────────────
 router.get('/stats', authMiddleware, adminOnly, async (req, res) => {
     try {
@@ -1187,7 +1197,7 @@ router.post('/company-contracts', authMiddleware, adminOnly, async (req, res) =>
  * GET /api/v1/admin/company-contracts
  * Lister tous les contrats entreprise
  */
-router.get('/company-contracts', authMiddleware, adminOnly, async (req, res) => {
+router.get('/company-contracts', authMiddleware, adminOrAgent, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT cc.*, ba.account_id as destination_account_id, ba.provider_name as destination_account_name
