@@ -146,15 +146,4 @@ authMiddleware.requireDoctor = (req, res, next) => {
     next();
 };
 
-// 6. Middleware pour les actions sensibles (Seulement l'Admin Principal)
-authMiddleware.requireOpsAdmin = (req, res, next) => {
-    if (!req.user || req.user.role !== 'admin') {
-        return res.status(403).json({ 
-            success: false, 
-            message: "Action réservée à l'administrateur opérationnel principal." 
-        });
-    }
-    next();
-};
-
 module.exports = authMiddleware;
