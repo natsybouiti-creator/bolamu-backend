@@ -986,14 +986,14 @@ function ouvrirValidation(rdvId,patientPhone,sessionCode,date,time,symptomesMoti
   currentRdv={rdvId,patientPhone,sessionCode,date,time,symptomesMotif};
   _currentPatientPhone = patientPhone;
   consultationStartTime=Date.now();
-  fetch(`${API}/consultations/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({patient_phone:patientPhone,rdv_id:rdvId})}).catch(()=>{});
+  fetch(`${API}/consultations/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({patient_phone:patientPhone,appointment_id:rdvId})}).catch(()=>{});
   afficherEtapeCode();
   document.getElementById('modal-validation').classList.add('open');
 }
 
 async function ouvrirConsultation(patientPhone,rdvId){
   try{
-    const res=await fetch(`${API}/consultations/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({patient_phone:patientPhone,rdv_id:rdvId})});
+    const res=await fetch(`${API}/consultations/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({patient_phone:patientPhone,appointment_id:rdvId})});
     const data=await res.json();
     if(!res.ok)throw new Error(data.message||'Erreur ouverture consultation');
     loadFileAttente();

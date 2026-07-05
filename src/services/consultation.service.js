@@ -3,7 +3,7 @@ const { normalizePhone } = require('../utils/phone');
 const zoraService = require('./zora.service');
 const whatsappService = require('./whatsapp.service');
 
-async function openConsultation(doctor_phone, patient_phone, rdv_id) {
+async function openConsultation(doctor_phone, patient_phone, appointment_id) {
   const client = await db.connect();
   try {
     await client.query('BEGIN');
@@ -13,7 +13,7 @@ async function openConsultation(doctor_phone, patient_phone, rdv_id) {
 
     // Vérifier abonnement actif
     const subResult = await client.query(
-      `SELECT is_active FROM subscriptions 
+      `SELECT is_active FROM subscriptions
        WHERE patient_phone = $1 AND is_active = true`,
       [normalizedPatient]
     );
@@ -25,23 +25,14 @@ async function openConsultation(doctor_phone, patient_phone, rdv_id) {
 
     // Créer consultation
     const consultResult = await client.query(
-      `INSERT INTO consultations 
-       (patient_phone, doctor_phone, rdv_id, status)
+      `INSERT INTO consultations
+       (patient_phone, doctor_phone, appointment_id, status)
        VALUES ($1, $2, $3, 'open')
        RETURNING id`,
-      [normalizedPatient, normalizedDoctor, rdv_id]
+      [normalizedPatient, normalizedDoctor, appointment_id]
     );
 
     const consultation_id = consultResult.rows[0].id;
-
-    // Mettre à jour rendez_vous
-    if (rdv_id) {
-      await client.query(
-        `UPDATE rendez_vous SET status = 'in_progress' 
-         WHERE id = $1`,
-        [rdv_id]
-      );
-    }
 
     // Mettre à jour file_attente
     await client.query(

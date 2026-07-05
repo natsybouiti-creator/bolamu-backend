@@ -3,13 +3,13 @@ const { bhpAccessMiddleware } = require('../middleware/bhpAccess');
 
 async function openConsultation(req, res) {
   try {
-    const { patient_phone, rdv_id } = req.body;
+    const { patient_phone, appointment_id } = req.body;
     const doctor_phone = req.user.phone;
 
     const result = await consultationService.openConsultation(
       doctor_phone,
       patient_phone,
-      rdv_id
+      appointment_id
     );
 
     res.json({ success: true, data: result });

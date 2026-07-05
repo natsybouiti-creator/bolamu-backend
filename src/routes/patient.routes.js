@@ -195,18 +195,16 @@ router.get('/consultations/recentes', authMiddleware, async (req, res) => {
     // jamais recalculé ici.
     // Système A (prescriptions) est désormais canonique — ordonnances/
     // ordonnance_items ne sont plus alimentées par le médecin (voir
-    // ARCHITECTURE_SOINS_BOLAMU.md §3). Jointure via consultations.rdv_id =
-    // prescriptions.appointment_id : les deux reçoivent la même valeur
-    // (currentRdv.rdvId) depuis le frontend médecin à la création — seule clé
-    // de liaison disponible tant que le bug FK consultations→rendez_vous
-    // (ARCHITECTURE_SOINS_BOLAMU.md §1) n'est pas corrigé séparément.
+    // ARCHITECTURE_SOINS_BOLAMU.md §3). Jointure via consultations.appointment_id =
+    // prescriptions.appointment_id (migration_061 — les deux référencent
+    // désormais appointments(id) sémantiquement, plus par coïncidence).
     const consultationIds = result.rows.map(c => c.id);
     let itemsByConsultation = {};
     if (consultationIds.length > 0) {
       const itemsResult = await pool.query(
         `SELECT c.id AS consultation_id, p.medications, p.is_ssp
          FROM consultations c
-         JOIN prescriptions p ON p.appointment_id = c.rdv_id
+         JOIN prescriptions p ON p.appointment_id = c.appointment_id
          WHERE c.id = ANY($1)`,
         [consultationIds]
       );
