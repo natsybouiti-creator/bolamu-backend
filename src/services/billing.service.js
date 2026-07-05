@@ -30,33 +30,45 @@ async function calculerReversement(partner_phone, partner_type, periode) {
   }
 }
 
-async function validerClearing(partner_phone, periode) {
+async function validerClearing(partner_phone, partner_type, periode) {
   const normalizedPhone = normalizePhone(partner_phone);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    const updateResult = await client.query(
-      `UPDATE clearing_transactions 
+    // Total calculé AVANT l'UPDATE : RETURNING ne supporte pas les fonctions
+    // d'agrégat sur un UPDATE multi-lignes en PostgreSQL (bug corrigé).
+    const totalResult = await client.query(
+      `SELECT COUNT(*) AS cnt, COALESCE(SUM(amount_fcfa), 0) AS total
+       FROM clearing_transactions
+       WHERE partner_phone = $1 AND partner_type = $2 AND status = 'pending'
+       AND created_at BETWEEN $3 AND $4`,
+      [normalizedPhone, partner_type, periode.debut, periode.fin]
+    );
+    const cleared_count = parseInt(totalResult.rows[0].cnt, 10);
+    const total_fcfa = parseFloat(totalResult.rows[0].total) || 0;
+
+    if (cleared_count === 0) {
+      await client.query('COMMIT');
+      return { cleared_count: 0, total_fcfa: 0 };
+    }
+
+    await client.query(
+      `UPDATE clearing_transactions
        SET status = 'cleared', cleared_at = NOW()
-       WHERE partner_phone = $1
-       AND status = 'pending'
-       AND created_at BETWEEN $2 AND $3
-       RETURNING SUM(amount_fcfa)`,
-      [normalizedPhone, periode.debut, periode.fin]
+       WHERE partner_phone = $1 AND partner_type = $2 AND status = 'pending'
+       AND created_at BETWEEN $3 AND $4`,
+      [normalizedPhone, partner_type, periode.debut, periode.fin]
     );
 
-    const total_fcfa = parseFloat(updateResult.rows[0].sum) || 0;
-    const cleared_count = updateResult.rowCount || 0;
-
-    if (cleared_count > 0) {
-      await client.query(
-        `INSERT INTO partner_payouts (partner_phone, partner_type, period_start, period_end, member_count, amount_fcfa, status)
-         VALUES ($1, 'partenaire', $2, $3, 1, $4, 'pending')
-         RETURNING id`,
-        [normalizedPhone, periode.debut, periode.fin, total_fcfa]
-      );
-    }
+    // partner_type réel du partenaire (avant : toujours 'partenaire' en dur,
+    // corrompait le type réel pharmacie/laboratoire du versement créé)
+    await client.query(
+      `INSERT INTO partner_payouts (partner_phone, partner_type, period_start, period_end, member_count, amount_fcfa, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+       RETURNING id`,
+      [normalizedPhone, partner_type, periode.debut, periode.fin, cleared_count, total_fcfa]
+    );
 
     await client.query('COMMIT');
     return { cleared_count, total_fcfa };
