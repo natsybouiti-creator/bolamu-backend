@@ -122,7 +122,7 @@ Un problème à la fois. Jamais de correction en masse sans accord explicite.
 - `font-weight: 900` / classe `font-black` — JAMAIS
 - Gradients décoratifs — JAMAIS (sauf barre progression Zora)
 - `#2E86FF` — réservé exclusivement à l'identité visuelle du rôle médecin (`--role-medecin`, `public/css/bolamu-ds.css`) — jamais utilisable comme couleur d'action, d'alerte, ou d'accent générique ailleurs dans la plateforme (résolu 2026-07-05 : `design_system.md` §12 fait foi, cf. `ARCHITECTURE_UX_UI_BOLAMU.md` §2)
-- Sidebar gauche fixe — JAMAIS (navbar horizontale uniquement)
+- Sidebar gauche fixe — JAMAIS sur les dashboards métier (patient, medecin, pharmacie, laboratoire, secretaire, rh) — navbar horizontale uniquement. Exception assumée : le backoffice admin (`admin/dashboard.html`) utilise une sidebar fixe, pattern de navigation distinct cohérent avec son usage différencié (résolu 2026-07-05, cf. `ARCHITECTURE_UX_UI_BOLAMU.md` §1)
 - Emojis dans HTML statique — JAMAIS (Material Symbols uniquement)
 - `display: none` inline sur les panels admin — JAMAIS (utiliser `go()`)
 **Output attendu :** Audit visuel page par page + liste violations + corrections CSS.

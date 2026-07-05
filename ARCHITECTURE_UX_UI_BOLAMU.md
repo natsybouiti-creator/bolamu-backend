@@ -73,7 +73,7 @@ Règle absolue : jamais de `border-radius` < 8px sur une carte, jamais < 9999px 
 2. **8 autres dashboards** (`agent`, `secretaire`, `admin`, `medecin`, `rh`, `admin/content`, `laboratoire`, `pharmacie`) : partagent `public/js/bolamu-nav.js` (`.panel`/`.tab`/`.bnav-item`, fonction `showPanel(panelId)`, exposée aussi via `go()` sur certains fichiers).
 3. **`animateur`, `partenaire`, `agence`** : navigation ad hoc, ni bottom nav ni `bolamu-nav.js`.
 
-**⚠️ Violation confirmée de la règle CLAUDE.md « Sidebar gauche fixe — JAMAIS »** : `public/admin/dashboard.html` utilise une **sidebar fixe à gauche** (`.sidebar{position:fixed;top:0;left:0;z-index:100;}` + `.sidebar-ov` overlay mobile). **Note importante** : `docs/design_system.md` (source canonique du design system visuel) ne mentionne aucune règle de navigation par sidebar ou navbar horizontale — cette règle « jamais de sidebar » vient uniquement de `CLAUDE.md` (`/ui-designer`), pas de `design_system.md`. Il y a donc une divergence entre deux sources internes (CLAUDE.md interdit, design_system.md est silencieux sur le sujet) en plus de la divergence code/CLAUDE.md — à faire trancher par `/ui-designer` : la sidebar admin est-elle une exception assumée (backoffice ≠ dashboards métier), une règle CLAUDE.md obsolète, ou une vraie dérive à corriger ? Non tranché ici, aucune modification de code faite.
+**✅ Résolu (2026-07-05) — sidebar admin actée comme exception assumée** : `public/admin/dashboard.html` utilise une **sidebar fixe à gauche** (`.sidebar{position:fixed;top:0;left:0;z-index:100;}` + `.sidebar-ov` overlay mobile). Ce n'est plus une violation non tranchée : la règle CLAUDE.md « Sidebar gauche fixe — JAMAIS » a été précisée pour s'appliquer aux **dashboards métier uniquement** (patient, medecin, pharmacie, laboratoire, secretaire, rh) — le backoffice admin en est explicitement exclu, son pattern de navigation étant reconnu comme distinct et cohérent avec son usage différencié (backoffice ≠ dashboard métier). `docs/design_system.md` reste silencieux sur le sujet (il ne prescrit ni n'interdit de sidebar), ce qui n'entre pas en conflit avec cette clarification apportée à `CLAUDE.md`.
 
 ---
 
@@ -146,8 +146,7 @@ Liste canonique complète (`design_system.md` §10, ma version précédente n'en
 9. ❌ Zéro emoji dans le code HTML/CSS/JS — **confirmé respecté** sur `patient/dashboard.html` (0 occurrence).
 10. Règles de process (hors `design_system.md`, héritées de CLAUDE.md/protocoles projet) : pas de localStorage/sessionStorage dans les artifacts Claude Code ; tests contre bolamu.co uniquement, jamais localhost.
 
-**⚠️ Violations confirmées dans cette passe** :
-- **Sidebar admin** — voir §1, contredit `CLAUDE.md` (silence de `design_system.md` sur le sujet).
+**⚠️ Violations confirmées restantes** (la sidebar admin n'en fait plus partie — voir §1, exception assumée depuis le 2026-07-05) :
 - **Badge palier Zora à `0.58rem`** (observé sur `patient/dashboard.html`, ex. badge « Liboso ») — **inférieur au plancher typographique canonique** : le token « Overline/badge » de `design_system.md` §2 fixe `0.625rem` (10px) comme taille minimale pour ce type d'élément. `0.58rem` (~9.3px) est en dessous — micro-violation de l'échelle typographique, à corriger par `/frontend-engineer` si un audit exhaustif des tailles de police est mené.
 - **Adoption partielle des classes de composants canoniques** — voir §3 (style inline généralisé plutôt que `.soft-card`/`.zora-balance-card`/etc.).
 
