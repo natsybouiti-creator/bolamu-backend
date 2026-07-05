@@ -160,15 +160,16 @@ async function enregistrerHorsCatalogue(data) {
       logger.warn('[SmartFlow] Notification patient échouée:', notifError.message);
     }
     
-    // Notification RH si grand compte
+    // Notification RH si grand compte — le contact RH est porté par
+    // company_contracts (contact_phone/rh_phone), pas par company_employees
+    // qui n'a ni colonne company_contract_id ni role (corrigé — avant :
+    // requête cassée sur des colonnes inexistantes, échec silencieux).
     if (company_contract_id) {
       try {
-        // TODO: requête cassée — company_employees n'a pas de colonne company_contract_id
-        // ni role (FK réelle = contract_id, pas de colonne role). Feature SmartFlow RH
-        // non fonctionnelle tant que ce sujet séparé n'est pas corrigé.
         const rhCheck = await client.query(
-          `SELECT phone FROM company_employees
-           WHERE company_contract_id = $1 AND role = 'company_rh' AND status = 'active'`,
+          `SELECT COALESCE(rh_phone, contact_phone) AS phone
+           FROM company_contracts
+           WHERE id = $1 AND COALESCE(rh_phone, contact_phone) IS NOT NULL`,
           [company_contract_id]
         );
 
