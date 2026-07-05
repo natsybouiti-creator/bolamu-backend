@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const logger = require('../config/logger');
 const { normalizePhone } = require('../utils/phone');
 const { buildWameLink } = require('../services/wame.service');
+const { isSSPFreeText } = require('../services/smartflow.service');
 
 // ─── CRÉER UNE ORDONNANCE (médecin après validation consultation) ─────────────
 async function createPrescription(req, res) {
@@ -41,12 +42,20 @@ async function createPrescription(req, res) {
             }
         }
 
+        // is_ssp calculé une seule fois à la création (lookup ssp_catalog),
+        // jamais recalculé après (migration_059). Le champ medications est un
+        // texte libre (pas de lignes structurées comme ordonnance_items) :
+        // isSSPFreeText() cherche si un nom du catalogue apparaît DANS ce texte
+        // (posologie/fréquence incluses), contrairement à isSSP() qui exige une
+        // correspondance courte et exacte.
+        const sspCheck = await isSSPFreeText(medications, 'medicament');
+
         const result = await pool.query(
-            `INSERT INTO prescriptions 
-                (appointment_id, patient_phone, doctor_phone, medications, instructions, status, session_code)
-             VALUES ($1, $2, $3, $4, $5, 'active', $6)
+            `INSERT INTO prescriptions
+                (appointment_id, patient_phone, doctor_phone, medications, instructions, status, session_code, is_ssp)
+             VALUES ($1, $2, $3, $4, $5, 'active', $6, $7)
              RETURNING *`,
-            [appointment_id || null, patient_phone, doctor_phone, medications, instructions || null, session_code]
+            [appointment_id || null, patient_phone, doctor_phone, medications, instructions || null, session_code, sspCheck.is_ssp]
         );
 
         const prescriptionId = result.rows[0].id;

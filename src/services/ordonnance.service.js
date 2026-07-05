@@ -2,6 +2,7 @@ const db = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 const { bhpAccessMiddleware, logAccessAttempt } = require('../middleware/bhpAccess');
 const whatsappService = require('./whatsapp.service');
+const { isSSPFreeText } = require('./smartflow.service');
 
 async function createOrdonnance(consultation_id, doctor_phone, items) {
   const client = await db.connect();
@@ -34,19 +35,23 @@ async function createOrdonnance(consultation_id, doctor_phone, items) {
 
     const ordonnance_id = ordResult.rows[0].id;
 
-    // Insérer items
+    // Insérer items — is_ssp calculé une seule fois à la création (lookup ssp_catalog),
+    // jamais recalculé après (migration_059)
+    const itemsWithSSP = [];
     for (const item of items) {
+      const sspCheck = await isSSPFreeText(item.medicament, 'medicament');
       await client.query(
-        `INSERT INTO ordonnance_items 
-         (ordonnance_id, medicament, dosage, frequence, duree, instructions, quantite)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [ordonnance_id, item.medicament, item.dosage, item.frequence, 
-         item.duree, item.instructions, item.quantite || 1]
+        `INSERT INTO ordonnance_items
+         (ordonnance_id, medicament, dosage, frequence, duree, instructions, quantite, is_ssp)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [ordonnance_id, item.medicament, item.dosage, item.frequence,
+         item.duree, item.instructions, item.quantite || 1, sspCheck.is_ssp]
       );
+      itemsWithSSP.push({ ...item, is_ssp: sspCheck.is_ssp });
     }
 
     await client.query('COMMIT');
-    return { ordonnance_id, items };
+    return { ordonnance_id, items: itemsWithSSP };
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -59,8 +64,8 @@ async function getOrdonnance(ordonnance_id, requester_phone, role) {
   const normalizedRequester = normalizePhone(requester_phone);
 
   const result = await db.query(
-    `SELECT o.*, oi.medicament, oi.dosage, oi.frequence, oi.duree, 
-            oi.instructions, oi.quantite
+    `SELECT o.*, oi.medicament, oi.dosage, oi.frequence, oi.duree,
+            oi.instructions, oi.quantite, oi.is_ssp
      FROM ordonnances o
      LEFT JOIN ordonnance_items oi ON oi.ordonnance_id = o.id
      WHERE o.id = $1`,
@@ -91,7 +96,8 @@ async function getOrdonnance(ordonnance_id, requester_phone, role) {
     frequence: row.frequence,
     duree: row.duree,
     instructions: row.instructions,
-    quantite: row.quantite
+    quantite: row.quantite,
+    is_ssp: row.is_ssp
   }));
 
   return {

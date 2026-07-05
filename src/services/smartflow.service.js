@@ -11,21 +11,29 @@ const { sendToUser } = require('./push.service');
 
 /**
  * Vérifie si une prestation (médicament, examen ou acte) est SSP (gratuit)
- * ou hors catalogue (prix plein). Source : ssp_catalog (migration 029).
+ * ou hors catalogue (prix plein). Source : ssp_catalog (migration 034).
+ * Point d'entrée unique réutilisé par le module SmartFlow B2B (sans filtre de
+ * type, comportement historique inchangé) et par le parcours de soins général
+ * (ordonnances/prescriptions/lab_prescriptions, migration_059) qui, lui, filtre
+ * par type pour éviter qu'un médicament et un examen au nom proche ne se confondent.
  * @param {string} nom_prestation - Nom de la prestation à vérifier
+ * @param {string} [type] - Filtre optionnel : 'medicament' | 'examen' | 'acte'
  * @returns {Promise<{is_ssp: boolean, categorie: string, type: string, nom_generique: string}>}
  */
-async function isSSP(nom_prestation) {
+async function isSSP(nom_prestation, type = null) {
   try {
-    const result = await pool.query(
-      `SELECT est_ssp, categorie, type, nom
+    const params = [`%${nom_prestation}%`];
+    let query = `SELECT est_ssp, categorie, type, nom
        FROM ssp_catalog
-       WHERE nom ILIKE $1
-       ORDER BY est_ssp DESC
-       LIMIT 1`,
-      [`%${nom_prestation}%`]
-    );
-    
+       WHERE nom ILIKE $1`;
+    if (type) {
+      query += ` AND type = $2`;
+      params.push(type);
+    }
+    query += ` ORDER BY est_ssp DESC LIMIT 1`;
+
+    const result = await pool.query(query, params);
+
     if (result.rows.length > 0) {
       return {
         is_ssp: result.rows[0].est_ssp,
@@ -39,6 +47,49 @@ async function isSSP(nom_prestation) {
     return { is_ssp: false, categorie: null, type: null, nom_generique: null };
   } catch (error) {
     logger.error('[SmartFlow isSSP]', error.message);
+    return { is_ssp: false, categorie: null, type: null, nom_generique: null };
+  }
+}
+
+/**
+ * Variante de isSSP() pour un texte libre pouvant contenir plus que le simple
+ * nom (posologie, fréquence, durée — ex. "Amoxicilline 500mg - 3x/jour - 7 jours").
+ * isSSP() cherche `nom ILIKE %texte%` (le nom du catalogue doit CONTENIR le texte
+ * cherché) — ça ne marche que si le texte est déjà un nom court et exact. Ici on
+ * inverse le sens : `texte ILIKE %nom%` (le texte libre doit CONTENIR un nom du
+ * catalogue), ce qui fonctionne pour les champs texte libre de `prescriptions`,
+ * `lab_prescriptions` et `ordonnance_items` (migration_059). `ORDER BY LENGTH(nom)
+ * DESC` préfère la correspondance la plus longue/spécifique en cas d'ambiguïté.
+ * @param {string} texte_libre - Texte contenant potentiellement un nom du catalogue
+ * @param {string} [type] - Filtre optionnel : 'medicament' | 'examen' | 'acte'
+ * @returns {Promise<{is_ssp: boolean, categorie: string, type: string, nom_generique: string}>}
+ */
+async function isSSPFreeText(texte_libre, type = null) {
+  try {
+    const params = [texte_libre || ''];
+    let query = `SELECT est_ssp, categorie, type, nom
+       FROM ssp_catalog
+       WHERE $1 ILIKE '%' || nom || '%'`;
+    if (type) {
+      query += ` AND type = $2`;
+      params.push(type);
+    }
+    query += ` ORDER BY LENGTH(nom) DESC, est_ssp DESC LIMIT 1`;
+
+    const result = await pool.query(query, params);
+
+    if (result.rows.length > 0) {
+      return {
+        is_ssp: result.rows[0].est_ssp,
+        categorie: result.rows[0].categorie,
+        type: result.rows[0].type,
+        nom_generique: result.rows[0].nom
+      };
+    }
+
+    return { is_ssp: false, categorie: null, type: null, nom_generique: null };
+  } catch (error) {
+    logger.error('[SmartFlow isSSPFreeText]', error.message);
     return { is_ssp: false, categorie: null, type: null, nom_generique: null };
   }
 }
@@ -568,6 +619,7 @@ async function calculerICP(contract_id, mois) {
 
 module.exports = {
   isSSP,
+  isSSPFreeText,
   enregistrerHorsCatalogue,
   getStatsPartenaire,
   genererExportPaie,

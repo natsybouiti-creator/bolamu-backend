@@ -7,6 +7,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 const { buildWameLink } = require('../services/wame.service');
 const { awardZora } = require('../services/zora.service');
 const { getPrescriptionsEnAttente, soumettreResultats, getResultats } = require('../services/lab.service');
+const { isSSPFreeText } = require('../services/smartflow.service');
 
 // ─── CRÉER UNE PRESCRIPTION LABO (médecin) ───────────────────────────────
 async function createLabPrescription(req, res) {
@@ -37,13 +38,17 @@ async function createLabPrescription(req, res) {
         // Générer un code de prescription unique de 6 chiffres
         const prescriptionCode = Math.floor(100000 + Math.random() * 900000).toString();
 
+        // is_ssp calculé une seule fois à la création (lookup ssp_catalog, filtré
+        // type='examen'), jamais recalculé après (migration_059)
+        const sspCheck = await isSSPFreeText(examens, 'examen');
+
         // Insérer la prescription labo avec priorite
         const result = await pool.query(
-            `INSERT INTO lab_prescriptions 
-                (appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions, prescription_code, priorite)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `INSERT INTO lab_prescriptions
+                (appointment_id, patient_phone, doctor_phone, lab_phone, examens, instructions, prescription_code, priorite, is_ssp)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
              RETURNING *`,
-            [appointment_id || null, patient_phone, doctor_phone, lab_phone || null, examens, instructions || null, prescriptionCode, priorite || 'normale']
+            [appointment_id || null, patient_phone, doctor_phone, lab_phone || null, examens, instructions || null, prescriptionCode, priorite || 'normale', sspCheck.is_ssp]
         );
 
         // Notification SMS au laboratoire (optionnel - à implémenter selon besoin)
