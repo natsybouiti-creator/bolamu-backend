@@ -73,6 +73,8 @@ Migration `migration_059_ssp_is_ssp_flag.sql` (appliquée en prod) ajoute une co
 
 **Base de données** : `appointments` (table réellement utilisée par ce flux) + `rendez_vous` (table distincte, créée migration_048 — anomalie déjà documentée dans `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.2 : aucun `INSERT INTO rendez_vous` trouvé dans le code, seule `consultation.service.js` y fait un `UPDATE` lors de l'ouverture de consultation, ce qui ne touche donc probablement aucune ligne puisque la table n'est jamais peuplée à la prise de RDV). **Reprise ici** : la prise de RDV n'écrit que dans `appointments` ; `rendez_vous` est une table parallèle orpheline pour ce flux précis.
 
+**⚠️ Dette technique confirmée (audit Passe 3, non corrigée — scope trop large pour ce chantier) : `consultations.rdv_id` référence par FK réelle `rendez_vous(id)` (contrainte `consultations_rdv_id_fkey`, vérifiée sur Neon), mais `medecin/dashboard.html::ouvrirValidation()` envoie en réalité un `appointments.id` (récupéré via `GET /appointments/doctor/:phone`) comme `rdv_id` à `POST /consultations/open`.** Vérifié empiriquement : les 4 lignes de `rendez_vous` (ids 4-7) et les lignes `appointments` de mêmes ids portent des patients/dates totalement différents — la contrainte FK n'est satisfaite que par coïncidence numérique (les deux tables utilisent une séquence `SERIAL` qui se chevauche), pas par référence sémantique correcte. Conséquence directe : `POST /consultations/open` échoue avec une violation de contrainte FK dès qu'un `appointments.id` ne correspond à aucune ligne existante de `rendez_vous` (qui n'en compte que 4 au total) — testé et confirmé en Passe 3. Tant que ce bug n'est pas corrigé, toute jointure applicative s'appuyant sur `consultations.rdv_id` (ex. `ARCHITECTURE_SOINS_BOLAMU.md` §3bis) hérite de cette même fragilité.
+
 **Backend** — `src/routes/appointment.routes.js` :
 - `GET /api/v1/appointments/slots/:doctor_id?date=` (public) — calcule les créneaux depuis `doctor_availabilities`, exclut `agenda_blocks` et les RDV déjà pris.
 - `POST /api/v1/appointments/book` (`authMiddleware`) — INSERT `appointments` (`status='confirme'`), notifie patient + médecin (WhatsApp `bolamu_rdv_confirme`).
@@ -105,24 +107,25 @@ Migration `migration_059_ssp_is_ssp_flag.sql` (appliquée en prod) ajoute une co
 
 ## 3. Ordonnances
 
-**Base de données** — anomalie confirmée et creusée (déjà signalée dans `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.2/§3, détail complet ici) :
+**✅ Unifié (Passe 3, Option C — `prescriptions` canonique)** : jusqu'à cette passe, deux systèmes coexistaient sans jamais se rencontrer (le médecin écrivait dans `ordonnances`/`ordonnance_items`, la pharmacie ne lisait que `prescriptions` — voir historique ci-dessous, conservé pour traçabilité de la décision). Audit complet mené avant correction : `prescriptions` a été choisi comme système canonique car seul à avoir des preuves réelles de fonctionnement de bout en bout (lignes historiques `delivered` avec `appointment_id`/`session_code` réels), et parce que la structure en lignes de `ordonnance_items` (dosage/fréquence/durée séparés) n'était de toute façon jamais exploitée par le formulaire médecin actuel (un seul item, champs vides).
 
-| | `ordonnances` / `ordonnance_items` (migration_048) | `prescriptions` (préexistante, non migrée) |
+**État actuel** :
+
+| | `ordonnances` / `ordonnance_items` (migration_048) | `prescriptions` — **canonique** |
 |---|---|---|
 | Rattachement | `consultation_id` → `consultations` | `appointment_id` → `appointments` |
-| Structure | lignes structurées (medicament/dosage/frequence/duree) | texte libre (`medications`) |
-| Écrite par | `POST /ordonnances` — **dashboard médecin actif** | `POST /prescriptions/create` — **aucun dashboard actif n'appelle cet endpoint** |
-| Lue/dispensée par | `POST /ordonnances/:id/dispense`, `POST /pharmacies/ordonnances/dispenser` — **aucun de ces deux endpoints n'est appelé par `public/pharmacie/dashboard.html`** | `GET /prescriptions/by-session/:code`, `POST /prescriptions/deliver` — **dashboard pharmacie actif** |
-
-**Conclusion factuelle** : le médecin écrit dans `ordonnances`, la pharmacie délivre depuis `prescriptions` — **les deux ne se rencontrent jamais** dans le parcours réel tel qu'utilisé aujourd'hui. Une ordonnance créée par un médecin via son dashboard n'est donc, en l'état, jamais visible ni dispensable côté pharmacie. Le pont applicatif (endpoint `POST /prescriptions/create` ou `POST /ordonnances/:id/dispense` côté pharmacie) existe côté backend mais n'est branché à aucun frontend actif.
+| Structure | lignes structurées (jamais réellement exploitées par le frontend) | texte libre (`medications`) |
+| Écrite par | **plus aucun appel actif** — `medecin/dashboard.html` appelle désormais `POST /prescriptions/create` | `POST /prescriptions/create` — **dashboard médecin actif** |
+| Lue/dispensée par | **plus aucun appel actif** | `GET /prescriptions/by-session/:code`, `POST /prescriptions/deliver` — **dashboard pharmacie actif** |
+| Statut | **déprécié, conservé pour historique BHP** (`src/services/ordonnance.service.js`, `src/routes/ordonnance.routes.js` marqués en commentaire, jamais supprimés, données existantes intactes — 5 lignes `ordonnances`/4 lignes `ordonnance_items`) | seul système alimenté désormais |
 
 **Backend** :
-- Émission (médecin, actif) : `POST /api/v1/ordonnances` → `src/services/ordonnance.service.js` — vérifie `consultations.status='open'`, INSERT `ordonnances` + boucle INSERT `ordonnance_items`.
-- Dispensation (pharmacie, actif) : `GET /prescriptions/by-session/:code` (JOIN `appointments`+`doctors`), `POST /prescriptions/deliver` → UPDATE `prescriptions.status='delivered'`, `audit_log('prescription_delivered')`, notif patient. **Aucun clearing/rémunération généré par cette voie.**
-- Dispensation via le système `ordonnances` (existe, non branché) : `POST /pharmacies/ordonnances/dispenser` → `src/services/pharmacie.service.js` — celui-ci, lui, insère bien dans `clearing_transactions` (tarif `partner_zones`, fallback 2500 FCFA). Voir `ARCHITECTURE_FINANCIERE_BOLAMU.md` pour le circuit clearing.
-- **Renouvellement** : deux logiques incohérentes entre elles. `src/services/renouvellement.service.js::demanderRenouvellement()` interroge en réalité `lab_prescriptions` (nommage trompeur — « renouvellement d'ordonnance » opère sur les prescriptions labo). `src/services/ai-consult.service.js::generateRenewal()` raisonne, lui, sur `prescriptions`.
+- Émission (médecin, actif) : `POST /api/v1/prescriptions/create` → `prescription.controller.js::createPrescription()` — INSERT `prescriptions` avec `appointment_id` (= `currentRdv.rdvId`, déjà connu du frontend), `is_ssp` calculé via `isSSPFreeText()`.
+- Dispensation (pharmacie, actif) : `GET /prescriptions/by-session/:code`, `POST /prescriptions/deliver` → UPDATE `prescriptions.status='delivered'` + **génère désormais un `clearing_transactions`** (`partner_type='pharmacie'`, tarif `platform_config.tarif_clearing_pharmacie`, migration_060 — corrige un gap financier réel où la dispensation active ne générait jusqu'ici aucune rémunération CDR pharmacie) + notifie **patient et médecin** (`bolamu_ordonnance_dispensee` / `bolamu_ordonnance_dispensee_medecin`) + `audit_log('prescription_delivered')`.
+- **Renouvellement** : deux logiques incohérentes entre elles, non traitées dans cette passe. `src/services/renouvellement.service.js::demanderRenouvellement()` interroge en réalité `lab_prescriptions` (nommage trompeur — « renouvellement d'ordonnance » opère sur les prescriptions labo). `src/services/ai-consult.service.js::generateRenewal()` raisonne, lui, sur `prescriptions`.
+- **Lien patient/consultations** : `patient.routes.js::GET /consultations/recentes` (affichage médicaments par consultation, `public/patient/dashboard.html`) lit désormais `prescriptions` via `JOIN prescriptions p ON p.appointment_id = c.rdv_id` — seule clé de liaison disponible tant que le bug FK `consultations.rdv_id`→`rendez_vous` (§1) n'est pas corrigé ; hérite donc de sa fragilité (une consultation dont l'ouverture a échoué sur ce bug FK n'aura simplement pas de ligne `consultations` du tout, donc rien à afficher — dégradation silencieuse, pas une erreur visible).
 
-**Frontend** — `public/pharmacie/dashboard.html` : `GET /prescriptions/by-session/{codeSession}`, `POST /prescriptions/deliver`, `GET /prescriptions/pharmacie/{phone}`. Système `/prescriptions/*` exclusivement — aucun appel `/ordonnances/*` trouvé dans ce fichier.
+**Frontend** — `public/pharmacie/dashboard.html` : `GET /prescriptions/by-session/{codeSession}`, `POST /prescriptions/deliver`, `GET /prescriptions/pharmacie/{phone}` — inchangé, cette passe ne touche pas au dashboard pharmacie (il lisait déjà la bonne table). `public/medecin/dashboard.html` : formulaire de création inchangé (textarea libre unique), seul l'endpoint appelé change (`/prescriptions/create` au lieu de `/ordonnances`).
 
 ---
 

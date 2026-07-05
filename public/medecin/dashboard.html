@@ -1369,16 +1369,18 @@ async function confirmerValidation(){
     const dataVal=await resVal.json();
     if(!resVal.ok)throw new Error(dataVal.message||'Erreur validation consultation');
 
-    const resPres=await fetch(`${API}/ordonnances`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({consultation_id:currentRdv.rdvId,items:[{medicament:medications,dosage:'',frequence:'',duree:'',instructions:instructions||''}]})});
+    // Système A (prescriptions) est désormais canonique — la pharmacie ne lit
+    // que cette table via GET /prescriptions/by-session/:code. L'ancien appel
+    // POST /ordonnances (Système B, ordonnance.service.js) n'était jamais visible
+    // en pharmacie (voir ARCHITECTURE_SOINS_BOLAMU.md §3).
+    const resPres=await fetch(`${API}/prescriptions/create`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({appointment_id:currentRdv.rdvId,patient_phone:currentRdv.patientPhone,doctor_phone:phone,medications:medications,instructions:instructions||''})});
     const dataPres=await resPres.json();
     if(!resPres.ok)throw new Error(dataPres.message||'Erreur ordonnance');
 
-    const sspItemsHtml=(dataPres.data?.items||[]).map(function(it){
-      const badge=it.is_ssp
-        ?'<span style="color:#00875f;font-weight:700;">Gratuit (SSP)</span>'
-        :'<span style="color:#BA1A1A;font-weight:700;">Hors catalogue — facturé au tarif de la pharmacie</span>';
-      return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:0.8rem;margin-top:4px;"><span>${it.medicament}</span>${badge}</div>`;
-    }).join('');
+    const sspBadge=dataPres.data?.is_ssp
+      ?'<span style="color:#00875f;font-weight:700;">Gratuit (SSP)</span>'
+      :'<span style="color:#BA1A1A;font-weight:700;">Hors catalogue — facturé au tarif de la pharmacie</span>';
+    const sspItemsHtml=`<div style="display:flex;justify-content:space-between;gap:8px;font-size:0.8rem;margin-top:4px;"><span>${medications}</span>${sspBadge}</div>`;
     document.getElementById('modal-content').innerHTML=`
       <div class="validation-success">
         <div class="success-icon"><span class="material-symbols-outlined">check_circle</span></div>

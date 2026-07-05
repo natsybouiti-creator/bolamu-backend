@@ -1,3 +1,8 @@
+// ⚠️ DÉPRÉCIÉ (unification ordonnances/prescriptions, ARCHITECTURE_SOINS_BOLAMU.md §3) :
+// le médecin crée désormais ses ordonnances via POST /prescriptions/create
+// (Système A, seul lu par la pharmacie). Ce service n'est plus appelé par aucun
+// frontend actif — conservé pour l'historique BHP des ordonnances déjà émises
+// (`ordonnances`/`ordonnance_items` ne sont jamais supprimées).
 const db = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 const { bhpAccessMiddleware, logAccessAttempt } = require('../middleware/bhpAccess');

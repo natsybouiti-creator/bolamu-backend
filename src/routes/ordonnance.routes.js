@@ -1,3 +1,7 @@
+// ⚠️ DÉPRÉCIÉ (unification ordonnances/prescriptions, ARCHITECTURE_SOINS_BOLAMU.md §3) :
+// medecin/dashboard.html appelle désormais POST /prescriptions/create. Ces
+// routes ne sont plus appelées par aucun frontend actif — conservées pour
+// GET /ordonnances/:id (consultation historique BHP) et compatibilité API.
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
