@@ -121,7 +121,7 @@ Un problème à la fois. Jamais de correction en masse sans accord explicite.
 **Violations interdites :**
 - `font-weight: 900` / classe `font-black` — JAMAIS
 - Gradients décoratifs — JAMAIS (sauf barre progression Zora)
-- `#2E86FF` — n'existe pas dans la charte
+- `#2E86FF` — réservé exclusivement à l'identité visuelle du rôle médecin (`--role-medecin`, `public/css/bolamu-ds.css`) — jamais utilisable comme couleur d'action, d'alerte, ou d'accent générique ailleurs dans la plateforme (résolu 2026-07-05 : `design_system.md` §12 fait foi, cf. `ARCHITECTURE_UX_UI_BOLAMU.md` §2)
 - Sidebar gauche fixe — JAMAIS (navbar horizontale uniquement)
 - Emojis dans HTML statique — JAMAIS (Material Symbols uniquement)
 - `display: none` inline sur les panels admin — JAMAIS (utiliser `go()`)
