@@ -1,22 +1,25 @@
 // ============================================================
 // BOLAMU — Routes Agent Bolamu (Réseau national)
+// ⚠️ DÉPRÉCIÉ (fusion portails agent/agence, 2026-07-05) :
+// agence/dashboard.html devient un portail legacy conservé pour compatibilité
+// historique. Les nouvelles fonctionnalités agent_bolamu sont pilotées depuis
+// agent/dashboard.html + agent.routes.js (portail officiel), qui appelle
+// directement les routes ci-dessous (même token JWT, même middleware
+// requireAgent) — aucune route n'est dupliquée dans agent.routes.js.
+// POST /login a été supprimé : plus qu'un seul point d'entrée, le login
+// central (/login.html -> auth.controller.js), qui redirige agent_bolamu
+// vers /agent/dashboard.html.
 // ============================================================
 const express = require('express');
 const router  = express.Router();
 const pool     = require('../config/db');
 const bcrypt   = require('bcrypt');
-const jwt       = require('jsonwebtoken');
 const { normalizePhone } = require('../utils/phone');
 const authMiddleware = require('../middleware/auth.middleware');
 const crypto = require('crypto');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { sendAutoMessage } = require('../services/whatsapp.service');
 const { sendOnboardingLink } = require('../utils/sendOnboardingLink');
-
-if (!process.env.JWT_SECRET) {
-    throw new Error('[FATAL] JWT_SECRET non défini. Configurez cette variable dans Render.');
-}
-const JWT_SECRET = process.env.JWT_SECRET;
 
 // Libellés commerciaux -> plan réel (enum subscription_plan)
 const PLAN_MAP = { moto: 'essentiel', ndeko: 'standard', libota: 'premium' };
@@ -28,37 +31,6 @@ const requireAgent = [authMiddleware, (req, res, next) => {
   }
   next();
 }];
-
-// ─── POST /login ─────────────────────────────────────────────────────────────
-router.post('/login', async (req, res) => {
-  try {
-    const { phone, password } = req.body;
-    if (!phone || !password) {
-      return res.status(400).json({ success: false, message: 'Numéro et mot de passe requis' });
-    }
-    const result = await pool.query(
-      `SELECT id, full_name, phone, password_hash, role, company_id
-       FROM users WHERE phone = $1 AND role = 'agent_bolamu' AND is_active = true`,
-      [phone]
-    );
-    if (!result.rows.length) {
-      return res.status(401).json({ success: false, message: 'Compte agent introuvable' });
-    }
-    const user  = result.rows[0];
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ success: false, message: 'Mot de passe incorrect' });
-
-    const token = jwt.sign(
-      { id: user.id, phone: user.phone, role: user.role, company_id: user.company_id || null },
-      JWT_SECRET,
-      { expiresIn: '12h' }
-    );
-    res.json({ success: true, token, agent: { id: user.id, full_name: user.full_name, phone: user.phone, company_id: user.company_id || null } });
-  } catch (err) {
-    console.error('[AGENCE LOGIN]', err.message);
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
 
 // ─── GET /stats-globales ─────────────────────────────────────────────────────
 router.get('/stats-globales', requireAgent, async (req, res) => {
