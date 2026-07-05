@@ -33,6 +33,42 @@ Le médecin crée son ordonnance via le Système B (`POST /ordonnances`, juste a
 
 ---
 
+## 0bis. Système SSP (Soins de Santé Primaires)
+
+**Principe** (règles de financement et de facturation détaillées dans `ARCHITECTURE_FINANCIERE_BOLAMU.md` §7, non répétées ici) : trois catalogues gratuits (actes cliniques / médicaments essentiels / examens biologiques) financés par la CDR. Tout item hors de ces catalogues est facturé **au tarif propre du partenaire** — Bolamu n'intervient pas dans ce prix et ne mentionne aucune réduction hors-catalogue nulle part dans le produit.
+
+**Base de données** — aucune nouvelle table créée. Le système réutilise `ssp_catalog` (migration_034, 121 lignes réelles, colonne `type` unifiant médicament/examen/acte, colonne `est_ssp`), déjà existante avant ce chantier. `medicaments_catalogue` (B2B SmartFlow, 54 lignes) reste isolée et n'est pas touchée.
+
+Migration `migration_059_ssp_is_ssp_flag.sql` (appliquée en prod) ajoute une colonne `is_ssp BOOLEAN` sur trois tables :
+
+| Table | Écrite par | Calculée à |
+|---|---|---|
+| `ordonnance_items` | `POST /ordonnances` (Système B, §3) | création, par ligne médicament |
+| `prescriptions` | `POST /prescriptions/create` (Système A, §3) | création, sur `medications` (texte libre) |
+| `lab_prescriptions` | `POST /lab/prescribe` (§4) | création, sur `examens` (texte libre, `type='examen'`) |
+
+`is_ssp` est calculé **une seule fois à la création**, jamais recalculé — un changement ultérieur du catalogue n'affecte pas rétroactivement les ordonnances déjà émises.
+
+**Deux fonctions de correspondance, pas une** (`src/services/smartflow.service.js`) :
+- `isSSP(nom_prestation, type=null)` — préexistante (SmartFlow B2B), direction `ssp_catalog.nom ILIKE '%' || input || '%'` : le nom du catalogue doit **contenir** l'entrée. Fonctionne seulement pour des noms courts et exacts.
+- `isSSPFreeText(texte_libre, type=null)` — **nouvelle fonction**, direction inversée `input ILIKE '%' || ssp_catalog.nom || '%'` + `ORDER BY LENGTH(nom) DESC` : le texte libre doit **contenir** un nom de catalogue. Nécessaire car `prescriptions.medications` et `lab_prescriptions.examens` sont du texte libre avec dosage/fréquence embarqués (ex. `"Amoxicilline 500mg — 3x/jour — 7 jours"`), que `isSSP()` seul ne matchait jamais correctement (`is_ssp` retournait `false` pour un médicament pourtant couvert — bug détecté et corrigé pendant ce chantier, avant tout commit).
+
+**Backend** :
+- `ordonnance.service.js::createOrdonnance()` — `isSSPFreeText(item.medicament, 'medicament')` par ligne, stocké dans l'INSERT, retourné dans la réponse. `getOrdonnance()` inclut `is_ssp` dans le SELECT.
+- `prescription.controller.js::createPrescription()` — `isSSPFreeText(medications, 'medicament')`, stocké à la création.
+- `lab.controller.js::createLabPrescription()` — `isSSPFreeText(examens, 'examen')`, stocké à la création.
+- Nouvel endpoint `src/routes/ssp.routes.js`, monté `/api/v1/ssp-catalog` : `GET /` (liste `ssp_catalog`, filtre `?type=` optionnel), `GET /check?nom=&type=` (lookup unitaire via `isSSPFreeText`). **Chevauchement connu, assumé** : `smartflow.routes.js` expose déjà `/smartflow/medicaments/check` et `/smartflow/ssp/medicaments`, plus restreints (médicaments uniquement). `/ssp-catalog` est conservé car seul à couvrir les 3 types ; les deux coexistent, non fusionnés dans ce chantier.
+
+**Frontend** :
+- `medecin/dashboard.html` — à l'émission d'ordonnance/prescription labo, statut par ligne affiché avant validation (« Gratuit (SSP) » vert / « Hors catalogue — facturé au tarif de la pharmacie/du labo » rouge).
+- `pharmacie/dashboard.html`, `laboratoire/dashboard.html` — tagging SSP par ligne déjà existant avant ce chantier (non documenté jusqu'ici) ; seul le endpoint appelé était cassé (`/smartflow/catalogue`, 404), repointé vers `/ssp-catalog/check`.
+- `patient/dashboard.html` — récapitulatif des médicaments par consultation avec statut SSP. Cas particulier : `is_ssp = NULL` (ordonnances antérieures à la migration_059) affiché « Statut non évalué » (gris), distinct de `false` (« À votre charge », rouge) — une confusion NULL/false aurait affiché à tort des ordonnances anciennes comme facturées.
+- `secretaire/dashboard.html`, `secretaire/dashboard_v2.html`, `agence/dashboard.html` — catalogue affiché chargé dynamiquement depuis `/ssp-catalog` (plus de tableau `CATALOGUE_SSP` codé en dur), toute mention de réduction/tarif préférentiel hors-catalogue retirée.
+
+**Téléconsultation — hors périmètre SSP, interdiction réglementaire** : la téléconsultation n'est pas un choix de catalogue mais une pratique bannie (Bolamu est un intermédiaire technologique, jamais un établissement de santé — voir `ARCHITECTURE_SECURITE_REGLEMENTAIRE_BOLAMU.md`). Toute trace fonctionnelle a été neutralisée à l'occasion de ce chantier (boutons de filtre morts dans les dashboards secrétaire/agence, mention contractuelle dans `cgu.html`, référence dans la liste des routes montées de `CLAUDE.md`/`AGENTS.md`, notice inscription médecin international dans `register.html`). Un reliquat documentaire (audits/comptes-rendus historiques en Markdown, page compilée `public/index.html`) reste signalé mais non traité — décision produit à trancher séparément, hors périmètre technique de ce document.
+
+---
+
 ## 1. Prise de rendez-vous
 
 **Base de données** : `appointments` (table réellement utilisée par ce flux) + `rendez_vous` (table distincte, créée migration_048 — anomalie déjà documentée dans `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.2 : aucun `INSERT INTO rendez_vous` trouvé dans le code, seule `consultation.service.js` y fait un `UPDATE` lors de l'ouverture de consultation, ce qui ne touche donc probablement aucune ligne puisque la table n'est jamais peuplée à la prise de RDV). **Reprise ici** : la prise de RDV n'écrit que dans `appointments` ; `rendez_vous` est une table parallèle orpheline pour ce flux précis.
