@@ -301,10 +301,10 @@ Tous les documents ci-dessus ──> CE DOCUMENT (OVERVIEW) qui les relie entre 
 
 ### 🔴 CRITIQUE
 
-- **Clearing financier non implémenté** : `runClearing()` (`src/scripts/clearing-mensuel.js`) est un stub qui ne fait rien et retourne `success:true` — le bouton admin « déclencher le clearing » ne calcule aucun reversement réel. Le vrai algorithme (`billing.service.js::calculerReversement()`/`validerClearing()`) existe mais n'est appelé par aucune route (`ARCHITECTURE_FINANCIERE_BOLAMU.md` §2). `validerClearing()` contient en plus un `UPDATE ... RETURNING SUM(...)` qui échouerait de toute façon en PostgreSQL.
-- **`company_employees` cassée sur 3 des 4 chemins de code qui y écrivent/lisent** — noms de colonnes incompatibles avec le schéma réel (`matricule`/`categorie_rh`/`company_contract_id`/`phone`/`role` n'existent pas). Conséquence : le dashboard ICP RH (Wellness B2B) est fonctionnellement vide en production. Détail exact fichier/ligne : `ARCHITECTURE_WELLNESS_BOLAMU.md` §7.
-- **Route diagnostic WhatsApp sans authentification** : `POST /admin/diagnostics/whatsapp-send-test` (`admin.routes.js:1431`) n'a **aucun** `authMiddleware`, protégée uniquement par une clé statique en dur dans le code source (`DIAG_KEY`). Accessible à quiconque connaît cette chaîne.
-- **`POST /admin/subscriptions/activate` référence une variable `db` jamais importée** dans `admin.routes.js` — échoue systématiquement (`ReferenceError`) si appelée.
+- ✅ **Corrigé (Passe 1, commits `6ae3bfb`/`bdbb0fc`/`5dc4c42`)** — ~~Clearing financier non implémenté~~ : `validerClearing()`/`calculerReversement()` (`billing.service.js`) désormais branchées sur `POST /clearing/run`, agrégat SQL invalide corrigé, `partner_type` réel propagé, `GET /clearing/pending` corrigée (colonne inexistante retirée), frontend `admin/dashboard.html` affiche les données réelles.
+- ✅ **Corrigé (Passe 1, commits `4b75260`/`eb3a64a`/`42d9b16`)** — ~~`company_employees` cassée sur 3 des 4 chemins~~ : `admin.routes.js` (déjà fonctionnel, schéma évolué depuis la rédaction de ce document), `agence.routes.js::POST /import-employes` corrigé (colonnes réelles + sélecteur de contrat frontend), `smartflow.service.js::enregistrerHorsCatalogue()` corrigé (notification RH depuis `company_contracts.rh_phone`/`contact_phone`).
+- ✅ **Corrigé (Passe 1, commit `2994940`)** — ~~Route diagnostic WhatsApp sans authentification~~ : `authMiddleware`+`adminOnly` ajoutés sur `POST /admin/diagnostics/whatsapp-send-test`, `DIAG_KEY` supprimée.
+- ✅ **Corrigé (Passe 1, commit `eecfeff`)** — ~~`POST /admin/subscriptions/activate` référence une variable `db` jamais importée~~ : migré vers `pool`/client transactionnel, `ON CONFLICT` invalide corrigé au passage (aucune contrainte UNIQUE réelle sur `patient_phone`), notification WAHA et `audit_log` complétés.
 
 ### 🟠 IMPORTANT
 
@@ -312,10 +312,11 @@ Tous les documents ci-dessus ──> CE DOCUMENT (OVERVIEW) qui les relie entre 
 - **Traçabilité agent à moitié cassée** : le portail `agence.routes.js` ne renseigne jamais `agent_phone` — les inscriptions faites par ce portail sont invisibles dans les stats de l'agent qui les a réalisées (`ARCHITECTURE_AGENT_BOLAMU.md` §5).
 - **Double portail `agent_bolamu` non tranché**, avec double clé localStorage incompatible et login dupliqué (`ARCHITECTURE_AGENT_BOLAMU.md` §6, `ARCHITECTURE_RBAC_GLOBAL_BOLAMU.md` §4).
 - **Incohérence `content_admin`** : `admin.routes.js` (le plus gros fichier de routes du backoffice) n'accepte jamais ce rôle — seul `articles.routes.js` lui est ouvert (`ARCHITECTURE_ADMIN_BACKOFFICE_BOLAMU.md` §8).
-- **Incohérence de nommage `platform_config` annuel** : `price_annual_{plan}` (utilisé dans `POST /admin/company-contracts`) vs `price_{plan}_annual` (le nommage réellement seedé, utilisé par `POST /admin/subscriptions/activate`) — la création de contrat B2B en mode annuel échoue systématiquement.
+- ✅ **Corrigé (Passe 1, commit `639d59d`)** — ~~Incohérence de nommage `platform_config` annuel~~ : `POST /admin/company-contracts` alignée sur `price_{plan}_annual` (le nommage réellement seedé), testé pour les 3 plans contre Neon.
 - **`ARCHITECTURE_ZORA_BOLAMU.md` décrit un schéma qui ne correspond pas à la production** — risque de confusion majeure si lu comme une description de l'existant plutôt qu'une spec (§3.3, §4).
 - **`PILOTAGE_BOLAMU.md` contient des affirmations obsolètes** : `wame.service.js` n'est pas le seul service WhatsApp (c'est `whatsapp.service.js`/`sendAutoMessage()`), plusieurs noms de fichiers de service cités (`zoraService.js`, `cryptoService.js`, `socketService.js` orthographes) ne correspondent pas exactement aux fichiers réels (`zora.service.js` etc.) — document daté juin 2025, à traiter comme historique.
 - **Deux tables `otp_codes`/`otps`, deux systèmes de crédits (`credits`/`credit_transactions` vs `zora_ledger`), deux systèmes de vouchers (`zora_vouchers` vs `partner_vouchers`), clubs vs `sport_groups` (marqué DEPRECATED côté routes mais toujours en base)** — duplications non consolidées, `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §3.
+- **Règlement vouchers Zora non implémenté** (découvert en corrigeant le clearing, Passe 1) : les `clearing_transactions` de type `'partenaire'` (créées par `zora-voucher.service.js` à chaque règlement de voucher) ne peuvent jamais être traitées par le pipeline CDR — `partner_payouts.partner_type` ENUM exclut `'partenaire'`. Un partenaire récompense ayant honoré un voucher Zora n'est jamais remboursé. Mécanisme de règlement dédié à construire.
 
 ### 🟡 DETTE TECHNIQUE
 
