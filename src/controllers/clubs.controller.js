@@ -106,7 +106,7 @@ async function joinClub(req, res) {
     if (club.conversation_id) {
       await client.query(
         `INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at)
-         VALUES ($1, $2, 'member', NOW())
+         VALUES ($1, $2, 'patient', NOW())
          ON CONFLICT DO NOTHING`,
         [club.conversation_id, normalizedPhone]
       );

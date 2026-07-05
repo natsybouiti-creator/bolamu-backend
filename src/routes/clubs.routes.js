@@ -69,7 +69,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
     await client.query(`
       INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at)
-      VALUES ($1, $2, 'admin', NOW())
+      VALUES ($1, $2, 'animateur', NOW())
     `, [conversationId, myPhone]);
 
     await client.query('COMMIT');

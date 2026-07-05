@@ -1,7 +1,8 @@
 -- Migration 055: Backfill conversations pour les clubs existants sans chat
 -- Chaque club actif sans conversation_id reçoit une conversation de type 'club',
 -- l'animateur et tous les membres existants (club_members) sont ajoutés comme
--- participants (rôle 'admin' pour l'animateur, 'member' pour les autres).
+-- participants (rôle 'animateur' pour l'animateur, 'patient' pour les autres —
+-- seules valeurs acceptées par conversation_participants_role_check, cf. migration_039).
 -- Jamais de DROP ni de perte de données — uniquement des INSERT/UPDATE additifs.
 
 WITH target_clubs AS (
@@ -24,12 +25,12 @@ updated_clubs AS (
 ),
 animateur_participants AS (
   INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at)
-  SELECT conversation_id, animateur_phone, 'admin', NOW()
+  SELECT conversation_id, animateur_phone, 'animateur', NOW()
   FROM updated_clubs
   RETURNING conversation_id
 )
 INSERT INTO conversation_participants (conversation_id, participant_phone, role, joined_at)
-SELECT uc.conversation_id, cm.patient_phone, 'member', NOW()
+SELECT uc.conversation_id, cm.patient_phone, 'patient', NOW()
 FROM updated_clubs uc
 JOIN club_members cm ON cm.club_id = uc.club_id
 WHERE cm.patient_phone <> uc.animateur_phone;
