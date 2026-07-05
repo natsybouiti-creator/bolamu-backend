@@ -8,13 +8,17 @@
 
 ## 0. Périmètre réglementaire
 
-**Loi 5-2025 / CNPD** — Le traitement des données est régi par la Loi n°29-2019 et la Loi n°5-2025 (`public/cgu.html:637`). La CNPD (Commission Nationale pour la Protection des Données, créée par la Loi n°5-2025) a reçu une déclaration préalable de Bolamu. Un Délégué à la Protection des Données (DPD/DPO) est désigné : **dpo@bolamu.co**. Droits garantis : accès, rectification, suppression, portabilité, opposition — réponse sous 30 jours. Droit à l'effacement anticipé hors DMN (conservation légale 5 ans, voir §6).
+Le socle réglementaire de Bolamu repose sur **deux piliers de rang équivalent**, à ne pas hiérarchiser l'un par rapport à l'autre : la protection générale des données personnelles (CNPD) et la protection spécifique des données de santé (BHP). Le premier couvre l'ensemble des données personnelles traitées par la plateforme (identité, paiement, usage) ; le second encadre exclusivement les données médicales — plus sensibles, avec ses propres exigences de consentement granulaire, de journalisation immuable et de purge automatique, détaillées en §2. Un abonné peut avoir exercé ses droits CNPD généraux sans que cela n'affecte le régime BHP appliqué à son dossier médical, et inversement.
 
-**BHP v1.2 (Bolamu Health Protocol)** — 4 tables dédiées, créées par des migrations situées dans un **dossier distinct** `migrations/` (à la racine, différent de `database/migrations/` documenté dans le modèle de données) :
+**Pilier 1 — Loi 5-2025 / CNPD** (protection générale des données personnelles) — Le traitement des données est régi par la Loi n°29-2019 et la Loi n°5-2025 (`public/cgu.html:637`). La CNPD (Commission Nationale pour la Protection des Données, créée par la Loi n°5-2025) a reçu une déclaration préalable de Bolamu. Un Délégué à la Protection des Données (DPD/DPO) est désigné : **dpo@bolamu.co**. Droits garantis : accès, rectification, suppression, portabilité, opposition — réponse sous 30 jours. Droit à l'effacement anticipé hors DMN (conservation légale 5 ans, voir §6).
+
+**Pilier 2 — BHP v1.2 (Bolamu Health Protocol)** (protection spécifique des données de santé) — Régime distinct et plus strict que la protection générale CNPD, portant spécifiquement sur les données médicales : consentement granulaire par type de donnée (`patient_consents`), journalisation d'accès rendue immuable au niveau des permissions PostgreSQL (`health_record_access_log`, `REVOKE UPDATE/DELETE/TRUNCATE` — voir §2), et purge physique automatique après 5 ans (`bhpPurge.job.js` — voir §6). 4 tables dédiées, créées par des migrations situées dans un **dossier distinct** `migrations/` (à la racine, différent de `database/migrations/` documenté dans le modèle de données) :
 - `migrations/bhp_001_health_records.sql` → `health_records`
 - `migrations/bhp_002_access_log.sql` → `health_record_access_log` (immuable, voir §2)
 - `migrations/bhp_003_consents.sql` → `patient_consents`
 - `migrations/bhp_004_documents.sql` → `documents`
+
+Le détail technique complet de ces deux piliers (middlewares, requêtes, jobs) est traité respectivement en §1 (authentification, transversal aux deux) et §2 (BHP exclusivement) — non dupliqué ici.
 
 **Conformité CIMA — pourquoi Bolamu n'est pas une assurance** : `public/cgu.html` Article 3 (« Bolamu n'est pas une assurance ») pose explicitement la distinction avec l'assurance maladie régie par le code CIMA :
 
@@ -75,9 +79,13 @@ Posé uniquement sur `consultation.routes.js` (`['medecin','admin']`) et `ordonn
 
 **Base de données des webhooks** : pas de table dédiée aux webhooks identifiée — les événements validés déclenchent directement les écritures `payments`/`subscriptions` habituelles ; la traçabilité passe par `audit_log` comme le reste de la plateforme (insert-only, voir §5).
 
+**Frontend** : sans objet pour cette section — un webhook est un appel serveur-à-serveur initié par MTN/Airtel directement vers le backend Bolamu, il n'existe structurellement aucune interface utilisateur intermédiaire. Le seul effet visible côté frontend est indirect : une fois le webhook traité, le statut du paiement/abonnement se reflète dans les dashboards patient/admin déjà documentés dans `ARCHITECTURE_FINANCIERE_BOLAMU.md` §1.
+
 ---
 
 ## 4. Rate limiting et idempotence
+
+**Base de données** : `idempotency_keys` (migration_021 — `idempotency_key`, `endpoint`, `user_phone`, `request_hash`, `response_status`, `response_body`, `expires_at`) et `audit_log` (chaque dépassement de rate limit y est inscrit, `event_type: 'rate_limit.exceeded'`).
 
 **Backend** — `src/middleware/rateLimiter.js` (`express-rate-limit`) :
 - `strictLimiter` : 5 req/15 min — endpoints sensibles (OTP, login). Exempte une liste fixe de numéros de test (`TEST_PHONES`) + préfixes synthétiques E2E (`+24206TEST`, `+24206EMP`).
@@ -89,6 +97,8 @@ Posé uniquement sur `consultation.routes.js` (`['medecin','admin']`) et `ordonn
 
 `src/middleware/requestLogger.js` : logge chaque requête (méthode, path, statut, durée, IP, `user_phone` si authentifié) via `logger.http()` (Winston, `src/config/logger.js`), à l'exception de `/metrics` et `/api/v1/test` (exclus pour éviter le bruit).
 
+**Frontend** : aucune gestion spécifique du code HTTP 429 identifiée dans les dashboards audités — cohérent avec le pattern « erreur silencieuse » déjà relevé dans `ARCHITECTURE_UX_UI_BOLAMU.md` §6 (`AUDIT_CONTRATS_API_BILATERAL.md`) : un dépassement de quota tomberait vraisemblablement dans le même `catch(() => {})` vide que les autres échecs réseau sur la majorité des appels, sans message dédié « trop de tentatives » affiché à l'utilisateur au-delà du message générique renvoyé par le middleware lui-même.
+
 ---
 
 ## 5. Audit trail
@@ -99,6 +109,8 @@ Posé uniquement sur `consultation.routes.js` (`['medecin','admin']`) et `ordonn
 
 **Recommandation implicite pour `/database-admin`/`/security-officer`** (non traitée ici, documentée à titre d'anomalie) : durcir `audit_log` avec le même `REVOKE UPDATE/DELETE/TRUNCATE` que `health_record_access_log`, et centraliser les écritures dans une fonction unique plutôt que 35 `INSERT` indépendants.
 
+**Frontend** : `public/admin/dashboard.html:1366` — `GET /admin/audit?type=` (filtre par type d'événement), seule vue confirmée sur l'`audit_log`, réservée au rôle `admin` (voir `ARCHITECTURE_RBAC_GLOBAL_BOLAMU.md` §1). Aucun autre rôle n'a de vue sur ce journal.
+
 ---
 
 ## 6. Politique de suppression des données
@@ -107,6 +119,7 @@ Posé uniquement sur `consultation.routes.js` (`['medecin','admin']`) et `ordonn
 - **Insert-only sur `zora_ledger`** — jamais de suppression de points (voir `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §0).
 - **Purge BHP automatique** (`src/jobs/bhpPurge.job.js`) : supprime physiquement (`DELETE`, transaction unique) les `health_records` marqués `is_deleted=true` depuis plus de **5 ans** (`updated_at < NOW() - INTERVAL '5 years'`), ainsi que les lignes correspondantes de `health_record_access_log` (via CTE en cascade manuelle). Cohérent avec la mention CGU : « droit à l'effacement anticipé... hors DMN soumis à conservation légale de 5 ans » (`cgu.html:694`). Chaque exécution logge un événement `BHP_PURGE_PHYSIQUE` dans `audit_log` (acteur `'system'`) — **seule exception connue à la règle « jamais de DELETE »**, et elle est physique + auditée, pas un simple soft-delete.
 - Pas de cron/scheduler explicite trouvé qui invoque `bhpPurgeJob` dans cette passe de lecture — le fichier exporte la fonction mais son déclenchement (cron externe ? appel manuel ?) n'a pas été confirmé ici, à vérifier avec `/devops-engineer`.
+- **Frontend** : sans objet — le soft delete et la purge BHP sont des opérations transparentes pour l'utilisateur, déclenchées uniquement par des actions serveur (cron/admin) ; aucune interface ne les expose directement (pas de bouton « purger » ni d'indicateur de purge trouvé dans les dashboards audités).
 
 ---
 
