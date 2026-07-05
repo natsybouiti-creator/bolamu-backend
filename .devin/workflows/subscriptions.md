@@ -12,7 +12,7 @@ Un bug ici = perte de revenus ou accès non autorisé.
 | Plan | Prix | Accès |
 |---|---|---|
 | Essentiel | 1 000 FCFA/mois | Consultation de base, RDV |
-| Standard | 2 500 FCFA/mois | + Téléconsultation, prescriptions |
+| Standard | 2 500 FCFA/mois | + prescriptions |
 | Premium | 5 000 FCFA/mois | + Labo, priorité, tout inclus |
 
 ## RÈGLES ABSOLUES ABONNEMENTS

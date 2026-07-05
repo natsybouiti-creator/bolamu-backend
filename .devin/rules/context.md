@@ -145,7 +145,6 @@ admin.routes.js
 credits.routes.js
 momo.routes.js
 airtel.routes.js
-telemedicine.routes.js
 qr.routes.js
 report.routes.js
 lab.routes.js
