@@ -7,12 +7,88 @@ const notifService = require('../services/notification.service');
 
 // GET /api/v1/feed
 // Feed : posts des follows + posts système
+// Supporte ?author=:phone pour filtrer par auteur (avec verrouillage si compte privé)
 exports.getFeed = async (req, res) => {
     const phone = req.user.phone;
-    const { page = 1, limit = 20, city } = req.query;
+    const { page = 1, limit = 20, city, author } = req.query;
     const offset = (page - 1) * limit;
 
     try {
+        // Si paramètre author présent, filtrer par cet auteur avec verrouillage
+        if (author) {
+            const targetPhone = author;
+            const isSelf = phone === targetPhone;
+
+            // Vérifier si le compte cible est privé
+            const userResult = await pool.query(
+                'SELECT is_private FROM users WHERE phone = $1',
+                [targetPhone]
+            );
+
+            if (userResult.rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    error: { code: 'USER_NOT_FOUND', message: 'Utilisateur introuvable' }
+                });
+            }
+
+            const isPrivate = userResult.rows[0].is_private;
+
+            // Vérifier si le visiteur suit déjà ce compte
+            let isFollowing = false;
+            if (!isSelf) {
+                const followResult = await pool.query(
+                    'SELECT 1 FROM follows WHERE follower_phone = $1 AND following_phone = $2',
+                    [phone, targetPhone]
+                );
+                isFollowing = followResult.rows.length > 0;
+            }
+
+            const isLocked = isPrivate && !isSelf && !isFollowing;
+
+            if (isLocked) {
+                return res.json({
+                    success: true,
+                    data: [],
+                    locked: true,
+                    page: +page
+                });
+            }
+
+            // Compte public ou déjà suivi : retourner les posts
+            const result = await pool.query(`
+                SELECT
+                    p.id,
+                    p.author_phone,
+                    p.content,
+                    p.photo_url,
+                    p.type,
+                    p.city,
+                    p.metadata,
+                    p.created_at,
+                    u.full_name AS author_name,
+                    u.avatar_url AS author_avatar,
+                    COUNT(DISTINCT pl.phone) AS likes_count,
+                    COUNT(DISTINCT pc.id)   AS comments_count,
+                    BOOL_OR(pl.phone = $1)  AS liked_by_me
+                FROM posts p
+                JOIN users u ON u.phone = p.author_phone
+                LEFT JOIN post_likes    pl ON pl.post_id = p.id
+                LEFT JOIN post_comments pc ON pc.post_id = p.id AND pc.is_active = TRUE
+                WHERE p.is_active = TRUE
+                    AND p.type IN ('manual', 'system')
+                    AND p.author_phone = $2
+                    AND (p.expires_at IS NULL OR p.expires_at > NOW())
+                    AND ($3::text IS NULL OR p.city = $3)
+                GROUP BY p.id, u.full_name, u.avatar_url
+                ORDER BY p.created_at DESC
+                LIMIT $4 OFFSET $5
+            `, [phone, targetPhone, city || null, limit, offset]);
+
+            return res.json({ success: true, data: result.rows, page: +page });
+        }
+
+        // Feed normal (sans paramètre author)
         const result = await pool.query(`
             SELECT
                 p.id,
@@ -247,7 +323,7 @@ exports.getProfile = async (req, res) => {
     const me = req.user.phone;
     try {
         const user = await pool.query(`
-            SELECT phone, full_name, bio, avatar_url, city, looking_for,
+            SELECT phone, full_name, bio, avatar_url, city, looking_for, is_private,
                 (SELECT COUNT(*) FROM follows WHERE follower_phone = u.phone)  AS following_count,
                 (SELECT COUNT(*) FROM follows WHERE following_phone = u.phone) AS followers_count,
                 (SELECT COUNT(*) FROM posts WHERE author_phone = u.phone AND is_active = TRUE AND type = 'manual') AS posts_count
@@ -261,28 +337,43 @@ exports.getProfile = async (req, res) => {
             });
         }
 
+        const userData = user.rows[0];
+        const isSelf = me === phone;
+
         const isFollowing = await pool.query(
             'SELECT 1 FROM follows WHERE follower_phone = $1 AND following_phone = $2',
             [me, phone]
         );
 
-        const posts = await pool.query(`
-            SELECT p.*, COUNT(pl.phone) AS likes_count
-            FROM posts p
-            LEFT JOIN post_likes pl ON pl.post_id = p.id
-            WHERE p.author_phone = $1 AND p.is_active = TRUE AND p.type = 'manual'
-            GROUP BY p.id
-            ORDER BY p.created_at DESC
-            LIMIT 12
-        `, [phone]);
+        const isLocked = userData.is_private && !isSelf && isFollowing.rows.length === 0;
+
+        let posts = [];
+        if (!isLocked) {
+            posts = await pool.query(`
+                SELECT p.*, COUNT(pl.phone) AS likes_count
+                FROM posts p
+                LEFT JOIN post_likes pl ON pl.post_id = p.id
+                WHERE p.author_phone = $1 AND p.is_active = TRUE AND p.type = 'manual'
+                GROUP BY p.id
+                ORDER BY p.created_at DESC
+                LIMIT 12
+            `, [phone]);
+        }
+
+        const responseData = {
+            ...userData,
+            is_following: isFollowing.rows.length > 0,
+            is_self: isSelf,
+            posts: posts.rows
+        };
+
+        if (isLocked) {
+            responseData.locked = true;
+        }
 
         return res.json({
             success: true,
-            data: {
-                ...user.rows[0],
-                is_following: isFollowing.rows.length > 0,
-                posts: posts.rows
-            }
+            data: responseData
         });
     } catch (err) {
         return res.status(500).json({

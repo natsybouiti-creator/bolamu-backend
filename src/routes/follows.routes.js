@@ -21,4 +21,10 @@ router.post('/:phone',          authMiddleware, followsCtrl.follow);
 // Ne plus suivre
 router.delete('/:phone',        authMiddleware, followsCtrl.unfollow);
 
+// Demandes de suivi reçues (comptes privés)
+router.get('/follow-requests',  authMiddleware, followsCtrl.getFollowRequests);
+
+// Accepter/refuser une demande de suivi
+router.patch('/follow-requests/:id', authMiddleware, followsCtrl.respondFollowRequest);
+
 module.exports = router;

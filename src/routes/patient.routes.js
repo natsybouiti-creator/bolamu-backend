@@ -370,19 +370,36 @@ router.post('/photo', authMiddleware, upload.single('photo'), handleMulterError,
 
 // PATCH /api/v1/patients/profil-social - Mettre à jour le profil social
 router.patch('/profil-social', authMiddleware, async (req, res) => {
+  const client = await pool.connect();
   try {
+    await client.query('BEGIN');
     const phone = normalizePhone(req.user.phone);
-    const { bio, city, statut_disponibilite, interets } = req.body;
+    const { bio, city, statut_disponibilite, interets, is_private } = req.body;
 
     // Validation statut_disponibilite
     const statutsAutorises = ['Cherche partenaire de sport', 'Ouvert à rejoindre une équipe', 'Non précisé'];
     if (statut_disponibilite && !statutsAutorises.includes(statut_disponibilite)) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ success: false, message: 'Statut de disponibilité invalide' });
     }
 
     // Validation bio (max 300 caractères)
     if (bio && bio.length > 300) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ success: false, message: 'Bio trop longue (max 300 caractères)' });
+    }
+
+    // Validation is_private (boolean)
+    if (is_private !== undefined && typeof is_private !== 'boolean') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'is_private doit être un booléen' });
+    }
+
+    // Récupérer l'ancienne valeur de is_private pour audit
+    let oldIsPrivate = null;
+    if (is_private !== undefined) {
+      const oldResult = await client.query('SELECT is_private FROM users WHERE phone = $1', [phone]);
+      oldIsPrivate = oldResult.rows[0]?.is_private;
     }
 
     // Construction de la requête UPDATE dynamique
@@ -410,19 +427,38 @@ router.patch('/profil-social', authMiddleware, async (req, res) => {
       values.push(interets || null);
     }
 
+    if (is_private !== undefined) {
+      updates.push(`is_private = $${paramCount++}`);
+      values.push(is_private);
+    }
+
     if (updates.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ success: false, message: 'Aucun champ à mettre à jour' });
     }
 
     values.push(phone);
     const query = `UPDATE users SET ${updates.join(', ')} WHERE phone = $${paramCount}`;
 
-    await pool.query(query, values);
+    await client.query(query, values);
 
+    // Audit log si is_private a changé
+    if (is_private !== undefined && oldIsPrivate !== is_private) {
+      await client.query(
+        `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+         VALUES ($1, $2, $3, $4, $5::jsonb)`,
+        ['is_private_changed', phone, 'users', phone, JSON.stringify({ old: oldIsPrivate, new: is_private })]
+      );
+    }
+
+    await client.query('COMMIT');
     res.json({ success: true, message: 'Profil social mis à jour' });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('[profil-social] ERROR:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
+  } finally {
+    client.release();
   }
 });
 
@@ -430,10 +466,11 @@ router.patch('/profil-social', authMiddleware, async (req, res) => {
 router.get('/profil-social/:phone', async (req, res) => {
   try {
     const targetPhone = normalizePhone(req.params.phone);
+    const visitorPhone = req.user ? normalizePhone(req.user.phone) : null;
 
     const result = await pool.query(
       `SELECT bio, city, statut_disponibilite, interets, photo_url, 
-              full_name, first_name, last_name, created_at
+              full_name, first_name, last_name, created_at, is_private
        FROM users 
        WHERE phone = $1`,
       [targetPhone]
@@ -444,6 +481,20 @@ router.get('/profil-social/:phone', async (req, res) => {
     }
 
     const user = result.rows[0];
+    const isSelf = visitorPhone === targetPhone;
+
+    // Vérifier si le visiteur suit déjà ce compte
+    let isFollowing = false;
+    if (visitorPhone && !isSelf) {
+      const followResult = await pool.query(
+        'SELECT 1 FROM follows WHERE follower_phone = $1 AND following_phone = $2',
+        [visitorPhone, targetPhone]
+      );
+      isFollowing = followResult.rows.length > 0;
+    }
+
+    // Vérifier si le compte est privé et verrouillé
+    const isLocked = user.is_private && !isSelf && !isFollowing;
 
     // Stats Zora (réutilise requête existante)
     const zoraResult = await pool.query(
@@ -482,38 +533,50 @@ router.get('/profil-social/:phone', async (req, res) => {
     const badges = await calculateBadges(targetPhone);
 
     // Galerie photos (12 dernières publications avec photo)
-    const photosResult = await pool.query(
-      `SELECT id, photo_url, content, created_at,
-              (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = posts.id) as likes_count
-       FROM posts
-       WHERE author_phone = $1 AND photo_url IS NOT NULL AND is_active = true
-       ORDER BY created_at DESC
-       LIMIT 12`,
-      [targetPhone]
-    );
-    const photos = photosResult.rows.map(p => ({
-      id: p.id,
-      photo_url: p.photo_url,
-      content: p.content,
-      likes_count: parseInt(p.likes_count) || 0,
-      created_at: p.created_at
-    }));
+    let photos = [];
+    if (!isLocked) {
+      const photosResult = await pool.query(
+        `SELECT id, photo_url, content, created_at,
+                (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = posts.id) as likes_count
+         FROM posts
+         WHERE author_phone = $1 AND photo_url IS NOT NULL AND is_active = true
+         ORDER BY created_at DESC
+         LIMIT 12`,
+        [targetPhone]
+      );
+      photos = photosResult.rows.map(p => ({
+        id: p.id,
+        photo_url: p.photo_url,
+        content: p.content,
+        likes_count: parseInt(p.likes_count) || 0,
+        created_at: p.created_at
+      }));
+    }
+
+    const responseData = {
+      bio: user.bio,
+      city: user.city,
+      statut_disponibilite: user.statut_disponibilite,
+      interets: user.interets,
+      photo_url: user.photo_url,
+      full_name: user.full_name,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      badges,
+      stats,
+      photos,
+      is_private: user.is_private,
+      is_following: isFollowing,
+      is_self: isSelf
+    };
+
+    if (isLocked) {
+      responseData.locked = true;
+    }
 
     res.json({
       success: true,
-      data: {
-        bio: user.bio,
-        city: user.city,
-        statut_disponibilite: user.statut_disponibilite,
-        interets: user.interets,
-        photo_url: user.photo_url,
-        full_name: user.full_name,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        badges,
-        stats,
-        photos
-      }
+      data: responseData
     });
   } catch (err) {
     console.error('[profil-social] ERROR:', err.message);
