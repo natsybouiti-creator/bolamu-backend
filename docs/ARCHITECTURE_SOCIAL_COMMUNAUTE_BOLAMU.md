@@ -112,6 +112,63 @@ Chronologique décroissant (le plus récent en premier), sans filtre géographiq
 
 ---
 
+## 4bis. CONFIDENTIALITÉ DES COMPTES (compte privé/public)
+### STATUT : PRÉVU — NON IMPLÉMENTÉ (aucune preuve réelle à ce jour)
+
+### 4bis.1 Principe
+Par défaut, tout compte est public (`users.is_private = false`
+prévu), comportement inchangé par rapport à l'existant. Un
+adhérent pourra activer un statut privé depuis son profil.
+Le modèle suit Instagram : compte public → suivi direct,
+compte privé → suivi soumis à acceptation.
+
+Ce mécanisme réutilisera le pattern déjà en place pour
+`join_mode = 'approval'` sur les clubs (section 5) : une
+table de demandes en attente, un statut
+`pending/accepted/rejected`, une action explicite du
+propriétaire pour débloquer l'accès.
+
+### 4bis.2 Schéma prévu (non créé)
+| Table / colonne | Rôle | État réel confirmé par audit du 6 juillet 2026 |
+|---|---|---|
+| `users.is_private` | BOOLEAN, défaut `false` | **N'existe pas** (grep + information_schema : 0 résultat) |
+| `follow_requests` | Table dédiée : `requester_phone`, `target_phone`, `status`, `created_at`, `responded_at` | **N'existe pas** (grep : 0 résultat) |
+
+### 4bis.3 Routes prévues (non créées)
+| Méthode | Route | Auth | Comportement prévu |
+|---|---|---|---|
+| PATCH | `/api/v1/profiles/me` | patient | accepterait `is_private` en plus des champs existants |
+| POST | `/api/v1/follows/:phone` | patient | si cible privée : créerait une ligne `follow_requests` pending au lieu d'un follow direct |
+| GET | `/api/v1/follow-requests` | patient | listerait les demandes reçues en attente |
+| PATCH | `/api/v1/follow-requests/:id` | patient | `{action:'accept'|'reject'}` |
+
+État réel confirmé par audit : ces routes n'existent pas
+dans `src/controllers/follows.controller.js` ni
+`src/routes/follows.routes.js` à ce jour.
+
+### 4bis.4 Effet prévu sur la visibilité
+Si le compte visité est privé et que le visiteur n'est ni
+l'auteur, ni un follower accepté, les routes suivantes
+devraient retourner un contenu verrouillé (`locked:true`) :
+`GET /profiles/:phone`, `GET /patients/profil-social/:phone`,
+`GET /feed?author=:phone`. Non implémenté à ce jour.
+
+### 4bis.5 Règle anti-fraude (rappel section 10)
+Une fois implémentée, une demande de suivi acceptée/refusée
+ne devra jamais créditer de Zora, comme toute interaction
+sociale.
+
+### 4bis.6 Mise à jour de ce statut
+Ce bloc doit être corrigé ligne par ligne avec preuve
+réelle (requête SQL, réponse HTTP, capture d'écran) UNE
+FOIS l'implémentation terminée — jamais avant. Le statut
+« PRÉVU — NON IMPLÉMENTÉ » en tête de section 4bis doit
+être remplacé par la date de mise en production réelle
+et les preuves T-priv1 à T-priv5 (à ajouter section 14.2)
+au moment où le chantier sera codé.
+
+---
+
 ## 5. CLUBS / GROUPES (fusion de l'ancienne section Communauté)
 
 ### 5.1 Cycle : `DRAFT → ACTIVE → ARCHIVED` (inchangé)
@@ -401,6 +458,11 @@ Rien n'est « fait » tant que sa preuve réelle n'est pas collée ici et verte.
 | T14 | Aucun gain Zora sur une interaction sociale | Code+SQL | grep confirmant l'absence de tout appel Zora dans les routes sociales | | ☐ |
 | T15 | Tous les nouveaux appels clubs/Elonga utilisent `apiFetch()` | Code | grep confirmant l'absence de `fetch()` + token manuel hors FormData/Socket.io | | ☐ |
 | T16 | Aucun onglet nav dupliqué | Code+Navigateur | audit de la nav existante collé, confirmant qu'aucun nouvel onglet ne fait doublon | | ☐ |
+| T-priv1 | Colonne `users.is_private` existe en base | SQL | `SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='is_private'` retourne 1 ligne | | ☐ |
+| T-priv2 | Table `follow_requests` existe en base | SQL | `\d follow_requests` sur Neon affiche le schéma complet | | ☐ |
+| T-priv3 | Activer compte privé via PATCH /profiles/me | HTTP+SQL | `is_private` passe à `true` en base, réponse API confirme | | ☐ |
+| T-priv4 | Suivre un compte privé crée une demande | HTTP+SQL | ligne `follow_requests` avec `status='pending'` créée, pas de ligne dans `follows` | | ☐ |
+| T-priv5 | Accepter une demande de suivi | HTTP+SQL | ligne `follow_requests` passe à `accepted`, ligne `follows` créée, pas de Zora crédité | | ☐ |
 
 ### 14.3 Règle de push
 Aucun `git push` tant que les preuves des tests concernés ne sont pas collées et vertes. Validation manuelle à chaque fois.
