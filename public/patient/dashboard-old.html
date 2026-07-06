@@ -200,12 +200,12 @@
     .partner-type{font-size:12px;color:var(--texte-doux);}
     .partner-dist{font-size:12px;color:var(--vert);font-weight:600;white-space:nowrap;}
 
-    /* ── CREDITS ── */
-    .credits-balance-card{background:var(--grad-card);border-radius:24px;padding:36px;color:white;margin-bottom:24px;position:relative;overflow:hidden;}
-    .credits-balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(0,201,167,0.2) 0%,transparent 70%);border-radius:50%;}
-    .credits-partners-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding:20px;}
-    .credit-partner-card{border:1px solid var(--border);border-radius:16px;padding:18px;cursor:pointer;transition:all 0.2s;background:white;}
-    .credit-partner-card:hover{border-color:var(--bleu-vif);transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,134,255,0.1);}
+    /* ── ZORA ── */
+    .zora-balance-card{background:var(--grad-card);border-radius:24px;padding:36px;color:white;margin-bottom:24px;position:relative;overflow:hidden;}
+    .zora-balance-card::before{content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(0,201,167,0.2) 0%,transparent 70%);border-radius:50%;}
+    .zora-partners-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding:20px;}
+    .zora-partner-card{border:1px solid var(--border);border-radius:16px;padding:18px;cursor:pointer;transition:all 0.2s;background:white;}
+    .zora-partner-card:hover{border-color:var(--bleu-vif);transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,134,255,0.1);}
 
     /* ── PROFIL ── */
     .profil-layout{display:grid;grid-template-columns:320px 1fr;gap:24px;}
@@ -349,9 +349,9 @@
       .partners-list{grid-template-columns:1fr;padding:16px;}
       .map-header{flex-direction:column;align-items:flex-start;}
 
-      /* Credits */
-      .credits-balance-card{padding:24px;}
-      .credits-partners-grid{grid-template-columns:1fr;}
+      /* Zora */
+      .zora-balance-card{padding:24px;}
+      .zora-partners-grid{grid-template-columns:1fr;}
 
       /* Section */
       .section-title-dash{font-size:20px;}
@@ -598,7 +598,7 @@
   <button class="tab" id="tab-medecins" data-tab="medecins"><i data-lucide="stethoscope"></i> Médecins</button>
   <button class="tab" id="tab-dossier" data-tab="dossier"><i data-lucide="file-text"></i> Dossier médical</button>
   <button class="tab" id="tab-carte" data-tab="carte"><i data-lucide="map-pin"></i> Partenaires</button>
-  <button class="tab" id="tab-credits" data-tab="credits"><i data-lucide="coins"></i> Mes Crédits</button>
+  <button class="tab" id="tab-zora" data-tab="zora"><i data-lucide="coins"></i> Mes Points Zora</button>
   <button class="tab" id="tab-conflits" data-tab="conflits"><i data-lucide="scale"></i> Mes Conflits</button>
   <button class="tab" id="tab-profil" data-tab="profil"><i data-lucide="user"></i> Mon profil</button>
 </div>
@@ -618,8 +618,8 @@
     <button class="bnav-item" id="bnav-carte" data-tab="carte">
       <i data-lucide="map-pin" class="bnav-icon"></i><span class="bnav-label">Carte</span>
     </button>
-    <button class="bnav-item" id="bnav-credits" data-tab="credits">
-      <i data-lucide="coins" class="bnav-icon"></i><span class="bnav-label">Crédits</span>
+    <button class="bnav-item" id="bnav-zora" data-tab="zora">
+      <i data-lucide="coins" class="bnav-icon"></i><span class="bnav-label">Points Zora</span>
     </button>
     <button class="bnav-item" id="bnav-conflits" data-tab="conflits">
       <i data-lucide="scale" class="bnav-icon"></i><span class="bnav-label">Conflits</span>
@@ -765,11 +765,11 @@
   </div>
 
   <!-- CRÉDITS -->
-  <div class="panel" id="panel-credits">
-    <div class="credits-balance-card">
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.6);margin-bottom:8px;position:relative;z-index:2;">Bolamu Credits</div>
+  <div class="panel" id="panel-zora">
+    <div class="zora-balance-card">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.6);margin-bottom:8px;position:relative;z-index:2;">Bolamu Zora</div>
       <div style="font-family:'Fraunces',serif;font-size:56px;font-weight:900;line-height:1;margin-bottom:6px;position:relative;z-index:2;" id="cr-balance">—</div>
-      <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:24px;position:relative;z-index:2;">crédits disponibles</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:24px;position:relative;z-index:2;">points Zora disponibles</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;position:relative;z-index:2;">
         <div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.15);">
           <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Mois consécutifs</div>
@@ -786,24 +786,24 @@
       </div>
     </div>
     <div style="background:white;border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:24px;box-shadow:0 2px 12px rgba(10,36,99,0.04);">
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:16px;">Comment gagner des crédits ?</div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:16px;">Comment gagner des points Zora ?</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div style="background:var(--bleu-pale);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;">
           <div style="font-size:24px;">📅</div>
-          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Abonnement actif</div><div style="font-size:12px;color:var(--texte-doux);">+100 crédits / mois</div></div>
+          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Abonnement actif</div><div style="font-size:12px;color:var(--texte-doux);">+100 points Zora / mois</div></div>
         </div>
         <div style="background:var(--vert-clair);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;">
           <div style="font-size:24px;">🏆</div>
-          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Fidélité 3 mois</div><div style="font-size:12px;color:#047857;">+50 crédits bonus</div></div>
+          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Fidélité 3 mois</div><div style="font-size:12px;color:#047857;">+50 points Zora bonus</div></div>
         </div>
       </div>
     </div>
     <div style="background:white;border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:24px;">
       <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:15px;font-weight:700;">Dépenser mes crédits</div>
+        <div style="font-size:15px;font-weight:700;">Dépenser mes points Zora</div>
         <div style="font-size:12px;color:var(--texte-doux);">Partenaires santé & bien-être</div>
       </div>
-      <div class="credits-partners-grid" id="cr-partners-grid">
+      <div class="zora-partners-grid" id="cr-partners-grid">
         <div style="text-align:center;padding:32px;color:var(--texte-doux);grid-column:1/-1;">Chargement…</div>
       </div>
     </div>
@@ -1167,12 +1167,12 @@ function showPaymentError(msg){
 }
 document.getElementById('modal-payment').addEventListener('click',function(e){if(e.target===this)closePayment();});
 
-/* ─ CRÉDITS ─ */
+/* ─ ZORA ─ */
 const catIcons={pharmacie:'💊',sport:'🏋️',nutrition:'🥗','bien-être':'🧘',optique:'👓',dentaire:'🦷'};
-async function loadCredits(){
+async function loadZora(){
   try{
     const token=localStorage.getItem('bolamu_patient_token');
-    const res=await fetch(`${API}/credits/balance`,{headers:{'Authorization':`Bearer ${token}`}});
+    const res=await fetch(`${API}/zora/balance`,{headers:{'Authorization':`Bearer ${token}`}});
     const data=await res.json();
     if(!data.success)return;
     const cr=data.data||{};
@@ -1200,16 +1200,16 @@ async function loadCredits(){
         </div>
         <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:${h.type==='earn'?'var(--vert)':'var(--rouge)'};">${h.type==='earn'?'+':'−'}${h.amount}</div>
       </div>`).join('')}</div>`;
-  }catch(e){console.error('loadCredits error:',e);}
+  }catch(e){console.error('loadZora error:',e);}
 }
-function openSpend(partnerId,partnerName,minCredits,discountPer100){
+function openSpend(partnerId,partnerName,minZora,discountPer100){
   const balance=parseInt((document.getElementById('cr-balance').textContent||'0').replace(/\s/g,''))||0;
   document.getElementById('modal-spend-body').innerHTML=`
     <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">Dépenser chez ${partnerName}</div>
-    <div style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;line-height:1.6;">Solde : <strong style="color:var(--bleu);">${balance.toLocaleString('fr-FR')} crédits</strong><br>Minimum : <strong>${minCredits} crédits</strong> • Remise : <strong>${discountPer100}% / 100 crédits</strong></div>
+    <div style="font-size:14px;color:var(--texte-doux);margin-bottom:20px;line-height:1.6;">Solde : <strong style="color:var(--bleu);">${balance.toLocaleString('fr-FR')} points Zora</strong><br>Minimum : <strong>${minZora} points Zora</strong> • Remise : <strong>${discountPer100}% / 100 points Zora</strong></div>
     <div style="margin-bottom:16px;">
-      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;">Crédits à utiliser</label>
-      <input type="number" id="spend-amount" value="${minCredits}" min="${minCredits}" max="${balance}" step="50"
+      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:8px;">Points Zora à utiliser</label>
+      <input type="number" id="spend-amount" value="${minZora}" min="${minZora}" max="${balance}" step="50"
         style="width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-size:18px;font-weight:700;font-family:'Fraunces',serif;color:var(--bleu);outline:none;text-align:center;"
         data-discount-rate="${discountPer100}">
     </div>
@@ -1230,10 +1230,10 @@ async function confirmSpend(partnerId,partnerName){
   if(!amount||amount<=0)return;
   const token=localStorage.getItem('bolamu_patient_token');
   try{
-    const res=await fetch(`${API}/credits/spend`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({partner_id:partnerId,amount})});
+    const res=await fetch(`${API}/zora/spend`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({partner_id:partnerId,amount})});
     const data=await res.json();
     document.getElementById('modal-spend').style.display='none';
-    if(data.success){alert(`✅ ${amount} crédits dépensés chez ${partnerName} !\nRemise : ${data.discount_obtained}%\nNouveau solde : ${data.new_balance} crédits`);loadCredits();}
+    if(data.success){alert(`✅ ${amount} points Zora dépensés chez ${partnerName} !\nRemise : ${data.discount_obtained}%\nNouveau solde : ${data.new_balance} points Zora`);loadZora();}
     else alert('❌ '+(data.message||'Erreur'));
   }catch(e){alert('Erreur de connexion');}
 }
@@ -2243,7 +2243,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-medecins').addEventListener('click', () => showTab('medecins', document.getElementById('tab-medecins')));
   document.getElementById('tab-dossier').addEventListener('click', () => showTab('dossier', document.getElementById('tab-dossier')));
   document.getElementById('tab-carte').addEventListener('click', () => showTab('carte', document.getElementById('tab-carte')));
-  document.getElementById('tab-credits').addEventListener('click', () => showTab('credits', document.getElementById('tab-credits')));
+  document.getElementById('tab-zora').addEventListener('click', () => showTab('zora', document.getElementById('tab-zora')));
   document.getElementById('tab-conflits').addEventListener('click', () => showTab('conflits', document.getElementById('tab-conflits')));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
 
@@ -2252,7 +2252,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('bnav-medecins').addEventListener('click', () => showTabMobile('medecins', document.getElementById('bnav-medecins')));
   document.getElementById('bnav-dossier').addEventListener('click', () => showTabMobile('dossier', document.getElementById('bnav-dossier')));
   document.getElementById('bnav-carte').addEventListener('click', () => showTabMobile('carte', document.getElementById('bnav-carte')));
-  document.getElementById('bnav-credits').addEventListener('click', () => showTabMobile('credits', document.getElementById('bnav-credits')));
+  document.getElementById('bnav-zora').addEventListener('click', () => showTabMobile('zora', document.getElementById('bnav-zora')));
   document.getElementById('bnav-conflits').addEventListener('click', () => showTabMobile('conflits', document.getElementById('bnav-conflits')));
   document.getElementById('bnav-profil').addEventListener('click', () => showTabMobile('profil', document.getElementById('bnav-profil')));
 
