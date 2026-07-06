@@ -683,6 +683,29 @@ tr:hover td{background:rgba(255,255,255,.018);}
         </tr></thead>
         <tbody id="tbody-clearing"></tbody>
       </table>
+
+      <!-- SECTION RÈGLEMENT VOUCHERS PARTENAIRES -->
+      <h2 style="margin-top:32px">🎟️ Règlement vouchers partenaires</h2>
+      <p style="opacity:.7;margin-bottom:16px">
+        Vouchers Zora validés par les partenaires récompenses ·
+        Règlement par virement bancaire (pipeline distinct de la CDR)
+      </p>
+
+      <button data-ononclick="lancerClearingVouchers"
+        style="margin-bottom:16px;background:#00C9A7;color:white;
+        padding:10px 20px;border:none;border-radius:8px;
+        cursor:pointer;font-weight:600">
+        ⚡ Générer les règlements vouchers
+      </button>
+
+      <table>
+        <thead><tr>
+          <th>Partenaire</th><th>Téléphone</th><th>Voucher</th>
+          <th>Montant FCFA</th><th>Statut</th>
+          <th>Référence virement</th><th>Action</th>
+        </tr></thead>
+        <tbody id="tbody-voucher-payouts"></tbody>
+      </table>
     </div>
 
     <!-- PANEL CONFLITS -->
@@ -2169,6 +2192,7 @@ async function loadClearing() {
   } catch(e) {
     toast('Erreur chargement clearing', 'error');
   }
+  loadVoucherPayouts();
 }
 
 async function lancerClearing() {
@@ -2190,6 +2214,60 @@ async function marquerVerse(id) {
     toast('Versement enregistré <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
     loadClearing();
   } catch(e) { toast('Erreur versement', 'error'); }
+}
+
+/* -----------------------------------
+   RÈGLEMENT VOUCHERS PARTENAIRES
+----------------------------------- */
+async function loadVoucherPayouts() {
+  try {
+    const d = await api('/clearing/vouchers/pending');
+    const rows = d.payouts || [];
+    document.getElementById('tbody-voucher-payouts').innerHTML =
+      rows.length ? rows.map(p => `<tr>
+        <td>${p.partner_name || '—'}</td>
+        <td>${p.partner_phone}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${p.voucher_uuid}</td>
+        <td style="font-weight:600">${fn(p.amount_fcfa || 0)} FCFA</td>
+        <td>${badge(p.status || 'pending')}</td>
+        <td><input type="text" id="vp-ref-${p.id}"
+          placeholder="Réf. virement"
+          style="padding:6px 8px;border:1px solid var(--border,#ccc);border-radius:6px;font-size:12px;width:140px"></td>
+        <td><button data-onclick="payerVoucherPayout" data-arg="${p.id}">
+          Payer</button></td>
+      </tr>`).join('') :
+      '<tr><td colspan="7" style="text-align:center;opacity:.5">' +
+      'Aucun règlement voucher en attente</td></tr>';
+  } catch(e) {
+    toast('Erreur chargement règlements vouchers', 'error');
+  }
+}
+
+async function lancerClearingVouchers() {
+  if (!confirm(
+    'Générer les règlements vouchers ?\n' +
+    'Cette opération crée une ligne de règlement pour chaque ' +
+    'voucher validé en attente.')) return;
+  try {
+    const d = await api('/clearing/vouchers/run', { method: 'POST' });
+    toast(`<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> ${d.payouts_crees||0} règlement(s) voucher créé(s)`);
+    loadVoucherPayouts();
+  } catch(e) { toast('Erreur génération règlements vouchers', 'error'); }
+}
+
+async function payerVoucherPayout(id) {
+  const refInput = document.getElementById('vp-ref-' + id);
+  const reference = refInput ? refInput.value.trim() : '';
+  if (!reference) { toast('Référence de virement obligatoire', 'error'); return; }
+  if (!confirm(`Marquer le règlement voucher ${id} comme payé ?\nRéférence : ${reference}`)) return;
+  try {
+    await api(`/clearing/vouchers/${id}/pay`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reference_virement: reference })
+    });
+    toast('Règlement voucher payé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
+    loadVoucherPayouts();
+  } catch(e) { toast('Erreur paiement règlement voucher', 'error'); }
 }
 
 /* -----------------------------------

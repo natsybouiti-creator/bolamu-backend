@@ -7,6 +7,7 @@ const db = require('../config/db');
 const crypto = require('crypto');
 const authMiddleware = require('../middleware/auth.middleware');
 const { calculerReversement, validerClearing } = require('../services/billing.service');
+const { sendAutoMessage } = require('../services/whatsapp.service');
 
 // ─── CONFIG MTN DISBURSEMENT (versements sortants) ───────────────────────────────
 const MOMO_BASE_URL = 'https://sandbox.momodeveloper.mtn.com';
@@ -378,6 +379,153 @@ router.patch('/:id/fail', authMiddleware, adminOnly, async (req, res) => {
         res.json({ success: true, message: 'Versement marqué comme échoué.', payout: result.rows[0] });
     } catch (e) {
         console.error('PATCH /clearing/:id/fail error:', e.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+});
+
+// ============================================================
+// RÈGLEMENT VOUCHERS PARTENAIRES RÉCOMPENSES (voucher_payouts)
+// Les clearing_transactions de type 'partenaire' (vouchers Zora validés)
+// ne peuvent pas entrer dans le pipeline CDR (partner_payouts.partner_type
+// ENUM exclut 'partenaire') — pipeline dédié ci-dessous.
+// ============================================================
+
+// ─── POST /vouchers/run ──────────────────────────────────────────────────────
+// Agrège les clearing_transactions pending de type 'partenaire' et crée
+// les voucher_payouts correspondants.
+router.post('/vouchers/run', authMiddleware, adminOnly, async (req, res) => {
+    const client = await db.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Charger les transactions vouchers pending (verrou)
+        const txResult = await client.query(
+            `SELECT ct.id, ct.partner_phone, ct.partner_type, ct.amount_fcfa, zv.uuid as voucher_uuid
+             FROM clearing_transactions ct
+             JOIN zora_vouchers zv ON zv.id = ct.reference_id
+             WHERE ct.status = 'pending' AND ct.partner_type = 'partenaire' AND ct.reference_type = 'voucher'
+             ORDER BY ct.id
+             FOR UPDATE OF ct`
+        );
+
+        if (txResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.json({ success: true, message: 'Aucune transaction voucher en attente.', payouts_crees: 0 });
+        }
+
+        // 2. Créer un voucher_payout par transaction et marquer la transaction validée
+        const payouts = [];
+        for (const tx of txResult.rows) {
+            const payoutResult = await client.query(
+                `INSERT INTO voucher_payouts (partner_phone, partner_type, voucher_uuid, amount_fcfa, status)
+                 VALUES ($1, $2, $3, $4, 'pending')
+                 RETURNING id, partner_phone, partner_type, voucher_uuid, amount_fcfa, status, created_at`,
+                [tx.partner_phone, tx.partner_type, tx.voucher_uuid, tx.amount_fcfa]
+            );
+            await client.query(
+                `UPDATE clearing_transactions SET status = 'validated' WHERE id = $1`,
+                [tx.id]
+            );
+            payouts.push(payoutResult.rows[0]);
+        }
+
+        await client.query('COMMIT');
+
+        // 3. Audit log (hors transaction)
+        await db.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, payload)
+             VALUES ('clearing.vouchers.run', $1, 'voucher_payouts', $2::jsonb)`,
+            [req.user.phone, JSON.stringify({
+                payouts_crees: payouts.length,
+                montant_total: payouts.reduce((s, p) => s + p.amount_fcfa, 0),
+                payout_ids: payouts.map(p => p.id)
+            })]
+        ).catch(() => {});
+
+        // 4. Notifier chaque partenaire WhatsApp (non bloquant)
+        setImmediate(async () => {
+            for (const p of payouts) {
+                try {
+                    await sendAutoMessage(p.partner_phone, 'bolamu_voucher_payout', [
+                        p.amount_fcfa,
+                        `VP-${p.id}`
+                    ]);
+                } catch (whatsappErr) {
+                    console.error('[CLEARING VOUCHERS] Erreur envoi WhatsApp (non bloquante):', whatsappErr.message);
+                }
+            }
+        });
+
+        res.json({
+            success: true,
+            message: `${payouts.length} règlement(s) voucher créé(s).`,
+            payouts_crees: payouts.length,
+            payouts
+        });
+    } catch (e) {
+        await client.query('ROLLBACK');
+        console.error('POST /clearing/vouchers/run error:', e.message);
+        res.status(500).json({ success: false, message: 'Erreur lors de la création des règlements vouchers.' });
+    } finally {
+        client.release();
+    }
+});
+
+// ─── GET /vouchers/pending ───────────────────────────────────────────────────
+router.get('/vouchers/pending', authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const result = await db.query(
+            `SELECT vp.id, vp.partner_phone, vp.partner_type, vp.voucher_uuid, vp.amount_fcfa,
+                    vp.status, vp.created_at, vp.paid_at, vp.reference_virement,
+                    zp.name as partner_name
+             FROM voucher_payouts vp
+             LEFT JOIN zora_partners zp ON zp.phone = vp.partner_phone
+             WHERE vp.status = 'pending'
+             ORDER BY vp.created_at DESC`
+        );
+        res.json({ success: true, payouts: result.rows });
+    } catch (e) {
+        console.error('GET /clearing/vouchers/pending error:', e.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+});
+
+// ─── PATCH /vouchers/:id/pay ─────────────────────────────────────────────────
+router.patch('/vouchers/:id/pay', authMiddleware, adminOnly, async (req, res) => {
+    const { id } = req.params;
+    const { reference_virement } = req.body;
+
+    if (!reference_virement) {
+        return res.status(400).json({ success: false, message: 'Référence de virement obligatoire.' });
+    }
+
+    try {
+        const result = await db.query(
+            `UPDATE voucher_payouts
+             SET status = 'paid', reference_virement = $1, paid_at = NOW()
+             WHERE id = $2 AND status = 'pending'
+             RETURNING id, partner_phone, partner_type, voucher_uuid, amount_fcfa, status, paid_at, reference_virement`,
+            [reference_virement, id]
+        );
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Règlement introuvable ou déjà traité.' });
+        }
+        const payout = result.rows[0];
+
+        // Audit log
+        await db.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('clearing.vouchers.paid', $1, 'voucher_payouts', $2, $3::jsonb)`,
+            [req.user.phone, id, JSON.stringify({
+                partner_phone: payout.partner_phone,
+                amount_fcfa: payout.amount_fcfa,
+                reference_virement
+            })]
+        ).catch(() => {});
+
+        res.json({ success: true, message: 'Règlement voucher payé.', payout });
+    } catch (e) {
+        console.error('PATCH /clearing/vouchers/:id/pay error:', e.message);
         res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
 });

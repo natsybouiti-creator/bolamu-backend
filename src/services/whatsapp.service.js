@@ -35,6 +35,7 @@ const TEMPLATE_TITRES = {
   'bolamu_nouvelle_ordonnance_pharmacie': 'Nouvelle ordonnance',
   'bolamu_voucher_genere': 'Voucher généré',
   'bolamu_voucher_utilise': 'Voucher utilisé',
+  'bolamu_voucher_payout': 'Règlement voucher',
   'bolamu_zora_attribues': 'Zora reçus',
   'bolamu_zora_depense': 'Zora utilisés',
   'bolamu_zora_expiration': 'Expiration Zora',
@@ -151,6 +152,8 @@ async function sendAutoMessage(phone, templateName, params) {
       message = `${params[0]}, votre voucher est prêt !\nCode : ${params[1]}\nValable chez : ${params[2]}\nExpire dans 48h.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_voucher_utilise') {
       message = `${params[0]}, votre voucher a été validé.\nRécompense : ${params[1]}\nPartenaire : ${params[2]}\n\nMerci de votre fidélité — L'équipe Bolamu`;
+    } else if (templateName === 'bolamu_voucher_payout') {
+      message = `Règlement voucher Bolamu en préparation.\nMontant : ${params[0]} FCFA\nRéférence : ${params[1]}\nVous recevrez le virement sous peu.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_event_inscription') {
       message = `Inscription confirmée ✅\nÉvénement : ${params[1]}\nLieu : ${params[2]}\nDate : ${params[3]}\nHeure : ${params[4]}\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_animateur_event_valide') {
