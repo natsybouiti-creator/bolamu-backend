@@ -309,6 +309,14 @@
     border: 2px dashed rgba(10,36,99,0.2); border-radius: 1rem; cursor: pointer; color: rgba(10,36,99,0.5);
     font-size: 0.85rem;
   }
+
+  /* ===== Toggle switch Compte privé ===== */
+  #edit-is-private:checked + span {
+    background-color: #00C9A7;
+  }
+  #edit-is-private:checked + span + span {
+    transform: translateX(22px);
+  }
 </style>
 </head>
 <body>
@@ -345,6 +353,10 @@
             <!-- Injecté par JS -->
           </div>
         </div>
+        <button onclick="A.openFollowRequestsModal()" style="position: relative; height: 40px; width: 40px; border: 1px solid #E4E4F2; background: #fff; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+          <span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">person_add</span>
+          <span id="follow-requests-badge" class="notif-badge" style="display:none">0</span>
+        </button>
         <button data-testid="btn-profil" onclick="A.openProfile()" style="height: 40px; width: 40px; border: 2px solid #003FB1; border-radius: 9999px; background: #0A2463; color: #fff; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="b-patientInitiales">—</span></button>
       </div>
     </div>
@@ -1000,6 +1012,18 @@
               <div id="interets-tags" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px;"></div>
             </div>
             
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(10,36,99,0.04); border-radius: 10px;">
+              <div>
+                <div style="font-size: 0.82rem; font-weight: 700; color: #434654;">Compte privé</div>
+                <div style="font-size: 0.75rem; color: #9498a8; margin-top: 2px;">Seuls vos abonnés verront vos publications</div>
+              </div>
+              <label style="position: relative; display: inline-block; width: 48px; height: 26px;">
+                <input type="checkbox" id="edit-is-private" style="opacity: 0; width: 0; height: 0;">
+                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #EDEDF8; transition: 0.3s; border-radius: 26px;"></span>
+                <span id="is-private-slider" style="position: absolute; content: ''; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: #fff; transition: 0.3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.15);"></span>
+              </label>
+            </div>
+            
             <button onclick="A.saveProfilSocial()" style="width: 100%; padding: 12px; background: #003FB1; color: #fff; border: none; border-radius: 12px; font-size: 0.92rem; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px;">Enregistrer mon profil</button>
           </div>
         </div>
@@ -1326,6 +1350,17 @@
     <div style="position: sticky; bottom: 0; background: #fff; border-top: 1px solid #EDEDF8; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 10px;">
       <input id="club-chat-input" type="text" placeholder="Votre message..." style="flex: 1; border: 1px solid #EDEDF8; border-radius: 9999px; padding: 10px 16px; font-size: 0.88rem; font-family: inherit;" onkeypress="if(event.key==='Enter') sendClubChatMessage();">
       <button onclick="sendClubChatMessage()" style="background: #0A2463; border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;"><span class="material-symbols-outlined" style="color: #fff; font-size: 20px;">send</span></button>
+    </div>
+  </div>
+  <div id="follow-requests-modal" style="display: none; position: fixed; inset: 0; z-index: 1200; background: rgba(10,36,99,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #fff; border-radius: 20px; width: 100%; max-width: 420px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(10,36,99,0.2);">
+      <div style="padding: 20px; border-bottom: 1px solid #EDEDF8; display: flex; align-items: center; justify-content: space-between;">
+        <h2 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Demandes de suivi</h2>
+        <button onclick="A.closeFollowRequestsModal()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #434654;"><span class="material-symbols-outlined" style="font-size: 24px;">close</span></button>
+      </div>
+      <div id="follow-requests-list" style="flex: 1; overflow-y: auto; padding: 20px;">
+        <div style="text-align: center; padding: 40px; color: #9498a8; font-size: 0.9rem;">Chargement...</div>
+      </div>
     </div>
   </div>
 
@@ -2504,9 +2539,11 @@
         var bioInput = $('edit-bio');
         var cityInput = $('edit-city');
         var dispoSelect = $('edit-disponibilite');
+        var isPrivateInput = $('edit-is-private');
         if (bioInput) { bioInput.value = d.data.bio || ''; A.updateBioCounter(); }
         if (cityInput) { cityInput.value = d.data.city || ''; }
         if (dispoSelect) { dispoSelect.value = d.data.statut_disponibilite || ''; }
+        if (isPrivateInput) { isPrivateInput.checked = d.data.is_private || false; }
         if (d.data.interets && Array.isArray(d.data.interets)) {
           A._interets = d.data.interets;
           A.renderInterets();
@@ -2521,10 +2558,12 @@
     var bioInput = $('edit-bio');
     var cityInput = $('edit-city');
     var dispoSelect = $('edit-disponibilite');
+    var isPrivateInput = $('edit-is-private');
     var data = {};
     if (bioInput) data.bio = bioInput.value;
     if (cityInput) data.city = cityInput.value;
     if (dispoSelect) data.statut_disponibilite = dispoSelect.value;
+    if (isPrivateInput) data.is_private = isPrivateInput.checked;
     data.interets = A._interets;
     var H = { 
       headers: { 
@@ -3198,6 +3237,10 @@
         var badges = data.badges || {};
         var stats = data.stats || { zora_gagnes: 0, streak: 0, evenements: 0 };
         var photos = data.photos || [];
+        var isLocked = data.locked || false;
+        var isPrivate = data.is_private || false;
+        var isFollowing = data.is_following || false;
+        var isSelf = data.is_self || false;
         
         var interetsHtml = interets.length > 0 
           ? interets.map(function (i) { return '<span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,63,177,0.1); color: #003FB1; padding: 4px 10px; border-radius: 9999px; font-size: 0.78rem; font-weight: 600;">' + i + '</span>'; }).join(' ')
@@ -3210,7 +3253,9 @@
         if (!badgesHtml) badgesHtml = '<span style="color: #9498a8; font-size: 0.86rem;">Aucun badge</span>';
 
         var photosHtml = '';
-        if (photos && photos.length) {
+        if (isLocked) {
+          photosHtml = '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:18px;padding:20px;margin-bottom:18px;"><h3 style="margin:0 0 12px;font-size:1rem;font-weight:800;color:#0A2463;">Photos</h3><div style="text-align:center;padding:2rem 1rem;color:#9498a8;"><span class="material-symbols-outlined" style="font-size:36px;">lock</span><div style="font-size:0.85rem;margin-top:0.5rem;">Compte privé — suivez ce membre pour voir ses publications</div></div></div>';
+        } else if (photos && photos.length) {
           photosHtml = '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:18px;padding:20px;margin-bottom:18px;"><h3 style="margin:0 0 12px;font-size:1rem;font-weight:800;color:#0A2463;">Photos</h3><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">' + photos.map(function (p) { return '<div onclick="A.openProfilePhotoLightbox(\'' + p.photo_url + '\')" style="aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;background-image:url(\'' + p.photo_url + '\');background-size:cover;background-position:center;"></div>'; }).join('') + '</div></div>';
         } else {
           photosHtml = '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:18px;padding:20px;margin-bottom:18px;"><h3 style="margin:0 0 12px;font-size:1rem;font-weight:800;color:#0A2463;">Photos</h3><div style="color:#9498a8;font-size:0.86rem;">Aucune photo publiée</div></div>';
@@ -3219,6 +3264,15 @@
         var photoHtml = data.photo_url 
           ? '<div style="width: 80px; height: 80px; background-image: url(' + data.photo_url + '); background-size: cover; background-position: center; border-radius: 50%; margin-bottom: 16px;"></div>'
           : '<div style="width: 80px; height: 80px; background: #0A2463; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><span style="font-size: 2rem; font-weight: 800; color: #fff;">' + initial + '</span></div>';
+        
+        var followBtnText = 'Suivre';
+        var followBtnDisabled = '';
+        if (isPrivate && !isFollowing && !isSelf) {
+          followBtnText = 'Demander à suivre';
+        } else if (isFollowing) {
+          followBtnText = 'Suivi';
+          followBtnDisabled = 'disabled';
+        }
         
         content.innerHTML = 
           '<div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;">' +
@@ -3252,7 +3306,7 @@
           '</div>' +
           '<div style="display: flex; gap: 12px; margin-bottom: 100px;">' +
             '<div id="participant-actions" style="display: flex; gap: 12px; width: 100%;">' +
-              '<button id="follow-btn" onclick="toggleFollow(\'' + phone + '\')" style="flex: 1; background: transparent; border: 2px solid #0A2463; color: #0A2463; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Suivre</button>' +
+              '<button id="follow-btn" onclick="toggleFollow(\'' + phone + '\')" ' + followBtnDisabled + ' style="flex: 1; background: transparent; border: 2px solid #0A2463; color: #0A2463; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">' + followBtnText + '</button>' +
               '<button onclick="startChat(\'' + phone + '\')" style="flex: 1; background: #00C9A7; border: none; color: #fff; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Message</button>' +
               '<button onclick="window.encourageMember(\'' + phone + '\')" style="flex: 1; background: #F5A623; border: none; color: #fff; padding: 12px 24px; border-radius: 9999px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">Encourager</button>' +
             '</div>' +
@@ -3266,11 +3320,144 @@
     });
   };
   window.closeParticipantPanel = function () { document.getElementById('participant-panel').classList.remove('active'); };
-  window.toggleFollow = function (phone) { A.showToast('Fonctionnalité bientôt disponible'); };
+  window.toggleFollow = function (phone) {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    
+    var btn = document.getElementById('follow-btn');
+    if (!btn) return;
+    
+    apiFetch('https://www.bolamu.co/api/v1/follows/' + encodeURIComponent(phone), {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.success) {
+        if (d.status === 'pending_request') {
+          btn.textContent = 'Demande envoyée';
+          btn.disabled = true;
+          btn.style.background = '#EDEDF8';
+          btn.style.color = '#9498a8';
+          btn.style.borderColor = '#EDEDF8';
+          A.showToast('Demande de suivi envoyée');
+        } else {
+          btn.textContent = 'Suivi';
+          btn.disabled = true;
+          btn.style.background = '#0A2463';
+          btn.style.color = '#fff';
+          btn.style.borderColor = '#0A2463';
+          A.showToast('Vous suivez maintenant ce membre');
+        }
+      } else {
+        A.showToast(d.error?.message || 'Erreur lors du suivi');
+      }
+    })
+    .catch(function (err) {
+      console.error('[toggleFollow]', err);
+      A.showToast('Erreur de connexion');
+    });
+  };
   window.startChat = function (phone) {
     var token = localStorage.getItem('bolamu_patient_token'); if (!token) return;
     apiFetch('https://www.bolamu.co/api/v1/chat/conversations', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ participant_phone: phone }) })
       .then(function (r) { return r.json(); }).then(function (d) { if (d.success) { closeParticipantPanel(); A.showToast('Conversation créée avec succès'); } }).catch(function () { closeParticipantPanel(); A.showToast('Chat bientôt disponible'); });
+  };
+
+  A.openFollowRequestsModal = function () {
+    var modal = document.getElementById('follow-requests-modal');
+    var list = document.getElementById('follow-requests-list');
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    
+    modal.style.display = 'flex';
+    list.innerHTML = '<div style="text-align: center; padding: 40px; color: #9498a8; font-size: 0.9rem;">Chargement...</div>';
+    
+    apiFetch('https://www.bolamu.co/api/v1/follows/follow-requests', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.success && d.data) {
+        var requests = d.data;
+        if (requests.length === 0) {
+          list.innerHTML = '<div style="text-align: center; padding: 40px; color: #9498a8; font-size: 0.9rem;">Aucune demande de suivi en attente</div>';
+        } else {
+          list.innerHTML = requests.map(function (req) {
+            var avatar = req.avatar_url || '';
+            var avatarHtml = avatar 
+              ? '<div style="width: 48px; height: 48px; background-image: url(' + avatar + '); background-size: cover; background-position: center; border-radius: 50%;"></div>'
+              : '<div style="width: 48px; height: 48px; background: #0A2463; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: #fff;">' + (req.full_name ? req.full_name.charAt(0).toUpperCase() : '?') + '</div>';
+            return '<div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #EDEDF8; border-radius: 12px; margin-bottom: 10px;">' +
+              avatarHtml +
+              '<div style="flex: 1;">' +
+                '<div style="font-size: 0.95rem; font-weight: 700; color: #0A2463;">' + (req.full_name || 'Membre') + '</div>' +
+                '<div style="font-size: 0.8rem; color: #9498a8;">Veut vous suivre</div>' +
+              '</div>' +
+              '<div style="display: flex; gap: 8px;">' +
+                '<button onclick="A.respondFollowRequest(' + req.id + ', ' + 'accept' + ')" style="background: #00C9A7; border: none; color: #fff; padding: 8px 16px; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">Accepter</button>' +
+                '<button onclick="A.respondFollowRequest(' + req.id + ', ' + 'reject' + ')" style="background: #EDEDF8; border: none; color: #434654; padding: 8px 16px; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">Refuser</button>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        }
+      } else {
+        list.innerHTML = '<div style="text-align: center; padding: 40px; color: #9498a8; font-size: 0.9rem;">Erreur de chargement</div>';
+      }
+    })
+    .catch(function () {
+      list.innerHTML = '<div style="text-align: center; padding: 40px; color: #9498a8; font-size: 0.9rem;">Erreur de connexion</div>';
+    });
+  };
+
+  A.closeFollowRequestsModal = function () {
+    document.getElementById('follow-requests-modal').style.display = 'none';
+  };
+
+  A.respondFollowRequest = function (id, action) {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    
+    apiFetch('https://www.bolamu.co/api/v1/follows/follow-requests/' + id, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.success) {
+        A.showToast(action === 'accept' ? 'Demande acceptée' : 'Demande refusée');
+        A.openFollowRequestsModal(); // Recharger la liste
+        A.updateFollowRequestsBadge(); // Mettre à jour le badge
+      } else {
+        A.showToast(d.error?.message || 'Erreur');
+      }
+    })
+    .catch(function () {
+      A.showToast('Erreur de connexion');
+    });
+  };
+
+  A.updateFollowRequestsBadge = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    
+    apiFetch('https://www.bolamu.co/api/v1/follows/follow-requests', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.success && d.data) {
+        var badge = document.getElementById('follow-requests-badge');
+        if (d.data.length > 0) {
+          badge.textContent = d.data.length > 9 ? '9+' : d.data.length;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+    })
+    .catch(function () {});
   };
 
   window._clubPanelCurrent = null;
