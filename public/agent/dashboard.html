@@ -13,6 +13,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/bolamu-ds.css">
   <script src="/js/bolamu-nav.js" defer></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
   <link href="/fonts/material-symbols.css" rel="stylesheet">
@@ -76,6 +77,138 @@
     .form-card{background:var(--blanc);border-radius:16px;padding:24px;border:1px solid var(--line);box-shadow:var(--shadow-soft);max-width:520px;}
     .success-box{background:rgba(0,201,167,0.1);border:1px solid #00C9A7;border-radius:12px;padding:16px;margin-top:20px;display:none;}
     .success-box.show{display:block;}
+
+    /* ─── Réseau : vérification adhérent ─── */
+    .verify-search{display:flex;gap:12px;}
+    .verify-search input{flex:1;}
+    .verify-result{margin-top:16px;}
+    .verify-result.hidden{display:none;}
+    .verify-card{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:12px;border:2px solid;}
+    .verify-card.actif{background:rgba(0,201,167,0.08);border-color:#00C9A7;}
+    .verify-card.inactif{background:rgba(186,26,26,0.06);border-color:#BA1A1A;}
+    .verify-card.en-attente{background:rgba(245,166,35,0.08);border-color:#F5A623;}
+    .verify-avatar{width:52px;height:52px;border-radius:50%;background:#0A2463;color:#00C9A7;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0;}
+    .verify-info{flex:1;}
+    .verify-name{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+    .verify-phone{font-size:13px;color:var(--ink-soft);margin-bottom:6px;}
+    .verify-plan{font-size:13px;font-weight:600;}
+    .verify-expiry{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+    .verify-badge{padding:6px 16px;border-radius:50px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;}
+    .verify-badge.actif{background:#00C9A7;color:white;}
+    .verify-badge.inactif{background:#BA1A1A;color:white;}
+    .verify-badge.en-attente{background:#F5A623;color:#3a2600;}
+    .verify-not-found{padding:16px 20px;background:rgba(186,26,26,0.06);border:2px solid #BA1A1A;border-radius:12px;color:#BA1A1A;font-weight:600;text-align:center;}
+    .verify-motif-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
+    .motif-coverage-result{margin-top:8px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;}
+    .motif-coverage-result.couvert{display:block;background:rgba(0,201,167,0.08);color:#00875f;border:1px solid #00C9A7;}
+    .motif-coverage-result.hors-catalogue{display:block;background:rgba(245,166,35,0.1);color:#B0680A;border:1px solid #F5A623;}
+    .result-msg{margin-top:12px;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:600;}
+    .result-msg.ok{background:rgba(0,201,167,0.1);color:#00875f;border:1px solid #00C9A7;}
+    .result-msg.warn{background:rgba(245,166,35,0.1);color:#B0680A;border:1px solid #F5A623;}
+    .result-msg.err{background:rgba(186,26,26,0.06);color:#BA1A1A;border:1px solid #BA1A1A;}
+
+    /* ─── Annuaire partenaires ─── */
+    .orientation-filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+    .orientation-filters select,.orientation-filters input{padding:12px 16px;border:2px solid var(--line);border-radius:12px;background:var(--blanc);outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;}
+    .orientation-filters input{flex:1;min-width:200px;}
+    .partenaires-list{display:flex;flex-direction:column;gap:12px;}
+    .partenaire-card{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--blanc);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-soft);}
+    .partenaire-avatar{width:48px;height:48px;border-radius:50%;background:#0A2463;color:white;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0;}
+    .partenaire-info{flex:1;}
+    .partenaire-name{font-size:16px;font-weight:700;color:var(--ink);}
+    .partenaire-type{font-size:12px;font-weight:600;color:#0A2463;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;}
+    .partenaire-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--ink-soft);margin-top:6px;}
+    .partenaire-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .badge-statut{padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;text-transform:uppercase;}
+    .badge-statut.actif{background:#d1fae5;color:#065f46;}
+    .badge-statut.inactif{background:#fee2e2;color:#991b1b;}
+    .btn-sm{padding:8px 16px;border-radius:8px;border:none;background:#0A2463;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+    .btn-sm:hover{opacity:0.9;}
+    .btn-secondary{padding:12px 24px;background:var(--surface);color:#0A2463;border:1px solid var(--line);border-radius:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+
+    /* ─── RDV réseau / Réclamations : form-row générique ─── */
+    .form-row{display:flex;gap:12px;align-items:stretch;margin-bottom:12px;}
+    .form-row input,.form-row select,.form-row textarea{flex:1;padding:12px 16px;border:2px solid var(--line);border-radius:12px;background:var(--blanc);outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--ink);}
+    .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#0A2463;}
+    .form-row button{padding:12px 24px;background:#0A2463;color:white;border:none;border-radius:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif;}
+    .form-row button:hover{opacity:0.9;}
+
+    /* ─── Réclamations : actions ─── */
+    .action-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:8px;}
+    .action-card{border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;transition:all 0.2s;background:var(--surface);}
+    .action-card:hover{border-color:#0A2463;background:rgba(10,36,99,0.05);}
+    .action-card-title{font-weight:700;color:#0A2463;margin-bottom:4px;}
+    .action-card-desc{font-size:13px;color:var(--ink-soft);line-height:1.4;}
+
+    /* ─── Modal réclamation ─── */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,36,99,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--blanc);border-radius:16px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+    .modal-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;color:#0A2463;margin-bottom:16px;}
+    .modal-actions{display:flex;gap:12px;margin-top:20px;}
+    .modal-actions button{flex:1;}
+
+    /* ─── Wizard souscription complète ─── */
+    .wizard-container{max-width:800px;}
+    .wizard-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:32px;}
+    .wizard-step-indicator{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;}
+    .step-dot{width:40px;height:40px;border-radius:50%;background:var(--line);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;transition:all 0.3s;}
+    .wizard-step-indicator.active .step-dot{background:#0A2463;color:white;}
+    .wizard-step-indicator.done .step-dot{background:#00C9A7;color:white;}
+    .step-label{font-size:12px;font-weight:600;color:var(--ink-soft);}
+    .wizard-step-indicator.active .step-label{color:#0A2463;}
+    .wizard-step-divider{flex:1;height:2px;background:var(--line);max-width:60px;}
+    .wizard-step-divider.done{background:#00C9A7;}
+    .wizard-panel{display:none;}
+    .wizard-panel.active{display:block;}
+    .wizard-panel h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;color:#0A2463;margin-bottom:24px;}
+    .input-row{display:flex;gap:12px;}
+    .input-row input{flex:1;}
+    .w-info-box{margin-top:12px;padding:12px 16px;border-radius:10px;font-size:13px;}
+    .w-info-box.success{background:rgba(0,201,167,0.1);color:#00875f;border:1px solid #00C9A7;}
+    .w-info-box.error{background:rgba(186,26,26,0.06);color:#BA1A1A;border:1px solid #BA1A1A;}
+    .canal-options{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+    .canal-card{border:2px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;background:var(--surface);text-align:center;}
+    .canal-card:hover{border-color:#0A2463;}
+    .canal-card.selected{border-color:#0A2463;background:rgba(10,36,99,0.06);}
+    .canal-icon{font-size:22px;margin-bottom:8px;}
+    .canal-name{font-size:13px;font-weight:600;color:var(--ink);}
+    .field-hint{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+    .photo-capture-bloc{border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center;}
+    .photo-preview{width:120px;height:120px;border-radius:50%;background:var(--surface);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--line);}
+    .photo-preview img{width:100%;height:100%;object-fit:cover;}
+    .photo-placeholder{font-size:36px;color:var(--ink-soft);}
+    .photo-actions{display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;}
+    .plan-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+    .plan-card{border:2px solid var(--line);border-radius:14px;padding:20px;cursor:pointer;transition:all 0.2s;background:var(--surface);}
+    .plan-card:hover{border-color:#0A2463;}
+    .plan-card.selected{border-color:#0A2463;background:rgba(10,36,99,0.06);}
+    .plan-card .plan-nom{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:#0A2463;}
+    .plan-card .plan-prix{font-size:22px;font-weight:700;color:#0A2463;margin:8px 0 4px;}
+    .plan-card .plan-membres{font-size:12px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.4px;}
+    .plan-card .plan-desc{font-size:13px;color:var(--ink-soft);margin-top:8px;line-height:1.4;}
+    .cgu-bloc{margin-top:24px;padding:16px;background:var(--surface);border-radius:12px;border:1px solid var(--line);}
+    .cgu-title{font-weight:700;color:#0A2463;margin-bottom:8px;font-size:14px;}
+    .cgu-body{font-size:13px;color:var(--ink-soft);line-height:1.5;max-height:100px;overflow-y:auto;margin-bottom:12px;}
+    .cgu-checkbox-row{display:flex;align-items:flex-start;gap:10px;}
+    .cgu-checkbox-row input{margin-top:4px;}
+    .cgu-checkbox-row label{font-size:13px;color:var(--ink);line-height:1.4;}
+    .recap-bloc{margin-bottom:24px;padding:16px;background:rgba(10,36,99,0.05);border-radius:12px;border:1px solid #0A2463;}
+    .recap-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;}
+    .recap-row:last-child{border-bottom:none;}
+    .recap-label{color:var(--ink-soft);}
+    .recap-value{font-weight:600;color:#0A2463;}
+    .recap-total{margin-top:12px;padding-top:12px;border-top:2px solid #0A2463;display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:#0A2463;}
+    .payment-methods{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+    .payment-card{padding:16px;border:2px solid var(--line);border-radius:12px;cursor:pointer;transition:all 0.2s;background:var(--blanc);}
+    .payment-card:hover{border-color:#0A2463;}
+    .payment-card.selected{border-color:#0A2463;background:rgba(10,36,99,0.06);}
+    .payment-name{font-weight:700;color:#0A2463;margin-bottom:4px;}
+    .payment-desc{font-size:12px;color:var(--ink-soft);}
+    .wizard-actions{display:flex;gap:12px;margin-top:24px;}
+    .wizard-actions button{flex:1;}
+    .hidden{display:none;}
+    @media(max-width:1024px){.plan-cards{grid-template-columns:1fr;}.action-cards{grid-template-columns:1fr;}.canal-options{grid-template-columns:repeat(2,1fr);}.payment-methods{grid-template-columns:1fr;}}
     @media(max-width:768px){
       .topbar{padding:12px 16px;}
       .tabs-bar{padding:0 16px;}
@@ -83,6 +216,12 @@
       .top-grid{grid-template-columns:1fr;gap:16px;}
       .form-grid{grid-template-columns:1fr;}
       .agent-name,.phone-pill{display:none;}
+      .form-row{flex-direction:column;}
+      .orientation-filters{flex-direction:column;}
+      .orientation-filters select,.orientation-filters input{width:100%;}
+      .action-cards{grid-template-columns:1fr;}
+      .canal-options{grid-template-columns:repeat(2,1fr);}
+      .wizard-step-indicator .step-label{display:none;}
     }
   </style>
 </head>
@@ -105,6 +244,12 @@
     <button class="tab" id="tab-patient" data-tab="patient">Inscrire un patient</button>
     <button class="tab" id="tab-partenaire" data-tab="partenaire">Inscrire un partenaire</button>
     <button class="tab" id="tab-inscrits" data-tab="inscrits">Mes inscrits</button>
+    <button class="tab" id="tab-souscription" data-tab="souscription">Souscription complète</button>
+    <button class="tab" id="tab-reseau" data-tab="reseau">Réseau</button>
+    <button class="tab" id="tab-annuaire" data-tab="annuaire">Annuaire partenaires</button>
+    <button class="tab" id="tab-rdvreseau" data-tab="rdvreseau">RDV réseau</button>
+    <button class="tab" id="tab-reclamations" data-tab="reclamations">Réclamations</button>
+    <button class="tab" id="tab-importemployes" data-tab="importemployes">Import employés</button>
   </div>
 
   <div class="main">
@@ -234,6 +379,416 @@
         </table>
       </div>
     </div>
+
+    <div class="panel" id="panel-souscription">
+      <div class="section-header">
+        <h2 class="section-title">Souscription complète</h2>
+        <div class="section-subtitle">Wizard d'inscription détaillée — identité, documents, formule, paiement</div>
+      </div>
+      <div class="form-card wizard-container" style="max-width:800px;">
+        <div class="wizard-progress">
+          <div class="wizard-step-indicator active" data-step="1">
+            <div class="step-dot">1</div>
+            <span class="step-label">Identité</span>
+          </div>
+          <div class="wizard-step-divider"></div>
+          <div class="wizard-step-indicator" data-step="2">
+            <div class="step-dot">2</div>
+            <span class="step-label">Documents</span>
+          </div>
+          <div class="wizard-step-divider"></div>
+          <div class="wizard-step-indicator" data-step="3">
+            <div class="step-dot">3</div>
+            <span class="step-label">Formule</span>
+          </div>
+          <div class="wizard-step-divider"></div>
+          <div class="wizard-step-indicator" data-step="4">
+            <div class="step-dot">4</div>
+            <span class="step-label">Paiement</span>
+          </div>
+        </div>
+
+        <div class="wizard-panel active" id="wizard-step-1">
+          <h3>Identité du client</h3>
+          <div class="form-group">
+            <label class="form-label">Téléphone *</label>
+            <div class="input-row">
+              <input type="tel" class="form-input" id="w-phone" placeholder="+242...">
+              <button type="button" class="btn-sm" onclick="verifierClientExistant()">Vérifier</button>
+            </div>
+            <div id="w-client-existing" class="w-info-box hidden"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nom *</label>
+            <input type="text" class="form-input" id="w-nom" placeholder="Nom de famille">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prénom *</label>
+            <input type="text" class="form-input" id="w-prenom" placeholder="Prénom">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date de naissance *</label>
+            <input type="date" class="form-input" id="w-dob">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genre *</label>
+            <select class="form-select" id="w-genre">
+              <option value="">Sélectionner</option>
+              <option value="homme">Homme</option>
+              <option value="femme">Femme</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ville *</label>
+            <select class="form-select" id="w-ville">
+              <option value="">Sélectionner</option>
+              <option value="Brazzaville">Brazzaville</option>
+              <option value="Pointe-Noire">Pointe-Noire</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Adresse</label>
+            <input type="text" class="form-input" id="w-adresse" placeholder="Quartier, rue...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Canal de confirmation *</label>
+            <div class="canal-options">
+              <div class="canal-card" data-canal="whatsapp" onclick="selectCanal('whatsapp')">
+                <span class="material-symbols-outlined canal-icon">chat</span>
+                <div class="canal-name">WhatsApp</div>
+              </div>
+              <div class="canal-card" data-canal="email" onclick="selectCanal('email')">
+                <span class="material-symbols-outlined canal-icon">mail</span>
+                <div class="canal-name">Email</div>
+              </div>
+              <div class="canal-card" data-canal="proche" onclick="selectCanal('proche')">
+                <span class="material-symbols-outlined canal-icon">group</span>
+                <div class="canal-name">Proche</div>
+              </div>
+              <div class="canal-card" data-canal="aucun" onclick="selectCanal('aucun')">
+                <span class="material-symbols-outlined canal-icon">block</span>
+                <div class="canal-name">Aucun</div>
+              </div>
+            </div>
+            <input type="hidden" id="w-canal">
+            <div class="field-hint" id="w-canal-hint">Sélectionnez le canal pour recevoir la confirmation</div>
+          </div>
+          <div class="form-group hidden" id="w-proche-field">
+            <label class="form-label">Numéro WhatsApp du proche *</label>
+            <input type="tel" class="form-input" id="w-proche-number" placeholder="+242...">
+            <div class="field-hint">Le proche recevra le message de confirmation</div>
+          </div>
+          <div class="wizard-actions">
+            <button type="button" class="btn-primary" onclick="wizardNext(1)">Continuer</button>
+          </div>
+        </div>
+
+        <div class="wizard-panel" id="wizard-step-2">
+          <h3>Pièce d'identité</h3>
+          <div class="form-group">
+            <label class="form-label">Type de document *</label>
+            <select class="form-select" id="w-doc-type">
+              <option value="">Sélectionner</option>
+              <option value="cni">Carte Nationale d'Identité (CNI)</option>
+              <option value="passeport">Passeport</option>
+              <option value="permis">Permis de conduire</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Numéro du document *</label>
+            <input type="text" class="form-input" id="w-doc-numero" placeholder="Ex: CNI-0012345">
+          </div>
+          <div class="form-group">
+            <label class="form-label">NIU (optionnel)</label>
+            <input type="text" class="form-input" id="w-niu" placeholder="Numéro d'Identification Unique">
+          </div>
+          <div class="form-group">
+            <label class="form-label">RIB / Coordonnées bancaires (optionnel)</label>
+            <input type="text" class="form-input" id="w-rib" placeholder="Banque + numéro de compte">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email (optionnel)</label>
+            <input type="email" class="form-input" id="w-email" placeholder="email@exemple.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Photo d'identité *</label>
+            <div class="photo-capture-bloc">
+              <div class="photo-preview" id="w-photo-preview">
+                <span class="material-symbols-outlined photo-placeholder">photo_camera</span>
+              </div>
+              <div class="photo-actions">
+                <button type="button" class="btn-sm" onclick="openCamera()">Prendre photo</button>
+                <button type="button" class="btn-sm" onclick="document.getElementById('w-photo-input').click()">Choisir fichier</button>
+                <input type="file" id="w-photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
+              </div>
+              <video id="w-camera" autoplay playsinline style="display:none;width:100%;max-width:320px;border-radius:10px;margin-top:10px;"></video>
+              <canvas id="w-canvas" style="display:none;"></canvas>
+              <button type="button" id="w-capture-btn" class="btn-sm" style="display:none;margin-top:10px;" onclick="capturePhoto()">Capturer</button>
+              <button type="button" id="w-close-camera-btn" class="btn-secondary" style="display:none;margin-top:10px;" onclick="closeCamera()">Fermer caméra</button>
+            </div>
+            <input type="hidden" id="w-photo-data">
+            <div class="field-hint" id="w-photo-hint">Photo obligatoire pour valider l'identité</div>
+          </div>
+          <div class="wizard-actions">
+            <button type="button" class="btn-secondary" onclick="wizardBack(2)">Retour</button>
+            <button type="button" class="btn-primary" onclick="wizardNext(2)">Continuer</button>
+          </div>
+        </div>
+
+        <div class="wizard-panel" id="wizard-step-3">
+          <h3>Choisir la formule</h3>
+          <div class="plan-cards" id="w-plan-cards"></div>
+          <input type="hidden" id="w-plan-selected">
+          <div class="cgu-bloc">
+            <div class="cgu-title">Conditions Générales d'Utilisation &amp; Offre de Vente Personnalisée</div>
+            <div class="cgu-body" id="cgu-body">
+              <p>En souscrivant à une formule Bolamu, le client accepte les conditions générales d'utilisation de la plateforme Bolamu, l'offre de vente personnalisée (OVP) correspondant à la formule choisie, ainsi que la politique de confidentialité des données de santé. La formule est renouvelée automatiquement chaque mois sauf résiliation avant la date d'échéance. Les soins couverts sont définis dans le catalogue SSP Bolamu disponible sur bolamu.co.</p>
+            </div>
+            <div class="cgu-checkbox-row">
+              <input type="checkbox" id="w-cgu-accept">
+              <label for="w-cgu-accept">Le client a lu et accepte les CGU et l'OVP — signature validée par l'agent en présence du client</label>
+            </div>
+          </div>
+          <div class="wizard-actions">
+            <button type="button" class="btn-secondary" onclick="wizardBack(3)">Retour</button>
+            <button type="button" class="btn-primary" onclick="wizardNext(3)">Continuer</button>
+          </div>
+        </div>
+
+        <div class="wizard-panel" id="wizard-step-4">
+          <h3>Paiement</h3>
+          <div class="recap-bloc" id="w-recap"></div>
+          <div class="form-group">
+            <label class="form-label">Mode de paiement *</label>
+            <div class="payment-methods" id="w-payment-methods">
+              <div class="payment-card" data-method="mtn_momo" onclick="selectPayment(this)">
+                <div class="payment-name">MTN MoMo</div>
+                <div class="payment-desc">Paiement Mobile Money MTN</div>
+              </div>
+              <div class="payment-card" data-method="airtel_money" onclick="selectPayment(this)">
+                <div class="payment-name">Airtel Money</div>
+                <div class="payment-desc">Paiement Mobile Money Airtel</div>
+              </div>
+              <div class="payment-card" data-method="especes" onclick="selectPayment(this)">
+                <div class="payment-name">Espèces en agence</div>
+                <div class="payment-desc">Paiement cash remis à l'agent</div>
+              </div>
+              <div class="payment-card" data-method="virement" onclick="selectPayment(this)">
+                <div class="payment-name">Virement bancaire</div>
+                <div class="payment-desc">Virement sur compte Bolamu</div>
+              </div>
+            </div>
+            <input type="hidden" id="w-payment-selected">
+          </div>
+          <div class="form-group hidden" id="w-momo-field">
+            <label class="form-label">Numéro MoMo du client *</label>
+            <input type="tel" class="form-input" id="w-momo-number" placeholder="+242...">
+          </div>
+          <div class="form-group hidden" id="w-virement-field">
+            <label class="form-label">Référence du virement *</label>
+            <input type="text" class="form-input" id="w-virement-ref" placeholder="Référence de la transaction">
+          </div>
+          <div class="wizard-actions">
+            <button type="button" class="btn-secondary" onclick="wizardBack(4)">Retour</button>
+            <button type="button" class="btn-primary" id="btn-confirmer-souscription" onclick="confirmerSouscriptionComplete()">Valider la souscription</button>
+          </div>
+          <div id="w-souscription-result" class="hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-reseau">
+      <div class="section-header">
+        <h2 class="section-title">Réseau</h2>
+        <div class="section-subtitle">Vérification adhérent et statistiques du réseau national</div>
+      </div>
+      <div class="form-card" style="max-width:none;margin-bottom:24px;">
+        <h3 style="font-size:16px;font-weight:700;color:#0A2463;margin-bottom:4px;">Vérifier un adhérent</h3>
+        <div class="section-subtitle" style="margin-bottom:16px;">Recherche sur tout le réseau national — numéro ou nom</div>
+        <div class="verify-search">
+          <input type="text" class="form-input" id="verify-input" placeholder="Ex: +242065458932 ou Jordan" autocomplete="off">
+          <button type="button" class="btn-primary" onclick="verifierAdherent()">Vérifier</button>
+        </div>
+        <div id="verify-result" class="verify-result hidden"></div>
+      </div>
+      <div class="top-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="stat-card"><div class="stat-label">Adhérents total</div><div class="stat-value" id="stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-label">Abonnés actifs</div><div class="stat-value" id="stat-actifs">—</div></div>
+        <div class="stat-card"><div class="stat-label">Partenaires actifs</div><div class="stat-value" id="stat-partenaires">—</div></div>
+        <div class="stat-card"><div class="stat-label">RDV aujourd'hui</div><div class="stat-value" id="stat-rdv">—</div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-annuaire">
+      <div class="section-header">
+        <h2 class="section-title">Annuaire partenaires</h2>
+        <div class="section-subtitle">Cliniques, pharmacies et laboratoires du réseau</div>
+      </div>
+      <div class="orientation-filters">
+        <select id="orient-ville" onchange="loadPartenaires()">
+          <option value="">Toutes les villes</option>
+          <option value="Brazzaville">Brazzaville</option>
+          <option value="Pointe-Noire">Pointe-Noire</option>
+        </select>
+        <select id="orient-type" onchange="loadPartenaires()">
+          <option value="">Tous les types</option>
+          <option value="clinique">Cliniques</option>
+          <option value="pharmacie">Pharmacies</option>
+          <option value="laboratoire">Laboratoires</option>
+        </select>
+        <input type="text" id="orient-search" placeholder="Rechercher un partenaire..." oninput="loadPartenaires()">
+      </div>
+      <div id="partenaires-list" class="partenaires-list"></div>
+    </div>
+
+    <div class="panel" id="panel-rdvreseau">
+      <div class="section-header">
+        <h2 class="section-title">RDV réseau</h2>
+        <div class="section-subtitle">Prendre un rendez-vous pour un patient sur le réseau</div>
+      </div>
+      <div class="form-card" style="max-width:none;">
+        <div id="rdv-partner-note"></div>
+        <div class="form-group">
+          <label class="form-label">Patient</label>
+          <div class="form-row">
+            <input type="text" id="rdv-patient-phone" placeholder="Numéro de téléphone du patient">
+            <button type="button" onclick="verifierPatientRdv()">Vérifier</button>
+          </div>
+          <div id="rdv-patient-info"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Partenaire</label>
+          <select class="form-select" id="rdv-ville-filter" onchange="loadMedecinsReseau()">
+            <option value="">Toutes les villes</option>
+            <option value="Brazzaville">Brazzaville</option>
+            <option value="Pointe-Noire">Pointe-Noire</option>
+          </select>
+          <select class="form-select" id="rdv-medecin-select" onchange="loadCreneauxReseau()" style="margin-top:12px;">
+            <option value="">Sélectionner un médecin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date et créneau</label>
+          <input type="date" class="form-input" id="rdv-date-agent" onchange="loadCreneauxReseau()">
+          <select class="form-select" id="rdv-creneau-select" style="margin-top:12px;">
+            <option value="">Sélectionner un créneau</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Motif</label>
+          <select class="form-select" id="rdv-motif-agent"><option value="">Sélectionner un motif</option></select>
+        </div>
+        <button type="button" class="btn-primary" onclick="confirmerRdvAgent()">Confirmer le rendez-vous</button>
+        <div id="rdv-agent-confirmation"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-reclamations">
+      <div class="section-header">
+        <h2 class="section-title">Réclamations</h2>
+        <div class="section-subtitle">Réactivation, changement de formule, correction, signalement</div>
+      </div>
+      <div class="form-card" style="max-width:none;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;color:#0A2463;margin-bottom:16px;">Rechercher un compte</h3>
+        <div class="form-row">
+          <input type="text" id="reclam-phone" placeholder="Numéro de téléphone du client">
+          <button type="button" onclick="rechercherCompteReclam()">Rechercher</button>
+        </div>
+        <div id="reclam-client-card"></div>
+      </div>
+      <div id="reclam-actions" class="form-card hidden" style="max-width:none;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:700;color:#0A2463;margin-bottom:16px;">Actions sur le compte</h3>
+        <div class="action-cards">
+          <div class="action-card" onclick="ouvrirActionModal('reactivation')">
+            <div class="action-card-title">Réactiver abonnement</div>
+            <div class="action-card-desc">Abonnement expiré ou suspendu — réactiver manuellement</div>
+          </div>
+          <div class="action-card" onclick="ouvrirActionModal('changement_plan')">
+            <div class="action-card-title">Changer de formule</div>
+            <div class="action-card-desc">Passer de MOTO à NDEKO ou LIBOTA</div>
+          </div>
+          <div class="action-card" onclick="ouvrirActionModal('correction_info')">
+            <div class="action-card-title">Corriger les informations</div>
+            <div class="action-card-desc">Nom, prénom, date de naissance</div>
+          </div>
+          <div class="action-card" onclick="ouvrirActionModal('signalement')">
+            <div class="action-card-title">Signaler un problème</div>
+            <div class="action-card-desc">Problème avec un partenaire, accès refusé, facturation incorrecte</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-importemployes">
+      <div class="section-header">
+        <h2 class="section-title">Import employés en masse</h2>
+        <div class="section-subtitle">Créer les comptes d'une liste d'employés depuis un fichier Excel/CSV</div>
+      </div>
+      <div class="form-card" style="max-width:none;">
+        <p style="color:var(--ink-soft);font-size:14px;margin-bottom:12px;">Importez une liste d'employés depuis un fichier Excel/CSV pour créer leurs comptes en une seule opération.</p>
+        <p style="color:var(--ink-soft);font-size:13px;margin-bottom:16px;"><strong>Colonnes attendues dans le fichier :</strong> matricule | nom | prenom | telephone | categorie_rh | site</p>
+        <div class="form-group">
+          <label class="form-label">Fichier Excel/CSV *</label>
+          <input type="file" class="form-input" id="import-employes-file" accept=".xlsx,.xls,.csv">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plan d'abonnement *</label>
+          <select class="form-select" id="import-plan-select">
+            <option value="">Sélectionner</option>
+            <option value="essentiel">Essentiel</option>
+            <option value="standard">Standard</option>
+            <option value="premium">Premium</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mode de paiement *</label>
+          <select class="form-select" id="import-payment-select">
+            <option value="">Sélectionner</option>
+            <option value="mtn_momo">MTN MoMo</option>
+            <option value="airtel_money">Airtel Money</option>
+            <option value="especes">Espèces</option>
+            <option value="virement">Virement</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contrat entreprise (optionnel)</label>
+          <select class="form-select" id="import-contract-select">
+            <option value="">Aucun — patients individuels</option>
+          </select>
+        </div>
+        <button type="button" class="btn-primary" id="btn-import-employes-preview">Importer un fichier Excel / CSV</button>
+        <div id="import-employes-preview" style="display:none;margin-top:24px;">
+          <h4 style="font-size:15px;font-weight:700;margin-bottom:12px;color:#0A2463;">Aperçu avant import</h4>
+          <div style="max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead style="background:var(--surface);position:sticky;top:0;">
+                <tr>
+                  <th style="padding:10px;text-align:left;border-bottom:1px solid var(--line);">Nom</th>
+                  <th style="padding:10px;text-align:left;border-bottom:1px solid var(--line);">Prénom</th>
+                  <th style="padding:10px;text-align:left;border-bottom:1px solid var(--line);">Téléphone</th>
+                  <th style="padding:10px;text-align:left;border-bottom:1px solid var(--line);">Catégorie RH</th>
+                </tr>
+              </thead>
+              <tbody id="import-employes-preview-body"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:12px;">
+            <button type="button" class="btn-primary" id="btn-confirm-import-employes" style="background:#00875f;">Créer tous les comptes</button>
+            <button type="button" class="btn-secondary" id="btn-cancel-import-employes">Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-action">
+    <div class="modal">
+      <div class="modal-title" id="modal-action-title">Action</div>
+      <div id="modal-action-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="fermerActionModal()">Fermer</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -243,6 +798,17 @@
 
     function getToken() { return localStorage.getItem(`bolamu_${ROLE}_token`); }
     function getPhone() { return localStorage.getItem(`bolamu_${ROLE}_phone`); }
+
+    function headers() {
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
+    }
+    async function apiFetch(path, opts = {}) {
+      const h = headers();
+      if (opts.body instanceof FormData) { delete h['Content-Type']; }
+      const r = await fetch(API + path, { headers: h, ...opts });
+      if (r.status === 401 || r.status === 403) { logout(); return null; }
+      return r.json();
+    }
 
     const ROLE_LABELS = { patient: 'Patient', doctor: 'Clinique/Médecin', pharmacie: 'Pharmacie', laboratoire: 'Laboratoire' };
 
@@ -267,6 +833,10 @@
           const tabId = tab.dataset.tab;
           showTab(tabId, tab);
           if (tabId === 'inscrits') loadMesInscrits();
+          if (tabId === 'souscription') loadPlansConfig();
+          if (tabId === 'reseau') loadStatsGlobales();
+          if (tabId === 'annuaire') loadPartenaires();
+          if (tabId === 'rdvreseau') { loadMedecinsReseau(); remplirMotifsRdv(); }
         });
       });
 
@@ -274,6 +844,11 @@
 
       document.getElementById('form-patient').addEventListener('submit', submitInscrirePatient);
       document.getElementById('form-partenaire').addEventListener('submit', submitInscrirePartenaire);
+
+      document.getElementById('verify-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') verifierAdherent(); });
+      document.getElementById('rdv-date-agent').value = new Date().toISOString().split('T')[0];
+      loadCatalogueSSP();
+      loadContractsForImport();
     });
 
     function showTab(tabId, tabBtn) {
@@ -291,11 +866,8 @@
 
     async function loadDashboard() {
       try {
-        const res = await fetch(`${API}/agent/dashboard`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        const data = await res.json();
-        if (data.success) {
+        const data = await apiFetch('/agent/dashboard');
+        if (data && data.success) {
           const s = data.stats;
           document.getElementById('stat-patients-mois').textContent = s.patients_ce_mois || 0;
           document.getElementById('stat-patients-mois-prec').textContent = s.patients_mois_precedent || 0;
@@ -324,12 +896,9 @@
 
     async function loadMesInscrits() {
       try {
-        const res = await fetch(`${API}/agent/mes-inscrits?page=1&limit=50`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        const data = await res.json();
+        const data = await apiFetch('/agent/mes-inscrits?page=1&limit=50');
         const tbody = document.getElementById('inscrits-table').querySelector('tbody');
-        if (data.success && data.data && data.data.length > 0) {
+        if (data && data.success && data.data && data.data.length > 0) {
           tbody.innerHTML = data.data.map(i => `
             <tr>
               <td>${i.nom || '—'}</td>
@@ -374,20 +943,15 @@
         plan: document.getElementById('patient-plan').value || undefined
       };
       try {
-        const res = await fetch(`${API}/agent/inscrire-patient`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-          body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        if (data.success) {
+        const data = await apiFetch('/agent/inscrire-patient', { method: 'POST', body: JSON.stringify(body) });
+        if (data && data.success) {
           document.getElementById('form-patient').reset();
           const box = document.getElementById('patient-success');
           box.classList.add('show');
           document.getElementById('patient-success-detail').textContent =
             `${data.data.full_name} — Identifiant : ${data.data.bolamu_id}`;
           loadDashboard();
-        } else {
+        } else if (data) {
           alert(data.message || 'Erreur lors de l\'inscription');
         }
       } catch (err) {
@@ -414,13 +978,8 @@
         body.registration_number = document.getElementById('partenaire-numordre').value.trim();
       }
       try {
-        const res = await fetch(`${API}/agent/inscrire-partenaire`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-          body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        if (data.success) {
+        const data = await apiFetch('/agent/inscrire-partenaire', { method: 'POST', body: JSON.stringify(body) });
+        if (data && data.success) {
           document.getElementById('form-partenaire').reset();
           document.getElementById('partenaire-champs-specifiques').innerHTML = '';
           const box = document.getElementById('partenaire-success');
@@ -428,13 +987,824 @@
           document.getElementById('partenaire-success-detail').textContent =
             `${data.data ? (data.data.name || data.data.full_name) : ''} — en attente de validation`;
           loadDashboard();
-        } else {
+        } else if (data) {
           alert(data.message || 'Erreur lors de l\'inscription');
         }
       } catch (err) {
         alert('Erreur réseau');
       }
     }
+
+    // ─── Catalogue SSP — chargé depuis /api/v1/ssp-catalog (source réelle
+    // ssp_catalog, identique au dashboard secrétaire/agence). Un item present
+    // ici = couvert (gratuit) pour tout abonné actif. ───
+    let CATALOGUE_SSP = [];
+
+    async function loadCatalogueSSP() {
+      try {
+        const data = await apiFetch('/ssp-catalog');
+        if (data && data.success) {
+          CATALOGUE_SSP = data.data.map(item => ({ nom: item.nom, cat: item.type, categorie: item.categorie, couvert: item.est_ssp }));
+        }
+      } catch (e) { console.error('[Catalogue SSP] Erreur chargement:', e.message); }
+    }
+
+    function checkMotifCoverage(value) {
+      const div = document.getElementById('motif-coverage-result');
+      if (!div) return;
+      if (!value) { div.className = 'motif-coverage-result'; div.textContent = ''; return; }
+      const couvert = value === 'true';
+      if (couvert) {
+        div.className = 'motif-coverage-result couvert';
+        div.textContent = "Couvert par l'abonnement Bolamu — accès libre sans avance de frais.";
+      } else {
+        div.className = 'motif-coverage-result hors-catalogue';
+        div.textContent = "Hors catalogue SSP — facturé au tarif du partenaire. Orienter vers le médecin pour devis.";
+      }
+    }
+
+    // ─── Réseau : vérification adhérent + stats globales ───
+    async function verifierAdherent() {
+      const input = document.getElementById('verify-input').value.trim();
+      const resultDiv = document.getElementById('verify-result');
+      resultDiv.classList.remove('hidden');
+      if (!input || input.length < 3) {
+        resultDiv.className = 'verify-result';
+        resultDiv.innerHTML = '<div class="verify-not-found">Entrez au moins 3 caractères.</div>';
+        return;
+      }
+      resultDiv.className = 'verify-result';
+      resultDiv.innerHTML = '<div style="padding:12px;color:var(--ink-soft);text-align:center;">Recherche en cours...</div>';
+      try {
+        const data = await apiFetch(`/agence/verifier-adherent?q=${encodeURIComponent(input)}`);
+        if (!data || !data.success || !data.patient) {
+          resultDiv.innerHTML = `<div class="verify-not-found">Aucun adhérent trouvé pour "${input}"</div>`;
+          return;
+        }
+        const p = data.patient;
+        const statut = p.statut_abonnement === 'actif' ? 'actif' : p.statut_abonnement === 'en_attente' ? 'en-attente' : 'inactif';
+        const labelStatut = statut === 'actif' ? 'Actif' : statut === 'en-attente' ? 'En attente' : 'Non couvert';
+        const planLabel = p.plan_nom ? `Plan ${p.plan_nom}${p.plan_prix ? ' — ' + Number(p.plan_prix).toLocaleString('fr-FR') + ' FCFA/mois' : ''}` : 'Aucun plan actif';
+        const expiryText = p.date_fin ? `Valide jusqu'au ${new Date(p.date_fin).toLocaleDateString('fr-FR')}` : '';
+        const initial = (p.full_name || p.phone || '?').charAt(0).toUpperCase();
+        resultDiv.innerHTML = `
+          <div class="verify-card ${statut}">
+            <div class="verify-avatar">${initial}</div>
+            <div class="verify-info">
+              <div class="verify-name">${p.full_name || '—'}</div>
+              <div class="verify-phone">${p.phone}</div>
+              <div class="verify-plan">${planLabel}</div>
+              ${expiryText ? `<div class="verify-expiry">${expiryText}</div>` : ''}
+            </div>
+            <div class="verify-badge ${statut}">${labelStatut}</div>
+          </div>`;
+        resultDiv.innerHTML += `
+          <div class="verify-motif-section">
+            <label class="motif-label" style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;">Motif de consultation ou service demandé</label>
+            <select id="motif-select" class="form-select" onchange="checkMotifCoverage(this.value)">
+              <option value="">Sélectionner un motif</option>
+              ${CATALOGUE_SSP.map(item => `<option value="${item.couvert}">${item.nom}</option>`).join('')}
+              <option value="false">Autre motif (non listé — hors catalogue)</option>
+            </select>
+            <div id="motif-coverage-result" class="motif-coverage-result"></div>
+          </div>`;
+      } catch(e) {
+        resultDiv.innerHTML = '<div class="verify-not-found">Erreur de connexion au serveur.</div>';
+        console.error('[VERIFY]', e);
+      }
+    }
+
+    async function loadStatsGlobales() {
+      try {
+        const data = await apiFetch('/agence/stats-globales');
+        if (data && data.success && data.stats) {
+          document.getElementById('stat-total').textContent = data.stats.total_abonnes ?? 0;
+          document.getElementById('stat-actifs').textContent = data.stats.abonnes_actifs ?? 0;
+          document.getElementById('stat-partenaires').textContent = data.stats.partenaires_actifs ?? 0;
+          document.getElementById('stat-rdv').textContent = data.stats.rdv_aujourd_hui ?? 0;
+        }
+      } catch(e) { console.error('[STATS]', e); }
+    }
+
+    // ─── Annuaire partenaires ───
+    async function loadPartenaires() {
+      const ville  = document.getElementById('orient-ville').value;
+      const type   = document.getElementById('orient-type').value;
+      const search = document.getElementById('orient-search').value;
+      const params = new URLSearchParams();
+      if (ville)  params.append('ville', ville);
+      if (type)   params.append('type', type);
+      if (search) params.append('q', search);
+      const list = document.getElementById('partenaires-list');
+      try {
+        const data = await apiFetch(`/agence/partenaires?${params}`);
+        if (!data || !data.partenaires || !data.partenaires.length) {
+          list.innerHTML = '<div class="empty-state">Aucun partenaire trouvé.</div>';
+          return;
+        }
+        list.innerHTML = data.partenaires.map(p => `
+          <div class="partenaire-card">
+            <div class="partenaire-avatar">${(p.name || 'P').charAt(0).toUpperCase()}</div>
+            <div class="partenaire-info">
+              <div class="partenaire-name">${p.name || '—'}</div>
+              <div class="partenaire-type">${p.type || '—'}</div>
+              <div class="partenaire-meta">
+                <span>${p.city || '—'}</span>
+                ${p.address ? `<span>${p.address}</span>` : ''}
+                ${p.phone ? `<span>${p.phone}</span>` : ''}
+              </div>
+            </div>
+            <div class="partenaire-actions">
+              <span class="badge-statut ${p.is_active ? 'actif' : 'inactif'}">${p.is_active ? 'Actif' : 'Inactif'}</span>
+              <button class="btn-sm" onclick="prendreRdvPartenaire(${p.id}, '${(p.name || '').replace(/'/g, "\\'")}', '${p.type}', '${p.city || ''}')">Prendre RDV</button>
+            </div>
+          </div>`).join('');
+      } catch(e) {
+        list.innerHTML = '<div class="empty-state">Erreur de connexion au serveur.</div>';
+        console.error('[PARTENAIRES]', e);
+      }
+    }
+
+    function prendreRdvPartenaire(id, name, type, city) {
+      const tabBtn = document.querySelector('.tab[data-tab="rdvreseau"]');
+      showTab('rdvreseau', tabBtn);
+      loadMedecinsReseau();
+      remplirMotifsRdv();
+      const note = document.getElementById('rdv-partner-note');
+      note.innerHTML = `<div class="result-msg ok">Partenaire sélectionné : <strong>${name}</strong> (${type}${city ? ', ' + city : ''}). Sélectionnez le médecin et le créneau.</div>`;
+      if (city) { document.getElementById('rdv-ville-filter').value = city; }
+      loadMedecinsReseau();
+    }
+
+    // ─── RDV réseau ───
+    function remplirMotifsRdv() {
+      document.getElementById('rdv-motif-agent').innerHTML =
+        '<option value="">Sélectionner un motif</option>' +
+        CATALOGUE_SSP.filter(i => i.couvert).map(i => `<option value="${i.nom}">${i.nom}</option>`).join('');
+    }
+
+    async function verifierPatientRdv() {
+      const phone = document.getElementById('rdv-patient-phone').value.trim().replace(/\s+/g, '');
+      const out = document.getElementById('rdv-patient-info');
+      if (!phone) { out.innerHTML = '<div class="result-msg err">Entrez un numéro.</div>'; return; }
+      out.innerHTML = '<div class="result-msg">Vérification...</div>';
+      try {
+        const data = await apiFetch(`/agence/client?phone=${encodeURIComponent(phone)}`);
+        if (data && data.success && data.client) {
+          out.innerHTML = `<div class="result-msg ok">${data.client.full_name || phone}${data.client.plan ? ' — plan ' + data.client.plan : ' — aucun abonnement actif'}.</div>`;
+        } else if (data) {
+          out.innerHTML = '<div class="result-msg warn">Patient non trouvé dans le réseau.</div>';
+        }
+      } catch(e) {
+        out.innerHTML = '<div class="result-msg err">Erreur de connexion au serveur.</div>';
+        console.error('[RDV PATIENT]', e);
+      }
+    }
+
+    async function loadMedecinsReseau() {
+      const ville = document.getElementById('rdv-ville-filter').value;
+      const params = new URLSearchParams();
+      if (ville) params.append('ville', ville);
+      const sel = document.getElementById('rdv-medecin-select');
+      try {
+        const data = await apiFetch(`/agence/medecins?${params}`);
+        if (!data || !data.medecins || !data.medecins.length) {
+          sel.innerHTML = '<option value="">Aucun médecin disponible</option>';
+          return;
+        }
+        sel.innerHTML = '<option value="">Sélectionner un médecin</option>' +
+          data.medecins.map(m => `<option value="${m.id}">${m.full_name}${m.specialty ? ' — ' + m.specialty : ''}${m.clinic_name ? ' (' + m.clinic_name + ')' : ''}</option>`).join('');
+      } catch(e) {
+        sel.innerHTML = '<option value="">Erreur de chargement</option>';
+        console.error('[MEDECINS]', e);
+      }
+    }
+
+    async function loadCreneauxReseau() {
+      const doctorId = document.getElementById('rdv-medecin-select').value;
+      const date = document.getElementById('rdv-date-agent').value;
+      const sel = document.getElementById('rdv-creneau-select');
+      if (!doctorId || !date) { sel.innerHTML = '<option value="">Sélectionner un créneau</option>'; return; }
+      try {
+        const data = await apiFetch(`/appointments/slots/${doctorId}?date=${date}`);
+        const slots = (data && (data.slots || data.creneaux || data.available)) || [];
+        if (!slots.length) {
+          sel.innerHTML = '<option value="">Aucun créneau disponible</option>';
+          return;
+        }
+        sel.innerHTML = '<option value="">Sélectionner un créneau</option>' +
+          slots.map(s => { const t = typeof s === 'string' ? s : (s.time || s.heure || s.slot); return `<option value="${t}">${String(t).slice(0,5)}</option>`; }).join('');
+      } catch(e) {
+        sel.innerHTML = '<option value="">Erreur de chargement</option>';
+        console.error('[CRENEAUX]', e);
+      }
+    }
+
+    async function confirmerRdvAgent() {
+      const out = document.getElementById('rdv-agent-confirmation');
+      const patient_phone = document.getElementById('rdv-patient-phone').value.trim().replace(/\s+/g, '');
+      const doctor_id = document.getElementById('rdv-medecin-select').value;
+      const date = document.getElementById('rdv-date-agent').value;
+      const time = document.getElementById('rdv-creneau-select').value;
+      const motif = document.getElementById('rdv-motif-agent').value;
+      if (!patient_phone || !doctor_id || !date || !time) {
+        out.className = 'result-msg err'; out.textContent = 'Renseignez le patient, le médecin, la date et le créneau.'; return;
+      }
+      out.className = 'result-msg'; out.textContent = 'Création du rendez-vous...';
+      try {
+        const data = await apiFetch('/agence/rdv', { method: 'POST', body: JSON.stringify({ patient_phone, doctor_id, date, time, motif }) });
+        if (data && data.success) {
+          out.className = 'result-msg ok'; out.textContent = `Rendez-vous confirmé (réf. ${data.appointment_id}) le ${new Date(date).toLocaleDateString('fr-FR')} à ${String(time).slice(0,5)}.`;
+          loadCreneauxReseau();
+        } else if (data) {
+          out.className = 'result-msg err'; out.textContent = data.message || 'Échec de la création du rendez-vous.';
+        }
+      } catch(e) {
+        out.className = 'result-msg err'; out.textContent = 'Erreur de connexion au serveur.';
+        console.error('[RDV]', e);
+      }
+    }
+
+    // ─── Réclamations ───
+    let compteReclam = null;
+    async function rechercherCompteReclam() {
+      const phone = document.getElementById('reclam-phone').value.trim().replace(/\s+/g, '');
+      const out = document.getElementById('reclam-client-card');
+      const actions = document.getElementById('reclam-actions');
+      if (!phone) { out.innerHTML = '<div class="result-msg err">Entrez un numéro.</div>'; return; }
+      out.innerHTML = '<div class="result-msg">Recherche...</div>';
+      try {
+        const data = await apiFetch(`/agence/client?phone=${encodeURIComponent(phone)}`);
+        if (data && data.success && data.client) {
+          compteReclam = { phone, ...data.client };
+          out.innerHTML = `<div class="result-msg ok" style="margin-top:12px;">Compte : <strong>${data.client.full_name || phone}</strong>${data.client.plan ? ' — plan ' + data.client.plan : ' — aucun abonnement actif'}.</div>`;
+          actions.classList.remove('hidden');
+        } else {
+          compteReclam = null;
+          out.innerHTML = '<div class="result-msg warn" style="margin-top:12px;">Compte non trouvé dans le réseau.</div>';
+          actions.classList.add('hidden');
+        }
+      } catch(e) {
+        out.innerHTML = '<div class="result-msg err">Erreur de connexion au serveur.</div>';
+        console.error('[RECLAM]', e);
+      }
+    }
+
+    const ACTION_LABELS = {
+      reactivation: 'Réactiver abonnement',
+      changement_plan: 'Changer de formule',
+      correction_info: 'Corriger les informations',
+      signalement: 'Signaler un problème'
+    };
+
+    function ouvrirActionModal(type) {
+      if (!compteReclam) return;
+      const name = compteReclam.full_name || compteReclam.phone;
+      document.getElementById('modal-action-title').textContent = ACTION_LABELS[type] || 'Action';
+
+      let html = '';
+      if (type === 'reactivation') {
+        html = `<p>Réactiver le compte de <strong>${name}</strong> ?</p>
+          <div class="form-row"><input type="text" id="reclam-raison" placeholder="Raison (optionnel)"></div>
+          <button type="button" class="btn-primary" onclick="soumettreReclamation('reactiver')">Réactiver</button>`;
+      } else if (type === 'changement_plan') {
+        html = `<p>Changer la formule de <strong>${name}</strong></p>
+          <div class="form-row">
+            <select id="reclam-nouveau-plan">
+              <option value="essentiel">MOTO — Essentiel</option>
+              <option value="standard">NDEKO — Standard</option>
+              <option value="premium">LIBOTA — Premium</option>
+            </select>
+          </div>
+          <div class="form-row"><input type="text" id="reclam-raison" placeholder="Raison"></div>
+          <button type="button" class="btn-primary" onclick="soumettreReclamation('changer-formule')">Appliquer</button>`;
+      } else if (type === 'correction_info') {
+        html = `<p>Corriger les informations de <strong>${name}</strong></p>
+          <div class="form-row"><input type="text" id="reclam-first-name" placeholder="Prénom (laisser vide pour conserver)"></div>
+          <div class="form-row"><input type="text" id="reclam-last-name" placeholder="Nom (laisser vide pour conserver)"></div>
+          <div class="form-row"><input type="date" id="reclam-birth-date"></div>
+          <div class="form-row"><input type="text" id="reclam-raison" placeholder="Raison de la correction"></div>
+          <button type="button" class="btn-primary" onclick="soumettreReclamation('corriger')">Corriger</button>`;
+      } else if (type === 'signalement') {
+        html = `<p>Signaler un problème pour <strong>${name}</strong></p>
+          <div class="form-row"><textarea id="reclam-description" placeholder="Décrivez le problème..." rows="4" style="width:100%;resize:vertical;"></textarea></div>
+          <button type="button" class="btn-primary" onclick="soumettreReclamation('signaler')">Envoyer</button>`;
+      }
+
+      document.getElementById('modal-action-body').innerHTML = html;
+      document.getElementById('modal-action').classList.add('open');
+    }
+
+    async function soumettreReclamation(action) {
+      if (!compteReclam) return;
+      const phone = compteReclam.phone;
+
+      let body = { patient_phone: phone };
+      if (action === 'reactiver') {
+        body.raison = document.getElementById('reclam-raison')?.value || '';
+      } else if (action === 'changer-formule') {
+        body.nouveau_plan = document.getElementById('reclam-nouveau-plan')?.value;
+        body.raison = document.getElementById('reclam-raison')?.value || '';
+      } else if (action === 'corriger') {
+        const corrections = {};
+        const fn = document.getElementById('reclam-first-name')?.value.trim();
+        const ln = document.getElementById('reclam-last-name')?.value.trim();
+        const bd = document.getElementById('reclam-birth-date')?.value;
+        if (fn) corrections.first_name = fn;
+        if (ln) corrections.last_name = ln;
+        if (fn && ln) corrections.full_name = `${fn} ${ln}`.trim();
+        if (bd) corrections.birth_date = bd;
+        body.corrections = corrections;
+        body.raison = document.getElementById('reclam-raison')?.value || '';
+      } else if (action === 'signaler') {
+        body.description = document.getElementById('reclam-description')?.value;
+      }
+
+      try {
+        const data = await apiFetch(`/agence/reclamation/${action}`, { method: 'POST', body: JSON.stringify(body) });
+        document.getElementById('modal-action-body').innerHTML =
+          `<div class="result-msg ${data && data.success !== false ? 'ok' : 'err'}">${(data && data.message) || 'Opération réussie.'}</div>`;
+      } catch (err) {
+        document.getElementById('modal-action-body').innerHTML =
+          `<div class="result-msg err">Erreur réseau : ${err.message}</div>`;
+      }
+    }
+
+    function fermerActionModal() { document.getElementById('modal-action').classList.remove('open'); }
+
+    // ─── Canal de confirmation (wizard souscription) ───
+    let selectedCanal = null;
+    let photoData = null;
+    let cameraStream = null;
+
+    function selectCanal(canal) {
+      selectedCanal = canal;
+      document.getElementById('w-canal').value = canal;
+      document.querySelectorAll('.canal-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`.canal-card[data-canal="${canal}"]`).classList.add('selected');
+
+      const procheField = document.getElementById('w-proche-field');
+      const hint = document.getElementById('w-canal-hint');
+
+      if (canal === 'proche') {
+        procheField.classList.remove('hidden');
+        hint.textContent = 'Entrez le numéro WhatsApp du proche';
+      } else {
+        procheField.classList.add('hidden');
+        const hints = {
+          whatsapp: 'Confirmation envoyée sur WhatsApp du client',
+          email: 'Email de confirmation en cours d\'envoi...',
+          aucun: 'Aucune confirmation envoyée'
+        };
+        hint.textContent = hints[canal] || '';
+      }
+    }
+
+    // ─── Capture photo (wizard souscription) ───
+    async function openCamera() {
+      const video = document.getElementById('w-camera');
+      const captureBtn = document.getElementById('w-capture-btn');
+      const closeBtn = document.getElementById('w-close-camera-btn');
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        video.srcObject = cameraStream;
+        video.style.display = 'block';
+        captureBtn.style.display = 'inline-block';
+        closeBtn.style.display = 'inline-block';
+      } catch (err) {
+        alert('Impossible d\'accéder à la caméra. Veuillez choisir un fichier.');
+        console.error('[CAMERA]', err);
+      }
+    }
+
+    function closeCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      document.getElementById('w-camera').style.display = 'none';
+      document.getElementById('w-capture-btn').style.display = 'none';
+      document.getElementById('w-close-camera-btn').style.display = 'none';
+    }
+
+    function capturePhoto() {
+      const video = document.getElementById('w-camera');
+      const canvas = document.getElementById('w-canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      setPhotoPreview(dataUrl);
+      closeCamera();
+    }
+
+    function handlePhotoUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => setPhotoPreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+
+    function setPhotoPreview(dataUrl) {
+      photoData = dataUrl;
+      document.getElementById('w-photo-data').value = dataUrl;
+      const preview = document.getElementById('w-photo-preview');
+      preview.innerHTML = `<img src="${dataUrl}" alt="Photo">`;
+      document.getElementById('w-photo-hint').textContent = 'Photo capturée';
+    }
+
+    // ─── Wizard souscription complète ───
+    let wizardStep = 1;
+    let wizardData = {};
+    let plansConfig = [];
+
+    function wizardNext(currentStep) {
+      if (!validateStep(currentStep)) return;
+      wizardStep = currentStep + 1;
+      updateWizardUI();
+    }
+
+    function wizardBack(currentStep) {
+      wizardStep = currentStep - 1;
+      updateWizardUI();
+    }
+
+    function updateWizardUI() {
+      document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`wizard-step-${wizardStep}`).classList.add('active');
+      document.querySelectorAll('.wizard-step-indicator').forEach(ind => {
+        const step = parseInt(ind.dataset.step);
+        ind.classList.remove('active', 'done');
+        if (step === wizardStep) ind.classList.add('active');
+        if (step < wizardStep) ind.classList.add('done');
+      });
+      document.querySelectorAll('.wizard-step-divider').forEach((div, idx) => {
+        div.classList.remove('done');
+        if (idx < wizardStep - 1) div.classList.add('done');
+      });
+      if (wizardStep === 3) loadPlansConfig();
+      if (wizardStep === 4) updateRecap();
+    }
+
+    function validateStep(step) {
+      if (step === 1) {
+        const phone = document.getElementById('w-phone').value.trim();
+        const nom = document.getElementById('w-nom').value.trim();
+        const prenom = document.getElementById('w-prenom').value.trim();
+        const dob = document.getElementById('w-dob').value;
+        const genre = document.getElementById('w-genre').value;
+        const ville = document.getElementById('w-ville').value;
+        const canal = document.getElementById('w-canal').value;
+
+        if (!phone || !nom || !prenom || !dob || !genre || !ville || !canal) {
+          alert('Veuillez remplir tous les champs obligatoires (*).');
+          return false;
+        }
+        if (canal === 'proche') {
+          const procheNumber = document.getElementById('w-proche-number').value.trim();
+          if (!procheNumber) { alert('Veuillez entrer le numéro WhatsApp du proche.'); return false; }
+          wizardData.procheNumber = procheNumber;
+        }
+        let normalizedPhone = phone.replace(/\s+/g, '');
+        if (!normalizedPhone.startsWith('+242')) {
+          normalizedPhone = normalizedPhone.startsWith('0') ? '+242' + normalizedPhone.substring(1) : '+242' + normalizedPhone;
+        }
+        document.getElementById('w-phone').value = normalizedPhone;
+        wizardData = { phone: normalizedPhone, nom, prenom, dob, genre, ville, adresse: document.getElementById('w-adresse').value.trim(), canal, procheNumber: wizardData.procheNumber || null };
+        return true;
+      }
+      if (step === 2) {
+        const docType = document.getElementById('w-doc-type').value;
+        const docNumero = document.getElementById('w-doc-numero').value.trim();
+        const photoDataVal = document.getElementById('w-photo-data').value;
+        if (!docType || !docNumero) { alert('Veuillez remplir le type et le numéro de document (*).'); return false; }
+        if (!photoDataVal) { alert('Veuillez capturer ou charger une photo d\'identité (*).'); return false; }
+        wizardData = { ...wizardData, docType, docNumero, niu: document.getElementById('w-niu').value.trim(), rib: document.getElementById('w-rib').value.trim(), email: document.getElementById('w-email').value.trim(), photoData: photoDataVal };
+        return true;
+      }
+      if (step === 3) {
+        const plan = document.getElementById('w-plan-selected').value;
+        const cguAccept = document.getElementById('w-cgu-accept').checked;
+        if (!plan) { alert('Veuillez sélectionner une formule.'); return false; }
+        if (!cguAccept) { alert('Le client doit accepter les CGU et l\'OVP pour continuer.'); return false; }
+        wizardData = { ...wizardData, plan, cguAcceptedAt: new Date().toISOString() };
+        return true;
+      }
+      return true;
+    }
+
+    async function verifierClientExistant() {
+      const phone = document.getElementById('w-phone').value.trim().replace(/\s+/g, '');
+      const resultDiv = document.getElementById('w-client-existing');
+      if (!phone || phone.length < 10) {
+        resultDiv.className = 'w-info-box error'; resultDiv.textContent = 'Numéro invalide'; resultDiv.classList.remove('hidden');
+        return;
+      }
+      let normalizedPhone = phone;
+      if (!normalizedPhone.startsWith('+242')) {
+        normalizedPhone = normalizedPhone.startsWith('0') ? '+242' + normalizedPhone.substring(1) : '+242' + normalizedPhone;
+      }
+      document.getElementById('w-phone').value = normalizedPhone;
+      resultDiv.className = 'w-info-box'; resultDiv.classList.remove('hidden'); resultDiv.textContent = 'Vérification...';
+      try {
+        const data = await apiFetch(`/agence/client?phone=${encodeURIComponent(normalizedPhone)}`);
+        if (data && data.success && data.client) {
+          resultDiv.className = 'w-info-box success';
+          resultDiv.textContent = `Client existant : ${data.client.full_name || normalizedPhone} — ${data.client.plan ? 'Plan ' + data.client.plan : 'Aucun abonnement actif'}`;
+          if (data.client.full_name) {
+            const parts = data.client.full_name.split(' ');
+            if (parts.length >= 2) {
+              document.getElementById('w-nom').value = parts[parts.length - 1];
+              document.getElementById('w-prenom').value = parts.slice(0, -1).join(' ');
+            } else {
+              document.getElementById('w-nom').value = data.client.full_name;
+            }
+          }
+        } else if (data) {
+          resultDiv.className = 'w-info-box success';
+          resultDiv.textContent = 'Nouveau client — création de compte requise';
+        }
+      } catch(e) {
+        resultDiv.className = 'w-info-box error'; resultDiv.textContent = 'Erreur de vérification';
+        console.error('[VERIFIER CLIENT]', e);
+      }
+    }
+
+    async function loadPlansConfig() {
+      try {
+        const data = await apiFetch('/agence/plans-config');
+        if (data && data.success && data.plans) {
+          plansConfig = data.plans;
+          renderPlanCards();
+          return;
+        }
+      } catch(e) { console.error('[LOAD PLANS]', e); }
+      plansConfig = [
+        { id: 'essentiel', name: 'MOTO',   price: 2000,  members: 1, description: 'Couverture individuelle des soins de santé primaires.' },
+        { id: 'standard',  name: 'NDEKO',  price: 4000,  members: 2, description: 'Couverture pour le foyer restreint (2 personnes).' },
+        { id: 'premium',   name: 'LIBOTA', price: 10000, members: 5, description: 'Couverture familiale étendue (5 personnes).' }
+      ];
+      renderPlanCards();
+    }
+
+    function renderPlanCards() {
+      const container = document.getElementById('w-plan-cards');
+      container.innerHTML = plansConfig.map(plan => `
+        <div class="plan-card" data-plan="${plan.id}" onclick="selectPlan(this)">
+          <div class="plan-nom">${plan.name}</div>
+          <div class="plan-prix">${plan.price.toLocaleString('fr-FR')} FCFA</div>
+          <div class="plan-membres">${plan.members} membre${plan.members > 1 ? 's' : ''}</div>
+          <div class="plan-desc">${plan.description}</div>
+        </div>
+      `).join('');
+    }
+
+    function selectPlan(card) {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      document.getElementById('w-plan-selected').value = card.dataset.plan;
+    }
+
+    function selectPayment(card) {
+      document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const method = card.dataset.method;
+      document.getElementById('w-payment-selected').value = method;
+      const momoField = document.getElementById('w-momo-field');
+      const virementField = document.getElementById('w-virement-field');
+      momoField.classList.add('hidden');
+      virementField.classList.add('hidden');
+      if (method === 'mtn_momo' || method === 'airtel_money') momoField.classList.remove('hidden');
+      else if (method === 'virement') virementField.classList.remove('hidden');
+    }
+
+    function updateRecap() {
+      const plan = plansConfig.find(p => p.id === wizardData.plan);
+      const paymentMethod = document.getElementById('w-payment-selected').value;
+      const methodLabels = { mtn_momo: 'MTN MoMo', airtel_money: 'Airtel Money', especes: 'Espèces en agence', virement: 'Virement bancaire' };
+      const recap = document.getElementById('w-recap');
+      recap.innerHTML = `
+        <div class="recap-row"><span class="recap-label">Client</span><span class="recap-value">${wizardData.prenom} ${wizardData.nom}</span></div>
+        <div class="recap-row"><span class="recap-label">Téléphone</span><span class="recap-value">${wizardData.phone}</span></div>
+        <div class="recap-row"><span class="recap-label">Date de naissance</span><span class="recap-value">${new Date(wizardData.dob).toLocaleDateString('fr-FR')}</span></div>
+        <div class="recap-row"><span class="recap-label">Ville</span><span class="recap-value">${wizardData.ville}</span></div>
+        <div class="recap-row"><span class="recap-label">Formule</span><span class="recap-value">${plan ? plan.name : wizardData.plan}</span></div>
+        <div class="recap-total"><span>Total à payer</span><span>${plan ? plan.price.toLocaleString('fr-FR') : '—'} FCFA</span></div>
+        <div class="recap-row" style="margin-top:8px;"><span class="recap-label">Mode de paiement</span><span class="recap-value">${methodLabels[paymentMethod] || paymentMethod}</span></div>
+      `;
+    }
+
+    async function confirmerSouscriptionComplete() {
+      const paymentMethod = document.getElementById('w-payment-selected').value;
+      if (!paymentMethod) { alert('Veuillez sélectionner un mode de paiement.'); return; }
+
+      let momoNumber = null;
+      let virementRef = null;
+      if (paymentMethod === 'mtn_momo' || paymentMethod === 'airtel_money') {
+        momoNumber = document.getElementById('w-momo-number').value.trim();
+        if (!momoNumber) { alert('Veuillez entrer le numéro MoMo du client.'); return; }
+      }
+      if (paymentMethod === 'virement') {
+        virementRef = document.getElementById('w-virement-ref').value.trim();
+        if (!virementRef) { alert('Veuillez entrer la référence du virement.'); return; }
+      }
+
+      const payload = { ...wizardData, payment_mode: paymentMethod, momo_number: momoNumber, virement_ref: virementRef, created_by: getPhone() };
+      const btn = document.getElementById('btn-confirmer-souscription');
+      const resultDiv = document.getElementById('w-souscription-result');
+      btn.disabled = true; btn.textContent = 'Traitement...'; resultDiv.className = 'hidden';
+
+      try {
+        const data = await apiFetch('/agence/souscrire-complet', { method: 'POST', body: JSON.stringify(payload) });
+        if (data && data.success) {
+          resultDiv.className = 'result-msg ok';
+          const msgClient = `Bolamu - Souscription confirmée\n\nBonjour ${wizardData.prenom} ${wizardData.nom},\nVotre abonnement ${data.plan || wizardData.plan} est actif !\n\nCode membre : ${data.member_code || '—'}\nMot de passe temporaire : ${data.temp_password || '—'}\nExpiration : ${data.expires_at || '—'}\n\nConnectez-vous sur bolamu.co pour accéder à votre espace.`;
+          const msgProche = `Bolamu - Souscription confirmée\n\nBonjour,\n${wizardData.prenom} ${wizardData.nom} vient de souscrire à l'abonnement ${data.plan || wizardData.plan}.\n\nCode membre : ${data.member_code || '—'}\nMot de passe temporaire : ${data.temp_password || '—'}\n\nMerci de lui transmettre ces informations.`;
+          let waNumber = wizardData.phone;
+          let waMsg = msgClient;
+          if (data.canal === 'proche' && data.proche_number) { waNumber = data.proche_number; waMsg = msgProche; }
+          const waLink = `https://wa.me/${waNumber.replace('+', '')}?text=${encodeURIComponent(waMsg)}`;
+
+          let resultHTML = `
+            <strong>Souscription réussie !</strong><br>
+            Client : ${wizardData.prenom} ${wizardData.nom}<br>
+            Plan : ${data.plan || wizardData.plan}<br>
+            Code membre : ${data.member_code || '—'}<br>
+            Expiration : ${data.expires_at || '—'}<br>
+            Mot de passe temporaire : <strong>${data.temp_password || '—'}</strong>
+          `;
+          if (data.canal === 'whatsapp' || data.canal === 'proche') {
+            resultHTML += `<div style="margin-top:16px;"><a href="${waLink}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#00C9A7;color:#00352c;text-decoration:none;border-radius:10px;font-weight:600;">Envoyer sur WhatsApp</a></div>`;
+          } else if (data.canal === 'email') {
+            resultHTML += `<div style="margin-top:16px;color:var(--ink-soft);">Email de confirmation en cours d'envoi...</div>`;
+          } else {
+            resultHTML += `<div style="margin-top:16px;color:var(--ink-soft);">Aucune confirmation envoyée (canal : Aucun)</div>`;
+          }
+          resultDiv.innerHTML = resultHTML;
+          resultDiv.classList.remove('hidden');
+          setTimeout(() => resetWizard(), 5000);
+        } else if (data) {
+          resultDiv.className = 'result-msg err';
+          resultDiv.textContent = data.message || 'Erreur lors de la souscription';
+          resultDiv.classList.remove('hidden');
+        }
+      } catch(e) {
+        resultDiv.className = 'result-msg err';
+        resultDiv.textContent = 'Erreur de connexion au serveur';
+        resultDiv.classList.remove('hidden');
+        console.error('[SOUSCRIPTION COMPLETE]', e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Valider la souscription';
+      }
+    }
+
+    function resetWizard() {
+      wizardStep = 1;
+      wizardData = {};
+      document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('wizard-step-1').classList.add('active');
+      document.querySelectorAll('.wizard-step-indicator').forEach(ind => ind.classList.remove('active', 'done'));
+      document.querySelector('.wizard-step-indicator[data-step="1"]').classList.add('active');
+      document.querySelectorAll('.wizard-step-divider').forEach(d => d.classList.remove('done'));
+
+      ['w-phone','w-nom','w-prenom','w-dob','w-genre','w-ville','w-adresse','w-doc-type','w-doc-numero','w-niu','w-rib','w-email','w-plan-selected','w-payment-selected','w-momo-number','w-virement-ref'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('w-cgu-accept').checked = false;
+      document.getElementById('w-client-existing').classList.add('hidden');
+      document.getElementById('w-souscription-result').classList.add('hidden');
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.canal-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('w-momo-field').classList.add('hidden');
+      document.getElementById('w-virement-field').classList.add('hidden');
+      document.getElementById('w-proche-field').classList.add('hidden');
+      photoData = null;
+      document.getElementById('w-photo-preview').innerHTML = '<span class="material-symbols-outlined photo-placeholder">photo_camera</span>';
+    }
+
+    // ─── Import employés en masse ───
+    let importEmployesData = [];
+
+    async function loadContractsForImport() {
+      try {
+        const data = await apiFetch('/admin/company-contracts');
+        const sel = document.getElementById('import-contract-select');
+        if (sel && data && data.success && data.data) {
+          sel.innerHTML = '<option value="">Aucun — patients individuels</option>' +
+            data.data.map(c => `<option value="${c.id}">${c.company_name}</option>`).join('');
+        }
+      } catch (e) { /* non bloquant — le sélecteur reste sur "Aucun" */ }
+    }
+
+    function normalizePhoneImport(phone) {
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length === 10 && digits.startsWith('0')) return '+242' + digits;
+      if (digits.length === 9) return '+2420' + digits;
+      if (digits.length === 12 && digits.startsWith('242')) return '+' + digits;
+      return null;
+    }
+
+    document.getElementById('btn-import-employes-preview').addEventListener('click', async () => {
+      const fileInput = document.getElementById('import-employes-file');
+      const file = fileInput.files[0];
+      const plan = document.getElementById('import-plan-select').value;
+      const payment = document.getElementById('import-payment-select').value;
+
+      if (!file) { alert('Veuillez sélectionner un fichier Excel/CSV.'); return; }
+      if (!plan) { alert('Veuillez sélectionner un plan d\'abonnement.'); return; }
+      if (!payment) { alert('Veuillez sélectionner un mode de paiement.'); return; }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          if (jsonData.length < 2) { alert('Le fichier est vide ou mal formaté.'); return; }
+
+          const headersRow = jsonData[0].map(h => String(h).toLowerCase());
+          const nomIdx = headersRow.findIndex(h => h.includes('nom') && !h.includes('prenom'));
+          const prenomIdx = headersRow.findIndex(h => h.includes('prenom'));
+          const phoneIdx = headersRow.findIndex(h => h.includes('phone') || h.includes('tel') || h.includes('mobile'));
+          const categorieIdx = headersRow.findIndex(h => h.includes('categorie') || h.includes('catégorie') || h.includes('rh'));
+
+          if (nomIdx === -1 || prenomIdx === -1 || phoneIdx === -1) {
+            alert('Colonnes requises : "Nom", "Prénom", "Téléphone"');
+            return;
+          }
+
+          importEmployesData = [];
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            const phoneRaw = row[phoneIdx] ? String(row[phoneIdx]).trim() : '';
+            const phoneNorm = normalizePhoneImport(phoneRaw);
+            if (phoneNorm && row[nomIdx] && row[prenomIdx]) {
+              importEmployesData.push({
+                nom: String(row[nomIdx]).trim(),
+                prenom: String(row[prenomIdx]).trim(),
+                phone: phoneNorm,
+                categorie_rh: categorieIdx !== -1 ? String(row[categorieIdx]).trim() : 'employe',
+                plan: plan,
+                payment_method: payment
+              });
+            }
+          }
+
+          if (importEmployesData.length === 0) {
+            alert('Aucun employé valide trouvé. Vérifiez le format des numéros de téléphone (+2420XXXXXXXX).');
+            return;
+          }
+
+          renderImportEmployesPreview();
+          document.getElementById('import-employes-preview').style.display = 'block';
+        } catch(err) {
+          alert('Erreur lors de la lecture du fichier : ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function renderImportEmployesPreview() {
+      const tbody = document.getElementById('import-employes-preview-body');
+      tbody.innerHTML = importEmployesData.map(emp => `
+        <tr>
+          <td style="padding:10px;border-bottom:1px solid var(--line);">${emp.nom}</td>
+          <td style="padding:10px;border-bottom:1px solid var(--line);">${emp.prenom}</td>
+          <td style="padding:10px;border-bottom:1px solid var(--line);">${emp.phone}</td>
+          <td style="padding:10px;border-bottom:1px solid var(--line);">${emp.categorie_rh}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('btn-cancel-import-employes').addEventListener('click', () => {
+      document.getElementById('import-employes-preview').style.display = 'none';
+      document.getElementById('import-employes-file').value = '';
+      importEmployesData = [];
+    });
+
+    document.getElementById('btn-confirm-import-employes').addEventListener('click', async () => {
+      if (importEmployesData.length === 0) { alert('Aucune donnée à importer.'); return; }
+      try {
+        const contractId = document.getElementById('import-contract-select').value || undefined;
+        const data = await apiFetch('/agence/import-employes', { method: 'POST', body: JSON.stringify({ employes: importEmployesData, contract_id: contractId }) });
+        if (data && data.success) {
+          alert(`${importEmployesData.length} employé(s) importé(s) avec succès !`);
+          document.getElementById('import-employes-preview').style.display = 'none';
+          document.getElementById('import-employes-file').value = '';
+          importEmployesData = [];
+        } else if (data) {
+          alert('Erreur lors de l\'import : ' + (data.message || 'Erreur serveur'));
+        }
+      } catch(e) {
+        alert('Erreur de connexion.');
+      }
+    });
 
     if (typeof initNavigation === 'function') {
       initNavigation();
