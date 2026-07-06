@@ -401,9 +401,10 @@ router.post('/bons-zora/run', authMiddleware, adminOnly, async (req, res) => {
 
         // 1. Charger les transactions bons Zora pending (verrou)
         const txResult = await client.query(
-            `SELECT ct.id, ct.partner_phone, ct.partner_type, ct.amount_fcfa, bz.uuid as bon_uuid
+            `SELECT ct.id, ct.partner_phone, ct.partner_type, ct.amount_fcfa, bz.uuid as bon_uuid, u.first_name, u.last_name
              FROM clearing_transactions ct
              JOIN partner_bons_zora bz ON bz.id = ct.reference_id
+             JOIN users u ON u.phone = ct.partner_phone
              WHERE ct.status = 'pending' AND ct.partner_type = 'partenaire' AND ct.reference_type = 'bon_zora'
              ORDER BY ct.id
              FOR UPDATE OF ct`
@@ -447,7 +448,10 @@ router.post('/bons-zora/run', authMiddleware, adminOnly, async (req, res) => {
         setImmediate(async () => {
             for (const r of reglements) {
                 try {
+                    const tx = txResult.rows.find(t => t.partner_phone === r.partner_phone);
+                    const partnerName = tx ? `${tx.first_name} ${tx.last_name}` : 'Partenaire';
                     await sendAutoMessage(r.partner_phone, 'bolamu_bon_zora_reglement', [
+                        partnerName,
                         r.amount_fcfa,
                         `BZR-${r.id}`
                     ]);
