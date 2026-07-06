@@ -121,7 +121,7 @@ async function calculerScoreBolamu(patientPhone) {
       SELECT COUNT(*) AS transaction_count
       FROM zora_ledger
       WHERE phone = $1
-        AND created_at >= $2
+        AND earned_at >= $2
     `;
     const zoraResult = await pool.query(zoraQuery, [normalizedPhone, thirtyDaysAgo]);
     const zoraCount = zoraResult.rows[0].transaction_count || 0;
@@ -132,8 +132,8 @@ async function calculerScoreBolamu(patientPhone) {
       SELECT COUNT(*) AS transaction_count
       FROM zora_ledger
       WHERE phone = $1
-        AND created_at >= $2
-        AND created_at < $3
+        AND earned_at >= $2
+        AND earned_at < $3
     `;
     const zoraPrevResult = await pool.query(zoraPrevQuery, [normalizedPhone, thirtyTo60DaysAgo, thirtyDaysAgo]);
     const zoraPrevCount = zoraPrevResult.rows[0].transaction_count || 0;
