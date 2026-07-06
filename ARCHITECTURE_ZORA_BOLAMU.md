@@ -194,6 +194,8 @@ Le multiplicateur de campagne se compose avec le multiplicateur de tier : `point
 
 ## 4. Flux BURN — Dépense de points
 
+> **NOTE CONSOLIDATION VOUCHERS** — zora_vouchers et zora-voucher.service.js sont dépréciés. Système canonique : partner_vouchers + voucher.service.js (seul pipeline opérationnel de bout en bout).
+
 > **DÉCISION RÉGLEMENTAIRE DÉFINITIVE** — Le retrait cash direct via MoMo est exclu du système Zora. Raison : absence d'agrément BEAC (interdiction de détention de fonds). Les seuls mécanismes de burn autorisés sont `VOUCHER` / `GIFT_CARD` / `DISCOUNT` / `OFFER_ACCESS` (section 4.1 ci-dessous). Cette décision ne peut pas être annulée sans obtention préalable de l'agrément BEAC.
 
 ### 4.1 Types de rédemption

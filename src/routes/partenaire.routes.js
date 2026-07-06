@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { normalizePhone } = require('../utils/phone');
 const authMiddleware = require('../middleware/auth.middleware');
-const { validateVoucherHandler, getValidationsHandler } = require('../controllers/partenaire.controller');
+const { getValidationsHandler } = require('../controllers/partenaire.controller');
 
 if (!process.env.JWT_SECRET) throw new Error('[FATAL] JWT_SECRET non défini');
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -144,7 +144,14 @@ router.get('/stats', authMiddleware, requirePartenaire, async (req, res) => {
 });
 
 // POST /api/v1/partenaire/voucher/validate — Valider un voucher Zora
-router.post('/voucher/validate', authMiddleware, requirePartenaire, validateVoucherHandler);
+// DÉPRÉCIÉ — utiliser /vouchers/* à la place
+// (zora-voucher.service.js consolidé vers partner_vouchers/voucher.service.js)
+router.post('/voucher/validate', authMiddleware, requirePartenaire, (req, res) => {
+  res.status(410).json({
+    success: false,
+    message: 'Route dépréciée — utiliser /vouchers/*'
+  });
+});
 
 // GET /api/v1/partenaire/validations — Liste des validations du jour
 router.get('/validations', authMiddleware, requirePartenaire, getValidationsHandler);

@@ -1,6 +1,8 @@
 // ============================================================
 // BOLAMU — Service Vouchers Zora (table zora_vouchers)
-// Système UUID 8 chars, parallèle au marketplace partenaires (partner_vouchers).
+// DÉPRÉCIÉ — système consolidé vers partner_vouchers.
+// Utiliser voucher.service.js (routes /vouchers/*) exclusivement.
+// Ce fichier est conservé pour référence historique.
 // ============================================================
 const crypto = require('crypto');
 const pool = require('../config/db');
