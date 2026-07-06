@@ -230,16 +230,21 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 
 ## BOUCLE 6 — PARTENAIRES RÉCOMPENSES & ÉCONOMIE ZORA
 
-### Vouchers Zora
-- `bolamu_voucher_genere` : Voucher Zora généré
-  - Params : [prenom_patient, code_voucher, nom_partenaire]
-  - Déclencheur : POST /api/v1/vouchers/generate
-  - Message : "{prenom_patient}, votre voucher est prêt ! Code : {code_voucher} Valable chez : {nom_partenaire} Expire dans 48h. L'équipe Bolamu"
+### Bons Zora
+- `bolamu_bon_zora_genere` : Bon Zora généré
+  - Params : [prenom_patient, code_bon_zora, nom_partenaire]
+  - Déclencheur : POST /api/v1/bons-zora/generate
+  - Message : "{prenom_patient}, votre Bon Zora est prêt ! Code : {code_bon_zora} Valable chez : {nom_partenaire} Expire dans 48h. L'équipe Bolamu"
 
-- `bolamu_voucher_utilise` : Voucher Zora validé
+- `bolamu_bon_zora_utilise` : Bon Zora validé
   - Params : [prenom_patient, nom_recompense, nom_partenaire]
-  - Déclencheur : POST /api/v1/partenaire/voucher/validate
-  - Message : "{prenom_patient}, votre voucher a été validé. Récompense : {nom_recompense} Partenaire : {nom_partenaire} Merci de votre fidélité — L'équipe Bolamu"
+  - Déclencheur : POST /api/v1/bons-zora/validate
+  - Message : "{prenom_patient}, votre Bon Zora a été validé. Récompense : {nom_recompense} Partenaire : {nom_partenaire} Merci de votre fidélité — L'équipe Bolamu"
+
+- `bolamu_bon_zora_reglement` : Règlement Bon Zora partenaire
+  - Params : [montant_fcfa, reference_reglement]
+  - Déclencheur : POST /api/v1/clearing/bons-zora/run
+  - Message : "Votre règlement Bon Zora de {montant_fcfa} FCFA a été généré. Référence : {reference_reglement}. L'équipe Bolamu"
 
 ## RÈGLES D'ENVOI
 
@@ -292,6 +297,8 @@ ORDER BY created_at DESC LIMIT 3;
 
 - 25 juin 2026 : Création document + templates Boucle 2
 - 25 juin 2026 : Ajout templates Boucle 3 (checkin_confirme, event_rappel, club_message)
+- 25 juin 2026 : Ajout templates Boucle 6 (bolamu_bon_zora_genere, bolamu_bon_zora_utilise)
+- 6 juillet 2026 : Renommage voucher→bon_zora (terminologie produit)
 - 25 juin 2026 : Ajout templates Boucle 4 (consultation_terminee, rdv_confirme, ordonnance_prete)
 - 25 juin 2026 : Ajout templates Boucle 5 (ordonnance_dispensee, ordonnance_dispensee_medecin, nouvelle_ordonnance_pharmacie, resultats_disponibles)
 - 25 juin 2026 : Ajout templates Boucle 6 (bolamu_voucher_genere, bolamu_voucher_utilise)

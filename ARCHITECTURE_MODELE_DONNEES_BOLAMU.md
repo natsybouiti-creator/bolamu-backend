@@ -120,15 +120,15 @@
 - **`zora_ledger`** (migration_030) — **insert-only confirmé**, `phone` FK→`users(phone)`, `points`, `category`, `action_type`, `proof_class`, `proof_source`, `recording_method`, `proof_reference`, `verified`, `earned_at`, `expires_at` ; index unique idempotent `(action_type, proof_reference) WHERE points > 0`. **`awardZora()` (`src/services/zora.service.js`) est le point d'entrée unique confirmé.**
 - **`zora_tiers_config`**, **`zora_earn_rules`**, **`zora_category_caps`** (migration_030) — paramétrage paliers (Kimia/Liboso/Nkembo/Elonga), règles de gain, plafonds par catégorie (santé 60%/sport 25%/plateforme 10%/lifestyle 5%).
 - **`zora_partners`**, **`zora_rewards`**, **`zora_vouchers`** (migration_031, « marketplace ») — **il n'existe pas de table `zora_marketplace`** : le marketplace est la combinaison de ces 3 tables + `zora_voucher_validations`.
-- **`partner_vouchers`**, **`partner_programs`**, **`partner_validations`** (migration_040) — second système de vouchers, distinct de `zora_vouchers`/`zora_rewards` (programmes partenaires génériques hors catalogue Zora).
+- **`partner_bons_zora`**, **`partner_programs`**, **`partner_validations`** (migration_065) — second système de bons Zora, distinct de `zora_vouchers`/`zora_rewards` (programmes partenaires génériques hors catalogue Zora).
 - **`zora_games`**, **`zora_game_prizes`**, **`zora_game_plays`** (+`question_id` migration_037), **`zora_games_global_cap`**, **`zora_quiz_questions`** (migration_032) — moteur de jeux (scratch/wheel/chest/quiz).
 - **`qr_zora_consent`** : **table inexistante**. Le consentement réel passe par `patient_consents` (routes/consent.routes.js) ; les QR de scan (traçabilité, pas consentement Zora) passent par `qr_tokens` + `audit_log`. `users.zora_balance_visible_qr` (migration_041) est le seul lien direct QR↔Zora trouvé (opt-in d'affichage du solde sur le QR).
 
-**Lues/écrites par** : `zora_ledger` (via `awardZora()`) — appelants : `routes/clubs.routes.js`, `controllers/{clubs,qr}.controller.js`, `services/{event,notification,zora-voucher,zora-games,communityService,scoreBolamu,voucher,wellness,zora-marketplace,leaderboard}.service.js`, `routes/{admin,patient,elonga-events}.routes.js`, `cron/zora-expiration.js`. `zora_games`/`zora_game_plays` → `services/zora-games.service.js` uniquement. `zora_vouchers` → `services/{zora-voucher,pharmacie,zora-marketplace}.service.js`, `cron/zora-expiration.js` (expiration auto).
+**Lues/écrites par** : `zora_ledger` (via `awardZora()`) — appelants : `routes/clubs.routes.js`, `controllers/{clubs,qr}.controller.js`, `services/{event,notification,zora-voucher,zora-games,communityService,scoreBolamu,bon-zora,wellness,zora-marketplace,leaderboard}.service.js`, `routes/{admin,patient,elonga-events}.routes.js`, `cron/zora-expiration.js`. `zora_games`/`zora_game_plays` → `services/zora-games.service.js` uniquement. `zora_vouchers` → `services/{zora-voucher,pharmacie,zora-marketplace}.service.js`, `cron/zora-expiration.js` (expiration auto).
 
-**Frontend associé** : `public/patient/dashboard.html` (`zora/balance`, `zora/games/play`, `zora/ledger`, `zora/rewards`, `streaks/me`, `leaderboard/weekly`), `public/pharmacie/dashboard.html` + `public/laboratoire/dashboard.html` (`zora/vouchers/:uuid/consume`, `zora/partner/vouchers`), `public/zora/recompenses.html` + `public/zora/partenaires/*.html` (pages vitrines statiques, sans appel API).
+**Frontend associé** : `public/patient/dashboard.html` (`zora/balance`, `zora/games/play`, `zora/ledger`, `zora/rewards`, `streaks/me`, `leaderboard/weekly`), `public/pharmacie/dashboard.html` + `public/laboratoire/dashboard.html` (`bons-zora/validate/qr`), `public/zora/recompenses.html` + `public/zora/partenaires/*.html` (pages vitrines statiques, sans appel API).
 
-**Migrations** : 030, 031, 032, 037, 038, 040, 041 (zora_balance_visible_qr), 043 (fix balance).
+**Migrations** : 030, 031, 032, 037, 038, 040, 041 (zora_balance_visible_qr), 043 (fix balance), 065 (renommage partner_vouchers→partner_bons_zora), 066 (renommage voucher_payouts→bon_zora_reglements).
 
 ---
 
@@ -262,7 +262,7 @@ users (id PK, phone UNIQUE)
 - **Duplication de systèmes parallèles non consolidés** (dette technique à documenter, pas à corriger ici) :
   - `prescriptions` (liée à `appointments`) vs `ordonnances`/`ordonnance_items` (liée à `consultations`) — deux modèles d'ordonnance.
   - `elonga_registrations`/`elonga_checkin_tokens` (migration_033) vs `event_registrations`/`event_checkin_log` (migration_041) — deux systèmes d'inscription événement.
-  - `zora_vouchers`/`zora_rewards` (migration_031) vs `partner_vouchers`/`partner_programs` (migration_040) — deux systèmes de vouchers.
+  - `zora_vouchers`/`zora_rewards` (migration_031) vs `partner_bons_zora`/`partner_programs` (migration_065) — deux systèmes de bons Zora.
   - `clubs`/`conversations`/`conversation_participants` vs `sport_groups`/`sport_group_members`/`chat_messages` (migration_034, marqué `DEPRECATED` côté routes mais toujours en base).
   - `credits`/`credit_transactions`/`credit_partners` — système de points parallèle à `zora_ledger`/`zora_points`, statut de coexistence non clarifié.
   - `otp_codes` vs `otps` — doublon apparent.

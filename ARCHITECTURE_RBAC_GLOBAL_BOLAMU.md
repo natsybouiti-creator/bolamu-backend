@@ -66,13 +66,13 @@ Comptages réels exécutés en direct sur Neon (`SELECT role, COUNT(*) FROM user
 ### laboratoire — 6 comptes (5 actifs)
 - **Description métier** : laboratoire d'analyses partenaire, reçoit les prescriptions d'examens, publie les résultats.
 - **Dashboard** : `public/laboratoire/dashboard.html` (pas de `login.html` dédié).
-- **Routes accessibles** : `/lab` (`labOnly` — results/pending), `/zora/vouchers/:uuid/consume`, `/zora/partner/vouchers`, `/smartflow` (`prestataireOnly`).
+- **Routes accessibles** : `/lab` (`labOnly` — results/pending), `/bons-zora/validate/qr`, `/smartflow` (`prestataireOnly`).
 - **Restrictions** : incohérence de nommage relevée (`zora-marketplace.routes.js:117,147` vérifie `laboratory` en anglais alors que le rôle réel en base est `laboratoire` en français — condition potentiellement jamais vraie, à vérifier).
 
 ### pharmacie — 4 comptes (tous actifs)
 - **Description métier** : pharmacie partenaire, dispense les ordonnances, applique le tiers payant.
 - **Dashboard** : `public/pharmacie/dashboard.html` (pas de `login.html` dédié).
-- **Routes accessibles** : `/prescriptions/by-session`, `/prescriptions/deliver`, `/zora/vouchers/:uuid/consume`, `/smartflow` (`prestataireOnly`), `/admin/conventions` (partagé `partnerOnly`).
+- **Routes accessibles** : `/prescriptions/by-session`, `/prescriptions/deliver`, `/bons-zora/validate/qr`, `/smartflow` (`prestataireOnly`), `/admin/conventions` (partagé `partnerOnly`).
 - **Restrictions** : même incohérence de nommage anglais/français relevée (`pharmacy` vs `pharmacie` dans `zora-marketplace.routes.js`) ; jamais d'accès au dossier médical (règle CLAUDE.md TC-033).
 
 ### secretaire — 2 comptes (tous actifs)
@@ -108,11 +108,11 @@ Comptages réels exécutés en direct sur Neon (`SELECT role, COUNT(*) FROM user
 ### animateur — 2 comptes (tous actifs)
 - **Description métier** : animateur Elonga, anime les clubs et événements bien-être, réalise les check-in.
 - **Dashboard** : `public/animateur/dashboard.html`, login dédié `public/animateur/login.html`.
-- **Routes accessibles** : `/animateur/*` (`requireAnimateur`), `/events` (partagé avec `admin`), `/vouchers` (validation, `requireAnimateur`), `role !== 'animateur' && role !== 'admin'` sur `elonga-events.routes.js:183,202`.
-- **Restrictions** : pas d'accès aux données médicales ni financières hors Zora/vouchers.
+- **Routes accessibles** : `/animateur/*` (`requireAnimateur`), `/events` (partagé avec `admin`), `/bons-zora` (validation, `requireAnimateur`), `role !== 'animateur' && role !== 'admin'` sur `elonga-events.routes.js:183,202`.
+- **Restrictions** : pas d'accès aux données médicales ni financières hors Zora/bons-zora.
 
 ### Rôle additionnel non actif : partenaire (0 compte réel)
-Le rôle `partenaire` existe et est pleinement fonctionnel dans le code (`partenaire.routes.js` — `requirePartenaire`, login `POST /partenaire/login`, dashboard `public/partenaire/dashboard.html`), avec ses propres routes de validation de vouchers. **Aucun compte n'a ce rôle en base actuellement** (0 sur 73 users). Il est distinct de `doctor`/`pharmacie`/`laboratoire` et semble dédié à un portail de vouchers/programmes partenaires génériques (`credit_partners`, `partner_programs`). À clarifier : rôle prévu pour un futur type de partenaire, ou fonctionnalité abandonnée avant déploiement (voir §5).
+Le rôle `partenaire` existe et est pleinement fonctionnel dans le code (`partenaire.routes.js` — `requirePartenaire`, login `POST /partenaire/login`, dashboard `public/partenaire/dashboard.html`), avec ses propres routes de validation de bons Zora. **Aucun compte n'a ce rôle en base actuellement** (0 sur 73 users). Il est distinct de `doctor`/`pharmacie`/`laboratoire` et semble dédié à un portail de bons Zora/programmes partenaires génériques (`credit_partners`, `partner_programs`). À clarifier : rôle prévu pour un futur type de partenaire, ou fonctionnalité abandonnée avant déploiement (voir §5).
 
 ---
 
@@ -132,7 +132,7 @@ Le rôle `partenaire` existe et est pleinement fonctionnel dans le code (`parten
 | Résultats labo — soumettre | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Résultats labo — voir | 🔒 les siens | 🔒 ceux prescrits | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | Zora — gagner | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Zora — dépenser (vouchers) | ✅ | ❌ | 🔒 consommer voucher | 🔒 consommer voucher | ❌ | ❌ | ❌ | ❌ | ❌ | 🔒 validation |
+| Zora — dépenser (bons Zora) | ✅ | ❌ | 🔒 consommer bon Zora | 🔒 consommer bon Zora | ❌ | ❌ | ❌ | ❌ | ❌ | 🔒 validation |
 | Zora — administrer (earn rules/reset) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | Clubs — créer | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | 🔒 via animateur_clubs |
 | Clubs — rejoindre | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |

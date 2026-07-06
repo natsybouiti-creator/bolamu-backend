@@ -194,15 +194,15 @@ Le multiplicateur de campagne se compose avec le multiplicateur de tier : `point
 
 ## 4. Flux BURN — Dépense de points
 
-> **NOTE CONSOLIDATION VOUCHERS** — zora_vouchers et zora-voucher.service.js sont dépréciés. Système canonique : partner_vouchers + voucher.service.js (seul pipeline opérationnel de bout en bout).
+> **NOTE CONSOLIDATION BONS ZORA** — zora_vouchers et zora-voucher.service.js sont dépréciés. Système canonique : partner_bons_zora + bon-zora.service.js (seul pipeline opérationnel de bout en bout).
 
-> **DÉCISION RÉGLEMENTAIRE DÉFINITIVE** — Le retrait cash direct via MoMo est exclu du système Zora. Raison : absence d'agrément BEAC (interdiction de détention de fonds). Les seuls mécanismes de burn autorisés sont `VOUCHER` / `GIFT_CARD` / `DISCOUNT` / `OFFER_ACCESS` (section 4.1 ci-dessous). Cette décision ne peut pas être annulée sans obtention préalable de l'agrément BEAC.
+> **DÉCISION RÉGLEMENTAIRE DÉFINITIVE** — Le retrait cash direct via MoMo est exclu du système Zora. Raison : absence d'agrément BEAC (interdiction de détention de fonds). Les seuls mécanismes de burn autorisés sont `BON_ZORA` / `GIFT_CARD` / `DISCOUNT` / `OFFER_ACCESS` (section 4.1 ci-dessous). Cette décision ne peut pas être annulée sans obtention préalable de l'agrément BEAC.
 
 ### 4.1 Types de rédemption
 
 | Type | Libellé | Mécanisme |
 |---|---|---|
-| `VOUCHER` | Bon d'achat | Patient génère un QR code, présente chez partenaire, partenaire scanne |
+| `BON_ZORA` | Bon Zora | Patient génère un QR code, présente chez partenaire, partenaire scanne |
 | `GIFT_CARD` | Carte cadeau | Bon à valeur fixe prédéfinie, même flux QR |
 | `DISCOUNT` | Réduction directe | Appliquée lors d'un acte partenaire (couche sur la facture) |
 | `OFFER_ACCESS` | Accès à une offre exclusive | Débloque une offre réservée aux détenteurs Zora |
@@ -253,7 +253,7 @@ DRAFT (partenaire) → SUBMITTED → REVIEW (admin) → APPROVED → ACTIVE
   "partner_type": "reward_partner | health_partner",
   "title": "30% sur tous les produits cosmétiques",
   "description": "...",
-  "type": "DISCOUNT | VOUCHER | GIFT_CARD | OFFER_ACCESS",
+  "type": "DISCOUNT | BON_ZORA | GIFT_CARD | OFFER_ACCESS",
   "zora_cost": 500,
   "value_fcfa": 2000,
   "discount_percent": 30,
@@ -320,7 +320,7 @@ Le tier est calculé sur les **points cumulés des 12 derniers mois glissants** 
 
 ```
 1. Patient accède à la Marketplace
-2. Sélectionne une offre (VOUCHER ou GIFT_CARD)
+2. Sélectionne une offre (BON_ZORA ou GIFT_CARD)
 3. Clique "Utiliser mes points" → confirmation du coût affiché
 4. Système vérifie : solde suffisant + offre active + stock disponible + tier compatible
 5. Débit atomique du solde Zora
@@ -336,7 +336,7 @@ Le tier est calculé sur les **points cumulés des 12 derniers mois glissants** 
 ```
 1. Patient présente son QR code (dashboard ou WhatsApp)
 2. Partenaire ouvre son dashboard → section "Scanner un bon"
-3. Scan QR → appel API /zora/vouchers/:uuid/validate
+3. Scan QR → appel API /bons-zora/validate/qr
 4. Réponse instantanée : informations du bon + montant de la réduction
 5. Partenaire confirme → bon passe en USED
 6. Les deux reçoivent une confirmation WhatsApp
@@ -463,7 +463,7 @@ CREATE TABLE zora_ledger (
   triggered_by_role VARCHAR(30),                -- medecin | animateur | pharmacie | system
   triggered_by_id UUID,
   offer_id UUID REFERENCES zora_offers(id),
-  voucher_id UUID REFERENCES zora_vouchers(id),
+  bon_zora_id UUID REFERENCES partner_bons_zora(id),
   expires_at TIMESTAMPTZ,                       -- date d'expiration de ce lot de points
   meta JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -524,7 +524,7 @@ CREATE TABLE zora_offers (
   partner_type VARCHAR(30) NOT NULL,            -- reward_partner | health_partner
   title VARCHAR(200) NOT NULL,
   description TEXT,
-  type VARCHAR(20) NOT NULL,                    -- VOUCHER|GIFT_CARD|DISCOUNT|OFFER_ACCESS
+  type VARCHAR(20) NOT NULL,                    -- BON_ZORA|GIFT_CARD|DISCOUNT|OFFER_ACCESS
   zora_cost INTEGER NOT NULL,
   value_fcfa INTEGER,
   discount_percent INTEGER,
@@ -587,10 +587,10 @@ CREATE INDEX idx_ledger_action_type ON zora_ledger(action_type);
 -- Plafonds mensuels : agrégation rapide
 CREATE INDEX idx_ledger_user_month ON zora_ledger(user_id, action_type, created_at);
 
--- Vouchers : validation rapide
-CREATE INDEX idx_vouchers_code ON zora_vouchers(code_alpha);
-CREATE INDEX idx_vouchers_status ON zora_vouchers(status);
-CREATE INDEX idx_vouchers_expires ON zora_vouchers(expires_at) WHERE status = 'GENERATED';
+-- Bons Zora : validation rapide
+CREATE INDEX idx_bons_zora_code ON partner_bons_zora(code);
+CREATE INDEX idx_bons_zora_status ON partner_bons_zora(status);
+CREATE INDEX idx_bons_zora_expires ON partner_bons_zora(expires_at) WHERE status = 'active';
 
 -- Offres : marketplace
 CREATE INDEX idx_offers_status_city ON zora_offers(status, city);
@@ -619,7 +619,7 @@ src/
 │   │   ├── zora-burn.service.js          -- Logique burn + génération QR
 │   │   ├── zora-tier.service.js          -- Calcul et mise à jour des tiers
 │   │   ├── zora-expiry.service.js        -- Expiration des points (cron)
-│   │   └── zora-voucher.service.js       -- Génération et validation vouchers
+│   │   └── bon-zora.service.js            -- Génération et validation bons Zora
 │
 ├── routes/
 │   ├── zora.routes.js                    -- Toutes les routes Zora
@@ -640,17 +640,18 @@ GET    /api/zora/wallet/history            // Ledger paginé
 GET    /api/zora/wallet/expiring           // Points qui expirent dans 30j
 
 // ═══════════════════════════════════════════════
-// PATIENT — Bons et rédemption
+// PATIENT — Bons Zora et rédemption
 // ═══════════════════════════════════════════════
-GET    /api/zora/vouchers                  // Mes bons (actifs + historique)
-POST   /api/zora/vouchers/generate         // Générer un bon depuis une offre
-DELETE /api/zora/vouchers/:id/cancel       // Annuler un bon (avant validation)
+GET    /api/v1/bons-zora                  // Mes bons (actifs + historique)
+POST   /api/v1/bons-zora/generate         // Générer un bon depuis une offre
+DELETE /api/v1/bons-zora/:id/cancel       // Annuler un bon (avant validation)
 
 // ═══════════════════════════════════════════════
-// PARTENAIRE — Validation de bons
+// PARTENAIRE — Validation de bons Zora
 // ═══════════════════════════════════════════════
-POST   /api/zora/vouchers/:id/validate     // Valider un bon (scan QR ou code)
-GET    /api/zora/vouchers/partner/history  // Historique des bons validés
+POST   /api/v1/bons-zora/validate/qr      // Valider un bon (scan QR)
+POST   /api/v1/bons-zora/validate/code    // Valider un bon (code manuel)
+GET    /api/v1/bons-zora/partner/history  // Historique des bons validés
 
 // ═══════════════════════════════════════════════
 // MARKETPLACE — Offres
@@ -871,7 +872,7 @@ Chaque opération Zora écrit dans `audit_log` (table insert-only existante) :
 
 ```json
 {
-  "action": "ZORA_CREDIT | ZORA_DEBIT | VOUCHER_GENERATED | VOUCHER_VALIDATED",
+  "action": "ZORA_CREDIT | ZORA_DEBIT | BON_ZORA_GENERATED | BON_ZORA_VALIDATED",
   "performed_by": "uuid",
   "target_user": "uuid",
   "detail": { "amount": 150, "action_type": "CONSULT_MEDECIN", "proof_reference": "..." },
@@ -892,9 +893,9 @@ Tous les templates passent par `whatsapp-web.service.js → sendAutoMessage(phon
 |---|---|---|
 | `zora_credit` | Crédit de points | `{patient_name}`, `{points}`, `{action}`, `{solde_total}` |
 | `zora_tier_upgrade` | Upgrade de tier | `{patient_name}`, `{ancien_tier}`, `{nouveau_tier}` |
-| `zora_voucher_generated` | Bon généré | `{patient_name}`, `{offer_title}`, `{code_alpha}`, `{expires_at}` |
-| `zora_voucher_used` | Bon utilisé (patient) | `{patient_name}`, `{offer_title}`, `{partner_name}` |
-| `zora_voucher_confirmed` | Bon validé (partenaire) | `{partner_name}`, `{code_alpha}`, `{value_fcfa}` |
+| `zora_bon_zora_generated` | Bon Zora généré | `{patient_name}`, `{offer_title}`, `{code_alpha}`, `{expires_at}` |
+| `zora_bon_zora_used` | Bon Zora utilisé (patient) | `{patient_name}`, `{offer_title}`, `{partner_name}` |
+| `zora_bon_zora_confirmed` | Bon Zora validé (partenaire) | `{partner_name}`, `{code_alpha}`, `{value_fcfa}` |
 | `zora_points_expiring_30d` | 30j avant expiration | `{patient_name}`, `{points_expirant}`, `{date_expiration}` |
 | `zora_points_expiring_7d` | 7j avant expiration | idem |
 | `zora_points_expiring_1d` | 1j avant expiration | idem |
@@ -1166,11 +1167,11 @@ Même système JWT que les autres rôles Bolamu — pas de système parallèle.
 // Middleware existant — aucune modification nécessaire
 // Le token JWT contient { user_id, role: 'reward_partner', ... }
 
-// Guard sur les routes de validation de bons
-router.post('/zora/vouchers/:id/validate',
+// Guard sur les routes de validation de bons Zora
+router.post('/bons-zora/validate/qr',
   authenticateToken,                          // JWT existant
   requireRole(['reward_partner', 'health_partner', 'admin']),  // guard rôle
-  zoraVoucherController.validate
+  bonZoraController.validate
 );
 ```
 
@@ -1179,8 +1180,8 @@ router.post('/zora/vouchers/:id/validate',
 | Route | patient | medecin | secretaire | pharmacie | laboratoire | reward_partner | admin |
 |---|---|---|---|---|---|---|---|
 | `GET /zora/wallet` | Soi-même | Non | Non | Non | Non | Non | Tous |
-| `POST /zora/vouchers/generate` | Soi-même | Non | Non | Non | Non | Non | Non |
-| `POST /zora/vouchers/:id/validate` | Non | Non | Non | Oui | Non | Oui | Oui |
+| `POST /bons-zora/generate` | Soi-même | Non | Non | Non | Non | Non | Non |
+| `POST /bons-zora/validate/qr` | Non | Non | Non | Oui | Non | Oui | Oui |
 | `GET /zora/offers` | Oui | Non | Non | Non | Non | Non | Oui |
 | `POST /zora/offers` | Non | Non | Non | Oui | Oui | Oui | Oui |
 | `PUT /zora/offers/:id/review` | Non | Non | Non | Non | Non | Non | Oui |
@@ -1272,8 +1273,8 @@ Sans mécanisme de réservation, si 10 patients génèrent simultanément un bon
 On n'utilise pas de `SELECT` suivi d'un `UPDATE` (race condition). On utilise un `UPDATE ... WHERE stock_remaining > 0 RETURNING *` atomique au niveau base de données.
 
 ```javascript
-// Dans zora-burn.service.js — génération d'un bon
-async function generateVoucher({ userId, offerId, zoraCost }) {
+// Dans bon-zora.service.js — génération d'un bon Zora
+async function generateBonZora({ userId, offerId, zoraCost }) {
 
   return await db.transaction(async (trx) => {
 
@@ -1314,9 +1315,9 @@ async function generateVoucher({ userId, offerId, zoraCost }) {
     const codeAlpha = generateAlphaCode(); // ZORA-XXXXX-XXXXX
     const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // +48h
 
-    const voucher = await trx.query(`
-      INSERT INTO zora_vouchers
-        (offer_id, user_id, code_alpha, qr_payload, zora_cost, expires_at)
+    const bonZora = await trx.query(`
+      INSERT INTO partner_bons_zora
+        (program_id, patient_phone, code, qr_payload, zora_cost, expires_at)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `, [offerId, userId, codeAlpha, generateQRPayload(), zoraCost, expiresAt]);
@@ -1326,9 +1327,9 @@ async function generateVoucher({ userId, offerId, zoraCost }) {
       INSERT INTO zora_ledger
         (user_id, type, amount, balance_after, voucher_id)
       VALUES ($1, 'DEBIT', $2, $3, $4)
-    `, [userId, zoraCost, walletResult.rows[0].balance, voucher.rows[0].id]);
+    `, [userId, zoraCost, walletResult.rows[0].balance, bonZora.rows[0].id]);
 
-    return voucher.rows[0];
+    return bonZora.rows[0];
   });
   // Si une étape échoue → rollback complet : stock restauré + points restaurés
 }
@@ -1339,18 +1340,18 @@ async function generateVoucher({ userId, offerId, zoraCost }) {
 Le mécanisme `UPDATE ... WHERE stock_remaining > 0` rend inutile une colonne `stock_reserved` séparée. Le stock est décrémenté à la génération du bon, pas à la validation. Si le bon expire, le stock est **re-incrémenté** par le cron d'expiration.
 
 ```javascript
-// Dans zora-expiry.job.js — traitement des bons expirés
+// Dans zora-expiry.job.js — traitement des bons Zora expirés
 await db.query(`
-  UPDATE zora_offers o
-  SET stock_remaining = stock_remaining + expired_count
+  UPDATE partner_programs o
+  SET stock = stock + expired_count
   FROM (
-    SELECT offer_id, COUNT(*) as expired_count
-    FROM zora_vouchers
-    WHERE status = 'GENERATED'
+    SELECT program_id, COUNT(*) as expired_count
+    FROM partner_bons_zora
+    WHERE status = 'active'
       AND expires_at < NOW()
-    GROUP BY offer_id
+    GROUP BY program_id
   ) expired
-  WHERE o.id = expired.offer_id
+  WHERE o.id = expired.program_id
 `);
 
 // Puis passer les bons en EXPIRED et re-créditer les points
@@ -1387,7 +1388,7 @@ Termes utilisés dans ce document et dans les interfaces Bolamu.
 | **Liboso** | Tier 2 — confirmé. Signifie "premier pas" en lingala. |
 | **Nkembo** | Tier 3 — avancé. Signifie "gloire" en lingala. |
 | **Elonga** | Tier 4 — élite. Signifie "excellence" / "victoire" en lingala. Aussi le nom du programme bien-être. |
-| **Bon d'achat (Voucher)** | Coupon numérique généré par le patient avec ses points, présenté chez un partenaire récompense via QR code ou code alphanumérique. |
+| **Bon Zora** | Coupon numérique généré par le patient avec ses points, présenté chez un partenaire récompense via QR code ou code alphanumérique. |
 | **Carte cadeau (Gift Card)** | Bon à valeur fixe prédéfinie — même mécanisme que le voucher, montant garanti. |
 | **Réduction (Discount)** | Remise appliquée directement sur un acte partenaire, sans génération de bon intermédiaire. |
 | **Marketplace** | Catalogue des offres publiées par les partenaires récompenses, accessible depuis le dashboard patient et le Feed. |
@@ -1417,7 +1418,7 @@ Termes utilisés dans ce document et dans les interfaces Bolamu.
 | Historique des actes (type d'acte, date) | `zora_ledger` | **Donnée de santé indirecte** | **Haute** |
 | Nom du médecin déclencheur | `zora_ledger.meta` | Donnée de santé indirecte | Haute |
 | Offres consultées | `zora_offers` (logs) | Donnée comportementale | Moyenne |
-| Bons générés et utilisés | `zora_vouchers` | Donnée comportementale | Moyenne |
+| Bons générés et utilisés | `partner_bons_zora` | Donnée comportementale | Moyenne |
 | Tier du patient | `zora_wallets` | Donnée comportementale | Faible |
 
 ### 23.2 Données de santé indirectes — mesures spécifiques
@@ -1437,7 +1438,7 @@ Mesures appliquées :
 |---|---|---|
 | `zora_ledger` (complet) | 5 ans après le dernier acte | Conformité comptable OHADA |
 | `zora_wallets` | Durée de l'abonnement + 6 mois | Litige potentiel |
-| `zora_vouchers` | 2 ans après utilisation ou expiration | Litiges partenaires |
+| `partner_bons_zora` | 2 ans après utilisation ou expiration | Litiges partenaires |
 | `zora_tier_history` | 3 ans | Historique fidélité |
 | Logs d'audit Zora | 5 ans | Conformité CNPD Art. 28 |
 
