@@ -13,7 +13,7 @@ const { sendAutoMessage } = require('../services/whatsapp.service');
 async function getClubs(req, res) {
   try {
     const result = await pool.query(
-      `SELECT id, name, description, category, sport_type, max_members, animateur_phone, created_at
+      `SELECT id, name, description, category, sport_type, max_members, animateur_phone, cover_image_path, created_at
        FROM clubs
        WHERE is_active = TRUE
        ORDER BY name`
@@ -36,7 +36,7 @@ async function getClubById(req, res) {
 
     const result = await pool.query(
       `SELECT c.id, c.name, c.description, c.category, c.sport_type, c.max_members,
-              c.animateur_phone, c.conversation_id, c.created_at,
+              c.animateur_phone, c.conversation_id, c.cover_image_path, c.created_at,
               (SELECT COUNT(*) FROM club_members WHERE club_id = c.id) AS member_count,
               (SELECT COALESCE(SUM(zl.points), 0) FROM club_members cm
                  JOIN zora_ledger zl ON zl.phone = cm.patient_phone
@@ -242,7 +242,7 @@ async function getMyClubs(req, res) {
 
     const result = await pool.query(
       `SELECT c.id, c.name, c.description, c.category, c.sport_type,
-              c.animateur_phone, c.conversation_id, cm.joined_at
+              c.animateur_phone, c.conversation_id, c.cover_image_path, cm.joined_at
        FROM clubs c
        LEFT JOIN club_members cm ON c.id = cm.club_id AND cm.patient_phone = $1
        WHERE c.is_active = TRUE AND (cm.patient_phone = $1 OR c.animateur_phone = $1)

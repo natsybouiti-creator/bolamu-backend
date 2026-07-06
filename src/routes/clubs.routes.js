@@ -90,19 +90,20 @@ router.get('/:id/members', authMiddleware, async (req, res) => {
     const clubId = req.params.id;
     
     const result = await pool.query(`
-      SELECT u.phone, u.first_name, u.last_name,
+      SELECT u.phone, u.first_name, u.last_name, u.photo_url,
         COALESCE(SUM(zl.points), 0) AS zora_points
       FROM club_members cm
       JOIN users u ON u.phone = cm.patient_phone
       LEFT JOIN zora_ledger zl ON zl.phone = cm.patient_phone
       WHERE cm.club_id = $1
-      GROUP BY u.phone, u.first_name, u.last_name
+      GROUP BY u.phone, u.first_name, u.last_name, u.photo_url
       ORDER BY zora_points DESC
     `, [clubId]);
     
     const members = result.rows.map(m => ({
       phone: m.phone,
       full_name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || 'Membre',
+      photo_url: m.photo_url,
       zora_points: parseInt(m.zora_points) || 0
     }));
     
