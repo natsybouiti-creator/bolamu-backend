@@ -1,0 +1,37 @@
+-- Export du schéma Neon de production
+-- ==========================================
+--
+-- Pour générer ce fichier, exécuter la commande suivante depuis le terminal :
+--
+-- pg_dump $DATABASE_URL --schema-only --no-owner --no-privileges -f schema_reference.sql
+--
+-- Où $DATABASE_URL est l'URL de connexion Neon (disponible dans Render Dashboard)
+--
+-- Ce fichier contient uniquement la structure des tables (DDL), pas les données.
+-- Utile comme référence pour le développement et les migrations.
+--
+-- ==========================================
+-- Tables principales après renommage voucher→bon_zora (juillet 2026)
+-- ==========================================
+--
+-- Tables Zora :
+-- - zora_points
+-- - zora_ledger
+-- - zora_tiers_config
+-- - zora_earn_rules
+-- - zora_category_caps
+-- - zora_partners
+-- - zora_rewards
+-- - zora_vouchers (déprécié, conservé pour compatibilité)
+-- - partner_bons_zora (nouveau système canonique)
+-- - partner_programs
+-- - partner_validations
+-- - bon_zora_reglements (ex-voucher_payouts)
+--
+-- ==========================================
+-- Migrations exécutées
+-- ==========================================
+-- migration_001 → migration_029
+-- add_wizard_columns.sql
+-- migration_065 : renommage partner_vouchers→partner_bons_zora
+-- migration_066 : renommage voucher_payouts→bon_zora_reglements
