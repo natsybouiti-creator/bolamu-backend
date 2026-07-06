@@ -1,5 +1,9 @@
 // ============================================================
 // BOLAMU — Routes Crédits
+// DÉPRÉCIÉ — doublon de zora_ledger/zora_points.
+// Les crédits Bolamu sont les Zora.
+// Ne pas utiliser ce système.
+// Conservé pour historique uniquement.
 // ============================================================
 const express = require('express');
 const router = express.Router();
