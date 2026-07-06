@@ -221,20 +221,21 @@ async function validateVoucher(voucher_code, partenaire_phone) {
       [partnerPhone, voucher.id]
     );
 
-    // 6. Journaliser la validation dans zora_voucher_validations
-    await client.query(
-      `INSERT INTO zora_voucher_validations (partner_phone, voucher_code, validated_at, amount_fcfa, method)
-       VALUES ($1, $2, NOW(), $3, 'code_manual')`,
-      [partnerPhone, voucher.uuid, fcfaValue]
-    );
-
-    // 7. Créer clearing transaction
+    // 6. Récupérer la valeur FCFA de la reward (avant tout usage — fix bug TDZ)
     const rewardValueResult = await client.query(
       'SELECT fcfa_value FROM zora_rewards WHERE id = $1',
       [voucher.reward_id]
     );
     const fcfaValue = rewardValueResult.rows[0]?.fcfa_value || 0;
 
+    // 7. Journaliser la validation dans zora_voucher_validations
+    await client.query(
+      `INSERT INTO zora_voucher_validations (partner_phone, voucher_code, validated_at, amount_fcfa, method)
+       VALUES ($1, $2, NOW(), $3, 'code_manual')`,
+      [partnerPhone, voucher.uuid, fcfaValue]
+    );
+
+    // 8. Créer clearing transaction
     if (fcfaValue > 0) {
       await client.query(
         `INSERT INTO clearing_transactions
@@ -244,14 +245,14 @@ async function validateVoucher(voucher_code, partenaire_phone) {
       );
     }
 
-    // 8. Récupérer le nom du patient
+    // 9. Récupérer le nom du patient
     const userResult = await client.query(
       'SELECT first_name FROM users WHERE phone = $1',
       [voucher.phone]
     );
     const patientName = userResult.rows.length > 0 ? userResult.rows[0].first_name : 'Patient';
 
-    // 9. Récupérer le nom du partenaire
+    // 10. Récupérer le nom du partenaire
     const partnerNameResult = await client.query(
       'SELECT name FROM zora_partners WHERE id = $1',
       [partnerId]
@@ -260,7 +261,7 @@ async function validateVoucher(voucher_code, partenaire_phone) {
 
     await client.query('COMMIT');
 
-    // 10. Notifier patient WhatsApp
+    // 11. Notifier patient WhatsApp
     setImmediate(async () => {
       try {
         await sendAutoMessage(voucher.phone, 'bolamu_voucher_utilise', [
