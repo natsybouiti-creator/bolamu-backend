@@ -684,27 +684,27 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <tbody id="tbody-clearing"></tbody>
       </table>
 
-      <!-- SECTION RÈGLEMENT VOUCHERS PARTENAIRES -->
-      <h2 style="margin-top:32px">🎟️ Règlement vouchers partenaires</h2>
+      <!-- SECTION RÈGLEMENT BONS ZORA PARTENAIRES -->
+      <h2 style="margin-top:32px">🎟️ Règlement Bons Zora partenaires</h2>
       <p style="opacity:.7;margin-bottom:16px">
-        Vouchers Zora validés par les partenaires récompenses ·
+        Bons Zora validés par les partenaires récompenses ·
         Règlement par virement bancaire (pipeline distinct de la CDR)
       </p>
 
-      <button data-ononclick="lancerClearingVouchers"
+      <button data-ononclick="lancerClearingBonsZora"
         style="margin-bottom:16px;background:#00C9A7;color:white;
         padding:10px 20px;border:none;border-radius:8px;
         cursor:pointer;font-weight:600">
-        ⚡ Générer les règlements vouchers
+        ⚡ Générer les règlements Bons Zora
       </button>
 
       <table>
         <thead><tr>
-          <th>Partenaire</th><th>Téléphone</th><th>Voucher</th>
+          <th>Partenaire</th><th>Téléphone</th><th>Bon Zora</th>
           <th>Montant FCFA</th><th>Statut</th>
           <th>Référence virement</th><th>Action</th>
         </tr></thead>
-        <tbody id="tbody-voucher-payouts"></tbody>
+        <tbody id="tbody-bon-zora-reglements"></tbody>
       </table>
     </div>
 
@@ -2192,7 +2192,7 @@ async function loadClearing() {
   } catch(e) {
     toast('Erreur chargement clearing', 'error');
   }
-  loadVoucherPayouts();
+  loadBonZoraReglements();
 }
 
 async function lancerClearing() {
@@ -2217,57 +2217,57 @@ async function marquerVerse(id) {
 }
 
 /* -----------------------------------
-   RÈGLEMENT VOUCHERS PARTENAIRES
+   RÈGLEMENT BONS ZORA PARTENAIRES
 ----------------------------------- */
-async function loadVoucherPayouts() {
+async function loadBonZoraReglements() {
   try {
-    const d = await api('/clearing/vouchers/pending');
-    const rows = d.payouts || [];
-    document.getElementById('tbody-voucher-payouts').innerHTML =
+    const d = await api('/clearing/bons-zora/pending');
+    const rows = d.reglements || [];
+    document.getElementById('tbody-bon-zora-reglements').innerHTML =
       rows.length ? rows.map(p => `<tr>
         <td>${p.partner_name || '—'}</td>
         <td>${p.partner_phone}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${p.voucher_uuid}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${p.bon_uuid}</td>
         <td style="font-weight:600">${fn(p.amount_fcfa || 0)} FCFA</td>
         <td>${badge(p.status || 'pending')}</td>
-        <td><input type="text" id="vp-ref-${p.id}"
+        <td><input type="text" id="bzr-ref-${p.id}"
           placeholder="Réf. virement"
           style="padding:6px 8px;border:1px solid var(--border,#ccc);border-radius:6px;font-size:12px;width:140px"></td>
-        <td><button data-onclick="payerVoucherPayout" data-arg="${p.id}">
+        <td><button data-onclick="payerBonZoraReglement" data-arg="${p.id}">
           Payer</button></td>
       </tr>`).join('') :
       '<tr><td colspan="7" style="text-align:center;opacity:.5">' +
-      'Aucun règlement voucher en attente</td></tr>';
+      'Aucun règlement bon Zora en attente</td></tr>';
   } catch(e) {
-    toast('Erreur chargement règlements vouchers', 'error');
+    toast('Erreur chargement règlements bons Zora', 'error');
   }
 }
 
-async function lancerClearingVouchers() {
+async function lancerClearingBonsZora() {
   if (!confirm(
-    'Générer les règlements vouchers ?\n' +
+    'Générer les règlements bons Zora ?\n' +
     'Cette opération crée une ligne de règlement pour chaque ' +
-    'voucher validé en attente.')) return;
+    'bon Zora validé en attente.')) return;
   try {
-    const d = await api('/clearing/vouchers/run', { method: 'POST' });
-    toast(`<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> ${d.payouts_crees||0} règlement(s) voucher créé(s)`);
-    loadVoucherPayouts();
-  } catch(e) { toast('Erreur génération règlements vouchers', 'error'); }
+    const d = await api('/clearing/bons-zora/run', { method: 'POST' });
+    toast(`<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> ${d.reglements_crees||0} règlement(s) bon Zora créé(s)`);
+    loadBonZoraReglements();
+  } catch(e) { toast('Erreur génération règlements bons Zora', 'error'); }
 }
 
-async function payerVoucherPayout(id) {
-  const refInput = document.getElementById('vp-ref-' + id);
+async function payerBonZoraReglement(id) {
+  const refInput = document.getElementById('bzr-ref-' + id);
   const reference = refInput ? refInput.value.trim() : '';
   if (!reference) { toast('Référence de virement obligatoire', 'error'); return; }
-  if (!confirm(`Marquer le règlement voucher ${id} comme payé ?\nRéférence : ${reference}`)) return;
+  if (!confirm(`Marquer le règlement bon Zora ${id} comme payé ?\nRéférence : ${reference}`)) return;
   try {
-    await api(`/clearing/vouchers/${id}/pay`, {
+    await api(`/clearing/bons-zora/${id}/pay`, {
       method: 'PATCH',
       body: JSON.stringify({ reference_virement: reference })
     });
-    toast('Règlement voucher payé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
-    loadVoucherPayouts();
-  } catch(e) { toast('Erreur paiement règlement voucher', 'error'); }
+    toast('Règlement bon Zora payé <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');
+    loadBonZoraReglements();
+  } catch(e) { toast('Erreur paiement règlement bon Zora', 'error'); }
 }
 
 /* -----------------------------------

@@ -790,8 +790,8 @@
           <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Mes bons d'achat</h3>
         </div>
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; overflow: hidden;">
-          <div id="vouchers-list"></div>
-          <div id="vouchers-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun bon d'achat disponible</span></div>
+          <div id="bons-zora-list"></div>
+          <div id="bons-zora-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun Bon Zora disponible</span></div>
         </div>
       </div>
 
@@ -1199,32 +1199,32 @@
     </div>
   </div>
 
-  <!-- ===== MODAL VOUCHER ÉCHANGE ===== -->
-  <div id="modal-voucher" class="modal-bg" onclick="A.closeVoucherModal()">
+  <!-- ===== MODAL BON ZORA ÉCHANGE ===== -->
+  <div id="modal-bon-zora" class="modal-bg" onclick="A.closeBonZoraModal()">
     <div onclick="A.stop(event)" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 400px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); text-align: center;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Bon d'achat généré</h3>
-        <button data-testid="close-voucher-modal" onclick="A.closeVoucherModal()" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Bon Zora généré</h3>
+        <button data-testid="close-bon-zora-modal" onclick="A.closeBonZoraModal()" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
       </div>
-      <div class="b-voucherPartner" style="font-size: 0.82rem; font-weight: 600; color: #434654; margin-bottom: 16px;"></div>
-      <div data-testid="voucher-code" class="b-voucherCode" style="display: inline-block; font-size: 1.5rem; font-weight: 800; color: #0A2463; letter-spacing: 0.14em; background: #F3F3FE; border: 2px dashed #C3C5D7; padding: 14px 22px; border-radius: 14px; margin-bottom: 20px; font-family: monospace;"></div>
-      <div id="voucher-qr" style="width: 140px; height: 140px; margin: 0 auto 18px; background: #fff; display: flex; align-items: center; justify-content: center;"></div>
-      <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0,201,167,0.1); color: #00875f; font-size: 0.74rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; margin-bottom: 20px;"><span class="material-symbols-outlined" style="font-size: 15px;">check_circle</span>Bon d'achat disponible ! Vérifiez WhatsApp.</div>
-      <button data-testid="close-voucher-btn" onclick="A.closeVoucherModal()" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Fermer</button>
+      <div class="b-bonZoraPartner" style="font-size: 0.82rem; font-weight: 600; color: #434654; margin-bottom: 16px;"></div>
+      <div data-testid="bon-zora-code" class="b-bonZoraCode" style="display: inline-block; font-size: 1.5rem; font-weight: 800; color: #0A2463; letter-spacing: 0.14em; background: #F3F3FE; border: 2px dashed #C3C5D7; padding: 14px 22px; border-radius: 14px; margin-bottom: 20px; font-family: monospace;"></div>
+      <div id="bon-zora-qr" style="width: 140px; height: 140px; margin: 0 auto 18px; background: #fff; display: flex; align-items: center; justify-content: center;"></div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0,201,167,0.1); color: #00875f; font-size: 0.74rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; margin-bottom: 20px;"><span class="material-symbols-outlined" style="font-size: 15px;">check_circle</span>Bon Zora disponible ! Vérifiez WhatsApp.</div>
+      <button data-testid="close-bon-zora-btn" onclick="A.closeBonZoraModal()" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Fermer</button>
     </div>
   </div>
 
-  <!-- ===== MODAL VOUCHER QR ===== -->
-  <div id="modal-voucherqr" class="modal-bg" onclick="A.closeVoucherQrModal()">
+  <!-- ===== MODAL BON ZORA QR ===== -->
+  <div id="modal-bon-zora-qr" class="modal-bg" onclick="A.closeBonZoraQrModal()">
     <div onclick="A.stop(event)" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 360px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); text-align: center;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">QR du bon d'achat</h3>
-        <button data-testid="close-voucher-qr-modal" onclick="A.closeVoucherQrModal()" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">QR du Bon Zora</h3>
+        <button data-testid="close-bon-zora-qr-modal" onclick="A.closeBonZoraQrModal()" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
       </div>
-      <div class="b-voucherQrPartner" style="font-size: 0.82rem; font-weight: 600; color: #434654; margin-bottom: 16px;"></div>
-      <div id="my-voucher-qr" style="width: 160px; height: 160px; margin: 0 auto 16px; background: #fff; display: flex; align-items: center; justify-content: center;"></div>
-      <div class="b-voucherQrCode" style="font-size: 1rem; font-weight: 800; color: #0A2463; letter-spacing: 0.1em; margin-bottom: 16px; font-family: monospace;"></div>
-      <button data-testid="close-voucher-qr-btn" onclick="A.closeVoucherQrModal()" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Fermer</button>
+      <div class="b-bonZoraQrPartner" style="font-size: 0.82rem; font-weight: 600; color: #434654; margin-bottom: 16px;"></div>
+      <div id="my-bon-zora-qr" style="width: 160px; height: 160px; margin: 0 auto 16px; background: #fff; display: flex; align-items: center; justify-content: center;"></div>
+      <div class="b-bonZoraQrCode" style="font-size: 1rem; font-weight: 800; color: #0A2463; letter-spacing: 0.1em; margin-bottom: 16px; font-family: monospace;"></div>
+      <button data-testid="close-bon-zora-qr-btn" onclick="A.closeBonZoraQrModal()" style="width: 100%; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Fermer</button>
     </div>
   </div>
 
@@ -1439,7 +1439,7 @@
     chatOpen: false, chatTab: 'communaute', profileOpen: false,
     chatMessages: [], chatInput: '', chatConnected: false, chatLoading: false,
     leaderboardGroupId: '',
-    modal: false, editConst: false, qrUrg: false, labRes: false, voucherModal: false, voucherQrModal: false, abonnementOpen: false,
+    modal: false, editConst: false, qrUrg: false, labRes: false, bonZoraModal: false, bonZoraQrModal: false, abonnementOpen: false,
     selectedPlan: null, selectedPaymentMethod: 'mtn', transactionId: '',
     dmnPasswordModal: false, dmnDocsModal: false, dmnQrModal: false, dmnPassword: '',
     rdvDoctorId: '', rdvDate: '', rdvSlot: '', rdvBooking: false,
@@ -1543,7 +1543,7 @@
     A.renderSportGroups();
     A.renderLeaderboard();
     A.renderLedger();
-    A.renderVouchers();
+    A.renderBonsZora();
     A.renderAccessLog();
     A.renderDmnDocs();
     A.renderGames();
@@ -1665,8 +1665,8 @@
     m('modal-wheel', s.game === 'wheel');
     m('modal-chest', s.game === 'chest');
     m('modal-quiz', s.game === 'quiz');
-    m('modal-voucher', s.voucherModal);
-    m('modal-voucherqr', s.voucherQrModal);
+    m('modal-bon-zora', s.bonZoraModal);
+    m('modal-bon-zora-qr', s.bonZoraQrModal);
     m('modal-dmnpw', s.dmnPasswordModal);
     m('modal-dmndocs', s.dmnDocsModal);
     m('modal-dmnqr', s.dmnQrModal);
@@ -1753,11 +1753,11 @@
     setText('subNext', A._subNext ? new Date(A._subNext).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—');
     setText('selectedPlanLabel', s.selectedPlan ? s.selectedPlan.label : '');
     setText('selectedPlanAmount', s.selectedPlan ? s.selectedPlan.amount.toLocaleString('fr-FR') : '');
-    // vouchers / modals
-    setText('voucherPartner', A._voucherPartner || '');
-    setText('voucherCode', A._voucherCode || '');
-    setText('voucherQrPartner', A._voucherQrPartner || '');
-    setText('voucherQrCode', A._voucherQrCode || '');
+    // bons zora / modals
+    setText('bonZoraPartner', A._bonZoraPartner || '');
+    setText('bonZoraCode', A._bonZoraCode || '');
+    setText('bonZoraQrPartner', A._bonZoraQrPartner || '');
+    setText('bonZoraQrCode', A._bonZoraQrCode || '');
     A.syncTimers();
   };
 
@@ -1925,21 +1925,21 @@
     }).join('');
   };
 
-  A.renderVouchers = function () {
-    var el = $('vouchers-list'); if (!el) return;
+  A.renderBonsZora = function () {
+    var el = $('bons-zora-list'); if (!el) return;
     var arr = A._vouchers || [];
-    show($('vouchers-empty'), arr.length === 0, 'flex');
+    show($('bons-zora-empty'), arr.length === 0, 'flex');
     el.innerHTML = arr.map(function (v, i) {
       var expired = v.status === 'expired' || (v.expires_at && new Date(v.expires_at) < new Date());
       var expiresDate = v.expires_at ? new Date(v.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
       var statusStyle = 'font-size:0.66rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;background:' + (expired ? '#F3F3FE' : 'rgba(0,201,167,0.12)') + ';color:' + (expired ? '#9498a8' : '#00875f') + ';padding:3px 8px;border-radius:9999px;';
       var qrStyle = 'background:' + (expired ? '#F3F3FE' : 'rgba(0,63,177,0.08)') + ';color:' + (expired ? '#9498a8' : '#003FB1') + ';border:none;font-family:inherit;font-size:0.72rem;font-weight:800;padding:6px 12px;border-radius:9999px;cursor:' + (expired ? 'not-allowed' : 'pointer') + ';';
       var code = v.code || '';
-      var onqr = expired ? '' : 'A.showVoucherQr(\'' + esc(code) + '\',\'' + esc(v.program_name || v.partner_name || '') + '\')';
+      var onqr = expired ? '' : 'A.showBonZoraQr(\'' + esc(code) + '\',\'' + esc(v.program_name || v.partner_name || '') + '\')';
       return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:' + (i < arr.length - 1 ? '1px solid #EDEDF8' : 'none') + ';opacity:' + (expired ? 0.55 : 1) + ';">' +
         '<div style="flex:1;min-width:0;"><div style="font-size:0.86rem;font-weight:600;color:#191B23;">' + esc(v.program_name || v.partner_name || '—') + '</div><div style="font-size:0.72rem;font-weight:500;color:#9498a8;">Expire le ' + expiresDate + '</div></div>' +
         '<div style="text-align:right;"><div style="font-size:0.78rem;font-weight:800;color:#0A2463;font-family:monospace;letter-spacing:0.08em;">' + esc(code || '—') + '</div><div style="' + statusStyle + '">' + (expired ? 'Expiré' : 'Actif') + '</div></div>' +
-        '<button data-testid="voucher-my-qr-' + esc(code || i) + '" onclick="' + onqr + '" style="' + qrStyle + '">QR</button></div>';
+        '<button data-testid="bon-zora-my-qr-' + esc(code || i) + '" onclick="' + onqr + '" style="' + qrStyle + '">QR</button></div>';
     }).join('');
   };
 
@@ -2206,16 +2206,16 @@
   A.closeDmnDocsModal = function () { A.setState({ dmnDocsModal: false }); };
   A.dmnPasswordInput = function (e) { A.state.dmnPassword = e.target.value; };
 
-  // Vouchers
-  A.closeVoucherModal = function () { A.setState({ voucherModal: false }); };
-  A.closeVoucherQrModal = function () { A.setState({ voucherQrModal: false }); };
-  A.showVoucherQr = function (code, partner) { A._voucherQrCode = code; A._voucherQrPartner = partner; A.setState({ voucherQrModal: true }); setTimeout(function () { A.renderQR('my-voucher-qr', code, 160); }, 80); };
+  // Bons Zora
+  A.closeBonZoraModal = function () { A.setState({ bonZoraModal: false }); };
+  A.closeBonZoraQrModal = function () { A.setState({ bonZoraQrModal: false }); };
+  A.showBonZoraQr = function (code, partner) { A._bonZoraQrCode = code; A._bonZoraQrPartner = partner; A.setState({ bonZoraQrModal: true }); setTimeout(function () { A.renderQR('my-bon-zora-qr', code, 160); }, 80); };
 
   // Récompenses (accueil band)
   A.exchangeReward = function (idx) {
     var r = (A.rewards || [])[idx]; if (!r) return;
     var zoraBalance = A._zoraBalance !== undefined ? A._zoraBalance : A.state.zora;
-    if (r.cost <= zoraBalance) A.redeemVoucher(r); else A.showToast('Solde Zora insuffisant');
+    if (r.cost <= zoraBalance) A.redeemBonZora(r); else A.showToast('Solde Zora insuffisant');
   };
 
   // Modale classement hebdomadaire
@@ -2685,13 +2685,13 @@
       }).catch(function () { A.showToast('Erreur réseau — vérifie ta connexion'); });
   };
 
-  /* --------------------------- VOUCHERS / DMN --------------------------- */
-  A.redeemVoucher = function (r) {
+  /* --------------------------- BONS ZORA / DMN --------------------------- */
+  A.redeemBonZora = function (r) {
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/vouchers/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ program_id: r.id }) })
+    apiFetch('https://www.bolamu.co/api/v1/bons-zora/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ program_id: r.id }) })
       .then(function (res) { return res.json(); }).then(function (d) {
-        if (d.success && d.data) { A._voucherCode = d.data.code; A._voucherPartner = r.name; if (d.data.new_balance !== undefined) A._zoraBalance = d.data.new_balance; A.setState({ voucherModal: true }); setTimeout(function () { A.renderQR('voucher-qr', A._voucherCode, 140); }, 80); }
+        if (d.success && d.data) { A._bonZoraCode = d.data.code; A._bonZoraPartner = r.name; if (d.data.new_balance !== undefined) A._zoraBalance = d.data.new_balance; A.setState({ bonZoraModal: true }); setTimeout(function () { A.renderQR('bon-zora-qr', A._bonZoraCode, 140); }, 80); }
         else { var msg = { insufficient_balance: 'Solde Zora insuffisant', program_not_found: 'Programme introuvable', program_out_of_stock: 'Stock épuisé', no_zora_account: 'Compte Zora introuvable' }[d.error] || 'Échange impossible'; A.showToast(msg); }
       }).catch(function () { A.showToast('Erreur réseau'); });
   };
@@ -2945,7 +2945,7 @@
       A._rewardsLoaded = true; A.renderAffordable();
     });
 
-    apiFetch('https://www.bolamu.co/api/v1/vouchers/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.vouchers || (Array.isArray(d.data) ? d.data : []); A.renderVouchers(); } }).catch(function () {});
+    apiFetch('https://www.bolamu.co/api/v1/bons-zora/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.vouchers || (Array.isArray(d.data) ? d.data : []); A.renderBonsZora(); } }).catch(function () {});
 
     apiFetch('https://www.bolamu.co/api/v1/dmn/access-log', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data; A.renderAccessLog(); } }).catch(function () {});
 

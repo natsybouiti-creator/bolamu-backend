@@ -2051,7 +2051,7 @@ async function verifyZoraVoucher() {
   resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--texte-doux);">Vérification en cours...</div>';
   
   try {
-    const res = await fetch(API + '/zora/vouchers/' + uuid + '/consume', {
+    const res = await fetch(API + '/bons-zora/validate/qr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAuthToken() }
     });
