@@ -1283,6 +1283,36 @@
     </div>
   </div>
 
+  <!-- ===== MODAL DÉTAIL CLUB ===== -->
+  <div id="modal-club-detail" class="modal-bg" onclick="A.closeClubDetail()">
+    <div onclick="A.stop(event)" style="background:#fff;border-radius:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(10,36,99,0.25);">
+      <div id="cl-detail-hero" style="height:200px;border-radius:2rem 2rem 0 0;background-size:cover;background-position:center;background-color:#0A2463;position:relative;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(10,36,99,0.7));border-radius:2rem 2rem 0 0;"></div>
+        <button onclick="A.closeClubDetail()" style="position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:36px;height:36px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+        </button>
+        <span id="cl-detail-sport" style="position:absolute;bottom:1rem;left:1rem;font-size:0.7rem;font-weight:800;color:#fff;padding:4px 12px;border-radius:9999px;background:#003FB1;"></span>
+      </div>
+      <div style="padding:1.5rem;">
+        <h2 id="cl-detail-title" style="margin:0 0 0.75rem;font-size:1.4rem;font-weight:800;color:#0A2463;"></h2>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.25rem;flex-wrap:wrap;">
+          <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(0,63,177,0.08);color:#003FB1;font-size:0.82rem;font-weight:800;padding:6px 14px;border-radius:9999px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">groups</span>
+            <span id="cl-detail-members"></span>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(0,201,167,0.12);color:#00875f;font-size:0.82rem;font-weight:800;padding:6px 14px;border-radius:9999px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">workspace_premium</span>
+            <span id="cl-detail-zora"></span>
+          </div>
+        </div>
+        <div id="cl-detail-desc" style="font-size:0.88rem;color:#434654;line-height:1.6;margin-bottom:1.5rem;background:#F8F8FC;border-radius:1rem;padding:1rem;"></div>
+        <h3 style="margin:0 0 0.75rem;font-size:1rem;font-weight:800;color:#0A2463;">Classement membres</h3>
+        <div id="cl-detail-members-list" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem;max-height:220px;overflow-y:auto;"></div>
+        <div id="cl-detail-actions" style="display:flex;gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== PANNEAUX PLEIN ÉCRAN (remplis dynamiquement) ===== -->
   <div id="event-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeEventPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="event-panel-content" style="padding: 20px;"></div></div>
   <div id="participant-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeParticipantPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="participant-panel-content" style="padding: 20px;"></div></div>
@@ -1863,7 +1893,7 @@
       var btn = member
         ? 'background:rgba(0,201,167,0.12);color:#00875f;border:none;padding:8px 12px;border-radius:9999px;font-family:inherit;font-size:0.74rem;font-weight:700;cursor:default;'
         : 'background:#003FB1;color:#fff;border:none;padding:8px 12px;border-radius:9999px;font-family:inherit;font-size:0.74rem;font-weight:700;cursor:pointer;';
-      return '<div onclick="openClubPanel(' + g.id + ')" style="flex:0 0 170px;scroll-snap-align:start;background:#fff;border:1px solid #EDEDF8;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;">' +
+      return '<div onclick="A.openClubDetail(' + g.id + ')" style="flex:0 0 170px;scroll-snap-align:start;background:#fff;border:1px solid #EDEDF8;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;">' +
         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="material-symbols-outlined" style="color:#003FB1;font-size:28px;">' + esc(g.icon) + '</span><div style="font-size:0.86rem;font-weight:700;color:#0A2463;">' + esc(g.name) + '</div></div>' +
         '<div style="font-size:0.74rem;color:#434654;">' + esc(g.category || 'Club') + '</div>' +
         '<button onclick="event.stopPropagation(); joinClub(' + g.id + ')" style="' + btn + '">' + (member ? 'Membre ✓' : 'Rejoindre') + '</button></div>';
@@ -1881,7 +1911,7 @@
     el.innerHTML = clubs.map(function (c) {
       var isAnimateur = c.animateur_phone === myPhone;
       return '<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #EDEDF8;border-radius:16px;padding:14px 16px;">' +
-        '<div onclick="openClubPanel(' + c.id + ')" style="flex:1;cursor:pointer;">' +
+        '<div onclick="A.openClubDetail(' + c.id + ')" style="flex:1;cursor:pointer;">' +
           '<div style="font-size:0.9rem;font-weight:700;color:#0A2463;">' + esc(c.name) + (isAnimateur ? ' <span style="font-size:0.68rem;font-weight:700;color:#F5A623;">· Animateur</span>' : '') + '</div>' +
           '<div style="font-size:0.74rem;color:#434654;">' + esc(c.category || c.sport_type || 'Club') + '</div>' +
         '</div>' +
@@ -2226,6 +2256,82 @@
 
   A.closeLeaderboardModal = function () {
     show($('modal-leaderboard'), false);
+  };
+
+  A.clubImgBySportType = function (sportType, name) {
+    var map = {
+      football: '/images/landing/defis-sportif.png',
+      basketball: '/images/landing/sessions-sportives-collectives.png',
+      running: '/images/landing/marche sport.png',
+      fitness: '/images/landing/defis-sportif.png',
+      yoga: '/images/landing/sommeil.png',
+      natation: '/images/landing/marche sport.png',
+      cyclisme: '/images/landing/marche sport.png',
+      nutrition: '/images/landing/atelier-cuisine.png',
+      autre: '/images/landing/sessions-sportives-collectives.png'
+    };
+    return map[sportType] || map['autre'];
+  };
+
+  A.openClubDetail = function (clubId) {
+    $('modal-club-detail').classList.add('open');
+    $('cl-detail-title').textContent = 'Chargement...';
+    $('cl-detail-members-list').innerHTML = '<div style="text-align:center;color:#9498a8;font-size:0.85rem;padding:1rem;">Chargement...</div>';
+
+    apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId, {})
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (!d || !d.success || !d.club) return;
+        var c = d.club;
+        window._clubPanelCurrent = c;
+
+        var hero = $('cl-detail-hero');
+        var img = c.cover_image_path || A.clubImgBySportType(c.sport_type);
+        hero.style.backgroundImage = "url('" + img + "')";
+
+        var sportLabels = { football: 'Football', basketball: 'Basketball', running: 'Running', fitness: 'Fitness', yoga: 'Yoga', natation: 'Natation', cyclisme: 'Cyclisme', autre: 'Club' };
+        $('cl-detail-sport').textContent = c.category || sportLabels[c.sport_type] || 'Club';
+
+        $('cl-detail-title').textContent = c.name;
+        $('cl-detail-members').textContent = (c.member_count || 0) + ' membres';
+        $('cl-detail-zora').textContent = A.fmt(c.total_zora || 0) + ' Zora cumulés';
+        $('cl-detail-desc').textContent = c.description || 'Rejoignez ce club pour gagner des points Zora ensemble !';
+
+        var myPhone = A._patientPhone || '';
+        var isAnimateur = c.animateur_phone === myPhone;
+        var isMember = isAnimateur || (A._myClubs || []).some(function (mc) { return String(mc.id) === String(clubId); });
+
+        var actions = $('cl-detail-actions');
+        if (!isMember) {
+          actions.innerHTML = '<button onclick="joinClub(' + clubId + ')" style="flex:1;background:#003FB1;color:#fff;border:none;padding:14px;border-radius:9999px;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;">Rejoindre</button>';
+        } else {
+          actions.innerHTML = '<button onclick="openClubChat(' + clubId + ',\'' + esc(c.name).replace(/'/g, "\\'") + '\')" style="flex:1;background:#00C9A7;color:#fff;border:none;padding:13px;border-radius:9999px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;">Chat</button>' + (isAnimateur ? '<button onclick="openClubManage(' + clubId + ')" style="flex:1;background:#F5A623;color:#fff;border:none;padding:13px;border-radius:9999px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;">Gérer</button>' : '<button onclick="leaveClub(' + clubId + ')" style="flex:1;background:#F3F3FE;color:#BA1A1A;border:none;padding:13px;border-radius:9999px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;">Quitter</button>');
+        }
+      }).catch(function () {
+        $('cl-detail-title').textContent = 'Erreur de chargement';
+      });
+
+    apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/members', {})
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        var container = $('cl-detail-members-list');
+        if (!d || !d.success || !d.data || !d.data.length) {
+          container.innerHTML = '<div style="text-align:center;color:#9498a8;font-size:0.85rem;">Aucun membre pour le moment</div>';
+          return;
+        }
+        var members = d.data.slice().sort(function (a, b) { return (b.zora_points || 0) - (a.zora_points || 0); });
+        container.innerHTML = members.map(function (m, i) {
+          var medals = ['emoji_events', 'military_tech', 'person'];
+          var colors = ['#F5A623', '#C0C0C0', '#003FB1'];
+          var icon = medals[Math.min(i, 2)];
+          var color = colors[Math.min(i, 2)];
+          return '<div onclick="openParticipantPanel(\'' + (m.phone || '') + '\',\'' + (m.full_name || 'Membre').replace(/'/g, "\\'") + '\',' + (m.zora_points || 0) + ')" style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;background:#F8F8FC;border-radius:0.75rem;cursor:pointer;"><span class="material-symbols-outlined" style="font-size:18px;color:' + color + ';">' + icon + '</span><div style="flex:1;font-size:0.86rem;font-weight:600;color:#0A2463;">' + esc(m.full_name || 'Membre') + '</div><span style="font-size:0.78rem;font-weight:800;color:#B0680A;">' + (m.zora_points || 0) + ' pts</span></div>';
+        }).join('');
+      }).catch(function () {});
+  };
+
+  A.closeClubDetail = function () {
+    $('modal-club-detail').classList.remove('open');
   };
 
   A._loadWeeklyLeaderboard = function () {
