@@ -108,18 +108,20 @@ router.get('/:id/participants', authMiddleware, async (req, res) => {
         er.phone,
         COALESCE(u.first_name, '') AS prenom,
         COALESCE(u.last_name, '') AS nom,
+        u.photo_url,
         COALESCE(SUM(zl.points), 0) AS zora_total
       FROM elonga_registrations er
       LEFT JOIN users u ON u.phone = er.phone
       LEFT JOIN zora_ledger zl ON zl.phone = er.phone
       WHERE er.event_id = $1
-      GROUP BY er.phone, u.first_name, u.last_name
+      GROUP BY er.phone, u.first_name, u.last_name, u.photo_url
       ORDER BY zora_total DESC
     `, [id]);
     
     const participants = result.rows.map(p => ({
       phone: p.phone,
       full_name: `${p.prenom || ''} ${p.nom || ''}`.trim() || 'Participant',
+      photo_url: p.photo_url,
       zora_points: parseInt(p.zora_total) || 0
     }));
     
