@@ -1283,6 +1283,36 @@
     </div>
   </div>
 
+  <!-- ===== MODAL DÉTAIL ÉVÉNEMENT ===== -->
+  <div id="modal-event-detail" class="modal-bg" onclick="A.closeEventDetail()">
+    <div onclick="A.stop(event)" style="background:#fff;border-radius:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(10,36,99,0.25);">
+      <div id="ev-detail-hero" style="height:200px;border-radius:2rem 2rem 0 0;background-size:cover;background-position:center;background-color:#0A2463;position:relative;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(10,36,99,0.7));border-radius:2rem 2rem 0 0;"></div>
+        <button onclick="A.closeEventDetail()" style="position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:36px;height:36px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+        </button>
+        <span id="ev-detail-pillar" style="position:absolute;bottom:1rem;left:1rem;font-size:0.7rem;font-weight:800;color:#fff;padding:4px 12px;border-radius:9999px;background:#003FB1;"></span>
+      </div>
+      <div style="padding:1.5rem;">
+        <h2 id="ev-detail-title" style="margin:0 0 0.75rem;font-size:1.4rem;font-weight:800;color:#0A2463;"></h2>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.25rem;flex-wrap:wrap;">
+          <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(0,63,177,0.08);color:#003FB1;font-size:0.82rem;font-weight:800;padding:6px 14px;border-radius:9999px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">event</span>
+            <span id="ev-detail-participants"></span>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(0,201,167,0.12);color:#00875f;font-size:0.82rem;font-weight:800;padding:6px 14px;border-radius:9999px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">workspace_premium</span>
+            <span id="ev-detail-zora"></span>
+          </div>
+        </div>
+        <div id="ev-detail-desc" style="font-size:0.88rem;color:#434654;line-height:1.6;margin-bottom:1.5rem;background:#F8F8FC;border-radius:1rem;padding:1rem;"></div>
+        <h3 style="margin:0 0 0.75rem;font-size:1rem;font-weight:800;color:#0A2463;">Participants</h3>
+        <div id="ev-detail-participants-list" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem;max-height:220px;overflow-y:auto;"></div>
+        <div id="ev-detail-actions" style="display:flex;gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== PANNEAUX PLEIN ÉCRAN (remplis dynamiquement) ===== -->
   <div id="event-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeEventPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="event-panel-content" style="padding: 20px;"></div></div>
   <div id="participant-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeParticipantPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="participant-panel-content" style="padding: 20px;"></div></div>
@@ -1789,7 +1819,7 @@
 
   function eventCardHtml(e) {
     var reg = !!e.registered;
-    return '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:20px;overflow:hidden;">' +
+    return '<div onclick="A.openEventDetail(' + e.dbId + ')" style="background:#fff;border:1px solid #EDEDF8;border-radius:20px;overflow:hidden;cursor:pointer;">' +
       '<div style="height:160px;background-image:url(\'' + e.img + '\');background-size:cover;background-position:center;position:relative;">' +
       '<div style="position:absolute;inset:0;background:linear-gradient(to bottom, transparent 50%, rgba(10,36,99,0.6));"></div>' +
       '<span style="position:absolute;top:12px;left:12px;background:' + e.piTint + ';color:#fff;font-size:0.6rem;font-weight:800;padding:4px 10px;border-radius:9999px;">' + esc(e.pilier) + '</span>' +
@@ -1799,7 +1829,7 @@
       '<div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#434654;margin-bottom:10px;"><span class="material-symbols-outlined" style="font-size:14px;">schedule</span>' + esc(e.date) + '</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:0.74rem;font-weight:700;color:#434654;">' + e.places + ' / ' + e.cap + ' inscrits</span><span style="font-size:0.78rem;font-weight:800;color:#B0680A;">' + esc(e.pts) + '</span></div>' +
       '<div style="display:' + (reg ? 'block' : 'none') + ';margin-top:10px;width:100%;background:#E8F5E9;color:#2E7D32;font-family:inherit;font-size:0.82rem;font-weight:700;padding:11px;border-radius:9999px;text-align:center;">Déjà inscrit ✓</div>' +
-      '<button data-testid="participate-' + e.dbId + '" onclick="A.participate(' + e.dbId + ')" style="display:' + (reg ? 'none' : 'block') + ';margin-top:10px;width:100%;background:#003FB1;color:#fff;border:none;font-family:inherit;font-size:0.82rem;font-weight:700;padding:11px;border-radius:9999px;cursor:pointer;">Participer</button>' +
+      '<button data-testid="participate-' + e.dbId + '" onclick="event.stopPropagation();A.participate(' + e.dbId + ')" style="display:' + (reg ? 'none' : 'block') + ';margin-top:10px;width:100%;background:#003FB1;color:#fff;border:none;font-family:inherit;font-size:0.82rem;font-weight:700;padding:11px;border-radius:9999px;cursor:pointer;">Participer</button>' +
       '</div></div>';
   }
   A.renderEvents = function () {
@@ -2237,6 +2267,67 @@
     img.style.cssText = 'max-width:100%;max-height:90vh;border-radius:1rem;';
     overlay.appendChild(img);
     document.body.appendChild(overlay);
+  };
+
+  A.openEventDetail = function (eventId) {
+    $('modal-event-detail').classList.add('open');
+    $('ev-detail-title').textContent = 'Chargement...';
+    $('ev-detail-participants-list').innerHTML = '<div style="text-align:center;color:#9498a8;font-size:0.85rem;padding:1rem;">Chargement...</div>';
+
+    var token = localStorage.getItem('bolamu_patient_token');
+    apiFetch('https://www.bolamu.co/api/v1/events/' + eventId, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (!d || !d.success || !d.data) return;
+        var e = d.data;
+
+        var hero = $('ev-detail-hero');
+        var img = e.cover_image_path || '/images/landing/defis-sportif.png';
+        hero.style.backgroundImage = "url('" + img + "')";
+
+        var pillarLabels = { activite: 'Activité', sante: 'Santé', nutrition: 'Nutrition', sommeil: 'Sommeil', autre: 'Événement' };
+        $('ev-detail-pillar').textContent = pillarLabels[e.pillar] || 'Événement';
+
+        $('ev-detail-title').textContent = e.title;
+        $('ev-detail-participants').textContent = (e.participants_count || 0) + ' participants';
+        $('ev-detail-zora').textContent = (e.zora_reward || 0) + ' Zora';
+        $('ev-detail-desc').textContent = e.description || 'Rejoignez cet événement pour gagner des points Zora !';
+
+        var actions = $('ev-detail-actions');
+        if (e.is_registered) {
+          actions.innerHTML = '<button style="flex:1;background:rgba(0,201,167,0.12);color:#00875f;border:none;padding:14px;border-radius:9999px;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:default;">Inscrit ✓</button>';
+        } else {
+          actions.innerHTML = '<button onclick="A.participate(' + eventId + ')" style="flex:1;background:#003FB1;color:#fff;border:none;padding:14px;border-radius:9999px;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;">Participer</button>';
+        }
+      }).catch(function () {
+        $('ev-detail-title').textContent = 'Erreur de chargement';
+      });
+
+    apiFetch('https://www.bolamu.co/api/v1/events/' + eventId + '/participants', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        var container = $('ev-detail-participants-list');
+        if (!d || !d.success || !d.data || !d.data.length) {
+          container.innerHTML = '<div style="text-align:center;color:#9498a8;font-size:0.85rem;">Aucun participant pour le moment</div>';
+          return;
+        }
+        var participants = d.data;
+        container.innerHTML = participants.map(function (p, i) {
+          var medals = ['emoji_events', 'military_tech', 'person'];
+          var colors = ['#F5A623', '#C0C0C0', '#003FB1'];
+          var icon = medals[Math.min(i, 2)];
+          var color = colors[Math.min(i, 2)];
+          return '<div onclick="openParticipantPanel(\'' + (p.phone || '') + '\',\'' + (p.full_name || 'Participant').replace(/'/g, "\\'") + '\',' + (p.zora_points || 0) + ')" style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;background:#F8F8FC;border-radius:0.75rem;cursor:pointer;"><span class="material-symbols-outlined" style="font-size:18px;color:' + color + ';">' + icon + '</span><div style="flex:1;font-size:0.86rem;font-weight:600;color:#0A2463;">' + esc(p.full_name || 'Participant') + '</div><span style="font-size:0.78rem;font-weight:800;color:#B0680A;">' + (p.zora_points || 0) + ' pts</span></div>';
+        }).join('');
+      }).catch(function () {});
+  };
+
+  A.closeEventDetail = function () {
+    $('modal-event-detail').classList.remove('open');
   };
 
   A._loadWeeklyLeaderboard = function () {
