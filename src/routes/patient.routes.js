@@ -481,6 +481,24 @@ router.get('/profil-social/:phone', async (req, res) => {
     // Calcul des badges
     const badges = await calculateBadges(targetPhone);
 
+    // Galerie photos (12 dernières publications avec photo)
+    const photosResult = await pool.query(
+      `SELECT id, photo_url, content, created_at,
+              (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = posts.id) as likes_count
+       FROM posts
+       WHERE author_phone = $1 AND photo_url IS NOT NULL AND is_active = true
+       ORDER BY created_at DESC
+       LIMIT 12`,
+      [targetPhone]
+    );
+    const photos = photosResult.rows.map(p => ({
+      id: p.id,
+      photo_url: p.photo_url,
+      content: p.content,
+      likes_count: parseInt(p.likes_count) || 0,
+      created_at: p.created_at
+    }));
+
     res.json({
       success: true,
       data: {
@@ -493,7 +511,8 @@ router.get('/profil-social/:phone', async (req, res) => {
         first_name: user.first_name,
         last_name: user.last_name,
         badges,
-        stats
+        stats,
+        photos
       }
     });
   } catch (err) {
