@@ -2334,6 +2334,17 @@
     $('modal-club-detail').classList.remove('open');
   };
 
+  A.openProfilePhotoLightbox = function (url) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2000;background:rgba(10,36,99,0.9);display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer;';
+    overlay.onclick = function () { document.body.removeChild(overlay); };
+    var img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'max-width:100%;max-height:90vh;border-radius:1rem;';
+    overlay.appendChild(img);
+    document.body.appendChild(overlay);
+  };
+
   A._loadWeeklyLeaderboard = function () {
     var token = localStorage.getItem('bolamu_patient_token');
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
@@ -3201,6 +3212,7 @@
         var interets = data.interets && Array.isArray(data.interets) ? data.interets : [];
         var badges = data.badges || {};
         var stats = data.stats || { zora_gagnes: 0, streak: 0, evenements: 0 };
+        var photos = data.photos || [];
         
         var interetsHtml = interets.length > 0 
           ? interets.map(function (i) { return '<span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0,63,177,0.1); color: #003FB1; padding: 4px 10px; border-radius: 9999px; font-size: 0.78rem; font-weight: 600;">' + i + '</span>'; }).join(' ')
@@ -3211,6 +3223,13 @@
         if (badges.membre_fidele) badgesHtml += '<span style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #003FB1, #0A2463); color: #fff; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;"><span class="material-symbols-outlined" style="font-size: 14px;">workspace_premium</span>Membre fidèle</span> ';
         if (badges.top_classement) badgesHtml += '<span style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #00C9A7, #00875f); color: #fff; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;"><span class="material-symbols-outlined" style="font-size: 14px;">emoji_events</span>Top classement</span> ';
         if (!badgesHtml) badgesHtml = '<span style="color: #9498a8; font-size: 0.86rem;">Aucun badge</span>';
+
+        var photosHtml = '';
+        if (photos && photos.length) {
+          photosHtml = '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:18px;padding:20px;margin-bottom:18px;"><h3 style="margin:0 0 12px;font-size:1rem;font-weight:800;color:#0A2463;">Photos</h3><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">' + photos.map(function (p) { return '<div onclick="A.openProfilePhotoLightbox(\'' + p.photo_url + '\')" style="aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;background-image:url(\'' + p.photo_url + '\');background-size:cover;background-position:center;"></div>'; }).join('') + '</div></div>';
+        } else {
+          photosHtml = '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:18px;padding:20px;margin-bottom:18px;"><h3 style="margin:0 0 12px;font-size:1rem;font-weight:800;color:#0A2463;">Photos</h3><div style="color:#9498a8;font-size:0.86rem;">Aucune photo publiée</div></div>';
+        }
         
         var photoHtml = data.photo_url 
           ? '<div style="width: 80px; height: 80px; background-image: url(' + data.photo_url + '); background-size: cover; background-position: center; border-radius: 50%; margin-bottom: 16px;"></div>'
@@ -3237,6 +3256,7 @@
               '<div><div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 4px;">Intérêts</div><div style="display: flex; flex-wrap: wrap; gap: 6px;">' + interetsHtml + '</div></div>' +
             '</div>' +
           '</div>' +
+          photosHtml +
           '<div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 20px; margin-bottom: 18px;">' +
             '<h3 style="margin: 0 0 12px; font-size: 1rem; font-weight: 800; color: #0A2463;">Badges</h3>' +
             '<div style="display: flex; flex-wrap: wrap; gap: 8px;">' + badgesHtml + '</div>' +
