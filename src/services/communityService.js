@@ -24,118 +24,38 @@ function validateGroupInput(name, sport) {
 }
 
 async function getSportGroups() {
-  const result = await pool.query(
-    `SELECT sg.*, COUNT(sgm.phone) as member_count
-     FROM sport_groups sg
-     LEFT JOIN sport_group_members sgm ON sg.id = sgm.group_id
-     WHERE sg.is_active = true
-     GROUP BY sg.id
-     ORDER BY sg.created_at DESC`
-  );
-  return result.rows;
+  // DÉPRÉCIÉ - Tables sport_groups et sport_group_members supprimées (migration_064)
+  // Système remplacé par clubs/club_members (voir getClubs, createClub, joinClub)
+  // Routes sport-groups.routes.DEPRECATED.js neutralisées avec 410 Gone
+  throw new Error('Sport groups system deprecated - use clubs/club_members instead');
 }
 
 async function createSportGroup(name, sport, description, phone) {
-  validateGroupInput(name, sport);
-  const normalizedPhone = normalizePhone(phone);
-  const result = await pool.query(
-    `INSERT INTO sport_groups (name, sport_type, description, city, created_by, is_active, created_at)
-     VALUES ($1, $2, $3, 'Brazzaville', $4, true, NOW())
-     RETURNING *`,
-    [name, sport, description, normalizedPhone]
-  );
-  return result.rows[0];
+  // DÉPRÉCIÉ - Tables sport_groups et sport_group_members supprimées (migration_064)
+  // Système remplacé par clubs/club_members (voir getClubs, createClub, joinClub)
+  // Routes sport-groups.routes.DEPRECATED.js neutralisées avec 410 Gone
+  throw new Error('Sport groups system deprecated - use clubs/club_members instead');
 }
 
 async function joinGroup(phone, groupId) {
-  const normalizedPhone = normalizePhone(phone);
-  const client = await pool.connect();
-  
-  try {
-    await client.query('BEGIN');
-    
-    // Vérifier si déjà membre
-    const existingMember = await client.query(
-      'SELECT id FROM sport_group_members WHERE group_id = $1 AND phone = $2',
-      [groupId, normalizedPhone]
-    );
-    
-    if (existingMember.rows.length > 0) {
-      await client.query('ROLLBACK');
-      throw new Error('ALREADY_MEMBER');
-    }
-    
-    // Ajouter comme membre
-    await client.query(
-      `INSERT INTO sport_group_members (group_id, phone, joined_at)
-       VALUES ($1, $2, NOW())`,
-      [groupId, normalizedPhone]
-    );
-    
-    // Récupérer le nom du groupe
-    const groupResult = await client.query(
-      'SELECT name FROM sport_groups WHERE id = $1',
-      [groupId]
-    );
-    const groupName = groupResult.rows[0]?.name || 'Groupe';
-    
-    // Récupérer le prénom du patient
-    const userResult = await client.query(
-      'SELECT first_name FROM users WHERE phone = $1',
-      [normalizedPhone]
-    );
-    const firstName = userResult.rows[0]?.first_name || 'Membre';
-    
-    // Upsert leaderboard_weekly
-    await client.query(
-      `INSERT INTO leaderboard_weekly (phone, week_start, points_earned)
-       VALUES ($1, date_trunc('week', NOW())::date, 0)
-       ON CONFLICT (phone, week_start) DO NOTHING`,
-      [normalizedPhone]
-    );
-    
-    await client.query('COMMIT');
-    
-    // Envoyer notification WhatsApp (hors transaction)
-    setImmediate(async () => {
-      try {
-        await whatsappService.sendAutoMessage(
-          normalizedPhone,
-          'bolamu_groupe_rejoint',
-          [groupName, firstName]
-        );
-      } catch (err) {
-        console.error('[Community] Erreur WhatsApp groupe rejoint:', err.message);
-      }
-    });
-    
-    return { success: true, group_name: groupName };
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  // DÉPRÉCIÉ - Tables sport_groups et sport_group_members supprimées (migration_064)
+  // Système remplacé par clubs/club_members (voir getClubs, createClub, joinClub)
+  // Routes sport-groups.routes.DEPRECATED.js neutralisées avec 410 Gone
+  throw new Error('Sport groups system deprecated - use clubs/club_members instead');
 }
 
 async function leaveGroup(phone, groupId) {
-  const normalizedPhone = normalizePhone(phone);
-  await pool.query(
-    'DELETE FROM sport_group_members WHERE group_id = $1 AND phone = $2',
-    [groupId, normalizedPhone]
-  );
+  // DÉPRÉCIÉ - Tables sport_groups et sport_group_members supprimées (migration_064)
+  // Système remplacé par clubs/club_members (voir getClubs, createClub, joinClub)
+  // Routes sport-groups.routes.DEPRECATED.js neutralisées avec 410 Gone
+  throw new Error('Sport groups system deprecated - use clubs/club_members instead');
 }
 
 async function getGroupMembers(groupId) {
-  const result = await pool.query(
-    `SELECT sgm.*, u.first_name, u.last_name
-     FROM sport_group_members sgm
-     LEFT JOIN users u ON sgm.phone = u.phone
-     WHERE sgm.group_id = $1
-     ORDER BY sgm.joined_at ASC`,
-    [groupId]
-  );
-  return result.rows;
+  // DÉPRÉCIÉ - Tables sport_groups et sport_group_members supprimées (migration_064)
+  // Système remplacé par clubs/club_members (voir getClubs, createClub, joinClub)
+  // Routes sport-groups.routes.DEPRECATED.js neutralisées avec 410 Gone
+  throw new Error('Sport groups system deprecated - use clubs/club_members instead');
 }
 
 async function getClubs() {
@@ -183,29 +103,17 @@ async function joinClub(phone, clubId) {
 }
 
 async function getLeaderboard() {
-  const result = await pool.query(
-    `SELECT lw.*, u.first_name, u.last_name, sg.name as group_name
-     FROM leaderboard_weekly lw
-     LEFT JOIN users u ON lw.phone = u.phone
-     LEFT JOIN sport_groups sg ON lw.group_id = sg.id
-     WHERE lw.week_start = date_trunc('week', NOW())::date
-     ORDER BY lw.points_earned DESC
-     LIMIT 50`
-  );
-  return result.rows;
+  // DÉPRÉCIÉ - Tables sport_groups et sport_group_members supprimées (migration_064)
+  // Système remplacé par clubs/club_members (voir getClubs, createClub, joinClub)
+  // Routes sport-groups.routes.DEPRECATED.js neutralisées avec 410 Gone
+  throw new Error('Sport groups system deprecated - use clubs/club_members instead');
 }
 
 async function getGroupLeaderboard(groupId) {
-  const result = await pool.query(
-    `SELECT lw.*, u.first_name, u.last_name
-     FROM leaderboard_weekly lw
-     LEFT JOIN users u ON lw.phone = u.phone
-     WHERE lw.week_start = date_trunc('week', NOW())::date
-     AND lw.group_id = $1
-     ORDER BY lw.points_earned DESC`,
-    [groupId]
-  );
-  return result.rows;
+  // DÉPRÉCIÉ - Tables sport_groups et sport_group_members supprimées (migration_064)
+  // Système remplacé par clubs/club_members (voir getClubs, createClub, joinClub)
+  // Routes sport-groups.routes.DEPRECATED.js neutralisées avec 410 Gone
+  throw new Error('Sport groups system deprecated - use clubs/club_members instead');
 }
 
 async function getMessages(conversationId, phone) {
@@ -351,43 +259,10 @@ async function updateStreak(phone) {
 }
 
 async function updateLeaderboard(phone, groupId, points) {
-  const normalizedPhone = normalizePhone(phone);
-  const client = await pool.connect();
-  
-  try {
-    await client.query('BEGIN');
-    
-    await client.query(
-      `INSERT INTO leaderboard_weekly (phone, group_id, week_start, points_earned)
-       VALUES ($1, $2, date_trunc('week', NOW())::date, $3)
-       ON CONFLICT (phone, week_start)
-       DO UPDATE SET points_earned = leaderboard_weekly.points_earned + EXCLUDED.points_earned`,
-      [normalizedPhone, groupId, points]
-    );
-    
-    // Récupérer le nouveau rang
-    const rankResult = await client.query(
-      `SELECT rank FROM (
-         SELECT phone, points_earned, 
-           RANK() OVER (ORDER BY points_earned DESC) as rank
-         FROM leaderboard_weekly
-         WHERE week_start = date_trunc('week', NOW())::date
-         AND group_id = $1
-       ) ranked WHERE phone = $2`,
-      [groupId, normalizedPhone]
-    );
-    
-    const rank = rankResult.rows[0]?.rank || 0;
-    
-    await client.query('COMMIT');
-
-    return { success: true, rank };
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  // DÉPRÉCIÉ - Tables sport_groups et sport_group_members supprimées (migration_064)
+  // Système remplacé par clubs/club_members (voir getClubs, createClub, joinClub)
+  // Routes sport-groups.routes.DEPRECATED.js neutralisées avec 410 Gone
+  throw new Error('Sport groups system deprecated - use clubs/club_members instead');
 }
 
 async function encourageMember(fromPhone, targetPhone) {
