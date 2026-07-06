@@ -4,11 +4,12 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
+const optionalAuth = require('../middleware/optionalAuth.middleware');
 const upload = require('../middleware/upload.middleware');
 const feedCtrl = require('../controllers/feed.controller');
 
 // Feed principal — posts des follows + système
-router.get('/',                         authMiddleware, feedCtrl.getFeed);
+router.get('/',                         optionalAuth, feedCtrl.getFeed);
 
 // Créer un post manuel (texte ou texte + photo)
 router.post('/',                        authMiddleware, upload.single('photo'), feedCtrl.createPost);

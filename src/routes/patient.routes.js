@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
+const optionalAuth = require('../middleware/optionalAuth.middleware');
 const { normalizePhone } = require('../utils/phone');
 const patientController = require('../controllers/patient.controller');
 const bcrypt = require('bcrypt');
@@ -463,7 +464,7 @@ router.patch('/profil-social', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/patients/profil-social/:phone - Lire le profil social (public)
-router.get('/profil-social/:phone', async (req, res) => {
+router.get('/profil-social/:phone', optionalAuth, async (req, res) => {
   try {
     const targetPhone = normalizePhone(req.params.phone);
     const visitorPhone = req.user ? normalizePhone(req.user.phone) : null;
