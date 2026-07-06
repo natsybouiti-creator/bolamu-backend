@@ -567,12 +567,9 @@ router.get('/profil-social/:phone', async (req, res) => {
       photos,
       is_private: user.is_private,
       is_following: isFollowing,
-      is_self: isSelf
+      is_self: isSelf,
+      locked: isLocked
     };
-
-    if (isLocked) {
-      responseData.locked = true;
-    }
 
     res.json({
       success: true,
