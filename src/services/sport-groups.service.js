@@ -1,5 +1,7 @@
 // ============================================================
 // Service : Groupes de sport
+// DÉPRÉCIÉ — tables sport_groups/sport_group_members supprimées
+// (migration_064). Plus aucun importeur. Utiliser clubs.routes.js.
 // ============================================================
 
 const pool = require('../config/db');
