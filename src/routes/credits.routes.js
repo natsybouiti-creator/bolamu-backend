@@ -106,6 +106,9 @@ router.get('/balance/:phone', authMiddleware, async (req, res) => {
 });
 
 // ─── ATTRIBUTION MANUELLE (admin) ────────────────────────────────────────────
+// DÉPRÉCIÉ — doublon de POST /api/v1/admin/credits/grant
+// Aucun appelant frontend détecté sur cette route
+// Utiliser exclusivement la route admin pour les grants
 router.post('/grant', authMiddleware, adminOnly, async (req, res) => {
     const { phone, amount, reason } = req.body;
     if (!phone || !amount || !reason) {
