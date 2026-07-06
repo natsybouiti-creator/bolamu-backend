@@ -1,13 +1,14 @@
 // ============================================================
-// BOLAMU — Service Vouchers Partenaires (code BOL-XXXX-XXXX)
+// BOLAMU — Service Bons Zora Partenaires (code BOL-XXXX-XXXX)
 // Système code-based, parallèle au marketplace Zora (zora_vouchers).
 // Débit direct des points (comme zora-marketplace.service.js).
+// Terminologie : 'voucher' remplacé par 'bon Zora' (décision produit, sprint dette technique)
 // ============================================================
 const crypto = require('crypto');
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 
-const VOUCHER_VALIDITY_DAYS = 30;
+const BON_ZORA_VALIDITY_DAYS = 30;
 const CODE_ALPHABET = 'ABCDEFGHIJKLMNPQRSTUVWXYZ23456789'; // sans O/0/1/I pour lisibilité
 
 /**
@@ -23,19 +24,19 @@ function randomSegment(length) {
 }
 
 /**
- * Génère un code voucher unique au format BOL-XXXX-XXXX.
- * Vérifie l'unicité contre partner_vouchers (retry jusqu'à 5 fois).
+ * Génère un code bon Zora unique au format BOL-XXXX-XXXX.
+ * Vérifie l'unicité contre partner_bons_zora (retry jusqu'à 5 fois).
  */
 async function generateUniqueCode(client) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = `BOL-${randomSegment(4)}-${randomSegment(4)}`;
     const existing = await client.query(
-      'SELECT 1 FROM partner_vouchers WHERE code = $1',
+      'SELECT 1 FROM partner_bons_zora WHERE code = $1',
       [code]
     );
     if (existing.rows.length === 0) return code;
   }
-  throw new Error('voucher_code_collision');
+  throw new Error('bon_zora_code_collision');
 }
 
 /**
@@ -57,12 +58,12 @@ function buildInitials({ first_name, last_name, full_name }) {
 }
 
 /**
- * generateVoucher — Le patient échange des points Zora contre un voucher partenaire.
+ * generateBonZora — Le patient échange des points Zora contre un bon Zora partenaire.
  * @param {string} patient_phone
  * @param {number} program_id
  * @returns {Promise<{ code, qr_payload, expires_at }>}
  */
-async function generateVoucher(patient_phone, program_id) {
+async function generateBonZora(patient_phone, program_id) {
   const phone = normalizePhone(patient_phone);
   if (!phone) return { success: false, error: 'invalid_phone' };
   if (!program_id) return { success: false, error: 'missing_program_id' };
@@ -130,7 +131,7 @@ async function generateVoucher(patient_phone, program_id) {
     await client.query(
       `INSERT INTO zora_ledger
        (phone, points, category, action_type, proof_class, proof_reference, verified, earned_at, expires_at)
-       VALUES ($1, $2, 'redemption', 'voucher_generation', 'system_event', $3, TRUE, NOW(), NOW() + INTERVAL '12 months')`,
+       VALUES ($1, $2, 'redemption', 'bon_zora_generation', 'system_event', $3, TRUE, NOW(), NOW() + INTERVAL '12 months')`,
       [phone, -program.zora_cost, code]
     );
 
@@ -145,7 +146,7 @@ async function generateVoucher(patient_phone, program_id) {
 
     // 7. Construire le QR payload (initiales uniquement, pas de nom complet)
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + VOUCHER_VALIDITY_DAYS);
+    expiresAt.setDate(expiresAt.getDate() + BON_ZORA_VALIDITY_DAYS);
 
     const qrPayload = {
       code,
@@ -155,16 +156,16 @@ async function generateVoucher(patient_phone, program_id) {
       patient_initiales: patientInitiales
     };
 
-    // 8. INSERT du voucher
-    const voucherResult = await client.query(
-      `INSERT INTO partner_vouchers
-       (code, patient_phone, partner_id, zora_cost, fcfa_value, status, generated_at, expires_at, qr_payload)
-       VALUES ($1, $2, $3, $4, $5, 'active', NOW(), $6, $7)
+    // 8. INSERT du bon Zora
+    const bonResult = await client.query(
+      `INSERT INTO partner_bons_zora
+       (code, patient_phone, program_id, qr_payload, fcfa_value, status, created_at, expires_at)
+       VALUES ($1, $2, $3, $4, $5, 'active', NOW(), $6)
        RETURNING id, code, expires_at`,
-      [code, phone, program.partner_id, program.zora_cost, program.fcfa_value, expiresAt, JSON.stringify(qrPayload)]
+      [code, phone, program_id, JSON.stringify(qrPayload), program.fcfa_value, expiresAt]
     );
 
-    const voucher = voucherResult.rows[0];
+    const bon = bonResult.rows[0];
 
     // 9. Décrémenter le stock si limité
     if (program.stock !== null) {
@@ -177,8 +178,8 @@ async function generateVoucher(patient_phone, program_id) {
     // 10. Audit (payload jsonb)
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('voucher_generated', $1, 'partner_vouchers', $2, $3::jsonb)`,
-      [phone, String(voucher.id), JSON.stringify({
+       VALUES ('bon_zora_generated', $1, 'partner_bons_zora', $2, $3::jsonb)`,
+      [phone, String(bon.id), JSON.stringify({
         code,
         program_id: program.id,
         zora_cost: program.zora_cost,
@@ -190,15 +191,15 @@ async function generateVoucher(patient_phone, program_id) {
 
     return {
       success: true,
-      code: voucher.code,
+      code: bon.code,
       qr_payload: qrPayload,
-      expires_at: voucher.expires_at
+      expires_at: bon.expires_at
     };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('[VOUCHER] Erreur generateVoucher:', error.message);
-    if (error.message === 'voucher_code_collision') {
-      return { success: false, error: 'voucher_code_collision' };
+    console.error('[BON ZORA] Erreur generateBonZora:', error.message);
+    if (error.message === 'bon_zora_code_collision') {
+      return { success: false, error: 'bon_zora_code_collision' };
     }
     return { success: false, error: 'server_error' };
   } finally {
@@ -207,14 +208,14 @@ async function generateVoucher(patient_phone, program_id) {
 }
 
 /**
- * validateVoucher — Un partenaire valide un voucher (scan QR ou saisie code).
- * Idempotent : un voucher ne peut être validé qu'une seule fois (SELECT ... FOR UPDATE).
+ * validateBonZora — Un partenaire valide un bon Zora (scan QR ou saisie code).
+ * Idempotent : un bon Zora ne peut être validé qu'une seule fois (SELECT ... FOR UPDATE).
  * @param {string} code
  * @param {string} partner_phone
  * @param {string} method - 'qr_scan' | 'code_manual'
  * @returns {Promise<{ valid, patient_initiales, fcfa_value }>}
  */
-async function validateVoucher(code, partner_phone, method = 'code_manual') {
+async function validateBonZora(code, partner_phone, method = 'code_manual') {
   const partnerPhone = normalizePhone(partner_phone);
   if (!code) return { success: false, error: 'missing_code' };
   if (!partnerPhone) return { success: false, error: 'invalid_phone' };
@@ -225,71 +226,71 @@ async function validateVoucher(code, partner_phone, method = 'code_manual') {
   try {
     await client.query('BEGIN');
 
-    // 1. Charger le voucher avec verrou (idempotence)
-    const voucherResult = await client.query(
+    // 1. Charger le bon Zora avec verrou (idempotence)
+    const bonResult = await client.query(
       `SELECT id, code, patient_phone, fcfa_value, status, expires_at, qr_payload
-       FROM partner_vouchers
+       FROM partner_bons_zora
        WHERE code = $1
        FOR UPDATE`,
       [String(code).trim().toUpperCase()]
     );
 
-    if (voucherResult.rows.length === 0) {
+    if (bonResult.rows.length === 0) {
       await client.query('ROLLBACK');
-      return { success: false, error: 'voucher_not_found' };
+      return { success: false, error: 'bon_zora_not_found' };
     }
 
-    const voucher = voucherResult.rows[0];
+    const bon = bonResult.rows[0];
 
     // 2. Idempotence : déjà utilisé
-    if (voucher.status === 'used') {
+    if (bon.status === 'used') {
       await client.query('ROLLBACK');
-      return { success: false, error: 'voucher_already_used' };
+      return { success: false, error: 'bon_zora_already_used' };
     }
 
-    if (voucher.status === 'cancelled') {
+    if (bon.status === 'cancelled') {
       await client.query('ROLLBACK');
-      return { success: false, error: 'voucher_cancelled' };
+      return { success: false, error: 'bon_zora_cancelled' };
     }
 
     // 3. Expiration
-    if (voucher.status === 'expired' || (voucher.expires_at && new Date(voucher.expires_at) < new Date())) {
-      if (voucher.status !== 'expired') {
+    if (bon.status === 'expired' || (bon.expires_at && new Date(bon.expires_at) < new Date())) {
+      if (bon.status !== 'expired') {
         await client.query(
-          "UPDATE partner_vouchers SET status = 'expired' WHERE id = $1",
-          [voucher.id]
+          "UPDATE partner_bons_zora SET status = 'expired' WHERE id = $1",
+          [bon.id]
         );
       }
       await client.query('COMMIT');
-      return { success: false, error: 'voucher_expired' };
+      return { success: false, error: 'bon_zora_expired' };
     }
 
-    if (voucher.status !== 'active') {
+    if (bon.status !== 'active') {
       await client.query('ROLLBACK');
-      return { success: false, error: 'voucher_not_active' };
+      return { success: false, error: 'bon_zora_not_active' };
     }
 
     // 4. Marquer utilisé
     await client.query(
-      `UPDATE partner_vouchers
-       SET status = 'used', used_at = NOW(), used_by = $1
+      `UPDATE partner_bons_zora
+       SET status = 'used', validated_at = NOW(), partner_phone = $1
        WHERE id = $2`,
-      [partnerPhone, voucher.id]
+      [partnerPhone, bon.id]
     );
 
     // 5. Journaliser la validation
     await client.query(
       `INSERT INTO partner_validations (voucher_id, partner_phone, validated_at, method)
        VALUES ($1, $2, NOW(), $3)`,
-      [voucher.id, partnerPhone, validMethod]
+      [bon.id, partnerPhone, validMethod]
     );
 
     // 6. Initiales depuis le qr_payload (jamais le nom complet)
     let patientInitiales = '—';
     try {
-      const payload = typeof voucher.qr_payload === 'string'
-        ? JSON.parse(voucher.qr_payload)
-        : voucher.qr_payload;
+      const payload = typeof bon.qr_payload === 'string'
+        ? JSON.parse(bon.qr_payload)
+        : bon.qr_payload;
       if (payload && payload.patient_initiales) {
         patientInitiales = payload.patient_initiales;
       }
@@ -300,11 +301,11 @@ async function validateVoucher(code, partner_phone, method = 'code_manual') {
     // 7. Audit
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-       VALUES ('voucher_validated', $1, 'partner_vouchers', $2, $3::jsonb)`,
-      [partnerPhone, String(voucher.id), JSON.stringify({
-        code: voucher.code,
+       VALUES ('bon_zora_validated', $1, 'partner_bons_zora', $2, $3::jsonb)`,
+      [partnerPhone, String(bon.id), JSON.stringify({
+        code: bon.code,
         method: validMethod,
-        fcfa_value: voucher.fcfa_value
+        fcfa_value: bon.fcfa_value
       })]
     );
 
@@ -314,11 +315,11 @@ async function validateVoucher(code, partner_phone, method = 'code_manual') {
       success: true,
       valid: true,
       patient_initiales: patientInitiales,
-      fcfa_value: voucher.fcfa_value
+      fcfa_value: bon.fcfa_value
     };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('[VOUCHER] Erreur validateVoucher:', error.message);
+    console.error('[BON ZORA] Erreur validateBonZora:', error.message);
     return { success: false, error: 'server_error' };
   } finally {
     client.release();
@@ -326,25 +327,25 @@ async function validateVoucher(code, partner_phone, method = 'code_manual') {
 }
 
 /**
- * getPatientVouchers — Liste vouchers actifs + historique utilisés du patient.
- * partner_name extrait du qr_payload (le voucher ne stocke pas program_id).
+ * getPatientBonsZora — Liste bons Zora actifs + historique utilisés du patient.
+ * partner_name extrait du qr_payload (le bon Zora ne stocke pas program_id).
  * @param {string} patient_phone
  */
-async function getPatientVouchers(patient_phone) {
+async function getPatientBonsZora(patient_phone) {
   const phone = normalizePhone(patient_phone);
   if (!phone) return { success: false, error: 'invalid_phone' };
 
   try {
     const result = await pool.query(
-      `SELECT id, code, partner_id, zora_cost, fcfa_value, status,
-              generated_at, expires_at, used_at, qr_payload
-       FROM partner_vouchers
+      `SELECT id, code, program_id, qr_payload, fcfa_value, status,
+              created_at, expires_at, validated_at
+       FROM partner_bons_zora
        WHERE patient_phone = $1
-       ORDER BY generated_at DESC`,
+       ORDER BY created_at DESC`,
       [phone]
     );
 
-    const vouchers = result.rows.map(row => {
+    const bons = result.rows.map(row => {
       let partnerName = null;
       try {
         const payload = typeof row.qr_payload === 'string'
@@ -357,25 +358,24 @@ async function getPatientVouchers(patient_phone) {
       return {
         id: row.id,
         code: row.code,
-        partner_id: row.partner_id,
+        program_id: row.program_id,
         partner_name: partnerName,
-        zora_cost: row.zora_cost,
         fcfa_value: row.fcfa_value,
         status: row.status,
-        generated_at: row.generated_at,
+        created_at: row.created_at,
         expires_at: row.expires_at,
-        used_at: row.used_at
+        validated_at: row.validated_at
       };
     });
 
     return {
       success: true,
-      active: vouchers.filter(v => v.status === 'active'),
-      history: vouchers.filter(v => v.status !== 'active'),
-      data: vouchers
+      active: bons.filter(v => v.status === 'active'),
+      history: bons.filter(v => v.status !== 'active'),
+      data: bons
     };
   } catch (error) {
-    console.error('[VOUCHER] Erreur getPatientVouchers:', error.message);
+    console.error('[BON ZORA] Erreur getPatientBonsZora:', error.message);
     return { success: false, error: 'server_error' };
   }
 }
@@ -404,14 +404,14 @@ async function getProgramsByCategory(category) {
     const result = await pool.query(query, params);
     return { success: true, data: result.rows };
   } catch (error) {
-    console.error('[VOUCHER] Erreur getProgramsByCategory:', error.message);
+    console.error('[BON ZORA] Erreur getProgramsByCategory:', error.message);
     return { success: false, error: 'server_error' };
   }
 }
 
 module.exports = {
-  generateVoucher,
-  validateVoucher,
-  getPatientVouchers,
+  generateBonZora,
+  validateBonZora,
+  getPatientBonsZora,
   getProgramsByCategory
 };

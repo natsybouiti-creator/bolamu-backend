@@ -384,49 +384,50 @@ router.patch('/:id/fail', authMiddleware, adminOnly, async (req, res) => {
 });
 
 // ============================================================
-// RÈGLEMENT VOUCHERS PARTENAIRES RÉCOMPENSES (voucher_payouts)
-// Les clearing_transactions de type 'partenaire' (vouchers Zora validés)
+// RÈGLEMENT BONS ZORA PARTENAIRES RÉCOMPENSES (bon_zora_reglements)
+// Les clearing_transactions de type 'partenaire' (bons Zora validés)
 // ne peuvent pas entrer dans le pipeline CDR (partner_payouts.partner_type
 // ENUM exclut 'partenaire') — pipeline dédié ci-dessous.
+// Terminologie : 'voucher' remplacé par 'bon Zora' (décision produit, sprint dette technique)
 // ============================================================
 
-// ─── POST /vouchers/run ──────────────────────────────────────────────────────
+// ─── POST /bons-zora/run ──────────────────────────────────────────────────────
 // Agrège les clearing_transactions pending de type 'partenaire' et crée
-// les voucher_payouts correspondants.
-router.post('/vouchers/run', authMiddleware, adminOnly, async (req, res) => {
+// les bon_zora_reglements correspondants.
+router.post('/bons-zora/run', authMiddleware, adminOnly, async (req, res) => {
     const client = await db.connect();
     try {
         await client.query('BEGIN');
 
-        // 1. Charger les transactions vouchers pending (verrou)
+        // 1. Charger les transactions bons Zora pending (verrou)
         const txResult = await client.query(
-            `SELECT ct.id, ct.partner_phone, ct.partner_type, ct.amount_fcfa, zv.uuid as voucher_uuid
+            `SELECT ct.id, ct.partner_phone, ct.partner_type, ct.amount_fcfa, bz.uuid as bon_uuid
              FROM clearing_transactions ct
-             JOIN zora_vouchers zv ON zv.id = ct.reference_id
-             WHERE ct.status = 'pending' AND ct.partner_type = 'partenaire' AND ct.reference_type = 'voucher'
+             JOIN partner_bons_zora bz ON bz.id = ct.reference_id
+             WHERE ct.status = 'pending' AND ct.partner_type = 'partenaire' AND ct.reference_type = 'bon_zora'
              ORDER BY ct.id
              FOR UPDATE OF ct`
         );
 
         if (txResult.rows.length === 0) {
             await client.query('ROLLBACK');
-            return res.json({ success: true, message: 'Aucune transaction voucher en attente.', payouts_crees: 0 });
+            return res.json({ success: true, message: 'Aucune transaction bon Zora en attente.', reglements_crees: 0 });
         }
 
-        // 2. Créer un voucher_payout par transaction et marquer la transaction validée
-        const payouts = [];
+        // 2. Créer un bon_zora_reglement par transaction et marquer la transaction validée
+        const reglements = [];
         for (const tx of txResult.rows) {
-            const payoutResult = await client.query(
-                `INSERT INTO voucher_payouts (partner_phone, partner_type, voucher_uuid, amount_fcfa, status)
-                 VALUES ($1, $2, $3, $4, 'pending')
-                 RETURNING id, partner_phone, partner_type, voucher_uuid, amount_fcfa, status, created_at`,
-                [tx.partner_phone, tx.partner_type, tx.voucher_uuid, tx.amount_fcfa]
+            const reglementResult = await client.query(
+                `INSERT INTO bon_zora_reglements (partner_phone, bon_uuid, amount_fcfa, status)
+                 VALUES ($1, $2, $3, 'pending')
+                 RETURNING id, partner_phone, bon_uuid, amount_fcfa, status, created_at`,
+                [tx.partner_phone, tx.bon_uuid, tx.amount_fcfa]
             );
             await client.query(
                 `UPDATE clearing_transactions SET status = 'validated' WHERE id = $1`,
                 [tx.id]
             );
-            payouts.push(payoutResult.rows[0]);
+            reglements.push(reglementResult.rows[0]);
         }
 
         await client.query('COMMIT');
@@ -434,64 +435,64 @@ router.post('/vouchers/run', authMiddleware, adminOnly, async (req, res) => {
         // 3. Audit log (hors transaction)
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, payload)
-             VALUES ('clearing.vouchers.run', $1, 'voucher_payouts', $2::jsonb)`,
+             VALUES ('clearing.bons-zora.run', $1, 'bon_zora_reglements', $2::jsonb)`,
             [req.user.phone, JSON.stringify({
-                payouts_crees: payouts.length,
-                montant_total: payouts.reduce((s, p) => s + p.amount_fcfa, 0),
-                payout_ids: payouts.map(p => p.id)
+                reglements_crees: reglements.length,
+                montant_total: reglements.reduce((s, p) => s + p.amount_fcfa, 0),
+                reglement_ids: reglements.map(p => p.id)
             })]
         ).catch(() => {});
 
         // 4. Notifier chaque partenaire WhatsApp (non bloquant)
         setImmediate(async () => {
-            for (const p of payouts) {
+            for (const r of reglements) {
                 try {
-                    await sendAutoMessage(p.partner_phone, 'bolamu_voucher_payout', [
-                        p.amount_fcfa,
-                        `VP-${p.id}`
+                    await sendAutoMessage(r.partner_phone, 'bolamu_bon_zora_reglement', [
+                        r.amount_fcfa,
+                        `BZR-${r.id}`
                     ]);
                 } catch (whatsappErr) {
-                    console.error('[CLEARING VOUCHERS] Erreur envoi WhatsApp (non bloquante):', whatsappErr.message);
+                    console.error('[CLEARING BONS ZORA] Erreur envoi WhatsApp (non bloquante):', whatsappErr.message);
                 }
             }
         });
 
         res.json({
             success: true,
-            message: `${payouts.length} règlement(s) voucher créé(s).`,
-            payouts_crees: payouts.length,
-            payouts
+            message: `${reglements.length} règlement(s) bon Zora créé(s).`,
+            reglements_crees: reglements.length,
+            reglements
         });
     } catch (e) {
         await client.query('ROLLBACK');
-        console.error('POST /clearing/vouchers/run error:', e.message);
-        res.status(500).json({ success: false, message: 'Erreur lors de la création des règlements vouchers.' });
+        console.error('POST /clearing/bons-zora/run error:', e.message);
+        res.status(500).json({ success: false, message: 'Erreur lors de la création des règlements bons Zora.' });
     } finally {
         client.release();
     }
 });
 
-// ─── GET /vouchers/pending ───────────────────────────────────────────────────
-router.get('/vouchers/pending', authMiddleware, adminOnly, async (req, res) => {
+// ─── GET /bons-zora/pending ───────────────────────────────────────────────────
+router.get('/bons-zora/pending', authMiddleware, adminOnly, async (req, res) => {
     try {
         const result = await db.query(
-            `SELECT vp.id, vp.partner_phone, vp.partner_type, vp.voucher_uuid, vp.amount_fcfa,
-                    vp.status, vp.created_at, vp.paid_at, vp.reference_virement,
+            `SELECT bzr.id, bzr.partner_phone, bzr.bon_uuid, bzr.amount_fcfa,
+                    bzr.status, bzr.created_at, bzr.paid_at, bzr.reference_virement,
                     zp.name as partner_name
-             FROM voucher_payouts vp
-             LEFT JOIN zora_partners zp ON zp.phone = vp.partner_phone
-             WHERE vp.status = 'pending'
-             ORDER BY vp.created_at DESC`
+             FROM bon_zora_reglements bzr
+             LEFT JOIN zora_partners zp ON zp.phone = bzr.partner_phone
+             WHERE bzr.status = 'pending'
+             ORDER BY bzr.created_at DESC`
         );
-        res.json({ success: true, payouts: result.rows });
+        res.json({ success: true, reglements: result.rows });
     } catch (e) {
-        console.error('GET /clearing/vouchers/pending error:', e.message);
+        console.error('GET /clearing/bons-zora/pending error:', e.message);
         res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
 });
 
-// ─── PATCH /vouchers/:id/pay ─────────────────────────────────────────────────
-router.patch('/vouchers/:id/pay', authMiddleware, adminOnly, async (req, res) => {
+// ─── PATCH /bons-zora/:id/pay ─────────────────────────────────────────────────
+router.patch('/bons-zora/:id/pay', authMiddleware, adminOnly, async (req, res) => {
     const { id } = req.params;
     const { reference_virement } = req.body;
 
@@ -501,31 +502,31 @@ router.patch('/vouchers/:id/pay', authMiddleware, adminOnly, async (req, res) =>
 
     try {
         const result = await db.query(
-            `UPDATE voucher_payouts
+            `UPDATE bon_zora_reglements
              SET status = 'paid', reference_virement = $1, paid_at = NOW()
              WHERE id = $2 AND status = 'pending'
-             RETURNING id, partner_phone, partner_type, voucher_uuid, amount_fcfa, status, paid_at, reference_virement`,
+             RETURNING id, partner_phone, bon_uuid, amount_fcfa, status, paid_at, reference_virement`,
             [reference_virement, id]
         );
         if (!result.rows.length) {
             return res.status(404).json({ success: false, message: 'Règlement introuvable ou déjà traité.' });
         }
-        const payout = result.rows[0];
+        const reglement = result.rows[0];
 
         // Audit log
         await db.query(
             `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
-             VALUES ('clearing.vouchers.paid', $1, 'voucher_payouts', $2, $3::jsonb)`,
+             VALUES ('clearing.bons-zora.paid', $1, 'bon_zora_reglements', $2, $3::jsonb)`,
             [req.user.phone, id, JSON.stringify({
-                partner_phone: payout.partner_phone,
-                amount_fcfa: payout.amount_fcfa,
+                partner_phone: reglement.partner_phone,
+                amount_fcfa: reglement.amount_fcfa,
                 reference_virement
             })]
         ).catch(() => {});
 
-        res.json({ success: true, message: 'Règlement voucher payé.', payout });
+        res.json({ success: true, message: 'Règlement bon Zora payé.', reglement });
     } catch (e) {
-        console.error('PATCH /clearing/vouchers/:id/pay error:', e.message);
+        console.error('PATCH /clearing/bons-zora/:id/pay error:', e.message);
         res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }
 });

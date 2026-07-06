@@ -114,8 +114,8 @@ async function getStats(pharmacie_phone) {
       [normalizedPhone]
     );
     
-    const vouchersResult = await client.query(
-      `SELECT COUNT(*) FROM zora_vouchers WHERE partner_phone = $1 AND consumed_at::date = $1`,
+    const bonsZoraResult = await client.query(
+      `SELECT COUNT(*) FROM partner_bons_zora WHERE partner_phone = $1 AND validated_at::date = $1`,
       [normalizedPhone, today]
     );
 
@@ -123,7 +123,7 @@ async function getStats(pharmacie_phone) {
       traitees_today: parseInt(traiteesResult.rows[0].count),
       en_attente: parseInt(enAttenteResult.rows[0].count),
       clearing_pending_fcfa: parseFloat(clearingResult.rows[0].coalesce),
-      vouchers_today: parseInt(vouchersResult.rows[0].count)
+      bons_zora_today: parseInt(bonsZoraResult.rows[0].count)
     };
   } finally {
     client.release();

@@ -154,7 +154,7 @@ const wellnessRoutes        = require('./routes/wellness.routes');
 const clubsRoutes           = require('./routes/clubs.routes');
 const chatRoutes            = require('./routes/chat.routes');
 const animateurRoutes       = require('./routes/animateur.routes');
-const voucherRoutes         = require('./routes/voucher.routes');
+const bonZoraRoutes         = require('./routes/bon-zora.routes');
 const partenaireRoutes      = require('./routes/partenaire.routes');
 const consultationRoutes    = require('./routes/consultation.routes');
 const ordonnanceRoutes      = require('./routes/ordonnance.routes');
@@ -233,7 +233,7 @@ app.use('/api/v1/zora',         zoraRoutes);
 // DEPRECATED (zora_vouchers remplacé par partner_vouchers) — routes neutralisées avec 410 Gone
 // app.use('/api/v1/zora',         zoraMarketplaceRoutes);
 app.use('/api/v1/zora',         zoraGamesRoutes);
-app.use('/api/v1/vouchers',     voucherRoutes);
+app.use('/api/v1/bons-zora',    bonZoraRoutes);
 app.use('/api/v1/partenaire',   partenaireRoutes);
 app.use('/api/v1',              conflictRoutes);
 app.use('/api/v1',              couponRoutes);

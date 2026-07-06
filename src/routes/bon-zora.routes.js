@@ -1,16 +1,17 @@
 // ============================================================
-// BOLAMU — Routes Vouchers Partenaires (code BOL-XXXX-XXXX)
+// BOLAMU — Routes Bons Zora Partenaires (code BOL-XXXX-XXXX)
+// Terminologie : 'voucher' remplacé par 'bon Zora' (décision produit, sprint dette technique)
 // ============================================================
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const {
-  generateVoucher,
-  validateVoucher,
-  getPatientVouchers,
+  generateBonZora,
+  validateBonZora,
+  getPatientBonsZora,
   getProgramsByCategory
-} = require('../services/voucher.service');
+} = require('../services/bon-zora.service');
 
 // Middleware inline pour rôle partenaire (fabrique globale inexistante)
 const requirePartenaire = (req, res, next) => {
@@ -30,7 +31,7 @@ const requireAnimateur = (req, res, next) => {
   next();
 };
 
-// GET /api/v1/vouchers/programs — Liste programmes actifs (public)
+// GET /api/v1/bons-zora/programs — Liste programmes actifs (public)
 router.get('/programs', async (req, res) => {
   try {
     const { category } = req.query;
@@ -41,12 +42,12 @@ router.get('/programs', async (req, res) => {
       res.status(500).json({ success: false, error: result.error });
     }
   } catch (error) {
-    console.error('[VOUCHER ROUTES] Erreur GET /programs:', error.message);
+    console.error('[BON ZORA ROUTES] Erreur GET /programs:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });
 
-// POST /api/v1/vouchers/generate — Patient génère un voucher
+// POST /api/v1/bons-zora/generate — Patient génère un bon Zora
 router.post('/generate', authMiddleware, async (req, res) => {
   try {
     const { program_id } = req.body;
@@ -54,7 +55,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
     if (!program_id) {
       return res.status(400).json({ success: false, error: 'missing_program_id' });
     }
-    const result = await generateVoucher(phone, program_id);
+    const result = await generateBonZora(phone, program_id);
     if (result.success) {
       res.json({ success: true, data: result });
     } else {
@@ -63,34 +64,34 @@ router.post('/generate', authMiddleware, async (req, res) => {
         'program_out_of_stock': 400,
         'no_zora_account': 404,
         'insufficient_balance': 400,
-        'voucher_code_collision': 500
+        'bon_zora_code_collision': 500
       };
       const statusCode = statusMap[result.error] || 500;
       res.status(statusCode).json({ success: false, error: result.error });
     }
   } catch (error) {
-    console.error('[VOUCHER ROUTES] Erreur POST /generate:', error.message);
+    console.error('[BON ZORA ROUTES] Erreur POST /generate:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });
 
-// GET /api/v1/vouchers/my — Liste vouchers du patient connecté
+// GET /api/v1/bons-zora/my — Liste bons Zora du patient connecté
 router.get('/my', authMiddleware, async (req, res) => {
   try {
     const phone = req.user.phone;
-    const result = await getPatientVouchers(phone);
+    const result = await getPatientBonsZora(phone);
     if (result.success) {
       res.json({ success: true, data: result });
     } else {
       res.status(500).json({ success: false, error: result.error });
     }
   } catch (error) {
-    console.error('[VOUCHER ROUTES] Erreur GET /my:', error.message);
+    console.error('[BON ZORA ROUTES] Erreur GET /my:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });
 
-// POST /api/v1/vouchers/validate — Partenaire valide un voucher
+// POST /api/v1/bons-zora/validate — Partenaire valide un bon Zora
 router.post('/validate', authMiddleware, requirePartenaire, async (req, res) => {
   try {
     const { code } = req.body;
@@ -98,27 +99,27 @@ router.post('/validate', authMiddleware, requirePartenaire, async (req, res) => 
     if (!code) {
       return res.status(400).json({ success: false, error: 'missing_code' });
     }
-    const result = await validateVoucher(code, partner_phone, 'code_manual');
+    const result = await validateBonZora(code, partner_phone, 'code_manual');
     if (result.success) {
       res.json({ success: true, data: result });
     } else {
       const statusMap = {
-        'voucher_not_found': 404,
-        'voucher_already_used': 400,
-        'voucher_cancelled': 400,
-        'voucher_expired': 400,
-        'voucher_not_active': 400
+        'bon_zora_not_found': 404,
+        'bon_zora_already_used': 400,
+        'bon_zora_cancelled': 400,
+        'bon_zora_expired': 400,
+        'bon_zora_not_active': 400
       };
       const statusCode = statusMap[result.error] || 500;
       res.status(statusCode).json({ success: false, error: result.error });
     }
   } catch (error) {
-    console.error('[VOUCHER ROUTES] Erreur POST /validate:', error.message);
+    console.error('[BON ZORA ROUTES] Erreur POST /validate:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });
 
-// POST /api/v1/vouchers/validate/qr — Partenaire valide via QR scan (méthode distincte)
+// POST /api/v1/bons-zora/validate/qr — Partenaire valide via QR scan (méthode distincte)
 router.post('/validate/qr', authMiddleware, requirePartenaire, async (req, res) => {
   try {
     const { code } = req.body;
@@ -126,27 +127,27 @@ router.post('/validate/qr', authMiddleware, requirePartenaire, async (req, res) 
     if (!code) {
       return res.status(400).json({ success: false, error: 'missing_code' });
     }
-    const result = await validateVoucher(code, partner_phone, 'qr_scan');
+    const result = await validateBonZora(code, partner_phone, 'qr_scan');
     if (result.success) {
       res.json({ success: true, data: result });
     } else {
       const statusMap = {
-        'voucher_not_found': 404,
-        'voucher_already_used': 400,
-        'voucher_cancelled': 400,
-        'voucher_expired': 400,
-        'voucher_not_active': 400
+        'bon_zora_not_found': 404,
+        'bon_zora_already_used': 400,
+        'bon_zora_cancelled': 400,
+        'bon_zora_expired': 400,
+        'bon_zora_not_active': 400
       };
       const statusCode = statusMap[result.error] || 500;
       res.status(statusCode).json({ success: false, error: result.error });
     }
   } catch (error) {
-    console.error('[VOUCHER ROUTES] Erreur POST /validate/qr:', error.message);
+    console.error('[BON ZORA ROUTES] Erreur POST /validate/qr:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });
 
-// GET /api/v1/vouchers/:code/qr — QR payload pour affichage (patient uniquement)
+// GET /api/v1/bons-zora/:code/qr — QR payload pour affichage (patient uniquement)
 router.get('/:code/qr', authMiddleware, async (req, res) => {
   try {
     const { code } = req.params;
@@ -154,29 +155,29 @@ router.get('/:code/qr', authMiddleware, async (req, res) => {
     if (!code) {
       return res.status(400).json({ success: false, error: 'missing_code' });
     }
-    // Vérifier que le patient est bien le propriétaire du voucher
+    // Vérifier que le patient est bien le propriétaire du bon Zora
     const result = await pool.query(
-      `SELECT qr_payload, patient_phone FROM partner_vouchers WHERE code = $1`,
+      `SELECT qr_payload, patient_phone FROM partner_bons_zora WHERE code = $1`,
       [String(code).trim().toUpperCase()]
     );
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'voucher_not_found' });
+      return res.status(404).json({ success: false, error: 'bon_zora_not_found' });
     }
-    const voucher = result.rows[0];
-    if (voucher.patient_phone !== phone) {
+    const bon = result.rows[0];
+    if (bon.patient_phone !== phone) {
       return res.status(403).json({ success: false, error: 'not_owner' });
     }
     let qrPayload = null;
     try {
-      qrPayload = typeof voucher.qr_payload === 'string'
-        ? JSON.parse(voucher.qr_payload)
-        : voucher.qr_payload;
+      qrPayload = typeof bon.qr_payload === 'string'
+        ? JSON.parse(bon.qr_payload)
+        : bon.qr_payload;
     } catch (_) {
       return res.status(500).json({ success: false, error: 'invalid_qr_payload' });
     }
     res.json({ success: true, data: qrPayload });
   } catch (error) {
-    console.error('[VOUCHER ROUTES] Erreur GET /:code/qr:', error.message);
+    console.error('[BON ZORA ROUTES] Erreur GET /:code/qr:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });

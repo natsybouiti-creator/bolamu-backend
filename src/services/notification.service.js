@@ -338,21 +338,21 @@ async function notifyZoraAttribues(patient_phone, points, reason) {
     }
 }
 
-async function notifyVoucherGenere(patient_phone, voucher_data) {
+async function notifyBonZoraGenere(patient_phone, bon_zora_data) {
     const phone = normalizePhone(patient_phone);
     const params = [
-        voucher_data.titre || '',
-        voucher_data.partenaire || '',
-        voucher_data.date_expiration || ''
+        bon_zora_data.titre || '',
+        bon_zora_data.partenaire || '',
+        bon_zora_data.date_expiration || ''
     ];
 
     try {
-        const ok = await sendAutoMessage(phone, 'voucher_expirant', params);
-        await _saveWhatsAppNotif(phone, 'voucher_expirant', { params, voucher_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
+        const ok = await sendAutoMessage(phone, 'bon_zora_expirant', params);
+        await _saveWhatsAppNotif(phone, 'bon_zora_expirant', { params, bon_zora_data }, ok ? 'sent' : 'failed', ok ? new Date() : null);
         return ok;
     } catch (err) {
-        logger.error('[WA Notif] notifyVoucherGenere:', err.message);
-        await _saveWhatsAppNotif(phone, 'voucher_expirant', { params, voucher_data }, 'failed');
+        logger.error('[WA Notif] notifyBonZoraGenere:', err.message);
+        await _saveWhatsAppNotif(phone, 'bon_zora_expirant', { params, bon_zora_data }, 'failed');
         return false;
     }
 }
@@ -365,5 +365,5 @@ module.exports = {
     notifyEvenementInscription,
     notifyClubInscription,
     notifyZoraAttribues,
-    notifyVoucherGenere
+    notifyBonZoraGenere
 };
