@@ -78,10 +78,13 @@ async function generateBriefing(appointment_id, doctor_phone) {
       [patientPhone]
     );
 
-    // Récupérer les constantes médicales
+    // Récupérer les constantes médicales — stockées directement sur users (migration_014)
+    // (la table constantes_medicales n'existe pas — table fantôme supprimée)
     const constantesResult = await client.query(
-      `SELECT * FROM constantes_medicales WHERE patient_phone = $1
-       ORDER BY created_at DESC LIMIT 1`,
+      `SELECT groupe_sanguin, allergies, maladies_chroniques,
+              antecedents_medicaux, traitements_en_cours, poids, taille
+       FROM users
+       WHERE phone = $1`,
       [patientPhone]
     );
 
