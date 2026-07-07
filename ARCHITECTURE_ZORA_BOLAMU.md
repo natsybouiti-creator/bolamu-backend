@@ -355,6 +355,7 @@ Reprend et complète les anomalies déjà notées en `ARCHITECTURE_MODELE_DONNEE
 - **`partner_programs.partner_id` sans contrainte FK** — aucune vérification que la valeur référence un partenaire réel ; les 3 programmes ajoutés le 7 juillet 2026 utilisent `partner_id = NULL` faute de comptes partenaires correspondants en base (Pharmacie Daffé, Laboratoire 3A ne sont pas des comptes seedés).
 - **Aucune multiplication du gain par le tier**, contrairement à ce que documentait la v1.1 — à trancher côté produit : fonctionnalité à implémenter, ou vision à abandonner définitivement.
 - **Notifications Zora totalement silencieuses** — aucun template WhatsApp, alors que c'est un canal central pour le reste de la plateforme (règle CLAUDE.md "WhatsApp direct").
+- **Bug préexistant (hors Chantier 2)** : le modal `#modal-bon-zora` (flux `A.redeemBonZora()`) affiche "Vérifiez WhatsApp" sans qu'aucun envoi WhatsApp ne soit réellement déclenché (confirmé : aucun appel WAHA dans `bon-zora.service.js` / `bon-zora.routes.js`). Ne pas corriger isolément — sera résolu par l'implémentation du Chantier 3 (confirmation + carte cadeau QR via WhatsApp), voir ARCHITECTURE_ZORA_BOLAMU.md.
 
 ---
 
