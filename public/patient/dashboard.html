@@ -2962,7 +2962,7 @@
   A._loadAll = function (token, phone) {
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
     apiFetch('https://www.bolamu.co/api/v1/patients/profil?phone=' + encodeURIComponent(phone), H).then(function (r) { return r && r.json(); }).then(function (d) {
-      if (d && d.success && d.data) { A._patientPrenom = (d.data.full_name || '').split(' ')[0]; A._patientNom = d.data.full_name || ''; A._patientPhone = d.data.phone || ''; A._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel'; A._patientId = d.data.bolamu_id || ''; A._patientData = d.data; A._patientPhotoUrl = d.data.photo_url; A.setState({ gender: d.data.gender }); A.renderProfilePhoto(); }
+      if (d && d.success && d.data) { A._patientPrenom = (d.data.full_name || '').split(' ')[0]; A._patientNom = d.data.full_name || ''; A._patientPhone = d.data.phone || ''; A._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel'; A._patientId = d.data.bolamu_id || ''; A._patientData = d.data; A._patientPhotoUrl = d.data.photo_url; A.setState({ gender: d.data.gender }); A.renderProfilePhoto(); A.renderScalars(); }
     }).catch(function () {});
 
     apiFetch('https://www.bolamu.co/api/v1/zora/balance', H).then(function (r) { return r && r.json(); }).then(function (d) {
