@@ -2993,11 +2993,8 @@
       .then(function (res) { return res.json(); }).then(function (d) {
         if (d.success && d.data) { A._chatMessages = d.data; A.setState({ chatMessages: d.data, chatLoading: false }); A.scrollToChatBottom(); }
         else { A.setState({ chatLoading: false }); }
-        if (!A._socket && window.io) {
-          A._socket = window.io('https://www.bolamu.co');
-          A._socket.on('new_message', function (msg) { A.setState({ chatMessages: A.state.chatMessages.concat([msg]) }); A.scrollToChatBottom(); });
-          A._socket.on('leaderboard_updated', function (data) { if (data.top5) { A._leaderboard = data.top5; A.renderLeaderboard(); } });
-          A._socket.emit('join_conversation', { conversation_id: 1 });
+        if (A._socket) {
+          A._socket.emit('join_conversation', 1);
           A.setState({ chatConnected: true });
         }
       }).catch(function () { A.setState({ chatLoading: false }); });
@@ -4345,11 +4342,13 @@
     if (typeof io === 'undefined') return;
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
-    var socket = io('https://api.bolamu.co');
-    socket.emit('authenticate', token);
-    socket.on('notification', function () {
+    A._socket = window.io('https://www.bolamu.co');
+    A._socket.emit('authenticate', token);
+    A._socket.on('notification', function () {
       A.loadUnreadCount();
     });
+    A._socket.on('new_message', function (msg) { A.setState({ chatMessages: A.state.chatMessages.concat([msg]) }); A.scrollToChatBottom(); });
+    A._socket.on('leaderboard_updated', function (data) { if (data.top5) { A._leaderboard = data.top5; A.renderLeaderboard(); } });
   };
 
   /* --------------------------- DÉMARRAGE --------------------------- */
