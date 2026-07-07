@@ -1928,10 +1928,15 @@
       var btn = member
         ? 'background:rgba(0,201,167,0.12);color:#00875f;border:none;padding:8px 12px;border-radius:9999px;font-family:inherit;font-size:0.74rem;font-weight:700;cursor:default;'
         : 'background:#003FB1;color:#fff;border:none;padding:8px 12px;border-radius:9999px;font-family:inherit;font-size:0.74rem;font-weight:700;cursor:pointer;';
-      return '<div onclick="openClubPanel(' + g.id + ')" style="flex:0 0 170px;scroll-snap-align:start;background:#fff;border:1px solid #EDEDF8;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;">' +
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="material-symbols-outlined" style="color:#003FB1;font-size:28px;">' + esc(g.icon) + '</span><div style="font-size:0.86rem;font-weight:700;color:#0A2463;">' + esc(g.name) + '</div></div>' +
+      var cover = g.cover_image_path
+        ? '<div style="height:90px;background-image:url(\'' + esc(g.cover_image_path) + '\');background-size:cover;background-position:center;"></div>'
+        : '<div style="height:90px;background:linear-gradient(135deg, #0A2463 0%, #003FB1 100%);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined" style="color:#fff;font-size:32px;">' + esc(g.icon) + '</span></div>';
+      return '<div onclick="openClubPanel(' + g.id + ')" style="flex:0 0 170px;scroll-snap-align:start;background:#fff;border:1px solid #EDEDF8;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;">' +
+        cover +
+        '<div style="padding:16px;display:flex;flex-direction:column;gap:10px;">' +
+        '<div style="font-size:0.86rem;font-weight:700;color:#0A2463;">' + esc(g.name) + '</div>' +
         '<div style="font-size:0.74rem;color:#434654;">' + esc(g.category || 'Club') + '</div>' +
-        '<button onclick="event.stopPropagation(); joinClub(' + g.id + ')" style="' + btn + '">' + (member ? 'Membre ✓' : 'Rejoindre') + '</button></div>';
+        '<button onclick="event.stopPropagation(); joinClub(' + g.id + ')" style="' + btn + '">' + (member ? 'Membre ✓' : 'Rejoindre') + '</button></div></div>';
     }).join('');
   };
 
@@ -3035,7 +3040,7 @@
     apiFetch('https://www.bolamu.co/api/v1/clubs', {}).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && d.clubs) {
         var iconMap = { course: 'directions_run', basketball: 'sports_basketball', football: 'sports_soccer', tennis: 'sports_tennis', natation: 'pool', cyclisme: 'directions_bike' };
-        A._sportGroups = d.clubs.map(function (c) { return { id: c.id, icon: iconMap[c.sport_type] || 'groups', name: c.name, category: c.category || c.sport_type || '' }; });
+        A._sportGroups = d.clubs.map(function (c) { return { id: c.id, icon: iconMap[c.sport_type] || 'groups', name: c.name, category: c.category || c.sport_type || '', cover_image_path: c.cover_image_path || null }; });
         A.renderSportGroups();
       }
     }).catch(function () {});
