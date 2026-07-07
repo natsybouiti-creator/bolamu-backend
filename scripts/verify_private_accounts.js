@@ -106,6 +106,17 @@ async function main() {
       return;
     }
 
+    if (arg === 'toggle-club-active') {
+      const clubId = process.argv[3];
+      const active = process.argv[4] === 'true';
+      const r = await client.query(
+        'UPDATE clubs SET is_active = $1 WHERE id = $2 RETURNING id, name, is_active, cover_image_path',
+        [active, clubId]
+      );
+      console.log(r.rows);
+      return;
+    }
+
     if (arg === 'schema-follows') {
       const r = await client.query(
         "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'follows' ORDER BY ordinal_position"

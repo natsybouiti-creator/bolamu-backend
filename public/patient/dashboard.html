@@ -3479,7 +3479,7 @@
           var myPhone = A._patientPhone || '';
           var isAnimateur = club.animateur_phone === myPhone;
           var isMember = isAnimateur || (A._myClubs || []).some(function (c) { return String(c.id) === String(clubId); });
-          var banner = club.banner_url || club.image_url || '';
+          var banner = club.cover_image_path || '';
           var bannerStyle = banner ? "background-image: url('" + banner + "'); background-size: cover; background-position: center;" : 'background: linear-gradient(135deg, #0A2463 0%, #003FB1 100%);';
           var actionButtons = '';
           if (!isMember) {

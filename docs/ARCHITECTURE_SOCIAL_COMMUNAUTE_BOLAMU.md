@@ -255,7 +255,7 @@ CREATE INDEX IF NOT EXISTS idx_profile_comments_target ON profile_comments(targe
 ### 5.5 Popup club (même pattern qu'Elonga)
 Clic sur la carte club (hors bouton) → panneau bottom sheet (section 9) affichant : photo, description, nombre de membres, date de création, animateur (avatar + nom, badge « Modérateur »), bouton contextuel (Rejoindre / Demande envoyée / Membre / Voir le classement).
 
-**Dette technique connue (7 juillet 2026)** : `openClubPanel` (dashboard.html) lit `club.banner_url || club.image_url` pour la photo de couverture du popup, deux champs que l'API ne renvoie jamais — le champ réel est `clubs.cover_image_path` (exposé par `GET /clubs`, `/clubs/:id`, `/clubs/my`, et affiché depuis le 7 juillet 2026 sur les cards `renderSportGroups` de la page d'accueil). Conséquence : le popup affiche toujours le dégradé de repli, jamais la vraie photo, même quand `cover_image_path` est renseigné. Corrigé sur les cards, pas dans le popup — sujet pour un futur petit chantier, non traité ici.
+**Corrigé (7 juillet 2026)** : `openClubPanel` (dashboard.html) lisait `club.banner_url || club.image_url` pour la photo de couverture du popup, deux champs que l'API ne renvoie jamais — remplacé par `club.cover_image_path`, seul champ réellement renvoyé par `GET /clubs/:id`. Même dégradé de repli qu'avant (identique à celui des cards `renderSportGroups`) si aucune photo n'est définie. Preuve : `GET /clubs/:id` confirmé par appel HTTP réel (renvoie `cover_image_path`, jamais `banner_url`/`image_url`) ; rendu vérifié en extrayant les lignes réelles du fichier et en les exécutant avec le club de test id=36 (photo Cloudinary réelle → URL correcte dans `bannerStyle` ; sans photo → dégradé de repli).
 
 ### 5.6 Routes clubs (complètes)
 | Méthode | Route | Auth |
