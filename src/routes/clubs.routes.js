@@ -4,6 +4,18 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
+const { uploadToCloudinary } = require('../utils/cloudinary');
+const multer = require('multer');
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+const handleMulterError = (err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
+  }
+  next(err);
+};
 const {
   getClubs,
   getClubById,
@@ -34,7 +46,7 @@ router.post('/:id/kick/:phone', authMiddleware, kickMember);
 router.delete('/:id', authMiddleware, deactivateClub);
 
 // Créer un club
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, upload.single('cover'), handleMulterError, async (req, res) => {
   const pool = require('../config/db');
   const client = await pool.connect();
   try {
@@ -46,13 +58,22 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(400).json({ success: false, message: 'name requis' });
     }
 
+    let coverImagePath = null;
+    if (req.file) {
+      const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/clubs', {
+        public_id: `club_cover_${Date.now()}`,
+        transformation: { width: 600, height: 300, crop: 'fill' }
+      });
+      coverImagePath = uploadResult.secure_url;
+    }
+
     await client.query('BEGIN');
 
     const result = await client.query(`
-      INSERT INTO clubs (name, description, category, animateur_phone, created_at, is_active)
-      VALUES ($1, $2, $3, $4, NOW(), true)
-      RETURNING id, name, description, category
-    `, [name, description || category || sport_type || 'Sport', category || sport_type || 'Sport', myPhone]);
+      INSERT INTO clubs (name, description, category, animateur_phone, cover_image_path, created_at, is_active)
+      VALUES ($1, $2, $3, $4, $5, NOW(), true)
+      RETURNING id, name, description, category, cover_image_path
+    `, [name, description || category || sport_type || 'Sport', category || sport_type || 'Sport', myPhone, coverImagePath]);
 
     const club = result.rows[0];
 
@@ -78,6 +99,69 @@ router.post('/', authMiddleware, async (req, res) => {
   } catch (error) {
     await client.query('ROLLBACK');
     return res.status(500).json({ success: false, message: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Modifier la photo de couverture du club (réservé à l'animateur)
+router.patch('/:id/cover', authMiddleware, upload.single('cover'), handleMulterError, async (req, res) => {
+  const pool = require('../config/db');
+  const { normalizePhone } = require('../utils/phone');
+  const client = await pool.connect();
+  try {
+    if (!req.file) {
+      client.release();
+      return res.status(400).json({ success: false, message: 'Aucune image fournie' });
+    }
+
+    const { id } = req.params;
+    const requesterPhone = normalizePhone(req.user.phone);
+
+    await client.query('BEGIN');
+
+    const clubResult = await client.query(
+      `SELECT id, animateur_phone, cover_image_path FROM clubs WHERE id = $1 AND is_active = TRUE`,
+      [id]
+    );
+
+    if (clubResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(404).json({ success: false, message: 'Club introuvable' });
+    }
+
+    const club = clubResult.rows[0];
+
+    if (club.animateur_phone !== requesterPhone) {
+      await client.query('ROLLBACK');
+      client.release();
+      return res.status(403).json({ success: false, message: 'Réservé à l\'animateur du club' });
+    }
+
+    const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/clubs', {
+      public_id: `club_cover_${id}_${Date.now()}`,
+      transformation: { width: 600, height: 300, crop: 'fill' }
+    });
+
+    await client.query(
+      `UPDATE clubs SET cover_image_path = $1 WHERE id = $2`,
+      [uploadResult.secure_url, id]
+    );
+
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('club_cover_updated', $1, 'clubs', $2, $3::jsonb)`,
+      [requesterPhone, id, JSON.stringify({ old: club.cover_image_path, new: uploadResult.secure_url })]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({ success: true, cover_image_path: uploadResult.secure_url });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[CLUBS] Erreur update cover:', error.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
   } finally {
     client.release();
   }
