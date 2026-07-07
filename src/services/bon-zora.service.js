@@ -409,9 +409,50 @@ async function getProgramsByCategory(category) {
   }
 }
 
+/**
+ * getProgramById — Détail d'un programme partenaire (actif ou non).
+ * partner_programs n'a pas de colonne image/image_url — data.image est toujours null
+ * (pas de FK sur partner_id — data.partner_id renvoyé tel quel, sans jointure).
+ * @param {number|string} id
+ */
+async function getProgramById(id) {
+  try {
+    const result = await pool.query(
+      `SELECT id, partner_id, name, description, zora_cost, fcfa_value, category, is_active, stock, created_at
+       FROM partner_programs
+       WHERE id = $1`,
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return { success: false, error: 'program_not_found' };
+    }
+    const row = result.rows[0];
+    return {
+      success: true,
+      data: {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        zora_cost: row.zora_cost,
+        fcfa_value: row.fcfa_value,
+        category: row.category,
+        is_active: row.is_active,
+        stock: row.stock,
+        image: null,
+        partner_id: row.partner_id,
+        created_at: row.created_at
+      }
+    };
+  } catch (error) {
+    console.error('[BON ZORA] Erreur getProgramById:', error.message);
+    return { success: false, error: 'server_error' };
+  }
+}
+
 module.exports = {
   generateBonZora,
   validateBonZora,
   getPatientBonsZora,
-  getProgramsByCategory
+  getProgramsByCategory,
+  getProgramById
 };

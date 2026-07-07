@@ -10,7 +10,8 @@ const {
   generateBonZora,
   validateBonZora,
   getPatientBonsZora,
-  getProgramsByCategory
+  getProgramsByCategory,
+  getProgramById
 } = require('../services/bon-zora.service');
 
 // Middleware inline pour rôle partenaire (fabrique globale inexistante)
@@ -43,6 +44,23 @@ router.get('/programs', async (req, res) => {
     }
   } catch (error) {
     console.error('[BON ZORA ROUTES] Erreur GET /programs:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
+});
+
+// GET /api/v1/bons-zora/programs/:id — Détail d'un programme partenaire (authentifié)
+router.get('/programs/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await getProgramById(id);
+    if (result.success) {
+      res.json({ success: true, data: result.data });
+    } else {
+      const statusCode = result.error === 'program_not_found' ? 404 : 500;
+      res.status(statusCode).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('[BON ZORA ROUTES] Erreur GET /programs/:id:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });
