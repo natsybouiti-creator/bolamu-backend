@@ -113,7 +113,20 @@ Chronologique décroissant (le plus récent en premier), sans filtre géographiq
 ---
 
 ## 4bis. CONFIDENTIALITÉ DES COMPTES (compte privé/public)
-### STATUT : IMPLÉMENTÉ — 7 juillet 2026 — Preuves section 14.2
+### STATUT : IMPLÉMENTÉ ET VALIDÉ PAR PREUVE RÉELLE — 7 juillet 2026 — Preuves section 14.2
+
+Les preuves T-priv3 à T-priv5 initialement collées le 7 juillet 2026 avaient été obtenues
+sur des comptes non conformes à la consigne de test (ID 49/307, comptes réels et non des
+comptes de test fictifs). Elles ont été rejouées intégralement le même jour sur le couple
+de comptes de test dédié (Test Zora ID 62 / Sarah Test ID 225, section 14.2). Deux bugs
+réels ont été trouvés et corrigés au passage (section 14.2.1) :
+1. `PATCH /patients/profil-social` plantait (500, "value ... is out of range for type
+   integer") dès qu'`is_private` changeait — `audit_log.target_id` (INTEGER) recevait le
+   `phone` au lieu de l'`id` numérique.
+2. `notifyLite()` échouait silencieusement (aucune exception visible) pour les types
+   `follow_request` et `follow_request_accepted`, absents de la contrainte CHECK
+   `notifications_type_check` — aucune notification n'était jamais créée pour une
+   demande de suivi ou son acceptation.
 
 ### 4bis.1 Principe
 Par défaut, tout compte est public (`users.is_private = false`), comportement inchangé par rapport à l'existant. Un adhérent peut activer un statut privé depuis son profil. Le modèle suit Instagram : compte public → suivi direct, compte privé → suivi soumis à acceptation.
@@ -435,76 +448,73 @@ Rien n'est « fait » tant que sa preuve réelle n'est pas collée ici et verte.
 | T16 | Aucun onglet nav dupliqué | Code+Navigateur | audit de la nav existante collé, confirmant qu'aucun nouvel onglet ne fait doublon | | ☐ |
 | T-priv1 | Colonne `users.is_private` existe en base | SQL | `SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='is_private'` retourne 1 ligne | SQL confirmé | ✅ |
 | T-priv2 | Table `follow_requests` existe en base | SQL | `\d follow_requests` sur Neon affiche le schéma complet | SQL confirmé | ✅ |
-| T-priv3 | Activer compte privé via PATCH /profiles/me | HTTP+SQL | `is_private` passe à `true` en base, réponse API confirme | Implémenté | ✅ |
-| T-priv4 | Suivre un compte privé crée une demande | HTTP+SQL | ligne `follow_requests` avec `status='pending'` créée, pas de ligne dans `follows` | HTTP 201 + SQL confirmé | ✅ |
-| T-priv5 | Accepter une demande de suivi | HTTP+SQL | ligne `follow_requests` passe à `accepted`, ligne `follows` créée, pas de Zora crédité | HTTP 201 + SQL follows/follow_requests | ✅ |
+| T-priv3 | Profil verrouillé pour un non-follower (compte privé) | HTTP | `locked:true`, `is_following:false`, galerie vide | HTTP 200, `photos:[]` | ✅ |
+| T-priv4 | Galerie et feed vides pour un non-follower | HTTP | tableaux vides + `locked:true` sur les deux | HTTP 200 galerie + feed | ✅ |
+| T-priv5 | Déverrouillage après acceptation | HTTP+SQL | `locked` passe de `true` à `false`, `is_following:true`, contenu réel visible | AVANT/APRÈS collés | ✅ |
+| T-priv6 | Non-régression compte public | HTTP+SQL | `POST /follows/:phone` crée directement une ligne `follows`, jamais `follow_requests` | HTTP `{"success":true}` + SQL confirmé | ✅ |
 
-### 14.2.1 Preuves T-priv1 à T-priv5 (7 juillet 2026)
+### 14.2.1 Preuves T-priv1 à T-priv6 (7 juillet 2026 — rejouées sur comptes de test dédiés)
 
-**T-priv1 : POST /follows/:phone sur compte privé**
+**Comptes utilisés** : compte A = Test Zora, ID 62, `+242099999999` (fictif, 0 activité) — devient privé pendant le test. Visiteur B = Sarah Test, ID 225, `+242069735419` (0 activité). Compte C (non-régression, public) = "Test Refus S26", ID 292, `+242099999998`.
+
+**T-priv1 : POST /follows/:phoneA (token B) sur compte A rendu privé**
 ```json
 HTTP Response:
-{
-  "success": true,
-  "status": "pending_request",
-  "request_id": 2
-}
+{"success":true,"status":"pending_request","request_id":3}
 
 SQL Verification:
-- Follows: Aucune ligne
-- Follow_requests: 1 ligne (id=2, requester_phone='+242065443156', target_phone='+242065452585', status='pending')
+- follows (B -> A): []
+- follow_requests (B -> A): [{ id: 3, requester_phone: '+242069735419', target_phone: '+242099999999', status: 'pending', responded_at: null }]
 ```
 
-**T-priv2 : PATCH /follow-requests/:id accept**
+**T-priv2 : PATCH /follows/follow-requests/3 accept (token A)**
 ```json
 HTTP Response:
-{
-  "success": true
-}
+{"success":true}
 
 SQL Verification:
-- Follows: 1 ligne (follower_phone='+242065443156', following_phone='+242065452585', created_at=2026-07-07T00:14:57.901Z)
-- Follow_requests: 1 ligne (id=2, status='accepted', responded_at=2026-07-07T00:14:57.901Z)
+- follows (B -> A): [{ follower_phone: '+242069735419', following_phone: '+242099999999', created_at: '2026-07-07T01:10:51.617Z' }]
+- follow_requests (B -> A): [{ id: 3, status: 'accepted', responded_at: '2026-07-07T01:10:51.617Z' }]
 ```
 
-**T-priv3 : GET /patients/profil-social/:phone après acceptation**
+**T-priv3 : GET /patients/profil-social/:phoneA (token B) — AVANT acceptation**
 ```json
 HTTP Response:
-{
-  "success": true,
-  "data": {
-    "is_private": true,
-    "is_following": true,
-    "is_self": false,
-    "locked": false
-  }
-}
+{"success":true,"data":{"full_name":"Test Zora","badges":{"serie_en_feu":false,"membre_fidele":false,"top_classement":false},"stats":{"zora_gagnes":0,"streak":0,"evenements":0},"photos":[],"is_private":true,"is_following":false,"is_self":false,"locked":true}}
 ```
 
-**T-priv4 : GET /patients/profil-social/:phone SANS token (public)**
+**T-priv4 : galerie (champ `photos` de profil-social) + GET /feed?author=:phoneA (token B) — AVANT acceptation**
 ```json
-HTTP Response:
-{
-  "success": true,
-  "data": {
-    "is_private": true,
-    "is_following": false,
-    "is_self": false,
-    "locked": true
-  }
-}
+Galerie (photos, extrait de la réponse T-priv3) : "photos":[]  "locked":true
+
+Feed:
+{"success":true,"data":[],"locked":true,"page":1}
 ```
 
-**T-priv5 : GET /feed?author=:phone compte privé avec token follower**
+**T-priv5 : GET /patients/profil-social/:phoneA (token B) — APRÈS acceptation, AVANT/APRÈS côte à côte**
+```json
+AVANT (T-priv3) : "is_following":false, "locked":true
+APRÈS            : "is_following":true,  "locked":false
+
+HTTP Response APRÈS :
+{"success":true,"data":{"full_name":"Test Zora","photos":[],"is_private":true,"is_following":true,"is_self":false,"locked":false}}
+```
+
+**T-priv6 : non-régression compte public — POST /follows/:phoneC (token B, compte C public)**
 ```json
 HTTP Response:
-{
-  "success": true,
-  "data": [],
-  "page": 1
-}
+{"success":true}
+
+SQL Verification:
+- follows (B -> C): [{ follower_phone: '+242069735419', following_phone: '+242099999998', created_at: '2026-07-07T01:12:01.508Z' }]
+- follow_requests (B -> C): []
 ```
-(Pas de locked: true, le follower a accès au feed du compte privé)
+
+**Bugs trouvés et corrigés pendant cette validation (voir commits dédiés) :**
+- `PATCH /patients/profil-social` : `audit_log.target_id` (INTEGER) recevait `phone` → `value "+242099999999" is out of range for type integer` (code Postgres 22003). Corrigé en utilisant l'`id` numérique de l'utilisateur.
+- `notifyLite()` échouait silencieusement pour `follow_request`/`follow_request_accepted`, types absents de `notifications_type_check`. Migration 068 appliquée, notifications désormais créées (vérifié par lignes `notifications` réelles avant nettoyage).
+
+**Nettoyage** : tous les comptes de test (62, 225, 292) restaurés à leur état initial après validation (`is_private=false`, `follows`/`follow_requests`/`notifications` de test supprimés). Le compte ID 49 (résidu d'un test antérieur sur un compte réel) a été restauré à `is_private=false` avant même de démarrer cette validation.
 
 ### 14.3 Règle de push
 Aucun `git push` tant que les preuves des tests concernés ne sont pas collées et vertes. Validation manuelle à chaque fois.
