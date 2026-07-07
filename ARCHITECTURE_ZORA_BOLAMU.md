@@ -1,15 +1,15 @@
 # ARCHITECTURE_ZORA_BOLAMU.md
 
-> ⚠️ **STATUT DE CE DOCUMENT** : ce document est une **SPÉCIFICATION CIBLE** (vision produit). Le schéma qu'il décrit (`zora_wallets` UUID, `zora_offers`, `zora_campaigns`) ne correspond pas au schéma réel en production. Le schéma réel est documenté dans `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.5 et `ARCHITECTURE_BOLAMU_OVERVIEW.md` §3.3.
+> ✅ **STATUT DE CE DOCUMENT** : ce document décrit **l'existant réel** — backend, frontend, base de données — vérifié dans le code au 7 juillet 2026. Il remplace l'ancienne version "spécification cible" (schéma `zora_wallets`/`zora_offers`/`zora_campaigns` qui n'a jamais existé en base). Chaque affirmation ci-dessous est sourcée par un fichier exact. Le contenu qui reste un objectif futur non implémenté est regroupé en fin de document, section 16 "Roadmap / non implémenté à ce jour" — il ne doit pas être confondu avec l'existant.
 
-**Version 1.1 — Juillet 2026**
-**NBA Gestion SARLU — Bolamu Platform**
-**Statut : RÉFÉRENCE FONDATRICE — ne pas modifier sans validation PDG**
+**Version 2.0 — 7 juillet 2026 — Réécriture intégrale sur base du code réel**
+**Sources : `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.5 et §3, lecture directe de `src/services/zora.service.js`, `src/services/bon-zora.service.js`, `src/routes/*.js`, `public/*/dashboard.html`.**
 
 | Version | Date | Modifications |
 |---|---|---|
-| 1.0 | Juillet 2026 | Version initiale |
-| 1.1 | Juillet 2026 | Ajout : intégration systèmes existants, gestion abonnements suspendus, onboarding partenaire, priorité campagnes, gestion stock concurrent, glossaire, conformité CNPD |
+| 1.0 | Juillet 2026 | Version initiale (vision produit, jamais implémentée telle quelle) |
+| 1.1 | Juillet 2026 | Ajout de sections vision supplémentaires (19-23) |
+| 2.0 | 7 juillet 2026 | Réécriture intégrale : documente l'existant réel vérifié dans le code, déplace tout ce qui n'est pas implémenté en section Roadmap |
 
 ---
 
@@ -17,1449 +17,385 @@
 
 1. [Vision et positionnement](#1-vision-et-positionnement)
 2. [Acteurs du système](#2-acteurs-du-système)
-3. [Flux EARN — Gain de points](#3-flux-earn--gain-de-points)
-4. [Flux BURN — Dépense de points](#4-flux-burn--dépense-de-points)
-5. [Marketplace — Offres et récompenses](#5-marketplace--offres-et-récompenses)
-6. [Tiers Zora — Niveaux et avantages](#6-tiers-zora--niveaux-et-avantages)
-7. [Flux digital complet — Bon d'achat et rédemption](#7-flux-digital-complet--bon-dachat-et-rédemption)
-8. [Feed social et publication d'offres](#8-feed-social-et-publication-doffres)
+3. [Flux EARN — Gain de points (réel)](#3-flux-earn--gain-de-points-réel)
+4. [Flux BURN — Dépense de points (réel)](#4-flux-burn--dépense-de-points-réel)
+5. [Marketplace — Offres et programmes partenaires (réel)](#5-marketplace--offres-et-programmes-partenaires-réel)
+6. [Tiers Zora — Niveaux réels](#6-tiers-zora--niveaux-réels)
+7. [Flux digital complet — Bon d'achat et validation (réel, avec ses ruptures)](#7-flux-digital-complet--bon-dachat-et-validation-réel-avec-ses-ruptures)
+8. [Feed social et Zora](#8-feed-social-et-zora)
 9. [Modèle économique](#9-modèle-économique)
-10. [Schéma base de données](#10-schéma-base-de-données)
-11. [Architecture backend — Routes et controllers](#11-architecture-backend--routes-et-controllers)
-12. [Architecture frontend — Dashboards et composants](#12-architecture-frontend--dashboards-et-composants)
-13. [Règles métier et anti-fraude](#13-règles-métier-et-anti-fraude)
-14. [Notifications et communication](#14-notifications-et-communication)
-15. [Administration et configuration](#15-administration-et-configuration)
-16. [Roadmap d'implémentation](#16-roadmap-dimplémentation)
-17. [Intégration avec les systèmes existants Bolamu](#17-intégration-avec-les-systèmes-existants-bolamu)
-18. [Gestion des abonnements inactifs et suspendus](#18-gestion-des-abonnements-inactifs-et-suspendus)
-19. [Onboarding et authentification partenaire récompense](#19-onboarding-et-authentification-partenaire-récompense)
-20. [Priorité et composition des campagnes bonus](#20-priorité-et-composition-des-campagnes-bonus)
-21. [Gestion du stock en concurrence](#21-gestion-du-stock-en-concurrence)
-22. [Glossaire](#22-glossaire)
-23. [Conformité CNPD — Données personnelles et santé](#23-conformité-cnpd--données-personnelles-et-santé)
+10. [Schéma base de données (réel)](#10-schéma-base-de-données-réel)
+11. [Architecture backend — Fichiers réels](#11-architecture-backend--fichiers-réels)
+12. [Architecture frontend — Par dashboard (réel)](#12-architecture-frontend--par-dashboard-réel)
+13. [Règles métier et anti-fraude (réel)](#13-règles-métier-et-anti-fraude-réel)
+14. [Notifications (réel)](#14-notifications-réel)
+15. [Administration et configuration (réel)](#15-administration-et-configuration-réel)
+16. [Dette technique et zones floues](#16-dette-technique-et-zones-floues)
+17. [Roadmap / non implémenté à ce jour](#17-roadmap--non-implémenté-à-ce-jour)
+18. [Glossaire](#18-glossaire)
 
 ---
 
 ## 1. Vision et positionnement
 
-### 1.1 Définition
-
-**Bolamu est le système nerveux des programmes de fidélité santé au Congo.**
-
-Les patients gagnent des **Zora Points** en prenant soin de leur santé — consultations médicales, séances bien-être, renouvellements d'abonnement, participation aux événements Elonga. Ils dépensent ces points chez les **partenaires récompenses** (boutiques, pharmacies, restauration, services) qui financent eux-mêmes leurs propres offres, comme tout programme de fidélité classique.
-
-Bolamu fournit le rail technologique. Les partenaires fournissent les récompenses.
-
-### 1.2 Principe fondateur
-
-```
-ACTE DE SANTÉ / BIEN-ÊTRE
-        ↓
-    ZORA POINTS
-        ↓
-RÉCOMPENSE PARTENAIRE
-```
-
-Chaque acte vertueux sur la santé et le bien-être est monétisé en points. Ces points sont échangeables contre de la valeur réelle chez les partenaires. Le circuit ferme une boucle vertueuse : **la santé récompense**.
-
-### 1.3 Ce que Zora n'est pas
-
-- Zora n'est **pas une cryptomonnaie** et n'a aucune valeur en dehors de l'écosystème Bolamu.
-- Zora ne peut **pas être échangé contre de l'argent**.
-- Zora ne peut **pas être transféré** entre patients.
-- La valeur interne d'un Zora Point est fixée à **1.5 FCFA** — ce chiffre n'est jamais communiqué publiquement.
+**Bolamu est le système nerveux des programmes de fidélité santé au Congo.** Les patients gagnent des **Zora Points** en prenant soin de leur santé et de leur bien-être ; ils les dépensent chez des partenaires via des bons numériques. Ce principe reste la vision produit valide — mais son implémentation réelle est plus simple que ce que décrivait la version 1.1 : un seul mécanisme de burn (bons Zora à coût fixe), pas de marketplace multi-types (gift card / discount / offer access), pas de campagnes bonus, pas de multiplicateur de tier sur le gain.
 
 ---
 
 ## 2. Acteurs du système
 
-### 2.1 Le Patient (EARN + BURN)
+Rôles réels en base (`SELECT DISTINCT role FROM users`, cf. modèle de données §0) qui interagissent avec Zora aujourd'hui :
 
-- **Gagne** des Zora Points via ses actes de santé et bien-être.
-- **Consulte** son solde et son historique dans son dashboard.
-- **Génère** des bons d'achat ou réclame des réductions.
-- **Découvre** les offres dans le Feed et la Marketplace.
-- Son niveau de tier influence son multiplicateur de gain et l'accès à certaines récompenses.
+- **Patient** : gagne des points (`awardZora()`), consulte son solde (`GET /zora/balance`), génère des bons (`POST /bons-zora/generate`), consulte son historique (`GET /zora/ledger`).
+- **Médecin, pharmacie, laboratoire, animateur** : déclenchent indirectement des crédits Zora via leurs actions métier respectives (voir section 3) — jamais via un appel Zora direct depuis leur dashboard.
+- **Pharmacie / laboratoire** (dashboards `pharmacie/dashboard.html`, `laboratoire/dashboard.html`) : tentent de valider des bons Zora via un bouton "Vérifier" — flux **cassé**, voir section 7 et 16.
+- **Rôle `partenaire`** (`partenaire.routes.js`, `partenaire/dashboard.html`) : existe dans le code, aligné avec le middleware `requirePartenaire` des routes `/bons-zora/validate*`, mais **0 compte réel** en base à ce jour (modèle de données §0). Le dashboard `partenaire` liste les programmes (`GET /bons-zora/programs`) et affiche des stats (`GET /partenaire/stats`), sans formulaire de création de programme.
+- **Admin** : ne gère aujourd'hui que le **règlement financier** des bons validés (`clearing.routes.js` → `/clearing/bons-zora/*`), pas la création ou l'approbation d'offres — il n'existe aucune interface de ce type.
 
-### 2.2 Le Partenaire Santé (DÉCLENCHEUR EARN)
-
-Catégories : clinique, pharmacie, laboratoire.
-
-- **Déclenche** des Zora Points à chaque acte de soins validé.
-- **Ne finance pas** les récompenses — il est uniquement émetteur de points.
-- Peut aussi publier des offres promotionnelles dans la Marketplace (ex : réduction sur un bilan sanguin).
-- Chaque acte est horodaté et associé à un `proof_reference` unique pour idempotence.
-
-### 2.3 L'Animateur (DÉCLENCHEUR EARN)
-
-- **Déclenche** des Zora Points à chaque participation validée à un événement Elonga.
-- Contrôle les présences via son dashboard (scan QR patient ou validation manuelle).
-- N'a pas de solde Zora personnel.
-- Le déclenchement est conditionné à la présence effective vérifiée.
-
-### 2.4 Le Partenaire Récompense (OFFREUR BURN)
-
-Catégories : boutiques, restaurants, services, pharmacies partenaires, épiceries premium, etc.
-
-- **Finance ses propres récompenses** — bons d'achat, cartes cadeaux, réductions.
-- **Publie ses offres** dans la Marketplace via son dashboard.
-- **Valide** les bons présentés par les patients via scan QR ou code manuel.
-- Définit un budget de récompenses mensuel ou par campagne.
-- Reçoit un reporting mensuel de sa consommation de récompenses.
-
-### 2.5 L'Admin Bolamu (CONFIGURATION + SUPERVISION)
-
-- Configure les règles d'earn (points par action, multiplicateurs, plafonds).
-- Valide ou rejette les offres soumises par les partenaires.
-- Lance des campagnes bonus ponctuelles (ex : "2x points en juillet").
-- Peut publier des offres en propre (offres Bolamu directes).
-- Surveille les anomalies et fraudes.
+Il n'existe **aucun rôle `reward_partner`/`health_partner`** en base — ces noms de rôle, mentionnés dans la v1.1 puis explicitement abandonnés par sa propre note (§19), n'ont jamais été implémentés.
 
 ---
 
-## 3. Flux EARN — Gain de points
+## 3. Flux EARN — Gain de points (réel)
 
-### 3.1 Taxonomie des déclencheurs
+**Point d'entrée unique confirmé : `awardZora()` dans `src/services/zora.service.js:34`.** Aucune autre fonction ne crédite `zora_ledger` (confirmé par le modèle de données §1.5 : "insert-only confirmé").
 
-Chaque déclencheur appartient à une catégorie. Les catégories ont des plafonds mensuels.
+### 3.1 Logique réelle de `awardZora({ phone, action_type, proof_class, proof_source, recording_method, proof_reference })`
 
-| Code action | Libellé | Déclencheur | Points de base | Plafond mensuel |
-|---|---|---|---|---|
-| `CONSULT_MEDECIN` | Consultation médicale | Médecin / Secrétaire | 150 pts | 600 pts |
-| `ACHAT_PHARMACIE` | Achat pharmacie partenaire | Pharmacie | 50 pts | 300 pts |
-| `BILAN_LABO` | Bilan laboratoire | Laboratoire | 100 pts | 200 pts |
-| `SEANCE_ELONGA` | Séance activité physique | Animateur | 80 pts | 640 pts |
-| `EVENT_ELONGA` | Participation événement Elonga | Animateur | 120 pts | 360 pts |
-| `ABONNEMENT_RENOUVELE` | Renouvellement abonnement | Système (cron) | 200 pts | 200 pts |
-| `PROFIL_COMPLETE` | Complétion profil (une fois) | Système | 100 pts | 100 pts |
-| `PARRAINAGE` | Parrainage validé (filleul actif 30j) | Système | 250 pts | 500 pts |
-| `FIDELITE_12MOIS` | 12 mois consécutifs d'abonnement | Système (cron) | 500 pts | 500 pts |
+Étapes exactes du code (`zora.service.js:34-260`) :
 
-### 3.2 Règle d'idempotence
+1. Charge la règle depuis `zora_earn_rules WHERE action_type = $1`. Si absente ou `is_active = FALSE` → refus silencieux (`{success:false, reason:'rule_unknown'|'rule_inactive'}`).
+2. Contrôle de preuve : `proof_class = 'device_declared'` → **rejet total**. Hiérarchie réelle codée en dur (`ground_truth`:3, `system_event`:2, `device_measured`:1, `device_declared`:0) comparée à `rule.required_proof_class`. `device_measured` + `recording_method='manual_entry'` → rejet.
+3. Idempotence : `SELECT COUNT(*) FROM zora_ledger WHERE action_type=$1 AND proof_reference=$2 AND points>0` → si déjà créditée, refus (`already_credited`). C'est la vraie mécanique d'idempotence, pas une contrainte UNIQUE explicite en base sur `proof_reference` seul (l'index réel est `(action_type, proof_reference) WHERE points > 0`, cf. modèle de données §1.5).
+4. Plafond journalier : `rule.daily_cap` comparé au nombre de crédits du jour pour ce `phone`+`action_type`.
+5. Plafond catégorie : **uniquement si `total_earned >= 500`**, compare la somme de la catégorie sur 12 mois glissants à `cap_percent` (depuis `zora_category_caps`) appliqué au nouveau total. En dessous de 500 points cumulés, **aucun plafond catégorie n'est appliqué**.
+6. Crédit : `INSERT INTO zora_ledger` avec `rule.points` **tel quel, sans aucune multiplication** — puis `INSERT ... ON CONFLICT UPDATE` sur `zora_points` (balance recalculée par `SUM(points)` depuis le ledger, `total_earned` incrémenté).
+7. Recalcul du tier : relit `zora_tiers_config` (via cache mémoire 5 min, `getTiersConfig()`), compare `total_earned` à `tier.min_points` pour chaque palier et prend le dernier atteint. **Le tier est réellement recalculé et persisté**, mais uniquement à des fins d'affichage/de badge — voir 3.2.
+8. Audit : `INSERT INTO audit_log (event_type='zora_award', ...)`.
+9. Effets non bloquants (hors transaction) : émission Socket.io `leaderboard_updated`, mise à jour du streak (`updateStreak()`), post automatique dans le feed pour certaines `action_type` (`bilan_annuel`, `vaccination`, `event_checkin`, `streak_7`, `streak_30` — `chatService.postAchievement()`).
 
-Chaque déclencheur génère un `proof_reference` unique :
+### 3.2 Le tier est-il branché dans la logique earn, ou juste peuplé sans effet ?
 
-```
-{action_type}:{entity_id}:{date_YYYYMMDD}
-```
+**Réponse vérifiée : les trois tables (`zora_tiers_config`, `zora_earn_rules`, `zora_category_caps`) sont réellement lues et ont un effet réel** — `zora_earn_rules` détermine les points et les plafonds, `zora_category_caps` limite le gain par catégorie au-delà de 500 points cumulés, `zora_tiers_config` détermine le badge de palier affiché. **Mais contrairement à la v1.1 (§3.3, "multiplicateur de tier"), le tier n'a AUCUN effet multiplicateur sur les points crédités.** `rule.points` est inséré tel quel — il n'existe aucune colonne `multiplier` lue ni appliquée dans `awardZora()`. Le tableau "× 1.0 / × 1.2 / × 1.5 / × 2.0" de la v1.1 ne correspond à aucun code réel.
 
-Exemples :
-- `CONSULT_MEDECIN:appt_uuid_123:20260704`
-- `SEANCE_ELONGA:event_uuid_456:20260704`
-- `ACHAT_PHARMACIE:prescription_uuid_789:20260704`
+### 3.3 Appelants réels de `awardZora()`
 
-Un `proof_reference` identique ne peut jamais déclencher deux crédits. Contrainte unique en base.
-
-### 3.3 Multiplicateur de tier
-
-Les points de base sont multipliés selon le tier du patient au moment du déclenchement :
-
-| Tier | Multiplicateur |
-|---|---|
-| Kimia (débutant) | × 1.0 |
-| Liboso (confirmé) | × 1.2 |
-| Nkembo (avancé) | × 1.5 |
-| Elonga (élite) | × 2.0 |
-
-Le multiplicateur est appliqué avant l'écriture en base, **après** vérification du plafond mensuel par catégorie.
-
-### 3.4 Campagnes bonus
-
-L'admin peut créer des campagnes qui superposent un multiplicateur additionnel sur une action et une période :
-
-```json
-{
-  "campaign_id": "camp_uuid",
-  "action_type": "SEANCE_ELONGA",
-  "multiplier": 2.0,
-  "start_date": "2026-07-01",
-  "end_date": "2026-07-31",
-  "label": "Juillet Santé — 2x sur séances Elonga"
-}
-```
-
-Le multiplicateur de campagne se compose avec le multiplicateur de tier : `points_base × tier_mult × campaign_mult`.
-
-### 3.5 Types de preuve (proof_type)
-
-| Type | Description | Accepté |
-|---|---|---|
-| `system_event` | Déclenché automatiquement par le système | Oui |
-| `ground_truth` | Validé par un acteur humain (médecin, animateur, pharmacie) | Oui |
-| `device_measured` | Mesuré par un capteur (futur — app mobile) | Oui (avec validation) |
-| `device_declared` | Auto-déclaré par le patient | **Jamais accepté** |
+Confirmé par le modèle de données §1.5 : `routes/clubs.routes.js`, `controllers/{clubs,qr}.controller.js`, `services/{event,notification,zora-voucher,zora-games,communityService,scoreBolamu,bon-zora,wellness,zora-marketplace,leaderboard}.service.js`, `routes/{admin,patient,elonga-events}.routes.js`, `cron/zora-expiration.js`. Autrement dit, le crédit Zora est déclenché depuis des points d'ancrage dispersés dans le code (clubs, QR, événements Elonga, jeux, encouragements, score bien-être), **pas** depuis une carte d'intégration centralisée façon "table 17.1" de la v1.1 — cette carte reste une bonne intention de documentation, pas un fait vérifié fichier par fichier dans le cadre de cette réécriture.
 
 ---
 
-## 4. Flux BURN — Dépense de points
+## 4. Flux BURN — Dépense de points (réel)
 
-> **NOTE CONSOLIDATION BONS ZORA** — zora_vouchers et zora-voucher.service.js sont dépréciés. Système canonique : partner_bons_zora + bon-zora.service.js (seul pipeline opérationnel de bout en bout).
+**Un seul mécanisme actif aujourd'hui : `partner_programs` + `partner_bons_zora` via `src/services/bon-zora.service.js`.**
 
-> **DÉCISION RÉGLEMENTAIRE DÉFINITIVE** — Le retrait cash direct via MoMo est exclu du système Zora. Raison : absence d'agrément BEAC (interdiction de détention de fonds). Les seuls mécanismes de burn autorisés sont `BON_ZORA` / `GIFT_CARD` / `DISCOUNT` / `OFFER_ACCESS` (section 4.1 ci-dessous). Cette décision ne peut pas être annulée sans obtention préalable de l'agrément BEAC.
+### 4.1 Confirmation : `zora_vouchers` n'est plus le système actif pour du burn patient
 
-### 4.1 Types de rédemption
+- `POST /api/v1/partenaire/voucher/validate` (`partenaire.routes.js:149`) renvoie explicitement **HTTP 410 Gone** avec le message *"Route dépréciée — utiliser /vouchers/*"* — mais **aucune route `/vouchers/*` n'est montée dans `server.js`** (vérifié : aucun `app.use(...vouchers...)`). Le message de dépréciation pointe vers une route qui n'existe pas ; le vrai successeur est `/bons-zora/*`.
+- `GET /api/v1/partenaire/validations` (`partenaire.controller.js:35`, `getValidationsHandler`) lit encore `zora_voucher_validations` / `zora_vouchers` / `zora_rewards` — cette route reste câblée sur l'ancien système et ne verra donc **jamais** les validations `partner_bons_zora` récentes.
+- Le cron `src/cron/zora-expiration.js:22` expire encore les lignes `zora_vouchers` actives (`UPDATE zora_vouchers SET status='expired' WHERE status='active' AND expires_at < NOW()`) — l'ancien système n'est pas mort en base, juste plus alimenté par aucun flux de génération patient actif identifié.
+- **Aucun appel frontend** (patient, pharmacie, laboratoire, partenaire) ne cible `zora_vouchers`/`zora_rewards`/`zora-marketplace` aujourd'hui — confirmé par grep exhaustif sur `public/*/dashboard.html`.
 
-| Type | Libellé | Mécanisme |
-|---|---|---|
-| `BON_ZORA` | Bon Zora | Patient génère un QR code, présente chez partenaire, partenaire scanne |
-| `GIFT_CARD` | Carte cadeau | Bon à valeur fixe prédéfinie, même flux QR |
-| `DISCOUNT` | Réduction directe | Appliquée lors d'un acte partenaire (couche sur la facture) |
-| `OFFER_ACCESS` | Accès à une offre exclusive | Débloque une offre réservée aux détenteurs Zora |
+### 4.2 Génération d'un bon Zora (réel) — `generateBonZora(patient_phone, program_id)` (`bon-zora.service.js:66`)
 
-### 4.2 Seuils minimaux de rédemption
+Appelée par `POST /api/v1/bons-zora/generate` (`bon-zora.routes.js:51`), elle-même appelée par `patient/dashboard.html:2838` (`{ program_id: r.id }`).
 
-- Minimum de points pour générer un bon : **200 points**
-- Les points ne peuvent être utilisés qu'en multiples de 50 (arrondi inférieur automatique)
-- Un bon annulé re-crédite les points dans les 24h
+Transaction réelle :
+1. `SELECT ... FROM partner_programs WHERE id=$1 AND is_active=TRUE FOR UPDATE` (verrou pessimiste).
+2. Stock : `NULL` = illimité, sinon `stock <= 0` → `program_out_of_stock`.
+3. `SELECT balance FROM zora_points WHERE phone=$1 FOR UPDATE` — solde insuffisant → `insufficient_balance`.
+4. `UPDATE zora_points SET balance = balance - $1 WHERE phone=$2 AND balance >= $1` (débit conditionnel atomique — même pattern que la v1.1 décrivait pour `zora_wallets`, mais sur la vraie table `zora_points`).
+5. Génération d'un code unique (`generateUniqueCode()`).
+6. `INSERT INTO zora_ledger (..., points=-program.zora_cost, category='redemption', action_type='bon_zora_generation', proof_class='system_event', ...)` — la dépense est bien tracée dans le même ledger que le gain, avec un montant négatif.
 
-### 4.3 Statuts d'un bon
+C'est une implémentation réelle et fonctionnelle de la mécanique de réservation atomique décrite en v1.1 §21 — testée en HTTP réel dans le cadre du diagnostic du 7 juillet 2026 (bon id=2, `PART-MQU2N4W5`).
 
-```
-GENERATED → PRESENTED → VALIDATED → USED
-                ↓
-             EXPIRED (48h sans validation)
-                ↓
-             CANCELLED (annulé par patient ou admin)
-```
+### 4.3 Validation d'un bon Zora (réel, mais partiellement cassé côté pharmacie/laboratoire)
 
-### 4.4 Expiration des points
+`validateBonZora(code, partner_phone, method)` (`bon-zora.service.js:218`), appelée par `POST /bons-zora/validate` et `POST /bons-zora/validate/qr` (`bon-zora.routes.js:95,123`, protégées par `requirePartenaire` = `req.user.role === 'partenaire'`).
 
-- Fenêtre glissante de **12 mois** : les points non utilisés dans les 12 mois suivant leur gain expirent.
-- Un acte de santé ou bien-être dans la fenêtre **réinitialise l'horloge** sur les points en question (clause d'activité).
-- L'expiration est traitée par un cron quotidien à 02h00 (heure de Brazzaville, UTC+1).
-- Le patient est notifié par WhatsApp 30 jours, 7 jours et 1 jour avant expiration.
+Retour réel en cas de succès : `{ success: true, valid: true, patient_initiales, fcfa_value }` — **pas** `discount_value`, `patient_phone`, `reward_title`, `consumed_at` (voir section 7.3 pour la rupture frontend).
 
 ---
 
-## 5. Marketplace — Offres et récompenses
+## 5. Marketplace — Offres et programmes partenaires (réel)
 
-### 5.1 Cycle de vie d'une offre
+Pas de cycle de vie DRAFT → SUBMITTED → REVIEW → APPROVED décrit en v1.1 §5.1 : **aucune colonne de statut de ce type n'existe sur `partner_programs`** (schéma réel : `id`, `partner_id`, `name`, `description`, `zora_cost` NOT NULL, `fcfa_value`, `category`, `is_active` (bool, défaut `true`), `stock`, `created_at` — PK sur `id` uniquement, aucun CHECK, aucune FK, vérifié le 7 juillet 2026).
 
-```
-DRAFT (partenaire) → SUBMITTED → REVIEW (admin) → APPROVED → ACTIVE
-                                        ↓
-                                     REJECTED (avec motif)
-                                        ↓
-                                   ARCHIVED (fin de campagne)
-```
+`GET /api/v1/bons-zora/programs` (`bon-zora.routes.js:35`, publique, pas d'auth) → `getProgramsByCategory()` (`bon-zora.service.js:387`) : `SELECT ... FROM partner_programs WHERE is_active = TRUE AND (stock IS NULL OR stock > 0) [AND category = $1] ORDER BY zora_cost ASC`.
 
-### 5.2 Structure d'une offre
-
-```json
-{
-  "offer_id": "uuid",
-  "partner_id": "uuid",
-  "partner_type": "reward_partner | health_partner",
-  "title": "30% sur tous les produits cosmétiques",
-  "description": "...",
-  "type": "DISCOUNT | BON_ZORA | GIFT_CARD | OFFER_ACCESS",
-  "zora_cost": 500,
-  "value_fcfa": 2000,
-  "discount_percent": 30,
-  "stock": 100,
-  "stock_remaining": 87,
-  "valid_from": "2026-07-01",
-  "valid_until": "2026-07-31",
-  "min_tier": "KIMIA",
-  "city": "Brazzaville | Pointe-Noire | all",
-  "status": "ACTIVE",
-  "feed_published": true,
-  "image_url": "...",
-  "budget_fcfa": 200000,
-  "budget_consumed_fcfa": 26000
-}
-```
-
-### 5.3 Budget partenaire
-
-Chaque offre est associée à un budget que le partenaire s'engage à financer. Bolamu track :
-- `budget_fcfa` : budget total déclaré
-- `budget_consumed_fcfa` : montant consommé en récompenses accordées
-- Quand `budget_consumed >= budget_fcfa`, l'offre passe automatiquement en `ARCHIVED`
-- Le partenaire reçoit une alerte WhatsApp à 80% de consommation du budget
+**Il n'existe aucune route POST/PUT pour créer ou modifier un `partner_program`** dans tout `bon-zora.routes.js` — confirmé par grep des méthodes de routage. La seule façon d'alimenter cette table aujourd'hui est une **insertion SQL manuelle directe** (migration ou script), exactement la méthode employée le 7 juillet 2026 pour peupler le catalogue vide. Aucun flux de soumission par un partenaire, aucune validation admin — voir section 15.
 
 ---
 
-## 6. Tiers Zora — Niveaux et avantages
+## 6. Tiers Zora — Niveaux réels
 
-### 6.1 Calcul du tier
+`zora_tiers_config` (migration_030) porte les paliers réels : `tier_name`, `min_points`, `is_active` (colonnes confirmées par leur usage dans `zora.service.js:15,169-175,293,299-303` — noms exacts `min_points`, pas `min_points_12m` comme l'écrivait la v1.1). Les noms de paliers réels sont `kimia`/`liboso`/`nkembo`/`elonga` (en minuscules en base), affichés en français capitalisé côté frontend (`tierMap` dans `dashboard.html`).
 
-Le tier est calculé sur les **points cumulés des 12 derniers mois glissants** (pas le solde disponible — les points dépensés comptent quand même pour le tier).
+Le tier est recalculé à **chaque** appel `awardZora()` réussi (pas seulement par un cron mensuel comme décrit en v1.1 §6.2) : comparaison directe de `total_earned` à `tier.min_points`, mise à jour immédiate si franchissement. **Aucun downgrade n'est possible** dans cette logique — `total_earned` est cumulatif et ne diminue jamais, donc le tier ne peut que monter ou rester stable, jamais redescendre. Il n'existe **aucun cron de recalcul mensuel des tiers** trouvé dans `src/cron/` ou `src/jobs/` — le tableau v1.1 §6.2 ("recalcul chaque 1er du mois") ne correspond à rien d'implémenté.
 
-| Tier | Nom | Points 12 mois requis | Couleur |
-|---|---|---|---|
-| 1 | Kimia (Paix) | 0 — 999 | Gris |
-| 2 | Liboso (Premier pas) | 1 000 — 2 999 | Vert |
-| 3 | Nkembo (Gloire) | 3 000 — 6 999 | Or |
-| 4 | Elonga (Excellence) | 7 000+ | Platine |
-
-### 6.2 Recalcul du tier
-
-- Recalcul automatique chaque **1er du mois** à 03h00 (cron).
-- Upgrade immédiat si le seuil est franchi en cours de mois.
-- Downgrade uniquement au recalcul mensuel (pas de downgrade immédiat).
-- En cas d'upgrade : notification WhatsApp + badge dans le Feed social.
-
-### 6.3 Avantages par tier
-
-| Avantage | Kimia | Liboso | Nkembo | Elonga |
-|---|---|---|---|---|
-| Multiplicateur earn | × 1.0 | × 1.2 | × 1.5 | × 2.0 |
-| Accès offres standard | Oui | Oui | Oui | Oui |
-| Accès offres Nkembo+ | Non | Non | Oui | Oui |
-| Accès offres Elonga exclusif | Non | Non | Non | Oui |
-| Alertes offres en avant-première | Non | Non | Oui | Oui |
-| Badge profil visible | Non | Oui | Oui | Oui |
+Aucune table `zora_tier_history` n'existe — pas d'audit trail dédié aux changements de palier (seul `audit_log` générique via l'event `zora_award` conserve indirectement cette information dans son payload).
 
 ---
 
-## 7. Flux digital complet — Bon d'achat et rédemption
+## 7. Flux digital complet — Bon d'achat et validation (réel, avec ses ruptures)
 
-### 7.1 Côté Patient (dashboard)
+### 7.1 Côté patient — fonctionnel, vérifié en HTTP réel le 7 juillet 2026
 
 ```
-1. Patient accède à la Marketplace
-2. Sélectionne une offre (BON_ZORA ou GIFT_CARD)
-3. Clique "Utiliser mes points" → confirmation du coût affiché
-4. Système vérifie : solde suffisant + offre active + stock disponible + tier compatible
-5. Débit atomique du solde Zora
-6. Génération du bon : UUID + QR code + code alphanumérique (fallback)
-7. Bon stocké en base avec statut GENERATED
-8. Affichage immédiat dans dashboard + section "Mes bons"
-9. Notification WhatsApp envoyée avec le code alphanumérique (backup offline)
+1. GET /bons-zora/programs → catalogue (patient/dashboard.html, bande "Échangeable maintenant")
+2. POST /bons-zora/generate {program_id} → débit atomique + code unique
+3. GET /bons-zora/my → liste des bons (actifs + historique)
 ```
 
-### 7.2 Côté Partenaire (dashboard partenaire)
+### 7.2 Côté pharmacie/laboratoire — CASSÉ, confirmé par lecture du code (pas testé en conditions réelles ce soir, mais la rupture est certaine à la lecture)
 
-**Option A — Scan QR (flux principal)**
-```
-1. Patient présente son QR code (dashboard ou WhatsApp)
-2. Partenaire ouvre son dashboard → section "Scanner un bon"
-3. Scan QR → appel API /bons-zora/validate/qr
-4. Réponse instantanée : informations du bon + montant de la réduction
-5. Partenaire confirme → bon passe en USED
-6. Les deux reçoivent une confirmation WhatsApp
-```
+`public/pharmacie/dashboard.html:881` et `public/laboratoire/dashboard.html` (fonction `verifyZoraVoucher`, nom hérité de l'ancien système mais appelant bien la route moderne) :
 
-**Option B — Saisie manuelle (fallback)**
-```
-1. Patient dicte son code alphanumérique (format : ZORA-XXXXX-XXXXX)
-2. Partenaire saisit dans son dashboard → même flux API
+```javascript
+const res = await fetch(`${API}/bons-zora/validate/qr`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+});
 ```
 
-### 7.3 Gestion des edge cases
+Trois ruptures cumulées :
+1. **Aucun `body` envoyé** — la route exige `{ code }` dans le corps de la requête (`bon-zora.routes.js:125`) ; sans lui, réponse systématique `400 missing_code`.
+2. **Rôle incompatible** — `requirePartenaire` exige `req.user.role === 'partenaire'` (`bon-zora.routes.js:17`), mais les comptes pharmacie/laboratoire ont respectivement `role='pharmacie'`/`role='laboratoire'` — même en corrigeant le body, la requête serait rejetée en 403.
+3. **Champs de réponse attendus inexistants** — le code affiche `data.data.discount_value`, `data.data.patient_phone`, `data.data.reward_title`, `data.data.consumed_at` (`pharmacie/dashboard.html:892-896`), alors que `validateBonZora()` ne renvoie que `{ success, valid, patient_initiales, fcfa_value }` (`bon-zora.service.js:314-319`). Même avec une requête correcte, l'affichage serait incohérent.
 
-| Situation | Comportement |
-|---|---|
-| Bon expiré (48h) | Refus API + re-crédit automatique dans 24h |
-| Réseau coupé côté partenaire | Code alphanumérique noté manuellement, validation différée (max 2h) |
-| Patient présente deux fois le même bon | Idempotence : second scan retourne "déjà utilisé" sans erreur |
-| Stock épuisé entre génération et validation | Bon honoré quand même (le stock est réservé à la génération) |
-| Offre archivée après génération du bon | Bon reste valide jusqu'à son expiration propre |
+Ce flux n'a manifestement jamais été testé de bout en bout depuis son écriture.
+
+### 7.3 Seul chemin de validation aligné avec les rôles réels : le dashboard `partenaire`
+
+Le dashboard `partenaire/dashboard.html` (rôle `partenaire`, aligné avec `requirePartenaire`) ne contient **aucun bouton de scan/validation de bon** trouvé dans le fichier — seulement une liste des programmes (`loadPrograms()`) et des stats (`loadStats()`). Combiné au fait que ce rôle a **0 compte réel** en base, le flux de validation de bon Zora — pourtant fonctionnel côté API (vérifié directement en HTTP ce soir) — n'a **aucun point d'entrée UI opérationnel** dans l'état actuel du produit.
 
 ---
 
-## 8. Feed social et publication d'offres
+## 8. Feed social et Zora
 
-### 8.1 Intégration Feed
-
-Les offres Marketplace approuvées avec `feed_published = true` apparaissent dans le **Feed tab** du dashboard patient, mélangées aux contenus sociaux (posts, stories, événements Elonga).
-
-Structure d'un post d'offre dans le Feed :
-
-```json
-{
-  "feed_item_type": "OFFER",
-  "offer_id": "uuid",
-  "partner_name": "Boutique Mama Ngombo",
-  "partner_avatar_url": "...",
-  "title": "500 Zora = 3 000 FCFA de réduction",
-  "preview_image_url": "...",
-  "zora_cost": 500,
-  "valid_until": "2026-07-31",
-  "city": "Brazzaville",
-  "cta_label": "Utiliser mes points",
-  "cta_action": "open_offer:{offer_id}"
-}
-```
-
-### 8.2 Règles d'affichage
-
-- Une offre `min_tier: NKEMBO` est visible par tous mais le bouton CTA affiche "Réservé aux membres Nkembo+" pour les tiers inférieurs — pas de filtre total, pour créer l'aspiration.
-- Le filtre ville est appliqué par défaut selon le profil patient (Brazzaville / Pointe-Noire).
-- Les offres Elonga exclusif ont un badge visuel distinctif.
-- L'ordre d'affichage : offres actives par date de fin croissante (les plus urgentes d'abord).
-
-### 8.3 Notifications Feed pour les offres
-
-| Déclencheur | Canal | Destinataire |
-|---|---|---|
-| Nouvelle offre publiée (tier compatible) | WhatsApp + in-app | Patients éligibles (par tier + ville) |
-| Offre expire dans 48h (patient a assez de points) | WhatsApp | Patient ciblé |
-| Upgrade de tier | WhatsApp + badge Feed | Patient |
-| Points sur le point d'expirer (30j, 7j, 1j) | WhatsApp | Patient |
+Le feed social (`posts`, cf. modèle de données §1.7) reçoit des posts automatiques liés à Zora **uniquement** pour certaines actions de gain (`bilan_annuel`, `vaccination`, `event_checkin`, `streak_7`, `streak_30` — via `chatService.postAchievement()`, appelé depuis `zora.service.js:228`). **Il n'existe aucune intégration entre le feed et les offres/programmes de la marketplace** — la section 8 de la v1.1 (offres publiées dans le feed avec `feed_published`, CTA "Utiliser mes points") ne correspond à aucune colonne (`partner_programs` n'a pas de champ `feed_published`) ni à aucun code de publication trouvé.
 
 ---
 
 ## 9. Modèle économique
 
-### 9.1 Qui paie quoi
+Le principe "le partenaire finance ses propres récompenses, Bolamu fournit le rail technologique" reste la logique produit valide et cohérente avec l'implémentation réelle (aucun flux de facturation Bolamu→partenaire trouvé pour le catalogue Zora ; seul le règlement admin décrit en section 15 gère l'aspect financier, côté remboursement partenaire).
 
-| Acteur | Ce qu'il finance |
-|---|---|
-| Partenaire récompense | Ses propres récompenses (budget déclaré par offre) |
-| Partenaire santé | Rien — il est déclencheur, pas financeur |
-| Bolamu | L'infrastructure, le rail technologique, les notifications |
-| Patient | Rien — il consomme |
-
-### 9.2 Revenus indirects pour Bolamu
-
-Le système Zora n'est pas une ligne de revenu directe. Il est un **levier de rétention et d'acquisition** :
-
-- Rétention patient : les points incitent à renouveler l'abonnement et à rester actif.
-- Acquisition partenaires récompenses : Bolamu leur offre un programme de fidélité clé en main avec une base de patients actifs — argument commercial pour les conventions partenaires.
-- Upsell abonnement : les patients en tier Kimia qui voient les offres Nkembo+ sont incités à monter en activité (plus de soins → plus de points → meilleur tier).
-
-### 9.3 Valeur interne (usage admin uniquement)
-
-```
-1 Zora Point = 1.5 FCFA (coût interne indicatif, jamais publié)
-```
-
-Cette valeur sert uniquement à construire les offres avec les partenaires et à estimer l'exposition financière totale du catalogue.
+La valeur interne "1 Zora = 1.5 FCFA" (v1.1 §9.3) **ne correspond à aucune colonne ni constante trouvée dans le code** — ni dans `platform_config`, ni en dur dans `zora.service.js` ou `bon-zora.service.js`. C'est une intention business non technique à ce jour ; `fcfa_value` est saisi manuellement par ligne de `partner_programs`/`partner_bons_zora`, sans dérivation automatique depuis un taux de conversion.
 
 ---
 
-## 10. Schéma base de données
+## 10. Schéma base de données (réel)
 
-### 10.1 Tables principales
+Reprend exactement `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.5 — ne pas redécrire un schéma différent ici :
 
-```sql
--- Solde et tier courant du patient
-CREATE TABLE zora_wallets (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  balance INTEGER NOT NULL DEFAULT 0,          -- points disponibles
-  points_earned_12m INTEGER NOT NULL DEFAULT 0, -- pour calcul tier
-  tier VARCHAR(20) NOT NULL DEFAULT 'KIMIA',    -- KIMIA|LIBOSO|NKEMBO|ELONGA
-  tier_updated_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  CONSTRAINT unique_wallet_per_user UNIQUE(user_id),
-  CONSTRAINT balance_non_negative CHECK (balance >= 0)
-);
+> **Tables** :
+> - **`zora_points`** (migration_030) — solde par `phone` : `balance`, `total_earned`, `tier` (défaut `'kimia'`), `last_activity_at`.
+> - **`zora_ledger`** (migration_030) — insert-only confirmé, `phone` FK→`users(phone)`, `points`, `category`, `action_type`, `proof_class`, `proof_source`, `recording_method`, `proof_reference`, `verified`, `earned_at`, `expires_at` ; index unique idempotent `(action_type, proof_reference) WHERE points > 0`. `awardZora()` (`src/services/zora.service.js`) est le point d'entrée unique confirmé.
+> - **`zora_tiers_config`**, **`zora_earn_rules`**, **`zora_category_caps`** (migration_030) — paramétrage paliers (Kimia/Liboso/Nkembo/Elonga), règles de gain, plafonds par catégorie (santé 60%/sport 25%/plateforme 10%/lifestyle 5%).
+> - **`zora_partners`**, **`zora_rewards`**, **`zora_vouchers`** (migration_031, « marketplace ») — il n'existe pas de table `zora_marketplace` : le marketplace historique est la combinaison de ces 3 tables + `zora_voucher_validations`.
+> - **`partner_bons_zora`**, **`partner_programs`**, **`partner_validations`** (migration_065) — second système de bons Zora, distinct de `zora_vouchers`/`zora_rewards` (programmes partenaires génériques hors catalogue Zora).
+> - **`zora_games`**, **`zora_game_prizes`**, **`zora_game_plays`** (+`question_id` migration_037), **`zora_games_global_cap`**, **`zora_quiz_questions`** (migration_032) — moteur de jeux (scratch/wheel/chest/quiz).
+> - **`qr_zora_consent`** : table inexistante. `users.zora_balance_visible_qr` (migration_041) est le seul lien direct QR↔Zora trouvé.
 
--- Livre de comptes — chaque mouvement de points
-CREATE TABLE zora_ledger (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  type VARCHAR(20) NOT NULL,                    -- CREDIT | DEBIT | EXPIRY | REFUND
-  amount INTEGER NOT NULL,                      -- toujours positif
-  balance_after INTEGER NOT NULL,
-  action_type VARCHAR(50),                      -- CONSULT_MEDECIN | SEANCE_ELONGA | etc.
-  proof_type VARCHAR(30),                       -- ground_truth | system_event | etc.
-  proof_reference VARCHAR(200),                 -- clé d'idempotence
-  triggered_by_role VARCHAR(30),                -- medecin | animateur | pharmacie | system
-  triggered_by_id UUID,
-  offer_id UUID REFERENCES zora_offers(id),
-  bon_zora_id UUID REFERENCES partner_bons_zora(id),
-  expires_at TIMESTAMPTZ,                       -- date d'expiration de ce lot de points
-  meta JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  CONSTRAINT unique_proof UNIQUE(proof_reference)
-);
+**Les deux systèmes de bons coexistent en base sans avoir été consolidés** : `zora_vouchers`/`zora_rewards`/`zora_partners` (migration_031) est l'ancien système marketplace, dont l'écriture (génération patient) n'est plus déclenchée par aucun flux frontend actif identifié, mais dont la lecture (`getValidationsHandler`) et l'expiration (cron) restent branchées dessus. `partner_programs`/`partner_bons_zora`/`partner_validations` (migration_065) est le système réellement utilisé par le patient et (en théorie) les partenaires aujourd'hui.
 
--- Règles de gain (configurables par admin)
-CREATE TABLE zora_earn_rules (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  action_type VARCHAR(50) NOT NULL UNIQUE,
-  base_points INTEGER NOT NULL,
-  monthly_cap INTEGER,
-  proof_type_required VARCHAR(30) NOT NULL,
-  is_active BOOLEAN DEFAULT TRUE,
-  description TEXT,
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Plafonds par catégorie et par tier
-CREATE TABLE zora_category_caps (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  action_type VARCHAR(50) NOT NULL,
-  tier VARCHAR(20) NOT NULL,
-  monthly_cap INTEGER NOT NULL,
-  CONSTRAINT unique_cap UNIQUE(action_type, tier)
-);
-
--- Tiers configuration
-CREATE TABLE zora_tiers_config (
-  tier VARCHAR(20) PRIMARY KEY,
-  label_fr VARCHAR(50) NOT NULL,
-  min_points_12m INTEGER NOT NULL,
-  multiplier DECIMAL(3,1) NOT NULL,
-  color_hex VARCHAR(7),
-  badge_icon VARCHAR(50),
-  display_order INTEGER
-);
-
--- Campagnes bonus
-CREATE TABLE zora_campaigns (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  label VARCHAR(200) NOT NULL,
-  action_type VARCHAR(50),                      -- NULL = toutes actions
-  multiplier DECIMAL(3,1) NOT NULL DEFAULT 1.0,
-  min_tier VARCHAR(20),                         -- NULL = tous tiers
-  city VARCHAR(50),                             -- NULL = toutes villes
-  start_date DATE NOT NULL,
-  end_date DATE NOT NULL,
-  is_active BOOLEAN DEFAULT TRUE,
-  created_by UUID REFERENCES users(id),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Offres partenaires (Marketplace)
-CREATE TABLE zora_offers (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  partner_id UUID NOT NULL REFERENCES users(id),
-  partner_type VARCHAR(30) NOT NULL,            -- reward_partner | health_partner
-  title VARCHAR(200) NOT NULL,
-  description TEXT,
-  type VARCHAR(20) NOT NULL,                    -- BON_ZORA|GIFT_CARD|DISCOUNT|OFFER_ACCESS
-  zora_cost INTEGER NOT NULL,
-  value_fcfa INTEGER,
-  discount_percent INTEGER,
-  stock INTEGER,
-  stock_remaining INTEGER,
-  valid_from DATE NOT NULL,
-  valid_until DATE NOT NULL,
-  min_tier VARCHAR(20) DEFAULT 'KIMIA',
-  city VARCHAR(50) DEFAULT 'all',
-  status VARCHAR(20) DEFAULT 'DRAFT',           -- DRAFT|SUBMITTED|APPROVED|REJECTED|ARCHIVED
-  feed_published BOOLEAN DEFAULT FALSE,
-  image_url TEXT,
-  budget_fcfa INTEGER,
-  budget_consumed_fcfa INTEGER DEFAULT 0,
-  rejection_reason TEXT,
-  reviewed_by UUID REFERENCES users(id),
-  reviewed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Bons générés par les patients
-CREATE TABLE zora_vouchers (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  offer_id UUID NOT NULL REFERENCES zora_offers(id),
-  user_id UUID NOT NULL REFERENCES users(id),
-  code_alpha VARCHAR(20) NOT NULL UNIQUE,       -- ZORA-XXXXX-XXXXX
-  qr_payload TEXT NOT NULL,                     -- UUID encodé
-  zora_cost INTEGER NOT NULL,
-  status VARCHAR(20) DEFAULT 'GENERATED',       -- GENERATED|PRESENTED|VALIDATED|USED|EXPIRED|CANCELLED
-  generated_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ NOT NULL,              -- generated_at + 48h
-  validated_by UUID REFERENCES users(id),       -- partenaire qui a scanné
-  validated_at TIMESTAMPTZ,
-  used_at TIMESTAMPTZ,
-  meta JSONB
-);
-
--- Historique des tiers (audit)
-CREATE TABLE zora_tier_history (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  previous_tier VARCHAR(20),
-  new_tier VARCHAR(20) NOT NULL,
-  points_12m_at_change INTEGER,
-  changed_at TIMESTAMPTZ DEFAULT NOW(),
-  change_reason VARCHAR(50)                     -- MONTHLY_RECALC | THRESHOLD_REACHED
-);
-```
-
-### 10.2 Index critiques
-
-```sql
--- Ledger : requêtes fréquentes
-CREATE INDEX idx_ledger_user_id ON zora_ledger(user_id);
-CREATE INDEX idx_ledger_created_at ON zora_ledger(created_at);
-CREATE INDEX idx_ledger_expires_at ON zora_ledger(expires_at) WHERE expires_at IS NOT NULL;
-CREATE INDEX idx_ledger_action_type ON zora_ledger(action_type);
-
--- Plafonds mensuels : agrégation rapide
-CREATE INDEX idx_ledger_user_month ON zora_ledger(user_id, action_type, created_at);
-
--- Bons Zora : validation rapide
-CREATE INDEX idx_bons_zora_code ON partner_bons_zora(code);
-CREATE INDEX idx_bons_zora_status ON partner_bons_zora(status);
-CREATE INDEX idx_bons_zora_expires ON partner_bons_zora(expires_at) WHERE status = 'active';
-
--- Offres : marketplace
-CREATE INDEX idx_offers_status_city ON zora_offers(status, city);
-CREATE INDEX idx_offers_valid_until ON zora_offers(valid_until) WHERE status = 'ACTIVE';
-```
+Migrations : 030, 031, 032, 037, 038, 040, 041 (zora_balance_visible_qr), 043 (fix balance), 065 (renommage partner_vouchers→partner_bons_zora), 066 (renommage voucher_payouts→bon_zora_reglements).
 
 ---
 
-## 11. Architecture backend — Routes et controllers
-
-### 11.1 Structure des fichiers
+## 11. Architecture backend — Fichiers réels
 
 ```
 src/
-├── controllers/
-│   ├── zora/
-│   │   ├── zora-earn.controller.js       -- Déclenchement de points
-│   │   ├── zora-burn.controller.js       -- Génération et validation de bons
-│   │   ├── zora-marketplace.controller.js -- Offres partenaires
-│   │   ├── zora-wallet.controller.js     -- Solde, historique, tier patient
-│   │   └── zora-admin.controller.js      -- Configuration admin
-│
 ├── services/
-│   ├── zora/
-│   │   ├── zora-earn.service.js          -- Logique earn + idempotence
-│   │   ├── zora-burn.service.js          -- Logique burn + génération QR
-│   │   ├── zora-tier.service.js          -- Calcul et mise à jour des tiers
-│   │   ├── zora-expiry.service.js        -- Expiration des points (cron)
-│   │   └── bon-zora.service.js            -- Génération et validation bons Zora
+│   ├── zora.service.js            -- awardZora(), getZoraBalance(), getZoraLedger(),
+│   │                                  getZoraTiers(), getZoraEarnRules(), recalculateBalance()
+│   ├── bon-zora.service.js        -- generateBonZora(), validateBonZora(), getPatientBonsZora(),
+│   │                                  getProgramsByCategory()
+│   ├── zora-voucher.service.js    -- LEGACY, encore importé par partenaire.controller.js
+│   │                                  mais la route qui l'appelait renvoie 410 Gone
+│   ├── zora-games.service.js      -- moteur de jeux (scratch/wheel/chest/quiz)
+│   └── zora-marketplace.service.js -- existe encore comme fichier, routes associées
+│                                      désactivées (voir ci-dessous)
 │
 ├── routes/
-│   ├── zora.routes.js                    -- Toutes les routes Zora
+│   ├── zora.routes.js             -- GET /balance, /ledger, /tiers, /earn-rules,
+│   │                                  POST /earn, /reset-period (admin)
+│   ├── zora-games.routes.js       -- montées sur /api/v1/zora également
+│   ├── bon-zora.routes.js         -- GET /programs, POST /generate, GET /my,
+│   │                                  POST /validate, /validate/qr, GET /:code/qr
+│   ├── zora-marketplace.routes.DEPRECATED.js -- fichier renommé, PAS monté dans server.js
+│   └── partenaire.routes.js       -- /login, /stats, /voucher/validate (410 Gone), /validations
 │
-└── jobs/
-    ├── zora-expiry.job.js                -- Cron expiration points (02h00 UTC+1)
-    └── zora-tier-recalc.job.js           -- Cron recalcul tiers (1er du mois 03h00)
+├── controllers/
+│   └── partenaire.controller.js   -- validateVoucherHandler (mort, jamais appelé),
+│                                      getValidationsHandler (encore branché sur zora_vouchers)
+│
+└── cron/
+    └── zora-expiration.js         -- quotidien 02h00 : expire zora_vouchers ET zora_ledger
 ```
 
-### 11.2 Routes
+### 11.1 Montage réel des routes (`server.js`)
 
 ```javascript
-// ═══════════════════════════════════════════════
-// PATIENT — Wallet et historique
-// ═══════════════════════════════════════════════
-GET    /api/zora/wallet                    // Solde + tier + points_12m
-GET    /api/zora/wallet/history            // Ledger paginé
-GET    /api/zora/wallet/expiring           // Points qui expirent dans 30j
-
-// ═══════════════════════════════════════════════
-// PATIENT — Bons Zora et rédemption
-// ═══════════════════════════════════════════════
-GET    /api/v1/bons-zora                  // Mes bons (actifs + historique)
-POST   /api/v1/bons-zora/generate         // Générer un bon depuis une offre
-DELETE /api/v1/bons-zora/:id/cancel       // Annuler un bon (avant validation)
-
-// ═══════════════════════════════════════════════
-// PARTENAIRE — Validation de bons Zora
-// ═══════════════════════════════════════════════
-POST   /api/v1/bons-zora/validate/qr      // Valider un bon (scan QR)
-POST   /api/v1/bons-zora/validate/code    // Valider un bon (code manuel)
-GET    /api/v1/bons-zora/partner/history  // Historique des bons validés
-
-// ═══════════════════════════════════════════════
-// MARKETPLACE — Offres
-// ═══════════════════════════════════════════════
-GET    /api/zora/offers                    // Liste offres actives (patient)
-GET    /api/zora/offers/:id               // Détail d'une offre
-POST   /api/zora/offers                   // Créer une offre (partenaire)
-PUT    /api/zora/offers/:id               // Modifier une offre (partenaire, si DRAFT)
-GET    /api/zora/offers/partner/mine      // Mes offres (partenaire)
-
-// ═══════════════════════════════════════════════
-// EARN — Déclenchement (acteurs autorisés)
-// ═══════════════════════════════════════════════
-POST   /api/zora/earn/consultation        // Déclenché par médecin/secrétaire
-POST   /api/zora/earn/pharmacie           // Déclenché par pharmacie
-POST   /api/zora/earn/laboratoire         // Déclenché par laboratoire
-POST   /api/zora/earn/elonga/presence     // Déclenché par animateur
-POST   /api/zora/earn/elonga/event        // Déclenché par animateur (événement)
-POST   /api/zora/earn/system              // Déclenché par système (cron, parrainage)
-
-// ═══════════════════════════════════════════════
-// ADMIN
-// ═══════════════════════════════════════════════
-GET    /api/admin/zora/dashboard          // Vue globale
-GET    /api/admin/zora/offers/pending     // Offres en attente de validation
-PUT    /api/admin/zora/offers/:id/review  // Approuver ou rejeter une offre
-POST   /api/admin/zora/campaigns          // Créer une campagne bonus
-PUT    /api/admin/zora/earn-rules         // Modifier les règles d'earn
-GET    /api/admin/zora/ledger             // Ledger global (audit)
+app.use('/api/v1/zora',         zoraRoutes);
+// DEPRECATED (zora_vouchers remplacé par partner_vouchers) — routes neutralisées avec 410 Gone
+// app.use('/api/v1/zora',         zoraMarketplaceRoutes);   ← COMMENTÉE, jamais exécutée
+app.use('/api/v1/zora',         zoraGamesRoutes);
+app.use('/api/v1/bons-zora',    bonZoraRoutes);
+app.use('/api/v1/partenaire',   partenaireRoutes);
 ```
 
-### 11.3 Logique earn atomique (zora-earn.service.js)
+Le commentaire promet un « 410 Gone » pour les routes neutralisées — en réalité, comme la ligne est commentée, ces routes ne répondent **plus du tout** (404 générique Express), pas un 410 explicite. Seule `partenaire.routes.js:149` (`/voucher/validate`) renvoie un vrai 410.
 
-```javascript
-async function creditPoints({ userId, actionType, proofReference, proofType, triggeredById, triggeredByRole, meta }) {
+### 11.2 Routes réelles (vérifiées par lecture directe des fichiers, pas par supposition)
 
-  // 1. Vérifier idempotence
-  const existing = await db.query(
-    'SELECT id FROM zora_ledger WHERE proof_reference = $1', [proofReference]
-  );
-  if (existing.rows.length > 0) return { skipped: true, reason: 'already_credited' };
-
-  // 2. Charger la règle earn
-  const rule = await getEarnRule(actionType); // depuis zora_earn_rules
-  if (!rule || !rule.is_active) throw new Error('RULE_INACTIVE');
-
-  // 3. Vérifier plafond mensuel catégorie
-  const monthlyEarned = await getMonthlyEarned(userId, actionType);
-  if (monthlyEarned >= rule.monthly_cap) return { skipped: true, reason: 'monthly_cap_reached' };
-
-  // 4. Charger tier + multiplicateur
-  const wallet = await getWallet(userId);
-  const tierConfig = await getTierConfig(wallet.tier);
-  const campaignMultiplier = await getActiveCampaignMultiplier(actionType, wallet.tier);
-
-  // 5. Calculer les points
-  const pointsToCredit = Math.floor(
-    rule.base_points * tierConfig.multiplier * campaignMultiplier
-  );
-
-  // 6. Transaction atomique
-  await db.transaction(async (trx) => {
-    // Écriture ledger
-    await trx.query(`
-      INSERT INTO zora_ledger (user_id, type, amount, balance_after, action_type,
-        proof_type, proof_reference, triggered_by_role, triggered_by_id, expires_at, meta)
-      VALUES ($1, 'CREDIT', $2, (SELECT balance FROM zora_wallets WHERE user_id=$1) + $2,
-        $3, $4, $5, $6, $7, NOW() + INTERVAL '12 months', $8)
-    `, [userId, pointsToCredit, actionType, proofType, proofReference, triggeredByRole, triggeredById, meta]);
-
-    // Mise à jour wallet
-    await trx.query(`
-      UPDATE zora_wallets
-      SET balance = balance + $1,
-          points_earned_12m = points_earned_12m + $1,
-          updated_at = NOW()
-      WHERE user_id = $2
-    `, [pointsToCredit, userId]);
-  });
-
-  // 7. Vérifier upgrade tier (hors transaction, non bloquant)
-  await checkAndUpgradeTier(userId).catch(console.error);
-
-  return { credited: pointsToCredit };
-}
 ```
+GET    /api/v1/zora/balance                — solde + tier (zora.routes.js)
+GET    /api/v1/zora/ledger                 — historique paginé
+GET    /api/v1/zora/tiers                  — paliers actifs
+GET    /api/v1/zora/earn-rules             — règles de gain actives
+POST   /api/v1/zora/earn                   — admin only
+POST   /api/v1/zora/reset-period           — admin only
+
+GET    /api/v1/bons-zora/programs          — catalogue (public, pas d'auth)
+POST   /api/v1/bons-zora/generate          — patient génère un bon
+GET    /api/v1/bons-zora/my                — mes bons (actifs + historique)
+POST   /api/v1/bons-zora/validate          — partenaire valide (code manuel)
+POST   /api/v1/bons-zora/validate/qr       — partenaire valide (scan QR)
+GET    /api/v1/bons-zora/:code/qr          — QR payload (patient, propriétaire uniquement)
+
+POST   /api/v1/partenaire/login
+GET    /api/v1/partenaire/stats
+POST   /api/v1/partenaire/voucher/validate — 410 Gone (mort)
+GET    /api/v1/partenaire/validations      — encore branché sur zora_vouchers (legacy)
+
+GET    /api/v1/clearing/bons-zora/pending  — admin, règlements en attente
+POST   /api/v1/clearing/bons-zora/run      — admin, génère les règlements
+PATCH  /api/v1/clearing/bons-zora/:id/pay  — admin, marque payé
+```
+
+Aucune des routes `/api/zora/wallet*`, `/api/zora/offers*`, `/api/admin/zora/*`, `/api/zora/earn/consultation|pharmacie|laboratoire|elonga/*` décrites en v1.1 §11.2 n'existe dans le code.
 
 ---
 
-## 12. Architecture frontend — Dashboards et composants
+## 12. Architecture frontend — Par dashboard (réel)
 
-### 12.1 Dashboard Patient — Onglets Zora
+### 12.1 Patient (`public/patient/dashboard.html`)
 
-#### Onglet Wallet (dans le dashboard principal)
-
-```
-┌─────────────────────────────────────────────┐
-│  [Badge Tier: NKEMBO — Or]                  │
-│                                             │
-│  Votre solde Zora                           │
-│  ┌─────────────────────────────────────┐    │
-│  │          2 350 Zora Points          │    │
-│  │  ████████████████░░░░ 3 000 Nkembo │    │
-│  └─────────────────────────────────────┘    │
-│                                             │
-│  [Voir la Marketplace]  [Mes bons actifs]   │
-│                                             │
-│  Derniers mouvements                        │
-│  + 150 pts — Consultation Dr. Moanda        │
-│  + 96 pts  — Séance Elonga (×1.5 tier)     │
-│  − 500 pts — Bon Boutique Zara Congo        │
-└─────────────────────────────────────────────┘
-```
-
-#### Onglet Marketplace (depuis le Feed ou menu principal)
-
-```
-┌─────────────────────────────────────────────┐
-│  Marketplace Zora                           │
-│  [Filtre: Brazzaville ▾]  [Tous tiers ▾]   │
-│                                             │
-│  ┌──────────────────────────────────────┐   │
-│  │ [Image]  Boutique Mama Ngombo        │   │
-│  │          30% de réduction            │   │
-│  │          500 Zora  · Expire 31 juil  │   │
-│  │          [Utiliser mes points →]     │   │
-│  └──────────────────────────────────────┘   │
-│                                             │
-│  ┌──────────────────────────────────────┐   │
-│  │ [Image]  Pharmacie Maria ⭐ Nkembo+  │   │
-│  │          Carte cadeau 5 000 FCFA     │   │
-│  │          1 200 Zora · Stock: 8 rest. │   │
-│  │          [Réservé Nkembo+]           │   │
-│  └──────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
-```
-
-#### Section "Mes bons"
-
-```
-┌─────────────────────────────────────────────┐
-│  Mes bons actifs                            │
-│                                             │
-│  ┌──────────────────────────────────────┐   │
-│  │  Boutique Mama Ngombo                │   │
-│  │  30% de réduction                   │   │
-│  │  [QR CODE]   ZORA-K8P2X-7MN3Q       │   │
-│  │  Expire le 06/07/2026 à 14h23       │   │
-│  │  [Annuler]                          │   │
-│  └──────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
-```
-
-### 12.2 Dashboard Partenaire Récompense — Section Zora
-
-```
-Onglets : [Mes offres] [Scanner un bon] [Reporting]
-
-Section "Scanner un bon" :
-┌─────────────────────────────────────────────┐
-│  Valider un bon Zora                        │
-│                                             │
-│  [Ouvrir la caméra pour scanner]            │
-│  — ou —                                     │
-│  Code manuel : [ ZORA-_____-_____ ]         │
-│               [Valider]                     │
-│                                             │
-│  ✓ Bon validé                               │
-│  Patient : M. Kimfuta Jean                  │
-│  Offre : 30% de réduction                   │
-│  Valeur : 3 000 FCFA de remise              │
-└─────────────────────────────────────────────┘
-```
-
-### 12.3 Dashboard Animateur — Déclenchement Zora
-
-```
-Après chaque validation de présence :
-┌─────────────────────────────────────────────┐
-│  Présence validée                           │
-│  Patient : Mme. Bongo Marie                 │
-│                                             │
-│  + 80 Zora Points crédités automatiquement  │
-│  (Séance Elonga)                            │
-│                                             │
-│  [OK]                                       │
-└─────────────────────────────────────────────┘
-```
-
----
-
-## 13. Règles métier et anti-fraude
-
-### 13.1 Règles absolues
-
-- Un `proof_reference` ne peut jamais être crédité deux fois (contrainte UNIQUE en base).
-- `device_declared` est systématiquement rejeté — aucune auto-déclaration acceptée.
-- Un bon ne peut être validé que par un utilisateur avec le rôle `reward_partner` ou `health_partner`.
-- Un patient ne peut pas valider son propre bon.
-- Le solde Zora ne peut jamais être négatif (contrainte CHECK en base).
-- Un patient ne peut pas avoir plus de 5 bons actifs simultanément.
-
-### 13.2 Détection d'anomalies
-
-Signaux surveillés par le système :
-
-| Signal | Seuil | Action |
+| Section | Appel API | Condition d'affichage |
 |---|---|---|
-| Points crédités > 3× la moyenne mensuelle | 1 occurrence | Alerte admin |
-| Même proof_reference tenté 3+ fois | Immédiat | Flag + blocage IP temporaire |
-| Bon scanné par 2 partenaires différents | Immédiat | Alerte + investigation |
-| Earn CONSULT_MEDECIN > 4/jour | 1 occurrence | Flag patient + alerte admin |
-| Partenaire valide > 50 bons/heure | Immédiat | Suspension temporaire + alerte |
+| Solde + tier (hero card) | `GET /zora/balance` | Toujours affiché, `A.renderScalars()` |
+| Historique des mouvements | `GET /zora/ledger?limit=10` | Vide si `data.data` vide |
+| Bande "Échangeable maintenant avec vos Zora" | `GET /bons-zora/programs` | **`display:none` tant que `partner_programs` ne renvoie aucune ligne active** — bug diagnostiqué et corrigé le 7 juillet 2026 (catalogue vide = donnée manquante, pas bug de code après correctif du champ `d.data`) |
+| "Mes bons d'achat" | `GET /bons-zora/my` | Vide si aucun bon ; corrigé le 7 juillet 2026 (lisait `d.data.vouchers`, clé inexistante) |
+| Génération d'un bon | `POST /bons-zora/generate {program_id}` | Depuis le clic sur une carte de la bande "Échangeable" |
+| Jeux Zora | `GET /zora/games/config`, `POST /zora/games/play` | Onglet dédié, hors périmètre de cette réécriture |
+| Leaderboard hebdo | `GET /leaderboard/weekly` | Toujours affiché |
 
-### 13.3 Audit trail
+### 12.2 Pharmacie / Laboratoire (`public/pharmacie/dashboard.html`, `public/laboratoire/dashboard.html`)
 
-Chaque opération Zora écrit dans `audit_log` (table insert-only existante) :
+Section "Vérifier un voucher Zora" (bouton visible, fonction `verifyZoraVoucher()`) → **flux cassé** (voir section 7.2). Aucune autre section Zora dans ces dashboards.
 
-```json
-{
-  "action": "ZORA_CREDIT | ZORA_DEBIT | BON_ZORA_GENERATED | BON_ZORA_VALIDATED",
-  "performed_by": "uuid",
-  "target_user": "uuid",
-  "detail": { "amount": 150, "action_type": "CONSULT_MEDECIN", "proof_reference": "..." },
-  "ip": "...",
-  "timestamp": "..."
-}
-```
+### 12.3 Médecin (`public/medecin/dashboard.html`)
 
----
+Aucun appel Zora direct trouvé — le médecin ne déclenche ni ne consulte de Zora depuis son dashboard ; le gain de points lié à une consultation (si déclenché) passerait par un appel serveur-à-serveur, non par une action UI médecin.
 
-## 14. Notifications et communication
+### 12.4 Admin (`public/admin/dashboard.html`)
 
-### 14.1 Templates WhatsApp requis
+Section "Règlement bons Zora partenaires" : `GET /clearing/bons-zora/pending`, `POST /clearing/bons-zora/run`, `PATCH /clearing/bons-zora/:id/pay`. **Purement financier** (générer et payer les règlements des bons déjà validés) — aucune gestion de catalogue, d'offres, ou de règles earn depuis ce dashboard.
 
-Tous les templates passent par `whatsapp-web.service.js → sendAutoMessage(phone, templateName, params)`.
+### 12.5 Partenaire (`public/partenaire/dashboard.html`)
 
-| Template name | Déclencheur | Paramètres |
-|---|---|---|
-| `zora_credit` | Crédit de points | `{patient_name}`, `{points}`, `{action}`, `{solde_total}` |
-| `zora_tier_upgrade` | Upgrade de tier | `{patient_name}`, `{ancien_tier}`, `{nouveau_tier}` |
-| `zora_bon_zora_generated` | Bon Zora généré | `{patient_name}`, `{offer_title}`, `{code_alpha}`, `{expires_at}` |
-| `zora_bon_zora_used` | Bon Zora utilisé (patient) | `{patient_name}`, `{offer_title}`, `{partner_name}` |
-| `zora_bon_zora_confirmed` | Bon Zora validé (partenaire) | `{partner_name}`, `{code_alpha}`, `{value_fcfa}` |
-| `zora_points_expiring_30d` | 30j avant expiration | `{patient_name}`, `{points_expirant}`, `{date_expiration}` |
-| `zora_points_expiring_7d` | 7j avant expiration | idem |
-| `zora_points_expiring_1d` | 1j avant expiration | idem |
-| `zora_new_offer` | Nouvelle offre compatible | `{patient_name}`, `{offer_title}`, `{partner_name}`, `{zora_cost}` |
-| `zora_budget_alert` | 80% budget consommé | `{partner_name}`, `{offer_title}`, `{budget_remaining}` |
-| `zora_offer_approved` | Offre approuvée par admin | `{partner_name}`, `{offer_title}` |
-| `zora_offer_rejected` | Offre rejetée | `{partner_name}`, `{offer_title}`, `{motif}` |
+`GET /bons-zora/programs` (liste en lecture seule), `GET /partenaire/stats`. **Aucun formulaire de création/édition de programme.** Rôle sans compte réel en base (voir section 2).
 
 ---
 
-## 15. Administration et configuration
+## 13. Règles métier et anti-fraude (réel)
 
-### 15.1 Dashboard Admin — Section Zora
+Ce qui est réellement implémenté dans `awardZora()` (voir section 3.1) :
+- Idempotence par `(action_type, proof_reference)`.
+- Rejet systématique de `proof_class = 'device_declared'`.
+- Hiérarchie de preuve (`ground_truth` > `system_event` > `device_measured` > `device_declared`) comparée à `required_proof_class` de la règle.
+- Rejet de `device_measured` + `recording_method = 'manual_entry'`.
+- Plafond journalier (`daily_cap`) et plafond catégorie conditionnel (`cap_percent`, actif seulement au-delà de 500 points cumulés).
 
-```
-Onglets : [Vue globale] [Offres en attente] [Campagnes] [Règles earn] [Ledger global]
-
-Vue globale :
-- Total points en circulation
-- Total points expirés ce mois
-- Bons générés / validés / expirés ce mois
-- Top 10 offres (par consommation)
-- Top 10 partenaires (par activité)
-- Alertes fraude actives
-```
-
-### 15.2 Configuration earn rules (interface admin)
-
-Toutes les règles sont stockées en base dans `zora_earn_rules` — modifiables sans déploiement.
-
-L'admin peut :
-- Modifier `base_points` et `monthly_cap` pour chaque action
-- Activer / désactiver une action
-- Créer une nouvelle action type
-- Lancer une campagne bonus ponctuellement
-
-### 15.3 Processus de validation d'offre
-
-```
-1. Partenaire soumet → statut SUBMITTED
-2. Admin reçoit notification WhatsApp
-3. Admin ouvre le dashboard → section "Offres en attente"
-4. Admin vérifie : contenu conforme, budget déclaré réaliste, partenaire actif
-5. Admin APPROUVE → statut ACTIVE + feed_published selon choix
-   OU
-   Admin REJETTE → statut REJECTED + motif obligatoire → WhatsApp partenaire
-```
+Ce qui n'est **pas** implémenté (contrairement à la v1.1 §13.2) : aucune détection d'anomalie automatisée trouvée pour Zora spécifiquement (pas de seuil "points > 3× moyenne", pas de blocage IP, pas de détection "bon scanné par 2 partenaires"). La table `fraud_signals` existe bien en base et est utilisée par `admin.routes.js` et `appointments-validate.controllers.js` — **mais jamais référencée dans le contexte Zora** (`zora.service.js`, `bon-zora.service.js`). Le patient ne peut pas non plus être bloqué à "5 bons actifs simultanément" — aucune contrainte de ce type trouvée.
 
 ---
 
-## 16. Roadmap d'implémentation
+## 14. Notifications (réel)
 
-### Phase 1 — Socle Zora (priorité maximale)
-
-- [ ] Tables SQL : `zora_wallets`, `zora_ledger`, `zora_earn_rules`, `zora_tiers_config`
-- [ ] Service earn atomique avec idempotence
-- [ ] Endpoint wallet patient (solde + historique)
-- [ ] Déclencheurs earn sur consultation médicale (intégration appointments)
-- [ ] Calcul tier mensuel (cron)
-
-### Phase 2 — Burn et Marketplace
-
-- [ ] Tables SQL : `zora_offers`, `zora_vouchers`
-- [ ] Génération de bons QR + code alphanumérique
-- [ ] Dashboard marketplace patient
-- [ ] Dashboard soumission offres partenaire
-- [ ] Flux validation admin (review offres)
-
-### Phase 3 — Feed et notifications
-
-- [ ] Intégration offres dans le Feed social (`feed_published`)
-- [ ] Templates WhatsApp Zora (12 templates)
-- [ ] Alertes expiration points (cron 02h00)
-- [ ] Notifications tier upgrade
-
-### Phase 4 — Animateur et Elonga
-
-- [ ] Déclencheurs earn sur présences Elonga
-- [ ] Interface animateur (validation présence → crédit automatique)
-- [ ] Campagnes bonus admin
-
-### Phase 5 — Anti-fraude et reporting
-
-- [ ] Détection anomalies (seuils automatiques)
-- [ ] Dashboard admin complet
-- [ ] Reporting mensuel partenaires (budget consommé)
-- [ ] Audit trail Zora complet
+**Aucun des 11 templates WhatsApp listés en v1.1 §14.1 n'existe dans le code** (`zora_credit`, `zora_tier_upgrade`, `zora_bon_zora_generated`, `zora_bon_zora_used`, `zora_bon_zora_confirmed`, `zora_points_expiring_30d/7d/1d`, `zora_new_offer`, `zora_budget_alert`, `zora_offer_approved`, `zora_offer_rejected` — recherche exhaustive dans `src/`, zéro occurrence). `awardZora()` ne déclenche aucun envoi WhatsApp — seul un événement Socket.io (`leaderboard_updated`) et un post feed conditionnel sont émis. Le gain de points Zora est **silencieux** pour le patient en dehors du rafraîchissement de son solde à l'écran.
 
 ---
 
----
+## 15. Administration et configuration (réel)
 
-## 17. Intégration avec les systèmes existants Bolamu
+Il n'existe **aucune interface admin** pour :
+- Modifier `zora_earn_rules` (`base_points`, `monthly_cap`, activer/désactiver une action) — aucune route admin trouvée pour cette table.
+- Créer ou approuver un `partner_program` — confirmé absent (voir section 5).
+- Lancer une campagne bonus — la table `zora_campaigns` elle-même n'existe pas en base.
 
-Cette section définit les **points d'ancrage précis** entre Zora et le code existant. C'est le contrat que Windsurf doit respecter lors de l'implémentation — aucun déclencheur Zora ne doit être inventé en dehors de ces points.
-
-### 17.1 Carte des points d'intégration
-
-```
-SYSTÈME EXISTANT                    POINT D'ANCRAGE                    DÉCLENCHEUR ZORA
-─────────────────────────────────────────────────────────────────────────────────────────
-appointments (controller)     →  statut → 'completed'             →  CONSULT_MEDECIN
-                                 (appointment_id comme entity_id)
-
-prescriptions (controller)    →  achat validé par pharmacie       →  ACHAT_PHARMACIE
-                                 (prescription_id comme entity_id)
-
-laboratoire (controller)      →  résultats transmis au patient     →  BILAN_LABO
-                                 (labo_result_id comme entity_id)
-
-abonnement.job.js (cron)      →  step renouvellement réussi        →  ABONNEMENT_RENOUVELE
-                                 (subscription_id + mois comme entity_id)
-
-abonnement.job.js (cron)      →  12e renouvellement consécutif     →  FIDELITE_12MOIS
-                                 (user_id + année comme entity_id)
-
-users (controller auth)       →  profil marqué is_complete=true    →  PROFIL_COMPLETE
-                                 (user_id comme entity_id, one-shot)
-
-parrainage (à créer)          →  filleul actif depuis 30j          →  PARRAINAGE
-                                 (referral_id comme entity_id)
-
-elonga/presence (animateur)   →  présence validée par animateur    →  SEANCE_ELONGA
-                                 (session_id + user_id comme entity_id)
-
-elonga/event (animateur)      →  participation événement validée   →  EVENT_ELONGA
-                                 (event_id + user_id comme entity_id)
-```
-
-### 17.2 Règle d'intégration absolue
-
-> **Zora ne poll pas — Zora est appelé.**
-
-Le service `zora-earn.service.js` est toujours **appelé par** le système source, jamais l'inverse. Il ne surveille pas la base de données en attente d'événements. Chaque système source est responsable d'appeler `creditPoints()` au bon moment, dans sa propre logique métier.
-
-```javascript
-// Exemple dans appointments.controller.js — après mise à jour statut 'completed'
-await updateAppointmentStatus(appointmentId, 'completed');
-
-// Appel Zora — non bloquant, erreur non fatale pour le flux principal
-setImmediate(async () => {
-  try {
-    await zoraEarnService.creditPoints({
-      userId: appointment.patient_id,
-      actionType: 'CONSULT_MEDECIN',
-      proofReference: `CONSULT_MEDECIN:${appointmentId}:${formatDate(new Date())}`,
-      proofType: 'ground_truth',
-      triggeredById: appointment.doctor_id,
-      triggeredByRole: 'medecin',
-      meta: { appointment_id: appointmentId, doctor_name: appointment.doctor_name }
-    });
-  } catch (err) {
-    logger.error('Zora earn failed (non-blocking):', err);
-  }
-});
-```
-
-**Principe clé : l'échec du crédit Zora ne doit jamais faire échouer l'acte médical principal.**
-Tous les appels `zoraEarnService.creditPoints()` sont dans un `setImmediate` + `try/catch` non bloquant.
-
-### 17.3 Table de mapping complet — proof_reference
-
-Format canonique : `{ACTION_TYPE}:{entity_id}:{YYYYMMDD}`
-
-| Action | entity_id utilisé | Exemple |
-|---|---|---|
-| `CONSULT_MEDECIN` | `appointment.id` | `CONSULT_MEDECIN:uuid-appt:20260704` |
-| `ACHAT_PHARMACIE` | `prescription.id` | `ACHAT_PHARMACIE:uuid-presc:20260704` |
-| `BILAN_LABO` | `labo_result.id` | `BILAN_LABO:uuid-result:20260704` |
-| `SEANCE_ELONGA` | `session.id + ':' + user.id` | `SEANCE_ELONGA:uuid-sess:uuid-user:20260704` |
-| `EVENT_ELONGA` | `event.id + ':' + user.id` | `EVENT_ELONGA:uuid-event:uuid-user:20260704` |
-| `ABONNEMENT_RENOUVELE` | `subscription.id + ':' + YYYYMM` | `ABONNEMENT_RENOUVELE:uuid-sub:202607` |
-| `FIDELITE_12MOIS` | `user.id + ':' + YYYY` | `FIDELITE_12MOIS:uuid-user:2026` |
-| `PROFIL_COMPLETE` | `user.id` | `PROFIL_COMPLETE:uuid-user` (pas de date — one-shot) |
-| `PARRAINAGE` | `referral.id` | `PARRAINAGE:uuid-referral:20260704` |
+La seule capacité admin réelle côté Zora est le **règlement financier** des bons validés (section 12.4). Toute évolution du catalogue de programmes passe aujourd'hui exclusivement par une **migration SQL ou un script direct** — c'est la méthode employée le 7 juillet 2026 pour peupler `partner_programs` (voir migration dédiée dans `database/migrations/`).
 
 ---
 
-## 18. Gestion des abonnements inactifs et suspendus
+## 16. Dette technique et zones floues
 
-### 18.1 États d'un abonnement et impact sur Zora
+Reprend et complète les anomalies déjà notées en `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §3 qui touchent Zora, sans les re-décider ici :
 
-| État abonnement | Earn (gain) | Burn (dépense) | Bons actifs | Solde |
-|---|---|---|---|---|
-| `ACTIVE` | Autorisé | Autorisé | Valides | Intact |
-| `SUSPENDED` (impayé) | **Bloqué** | **Bloqué** | **Gelés** | Intact (conservé) |
-| `EXPIRED` (non renouvelé) | **Bloqué** | **Bloqué** | **Gelés** | Intact (conservé) |
-| `CANCELLED` (résiliation volontaire) | **Bloqué** | **Bloqué** | **Annulés** | Conservé 6 mois puis expiré |
-| `REACTIVATED` (reprise après suspension) | Autorisé | Autorisé | **Réactivés** si non expirés | Intact |
-
-### 18.2 Règles détaillées
-
-**Suspension (impayé ou incident de paiement)**
-- Le cron `abonnement.job.js` passe l'abonnement en `SUSPENDED`.
-- `zora_wallets` reçoit un flag `is_frozen = TRUE`.
-- Les appels à `creditPoints()` retournent `{ skipped: true, reason: 'wallet_frozen' }` sans erreur.
-- Les tentatives de génération de bon retournent une erreur `WALLET_FROZEN` avec message : _"Votre compte Zora est gelé. Régularisez votre abonnement pour accéder à vos points."_
-- Les bons déjà générés à statut `GENERATED` sont passés en `SUSPENDED_HOLD` — ils ne peuvent ni être utilisés ni expirer pendant la suspension.
-- Durée max de suspension avant annulation automatique : **30 jours** (configurable dans `platform_config`).
-
-**Réactivation**
-- `is_frozen` repasse à `FALSE`.
-- Les bons en `SUSPENDED_HOLD` repassent en `GENERATED` avec leur expiration **prolongée** de la durée de la suspension (plafonné à 7 jours de prolongation max).
-- Notification WhatsApp envoyée : template `zora_wallet_reactivated`.
-
-**Résiliation volontaire**
-- Les bons actifs sont annulés (re-crédit des points).
-- Le solde est conservé pendant **6 mois** — si le patient se réabonne dans cette fenêtre, il retrouve son solde intégral et son tier.
-- Après 6 mois sans réabonnement, un cron expire le solde restant avec `type: 'EXPIRY'` et `meta: { reason: 'account_cancelled' }`.
-- Notification WhatsApp à J-30 et J-7 avant l'expiration du solde.
-
-### 18.3 Colonne à ajouter sur zora_wallets
-
-```sql
-ALTER TABLE zora_wallets ADD COLUMN is_frozen BOOLEAN NOT NULL DEFAULT FALSE;
-ALTER TABLE zora_wallets ADD COLUMN frozen_since TIMESTAMPTZ;
-ALTER TABLE zora_wallets ADD COLUMN frozen_reason VARCHAR(50); -- SUSPENDED | EXPIRED | CANCELLED
-```
-
-### 18.4 Statut supplémentaire pour zora_vouchers
-
-```sql
--- Ajouter 'SUSPENDED_HOLD' à l'enum de statuts
--- GENERATED | PRESENTED | VALIDATED | USED | EXPIRED | CANCELLED | SUSPENDED_HOLD
-```
+- **Deux systèmes de bons non consolidés** (`zora_vouchers`/`zora_rewards`/`zora_partners` vs `partner_bons_zora`/`partner_programs`/`partner_validations`) — le modèle de données §3 le liste déjà comme dette à consolider.
+- **`GET /partenaire/validations` lit encore l'ancien système** (`zora_voucher_validations`/`zora_vouchers`/`zora_rewards`) alors que la génération patient passe désormais par `partner_bons_zora` — cette route ne montrera jamais les validations récentes.
+- **Message de dépréciation pointant vers une route inexistante** : `partenaire.routes.js:152` renvoie *"utiliser /vouchers/*"*, mais aucune route `/vouchers/*` n'est montée dans `server.js`.
+- **Flux "vérifier un bon Zora" cassé sur pharmacie/laboratoire** (section 7.2) : body manquant, rôle incompatible avec `requirePartenaire`, champs de réponse attendus inexistants — trois ruptures indépendantes cumulées sur un même bouton.
+- **Rôle `partenaire` sans compte réel** : le seul chemin correctement aligné avec les permissions de validation de bons n'a aucun utilisateur en production.
+- **`zora-voucher.service.js` toujours importé** par `partenaire.controller.js` alors que la route qui l'utilisait est morte (410 Gone) — import mort, fonctions `validateVoucher`/`getVouchersByPhone` non appelées en pratique.
+- **`partner_programs.partner_id` sans contrainte FK** — aucune vérification que la valeur référence un partenaire réel ; les 3 programmes ajoutés le 7 juillet 2026 utilisent `partner_id = NULL` faute de comptes partenaires correspondants en base (Pharmacie Daffé, Laboratoire 3A ne sont pas des comptes seedés).
+- **Aucune multiplication du gain par le tier**, contrairement à ce que documentait la v1.1 — à trancher côté produit : fonctionnalité à implémenter, ou vision à abandonner définitivement.
+- **Notifications Zora totalement silencieuses** — aucun template WhatsApp, alors que c'est un canal central pour le reste de la plateforme (règle CLAUDE.md "WhatsApp direct").
 
 ---
 
-## 19. Onboarding et authentification partenaire récompense
+## 17. Roadmap / non implémenté à ce jour
 
-> **Note (Tâche D, nettoyage des rôles)** : La validation voucher est assurée par le rôle `partenaire`. Les rôles `reward_partner` et `health_partner` sont abandonnés — jamais implémentés dans le code.
+Contenu de la v1.1 qui reste une vision produit potentiellement pertinente, mais qui **ne doit pas être confondu avec l'existant** :
 
-### 19.1 Rôle système
-
-Le partenaire récompense utilise le rôle `reward_partner` dans la table `users` — aligné sur la convention existante Bolamu (6 rôles : `patient`, `medecin`, `secretaire`, `pharmacie`, `laboratoire`, `admin`). On ajoute `reward_partner` comme 7e rôle.
-
-```sql
--- Aucune nouvelle table users — on utilise la table existante
--- role = 'reward_partner'
--- member_code préfixe : RWD-
--- ex: RWD-00001
-```
-
-### 19.2 Flux d'onboarding
-
-```
-1. Admin Bolamu crée le compte partenaire dans le dashboard admin
-   (nom, téléphone, ville, catégorie, RCCM, budget initial déclaré)
-
-2. Système génère :
-   - Un compte users (role: 'reward_partner', is_active: false)
-   - Un member_code (RWD-XXXXX)
-   - Un OTP d'activation envoyé par WhatsApp
-
-3. Partenaire reçoit le WhatsApp → accède à l'URL d'activation
-   → Définit son mot de passe → compte activé (is_active: true)
-
-4. Partenaire accède à son dashboard → section Zora :
-   [Mes offres] [Scanner un bon] [Reporting]
-
-5. Admin reçoit notification de première connexion
-```
-
-### 19.3 Authentification
-
-Même système JWT que les autres rôles Bolamu — pas de système parallèle.
-
-```javascript
-// Middleware existant — aucune modification nécessaire
-// Le token JWT contient { user_id, role: 'reward_partner', ... }
-
-// Guard sur les routes de validation de bons Zora
-router.post('/bons-zora/validate/qr',
-  authenticateToken,                          // JWT existant
-  requireRole(['reward_partner', 'health_partner', 'admin']),  // guard rôle
-  bonZoraController.validate
-);
-```
-
-### 19.4 Permissions par rôle sur les routes Zora
-
-| Route | patient | medecin | secretaire | pharmacie | laboratoire | reward_partner | admin |
-|---|---|---|---|---|---|---|---|
-| `GET /zora/wallet` | Soi-même | Non | Non | Non | Non | Non | Tous |
-| `POST /bons-zora/generate` | Soi-même | Non | Non | Non | Non | Non | Non |
-| `POST /bons-zora/validate/qr` | Non | Non | Non | Oui | Non | Oui | Oui |
-| `GET /zora/offers` | Oui | Non | Non | Non | Non | Non | Oui |
-| `POST /zora/offers` | Non | Non | Non | Oui | Oui | Oui | Oui |
-| `PUT /zora/offers/:id/review` | Non | Non | Non | Non | Non | Non | Oui |
-| `POST /zora/earn/*` | Non | Selon route | Selon route | Selon route | Selon route | Non | Oui |
-
-### 19.5 Dashboard partenaire — accès minimal requis
-
-Un partenaire récompense doit pouvoir, dès la première connexion :
-- Voir ses offres actives et leur stock restant
-- Scanner un bon patient (QR ou code manuel)
-- Consulter son reporting mensuel (bons validés, budget consommé)
-- Soumettre une nouvelle offre pour validation admin
+- Table `zora_wallets` (UUID) — n'existe pas ; le vrai équivalent est `zora_points` (clé `phone`, pas `user_id` UUID).
+- Multiplicateur de gain par tier (× 1.0 à × 2.0) — voir section 3.2, aucun code réel.
+- Recalcul mensuel automatique des tiers (cron 1er du mois) — aucun cron trouvé ; le recalcul est en réalité immédiat à chaque crédit.
+- `zora_tier_history` (audit des changements de palier) — table inexistante.
+- Campagnes bonus (`zora_campaigns`, multiplicateurs additionnels, priorité de composition, plafond ×4.0) — table et logique inexistantes.
+- Cycle de vie d'offre DRAFT→SUBMITTED→REVIEW→APPROVED→ACTIVE avec validation admin — `partner_programs` n'a qu'un booléen `is_active`, pas de workflow.
+- Types de rédemption multiples (`GIFT_CARD`, `DISCOUNT`, `OFFER_ACCESS` en plus de `BON_ZORA`) — `partner_programs`/`partner_bons_zora` n'ont pas de colonne `type` ; un seul mécanisme existe.
+- Budget partenaire suivi en FCFA avec alerte à 80% — aucune colonne `budget_fcfa`/`budget_consumed_fcfa`.
+- Intégration Feed des offres marketplace (`feed_published`, CTA "Utiliser mes points") — inexistante (seuls les gains de points génèrent des posts automatiques).
+- 11 templates WhatsApp Zora (section 14 v1.1) — aucun implémenté.
+- Détection d'anomalies/fraude automatisée spécifique à Zora — table `fraud_signals` existe mais jamais utilisée dans ce contexte.
+- Interface admin de configuration des règles earn, d'approbation d'offres, de campagnes — inexistante ; seule la gestion financière des règlements existe.
+- Rôle `reward_partner`/`health_partner` — abandonné, jamais implémenté (la v1.1 elle-même le note en §19).
+- Gestion des abonnements suspendus/gelés sur le solde Zora (`is_frozen`, `WALLET_FROZEN`) — aucune colonne de ce type sur `zora_points`.
+- Chiffrement au repos des colonnes sensibles du ledger, pseudonymisation par `member_code` dans les exports, droits CNPD formalisés (export, rectification, opposition) — aucune implémentation technique trouvée ; à traiter comme un chantier de conformité à part entière si prioritaire.
+- Valeur interne "1 Zora = 1.5 FCFA" — intention business non technique, aucune constante ni colonne dans le code.
 
 ---
 
-## 20. Priorité et composition des campagnes bonus
+## 18. Glossaire
 
-### 20.1 Problème
-
-Plusieurs campagnes actives peuvent cibler le même `action_type` simultanément. Sans règle explicite, le comportement du service earn est indéterminé.
-
-### 20.2 Règle de priorité — Campagne unique par action
-
-**Règle canonique : une seule campagne est appliquée par action, celle avec le multiplicateur le plus élevé.**
-
-Justification : le patient doit toujours bénéficier de la meilleure offre active. C'est cohérent avec une logique de programme de fidélité orienté engagement.
-
-```javascript
-// Dans zora-earn.service.js
-async function getActiveCampaignMultiplier(actionType, userTier, userCity) {
-  const now = new Date();
-
-  const campaigns = await db.query(`
-    SELECT multiplier
-    FROM zora_campaigns
-    WHERE is_active = TRUE
-      AND start_date <= $1
-      AND end_date >= $1
-      AND (action_type = $2 OR action_type IS NULL)   -- NULL = toutes actions
-      AND (min_tier IS NULL OR min_tier <= $3)         -- NULL = tous tiers
-      AND (city IS NULL OR city = $4)                  -- NULL = toutes villes
-    ORDER BY multiplier DESC
-    LIMIT 1
-  `, [now, actionType, userTier, userCity]);
-
-  return campaigns.rows[0]?.multiplier ?? 1.0;
-}
-```
-
-### 20.3 Règles supplémentaires sur les campagnes
-
-**Plafond de composition :** Le multiplicateur final (tier × campagne) est plafonné à **× 4.0** quels que soient les multiplicateurs individuels. Cela prévient des crédits aberrants en cas d'erreur de configuration admin.
-
-```javascript
-const rawMultiplier = tierConfig.multiplier * campaignMultiplier;
-const finalMultiplier = Math.min(rawMultiplier, 4.0); // plafond absolu
-```
-
-**Campagne globale (`action_type IS NULL`) :** Une campagne sans `action_type` s'applique à toutes les actions. Elle est concurrente avec les campagnes spécifiques — la règle "multiplicateur le plus élevé" s'applique de la même façon.
-
-**Historique de campagne dans le ledger :** Quand un crédit est influencé par une campagne, l'id de la campagne est tracé dans le champ `meta` du ledger :
-
-```json
-{
-  "campaign_id": "camp_uuid",
-  "campaign_label": "Juillet Santé — 2x Elonga",
-  "tier_multiplier": 1.5,
-  "campaign_multiplier": 2.0,
-  "final_multiplier": 3.0,
-  "base_points": 80,
-  "points_credited": 240
-}
-```
-
-### 20.4 Contrainte admin sur la création de campagnes
-
-Avant de créer une campagne, le dashboard admin affiche un avertissement si une campagne active couvre déjà le même `action_type` sur la même période. L'admin peut quand même créer — la règle du multiplicateur max s'appliquera — mais il est informé de la concurrence.
-
----
-
-## 21. Gestion du stock en concurrence
-
-### 21.1 Problème
-
-Sans mécanisme de réservation, si 10 patients génèrent simultanément un bon sur une offre avec `stock: 10`, chacun passe la vérification `stock_remaining > 0` avant que les autres aient décrémenté — résultat : stock négatif.
-
-### 21.2 Solution — Réservation atomique par UPDATE conditionnel
-
-On n'utilise pas de `SELECT` suivi d'un `UPDATE` (race condition). On utilise un `UPDATE ... WHERE stock_remaining > 0 RETURNING *` atomique au niveau base de données.
-
-```javascript
-// Dans bon-zora.service.js — génération d'un bon Zora
-async function generateBonZora({ userId, offerId, zoraCost }) {
-
-  return await db.transaction(async (trx) => {
-
-    // 1. Décrémenter le stock de façon atomique — échoue si stock = 0
-    const offerResult = await trx.query(`
-      UPDATE zora_offers
-      SET stock_remaining = stock_remaining - 1,
-          updated_at = NOW()
-      WHERE id = $1
-        AND status = 'ACTIVE'
-        AND stock_remaining > 0
-        AND valid_until >= CURRENT_DATE
-      RETURNING id, title, zora_cost, stock_remaining
-    `, [offerId]);
-
-    if (offerResult.rows.length === 0) {
-      throw new Error('OFFER_OUT_OF_STOCK');
-      // Stock épuisé ou offre inactive — aucun bon généré, aucun point débité
-    }
-
-    // 2. Débiter les points du wallet (atomique dans la même transaction)
-    const walletResult = await trx.query(`
-      UPDATE zora_wallets
-      SET balance = balance - $1,
-          updated_at = NOW()
-      WHERE user_id = $2
-        AND balance >= $1
-        AND is_frozen = FALSE
-      RETURNING balance
-    `, [zoraCost, userId]);
-
-    if (walletResult.rows.length === 0) {
-      throw new Error('INSUFFICIENT_BALANCE_OR_FROZEN');
-      // La transaction rollback automatiquement — le stock est re-incrémenté
-    }
-
-    // 3. Générer le bon
-    const codeAlpha = generateAlphaCode(); // ZORA-XXXXX-XXXXX
-    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // +48h
-
-    const bonZora = await trx.query(`
-      INSERT INTO partner_bons_zora
-        (program_id, patient_phone, code, qr_payload, zora_cost, expires_at)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
-    `, [offerId, userId, codeAlpha, generateQRPayload(), zoraCost, expiresAt]);
-
-    // 4. Écrire dans le ledger
-    await trx.query(`
-      INSERT INTO zora_ledger
-        (user_id, type, amount, balance_after, voucher_id)
-      VALUES ($1, 'DEBIT', $2, $3, $4)
-    `, [userId, zoraCost, walletResult.rows[0].balance, bonZora.rows[0].id]);
-
-    return bonZora.rows[0];
-  });
-  // Si une étape échoue → rollback complet : stock restauré + points restaurés
-}
-```
-
-### 21.3 Colonne stock_reserved — non nécessaire
-
-Le mécanisme `UPDATE ... WHERE stock_remaining > 0` rend inutile une colonne `stock_reserved` séparée. Le stock est décrémenté à la génération du bon, pas à la validation. Si le bon expire, le stock est **re-incrémenté** par le cron d'expiration.
-
-```javascript
-// Dans zora-expiry.job.js — traitement des bons Zora expirés
-await db.query(`
-  UPDATE partner_programs o
-  SET stock = stock + expired_count
-  FROM (
-    SELECT program_id, COUNT(*) as expired_count
-    FROM partner_bons_zora
-    WHERE status = 'active'
-      AND expires_at < NOW()
-    GROUP BY program_id
-  ) expired
-  WHERE o.id = expired.program_id
-`);
-
-// Puis passer les bons en EXPIRED et re-créditer les points
-```
-
-### 21.4 Offres sans limite de stock
-
-Quand `stock IS NULL` (offre illimitée), la vérification `stock_remaining > 0` est bypassée :
-
-```sql
--- Dans la requête UPDATE atomique
-WHERE id = $1
-  AND status = 'ACTIVE'
-  AND (stock IS NULL OR stock_remaining > 0)  -- NULL = illimité
-  AND valid_until >= CURRENT_DATE
-```
-
----
-
-## 22. Glossaire
-
-Termes utilisés dans ce document et dans les interfaces Bolamu.
-
-| Terme | Définition |
+| Terme | Statut réel |
 |---|---|
-| **Zora** | Système de points de fidélité de Bolamu. Nom inspiré du lingala, évoque la valeur et la récompense. |
-| **Zora Point** | Unité de valeur du système Zora. Valeur interne : 1.5 FCFA (non communiquée). |
-| **Wallet** | Portefeuille de points Zora d'un patient. Contient le solde disponible et le tier courant. |
-| **Earn** | Mécanisme de gain de points — déclenché par un acte de santé ou bien-être validé. |
-| **Burn** | Mécanisme de dépense de points — échange contre un bon, une réduction, ou une carte cadeau. |
-| **Ledger** | Livre de comptes immuable de tous les mouvements Zora (crédits, débits, expirations). |
-| **Tier** | Niveau de fidélité du patient, calculé sur les points gagnés dans les 12 derniers mois. |
-| **Kimia** | Tier 1 — débutant. Signifie "paix" en lingala. |
-| **Liboso** | Tier 2 — confirmé. Signifie "premier pas" en lingala. |
-| **Nkembo** | Tier 3 — avancé. Signifie "gloire" en lingala. |
-| **Elonga** | Tier 4 — élite. Signifie "excellence" / "victoire" en lingala. Aussi le nom du programme bien-être. |
-| **Bon Zora** | Coupon numérique généré par le patient avec ses points, présenté chez un partenaire récompense via QR code ou code alphanumérique. |
-| **Carte cadeau (Gift Card)** | Bon à valeur fixe prédéfinie — même mécanisme que le voucher, montant garanti. |
-| **Réduction (Discount)** | Remise appliquée directement sur un acte partenaire, sans génération de bon intermédiaire. |
-| **Marketplace** | Catalogue des offres publiées par les partenaires récompenses, accessible depuis le dashboard patient et le Feed. |
-| **Partenaire santé** | Clinique, pharmacie ou laboratoire — déclencheur de points Zora à chaque acte de soins validé. N'est pas financeur de récompenses. |
-| **Partenaire récompense** | Boutique, restaurant, service ou autre commerce — publie ses propres offres et finance ses récompenses. Valide les bons présentés par les patients. |
-| **Animateur** | Encadrant Elonga (coach sportif, nutritionniste, etc.) — déclenche des points à chaque présence validée. N'a pas de solde Zora. |
-| **Proof reference** | Identifiant unique d'un déclencheur Zora, garantissant qu'un même acte ne peut générer des points qu'une seule fois. |
-| **Proof type** | Nature de la preuve d'un acte (`ground_truth`, `system_event`, `device_measured`). `device_declared` est toujours rejeté. |
-| **Campagne bonus** | Période de multiplicateur additionnel sur une ou toutes les actions earn, lancée par l'admin. |
-| **Code alpha** | Code alphanumérique de fallback d'un bon — format `ZORA-XXXXX-XXXXX` — utilisable quand le QR ne peut pas être scanné. |
-| **Budget partenaire** | Enveloppe financière déclarée par le partenaire récompense pour financer ses offres. Suivi en temps réel par Bolamu. |
-| **is_frozen** | Flag sur le wallet indiquant que le compte Zora est gelé (abonnement suspendu, résilié ou expiré). |
-| **FCFA** | Franc CFA — devise officielle de la République du Congo. |
-| **OVP** | Ordre de Virement Permanent — mandat de prélèvement mensuel automatique via RIB. |
+| **Zora Point** | Réel — unité de `zora_ledger.points` / `zora_points.balance`. |
+| **Tier / Palier** | Réel — `zora_points.tier`, valeurs `kimia`/`liboso`/`nkembo`/`elonga`, recalculé à chaque crédit, sans effet multiplicateur sur le gain. |
+| **Ledger** | Réel — `zora_ledger`, insert-only confirmé. |
+| **Bon Zora** | Réel — `partner_bons_zora`, généré via `POST /bons-zora/generate`, code unique + `qr_payload`. |
+| **Programme partenaire** | Réel — `partner_programs`, catalogue consultable via `GET /bons-zora/programs`, alimentable uniquement par SQL direct à ce jour. |
+| **Wallet** | Terme vision — la vraie table est `zora_points`, pas de table `zora_wallets`. |
+| **Carte cadeau / Réduction / Accès offre (types de burn)** | Vision — un seul mécanisme (bon à coût fixe) existe réellement. |
+| **Campagne bonus** | Vision — table et logique inexistantes. |
+| **Proof reference / Proof class** | Réel — `zora_ledger.proof_reference`/`proof_class`, hiérarchie de preuve appliquée dans `awardZora()`. |
+| **`device_declared`** | Réel — toujours rejeté par `awardZora()`. |
 
 ---
 
-## 23. Conformité CNPD — Données personnelles et santé
-
-**Loi applicable : Loi n°5-2025 relative à la protection des données personnelles (CNPD Congo)**
-
-### 23.1 Classification des données Zora
-
-| Donnée | Table | Classification | Sensibilité |
-|---|---|---|---|
-| Solde de points | `zora_wallets` | Donnée financière | Moyenne |
-| Historique des actes (type d'acte, date) | `zora_ledger` | **Donnée de santé indirecte** | **Haute** |
-| Nom du médecin déclencheur | `zora_ledger.meta` | Donnée de santé indirecte | Haute |
-| Offres consultées | `zora_offers` (logs) | Donnée comportementale | Moyenne |
-| Bons générés et utilisés | `partner_bons_zora` | Donnée comportementale | Moyenne |
-| Tier du patient | `zora_wallets` | Donnée comportementale | Faible |
-
-### 23.2 Données de santé indirectes — mesures spécifiques
-
-Le ledger Zora contient des `action_type` qui révèlent indirectement des comportements de santé (`CONSULT_MEDECIN`, `BILAN_LABO`, etc.). Ces données sont considérées comme **données de santé indirectes** au sens de la CNPD.
-
-Mesures appliquées :
-
-- **Chiffrement au repos** : les colonnes `action_type`, `meta`, `triggered_by_id` du ledger sont stockées chiffrées en base (AES-256 via Neon pgcrypto ou chiffrement applicatif).
-- **Accès restreint** : seul le patient lui-même et l'admin Bolamu peuvent consulter le détail du ledger. Les partenaires n'y ont jamais accès.
-- **Pseudonymisation** : dans les exports et reportings partenaires, le patient est identifié par son `member_code` (BLM-XXXXX), jamais par son nom ou téléphone.
-- **Finalité déclarée** : les données de comportement de santé collectées via Zora sont utilisées exclusivement pour le calcul des points et la détection de fraude — pas à des fins marketing tiers.
-
-### 23.3 Durées de conservation
-
-| Donnée | Durée de conservation | Justification |
-|---|---|---|
-| `zora_ledger` (complet) | 5 ans après le dernier acte | Conformité comptable OHADA |
-| `zora_wallets` | Durée de l'abonnement + 6 mois | Litige potentiel |
-| `partner_bons_zora` | 2 ans après utilisation ou expiration | Litiges partenaires |
-| `zora_tier_history` | 3 ans | Historique fidélité |
-| Logs d'audit Zora | 5 ans | Conformité CNPD Art. 28 |
-
-### 23.4 Droits des patients (CNPD Art. 15-22)
-
-| Droit | Mise en œuvre dans Bolamu |
-|---|---|
-| Droit d'accès | Export complet du wallet + ledger via dashboard patient (bouton "Télécharger mes données") |
-| Droit de rectification | Correction possible via admin uniquement (le ledger est immuable — une entrée corrective est créée) |
-| Droit à l'effacement | Non applicable sur le ledger (obligation OHADA) — applicable sur les données marketing |
-| Droit à la portabilité | Export JSON du wallet et ledger, format standardisé |
-| Droit d'opposition | Patient peut demander la suspension de la collecte Zora — son abonnement reste actif mais aucun point n'est crédité |
-
-### 23.5 Base légale du traitement
-
-Le traitement des données Zora repose sur **l'exécution du contrat** (CGU V8.2, Article X — Programme de fidélité Zora) accepté lors de l'inscription. Aucun consentement séparé n'est requis pour le programme de points, car il est une composante intrinsèque de l'abonnement Bolamu.
-
-La collecte des données de santé indirectes via le ledger est couverte par la **finalité de gestion du programme de fidélité santé**, explicitement déclarée dans les CGU.
-
----
-
-*Document rédigé par NBA Gestion SARLU — Bolamu Platform*
-*Référence fondatrice du système Zora — toute modification requiert validation PDG*
-*Version 1.1 — Juillet 2026*
+*Document réécrit le 7 juillet 2026 sur la base d'une vérification exhaustive du code (`src/services/zora.service.js`, `src/services/bon-zora.service.js`, `src/routes/*.js`, `public/*/dashboard.html`) et de `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.5/§3. Aucun contenu de ce document n'est une supposition non vérifiée — le contenu vision est explicitement isolé en section 17.*
