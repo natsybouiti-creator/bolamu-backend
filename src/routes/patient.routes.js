@@ -396,11 +396,13 @@ router.patch('/profil-social', authMiddleware, async (req, res) => {
       return res.status(400).json({ success: false, message: 'is_private doit être un booléen' });
     }
 
-    // Récupérer l'ancienne valeur de is_private pour audit
+    // Récupérer l'ancienne valeur de is_private + l'id numérique (pour audit_log.target_id, colonne INTEGER)
     let oldIsPrivate = null;
+    let userId = null;
     if (is_private !== undefined) {
-      const oldResult = await client.query('SELECT is_private FROM users WHERE phone = $1', [phone]);
+      const oldResult = await client.query('SELECT id, is_private FROM users WHERE phone = $1', [phone]);
       oldIsPrivate = oldResult.rows[0]?.is_private;
+      userId = oldResult.rows[0]?.id;
     }
 
     // Construction de la requête UPDATE dynamique
@@ -448,7 +450,7 @@ router.patch('/profil-social', authMiddleware, async (req, res) => {
       await client.query(
         `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
          VALUES ($1, $2, $3, $4, $5::jsonb)`,
-        ['is_private_changed', phone, 'users', phone, JSON.stringify({ old: oldIsPrivate, new: is_private })]
+        ['is_private_changed', phone, 'users', userId, JSON.stringify({ old: oldIsPrivate, new: is_private })]
       );
     }
 
