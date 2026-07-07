@@ -117,6 +117,24 @@ async function main() {
       return;
     }
 
+    if (arg === 'check-partner-programs') {
+      const total = await client.query('SELECT COUNT(*) FROM partner_programs');
+      const active = await client.query("SELECT COUNT(*) FROM partner_programs WHERE is_active = TRUE AND (stock IS NULL OR stock > 0)");
+      const sample = await client.query('SELECT id, name, is_active, stock, zora_cost FROM partner_programs LIMIT 5');
+      console.log('Total lignes:', total.rows[0].count);
+      console.log('Actives + en stock:', active.rows[0].count);
+      console.log('Échantillon:', sample.rows);
+      return;
+    }
+
+    if (arg === 'schema-partner-bons-zora') {
+      const r = await client.query(
+        "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'partner_bons_zora' ORDER BY ordinal_position"
+      );
+      console.log(r.rows);
+      return;
+    }
+
     if (arg === 'schema-follows') {
       const r = await client.query(
         "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'follows' ORDER BY ordinal_position"

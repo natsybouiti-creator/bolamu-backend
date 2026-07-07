@@ -3074,8 +3074,8 @@
 
     apiFetch('https://www.bolamu.co/api/v1/patients/consultations/recentes', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._recentConsultations = d.data; A.renderMesConsultationsAccueil(); } }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/zora/rewards', H).then(function (r) { return r.json(); }).then(function (d) {
-      if (d.success && Array.isArray(d.data) && d.data.length) { A.rewards = d.data.map(function (rw) { return { id: rw.id, name: rw.title, cost: rw.points_cost, img: A.rewardImgByTitle(rw.title || rw.name || '', rw.category || rw.cat), seed: 'rw' + rw.id, cat: rw.category || rw.cat || 'tout' }; }); }
+    apiFetch('https://www.bolamu.co/api/v1/bons-zora/programs', H).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success && Array.isArray(d.data) && d.data.length) { A.rewards = d.data.map(function (rw) { return { id: rw.id, name: rw.name, cost: rw.zora_cost, img: A.rewardImgByTitle(rw.name || '', rw.category || rw.cat), seed: 'rw' + rw.id, cat: rw.category || rw.cat || 'tout' }; }); }
       A._rewardsLoaded = true; A.renderAffordable();
     }).catch(function () {
       A.rewards = [
