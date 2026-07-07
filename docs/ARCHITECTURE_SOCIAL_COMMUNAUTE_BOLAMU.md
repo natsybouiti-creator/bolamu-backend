@@ -255,6 +255,8 @@ CREATE INDEX IF NOT EXISTS idx_profile_comments_target ON profile_comments(targe
 ### 5.5 Popup club (même pattern qu'Elonga)
 Clic sur la carte club (hors bouton) → panneau bottom sheet (section 9) affichant : photo, description, nombre de membres, date de création, animateur (avatar + nom, badge « Modérateur »), bouton contextuel (Rejoindre / Demande envoyée / Membre / Voir le classement).
 
+**Dette technique connue (7 juillet 2026)** : `openClubPanel` (dashboard.html) lit `club.banner_url || club.image_url` pour la photo de couverture du popup, deux champs que l'API ne renvoie jamais — le champ réel est `clubs.cover_image_path` (exposé par `GET /clubs`, `/clubs/:id`, `/clubs/my`, et affiché depuis le 7 juillet 2026 sur les cards `renderSportGroups` de la page d'accueil). Conséquence : le popup affiche toujours le dégradé de repli, jamais la vraie photo, même quand `cover_image_path` est renseigné. Corrigé sur les cards, pas dans le popup — sujet pour un futur petit chantier, non traité ici.
+
 ### 5.6 Routes clubs (complètes)
 | Méthode | Route | Auth |
 |---|---|---|
