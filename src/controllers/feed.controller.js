@@ -4,20 +4,22 @@
 const pool = require('../config/db');
 const cloudinaryService = require('../services/cloudinary.service');
 const notifService = require('../services/notification.service');
+const { normalizePhone } = require('../utils/phone');
 
 // GET /api/v1/feed
 // Feed : posts des follows + posts système
 // Supporte ?author=:phone pour filtrer par auteur (avec verrouillage si compte privé)
 exports.getFeed = async (req, res) => {
-    const phone = req.user.phone;
+    const phone = req.user ? req.user.phone : null;
     const { page = 1, limit = 20, city, author } = req.query;
     const offset = (page - 1) * limit;
 
     try {
         // Si paramètre author présent, filtrer par cet auteur avec verrouillage
         if (author) {
-            const targetPhone = author;
-            const isSelf = phone === targetPhone;
+            const targetPhone = normalizePhone(author);
+            const visitorPhone = phone ? normalizePhone(phone) : null;
+            const isSelf = visitorPhone === targetPhone;
 
             // Vérifier si le compte cible est privé
             const userResult = await pool.query(
@@ -36,10 +38,10 @@ exports.getFeed = async (req, res) => {
 
             // Vérifier si le visiteur suit déjà ce compte
             let isFollowing = false;
-            if (!isSelf) {
+            if (visitorPhone && !isSelf) {
                 const followResult = await pool.query(
                     'SELECT 1 FROM follows WHERE follower_phone = $1 AND following_phone = $2',
-                    [phone, targetPhone]
+                    [visitorPhone, targetPhone]
                 );
                 isFollowing = followResult.rows.length > 0;
             }
@@ -83,7 +85,7 @@ exports.getFeed = async (req, res) => {
                 GROUP BY p.id, u.full_name, u.avatar_url
                 ORDER BY p.created_at DESC
                 LIMIT $4 OFFSET $5
-            `, [phone, targetPhone, city || null, limit, offset]);
+            `, [visitorPhone || null, targetPhone, city || null, limit, offset]);
 
             return res.json({ success: true, data: result.rows, page: +page });
         }
