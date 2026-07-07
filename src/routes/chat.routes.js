@@ -31,7 +31,7 @@ router.get('/unread', authMiddleware, async (req, res) => {
  */
 router.get('/communaute', authMiddleware, async (req, res) => {
   try {
-    const conv = await chatService.getCommunauteConversation();
+    const conv = await chatService.getCommunauteConversation(req.user.phone);
     res.json({ success: true, data: conv });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -120,12 +120,20 @@ router.post('/conversations', authMiddleware, async (req, res) => {
     const myPhone = req.user.phone;
     const pool = require('../config/db');
 
-    // Vérifier si conversation existe déjà entre ces deux phones
+    // Déterminer le type réel selon les rôles des deux participants
+    const otherUser = await pool.query('SELECT role FROM users WHERE phone = $1', [participant_phone]);
+    const otherRole = otherUser.rows[0] ? otherUser.rows[0].role : null;
+    const myRole = req.user.role;
+    const type = (myRole === 'doctor' || otherRole === 'doctor') ? 'patient_medecin' : 'private';
+
+    // Vérifier si conversation existe déjà entre ces deux phones (indépendant du type,
+    // mais restreint aux deux types que cette route peut produire — évite de matcher
+    // une conversation club/communaute à laquelle les deux appartiendraient par ailleurs)
     const existing = await pool.query(`
       SELECT c.id FROM conversations c
       JOIN conversation_participants cp1 ON cp1.conversation_id = c.id
       JOIN conversation_participants cp2 ON cp2.conversation_id = c.id
-      WHERE c.type = 'patient_medecin'
+      WHERE c.type IN ('private', 'patient_medecin')
         AND cp1.participant_phone = $1
         AND cp2.participant_phone = $2
       LIMIT 1
@@ -137,7 +145,8 @@ router.post('/conversations', authMiddleware, async (req, res) => {
 
     // Créer conversation + ajouter les 2 participants
     const conv = await pool.query(
-      `INSERT INTO conversations (type) VALUES ('patient_medecin') RETURNING id`
+      `INSERT INTO conversations (type) VALUES ($1) RETURNING id`,
+      [type]
     );
     const convId = conv.rows[0].id;
 

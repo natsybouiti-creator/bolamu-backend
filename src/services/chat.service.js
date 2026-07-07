@@ -184,19 +184,31 @@ async function getOrCreateConversation(patient_phone, medecin_phone) {
   }
 }
 
-async function getCommunauteConversation() {
+async function getCommunauteConversation(phone) {
   const existing = await pool.query(
     `SELECT id FROM conversations WHERE type = 'communaute' AND is_active = true LIMIT 1`
   );
 
+  let conv;
   if (existing.rows.length > 0) {
-    return existing.rows[0];
+    conv = existing.rows[0];
+  } else {
+    const result = await pool.query(
+      `INSERT INTO conversations (type) VALUES ('communaute') RETURNING id`
+    );
+    conv = result.rows[0];
   }
 
-  const result = await pool.query(
-    `INSERT INTO conversations (type) VALUES ('communaute') RETURNING id`
-  );
-  return result.rows[0];
+  if (phone) {
+    await pool.query(
+      `INSERT INTO conversation_participants (conversation_id, participant_phone, role)
+       VALUES ($1, $2, 'patient')
+       ON CONFLICT DO NOTHING`,
+      [conv.id, phone]
+    );
+  }
+
+  return conv;
 }
 
 async function getConversationMessages(conversation_id, limit = 20, before_id = null) {
