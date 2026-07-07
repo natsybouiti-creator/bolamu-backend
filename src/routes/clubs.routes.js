@@ -30,12 +30,15 @@ const {
 
 // Public
 router.get('/', getClubs);
-router.get('/:id', getClubById);
 
 // Patient connecté
+// IMPORTANT : /my doit être déclaré AVANT /:id, sinon Express capture "my" comme valeur de :id
+// (cause du bug "invalid input syntax for type integer: 'my'" sur getClubById)
+router.get('/my', authMiddleware, getMyClubs);
+
+router.get('/:id', getClubById);
 router.post('/:id/join', authMiddleware, joinClub);
 router.delete('/:id/join', authMiddleware, leaveClub);
-router.get('/my', authMiddleware, getMyClubs);
 
 // Chat interne au club (membres uniquement)
 router.get('/:id/messages', authMiddleware, getClubMessages);
