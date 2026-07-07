@@ -3091,7 +3091,7 @@
       A._rewardsLoaded = true; A.renderAffordable();
     });
 
-    apiFetch('https://www.bolamu.co/api/v1/bons-zora/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.vouchers || (Array.isArray(d.data) ? d.data : []); A.renderBonsZora(); } }).catch(function () {});
+    apiFetch('https://www.bolamu.co/api/v1/bons-zora/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.data || []; A.renderBonsZora(); } }).catch(function () {});
 
     apiFetch('https://www.bolamu.co/api/v1/dmn/access-log', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data; A.renderAccessLog(); } }).catch(function () {});
 
