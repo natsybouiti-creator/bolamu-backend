@@ -25,11 +25,12 @@
   .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-smoothing: antialiased; user-select: none; }
 
   /* ===== Panneaux plein écran ===== */
-  #event-panel, #participant-panel, #club-panel, #club-chat-panel, #abonnement-panel { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #FAF8FF; z-index: 1000; overflow-y: auto; animation: slideInUp 300ms ease; }
+  #event-panel, #participant-panel, #club-chat-panel, #abonnement-panel { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #FAF8FF; z-index: 1000; overflow-y: auto; animation: slideInUp 300ms ease; }
   #participant-panel { z-index: 1100; }
   #club-chat-panel { z-index: 1150; flex-direction: column; }
-  #event-panel.active, #participant-panel.active, #club-panel.active, #abonnement-panel.active { display: block; }
+  #event-panel.active, #participant-panel.active, #abonnement-panel.active { display: block; }
   #club-chat-panel.active { display: flex; }
+  /* #club-panel : converti en modal centré (même pattern que #modal-event-detail), stylé via .modal-bg ci-dessous */
   @keyframes slideInUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   @media (max-width: 400px) { #participant-actions { flex-direction: column; } }
 
@@ -1340,7 +1341,14 @@
   <!-- ===== PANNEAUX PLEIN ÉCRAN (remplis dynamiquement) ===== -->
   <div id="event-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeEventPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="event-panel-content" style="padding: 20px;"></div></div>
   <div id="participant-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeParticipantPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="participant-panel-content" style="padding: 20px;"></div></div>
-  <div id="club-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeClubPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="club-panel-content" style="padding: 20px;"></div></div>
+  <div id="club-panel" class="modal-bg" onclick="A.closeClubPanel()">
+    <div onclick="A.stop(event)" style="position:relative;background:#fff;border-radius:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(10,36,99,0.25);">
+      <button onclick="A.closeClubPanel()" style="position:absolute;top:1rem;right:1rem;z-index:2;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:36px;height:36px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+      </button>
+      <div id="club-panel-content" style="padding: 20px;"></div>
+    </div>
+  </div>
   <div id="club-chat-panel">
     <div style="position: sticky; top: 0; background: #fff; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8; display: flex; align-items: center; gap: 12px;">
       <button onclick="closeClubChat()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span></button>
@@ -1931,7 +1939,7 @@
       var cover = g.cover_image_path
         ? '<div style="height:90px;background-image:url(\'' + esc(g.cover_image_path) + '\');background-size:cover;background-position:center;"></div>'
         : '<div style="height:90px;background:linear-gradient(135deg, #0A2463 0%, #003FB1 100%);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined" style="color:#fff;font-size:32px;">' + esc(g.icon) + '</span></div>';
-      return '<div onclick="openClubPanel(' + g.id + ')" style="flex:0 0 170px;scroll-snap-align:start;background:#fff;border:1px solid #EDEDF8;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;">' +
+      return '<div onclick="A.openClubPanel(' + g.id + ')" style="flex:0 0 170px;scroll-snap-align:start;background:#fff;border:1px solid #EDEDF8;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;">' +
         cover +
         '<div style="padding:16px;display:flex;flex-direction:column;gap:10px;">' +
         '<div style="font-size:0.86rem;font-weight:700;color:#0A2463;">' + esc(g.name) + '</div>' +
@@ -1951,7 +1959,7 @@
     el.innerHTML = clubs.map(function (c) {
       var isAnimateur = c.animateur_phone === myPhone;
       return '<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #EDEDF8;border-radius:16px;padding:14px 16px;">' +
-        '<div onclick="openClubPanel(' + c.id + ')" style="flex:1;cursor:pointer;">' +
+        '<div onclick="A.openClubPanel(' + c.id + ')" style="flex:1;cursor:pointer;">' +
           '<div style="font-size:0.9rem;font-weight:700;color:#0A2463;">' + esc(c.name) + (isAnimateur ? ' <span style="font-size:0.68rem;font-weight:700;color:#F5A623;">· Animateur</span>' : '') + '</div>' +
           '<div style="font-size:0.74rem;color:#434654;">' + esc(c.category || c.sport_type || 'Club') + '</div>' +
         '</div>' +
@@ -3466,9 +3474,11 @@
   };
 
   window._clubPanelCurrent = null;
-  window.openClubPanel = function (clubId) {
+  A.openClubPanel = function (clubId) {
     var panel = document.getElementById('club-panel');
     var content = document.getElementById('club-panel-content');
+    panel.classList.add('open');
+    content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Chargement...</div>';
     apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId, {})
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
@@ -3490,8 +3500,7 @@
                 ? '<button onclick="openClubManage(\'' + clubId + '\')" style="flex:1;background: #F5A623; color: #fff; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; padding: 14px; border-radius: 9999px;">Gérer</button>'
                 : '<button onclick="leaveClub(\'' + clubId + '\')" style="flex:1;background: #F3F3FE; color: #BA1A1A; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; padding: 14px; border-radius: 9999px;">Quitter</button>');
           }
-          content.innerHTML = '<div style="height: 220px; ' + bannerStyle + ' border-radius: 20px; margin-bottom: 20px;"></div><h1 style="font-size: 1.8rem; font-weight: 800; color: #0A2463; margin: 0 0 16px 0;">' + (club.name || 'Club') + '</h1><div style="display: flex; align-items: center; gap: 16px; font-size: 0.9rem; color: #434654; margin-bottom: 16px;"><span><strong>' + (club.member_count || 0) + '</strong> membres</span><span style="color: #EDEDF8;">|</span><span><strong>' + (club.total_zora || 0) + '</strong> Zora cumulés</span></div><div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 24px;"><p style="margin: 0; color: #434654; font-size: 0.9rem; line-height: 1.6;">' + (club.description || 'Rejoignez ce club pour gagner des points Zora ensemble !') + '</p></div><h2 style="font-size: 1.1rem; font-weight: 800; color: #0A2463; margin: 0 0 12px 0;">Classement membres</h2><div id="club-members-list" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 100px;"><div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Chargement...</div></div><div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 32px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); background: #FAF8FF; display: flex; gap: 10px; box-shadow: 0 -4px 12px rgba(10,36,99,0.1);">' + actionButtons + '</div>';
-          panel.classList.add('active');
+          content.innerHTML = '<div style="height: 220px; ' + bannerStyle + ' border-radius: 20px; margin-bottom: 20px;"></div><h1 style="font-size: 1.8rem; font-weight: 800; color: #0A2463; margin: 0 0 16px 0;">' + (club.name || 'Club') + '</h1><div style="display: flex; align-items: center; gap: 16px; font-size: 0.9rem; color: #434654; margin-bottom: 16px;"><span><strong>' + (club.member_count || 0) + '</strong> membres</span><span style="color: #EDEDF8;">|</span><span><strong>' + (club.total_zora || 0) + '</strong> Zora cumulés</span></div><div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 24px;"><p style="margin: 0; color: #434654; font-size: 0.9rem; line-height: 1.6;">' + (club.description || 'Rejoignez ce club pour gagner des points Zora ensemble !') + '</p></div><h2 style="font-size: 1.1rem; font-weight: 800; color: #0A2463; margin: 0 0 12px 0;">Classement membres</h2><div id="club-members-list" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 24px;"><div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Chargement...</div></div><div style="display: flex; gap: 10px;">' + actionButtons + '</div>';
           apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/members', {})
             .then(function (r) { return r && r.json(); })
             .then(function (md) {
@@ -3513,9 +3522,9 @@
               }
             }).catch(function () { document.getElementById('club-members-list').innerHTML = '<div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Erreur de chargement</div>'; });
         }
-      }).catch(function () { content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Erreur de chargement</div>'; panel.classList.add('active'); });
+      }).catch(function () { content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Erreur de chargement</div>'; });
   };
-  window.closeClubPanel = function () { document.getElementById('club-panel').classList.remove('active'); };
+  A.closeClubPanel = function () { document.getElementById('club-panel').classList.remove('open'); };
 
   window.leaveClub = function (clubId) {
     if (!confirm('Veux-tu vraiment quitter ce club ?')) return;
@@ -3523,7 +3532,7 @@
       .then(function (r) { return r && r.json(); }).then(function (d) {
         if (d && d.success) {
           A.showToast('Club quitté');
-          closeClubPanel();
+          A.closeClubPanel();
           A._myClubs = (A._myClubs || []).filter(function (c) { return String(c.id) !== String(clubId); });
           A.renderMyClubs();
         }
@@ -3598,7 +3607,7 @@
             html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;' + (i < members.length - 1 ? 'border-bottom:1px solid #EDEDF8;' : '') + '"><div style="font-size:0.88rem;font-weight:600;color:#0A2463;">' + A.escapeHtml(m.full_name || 'Membre') + '</div><button onclick="kickClubMember(\'' + clubId + '\', \'' + (m.phone || '') + '\')" style="background:#F3F3FE;color:#BA1A1A;border:none;padding:6px 14px;border-radius:9999px;font-size:0.78rem;font-weight:700;cursor:pointer;">Exclure</button></div>';
           });
         }
-        html += '</div><button onclick="deactivateClub(\'' + clubId + '\')" style="width:100%;background:#BA1A1A;color:#fff;border:none;padding:14px;border-radius:9999px;font-size:0.9rem;font-weight:700;cursor:pointer;margin-bottom:100px;">Désactiver ce club</button><button onclick="openClubPanel(\'' + clubId + '\')" style="width:100%;background:transparent;color:#0A2463;border:1px solid #EDEDF8;padding:12px;border-radius:9999px;font-size:0.85rem;font-weight:700;cursor:pointer;">Retour au club</button>';
+        html += '</div><button onclick="deactivateClub(\'' + clubId + '\')" style="width:100%;background:#BA1A1A;color:#fff;border:none;padding:14px;border-radius:9999px;font-size:0.9rem;font-weight:700;cursor:pointer;margin-bottom:16px;">Désactiver ce club</button><button onclick="A.openClubPanel(\'' + clubId + '\')" style="width:100%;background:transparent;color:#0A2463;border:1px solid #EDEDF8;padding:12px;border-radius:9999px;font-size:0.85rem;font-weight:700;cursor:pointer;">Retour au club</button>';
         content.innerHTML = html;
       }).catch(function () { content.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:40px;">Erreur de chargement</div>'; });
   };
@@ -3616,7 +3625,7 @@
       .then(function (r) { return r && r.json(); }).then(function (d) {
         if (d && d.success) {
           A.showToast('Club désactivé');
-          closeClubPanel();
+          A.closeClubPanel();
           A._myClubs = (A._myClubs || []).filter(function (c) { return String(c.id) !== String(clubId); });
           A.renderMyClubs();
         } else {
@@ -3651,7 +3660,7 @@
           (A._sportGroups || []).forEach(function (g) { if (String(g.id) === String(clubId)) g.isMember = true; });
           A.renderSportGroups();
           A.renderMyClubs();
-          openClubPanel(clubId);
+          A.openClubPanel(clubId);
         }
       }).catch(function () { A.showToast('Erreur réseau'); });
   };
@@ -3722,8 +3731,8 @@
     cancelEventRegistration: (id) => window.cancelEventRegistration(id),
     
     // Clubs et groupes
-    openClubPanel: (clubId) => window.openClubPanel(clubId),
-    closeClubPanel: () => window.closeClubPanel(),
+    openClubPanel: (clubId) => A.openClubPanel(clubId),
+    closeClubPanel: () => A.closeClubPanel(),
     joinClub: (clubId) => window.joinClub(clubId),
     joinGroup: (groupId) => A.joinGroup(groupId),
     openCreateGroupModal: () => window.openCreateClubModal(),
