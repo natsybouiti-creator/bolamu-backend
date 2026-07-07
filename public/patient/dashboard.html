@@ -1338,6 +1338,15 @@
     </div>
   </div>
 
+  <div id="modal-bon-zora-detail" class="modal-bg" onclick="A.closeBonZoraDetail()">
+    <div onclick="A.stop(event)" style="position:relative;background:#fff;border-radius:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(10,36,99,0.25);">
+      <button onclick="A.closeBonZoraDetail()" style="position:absolute;top:1rem;right:1rem;z-index:2;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:36px;height:36px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+      </button>
+      <div id="bz-modal-body"></div>
+    </div>
+  </div>
+
   <!-- ===== PANNEAUX PLEIN ÉCRAN (remplis dynamiquement) ===== -->
   <div id="event-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeEventPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="event-panel-content" style="padding: 20px;"></div></div>
   <div id="participant-panel"><div style="position: sticky; top: 0; background: #FAF8FF; z-index: 10; padding: 16px; border-bottom: 1px solid #EDEDF8;"><button onclick="closeParticipantPanel()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #0A2463;"><span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>Retour</button></div><div id="participant-panel-content" style="padding: 20px;"></div></div>
@@ -2062,7 +2071,7 @@
         '<span style="width:90px;flex-shrink:0;display:block;background-image:url(\'' + r.img + '\');background-size:cover;background-position:center;background-color:#EDEDF8;"></span>' +
         '<div style="flex:1;min-width:0;padding:12px 12px 12px 14px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:0.84rem;font-weight:700;color:#0A2463;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(r.name) + '</div>' +
         '<div style="display:flex;align-items:center;gap:4px;margin-top:4px;">' + coin(15, true) + '<span style="font-size:0.78rem;font-weight:800;color:#B0680A;">' + A.fmt(r.cost) + ' Zora</span></div>' +
-        '<button onclick="A.exchangeReward(' + idx + ')" style="' + btn + '">' + (canAfford ? 'Échanger' : 'Solde insuffisant') + '</button></div></div>';
+        '<button onclick="A.openBonZoraDetail(' + r.id + ')" style="' + btn + '">' + (canAfford ? 'Échanger' : 'Solde insuffisant') + '</button></div></div>';
     }).join('');
   };
 
@@ -2849,6 +2858,88 @@
         else { var msg = { insufficient_balance: 'Solde Zora insuffisant', program_not_found: 'Programme introuvable', program_out_of_stock: 'Stock épuisé', no_zora_account: 'Compte Zora introuvable' }[d.error] || 'Échange impossible'; A.showToast(msg); }
       }).catch(function () { A.showToast('Erreur réseau'); });
   };
+
+  A._bonZoraDetailCurrent = null;
+  A.openBonZoraDetail = function (programId) {
+    document.getElementById('modal-bon-zora-detail').classList.add('open');
+    $('bz-modal-body').innerHTML = '<div style="padding:60px 20px;text-align:center;color:#9CA3AF;">Chargement...</div>';
+    var token = localStorage.getItem('bolamu_patient_token');
+    apiFetch('https://www.bolamu.co/api/v1/bons-zora/programs/' + programId, { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (!d || !d.success || !d.data) { A.showToast('Programme introuvable'); A.closeBonZoraDetail(); return; }
+        var p = d.data;
+        var zoraBalance = A._zoraBalance !== undefined ? A._zoraBalance : A.state.zora;
+        var after = zoraBalance - p.zora_cost;
+        p.balanceBefore = zoraBalance;
+        p.balanceAfter = after;
+        A._bonZoraDetailCurrent = p;
+        var canAfford = after >= 0;
+        $('bz-modal-body').innerHTML =
+          '<div style="height:160px;border-radius:2rem 2rem 0 0;background:#0A2463;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;">' +
+            '<span class="material-symbols-outlined" style="font-size:32px;color:rgba(255,255,255,0.7);margin-bottom:8px;">redeem</span>' +
+            '<div style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.04em;">Bolamu Récompenses</div>' +
+            '<div style="font-size:1.3rem;font-weight:800;color:#fff;">' + esc(p.name || 'Programme') + '</div>' +
+          '</div>' +
+          '<div style="padding:1.5rem;">' +
+            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;">' +
+              '<span style="display:inline-flex;align-items:center;gap:6px;background:#EEF2FF;color:#0A2463;font-size:0.82rem;font-weight:800;padding:6px 14px;border-radius:9999px;">' + A.fmt(p.zora_cost) + ' Zora</span>' +
+              '<span style="display:inline-flex;align-items:center;background:rgba(0,201,167,0.12);color:#00875f;font-size:0.82rem;font-weight:800;padding:6px 14px;border-radius:9999px;">Disponible</span>' +
+            '</div>' +
+            '<div style="font-size:0.88rem;color:#434654;line-height:1.6;margin-bottom:1.5rem;">' + esc(p.description || '') + '</div>' +
+            '<div style="background:#F8F8FC;border-radius:1rem;padding:1rem;margin-bottom:1.5rem;">' +
+              '<div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#434654;padding:4px 0;"><span>Votre solde actuel</span><span style="font-weight:700;color:#0A2463;">' + A.fmt(zoraBalance) + ' Zora</span></div>' +
+              '<div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#434654;padding:4px 0;"><span>Coût de l\'échange</span><span style="font-weight:700;color:#BA1A1A;">− ' + A.fmt(p.zora_cost) + ' Zora</span></div>' +
+              '<div style="display:flex;justify-content:space-between;font-size:0.9rem;padding-top:10px;margin-top:6px;border-top:1px solid #EDEDF8;"><span style="font-weight:700;color:#0A2463;">Solde après échange</span><span style="font-weight:800;color:#0A2463;">' + A.fmt(after) + ' Zora</span></div>' +
+            '</div>' +
+            '<div style="display:flex;gap:10px;">' +
+              '<button onclick="A.closeBonZoraDetail()" style="flex:1;background:#F3F3FE;color:#434654;border:none;padding:14px;border-radius:9999px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;">Annuler</button>' +
+              '<button onclick="A.confirmExchangeBonZora()"' + (canAfford ? '' : ' disabled') + ' style="flex:1;background:#0A2463;color:#fff;border:none;padding:14px;border-radius:9999px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:' + (canAfford ? 'pointer' : 'not-allowed') + ';opacity:' + (canAfford ? '1' : '0.5') + ';display:flex;align-items:center;justify-content:center;gap:6px;"><span class="material-symbols-outlined" style="font-size:18px;">redeem</span>Échanger maintenant</button>' +
+            '</div>' +
+          '</div>';
+      }).catch(function () { A.showToast('Erreur réseau'); A.closeBonZoraDetail(); });
+  };
+  A.closeBonZoraDetail = function () {
+    document.getElementById('modal-bon-zora-detail').classList.remove('open');
+  };
+  A.confirmExchangeBonZora = function () {
+    var p = A._bonZoraDetailCurrent; if (!p) return;
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { A.showToast('Session expirée'); return; }
+    apiFetch('https://www.bolamu.co/api/v1/bons-zora/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ program_id: p.id }) })
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (d && d.success && d.data) {
+          A._zoraBalance = p.balanceAfter;
+          A.renderScalars();
+          A.showBonZoraSuccess(d.data);
+        } else {
+          var msg = { insufficient_balance: 'Solde Zora insuffisant', program_not_found: 'Programme introuvable', program_out_of_stock: 'Stock épuisé', no_zora_account: 'Compte Zora introuvable' }[d && d.error] || 'Échange impossible';
+          A.showToast(msg);
+        }
+      }).catch(function () { A.showToast('Erreur réseau'); });
+  };
+  A.showBonZoraSuccess = function (bonData) {
+    var p = A._bonZoraDetailCurrent || {};
+    $('bz-modal-body').innerHTML =
+      '<div style="height:160px;border-radius:2rem 2rem 0 0;background:#0A2463;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;">' +
+        '<span class="material-symbols-outlined" style="font-size:32px;color:rgba(255,255,255,0.7);margin-bottom:8px;">check</span>' +
+        '<div style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.04em;">Bolamu Récompenses · ' + esc(p.name || 'Programme') + '</div>' +
+        '<div style="font-size:1.3rem;font-weight:800;color:#fff;">Bon Zora généré</div>' +
+      '</div>' +
+      '<div style="padding:1.5rem;text-align:center;">' +
+        '<div id="bz-success-qr" style="width:140px;height:140px;margin:0 auto 18px;background:#fff;display:flex;align-items:center;justify-content:center;"></div>' +
+        '<div style="display:inline-block;font-size:1.5rem;font-weight:800;color:#0A2463;letter-spacing:0.14em;background:#F3F3FE;border:2px dashed #C3C5D7;padding:14px 22px;border-radius:14px;margin-bottom:20px;font-family:monospace;">' + esc(bonData.code) + '</div>' +
+        '<div style="background:#F8F8FC;border-radius:1rem;padding:1rem;margin-bottom:1.5rem;text-align:left;">' +
+          '<div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#434654;padding:4px 0;"><span>Solde avant</span><span style="font-weight:700;color:#0A2463;">' + A.fmt(p.balanceBefore) + ' Zora</span></div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#434654;padding:4px 0;"><span>Coût de l\'échange</span><span style="font-weight:700;color:#BA1A1A;">− ' + A.fmt(p.zora_cost) + ' Zora</span></div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:0.9rem;padding-top:10px;margin-top:6px;border-top:1px solid #EDEDF8;"><span style="font-weight:700;color:#0A2463;">Solde après échange</span><span style="font-weight:800;color:#0A2463;">' + A.fmt(p.balanceAfter) + ' Zora</span></div>' +
+        '</div>' +
+        '<button onclick="A.closeBonZoraDetail()" style="width:100%;background:#0A2463;color:#fff;border:none;padding:14px;border-radius:9999px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;">Fermer</button>' +
+      '</div>';
+    A.renderQR('bz-success-qr', bonData.code, 140);
+  };
+
   A.verifyDmnPassword = function () {
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée'); return; }
