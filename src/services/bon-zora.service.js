@@ -156,13 +156,13 @@ async function generateBonZora(patient_phone, program_id) {
       patient_initiales: patientInitiales
     };
 
-    // 8. INSERT du bon Zora
+    // 8. INSERT du bon Zora (partner_id/zora_cost/generated_at = vrais noms de colonnes, cf. commit b36f1db)
     const bonResult = await client.query(
       `INSERT INTO partner_bons_zora
-       (code, patient_phone, program_id, qr_payload, fcfa_value, status, created_at, expires_at)
-       VALUES ($1, $2, $3, $4, $5, 'active', NOW(), $6)
+       (code, patient_phone, partner_id, zora_cost, qr_payload, fcfa_value, status, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 'active', $7)
        RETURNING id, code, expires_at`,
-      [code, phone, program_id, JSON.stringify(qrPayload), program.fcfa_value, expiresAt]
+      [code, phone, program.id, program.zora_cost, JSON.stringify(qrPayload), program.fcfa_value, expiresAt]
     );
 
     const bon = bonResult.rows[0];
