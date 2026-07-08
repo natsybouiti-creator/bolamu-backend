@@ -11,6 +11,7 @@
   <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
   <link href="/fonts/material-symbols.css" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="/js/bolamu-profile-card.js"></script>
   <style>
     :root {
       --amber: #F59E0B;
@@ -657,7 +658,7 @@ async function loadTodayCheckins() {
   tbody.innerHTML = checkins.map(c => {
     const name = c.full_name || (c.first_name && c.last_name ? c.first_name + ' ' + c.last_name : c.phone);
     const time = c.checkin_at ? new Date(c.checkin_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—';
-    return '<tr>' +
+    return '<tr onclick="BolamuProfileCard.open(\'' + esc(c.phone) + '\')" style="cursor:pointer;">' +
       '<td style="font-weight:600">' + time + '</td>' +
       '<td>' + esc(name) + '</td>' +
       '<td>' + esc(c.phone) + '</td>' +
@@ -750,7 +751,7 @@ async function loadRegistrations(eventId) {
   tbody.innerHTML = regs.map(r => {
     const name = r.full_name || (r.first_name && r.last_name ? r.first_name + ' ' + r.last_name : r.phone);
     const statusBadge = r.status === 'checked_in' ? '<span class="badge badge-green">Check-in</span>' : '<span class="badge badge-grey">Inscrit</span>';
-    return '<tr>' +
+    return '<tr onclick="BolamuProfileCard.open(\'' + esc(r.phone) + '\')" style="cursor:pointer;">' +
       '<td style="font-weight:600">' + esc(name) + '</td>' +
       '<td>' + esc(r.phone) + '</td>' +
       '<td>' + statusBadge + '</td>' +

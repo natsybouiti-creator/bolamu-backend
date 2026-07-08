@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/css/bolamu-ds.css">
   <script src="/js/bolamu-nav.js" defer></script>
   <script src="/js/bolamu-avatar.js"></script>
+  <script src="/js/bolamu-profile-card.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
   <link href="/fonts/material-symbols.css" rel="stylesheet">
@@ -441,7 +442,7 @@ async function verifierQR() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
         <div style="background:white;border-radius:12px;padding:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Patient</div>
-          <div style="font-size:15px;font-weight:700;">${d.patient.full_name || d.patient.phone}</div>
+          <div style="font-size:15px;font-weight:700;cursor:pointer;" onclick="BolamuProfileCard.open('${d.patient.phone}')">${d.patient.full_name || d.patient.phone}</div>
         </div>
         <div style="background:white;border-radius:12px;padding:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Plan</div>
@@ -548,7 +549,7 @@ async function verifyZoraVoucher() {
           <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Voucher validé !</div>
           <div style="font-size:14px;color:var(--texte-doux);">Remise à appliquer : ${data.data.discount_value}</div></div></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Patient</div><div style="font-size:14px;font-weight:700;">${data.data.patient_phone}</div></div>
+          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Patient</div><div style="font-size:14px;font-weight:700;cursor:pointer;" onclick="BolamuProfileCard.open('${data.data.patient_phone}')">${data.data.patient_phone}</div></div>
           <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Récompense</div><div style="font-size:14px;font-weight:700;">${data.data.reward_title}</div></div>
           <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Consommé le</div><div style="font-size:14px;font-weight:700;">${new Date(data.data.consumed_at).toLocaleString('fr-FR')}</div></div>
         </div>
@@ -746,9 +747,9 @@ async function loadPrescriptionsAttente() {
     container.innerHTML = `<div class="rdv-list">${data.data.map(p => `
       <div class="rdv-card" style="border-left:4px solid var(--amber);">
         <div class="rdv-card-top">
-          <div class="rdv-patient"><div class="rdv-avatar"><span class="material-symbols-outlined" style="font-size:24px;">person</span></div><div>
+          <div class="rdv-patient" onclick="BolamuProfileCard.open('${p.patient_phone}')" style="cursor:pointer;"><div class="rdv-avatar"><span class="material-symbols-outlined" style="font-size:24px;">person</span></div><div>
             <div class="rdv-name">${p.patient_phone}</div>
-            <div class="rdv-phone">Prescrit par : <strong>${p.doctor_name || p.doctor_phone}</strong></div>
+            <div class="rdv-phone">Prescrit par : <strong onclick="event.stopPropagation();BolamuProfileCard.open('${p.doctor_phone}')" style="cursor:pointer;">${p.doctor_name || p.doctor_phone}</strong></div>
           </div></div>
           <span class="badge badge-en-attente"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">hourglass</span> En attente</span>
         </div>
@@ -851,9 +852,9 @@ async function searchPrescriptionByCode() {
     container.innerHTML = `<div class="rdv-list">
       <div class="rdv-card" style="border-left:4px solid var(--turquoise);">
         <div class="rdv-card-top">
-          <div class="rdv-patient"><div class="rdv-avatar"><span class="material-symbols-outlined" style="font-size:24px;">person</span></div><div>
+          <div class="rdv-patient" onclick="BolamuProfileCard.open('${p.patient_phone}')" style="cursor:pointer;"><div class="rdv-avatar"><span class="material-symbols-outlined" style="font-size:24px;">person</span></div><div>
             <div class="rdv-name">${p.patient_phone}</div>
-            <div class="rdv-phone">Prescrit par : <strong>${p.doctor_name || p.doctor_phone}</strong></div>
+            <div class="rdv-phone">Prescrit par : <strong onclick="event.stopPropagation();BolamuProfileCard.open('${p.doctor_phone}')" style="cursor:pointer;">${p.doctor_name || p.doctor_phone}</strong></div>
           </div></div>
           <span class="badge badge-actif"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Trouvé</span>
         </div>

@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/css/bolamu-ds.css">
   <script src="/js/bolamu-nav.js" defer></script>
   <script src="/js/bolamu-avatar.js"></script>
+  <script src="/js/bolamu-profile-card.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
   <link href="/fonts/material-symbols.css" rel="stylesheet">
@@ -558,7 +559,7 @@ async function verifierQR() {
       <div><div class="ordonnance-title">Patient vérifié — Abonnement actif</div>
       <div class="ordonnance-sub">Abonnement valide jusqu'au ${new Date(d.patient.subscription_end).toLocaleDateString('fr-FR')}</div></div></div>
       <div class="ordonnance-grid">
-        <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value">${d.patient.full_name || d.patient.phone}</div></div>
+        <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value" onclick="BolamuProfileCard.open('${d.patient.phone}')" style="cursor:pointer;">${d.patient.full_name || d.patient.phone}</div></div>
         <div class="ord-field"><div class="ord-field-label">Plan</div><div class="ord-field-value" style="text-transform:capitalize;">${d.patient.plan}</div></div>
         <div class="ord-field"><div class="ord-field-label">Remise applicable</div><div class="ord-field-value" style="color:var(--turquoise);font-size:22px;">${remise}%</div></div>
         <div class="ord-field"><div class="ord-field-label">Plafond restant ce mois</div><div class="ord-field-value">${restant.toLocaleString()} FCFA</div></div>
@@ -759,8 +760,8 @@ async function scanOrdonnance() {
     resultEl.innerHTML = `
       <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">description</span></div><div><div class="ordonnance-title">Ordonnance valide — prête à délivrer</div><div class="ordonnance-sub">Émise le ${dateOrd}</div></div></div>
       <div class="ordonnance-grid">
-        <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value">${ord.patient_phone}</div></div>
-        <div class="ord-field"><div class="ord-field-label">Médecin prescripteur</div><div class="ord-field-value">${ord.doctor_name || ord.doctor_phone}</div></div>
+        <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value" onclick="BolamuProfileCard.open('${ord.patient_phone}')" style="cursor:pointer;">${ord.patient_phone}</div></div>
+        <div class="ord-field"><div class="ord-field-label">Médecin prescripteur</div><div class="ord-field-value" onclick="BolamuProfileCard.open('${ord.doctor_phone}')" style="cursor:pointer;">${ord.doctor_name || ord.doctor_phone}</div></div>
         <div class="ord-field"><div class="ord-field-label">Code session</div><div class="ord-field-value" style="color:var(--turquoise);font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:2px;">${codeSession}</div></div>
         <div class="ord-field"><div class="ord-field-label">Statut</div><div class="ord-field-value"><span class="badge badge-actif">Active</span></div></div>
       </div>
@@ -893,7 +894,7 @@ async function verifyZoraVoucher() {
         <div><div class="ordonnance-title">Voucher validé !</div>
         <div class="ordonnance-sub">Remise à appliquer : ${data.data.discount_value}</div></div></div>
         <div class="ordonnance-grid">
-          <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value">${data.data.patient_phone}</div></div>
+          <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value" onclick="BolamuProfileCard.open('${data.data.patient_phone}')" style="cursor:pointer;">${data.data.patient_phone}</div></div>
           <div class="ord-field"><div class="ord-field-label">Récompense</div><div class="ord-field-value">${data.data.reward_title}</div></div>
           <div class="ord-field"><div class="ord-field-label">Consommé le</div><div class="ord-field-value">${new Date(data.data.consumed_at).toLocaleString('fr-FR')}</div></div>
         </div>
@@ -1029,7 +1030,7 @@ function renderHistorique(items, containerId) {
   }
   el.innerHTML = `<div class="historique-list">${items.map(h => `
     <div class="histo-card">
-      <div class="histo-left"><div class="histo-icon"><span class="material-symbols-outlined">medication</span></div><div>
+      <div class="histo-left" onclick="BolamuProfileCard.open('${h.patient_phone}')" style="cursor:pointer;"><div class="histo-icon"><span class="material-symbols-outlined">medication</span></div><div>
         <div class="histo-patient">${h.patient_phone}</div>
         <div class="histo-date">${new Date(h.created_at).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</div>
         <div style="margin-top:6px"><span class="badge badge-${h.status==='livre'?'livre':'en-attente'}">${h.status==='livre'?'<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Délivré':'<span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">hourglass</span> En attente'}</span></div>
