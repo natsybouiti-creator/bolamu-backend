@@ -373,8 +373,8 @@
           <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
             <div>
               <div style="font-size: 0.625rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #434654; margin-bottom: 4px;">Bonjour</div>
-              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;"><span class="b-patientPrenom">Sarah</span>, <span class="b-genderAdj">prête</span> à gagner&nbsp;?</h1>
-              <p style="margin: 6px 0 0; font-size: 0.84rem; font-weight: 600; color: #00875f;" class="b-patientsToNext">À 500 pts du palier Liboso</p>
+              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;"><span class="b-patientPrenom"></span>, <span class="b-genderAdj">prête</span> à gagner&nbsp;?</h1>
+              <p style="margin: 6px 0 0; font-size: 0.84rem; font-weight: 600; color: #00875f;" class="b-patientsToNext">—</p>
             </div>
             <div class="hero-tiles" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div style="position: relative; overflow: hidden; height: 104px; background: linear-gradient(135deg, #0A2463, #112d6b); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
@@ -470,7 +470,7 @@
               </div>
             </div>
             <div id="consultations-list" style="display: none; flex-direction: column; gap: 12px;"></div>
-            <button id="consultations-voir-plus" onclick="A.goSuivre(); A.setSuivreTab('dossier');" style="display: none; margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir plus</button>
+            <button id="consultations-voir-plus" onclick="A.goSuivre(); A.suivreDossier();" style="display: none; margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir plus</button>
           </div>
         </div>
       </div>
@@ -814,7 +814,7 @@
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 22px;">badge</span><h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0A2463;">Informations</h3></div>
           <div style="display: flex; flex-wrap: wrap; gap: 16px 36px;">
             <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Téléphone</div><div class="b-membreTel" style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">—</div></div>
-            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Abonnement</div><div class="b-abonnementTxt" style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">Bolamu Essentiel</div></div>
+            <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Abonnement</div><div class="b-abonnementTxt" style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">—</div></div>
             <div><div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8;">Membre depuis</div><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463;">Membre depuis <span class="b-membreDepuis">—</span></div></div>
           </div>
         </div>
@@ -875,7 +875,7 @@
             <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;">
               <div>
                 <span style="background: rgba(0,201,167,0.2); color: #00C9A7; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.1em; padding: 3px 9px; border-radius: 9999px;">TITULAIRE</span>
-                <div class="b-patientNom" style="font-size: 1rem; font-weight: 800; letter-spacing: 0.02em; margin-top: 8px;">SARAH BEMBA</div>
+                <div class="b-patientNom" style="font-size: 1rem; font-weight: 800; letter-spacing: 0.02em; margin-top: 8px;">—</div>
                 <div class="b-membreId" style="font-size: 0.74rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-top: 2px;">—</div>
               </div>
               <div style="text-align: center;"><div id="dossier-qr" style="width: 78px; height: 78px; background: #fff; border-radius: 10px; padding: 6px; display: flex; align-items: center; justify-content: center;"></div><div style="font-size: 0.52rem; font-weight: 800; letter-spacing: 0.12em; color: rgba(255,255,255,0.5); margin-top: 6px;">ACCÈS DOSSIER</div></div>
@@ -961,7 +961,7 @@
           </label>
           <input type="file" id="photo-upload" accept="image/*" style="display: none;" onchange="A.uploadProfilePhoto(event)">
         </div>
-        <div><div class="b-patientNom" style="font-size: 1.4rem; font-weight: 800; color: #0A2463;">SARAH BEMBA</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;"><span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0,63,177,0.1); border: 1px solid rgba(0,63,177,0.25); color: #003FB1; font-size: 0.66rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 13px;">workspace_premium</span><span class="b-zoraTierLabel">—</span></span><span style="font-size: 0.78rem; font-weight: 500; color: #434654;">Membre depuis <span class="b-membreDepuis">—</span></span></div></div>
+        <div><div class="b-patientNom" style="font-size: 1.4rem; font-weight: 800; color: #0A2463;">—</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;"><span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(0,63,177,0.1); border: 1px solid rgba(0,63,177,0.25); color: #003FB1; font-size: 0.66rem; font-weight: 800; padding: 4px 10px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 13px;">workspace_premium</span><span class="b-zoraTierLabel">—</span></span><span style="font-size: 0.78rem; font-weight: 500; color: #434654;">Membre depuis <span class="b-membreDepuis">—</span></span></div></div>
       </div>
       <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px;">
         <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; padding: 18px; text-align: center;"><div class="b-zoraGagnesTot" style="font-size: 1.6rem; font-weight: 800; color: #0A2463;">—</div><div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #434654; margin-top: 4px;">Zora gagnés</div></div>
@@ -1794,17 +1794,17 @@
     var s = A.state;
     var genderAdj = (s.gender === 'M' || s.gender === 'homme' || (A._patientData && (A._patientData.gender === 'M' || A._patientData.gender === 'homme'))) ? 'prêt' : 'prête';
     setText('zoraTxt', (A._zoraBalance !== undefined && A._zoraBalance !== null) ? A.fmt(Math.max(0, A._zoraBalance)) : '—');
-    setText('patientInitiales', (A._patientNom || 'Sarah Bemba').split(' ').map(function (n) { return n[0]; }).join('').slice(0, 2).toUpperCase());
-    setText('patientPrenom', A._patientPrenom || 'Sarah');
+    setText('patientInitiales', A._patientNom ? A._patientNom.split(' ').map(function (n) { return n[0]; }).join('').slice(0, 2).toUpperCase() : '—');
+    setText('patientPrenom', A._patientPrenom || '');
     setText('genderAdj', genderAdj);
-    setText('patientsToNext', 'À ' + A.fmt(A._zoraPointsToNext || 500) + ' pts du palier ' + (A._zoraNextTier || 'Liboso'));
+    setText('patientsToNext', (A._zoraPointsToNext !== undefined && A._zoraPointsToNext !== null && A._zoraNextTier) ? ('À ' + A.fmt(A._zoraPointsToNext) + ' pts du palier ' + A._zoraNextTier) : '—');
     setText('streakTxt', (A._streak === undefined || A._streak === null) ? '—' : (A._streak + ' jour' + (A._streak > 1 ? 's' : '') + ' d\'affilée'));
     setText('freeCount', s.freeGames);
     setText('membreTel', A._patientPhone || localStorage.getItem('bolamu_patient_phone') || '');
-    setText('abonnementTxt', A._abonnement || 'Bolamu Essentiel');
-    setText('membreDepuis', new Date((A._constantes && A._constantes.constantes_updated_at) || Date.now()).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }));
-    setText('patientNom', (A._patientNom || 'Sarah Bemba').toUpperCase());
-    setText('membreId', 'BLM-' + ((A._patientId || 'BOL-1535').replace('BOL-', '')));
+    setText('abonnementTxt', A._abonnement || '');
+    setText('membreDepuis', (A._constantes && A._constantes.constantes_updated_at) ? new Date(A._constantes.constantes_updated_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '—');
+    setText('patientNom', A._patientNom ? A._patientNom.toUpperCase() : '—');
+    setText('membreId', A._patientId ? ('BLM-' + A._patientId.replace('BOL-', '')) : '—');
     setText('groupeSanguin', (A._constantes && A._constantes.groupe_sanguin) || 'Non renseigné');
     setText('allergies', (A._constantes && A._constantes.allergies) || 'Aucune connue');
     setText('maladiesChroniques', (A._constantes && A._constantes.maladies_chroniques) || 'Aucune');
@@ -3030,13 +3030,8 @@
       return;
     }
 
-    // Compteurs animés (valeurs démo identiques à l'original : 1250)
-    if (A.reduce) { A.state.zora = 1250; A.renderScalars(); }
-    else {
-      var dur = 1200, start = performance.now();
-      var tick = function (t) { var pr = Math.min(1, (t - start) / dur); var e = 1 - Math.pow(1 - pr, 3); A.state.zora = Math.round(1250 * e); if (pr < 1) A._raf = requestAnimationFrame(tick); };
-      A._raf = requestAnimationFrame(tick);
-    }
+    // Solde Zora : reste à 0 (valeur initiale de A.state, aucune animation démo)
+    // jusqu'à la résolution du fetch réel (voir A._loadAll, animation à partir des vraies données)
 
     var now = new Date(); var midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
     A.ends = { defi1: now.getTime() + (4 * 3600 + 32 * 60) * 1000, defi2: now.getTime() + (23 * 3600) * 1000, offer: midnight.getTime() };
