@@ -7,6 +7,8 @@
 const crypto = require('crypto');
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
+const { generateBonZoraCard } = require('./image-generator.service');
+const { sendImageMessage } = require('./whatsapp.service');
 
 const BON_ZORA_VALIDITY_DAYS = 30;
 const CODE_ALPHABET = 'ABCDEFGHIJKLMNPQRSTUVWXYZ23456789'; // sans O/0/1/I pour lisibilité
@@ -74,7 +76,7 @@ async function generateBonZora(patient_phone, program_id) {
 
     // 1. Charger le programme actif (verrou pour le stock)
     const programResult = await client.query(
-      `SELECT id, partner_id, name, zora_cost, fcfa_value, category, is_active, stock
+      `SELECT id, partner_id, name, description, zora_cost, fcfa_value, category, is_active, stock
        FROM partner_programs
        WHERE id = $1 AND is_active = TRUE
        FOR UPDATE`,
@@ -188,6 +190,22 @@ async function generateBonZora(patient_phone, program_id) {
     );
 
     await client.query('COMMIT');
+
+    // Envoi carte cadeau WhatsApp — non bloquant : le bon est déjà généré et
+    // débité (transaction commitée ci-dessus), un échec ici ne doit jamais
+    // faire échouer la réponse HTTP au frontend.
+    try {
+      const cardBuffer = await generateBonZoraCard({
+        partnerName: program.name,
+        offerDescription: program.description,
+        code,
+        zoraCost: program.zora_cost
+      });
+      const caption = `-${program.zora_cost} Zora · Nouveau solde : ${balance - program.zora_cost} Zora`;
+      await sendImageMessage(phone, cardBuffer, caption);
+    } catch (imgErr) {
+      console.error('[BON ZORA] Erreur envoi carte cadeau WhatsApp (non bloquant):', imgErr.message);
+    }
 
     return {
       success: true,
