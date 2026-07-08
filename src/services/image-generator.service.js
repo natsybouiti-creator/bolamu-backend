@@ -139,7 +139,7 @@ async function generateBonZoraCard({ partnerName, offerDescription, code, zoraCo
 
   // Position du nom partenaire : ancré en haut si offre présente,
   // recentré verticalement dans la zone navy si pas d'offre.
-  const partnerY = hasOffer ? 90 : Math.round(TOP_ZONE_H / 2);
+  const partnerY = hasOffer ? 100 : Math.round(TOP_ZONE_H / 2);
 
   const offerTspans = offerLines
     .map((line, i) => `<tspan x="40" dy="${i === 0 ? 0 : 32}">${escapeXml(line)}</tspan>`)
@@ -160,7 +160,7 @@ async function generateBonZoraCard({ partnerName, offerDescription, code, zoraCo
         <style type="text/css">
           .partner { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 34px; fill: #ffffff; }
           .offer { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 24px; fill: #ffffff; }
-          .brand { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 20px; fill: #ffffff; }
+          .brand { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 24px; fill: #ffffff; }
           .badge { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 16px; fill: #0A2463; }
           .code { font-family: monospace; font-weight: 700; font-size: 22px; fill: #0A2463; }
           .instruction { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 13px; fill: #6B6E80; }
@@ -169,8 +169,8 @@ async function generateBonZoraCard({ partnerName, offerDescription, code, zoraCo
 
       <rect x="0" y="0" width="${CARD_W}" height="${CARD_H}" fill="${NAVY}"/>
 
-      <image x="40" y="30" width="36" height="36" href="data:image/png;base64,${logoBase64}"/>
-      <text x="86" y="55" class="brand">Bolamu</text>
+      <image x="40" y="24" width="56" height="56" href="data:image/png;base64,${logoBase64}"/>
+      <text x="110" y="58" class="brand">Bolamu</text>
 
       <text x="40" y="${partnerY}" class="partner">${escapeXml(partnerLine)}</text>
       ${hasOffer ? `<text x="40" y="${partnerY + 40}" class="offer">${offerTspans}</text>` : ''}
