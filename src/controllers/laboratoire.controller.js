@@ -140,7 +140,7 @@ async function getLaboratoireProfile(req, res) {
             `SELECT l.id, l.phone, l.name, l.director_name, l.rccm_number,
                     l.agrement_number, l.city, l.neighborhood, l.status,
                     l.is_active, l.member_code, l.trust_score, l.momo_number,
-                    l.abonnement_actif, l.abonnement_fin, l.document_url,
+                    l.abonnement_actif, l.abonnement_fin, l.document_url, l.photo_url,
                     l.created_at, u.validated_at
              FROM laboratories l
              LEFT JOIN users u ON u.phone = l.phone

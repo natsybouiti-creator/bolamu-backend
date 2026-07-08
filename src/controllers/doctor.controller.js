@@ -225,7 +225,7 @@ async function getDoctorProfile(req, res) {
         const result = await pool.query(
             `SELECT d.id, d.phone, d.full_name, d.specialty, d.city, d.neighborhood,
                     d.bio, d.availability_schedule, d.total_consultations, d.member_code,
-                    d.trust_score, d.status, d.is_active, d.document_url,
+                    d.trust_score, d.status, d.is_active, d.document_url, d.photo_url,
                     d.momo_number, d.registration_number, d.created_at,
                     u.validated_at
              FROM doctors d

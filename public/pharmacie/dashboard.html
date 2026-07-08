@@ -13,6 +13,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/bolamu-ds.css">
   <script src="/js/bolamu-nav.js" defer></script>
+  <script src="/js/bolamu-avatar.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
   <link href="/fonts/material-symbols.css" rel="stylesheet">
@@ -382,7 +383,7 @@
     <div class="section-header"><h2 class="section-title-dash">Mon profil pharmacie</h2></div>
     <div class="profil-layout">
       <div class="profil-card-main">
-        <div class="profil-avatar-big">P</div>
+        <div class="profil-avatar-big" id="p-avatar">P</div>
         <div class="profil-name-big" id="p-name">—</div>
         <div class="profil-sub" id="p-city">—</div>
         <div class="profil-phone" id="p-phone">—</div>
@@ -592,6 +593,7 @@ async function loadProfil() {
     document.getElementById('mc-name').textContent = name;
     document.getElementById('mc-city').textContent = city + (neighborhood ? ` — ${neighborhood}` : '');
     document.getElementById('mc-code').textContent = code;
+    document.getElementById('p-avatar').innerHTML = window.BolamuAvatar.render({ photoUrl: d.photo_url, fullName: name, role: 'pharmacie', size: 72 });
     document.getElementById('p-name').textContent = name;
     document.getElementById('p-city').textContent = city;
     document.getElementById('p-phone').textContent = phone;

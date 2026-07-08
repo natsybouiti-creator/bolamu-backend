@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/css/bolamu-ds.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="/js/bolamu-nav.js" defer></script>
+  <script src="/js/bolamu-avatar.js"></script>
   <script>
 var QRDetector = null;
 if (typeof BarcodeDetector !== 'undefined') {
@@ -493,7 +494,7 @@ if (typeof BarcodeDetector !== 'undefined') {
     <div class="section-header"><h2 class="section-title">Mon profil</h2></div>
     <div class="profil-layout">
       <div class="profil-card">
-        <div class="profil-avatar">Dr</div>
+        <div class="profil-avatar" id="p-avatar">Dr</div>
         <div class="profil-name" id="p-name">—</div>
         <div class="profil-spec" id="p-spec">—</div>
         <div class="profil-code-box">
@@ -722,6 +723,7 @@ async function loadProfil(){
     document.getElementById('mc-name').textContent=name;
     document.getElementById('mc-specialty').textContent=spec;
     document.getElementById('mc-code').textContent=code;
+    document.getElementById('p-avatar').innerHTML=window.BolamuAvatar.render({ photoUrl: d.photo_url, fullName: name, role: 'medecin', size: 72 });
     document.getElementById('p-name').textContent=name;
     document.getElementById('p-spec').textContent=spec;
     document.getElementById('p-code').textContent=code;

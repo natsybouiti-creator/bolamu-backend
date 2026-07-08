@@ -130,7 +130,7 @@ async function getPharmacieProfile(req, res) {
             `SELECT p.id, p.phone, p.name, p.responsible_name, p.rccm_number,
                     p.city, p.neighborhood, p.status, p.member_code,
                     p.trust_score, p.momo_number, p.is_active,
-                    p.document_url, p.abonnement_actif, p.abonnement_fin,
+                    p.document_url, p.photo_url, p.abonnement_actif, p.abonnement_fin,
                     p.created_at, u.validated_at
              FROM pharmacies p
              LEFT JOIN users u ON u.phone = p.phone
