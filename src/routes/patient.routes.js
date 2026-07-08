@@ -472,9 +472,9 @@ router.get('/profil-social/:phone', optionalAuth, async (req, res) => {
     const visitorPhone = req.user ? normalizePhone(req.user.phone) : null;
 
     const result = await pool.query(
-      `SELECT bio, city, statut_disponibilite, interets, photo_url, 
-              full_name, first_name, last_name, created_at, is_private
-       FROM users 
+      `SELECT bio, city, statut_disponibilite, interets, photo_url,
+              full_name, first_name, last_name, created_at, is_private, role
+       FROM users
        WHERE phone = $1`,
       [targetPhone]
     );
@@ -498,6 +498,21 @@ router.get('/profil-social/:phone', optionalAuth, async (req, res) => {
 
     // Vérifier si le compte est privé et verrouillé
     const isLocked = user.is_private && !isSelf && !isFollowing;
+
+    // Profil verrouillé (BHP) : aucune donnée sensible calculée ni renvoyée —
+    // filtrage côté backend avant l'envoi, jamais côté frontend après réception.
+    if (isLocked) {
+      return res.json({
+        success: true,
+        data: {
+          phone: targetPhone,
+          full_name: user.full_name,
+          photo_url: user.photo_url,
+          role: user.role,
+          locked: true
+        }
+      });
+    }
 
     // Stats Zora (réutilise requête existante)
     const zoraResult = await pool.query(
@@ -565,6 +580,7 @@ router.get('/profil-social/:phone', optionalAuth, async (req, res) => {
       full_name: user.full_name,
       first_name: user.first_name,
       last_name: user.last_name,
+      role: user.role,
       badges,
       stats,
       photos,
