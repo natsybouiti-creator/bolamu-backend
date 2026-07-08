@@ -14,15 +14,13 @@ services:
           type: redis
           name: bolamu-redis
           property: connectionString
-      # Spike Chantier 3 — rendu texte serveur (carte cadeau Zora), à retirer
-      # après validation si la piste fontconfig est abandonnée. Chemin non
-      # vérifié dans ce repo, basé sur la convention documentée par Render
-      # pour env: node (/opt/render/project/src/). Doit être défini ici, au
-      # lancement du process — testé en local : une affectation dynamique
-      # dans le code applicatif après coup n'a aucun effet (fontconfig est
-      # déjà initialisé côté natif à ce moment), donc cette valeur EST la
-      # seule source de vérité si ce chemin absolu est incorrect, le spike
-      # retombera en police par défaut, exactement comme en local avant fix.
+      # Requis pour le rendu texte serveur (sharp/librsvg, carte cadeau Zora
+      # — Chantier 3) : sans cette variable, fontconfig ne trouve pas Plus
+      # Jakarta Sans (assets/fonts/) et retombe silencieusement sur une
+      # police système par défaut. Doit être défini ici, au lancement du
+      # process — une affectation dynamique dans le code applicatif après
+      # coup n'a aucun effet (fontconfig est déjà initialisé côté natif à ce
+      # moment, vérifié en local et confirmé en prod le 8 juillet 2026).
       - key: FONTCONFIG_FILE
         value: /opt/render/project/src/assets/fonts/fonts.conf
 
