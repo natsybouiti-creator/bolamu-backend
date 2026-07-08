@@ -327,6 +327,39 @@ app.get('/login', (req, res) => {
 });
 
 // ============================================================
+// SPIKE TEMPORAIRE — Chantier 3 (carte cadeau Zora), à supprimer après
+// validation visuelle sur Render. Non montée dans les routes publiques
+// normales, protégée par une clé partagée simple (JWT_SECRET) en query
+// param. Appelle directement image-generator.service.js::generateBonZoraCard()
+// avec 4 cas de test (?case=1..4) — le signal local Windows pour ce type de
+// rendu s'est révélé peu fiable, seule une vérification visuelle réelle sur
+// Render fait foi (voir NOTES_TEST_ACCOUNTS.md).
+// ============================================================
+app.get('/internal/spike-card-test', async (req, res) => {
+  if (req.query.key !== process.env.JWT_SECRET) {
+    return res.status(404).json({ success: false, message: 'Route introuvable' });
+  }
+  try {
+    const { generateBonZoraCard } = require('./services/image-generator.service');
+    const cases = {
+      1: { partnerName: 'Pharmacie Daffé', offerDescription: '15% de réduction sur médicaments', code: 'BOL-A546-5Q7V', zoraCost: 250 },
+      2: { partnerName: 'Clinique Louise Michel', offerDescription: 'Réduction exceptionnelle de 20% sur toutes les consultations médicales générales et spécialisées pour les membres Bolamu Premium jusqu\'à fin du mois', code: 'BOL-TEST-9999', zoraCost: 500 },
+      3: { partnerName: 'Laboratoire 3A', offerDescription: null, code: 'BOL-NULL-0001', zoraCost: 350 },
+      4: { partnerName: 'Clinique Louise Michel Bacongo Centre-Ville', offerDescription: '20% de réduction sur consultation', code: 'BOL-PART-LONG', zoraCost: 500 }
+    };
+    const testCase = cases[req.query.case];
+    if (!testCase) {
+      return res.status(400).json({ success: false, message: 'Paramètre case invalide (1-4 attendu)' });
+    }
+    const png = await generateBonZoraCard(testCase);
+    res.set('Content-Type', 'image/png');
+    res.send(png);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message, stack: err.stack });
+  }
+});
+
+// ============================================================
 // 6. ROUTE 404
 // ============================================================
 app.use((req, res, next) => {
