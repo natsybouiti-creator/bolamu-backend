@@ -11,7 +11,7 @@
 
 Bolamu n'est pas une app de sport ni un réseau social générique. C'est une plateforme de santé communautaire où le lien social est un mécanisme de rétention et d'entraide, jamais une fin en soi. Chaque brique sociale (suivre quelqu'un, rejoindre un club, encourager un adhérent, commenter) doit soit renforcer un comportement de santé, soit créer un lien humain qui donne envie de revenir. Modèle de référence pour les mécaniques sociales : Instagram/LinkedIn pour le feed et les profils, Facebook Groups pour les clubs — mais **jamais** pour le gain Zora, qui reste régi exclusivement par la règle anti-fraude (section 7).
 
-Le frontend suit une règle absolue héritée de l'ancien doc Communauté : **un seul Hub, des panneaux qui se substituent (bottom sheet), jamais de nouvelle page** (section 9).
+Le frontend suit une règle absolue héritée de l'ancien doc Communauté : **un seul Hub, des panneaux qui se substituent (modal centré, corrigé le 7 juillet 2026 — voir section 9), jamais de nouvelle page**.
 
 ---
 
@@ -27,15 +27,15 @@ Le frontend suit une règle absolue héritée de l'ancien doc Communauté : **un
 | `notifications_type_check` / `notifications_canal_check` | Étendues (`new_like`, `new_comment`, `new_follower`, `in_app`) |
 | Table d'encouragement (pouce levé), backing `/patients/encouragements/received` | **Existe déjà mais nom exact de la table à confirmer par Claude Code** (`SELECT table_name FROM information_schema.tables WHERE table_name ILIKE '%encourag%'`) avant d'écrire la moindre migration dessus |
 
-### 1.2 Existant, incomplet (hérité de l'ancien doc Communauté)
+### 1.2 Existant, incomplet (hérité de l'ancien doc Communauté) — corrigé le 7 juillet 2026
 | Table | État | Lacune |
 |---|---|---|
-| `clubs` | Existe | Pas de `status`, `conversation_id`, `image_url`, `description`, `sport_type`, `join_mode` |
+| `clubs` | Existe, **`conversation_id` déjà présent et utilisé en prod** (confirmé par `information_schema.columns` le 7 juillet 2026 — la version précédente de ce document listait cette colonne comme manquante, à tort) | Pas de `status`, `image_url`, `description`, `sport_type`, `join_mode` (non revérifiées depuis) |
 | `club_members` | Existe (`patient_phone`) | Pas de `removed_at` (retrait par l'animateur) |
-| `conversations` | Existe | Type manque `private` |
-| `conversation_participants` | Existe | Manque `last_read_at` |
-| `messages` | **ABSENTE** | À créer |
-| `club_activities` | **ABSENTE** | À créer |
+| `conversations` | Existe, **`type` accepte déjà `private`/`club`/`patient_medecin`/`communaute`** (contrainte `conversations_type_check` vérifiée en base le 7 juillet 2026), **`title`/`last_message_at` déjà présentes** | Aucune lacune de schéma restante (les deux points listés précédemment étaient déjà résolus) |
+| `conversation_participants` | Existe, **`last_read_at` déjà présente** (vérifiée le 7 juillet 2026) | Aucune lacune de schéma restante |
+| `messages` | **EXISTE déjà** (contrairement à la version précédente de ce document, qui la donnait comme absente) — colonnes réelles : `id, conversation_id, sender_phone, content, type, sent_at, is_deleted, message_type`, utilisée massivement par `chat.service.js` et `clubs.controller.js` | Le code applicatif lit/écrit `sent_at`/`type`, jamais `created_at`/`message_type` (cette dernière colonne existe en base mais n'est exploitée par aucun code actuel) |
+| `club_activities` | Non revérifiée depuis la dernière version de ce document | À confirmer |
 
 ### 1.3 Vérification factuelle obligatoire avant rédaction du plan d'implémentation
 Avant toute migration, Claude Code doit prouver par requête réelle :
@@ -62,7 +62,7 @@ Réutilise le pattern déjà existant (upload photo de profil patient, Cloudinar
 | PATCH | `/api/v1/profiles/me` | patient (bio, city, looking_for, interests) |
 
 ### 2.3 Page profil public (« façon LinkedIn »)
-Cliquer sur un avatar ou un nom n'importe où dans l'app (feed, commentaire, roster, participants) ouvre un panneau (bottom sheet, section 9) — jamais une nouvelle page — affichant :
+Cliquer sur un avatar ou un nom n'importe où dans l'app (feed, commentaire, roster, participants) ouvre un panneau (modal centré, section 9) — jamais une nouvelle page — affichant :
 - Photo, prénom/nom, bio, badges, ville
 - Compteurs : abonnés / abonnements / clubs rejoints
 - Bouton Suivre / Ne plus suivre (si ce n'est pas soi-même)
@@ -252,10 +252,13 @@ CREATE INDEX IF NOT EXISTS idx_profile_comments_target ON profile_comments(targe
 
 **Anti-fraude** (rappel section 7) : ni l'encouragement ni le commentaire de profil ne créditent de Zora. Ce sont des mécaniques purement sociales.
 
-### 5.5 Popup club (même pattern qu'Elonga)
-Clic sur la carte club (hors bouton) → panneau bottom sheet (section 9) affichant : photo, description, nombre de membres, date de création, animateur (avatar + nom, badge « Modérateur »), bouton contextuel (Rejoindre / Demande envoyée / Membre / Voir le classement).
+### 5.5 Popup club — CIBLE À IMPLÉMENTER : migrer vers le modal centré (§9.1)
 
-**Corrigé (7 juillet 2026)** : `openClubPanel` (dashboard.html) lisait `club.banner_url || club.image_url` pour la photo de couverture du popup, deux champs que l'API ne renvoie jamais — remplacé par `club.cover_image_path`, seul champ réellement renvoyé par `GET /clubs/:id`. Même dégradé de repli qu'avant (identique à celui des cards `renderSportGroups`) si aucune photo n'est définie. Preuve : `GET /clubs/:id` confirmé par appel HTTP réel (renvoie `cover_image_path`, jamais `banner_url`/`image_url`) ; rendu vérifié en extrayant les lignes réelles du fichier et en les exécutant avec le club de test id=36 (photo Cloudinary réelle → URL correcte dans `bannerStyle` ; sans photo → dégradé de repli).
+**État réel au 7 juillet 2026** : le popup club (`#club-panel`, CSS `dashboard.html:28`, JS `openClubPanel` l.3469-3517) est un **panneau plein écran opaque** (`position:fixed; width:100vw; height:100vh; background:#FAF8FF; z-index:1000`, animation `slideInUp`) — ni le bottom sheet transparent que décrivait une version antérieure de ce document, ni le modal centré désormais retenu comme référence (§9.1, corrigé le 7 juillet 2026). C'est un troisième pattern, distinct des deux.
+
+**Cible** : migrer `#club-panel` vers le pattern `.modal-bg` de `#modal-event-detail` (référence officielle depuis le 7 juillet 2026, voir §9.1) : carte centrée `max-width:520px`, backdrop flouté qui bloque intentionnellement le dashboard derrière, hero avec overlay, fermeture par clic-backdrop + bouton close, état de chargement optimiste avant réponse réseau (au lieu d'ouvrir le panel seulement après la réponse comme aujourd'hui). Contenu affiché inchangé : photo, description, nombre de membres, date de création, animateur (avatar + nom, badge « Modérateur »), bouton contextuel (Rejoindre / Demande envoyée / Membre / Voir le classement). Chantier non réalisé dans le cadre de cette mise à jour documentaire — documentation uniquement, aucun code modifié.
+
+**Corrigé (7 juillet 2026, indépendant de la migration de pattern ci-dessus)** : `openClubPanel` (dashboard.html) lisait `club.banner_url || club.image_url` pour la photo de couverture du popup, deux champs que l'API ne renvoie jamais — remplacé par `club.cover_image_path`, seul champ réellement renvoyé par `GET /clubs/:id`. Même dégradé de repli qu'avant (identique à celui des cards `renderSportGroups`) si aucune photo n'est définie. Preuve : `GET /clubs/:id` confirmé par appel HTTP réel (renvoie `cover_image_path`, jamais `banner_url`/`image_url`) ; rendu vérifié en extrayant les lignes réelles du fichier et en les exécutant avec le club de test id=36 (photo Cloudinary réelle → URL correcte dans `bannerStyle` ; sans photo → dégradé de repli).
 
 ### 5.6 Routes clubs (complètes)
 | Méthode | Route | Auth |
@@ -274,46 +277,60 @@ Clic sur la carte club (hors bouton) → panneau bottom sheet (section 9) affich
 
 ---
 
-## 6. CHAT (inchangé, hérité tel quel du doc Communauté V3.0)
+## 6. CHAT (partiellement implémenté — vérifié contre le code réel le 7 juillet 2026)
+
+**Statut réel** : contrairement à la mention « inchangé, hérité tel quel » d'une version antérieure de ce document, l'audit du 7 juillet 2026 montre que le schéma de base (§6.2) et la règle invariante clubs (§6.4) sont déjà implémentés. Ce qui reste réellement en écart avec ce document : les événements Socket.io `send_message`/`read_messages` (§6.3, jamais implémentés) et la méthode HTTP de la route `/read` (§6.4, `POST` en réalité, pas `PATCH`). Voir aussi §6.5 « Bugs identifiés » pour 3 bugs réels trouvés pendant l'audit.
 
 ### 6.1 Types de conversation : `private` (2), `club` (N), `patient_medecin` (2)
 
-### 6.2 Schéma cible
-```sql
-ALTER TABLE conversations
-  ADD COLUMN IF NOT EXISTS title VARCHAR(200),
-  ADD COLUMN IF NOT EXISTS last_message_at TIMESTAMPTZ;
-ALTER TABLE conversations DROP CONSTRAINT IF EXISTS conversations_type_check;
-ALTER TABLE conversations ADD CONSTRAINT conversations_type_check
-  CHECK (type IN ('private','club','patient_medecin','communaute'));
-ALTER TABLE conversation_participants
-  ADD COLUMN IF NOT EXISTS last_read_at TIMESTAMPTZ DEFAULT NOW();
+### 6.2 Schéma réel (vérifié le 7 juillet 2026 — déjà appliqué, contrairement à ce qu'affirmait une version antérieure de ce document)
 
-CREATE TABLE IF NOT EXISTS messages (
-  id SERIAL PRIMARY KEY,
-  conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-  sender_phone VARCHAR(20) NOT NULL,
-  content TEXT NOT NULL,
-  message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text','image','system')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  is_deleted BOOLEAN DEFAULT FALSE
-);
-CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, created_at DESC);
+`conversations`, `conversation_participants` et `messages` existent déjà avec le schéma suivant (confirmé par `information_schema.columns` et `pg_get_constraintdef` sur Neon — aucune de ces migrations n'est « à faire ») :
+
+```sql
+-- conversations : déjà conforme, aucune ALTER à rejouer
+-- colonnes réelles : id, type, club_id, created_at, is_active, title, last_message_at
+-- contrainte réelle (déjà en place) :
+--   CHECK (type IN ('private','club','patient_medecin','communaute'))
+
+-- conversation_participants : déjà conforme, aucune ALTER à rejouer
+-- colonnes réelles : id, conversation_id, participant_phone, role, joined_at, last_read_at
+
+-- messages : la table EXISTE déjà (elle n'est pas « à créer »)
+-- colonnes réelles : id, conversation_id, sender_phone, content, type, sent_at, is_deleted, message_type
+-- le code applicatif (chat.service.js, clubs.controller.js) utilise sent_at et type,
+-- jamais created_at ni message_type (colonne présente en base mais non exploitée par le code actuel)
 ```
 
-### 6.3 Socket.io (à brancher dans `chat.socket.js`)
-Événements : `join_conversation` (vérifie JWT + participation), `send_message` (vérifie auth → INSERT `messages` → MAJ `last_message_at` → `io.to('conv_X').emit('new_message')`), `read_messages` (UPDATE `last_read_at`).
+### 6.3 Socket.io — état réel (vérifié le 7 juillet 2026)
 
-### 6.4 Routes chat
-| Méthode | Route | Auth |
-|---|---|---|
-| GET | `/api/v1/chat/conversations` | participant |
-| POST | `/api/v1/chat/conversations` | patient (créer privée) |
-| GET | `/api/v1/chat/conversations/:id/messages` | participant |
-| POST | `/api/v1/chat/conversations/:id/messages` | participant (fallback REST) |
-| PATCH | `/api/v1/chat/conversations/:id/read` | participant |
+Toute la logique Socket.io réside dans `src/services/socketService.js` (il n'existe pas de fichier dédié `chat.socket.js`). Événements réellement implémentés côté serveur : `authenticate`, `join_conversation` (rejoint la room `conversation_{id}` — attend une valeur brute, pas un objet, voir bug #1 en §6.5), `leave_conversation`, `disconnect`.
 
-**Règle invariante clubs** : créer un club → crée automatiquement une `conversation` de type `club` + ajoute l'animateur comme participant. Rejoindre un club (ou être approuvé) → ajoute le patient à `conversation_participants` de ce club.
+**Écriture = REST uniquement, décision assumée** (`chat.routes.js:12`, commentaire explicite « Polling toutes les 10s depuis le frontend, pas de WebSocket ») : les événements `send_message` et `read_messages` évoqués dans une version antérieure de ce document **ne sont pas implémentés et il n'est pas prévu de les implémenter** — `POST /chat/conversations/:id/messages` (REST) fait le travail (INSERT + émission serveur→client de `new_message` via `emitToRoom()`, `chat.service.js:269-270`). Le push temps réel fonctionne donc uniquement en sortie (serveur → client écoute `new_message`), jamais en entrée par socket.
+
+### 6.4 Routes chat (vérifiées contre le code réel le 7 juillet 2026)
+
+| Méthode | Route | Auth | État réel |
+|---|---|---|---|
+| GET | `/api/v1/chat/conversations` | participant | ✅ testé en HTTP réel, fonctionne |
+| POST | `/api/v1/chat/conversations` | patient | ⚠️ crée toujours une conversation de type `patient_medecin` en dur (`chat.routes.js:140`), quels que soient les participants réels — ne crée jamais `type='private'` malgré la description initiale « créer privée » (voir bug #2 en §6.5) |
+| GET | `/api/v1/chat/conversations/:id/messages` | participant | ✅ testé en HTTP réel, fonctionne (aucune vérification de participation en lecture) |
+| POST | `/api/v1/chat/conversations/:id/messages` | participant | ✅ testé en HTTP réel, fonctionne **si l'appelant est réellement `conversation_participant`** — sinon 403 (voir conversation communauté ci-dessous) |
+| POST | `/api/v1/chat/conversations/:id/read` | participant | Route réellement en **`POST`**, pas `PATCH` comme l'affirmait une version antérieure de ce document — décision assumée le 7 juillet 2026, aucun changement de code prévu sur ce point |
+
+**Conversation communauté (id=1)** : en base, cette conversation n'a qu'**un seul** `conversation_participant`. Le frontend (`dashboard.html:2893,2901,2909`) fait pourtant pointer *tous* les patients vers `conversation_id:1` en dur, sans jamais les y inscrire — testé en HTTP réel le 7 juillet 2026, `POST /chat/conversations/1/messages` retourne `403 Accès non autorisé` pour un patient non inscrit. **CIBLE À IMPLÉMENTER** : auto-inscrire le patient comme `conversation_participant` de la conversation communauté à l'ouverture du chat (symétrique à la règle club ci-dessous, déjà implémentée pour les clubs).
+
+**Règle invariante clubs — IMPLÉMENTÉE (confirmé par audit du 7 juillet 2026)** : créer un club → crée automatiquement une `conversation` de type `club` + ajoute l'animateur comme participant (`src/routes/clubs.routes.js:83-97`). Rejoindre un club (ou être approuvé) → ajoute le patient à `conversation_participants` de ce club (`src/controllers/clubs.controller.js:105-113`, symétriquement retiré au départ/exclusion : `:206-212`, `:407-412`).
+
+### 6.5 Bugs identifiés (audit du 7 juillet 2026)
+
+| # | Bug | Preuve | Impact | Étiquette |
+|---|---|---|---|---|
+| 1 | `join_conversation` envoie un objet au lieu d'une valeur brute | Frontend : `dashboard.html:2901`, `A._socket.emit('join_conversation', { conversation_id: 1 })`. Serveur : `socketService.js:35`, `socket.on('join_conversation', conversationId => socket.join(\`conversation_${conversationId}\`))` attend une valeur brute. Le client rejoint donc la room `conversation_[object Object]`, jamais `conversation_1`. | Le patient ne reçoit **jamais** l'événement `new_message` poussé par le serveur (`emitToRoom()` cible bien `conversation_1`, mais aucun client n'est dans cette room) — le temps réel du chat est cassé côté réception, pour tous les patients. | **Corrigé le 7 juillet 2026** (commit `f00ef65`) : `dashboard.html` émet désormais `A._socket.emit('join_conversation', 1)`, valeur brute alignée avec `socketService.js:35` |
+| 2 | Type de conversation forcé en dur à `patient_medecin` | `chat.routes.js:140`, `POST /chat/conversations` fait systématiquement `INSERT INTO conversations (type) VALUES ('patient_medecin')`, quels que soient les participants réels. | Aucune conversation `type='private'` n'est jamais créée, alors que ce type existe et est autorisé en base (`conversations_type_check` confirmé). La route ne peut donc pas servir à créer une conversation privée générique malgré sa description. | **Corrigé le 7 juillet 2026** (commit `7f7599e`) : le type est désormais déterminé dynamiquement (`'patient_medecin'` si l'un des deux participants a le rôle `doctor`, sinon `'private'`) et inséré via `INSERT INTO conversations (type) VALUES ($1)` |
+| 3 | Deux connexions Socket.io distinctes, non documentées | `dashboard.html:2898`, `A._socket = window.io('https://www.bolamu.co')` (chat) vs `dashboard.html:4248`, `var socket = io('https://api.bolamu.co')` (notifications, event `notification` via `notifyLite()`). Deux sous-domaines différents pour la même session patient. | Complexifie le débogage temps réel (deux connexions à surveiller), risque de divergence de comportement entre les deux canaux (reconnexion, auth) non testée. | **Corrigé le 7 juillet 2026** (commit `f00ef65`) : unifié sur une seule connexion `A._socket = window.io('https://www.bolamu.co')`, authentifiée une fois ; le chat s'abonne via `join_conversation` sur cette même instance au lieu d'en ouvrir une seconde |
+
+Les 3 bugs ci-dessus ont été corrigés le 7 juillet 2026 (commits `f00ef65` et `7f7599e`, poussés en production) — non prévus au moment de la rédaction initiale de cette section, traités en même temps qu'un chantier de nettoyage distinct.
 
 ---
 
@@ -347,11 +364,14 @@ Dashboard animateur — 4 onglets inchangés : Accueil, Événements, Clubs (+ d
 
 ## 9. FRONTEND — HUB UNIQUE
 
-### 9.1 Principe (inchangé)
-Un seul écran racine. Les « pages » sont des panneaux qui se substituent. **Popup = bottom sheet** (validé, section popup événement/club) — glisse depuis le bas, laisse le dashboard visible en transparence derrière, jamais un modal plein écran qui bloque tout.
+### 9.1 Principe — CORRIGÉ le 7 juillet 2026 : modal centré, pas bottom sheet
+
+**Correction de doctrine (7 juillet 2026)** : une version antérieure de cette section prescrivait un pattern « bottom sheet » (glisse depuis le bas, dashboard visible en transparence derrière) comme référence pour tous les popups. Audit réel : ce pattern **n'a jamais été implémenté nulle part** dans le code (ni pour les événements, ni pour les clubs) — ce n'est donc pas l'abandon d'une fonctionnalité vivante, seulement la correction d'une doctrine jamais réalisée. La référence officielle devient le **modal centré**, déjà implémenté et fonctionnel pour `#modal-event-detail` (`dashboard.html:1310-1338`) : carte blanche centrée (`max-width:520px`, `border-radius:2rem`), backdrop `rgba(10,36,99,0.55)` avec `backdrop-filter:blur(6px)` qui **bloque intentionnellement** le dashboard derrière, fermeture par clic sur le backdrop ou bouton close superposé sur un hero. Le popup club (`#club-panel`) doit migrer vers ce même pattern (chantier CIBLE À IMPLÉMENTER, voir §5.5 — non fait dans le cadre de cette mise à jour documentaire).
+
+Un seul écran racine. Les « pages » sont des panneaux qui se substituent — la substitution se fait via un modal centré (`.modal-bg`), jamais un panneau plein écran occupant `100vw`/`100vh` (pattern de `#club-panel` actuel, à corriger, voir §5.5).
 
 - **Interdit** : `window.location`, `location.href`, nouvelle page HTML pour un profil/club/événement.
-- **Autorisé** : `setActiveSection()`, `setSelectedClub()`, `setSelectedProfile()`, `setBottomSheetOpen()`.
+- **Autorisé** : `setActiveSection()`, `setSelectedClub()`, `setSelectedProfile()`, ouverture/fermeture via la classe `.open` de `.modal-bg`.
 - Priorité mobile 375 px · Plus Jakarta Sans · Material Symbols (zéro emoji) · fond `#FAF8FF`.
 
 ### 9.2 Arbre de navigation (fusionné)
@@ -359,7 +379,7 @@ Un seul écran racine. Les « pages » sont des panneaux qui se substituent. **P
 Hub
 ├── Accueil (feed + événements près de chez vous, voir doc Elonga)
 ├── Feed → Post → [Likes · Commentaires · Suppression (auteur)]
-├── Clubs → Fiche (bottom sheet) → [Membres/Classement · Activités · Discussion · Modération (animateur)]
+├── Clubs → Fiche (modal centré) → [Membres/Classement · Activités · Discussion · Modération (animateur)]
 ├── Profil (le sien ou celui d'un autre) → [Posts · Mur/commentaires · Suivre]
 ├── Messages → Conversation
 └── Notifications
@@ -443,7 +463,7 @@ Rien n'est « fait » tant que sa preuve réelle n'est pas collée ici et verte.
 | T9 | Animateur retire un membre | HTTP+SQL | `removed_at` renseigné, retiré du chat | | ☐ |
 | T10 | Animateur supprime un message du chat | HTTP+SQL | `messages.is_deleted=true` | | ☐ |
 | T11 | Lien WhatsApp = magic link fonctionnel | HTTP | connexion auto sans re-saisie mot de passe | | ☐ |
-| T12 | Popup club en bottom sheet | Navigateur | glisse depuis le bas, dashboard visible derrière | | ☐ |
+| T12 | Popup club en modal centré (corrigé le 7 juillet 2026, ex-bottom sheet) | Navigateur | carte centrée `max-width:520px`, backdrop flouté opaque bloquant le dashboard derrière, fermeture par clic-backdrop ou bouton close | | ☐ |
 | T13 | Profil ouvrable depuis n'importe quel avatar/nom | Navigateur | ouverture panneau, jamais nouvelle URL | | ☐ |
 | T14 | Aucun gain Zora sur une interaction sociale | Code+SQL | grep confirmant l'absence de tout appel Zora dans les routes sociales | | ☐ |
 | T15 | Tous les nouveaux appels clubs/Elonga utilisent `apiFetch()` | Code | grep confirmant l'absence de `fetch()` + token manuel hors FormData/Socket.io | | ☐ |
@@ -541,7 +561,7 @@ Le helper `apiFetch()` (refresh silencieux + redirection session expirée) exist
 **Point de vigilance signalé mais non traité** : à ce jour, une trentaine d'appels API dans `dashboard.html` (rendez-vous, chat, clubs existants, paiements Momo) utilisent encore l'ancien pattern `fetch()` + token manuel et gardent donc le bug de session zombie sur ces écrans précis. Ce n'est pas dans le périmètre de ce document, mais toute nouvelle fonctionnalité clubs/Elonga qui touche à du code existant dans cette zone doit migrer l'appel touché vers `apiFetch()` au passage, sans élargir le chantier au-delà de ce qui est réellement modifié.
 
 ### 15.4 Discipline de commit
-Jamais `git add -A`. Fichiers nommés individuellement, un commit par sujet fonctionnel (ex. : un commit pour la modération clubs, un commit séparé pour le popup bottom sheet, un commit séparé pour la suppression de post). Preuve réelle collée (section 14) avant chaque commit, `git diff --cached` revu avant chaque `git commit`, aucun `git push` sans validation explicite.
+Jamais `git add -A`. Fichiers nommés individuellement, un commit par sujet fonctionnel (ex. : un commit pour la modération clubs, un commit séparé pour le popup club en modal centré, un commit séparé pour la suppression de post). Preuve réelle collée (section 14) avant chaque commit, `git diff --cached` revu avant chaque `git commit`, aucun `git push` sans validation explicite.
 
 ---
 
@@ -549,7 +569,7 @@ Jamais `git add -A`. Fichiers nommés individuellement, un commit par sujet fonc
 1. Audit factuel (section 1.3) — bloquant, avant tout le reste.
 2. Migrations clubs/messages/profile_comments/join_requests — preuve SQL (T1).
 3. Backend : modération clubs, encouragement étendu, commentaires profil, suppression post, magic link WhatsApp — preuves HTTP/SQL (T2–T11).
-4. Frontend : popup club en bottom sheet, profil ouvrable partout, roster épuré — preuves Navigateur (T12–T13).
+4. Frontend : popup club en modal centré, profil ouvrable partout, roster épuré — preuves Navigateur (T12–T13).
 5. Vérification anti-fraude finale (T14) avant tout push.
 
 ---

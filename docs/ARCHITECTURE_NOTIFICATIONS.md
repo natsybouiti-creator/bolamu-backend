@@ -3,13 +3,14 @@
 ## SOURCE DE VÉRITÉ UNIQUE
 
 Ce document est la source de vérité pour tous les templates de notifications WhatsApp.
-Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `src/services/whatsapp-web.service.js`.
+Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `src/services/whatsapp.service.js`.
 
 ## CANAUX DE NOTIFICATION
 
-- **WhatsApp** : sendAutoMessage(phone, templateName, params) dans src/services/whatsapp-web.service.js
+- **WhatsApp** : sendAutoMessage(phone, templateName, params) dans `src/services/whatsapp.service.js` — corrigé le 7 juillet 2026, ce fichier s'appelait à tort `whatsapp-web.service.js` dans une version antérieure de ce document (ce nom de fichier n'existe pas dans le repo)
 - **Email** : Resend (optionnel)
-- **Push** : Web Push VAPID (optionnel)
+- **Push** : Web Push VAPID (optionnel) — voir « CANAL PUSH (VAPID) — état réel » pour le détail
+- **Socket.io** : event `notification` via `notifyLite()` — voir « CANAL SOCKET.IO » ci-dessous, absent des versions antérieures de ce document
 
 ## INFRASTRUCTURE WAHA
 
@@ -23,7 +24,7 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
         ↓
 [Backend Node.js — trigger notification]
         ↓
-[whatsapp-web.service.js — sendAutoMessage(phone, templateName, params)]
+[whatsapp.service.js — sendAutoMessage(phone, templateName, params)]
         ↓
 [POST https://waha-bolamu.onrender.com/api/sendText]
    Header: X-Api-Key: WAHA_API_KEY
@@ -38,12 +39,12 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 ### Règles fondamentales infra
 
 - **Un seul numéro expéditeur** : la SIM dédiée Bolamu.
-- **Un seul service d'envoi** : `whatsapp-web.service.js` → `sendAutoMessage(phone, templateName, params)`.
+- **Un seul service d'envoi** : `whatsapp.service.js` → `sendAutoMessage(phone, templateName, params)`.
 - **Un seul appel HTTP** : `POST /api/sendText` vers WAHA avec `X-Api-Key`.
 - **Fallback** : si WAHA répond erreur → log erreur + INSERT `notifications` avec `sent_at = NULL`.
 - **Moteur GOWS** : pas de Chrome/Puppeteer — aucun crash "Execution context destroyed".
 - **Session persistée** : disque Render `/app/.sessions` — pas de QR à rescanner après redémarrage.
-- **Meta API (`whatsapp.service.js`, `graph.facebook.com`) est abandonnée** — WAHA est le seul canal WhatsApp actif. Migration des appels restants en cours (voir suivi séparé).
+- **Meta API (`whatsapp.service.META.DEPRECATED.js`, `graph.facebook.com`) est abandonnée** — WAHA (`whatsapp.service.js`) est le seul canal WhatsApp actif. **Correction de nom de fichier le 7 juillet 2026** : une version antérieure de ce document attribuait par erreur le nom `whatsapp.service.js` au fichier Meta abandonné — c'est l'inverse, `whatsapp.service.js` est le fichier WAHA actif, le fichier Meta mort porte l'extension `.META.DEPRECATED.js`. Un seul appel résiduel à l'ancienne fonction Meta (`sendWhatsAppTemplate()`) subsiste, en commentaire, dans `elonga-events.service.js:282` — jamais exécuté.
 
 ### Procédure de bascule vers la SIM dédiée
 
@@ -55,6 +56,21 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 6. Mettre à jour `.env` : `BOLAMU_WA_PHONE=+242XXXXXXXXX`.
 7. Tester un envoi vers un numéro personnel — confirmer réception.
 8. Commit : `chore: bascule SIM dédiée Bolamu WhatsApp`.
+
+## CANAL SOCKET.IO — notifyLite() (ajouté le 7 juillet 2026, absent des versions antérieures de ce document)
+
+Canal temps réel distinct de WhatsApp/Email/Push, non couvert jusqu'ici par ce document alors qu'il est réellement utilisé en production.
+
+- **Mécanisme** : `notifyLite()` (`src/services/notification.service.js:16`) émet `io.to('user:{user_phone}').emit('notification', result.rows[0])` (ligne 26) vers la room privée de l'utilisateur, initialisée par `socketService.js::initializeSocket()` avec authentification JWT par room `user:{phone}`.
+- **Déclencheurs réels confirmés** : nouvel abonné (`follows.controller.js:78,101,306`), like sur un post (`feed.controller.js:205`), commentaire sur un post (`feed.controller.js:268`).
+- **Portée** : uniquement des interactions sociales légères (follow/like/commentaire) — aucun lien avec les notifications WhatsApp/templates ci-dessous, canal totalement indépendant.
+- Un event distinct, `leaderboard_updated`, est également émis en broadcast global (`io.emit`, `zora.service.js:206`) hors du système `notifications` — mentionné ici pour mémoire, sans lien avec `notifyLite()`.
+
+## CANAL PUSH (VAPID) — état réel (clarifié le 7 juillet 2026)
+
+- **Désactivé en pratique, faute de clés configurées** : `configurePush()` (`src/services/push.service.js:11-15`) vérifie `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` au démarrage — absentes de `.env` (confirmé, pas seulement vides) → log `[Push] VAPID keys non configurées - notifications push désactivées` et sortie immédiate de la fonction.
+- **Dégradation silencieuse confirmée** : tant que `pushEnabled` reste `false`, `sendToUser()`/`sendToAll()` retournent `{ success: true, sent: 0 }` sans lever d'erreur — aucun appelant ne peut détecter l'échec autrement qu'en lisant ce champ.
+- **Pas de BullMQ dans `push.service.js` lui-même** : l'envoi est synchrone (`webpush.sendNotification()` appelé directement), contrairement à la mention BullMQ trouvée ailleurs dans le repo (rôle `/notification-engineer` de `CLAUDE.md`, hors périmètre de cette mise à jour). `src/workers/notification-worker.js` importe bien `push.service.js`, mais son usage principal reste `sendAutoMessage` (WhatsApp).
 
 ## TEMPLATES PAR RÔLE
 
@@ -230,20 +246,32 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 
 ## BOUCLE 6 — PARTENAIRES RÉCOMPENSES & ÉCONOMIE ZORA
 
-### Bons Zora
+**⚠️ Deux systèmes parallèles distincts, confirmé par audit du 7 juillet 2026 — à ne pas confondre entre eux :**
+- **`zora_vouchers`** (table legacy, marketplace) → service `zora-voucher.service.js` → templates ci-dessous, **réellement appelés**.
+- **`partner_bons_zora`** (table utilisée aujourd'hui par le patient, voir `ARCHITECTURE_ZORA_BOLAMU.md` §4/§10) → service `bon-zora.service.js` → templates `bolamu_bon_zora_*` ci-dessous, **documentés mais non appelés à ce jour** (voir sous-section dédiée).
+
+### Vouchers (`zora_vouchers`) — ACTIF, réellement envoyé (ajouté au catalogue le 7 juillet 2026, manquait jusqu'ici malgré son usage réel)
+- `bolamu_voucher_genere` : Voucher marketplace généré
+  - Déclencheur réel confirmé : `zora-voucher.service.js:125`, appel `sendAutoMessage()` à la génération d'un voucher
+- `bolamu_voucher_utilise` : Voucher marketplace validé
+  - Déclencheur réel confirmé : `zora-voucher.service.js:269`, appel `sendAutoMessage()` à la validation d'un voucher
+
+### Bons Zora (`partner_bons_zora`) — CIBLE À IMPLÉMENTER, pas encore envoyé
 - `bolamu_bon_zora_genere` : Bon Zora généré
   - Params : [prenom_patient, code_bon_zora, nom_partenaire]
-  - Déclencheur : POST /api/v1/bons-zora/generate
-  - Message : "{prenom_patient}, votre Bon Zora est prêt ! Code : {code_bon_zora} Valable chez : {nom_partenaire} Expire dans 48h. L'équipe Bolamu"
+  - Déclencheur cible : `POST /api/v1/bons-zora/generate` (`bon-zora.service.js::generateBonZora()`) — **lecture exhaustive du fichier confirmée le 7 juillet 2026 : aucun appel `sendAutoMessage()` ni aucune notification, tous canaux confondus, dans cette fonction à ce jour**
+  - Message cible : "{prenom_patient}, votre Bon Zora est prêt ! Code : {code_bon_zora} Valable chez : {nom_partenaire} Expire dans 48h. L'équipe Bolamu"
+  - **Implémentation cible** : réutiliser le pattern `sendAutoMessage()` déjà éprouvé dans `zora-voucher.service.js:125` (ci-dessus) — voir `ARCHITECTURE_ZORA_BOLAMU.md` §7.5 pour le détail complet du flux (WhatsApp + intégration QR/carte membre). Ce template reste **distinct** de `bolamu_voucher_genere` pour ne pas mélanger les deux systèmes en notification comme ils le sont déjà en base.
 
 - `bolamu_bon_zora_utilise` : Bon Zora validé
   - Params : [prenom_patient, nom_recompense, nom_partenaire]
-  - Déclencheur : POST /api/v1/bons-zora/validate
-  - Message : "{prenom_patient}, votre Bon Zora a été validé. Récompense : {nom_recompense} Partenaire : {nom_partenaire} Merci de votre fidélité — L'équipe Bolamu"
+  - Déclencheur cible : `POST /api/v1/bons-zora/validate` (`bon-zora.service.js::validateBonZora()`) — même constat : **aucune notification implémentée à ce jour**
+  - Message cible : "{prenom_patient}, votre Bon Zora a été validé. Récompense : {nom_recompense} Partenaire : {nom_partenaire} Merci de votre fidélité — L'équipe Bolamu"
+  - **Implémentation cible** : même pattern que ci-dessus, voir `ARCHITECTURE_ZORA_BOLAMU.md` §7.5. Template distinct de `bolamu_voucher_utilise`.
 
 - `bolamu_bon_zora_reglement` : Règlement Bon Zora partenaire
   - Params : [montant_fcfa, reference_reglement]
-  - Déclencheur : POST /api/v1/clearing/bons-zora/run
+  - Déclencheur : POST /api/v1/clearing/bons-zora/run (`clearing.routes.js:453`) — **celui-ci est réellement appelé, à la différence des deux templates ci-dessus** (confirmé par audit du 7 juillet 2026)
   - Message : "Votre règlement Bon Zora de {montant_fcfa} FCFA a été généré. Référence : {reference_reglement}. L'équipe Bolamu"
 
 ## RÈGLES D'ENVOI
@@ -303,3 +331,4 @@ ORDER BY created_at DESC LIMIT 3;
 - 25 juin 2026 : Ajout templates Boucle 5 (ordonnance_dispensee, ordonnance_dispensee_medecin, nouvelle_ordonnance_pharmacie, resultats_disponibles)
 - 25 juin 2026 : Ajout templates Boucle 6 (bolamu_voucher_genere, bolamu_voucher_utilise)
 - 4 juillet 2026 : Fusion de l'infrastructure WAHA (schéma architecture, procédure bascule SIM, schéma SQL table notifications) depuis "ARCHITECTURE_NOTIFICATIONS_BOLAMU (1).md" (désormais SUPERSEDED) — Meta API confirmée abandonnée, WAHA seul canal actif
+- 7 juillet 2026 : Correction du nom de fichier WhatsApp actif (`whatsapp.service.js`, pas `whatsapp-web.service.js` qui n'existe pas) et du nom du fichier Meta abandonné (`whatsapp.service.META.DEPRECATED.js`, inversé par erreur dans une version antérieure) ; ajout des templates `bolamu_voucher_genere`/`bolamu_voucher_utilise` au catalogue Boucle 6 (réellement actifs, manquaient jusqu'ici) ; `bolamu_bon_zora_genere`/`bolamu_bon_zora_utilise` reclassés CIBLE À IMPLÉMENTER (non appelés à ce jour, à distinguer explicitement des templates voucher) ; ajout des sections Canal Socket.io (`notifyLite()`) et Canal Push (VAPID, état réel) absentes des versions antérieures

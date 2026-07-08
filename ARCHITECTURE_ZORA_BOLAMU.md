@@ -106,8 +106,11 @@ Transaction réelle :
 4. `UPDATE zora_points SET balance = balance - $1 WHERE phone=$2 AND balance >= $1` (débit conditionnel atomique — même pattern que la v1.1 décrivait pour `zora_wallets`, mais sur la vraie table `zora_points`).
 5. Génération d'un code unique (`generateUniqueCode()`).
 6. `INSERT INTO zora_ledger (..., points=-program.zora_cost, category='redemption', action_type='bon_zora_generation', proof_class='system_event', ...)` — la dépense est bien tracée dans le même ledger que le gain, avec un montant négatif.
+7. `INSERT INTO partner_bons_zora (code, patient_phone, partner_id, zora_cost, qr_payload, fcfa_value, status, expires_at)` — insertion réelle du bon (`bon-zora.service.js:161-166`).
 
-C'est une implémentation réelle et fonctionnelle de la mécanique de réservation atomique décrite en v1.1 §21 — testée en HTTP réel dans le cadre du diagnostic du 7 juillet 2026 (bon id=2, `PART-MQU2N4W5`).
+**Bug corrigé le 7 juillet 2026** : l'étape 7 utilisait `program_id`/`created_at`, deux colonnes inexistantes sur `partner_bons_zora` (introduites par erreur dans le commit `8c52cc7`, 2026-07-06, lors du renommage `voucher→bon_zora`). Conséquence réelle : **`POST /bons-zora/generate` échouait à 100% depuis cette date** (`column "program_id" of relation "partner_bons_zora" does not exist`) — un seul bon existe dans l'historique complet de la table avant ce correctif (`id=2`, `PART-MQU2N4W5`, généré le 2026-06-25, avant la régression — la mention précédente de ce document le présentant comme une preuve de test du 7 juillet était erronée). Corrigé le 7 juillet 2026 en alignant l'INSERT sur les vrais noms de colonnes (`partner_id`, `zora_cost`, `generated_at` — symétrique au correctif déjà appliqué côté lecture dans `getPatientBonsZora()`, commit `b36f1db`). Testé en HTTP réel le 7 juillet 2026 : `POST /bons-zora/generate` → `200 OK`, bon généré (`BOL-JZ97-2RHV`), solde débité correctement — preuve conservée dans `audit_log` (event `bon_zora_generated`, insert-only) ; le bon de test lui-même et sa ligne `zora_ledger` associée ont été supprimés après validation (nettoyage des données de test).
+
+**Bug latent distinct trouvé pendant ce test, non bloquant, voir section 16** : désynchronisation de la séquence `partner_bons_zora_id_seq`.
 
 ### 4.3 Validation d'un bon Zora (réel, mais partiellement cassé côté pharmacie/laboratoire)
 
@@ -147,6 +150,8 @@ Aucune table `zora_tier_history` n'existe — pas d'audit trail dédié aux chan
 3. GET /bons-zora/my → liste des bons (actifs + historique)
 ```
 
+**Gap identifié (pas un bug, un choix UX non documenté jusqu'ici)** : le clic sur une carte de la bande "Échangeable" (`A.exchangeReward`, `dashboard.html:2285-2289`) déclenche l'étape 2 **directement**, sans confirmation ni aperçu intermédiaire — dès que le solde suffit, `A.redeemBonZora()` part immédiatement et débite les points. Voir §7.4 pour la cible (popup détail avant échange).
+
 ### 7.2 Côté pharmacie/laboratoire — CASSÉ, confirmé par lecture du code (pas testé en conditions réelles ce soir, mais la rupture est certaine à la lecture)
 
 `public/pharmacie/dashboard.html:881` et `public/laboratoire/dashboard.html` (fonction `verifyZoraVoucher`, nom hérité de l'ancien système mais appelant bien la route moderne) :
@@ -168,6 +173,24 @@ Ce flux n'a manifestement jamais été testé de bout en bout depuis son écritu
 ### 7.3 Seul chemin de validation aligné avec les rôles réels : le dashboard `partenaire`
 
 Le dashboard `partenaire/dashboard.html` (rôle `partenaire`, aligné avec `requirePartenaire`) ne contient **aucun bouton de scan/validation de bon** trouvé dans le fichier — seulement une liste des programmes (`loadPrograms()`) et des stats (`loadStats()`). Combiné au fait que ce rôle a **0 compte réel** en base, le flux de validation de bon Zora — pourtant fonctionnel côté API (vérifié directement en HTTP ce soir) — n'a **aucun point d'entrée UI opérationnel** dans l'état actuel du produit.
+
+### 7.4 Popup détail programme — CIBLE À IMPLÉMENTER
+
+**Constat** : aucune route de détail par programme individuel n'existe aujourd'hui. `bon-zora.routes.js` ne monte que `GET /programs` (liste complète), `POST /generate`, `GET /my`, `POST /validate`, `POST /validate/qr`, `GET /:code/qr` — pas de `GET /programs/:id` ni équivalent (confirmé par lecture exhaustive du fichier de routes le 7 juillet 2026). `getProgramsByCategory()` (`bon-zora.service.js:387`) ne propose pas non plus de récupération par `id`.
+
+**Cible** : avant l'échange (voir gap §7.1), afficher un popup de détail au clic sur une carte "Échangeable" — au format modal centré validé dans `ARCHITECTURE_SOCIAL_COMMUNAUTE_BOLAMU.md` §9.1 (pattern `.modal-bg`/`#modal-event-detail` : carte centrée `max-width:520px`, backdrop flouté bloquant, hero, fermeture par clic-backdrop ou bouton close). Le bouton "Échanger" à l'intérieur de ce popup déclencherait alors l'appel `POST /bons-zora/generate` actuel (aucun changement du service backend, seulement une route de lecture à ajouter et le frontend). Nécessite au minimum une route `GET /bons-zora/programs/:id` (absente à ce jour) pour charger le détail avant affichage. Chantier non réalisé dans le cadre de cette mise à jour documentaire.
+
+### 7.5 Flux réel bon + WhatsApp + QR partenaire scannable — CIBLE À IMPLÉMENTER
+
+**État actuel** : `generateBonZora()` et `validateBonZora()` (`bon-zora.service.js`) n'envoient **aucune notification**, tous canaux confondus — confirmé par lecture exhaustive du fichier (aucun import de `whatsapp.service.js`, aucun appel `sendAutoMessage`, aucune écriture dans la table `notifications`, aucun `io.emit`). Seuls des `INSERT INTO audit_log` sont réalisés (voir §4.2 et §4.3). Le texte affiché côté frontend au moment de l'échange (« Bon Zora disponible ! Vérifiez WhatsApp », `dashboard.html:1236`) est donc **trompeur** dans l'état actuel — rien n'est envoyé.
+
+**Pattern déjà fonctionnel et réutilisable** : un flux très similaire existe et fonctionne réellement pour un système parallèle — `zora-voucher.service.js:125,269` appelle `sendAutoMessage()` avec les templates `bolamu_voucher_genere`/`bolamu_voucher_utilise` sur la génération/validation d'un voucher (table `zora_vouchers`, distincte de `partner_bons_zora`, voir §10). Implémenter l'envoi WhatsApp pour `partner_bons_zora` peut reprendre ce pattern déjà éprouvé, avec des templates dédiés (`bolamu_bon_zora_genere`/`bolamu_bon_zora_utilise` existent déjà comme noms dans `docs/ARCHITECTURE_NOTIFICATIONS.md`, Boucle 6, mais ne sont appelés nulle part dans le code actuel — la doc notifications décrit un comportement aspirationnel, pas réel, sur ce point précis).
+
+**Cible complète** (aucun code modifié dans le cadre de cette mise à jour documentaire) :
+1. `generateBonZora()` appelle `sendAutoMessage()` (pattern `zora-voucher.service.js`) avec un template dédié, envoyant le code du bon au patient.
+2. `validateBonZora()` fait de même à la validation partenaire (confirmation d'utilisation).
+3. Intégration visible dans le QR code principal (`hero-qr`) et/ou la carte membre (`dossier-qr`) du dashboard patient — voir §12.1 pour l'état actuel de ces deux éléments et le **POINT OUVERT** associé.
+4. Le QR scannable côté partenaire existe déjà techniquement (`qr_payload` généré à l'étape 7 de §4.2, exposé via `GET /bons-zora/:code/qr`) — la brique manquante n'est donc pas le QR lui-même, mais son intégration visuelle dans les composants QR déjà existants du dashboard patient (point 3 ci-dessus).
 
 ---
 
@@ -290,9 +313,11 @@ Aucune des routes `/api/zora/wallet*`, `/api/zora/offers*`, `/api/admin/zora/*`,
 | Historique des mouvements | `GET /zora/ledger?limit=10` | Vide si `data.data` vide |
 | Bande "Échangeable maintenant avec vos Zora" | `GET /bons-zora/programs` | **`display:none` tant que `partner_programs` ne renvoie aucune ligne active** — bug diagnostiqué et corrigé le 7 juillet 2026 (catalogue vide = donnée manquante, pas bug de code après correctif du champ `d.data`) |
 | "Mes bons d'achat" | `GET /bons-zora/my` | Vide si aucun bon ; corrigé le 7 juillet 2026 (lisait `d.data.vouchers`, clé inexistante) |
-| Génération d'un bon | `POST /bons-zora/generate {program_id}` | Depuis le clic sur une carte de la bande "Échangeable" |
+| Génération d'un bon | `POST /bons-zora/generate {program_id}` | Depuis le clic sur une carte de la bande "Échangeable" — **échange direct sans confirmation** (voir gap §7.1, cible §7.4) |
 | Jeux Zora | `GET /zora/games/config`, `POST /zora/games/play` | Onglet dédié, hors périmètre de cette réécriture |
 | Leaderboard hebdo | `GET /leaderboard/weekly` | Toujours affiché |
+| `hero-qr` (QR principal du dashboard) | `GET /qr/generate` | Toujours affiché — encode un token d'urgence (`/urgence?token=...`), **sans aucun rapport avec les bons Zora**. Ajouté au document le 7 juillet 2026 (angle mort de la version précédente) |
+| `dossier-qr` (carte membre / titulaire) | **Aucun** | **QR mort** : le `<div id="dossier-qr">` (`dashboard.html:880`) n'est rempli par aucun code JS trouvé (recherche exhaustive du littéral `dossier-qr` dans tout le fichier — seule sa propre définition HTML apparaît). Ajouté au document le 7 juillet 2026. **POINT OUVERT (non tranché)** : réactiver ce composant pour y afficher le dernier bon Zora actif (§7.5), ou créer un composant séparé dédié aux bons sur la carte membre — décision produit à trancher avant implémentation du flux §7.5 |
 
 ### 12.2 Pharmacie / Laboratoire (`public/pharmacie/dashboard.html`, `public/laboratoire/dashboard.html`)
 
@@ -354,8 +379,9 @@ Reprend et complète les anomalies déjà notées en `ARCHITECTURE_MODELE_DONNEE
 - **`zora-voucher.service.js` toujours importé** par `partenaire.controller.js` alors que la route qui l'utilisait est morte (410 Gone) — import mort, fonctions `validateVoucher`/`getVouchersByPhone` non appelées en pratique.
 - **`partner_programs.partner_id` sans contrainte FK** — aucune vérification que la valeur référence un partenaire réel ; les 3 programmes ajoutés le 7 juillet 2026 utilisent `partner_id = NULL` faute de comptes partenaires correspondants en base (Pharmacie Daffé, Laboratoire 3A ne sont pas des comptes seedés).
 - **Aucune multiplication du gain par le tier**, contrairement à ce que documentait la v1.1 — à trancher côté produit : fonctionnalité à implémenter, ou vision à abandonner définitivement.
-- **Notifications Zora totalement silencieuses** — aucun template WhatsApp, alors que c'est un canal central pour le reste de la plateforme (règle CLAUDE.md "WhatsApp direct").
-- **Bug préexistant (hors Chantier 2)** : le modal `#modal-bon-zora` (flux `A.redeemBonZora()`) affiche "Vérifiez WhatsApp" sans qu'aucun envoi WhatsApp ne soit réellement déclenché (confirmé : aucun appel WAHA dans `bon-zora.service.js` / `bon-zora.routes.js`). Ne pas corriger isolément — sera résolu par l'implémentation du Chantier 3 (confirmation + carte cadeau QR via WhatsApp), voir ARCHITECTURE_ZORA_BOLAMU.md.
+- **Notifications Zora totalement silencieuses** — aucun template WhatsApp, alors que c'est un canal central pour le reste de la plateforme (règle CLAUDE.md "WhatsApp direct"). Voir §7.5 pour la cible (pattern `zora-voucher.service.js` réutilisable).
+- **Séquence `partner_bons_zora_id_seq` désynchronisée du `MAX(id)` réel — CIBLE À IMPLÉMENTER, non bloquant immédiat.** Découvert le 7 juillet 2026 pendant le test du correctif §4.2 : `migration_065_rename_partner_vouchers.sql` a copié les lignes historiques avec un `id` explicite (`INSERT ... SELECT id, ...`) sans jamais appeler `setval()` pour resynchroniser la séquence. Un `nextval()` peut donc entrer en collision avec un `id` déjà utilisé (`duplicate key value violates unique constraint "partner_bons_zora_pkey"`, constaté une fois en test). **Pas bloquant dans l'immédiat** : les séquences Postgres ne sont pas transactionnelles — l'essai suivant obtient automatiquement un `id` libre et réussit. Risque latent si une future migration/copie de données recroise à nouveau un `id` déjà consommé. Correctif recommandé : `SELECT setval('partner_bons_zora_id_seq', (SELECT MAX(id) FROM partner_bons_zora))`.
+- **Bug préexistant (hors Chantier 2)** : le modal `#modal-bon-zora` (flux `A.redeemBonZora()`) affiche "Vérifiez WhatsApp" sans qu'aucun envoi WhatsApp ne soit réellement déclenché (confirmé : aucun appel WAHA dans `bon-zora.service.js` / `bon-zora.routes.js`). Ne pas corriger isolément — sera résolu par l'implémentation du Chantier 3 (confirmation + carte cadeau QR via WhatsApp), voir ce document.
 
 ---
 
