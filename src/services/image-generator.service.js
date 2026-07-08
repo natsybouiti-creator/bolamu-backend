@@ -139,7 +139,7 @@ async function generateBonZoraCard({ partnerName, offerDescription, code, zoraCo
 
   // Position du nom partenaire : ancré en haut si offre présente,
   // recentré verticalement dans la zone navy si pas d'offre.
-  const partnerY = hasOffer ? 100 : Math.round(TOP_ZONE_H / 2);
+  const partnerY = hasOffer ? 140 : Math.round(TOP_ZONE_H / 2);
 
   const offerTspans = offerLines
     .map((line, i) => `<tspan x="40" dy="${i === 0 ? 0 : 32}">${escapeXml(line)}</tspan>`)
