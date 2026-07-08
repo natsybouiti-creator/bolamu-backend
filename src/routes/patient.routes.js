@@ -180,8 +180,8 @@ router.get('/consultations/recentes', authMiddleware, async (req, res) => {
     const now = new Date();
 
     const result = await pool.query(
-      `SELECT c.id, c.started_at, c.status,
-              d.full_name as doctor_name, d.specialty
+      `SELECT c.id, c.started_at, c.status, c.doctor_phone,
+              d.full_name as doctor_name, d.specialty, d.photo_url as doctor_photo_url
        FROM consultations c
        LEFT JOIN doctors d ON d.phone = c.doctor_phone
        WHERE c.patient_phone = $1
@@ -227,7 +227,9 @@ router.get('/consultations/recentes', authMiddleware, async (req, res) => {
         specialty: c.specialty || 'Généraliste',
         date: startedAt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
         status: isPast ? 'Terminée' : 'À venir',
-        medications: itemsByConsultation[c.id] || []
+        medications: itemsByConsultation[c.id] || [],
+        doctor_phone: c.doctor_phone,
+        doctor_photo_url: c.doctor_photo_url || null
       };
     });
 

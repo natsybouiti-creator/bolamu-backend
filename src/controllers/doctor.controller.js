@@ -172,7 +172,7 @@ async function getDoctors(req, res) {
         params.push(parseInt(limit));
         params.push(offset);
         const result = await pool.query(
-            `SELECT d.id, d.full_name, d.specialty, d.city, d.neighborhood, d.bio, d.availability_schedule, d.total_consultations, d.member_code,
+            `SELECT d.id, d.phone, d.full_name, d.specialty, d.city, d.neighborhood, d.bio, d.availability_schedule, d.total_consultations, d.member_code,
                     u.etablissement_nom, u.etablissement_adresse, u.etablissement_ville
              FROM doctors d
              LEFT JOIN users u ON u.phone = d.phone
