@@ -327,6 +327,63 @@ app.get('/login', (req, res) => {
 });
 
 // ============================================================
+// SPIKE TEMPORAIRE — Chantier 3 (carte cadeau Zora), à supprimer après
+// validation visuelle. Non montée dans les routes publiques normales,
+// protégée par une clé partagée simple (JWT_SECRET) en query param.
+// ============================================================
+app.get('/internal/spike-font-test', async (req, res) => {
+  if (req.query.key !== process.env.JWT_SECRET) {
+    return res.status(404).json({ success: false, message: 'Route introuvable' });
+  }
+  try {
+    const fs = require('fs');
+    const sharp = require('sharp');
+    const QRCode = require('qrcode');
+
+    // FONTCONFIG_FILE doit être défini au lancement du process (render.yaml),
+    // pas ici — testé localement : une affectation dynamique à ce stade n'a
+    // aucun effet, fontconfig est déjà initialisé côté natif à ce moment.
+    const fontsConfPath = process.env.FONTCONFIG_FILE || path.join(process.cwd(), 'assets', 'fonts', 'fonts.conf');
+
+    const CARD_W = 600, CARD_H = 800, NAVY = '#0A2463';
+    const qrBuffer = await QRCode.toBuffer('BOL-TEST-0001', { width: 220, margin: 1, color: { dark: '#0A2463', light: '#FFFFFF' } });
+    const qrBase64 = qrBuffer.toString('base64');
+
+    const svg = `
+      <svg width="${CARD_W}" height="${CARD_H}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <style type="text/css">
+            .partner { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 34px; fill: #ffffff; }
+            .offer { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 24px; fill: #ffffff; }
+            .badge { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 16px; fill: #0A2463; }
+            .code { font-family: monospace; font-weight: 700; font-size: 22px; fill: #0A2463; }
+            .meta { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; font-size: 12px; fill: rgba(255,255,255,0.6); }
+          </style>
+        </defs>
+        <rect x="0" y="0" width="${CARD_W}" height="${CARD_H}" fill="${NAVY}"/>
+        <text x="40" y="80" class="partner">Pharmacie Bienvenue</text>
+        <text x="40" y="130" class="offer">
+          <tspan x="40" dy="0">Réduction de 50% sur kit</tspan>
+          <tspan x="40" dy="32">complet de skincare</tspan>
+        </text>
+        <text x="40" y="${CARD_H - 350}" class="meta">FONTCONFIG_FILE=${fontsConfPath}</text>
+        <rect x="0" y="${CARD_H - 340}" width="${CARD_W}" height="340" fill="#ffffff"/>
+        <image x="${(CARD_W - 220) / 2}" y="${CARD_H - 310}" width="220" height="220" href="data:image/png;base64,${qrBase64}"/>
+        <text x="${CARD_W / 2}" y="${CARD_H - 60}" text-anchor="middle" class="code">BOL-TEST-0001</text>
+        <rect x="${CARD_W / 2 - 90}" y="${CARD_H - 45}" width="180" height="28" rx="14" fill="#EEF2FF"/>
+        <text x="${CARD_W / 2}" y="${CARD_H - 25}" text-anchor="middle" class="badge">250 Zora utilisés</text>
+      </svg>
+    `;
+
+    const png = await sharp(Buffer.from(svg)).png().toBuffer();
+    res.set('Content-Type', 'image/png');
+    res.send(png);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message, stack: err.stack });
+  }
+});
+
+// ============================================================
 // 6. ROUTE 404
 // ============================================================
 app.use((req, res, next) => {
