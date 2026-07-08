@@ -16,6 +16,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script src="/js/bolamu-profile-card.js"></script>
 
 <style>
   /* ===== Reset & base (identiques à l'original) ===== */
@@ -647,8 +648,8 @@
           <span class="material-symbols-outlined">close</span>
         </button>
         <div class="story-author-info">
-          <div id="sv-avatar" class="story-avatar"></div>
-          <span id="sv-name"></span>
+          <div id="sv-avatar" class="story-avatar" onclick="BolamuProfileCard.open(A._storyPhone || '')" style="cursor:pointer;"></div>
+          <span id="sv-name" onclick="BolamuProfileCard.open(A._storyPhone || '')" style="cursor:pointer;"></span>
           <span id="sv-time" class="story-time"></span>
         </div>
         <div id="sv-media" class="story-media-container"></div>
@@ -1991,8 +1992,8 @@
       var initials = (lr.full_name || lr.phone || 'U').charAt(0).toUpperCase();
       return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:' + (i < 4 ? '1px solid #EDEDF8' : 'none') + ';">' +
         '<span style="width:28px;height:28px;border-radius:9999px;background:' + rankBg + ';color:' + rankCol + ';display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;flex-shrink:0;">' + (i + 1) + '</span>' +
-        '<span style="width:36px;height:36px;border-radius:9999px;background:#003FB1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;flex-shrink:0;">' + esc(initials) + '</span>' +
-        '<span style="flex:1;font-size:0.9rem;font-weight:600;color:#191B23;">' + esc(name) + '</span>' +
+        '<span onclick="BolamuProfileCard.open(\'' + esc(lr.phone || '') + '\')" style="cursor:pointer;width:36px;height:36px;border-radius:9999px;background:#003FB1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;flex-shrink:0;">' + esc(initials) + '</span>' +
+        '<span onclick="BolamuProfileCard.open(\'' + esc(lr.phone || '') + '\')" style="cursor:pointer;flex:1;font-size:0.9rem;font-weight:600;color:#191B23;">' + esc(name) + '</span>' +
         '<span style="font-size:0.85rem;font-weight:800;color:#B0680A;">' + esc(lr.points_earned) + ' pts</span></div>' +
         '<div style="display:flex;gap:8px;padding-left:48px;"><button onclick="A.toastEncourager()" style="display:inline-flex;align-items:center;gap:4px;background:none;border:none;color:#FF6B35;font-family:inherit;font-size:0.7rem;font-weight:700;cursor:pointer;padding:0;"><span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1;font-size:16px;">thumb_up</span>Encourager</button>' +
         '<button onclick="A.showToast(\'Fonctionnalité bientôt disponible\')" style="display:inline-flex;align-items:center;gap:4px;background:none;border:none;color:#434654;font-family:inherit;font-size:0.7rem;font-weight:700;cursor:pointer;padding:0;"><span class="material-symbols-outlined" style="font-size:16px;">chat_bubble</span>Commenter</button></div>';
@@ -2189,8 +2190,8 @@
       var div = document.createElement('div');
       div.setAttribute('data-chatmsg', '1');
       div.style.cssText = (mine ? 'background:rgba(0,201,167,0.12);margin-left:auto;max-width:80%;' : 'background:#F3F3FE;max-width:80%;') + 'border-radius:16px;padding:12px 14px;';
-      div.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="width:30px;height:30px;border-radius:9999px;background:' + (mine ? '#00C9A7' : '#003FB1') + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;flex-shrink:0;">' + esc(msg.initials || (msg.senderName || msg.sender_name || 'U').charAt(0)) + '</span>' +
-        '<div style="font-size:0.78rem;font-weight:700;color:#0A2463;">' + esc(msg.senderName || msg.sender_name || 'Utilisateur') + '</div><div style="font-size:0.66rem;color:#9498a8;">' + esc(msg.time || '') + '</div></div>' +
+      div.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span onclick="BolamuProfileCard.open(\'' + esc(msg.sender_phone || '') + '\')" style="cursor:pointer;width:30px;height:30px;border-radius:9999px;background:' + (mine ? '#00C9A7' : '#003FB1') + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;flex-shrink:0;">' + esc(msg.initials || (msg.senderName || msg.sender_name || 'U').charAt(0)) + '</span>' +
+        '<div onclick="BolamuProfileCard.open(\'' + esc(msg.sender_phone || '') + '\')" style="cursor:pointer;font-size:0.78rem;font-weight:700;color:#0A2463;">' + esc(msg.senderName || msg.sender_name || 'Utilisateur') + '</div><div style="font-size:0.66rem;color:#9498a8;">' + esc(msg.time || '') + '</div></div>' +
         '<div style="font-size:0.85rem;font-weight:500;color:#191B23;">' + esc(msg.content) + '</div>';
       el.appendChild(div);
     });
@@ -2378,7 +2379,7 @@
           var colors = ['#F5A623', '#C0C0C0', '#003FB1'];
           var icon = medals[Math.min(i, 2)];
           var color = colors[Math.min(i, 2)];
-          return '<div onclick="openParticipantPanel(\'' + (p.phone || '') + '\',\'' + (p.full_name || 'Participant').replace(/'/g, "\\'") + '\',' + (p.zora_points || 0) + ')" style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;background:#F8F8FC;border-radius:0.75rem;cursor:pointer;"><span class="material-symbols-outlined" style="font-size:18px;color:' + color + ';">' + icon + '</span><div style="flex:1;font-size:0.86rem;font-weight:600;color:#0A2463;">' + esc(p.full_name || 'Participant') + '</div><span style="font-size:0.78rem;font-weight:800;color:#B0680A;">' + (p.zora_points || 0) + ' pts</span></div>';
+          return '<div onclick="BolamuProfileCard.open(\'' + (p.phone || '') + '\')" style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;background:#F8F8FC;border-radius:0.75rem;cursor:pointer;"><span class="material-symbols-outlined" style="font-size:18px;color:' + color + ';">' + icon + '</span><div style="flex:1;font-size:0.86rem;font-weight:600;color:#0A2463;">' + esc(p.full_name || 'Participant') + '</div><span style="font-size:0.78rem;font-weight:800;color:#B0680A;">' + (p.zora_points || 0) + ' pts</span></div>';
         }).join('');
       }).catch(function () {});
   };
@@ -3298,7 +3299,7 @@
                   var html = '';
                   participants.forEach(function (p, i) {
                     if (i === 0) { html += '<div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: linear-gradient(135deg, #F5A623 0%, #FF6B35 100%); border-radius: 12px; margin-bottom: 8px;"><span class="material-symbols-outlined" style="color: #fff; font-size: 24px;">emoji_events</span><div style="flex: 1;"><div style="font-size: 0.95rem; font-weight: 800; color: #fff;">' + (p.full_name || 'Participant') + '</div><div style="font-size: 0.8rem; color: rgba(255,255,255,0.9);">' + Math.max(0, p.zora_points || 0) + ' Zora</div></div></div>'; }
-                    else { html += '<div onclick="openParticipantPanel(\'' + (p.phone || '') + '\',\'' + (p.full_name || 'Participant').replace(/'/g, "\\'") + '\',' + (p.zora_points || 0) + ')" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: ' + (i < participants.length - 1 ? '1px solid #EDEDF8' : 'none') + '; cursor: pointer;"><div style="width: 32px; height: 32px; background: #EDEDF8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #434654;">#' + (i + 1) + '</div><div style="flex: 1;"><div style="font-size: 0.85rem; font-weight: 600; color: #0A2463;">' + (p.full_name || 'Participant') + '</div></div><div style="font-size: 0.8rem; font-weight: 700; color: #B0680A;">' + Math.max(0, p.zora_points || 0) + ' Zora</div></div>'; }
+                    else { html += '<div onclick="BolamuProfileCard.open(\'' + (p.phone || '') + '\')" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: ' + (i < participants.length - 1 ? '1px solid #EDEDF8' : 'none') + '; cursor: pointer;"><div style="width: 32px; height: 32px; background: #EDEDF8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #434654;">#' + (i + 1) + '</div><div style="flex: 1;"><div style="font-size: 0.85rem; font-weight: 600; color: #0A2463;">' + (p.full_name || 'Participant') + '</div></div><div style="font-size: 0.8rem; font-weight: 700; color: #B0680A;">' + Math.max(0, p.zora_points || 0) + ' Zora</div></div>'; }
                   });
                   listEl.innerHTML = html;
                 }
@@ -3598,7 +3599,7 @@
                     var bg = i === 0 ? 'background: linear-gradient(135deg, #F5A623 0%, #FF6B35 100%); border-radius: 12px; margin-bottom: 8px;' : 'border-bottom: ' + (i < members.length - 1 ? '1px solid #EDEDF8' : 'none') + ';';
                     var rank = i === 0 ? '<span class="material-symbols-outlined" style="color: #fff; font-size: 24px;">emoji_events</span>' : '<div style="width: 32px; height: 32px; background: #EDEDF8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #434654;">#' + (i + 1) + '</div>';
                     var nameCol = i === 0 ? '#fff' : '#0A2463'; var zoraCol = i === 0 ? 'rgba(255,255,255,0.9)' : '#B0680A';
-                    html += '<div onclick="openParticipantPanel(\'' + (m.phone || '') + '\',\'' + (m.full_name || 'Membre').replace(/'/g, "\\'") + '\',' + (m.zora_points || 0) + ')" style="display: flex; align-items: center; gap: 12px; padding: ' + (i === 0 ? '12px' : '10px') + '; ' + bg + ' cursor: pointer;">' + rank + '<div style="flex: 1;"><div style="font-size: ' + (i === 0 ? '0.95rem' : '0.85rem') + '; font-weight: ' + (i === 0 ? '800' : '600') + '; color: ' + nameCol + ';">' + (m.full_name || 'Membre') + '</div>' + (i === 0 ? '<div style="font-size: 0.8rem; color: rgba(255,255,255,0.9);">' + Math.max(0, m.zora_points || 0) + ' Zora</div>' : '') + '</div>' + (i === 0 ? '' : '<div style="font-size: 0.8rem; font-weight: 700; color: ' + zoraCol + ';">' + Math.max(0, m.zora_points || 0) + ' Zora</div>') + '</div>';
+                    html += '<div onclick="BolamuProfileCard.open(\'' + (m.phone || '') + '\')" style="display: flex; align-items: center; gap: 12px; padding: ' + (i === 0 ? '12px' : '10px') + '; ' + bg + ' cursor: pointer;">' + rank + '<div style="flex: 1;"><div style="font-size: ' + (i === 0 ? '0.95rem' : '0.85rem') + '; font-weight: ' + (i === 0 ? '800' : '600') + '; color: ' + nameCol + ';">' + (m.full_name || 'Membre') + '</div>' + (i === 0 ? '<div style="font-size: 0.8rem; color: rgba(255,255,255,0.9);">' + Math.max(0, m.zora_points || 0) + ' Zora</div>' : '') + '</div>' + (i === 0 ? '' : '<div style="font-size: 0.8rem; font-weight: 700; color: ' + zoraCol + ';">' + Math.max(0, m.zora_points || 0) + ' Zora</div>') + '</div>';
                   });
                   listEl.innerHTML = html;
                 }
@@ -4013,13 +4014,13 @@
     div.className = 'post-card';
     div.innerHTML =
       '<div class="post-header">' +
-        '<div class="post-avatar">' +
+        '<div class="post-avatar" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' +
           (post.author_avatar
             ? '<img src="' + post.author_avatar + '" alt="" style="width:100%;height:100%;object-fit:cover">'
             : '<span class="material-symbols-outlined" style="color:white;font-size:1.2rem">person</span>') +
         '</div>' +
         '<div>' +
-          '<div class="post-author-name">' + A.escapeHtml(post.author_name) + '</div>' +
+          '<div class="post-author-name" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' + A.escapeHtml(post.author_name) + '</div>' +
           '<div class="post-time">' + timeAgo + (post.city ? ' · ' + A.escapeHtml(post.city) : '') + '</div>' +
         '</div>' +
         (isSystem ? '<span class="post-type-badge">Activité</span>' : '') +
@@ -4150,6 +4151,7 @@
   A.showStory = function (index) {
     if (index < 0 || index >= A._currentStories.length) { A.closeStoryViewer(); return; }
     var story = A._currentStories[index];
+    A._storyPhone = story.author_phone || '';
     $('sv-name').textContent = story.author_name;
     $('sv-time').textContent = A.formatTimeAgo(story.created_at);
 
