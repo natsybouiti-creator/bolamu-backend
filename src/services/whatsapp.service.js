@@ -324,4 +324,62 @@ async function sendAutoMessage(phone, templateName, params) {
   }
 }
 
-module.exports = { sendAutoMessage };
+async function sendImageMessage(phone, imageBuffer, caption) {
+  try {
+    if (!WAHA_BASE_URL || !WAHA_API_KEY) {
+      console.error('[WhatsApp-WAHA] Configuration manquante: WAHA_BASE_URL ou WAHA_API_KEY');
+      return false;
+    }
+
+    const formattedPhone = normalizePhone(phone);
+    if (!formattedPhone) {
+      console.error('[WhatsApp-WAHA] Numéro invalide pour sendImageMessage:', phone);
+      return false;
+    }
+
+    const chatId = formattedPhone.replace('+', '') + '@c.us';
+
+    // Appel WAHA API
+    const response = await fetch(`${WAHA_BASE_URL}/api/sendImage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Api-Key': WAHA_API_KEY
+      },
+      body: JSON.stringify({
+        chatId: chatId,
+        file: {
+          mimetype: 'image/png',
+          filename: 'bon-zora.png',
+          data: imageBuffer.toString('base64')
+        },
+        caption: caption,
+        session: 'Communaute'
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('[WhatsApp-WAHA] Erreur envoi image:', error);
+      return false;
+    }
+
+    const result = await response.json();
+    console.log('[WhatsApp-WAHA] Image envoyée avec succès', { chatId, messageId: result.id });
+
+    // INSERT notifications
+    await pool.query(
+      `INSERT INTO notifications
+       (user_phone, type, titre, message, canal, sent_at, created_at)
+       VALUES ($1, 'whatsapp_image', $2, $3, 'whatsapp', NOW(), NOW())`,
+      [formattedPhone, 'Bon Zora généré', caption]
+    );
+
+    return true;
+  } catch (error) {
+    console.error('[WhatsApp-WAHA] Erreur sendImageMessage:', error.message);
+    return false;
+  }
+}
+
+module.exports = { sendAutoMessage, sendImageMessage };
