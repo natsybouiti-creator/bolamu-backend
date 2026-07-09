@@ -2025,6 +2025,12 @@
     el.innerHTML = clubs.map(function (c) {
       var isAnimateur = c.animateur_phone === myPhone;
       return '<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #EDEDF8;border-radius:16px;padding:14px 16px;">' +
+        window.BolamuAvatar.render({
+          photoUrl: c.cover_image_path || null,
+          fullName: c.name || 'Club',
+          role: 'animateur',
+          size: 44
+        }) +
         '<div onclick="A.openClubPanel(' + c.id + ')" style="flex:1;cursor:pointer;">' +
           '<div style="font-size:0.9rem;font-weight:700;color:#0A2463;">' + esc(c.name) + (isAnimateur ? ' <span style="font-size:0.68rem;font-weight:700;color:#F5A623;">· Animateur</span>' : '') + '</div>' +
           '<div style="font-size:0.74rem;color:#434654;">' + esc(c.category || c.sport_type || 'Club') + '</div>' +
