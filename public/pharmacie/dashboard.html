@@ -893,11 +893,11 @@ async function verifyZoraVoucher() {
       resultEl.innerHTML = `
         <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">check</span></div>
         <div><div class="ordonnance-title">Voucher validé !</div>
-        <div class="ordonnance-sub">Remise à appliquer : ${data.data.discount_value}</div></div></div>
+        <div class="ordonnance-sub">Remise à appliquer : ${data.data.fcfa_value} FCFA</div></div></div>
         <div class="ordonnance-grid">
-          <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value" onclick="BolamuProfileCard.open('${data.data.patient_phone}')" style="cursor:pointer;">${data.data.patient_phone}</div></div>
-          <div class="ord-field"><div class="ord-field-label">Récompense</div><div class="ord-field-value">${data.data.reward_title}</div></div>
-          <div class="ord-field"><div class="ord-field-label">Consommé le</div><div class="ord-field-value">${new Date(data.data.consumed_at).toLocaleString('fr-FR')}</div></div>
+          <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value">${data.data.patient_initiales}</div></div>
+          <div class="ord-field"><div class="ord-field-label">Récompense</div><div class="ord-field-value">${data.data.partner_name}</div></div>
+          <div class="ord-field"><div class="ord-field-label">Consommé le</div><div class="ord-field-value">${new Date(data.data.used_at).toLocaleString('fr-FR')}</div></div>
         </div>
         <button class="btn-scan" data-action="reset-zora-scanner" style="margin-top:16px;width:100%;">Scanner un autre voucher</button>
       `;

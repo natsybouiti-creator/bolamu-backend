@@ -303,8 +303,9 @@ async function validateBonZora(code, partner_phone, method = 'code_manual') {
       [bon.id, partnerPhone, validMethod]
     );
 
-    // 6. Initiales depuis le qr_payload (jamais le nom complet)
+    // 6. Initiales + nom partenaire depuis le qr_payload (jamais le nom complet du patient)
     let patientInitiales = '—';
+    let partnerName = 'Partenaire';
     try {
       const payload = typeof bon.qr_payload === 'string'
         ? JSON.parse(bon.qr_payload)
@@ -312,8 +313,11 @@ async function validateBonZora(code, partner_phone, method = 'code_manual') {
       if (payload && payload.patient_initiales) {
         patientInitiales = payload.patient_initiales;
       }
+      if (payload && payload.partner_name) {
+        partnerName = payload.partner_name;
+      }
     } catch (_) {
-      // payload illisible — on garde le placeholder
+      // payload illisible — on garde les placeholders
     }
 
     // 7. Audit
@@ -333,7 +337,9 @@ async function validateBonZora(code, partner_phone, method = 'code_manual') {
       success: true,
       valid: true,
       patient_initiales: patientInitiales,
-      fcfa_value: bon.fcfa_value
+      fcfa_value: bon.fcfa_value,
+      partner_name: partnerName,
+      used_at: new Date().toISOString()
     };
   } catch (error) {
     await client.query('ROLLBACK');
