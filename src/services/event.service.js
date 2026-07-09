@@ -364,7 +364,8 @@ async function getPatientRegistrations(patient_phone) {
       e.starts_at,
       e.ends_at,
       e.zora_reward,
-      e.pillar
+      e.pillar,
+      e.cover_image_path
      FROM elonga_registrations er
      JOIN elonga_events e ON er.event_id = e.id
      WHERE er.phone = $1
