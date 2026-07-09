@@ -3083,6 +3083,9 @@
 
   /* --------------------------- INIT (componentDidMount) --------------------------- */
   A.init = function () {
+    history.replaceState({ dashboard: true }, '', window.location.href);
+    history.pushState({ dashboard: true }, '', window.location.href);
+
     A.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     var token = localStorage.getItem('bolamu_patient_token');
@@ -3113,6 +3116,12 @@
     setTimeout(function () { A.initCarousels(); }, 220);
     A._onResize = function () { A.refreshCarousels(); };
     window.addEventListener('resize', A._onResize);
+
+    window.addEventListener('popstate', function (event) {
+      A.setState({ panel: 'accueil', profileOpen: false });
+      window.scrollTo(0, 0);
+      history.pushState({ dashboard: true }, '', window.location.href);
+    });
   };
 
   // Chargement de toutes les données API (fetch identiques à l'original)
