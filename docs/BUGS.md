@@ -140,6 +140,20 @@
 
 ---
 
+### BUG-012: zora_rewards / zora_partners ne peuvent pas être purgées sans casser 2 dépendances vivantes
+**Sévérité :** 🟡 DETTE TECHNIQUE (rien n'est cassé aujourd'hui, mais bloque une purge prévue)
+**Module :** Backend - Système bon Zora / Clearing admin
+**Description :** `zora_rewards` et `zora_partners` sont les tables d'un ancien système (`zora_vouchers`) remplacé par `partner_bons_zora`. La plupart des fichiers qui les référencent sont morts (voir GET /partenaire/stats et /partenaire/validations, neutralisés en 410 Gone — commit `9322e5c`), mais **2 dépendances vivantes bloquent un `DROP TABLE`** :
+1. `src/routes/clearing.routes.js:487` — `GET /clearing/bons-zora/pending` (montée sur `/api/v1/clearing`, `server.js:203`), **réellement appelée par `public/admin/dashboard.html:2224,2252,2264`** pour la gestion des règlements/virements aux partenaires bon Zora (`LEFT JOIN zora_partners zp ON zp.phone = bzr.partner_phone` pour afficher `partner_name`). Un `DROP TABLE zora_partners` casserait cette route immédiatement (`relation does not exist`), même en `LEFT JOIN`.
+2. `src/jobs/abonnement.job.js:212-242` — étape 7 du cron `jobAbonnement` (démarré sans condition dans `server.js:360`, donc actif en prod), rappel WhatsApp "voucher expire dans 48h" sur `zora_vouchers`/`zora_rewards`/`zora_partners`. Encapsulée dans un `try/catch` local — ne ferait pas planter le job, mais générerait une erreur silencieuse à chaque exécution.
+**Impact :** Aucun aujourd'hui (les tables existent encore). Bloque la purge prévue de `zora_rewards`/`zora_partners` tant que ces 2 points ne sont pas traités.
+**Statut :** 🔴 OUVERT
+**Assigné à :** À assigner
+**Date découverte :** 9 juillet 2026
+**Recommandation :** Avant de purger : (1) réécrire `clearing.routes.js:487` pour sourcer `partner_name` depuis `users` (le compte pharmacie/doctor/laboratoire réel, via `bzr.partner_phone`) au lieu de `zora_partners` ; (2) retirer ou réécrire l'étape 7 de `abonnement.job.js` (le système `zora_vouchers` qu'elle sert n'a jamais été mis en production, cf. BUG neutralisation partenaire.routes.js). Une fois ces deux points corrigés et testés, `DROP TABLE zora_rewards, zora_partners` peut s'exécuter sans risque, avec suppression de `zora-marketplace.service.js`, `zora-voucher.service.js` et `partenaire.controller.js` (déjà morts, plus aucune route ne les importe).
+
+---
+
 ## BUGS CORRIGÉS (HISTORIQUE)
 
 *(Aucun bug corrigé dans cette session)*
@@ -148,12 +162,13 @@
 
 ## STATISTIQUES
 
-- **Total bugs :** 7
+- **Total bugs :** 8
 - **Critiques :** 2
 - **Moyens :** 4
 - **Mineurs :** 1
+- **Dette technique :** 1
 - **Corrigés :** 0
-- **Ouverts :** 7
+- **Ouverts :** 8
 
 ---
 
