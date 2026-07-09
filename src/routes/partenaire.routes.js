@@ -14,9 +14,11 @@ if (!process.env.JWT_SECRET) throw new Error('[FATAL] JWT_SECRET non défini');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // Middleware inline pour rôle partenaire
+// Rôles réels des comptes partenaires du système (aucun compte n'a jamais role='partenaire')
+const PARTENAIRE_ROLES = ['pharmacie', 'doctor', 'laboratoire'];
 const requirePartenaire = (req, res, next) => {
   if (!req.user) return res.status(401).json({ success: false, error: 'non_authentifie' });
-  if (req.user.role !== 'partenaire') {
+  if (!PARTENAIRE_ROLES.includes(req.user.role)) {
     return res.status(403).json({ success: false, error: 'acces_reserve_partenaire' });
   }
   next();
