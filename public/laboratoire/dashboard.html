@@ -170,6 +170,7 @@
   <button class="tab" id="tab-profil" data-tab="profil"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">medical_services</span> Mon profil</button>
   <button class="tab" id="tab-qr" data-tab="qr"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">qr_code_scanner</span> Scanner QR Bolamu</button>
   <button class="tab" id="tab-zora" data-tab="zora"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">card_giftcard</span> Scanner Zora</button>
+  <button class="tab" id="tab-dmn" data-tab="dmn"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">folder_shared</span> Scanner dossier patient</button>
 </div>
 <div class="main">
   <div class="panel active" id="panel-accueil">
@@ -266,6 +267,32 @@
       <h2 class="section-title-dash">Historique des vouchers Zora</h2>
     </div>
     <div id="zora-histo"><div class="loading">Chargement...</div></div>
+  </div>
+  <div class="panel" id="panel-dmn">
+    <div class="section-header"><h2 class="section-title-dash">Scanner dossier patient</h2></div>
+    <div class="scanner-card" style="background:white;border-radius:24px;padding:32px;border:1px solid var(--line);box-shadow:var(--shadow-soft);max-width:600px;">
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px;"><span class="material-symbols-outlined" style="font-size:24px;vertical-align:middle;">folder_shared</span> Consultation du dossier médical numérique (DMN)</h3>
+      <p style="font-size:14px;color:var(--ink-soft);margin-bottom:20px;">Le patient vous présente son <strong>QR dossier</strong> (carte membre). Scannez-le pour consulter son dossier — accès réservé aux professionnels de santé authentifiés.</p>
+      <button id="btn-dmn-camera" style="width:100%;padding:14px;background:var(--role-labo);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:16px;">
+        <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">photo_camera</span> Scanner avec la caméra
+      </button>
+      <div id="dmn-camera-container" style="display:none;margin-bottom:16px;">
+        <div id="dmn-qr-reader" style="width:100%;border-radius:16px;overflow:hidden;"></div>
+        <button id="btn-stop-dmn-camera" style="margin-top:10px;width:100%;padding:10px;background:rgba(239,68,68,0.1);border:none;border-radius:10px;color:var(--error);font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+          <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">close</span> Fermer la caméra
+        </button>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
+        <div style="flex:1;height:1px;background:var(--line);"></div>
+        <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">OU SAISIE MANUELLE</span>
+        <div style="flex:1;height:1px;background:var(--line);"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <input type="text" id="dmn-token-input" placeholder="Token QR dossier" style="flex:1;border:2px solid var(--line);border-radius:12px;padding:12px 16px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:var(--ink);letter-spacing:0.5px;">
+        <button id="btn-verifier-dmn" style="padding:12px 20px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">search</span> Vérifier</button>
+      </div>
+      <div id="dmn-result" style="display:none;margin-top:20px;"></div>
+    </div>
   </div>
   <div class="panel" id="panel-profil">
     <div class="section-header"><h2 class="section-title-dash">Mon profil laboratoire</h2></div>
@@ -562,6 +589,118 @@ async function verifyZoraVoucher() {
           <div style="font-size:32px;"><span class="material-symbols-outlined" style="font-size:48px;">cancel</span></div>
           <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur</div>
           <div style="font-size:14px;color:var(--texte-doux);">${data.error === 'voucher_not_found' ? 'Voucher introuvable' : data.error === 'voucher_already_used' ? 'Voucher déjà utilisé' : data.error === 'voucher_expired' ? 'Voucher expiré' : data.error}</div></div></div>
+      </div>`;
+    }
+  } catch(e) {
+    resultEl.innerHTML = `<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:32px;"><span class="material-symbols-outlined" style="font-size:48px;">warning</span></div>
+        <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur de connexion</div></div></div>
+    </div>`;
+  }
+}
+
+// Scanner dossier patient (DMN) — accès réservé aux professionnels de santé
+let dmnCameraStream = null;
+let dmnHtml5QrCode = null;
+
+async function toggleDmnCamera() {
+  const container = document.getElementById('dmn-camera-container');
+  const reader = document.getElementById('dmn-qr-reader');
+
+  if (dmnCameraStream) {
+    stopDmnCamera();
+    return;
+  }
+
+  try {
+    dmnCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.createElement('video');
+    video.srcObject = dmnCameraStream;
+    video.setAttribute('playsinline', true);
+    video.play();
+
+    container.style.display = 'block';
+    reader.innerHTML = '';
+    reader.appendChild(video);
+
+    dmnHtml5QrCode = new Html5Qrcode(reader);
+    await dmnHtml5QrCode.start(
+      video,
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        stopDmnCamera();
+        document.getElementById('dmn-token-input').value = decodedText;
+        verifyDmnQr();
+      },
+      (errorMessage) => {}
+    );
+  } catch(e) {
+    alert('Erreur d\'accès à la caméra : ' + e.message);
+  }
+}
+
+function stopDmnCamera() {
+  if (dmnHtml5QrCode) {
+    dmnHtml5QrCode.stop().catch(() => {});
+    dmnHtml5QrCode = null;
+  }
+  if (dmnCameraStream) {
+    dmnCameraStream.getTracks().forEach(track => track.stop());
+    dmnCameraStream = null;
+  }
+  document.getElementById('dmn-camera-container').style.display = 'none';
+}
+
+async function verifyDmnQr() {
+  const scannedToken = document.getElementById('dmn-token-input').value.trim();
+  const resultEl = document.getElementById('dmn-result');
+
+  if (!scannedToken) {
+    alert('Veuillez scanner ou entrer un QR dossier');
+    return;
+  }
+
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--texte-doux);">Vérification en cours...</div>';
+
+  try {
+    const res = await fetch(`${API}/dmn/verify?token=${encodeURIComponent(scannedToken)}`, {
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      const d = data.data;
+      const consultationsHtml = (d.consultations && d.consultations.length)
+        ? d.consultations.map(c => `<div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">${new Date(c.appointment_date).toLocaleDateString('fr-FR')} — Dr ${c.doctor_name || '—'} (${c.doctor_specialty || '—'})</div>`).join('')
+        : '<div style="font-size:13px;color:var(--ink-soft);">Aucune consultation récente.</div>';
+      const documentsHtml = (d.documents && d.documents.length)
+        ? d.documents.map(doc => `<div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">${doc.original_name} (${doc.document_type})</div>`).join('')
+        : '<div style="font-size:13px;color:var(--ink-soft);">Aucun document.</div>';
+
+      resultEl.innerHTML = `<div style="background:#e8f5e9;border:2px solid #2e7d32;border-radius:16px;padding:24px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="font-size:32px;"><span class="material-symbols-outlined" style="font-size:48px;">check_circle</span></div>
+          <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Dossier vérifié</div>
+          <div style="font-size:14px;color:var(--texte-doux);">${d.identite.initiales} — ${d.identite.phone}</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Groupe sanguin</div><div style="font-size:14px;font-weight:700;">${d.constantes.groupe_sanguin || '—'}</div></div>
+          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Allergies</div><div style="font-size:14px;font-weight:700;">${d.constantes.allergies || 'Aucune connue'}</div></div>
+          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Maladies chroniques</div><div style="font-size:14px;font-weight:700;">${d.constantes.maladies_chroniques || 'Aucune'}</div></div>
+          <div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Traitements en cours</div><div style="font-size:14px;font-weight:700;">${d.constantes.traitements_en_cours || 'Aucun'}</div></div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--texte);margin:16px 0 8px;">Consultations récentes</div>${consultationsHtml}
+        <div style="font-size:13px;font-weight:700;color:var(--texte);margin:16px 0 8px;">Documents</div>${documentsHtml}
+        <button data-action="reset-dmn" style="width:100%;padding:12px;background:var(--role-labo);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:16px;">Scanner un autre dossier</button>
+      </div>`;
+    } else {
+      resultEl.innerHTML = `<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:32px;"><span class="material-symbols-outlined" style="font-size:48px;">cancel</span></div>
+          <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur</div>
+          <div style="font-size:14px;color:var(--texte-doux);">${data.message || 'Accès refusé'}</div></div></div>
       </div>`;
     }
   } catch(e) {
@@ -1094,6 +1233,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
   document.getElementById('tab-qr').addEventListener('click', () => showTab('qr', document.getElementById('tab-qr')));
   document.getElementById('tab-zora').addEventListener('click', () => { showTab('zora', document.getElementById('tab-zora')); loadZoraHistory(); });
+  document.getElementById('tab-dmn').addEventListener('click', () => showTab('dmn', document.getElementById('tab-dmn')));
 
   // Scanner buttons
   document.getElementById('btn-search-prescription').addEventListener('click', searchPrescriptionByCode);
@@ -1105,6 +1245,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-zora-camera').addEventListener('click', toggleZoraCamera);
   document.getElementById('btn-stop-zora-camera').addEventListener('click', stopZoraCamera);
   document.getElementById('btn-verifier-zora').addEventListener('click', verifyZoraVoucher);
+
+  // DMN scanner buttons
+  document.getElementById('btn-dmn-camera').addEventListener('click', toggleDmnCamera);
+  document.getElementById('btn-stop-dmn-camera').addEventListener('click', stopDmnCamera);
+  document.getElementById('btn-verifier-dmn').addEventListener('click', verifyDmnQr);
 
   // Profil
   document.getElementById('btn-change-pwd').addEventListener('click', () => {
@@ -1133,6 +1278,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'reset-zora') {
       document.getElementById('zora-uuid-input').value = '';
       document.getElementById('zora-result').style.display = 'none';
+    }
+    if (action === 'reset-dmn') {
+      document.getElementById('dmn-token-input').value = '';
+      document.getElementById('dmn-result').style.display = 'none';
     }
     if (action === 'submit-pwd') submitChangePwd();
     if (action === 'cancel-pwd') {

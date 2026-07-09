@@ -167,6 +167,21 @@ function verifyDmnToken(token) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// verifyQrToken(token)
+// Vérifie le token QR dossier (type dmn_qr) et rejette tout autre type.
+// jwt.verify lève TokenExpiredError automatiquement si le token a
+// dépassé son exp (24h, fixé à la génération) — pas de logique
+// d'expiration à réécrire ici.
+// ─────────────────────────────────────────────────────────────
+function verifyQrToken(token) {
+  const decoded = jwt.verify(token, JWT_SECRET);
+  if (decoded.type !== QR_TOKEN_TYPE) {
+    throw Object.assign(new Error('Token invalide'), { code: 'INVALID_TOKEN_TYPE' });
+  }
+  return decoded;
+}
+
+// ─────────────────────────────────────────────────────────────
 // generateQRPayload(patient_phone)
 // Payload BHP minimal signé JWT 24h.
 // Jamais : nom complet, adresse, données non urgentes.
@@ -230,6 +245,7 @@ module.exports = {
   getFullDossier,
   verifyPatientPassword,
   verifyDmnToken,
+  verifyQrToken,
   generateQRPayload,
   logAccess
 };

@@ -14,6 +14,7 @@ const {
   getFullDossier,
   verifyPatientPassword,
   verifyDmnToken,
+  verifyQrToken,
   generateQRPayload,
   logAccess
 } = require('../services/dmn.service');
@@ -23,6 +24,19 @@ const { creditWellnessAction } = require('../services/wellness.service');
 const requirePatient = (req, res, next) => {
   if (!req.user || req.user.role !== 'patient') {
     return res.status(403).json({ success: false, error: 'BHP_ACCESS_DENIED' });
+  }
+  next();
+};
+
+// Middleware — professionnel de santé authentifié uniquement (scan QR dossier).
+// Mêmes rôles que PARTENAIRE_ROLES (bon-zora.routes.js) — décision produit :
+// jamais de scan anonyme pour ce flux, contrairement au QR urgence, car le
+// dossier DMN expose plus que le strict minimum vital (RDV, documents, historique).
+const PROFESSIONNEL_SANTE_ROLES = ['pharmacie', 'doctor', 'laboratoire'];
+const requireProfessionnelSante = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ success: false, error: 'non_authentifie' });
+  if (!PROFESSIONNEL_SANTE_ROLES.includes(req.user.role)) {
+    return res.status(403).json({ success: false, error: 'acces_reserve_professionnel_sante' });
   }
   next();
 };
@@ -154,6 +168,42 @@ router.get('/qr-payload', authMiddleware, requirePatient, async (req, res) => {
     res.json({ success: true, data: result });
   } catch (err) {
     console.error('[DMN] qr-payload:', err.message);
+    if (err.message === 'Patient introuvable') {
+      return res.status(404).json({ success: false, message: err.message });
+    }
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/v1/dmn/verify?token=...
+// Vérifie un QR dossier scanné par un professionnel de santé authentifié
+// (doctor/pharmacie/laboratoire). Jamais de scan anonyme pour ce flux.
+// 401 = token invalide/malformé, 403 = rôle non autorisé, 410 = expiré.
+// ─────────────────────────────────────────────────────────────
+router.get('/verify', authMiddleware, requireProfessionnelSante, async (req, res) => {
+  const { token } = req.query;
+  if (!token) {
+    return res.status(400).json({ success: false, message: 'Token requis' });
+  }
+
+  let decoded;
+  try {
+    decoded = verifyQrToken(token);
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(410).json({ success: false, message: 'QR dossier expiré' });
+    }
+    return res.status(401).json({ success: false, message: 'QR dossier invalide' });
+  }
+
+  try {
+    const dossier = await getFullDossier(decoded.patient_phone);
+    // BHP : log obligatoire — accessor_phone = le professionnel authentifié, jamais null ici.
+    logAccess(decoded.patient_phone, req.user.phone, 'qr_scan_verified', { scanner_role: req.user.role }, req.ip).catch(() => {});
+    res.json({ success: true, data: dossier });
+  } catch (err) {
+    console.error('[DMN] verify:', err.message);
     if (err.message === 'Patient introuvable') {
       return res.status(404).json({ success: false, message: err.message });
     }
