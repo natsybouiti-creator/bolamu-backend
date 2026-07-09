@@ -462,7 +462,12 @@
 
         <!-- MES CONSULTATIONS -->
         <div>
-          <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Mes consultations</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;">
+            <h2 style="margin:0;font-size:1.35rem;font-weight:800;letter-spacing:-0.01em;color:#0A2463;">Mes consultations</h2>
+            <button onclick="A.openModal()" style="display:inline-flex;align-items:center;gap:6px;background:#1E3A8A;color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+              <span class="material-symbols-outlined" style="font-size:15px;">calendar_add_on</span>Nouveau RDV
+            </button>
+          </div>
           <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px;">
             <div id="consultations-empty">
               <div style="text-align: center; padding: 30px; color: #9CA3AF;">
@@ -1898,12 +1903,22 @@
     var el = $('myreg-list'); if (!el) return;
     el.style.display = list.length ? 'flex' : 'none';
     el.innerHTML = list.map(function (reg) {
-      return '<div style="display:flex;align-items:center;gap:14px;padding:14px;background:#FAF8FF;border-radius:14px;border:1px solid #EDEDF8;">' +
-        '<div style="flex:1;"><div style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:4px;">' + esc(reg.title) + '</div>' +
-        '<div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#434654;margin-bottom:2px;"><span class="material-symbols-outlined" style="font-size:14px;">location_on</span>' + esc(reg.location_name) + '</div>' +
-        '<div style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#434654;"><span class="material-symbols-outlined" style="font-size:14px;">schedule</span>' + esc(reg.starts_at) + '</div></div>' +
-        '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;"><div style="background:#003FB1;color:#fff;padding:8px 14px;border-radius:9999px;font-size:0.74rem;font-weight:700;">' + esc(reg.session_code) + '</div>' +
-        '<button onclick="cancelEventRegistration(\'' + esc(reg.event_id) + '\')" style="background:#F3F3FE;border:1px solid #EDEDF8;color:#BA1A1A;padding:6px 12px;border-radius:8px;font-size:0.74rem;font-weight:700;cursor:pointer;">Annuler</button></div></div>';
+      var imgHtml = reg.image_url
+        ? '<div style="width:64px;flex-shrink:0;background:url(' + esc(reg.image_url) + ') center/cover no-repeat;"></div>'
+        : '<div style="width:64px;flex-shrink:0;background:linear-gradient(160deg,#1E3A8A,#00C9A7);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined" style="font-size:26px;color:#fff;">event</span></div>';
+
+      return '<div onclick="A.openEventDetail(' + reg.event_id + ')" style="display:flex;align-items:stretch;background:#fff;border:1px solid #EDEDF8;border-radius:14px;overflow:hidden;cursor:pointer;">' +
+        imgHtml +
+        '<div style="flex:1;padding:11px 12px;min-width:0;">' +
+          '<div style="font-size:13px;font-weight:700;color:#0A2463;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(reg.title) + '</div>' +
+          '<div style="font-size:11px;color:#9498a8;margin-bottom:1px;">' + esc(reg.location_name) + '</div>' +
+          '<div style="font-size:11px;color:#9498a8;">' + esc(reg.starts_at) + '</div>' +
+          (reg.session_code ? '<div style="margin-top:4px;display:inline-block;background:#003FB1;color:#fff;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1px;">' + esc(reg.session_code) + '</div>' : '') +
+        '</div>' +
+        '<div style="display:flex;align-items:center;padding-right:12px;">' +
+          '<button onclick="event.stopPropagation();cancelEventRegistration(\'' + esc(reg.event_id) + '\')" style="background:#F3F3FE;border:1px solid #EDEDF8;color:#BA1A1A;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Annuler</button>' +
+        '</div>' +
+      '</div>';
     }).join('');
   };
 
@@ -1928,15 +1943,7 @@
     el.style.display = list.length ? 'flex' : 'none';
     var voirPlusBtn = $('consultations-voir-plus');
     if (voirPlusBtn) voirPlusBtn.style.display = list.length >= 4 ? 'block' : 'none';
-    var headerHtml = list.length ? (
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
-        '<div style="font-size:0.95rem;font-weight:700;color:#0A2463;">Mes consultations</div>' +
-        '<button onclick="A.openModal()" style="display:inline-flex;align-items:center;gap:6px;background:#0A2463;color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">' +
-          '<span class="material-symbols-outlined" style="font-size:15px;">calendar_add_on</span>Nouveau RDV' +
-        '</button>' +
-      '</div>'
-    ) : '';
-    el.innerHTML = headerHtml + list.map(function (c) {
+    el.innerHTML = list.map(function (c) {
       var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
       var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
       var phone = esc(c.doctor_phone || '');
@@ -3164,7 +3171,7 @@
 
     apiFetch('https://www.bolamu.co/api/v1/events/my/registrations', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data) {
-        A._myRegistrations = d.data.map(function (reg) { return { title: reg.title, location_name: reg.location_name, starts_at: new Date(reg.starts_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + new Date(reg.starts_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), session_code: reg.session_code, event_id: reg.event_id }; });
+        A._myRegistrations = d.data.map(function (reg) { return { title: reg.title, location_name: reg.location_name, starts_at: new Date(reg.starts_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + new Date(reg.starts_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), session_code: reg.session_code, event_id: reg.event_id, image_url: reg.cover_image_path || null }; });
         var registeredIds = d.data.map(function (reg) { return reg.event_id; });
         A._registeredIds = registeredIds;
         A.setState({ events: A.state.events.map(function (e) { return registeredIds.indexOf(e.dbId) !== -1 ? Object.assign({}, e, { registered: true }) : e; }), myRegistrations: A._myRegistrations });
