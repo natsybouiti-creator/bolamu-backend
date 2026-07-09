@@ -1898,16 +1898,18 @@
   };
 
   A.renderMyReg = function () {
-    var list = A.state.myRegistrations || [];
-    show($('myreg-empty'), list.length === 0);
+    var fullList = A.state.myRegistrations || [];
+    var expanded = A._myRegExpanded || false;
+    var list = expanded ? fullList : fullList.slice(0, 6);
+    show($('myreg-empty'), fullList.length === 0);
     var el = $('myreg-list'); if (!el) return;
-    el.style.display = list.length ? 'flex' : 'none';
+    el.style.display = fullList.length ? 'flex' : 'none';
     el.innerHTML = list.map(function (reg) {
       var imgHtml = reg.image_url
         ? '<div style="width:64px;flex-shrink:0;background:url(' + esc(reg.image_url) + ') center/cover no-repeat;"></div>'
         : '<div style="width:64px;flex-shrink:0;background:linear-gradient(160deg,#1E3A8A,#00C9A7);display:flex;align-items:center;justify-content:center;"><span class="material-symbols-outlined" style="font-size:26px;color:#fff;">event</span></div>';
 
-      return '<div onclick="A.openEventDetail(' + reg.event_id + ')" style="display:flex;align-items:stretch;background:#fff;border:1px solid #EDEDF8;border-radius:14px;overflow:hidden;cursor:pointer;">' +
+      return '<div onclick="A.openEventDetail(' + reg.event_id + ')" style="display:flex;align-items:stretch;min-height:72px;background:#fff;border:1px solid #EDEDF8;border-radius:14px;overflow:hidden;cursor:pointer;">' +
         imgHtml +
         '<div style="flex:1;padding:11px 12px;min-width:0;">' +
           '<div style="font-size:13px;font-weight:700;color:#0A2463;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(reg.title) + '</div>' +
@@ -1919,11 +1921,14 @@
           '<button onclick="event.stopPropagation();cancelEventRegistration(\'' + esc(reg.event_id) + '\')" style="background:#F3F3FE;border:1px solid #EDEDF8;color:#BA1A1A;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Annuler</button>' +
         '</div>' +
       '</div>';
-    }).join('');
+    }).join('') + (fullList.length > 6 && !expanded
+      ? '<button onclick="A._myRegExpanded=true;A.renderMyReg();" style="margin-top:14px;width:100%;background:transparent;border:1px solid #003FB1;color:#003FB1;font-weight:700;font-size:0.82rem;padding:11px;border-radius:9999px;cursor:pointer;">Voir plus</button>'
+      : '');
   };
 
   A.renderMesConsultationsAccueil = function () {
     var list = A._recentConsultations || [];
+    list = list.slice(0, 6);
     show($('consultations-empty'), list.length === 0);
     if (list.length === 0) {
       document.getElementById('consultations-empty').innerHTML =
@@ -1942,7 +1947,7 @@
     var el = $('consultations-list'); if (!el) return;
     el.style.display = list.length ? 'flex' : 'none';
     var voirPlusBtn = $('consultations-voir-plus');
-    if (voirPlusBtn) voirPlusBtn.style.display = list.length >= 4 ? 'block' : 'none';
+    if (voirPlusBtn) voirPlusBtn.style.display = (A._recentConsultations || []).length > 6 ? 'block' : 'none';
     el.innerHTML = list.map(function (c) {
       var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
       var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
@@ -1965,7 +1970,7 @@
           }).join('') + '</div>';
       }
 
-      return '<div style="display:flex;align-items:center;gap:12px;padding:14px;background:#FAF8FF;border:1px solid #EDEDF8;border-radius:14px;">' +
+      return '<div style="display:flex;align-items:center;gap:12px;padding:14px;min-height:72px;box-sizing:border-box;background:#FAF8FF;border:1px solid #EDEDF8;border-radius:14px;">' +
         '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="cursor:' + (phone ? 'pointer' : 'default') + ';flex-shrink:0;">' + avatarHtml + '</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:2px;cursor:' + (phone ? 'pointer' : 'default') + ';">' + esc(c.doctor_name) + '</div>' +
