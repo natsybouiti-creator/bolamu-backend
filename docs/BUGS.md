@@ -154,6 +154,23 @@
 
 ---
 
+### BUG-013: dossier-qr retiré temporairement — flux DMN scan/vérification jamais spécifié
+**Sévérité :** 🟡 DETTE TECHNIQUE / DONNÉES DE SANTÉ (retiré préventivement, rien n'était exposé, mais aucun flux fiable n'existe pour le remplacer)
+**Module :** Frontend - Dashboard Patient / DMN (BHP v1.2)
+**Description :** `public/patient/dashboard.html:899` contenait un `<div id="dossier-qr">` statique dans la "carte membre" (panel Suivre → Dossier médical), jamais peuplé par aucune fonction JS (`A.renderQR()` existe et fonctionne pour 6 autres QR, mais n'était jamais appelée avec cet id). Retiré (commit à venir) plutôt que branché sur un flux mal défini, vu la sensibilité des données de santé en jeu.
+Audit des 3 mécanismes QR existants avant décision — aucun n'est un match sûr :
+1. **QR identification** (`hero-qr` / `GET /qr/generate` + `GET,POST /qr/verify`) — fonctionnel, mais n'expose aucune donnée de santé (identité, statut abonnement, convention).
+2. **QR urgence** (`urg-qr` / `GET /qr/emergency/generate` + `GET /qr/urgence`) — fonctionnel, expose allergies/groupe sanguin/traitements, scan **public sans authentification** (conçu pour une urgence réelle), notifie le contact d'urgence à chaque scan.
+3. **QR DMN** (`dmn-qr-med`, bouton "Générer mon QR médical", `GET /api/v1/dmn/qr-payload`) — **génère un JWT signé (type `dmn_qr`) mais aucune route ne le vérifie jamais**. `grep` exhaustif de `dmn_qr`/`QR_TOKEN_TYPE` dans tout le repo : 0 route de vérification. L'`acces_url` embarquée dans le payload (`https://bolamu.co/patient/dossier?qr=1&p=...`) pointe vers une page qui n'existe pas (ni fichier statique, ni route serveur). **Ce QR, déjà en production, ne peut être scanné-et-exploité par personne aujourd'hui.**
+Découverte associée : **`dmn_access_log` et `dossier_access_log` sont deux tables de traçabilité d'accès au dossier distinctes, jamais réconciliées** (`dmn.service.js` écrit dans la première, `consultation-report.controller.js:logDossierAccess` — utilisée par le flux urgence — écrit dans la seconde). Même pattern de duplication que le classement Zora et les vouchers déjà documentés (BUG-012).
+**Impact :** Aucune régression (l'élément retiré n'a jamais fonctionné). Fonctionnalité "accès dossier via QR" absente de la carte membre en attendant une vraie spécification.
+**Statut :** 🔴 OUVERT
+**Assigné à :** À assigner
+**Date découverte :** 9 juillet 2026
+**Recommandation :** Avant de réintroduire un QR "accès dossier" sur la carte membre, trancher côté produit : qui peut scanner (professionnel authentifié uniquement, ou public comme le QR urgence ?), quel consentement BHP est requis pour l'accès aux `health_records`, quelles données exactes sont exposées. Une fois la route de vérification correspondante conçue et implémentée (avec contrôle de consentement conforme BHP v1.2), réconcilier `dmn_access_log`/`dossier_access_log` en une seule table de traçabilité, puis brancher `dmn-qr-med` (déjà en prod mais non fonctionnel côté scan) sur cette même route.
+
+---
+
 ## BUGS CORRIGÉS (HISTORIQUE)
 
 *(Aucun bug corrigé dans cette session)*
@@ -162,13 +179,13 @@
 
 ## STATISTIQUES
 
-- **Total bugs :** 8
+- **Total bugs :** 9
 - **Critiques :** 2
 - **Moyens :** 4
 - **Mineurs :** 1
-- **Dette technique :** 1
+- **Dette technique :** 2
 - **Corrigés :** 0
-- **Ouverts :** 8
+- **Ouverts :** 9
 
 ---
 
