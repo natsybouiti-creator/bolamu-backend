@@ -209,38 +209,6 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       }
     }
 
-    // 7. Vouchers expirant 48h avant — Sprint 6A
-    try {
-      const vouchersExpiringResult = await db.query(
-        `SELECT v.phone, u.first_name, r.title, p.name as partner_name, v.expires_at
-         FROM zora_vouchers v
-         JOIN users u ON u.phone = v.phone
-         JOIN zora_rewards r ON v.reward_id = r.id
-         JOIN zora_partners p ON v.partner_id = p.id
-         WHERE v.status = 'active'
-         AND v.expires_at BETWEEN NOW() + INTERVAL '47 hours' AND NOW() + INTERVAL '49 hours'`
-      );
-      
-      for (const row of vouchersExpiringResult.rows) {
-        try {
-          const date = new Date(row.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-          await sendAutoMessage(row.phone, 'voucher_expirant', [
-            row.title,
-            row.partner_name,
-            date
-          ]);
-          nb_traites++;
-          allDetails.push(`Rappel voucher expirant envoyé : ${row.phone}`);
-        } catch (err) {
-          nb_erreurs++;
-          allDetails.push(`Erreur rappel voucher ${row.phone}`);
-        }
-      }
-    } catch (vouchersErr) {
-      nb_erreurs++;
-      allDetails.push(`Erreur requête vouchers : ${vouchersErr.message}`);
-    }
-
     // 8. Rappels RDV 24h avant — Sprint 6A
     try {
       const rdvReminderResult = await db.query(

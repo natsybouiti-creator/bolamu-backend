@@ -482,9 +482,9 @@ router.get('/bons-zora/pending', authMiddleware, adminOnly, async (req, res) => 
         const result = await db.query(
             `SELECT bzr.id, bzr.partner_phone, bzr.bon_uuid, bzr.amount_fcfa,
                     bzr.status, bzr.created_at, bzr.paid_at, bzr.reference_virement,
-                    zp.name as partner_name
+                    u.full_name as partner_name
              FROM bon_zora_reglements bzr
-             LEFT JOIN zora_partners zp ON zp.phone = bzr.partner_phone
+             LEFT JOIN users u ON u.phone = bzr.partner_phone
              WHERE bzr.status = 'pending'
              ORDER BY bzr.created_at DESC`
         );
