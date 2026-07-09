@@ -2056,7 +2056,8 @@ async function verifyZoraVoucher() {
   try {
     const res = await fetch(API + '/bons-zora/validate/qr', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAuthToken() }
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAuthToken() },
+      body: JSON.stringify({ code: uuid })
     });
     const data = await res.json();
     

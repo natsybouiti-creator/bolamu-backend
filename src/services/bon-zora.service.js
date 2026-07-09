@@ -291,7 +291,7 @@ async function validateBonZora(code, partner_phone, method = 'code_manual') {
     // 4. Marquer utilisé
     await client.query(
       `UPDATE partner_bons_zora
-       SET status = 'used', validated_at = NOW(), partner_phone = $1
+       SET status = 'used', used_at = NOW(), used_by = $1
        WHERE id = $2`,
       [partnerPhone, bon.id]
     );

@@ -15,9 +15,11 @@ const {
 } = require('../services/bon-zora.service');
 
 // Middleware inline pour rôle partenaire (fabrique globale inexistante)
+// Rôles réels des comptes partenaires du système (aucun compte n'a jamais role='partenaire')
+const PARTENAIRE_ROLES = ['pharmacie', 'doctor', 'laboratoire'];
 const requirePartenaire = (req, res, next) => {
   if (!req.user) return res.status(401).json({ success: false, error: 'non_authentifie' });
-  if (req.user.role !== 'partenaire') {
+  if (!PARTENAIRE_ROLES.includes(req.user.role)) {
     return res.status(403).json({ success: false, error: 'acces_reserve_partenaire' });
   }
   next();
