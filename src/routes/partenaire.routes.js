@@ -8,7 +8,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { normalizePhone } = require('../utils/phone');
 const authMiddleware = require('../middleware/auth.middleware');
-const { getValidationsHandler } = require('../controllers/partenaire.controller');
 
 if (!process.env.JWT_SECRET) throw new Error('[FATAL] JWT_SECRET non défini');
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -87,62 +86,19 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/v1/partenaire/stats — Stats du partenaire connecté
-router.get('/stats', authMiddleware, requirePartenaire, async (req, res) => {
-  try {
-    const phone = req.user.phone;
-
-    // Vouchers validés ce mois (COUNT + SUM fcfa_value)
-    const monthResult = await pool.query(
-      `SELECT COUNT(*) as count, SUM(fcfa_value) as total_fcfa
-       FROM partner_vouchers
-       WHERE used_by = $1
-         AND status = 'used'
-         AND used_at >= DATE_TRUNC('month', CURRENT_DATE)`,
-      [phone]
-    );
-
-    const monthlyCount = parseInt(monthResult.rows[0].count) || 0;
-    const monthlyFcfa = parseInt(monthResult.rows[0].total_fcfa) || 0;
-
-    // Vouchers en attente de validation (statut='active' et non expiré)
-    const pendingResult = await pool.query(
-      `SELECT COUNT(*) as count
-       FROM partner_vouchers
-       WHERE status = 'active'
-         AND expires_at > NOW()`,
-      []
-    );
-
-    const pendingCount = parseInt(pendingResult.rows[0].count) || 0;
-
-    // Programme de fidélité actif (premier programme actif avec stock > 0)
-    const programResult = await pool.query(
-      `SELECT id, name, stock
-       FROM partner_programs
-       WHERE is_active = TRUE
-         AND (stock IS NULL OR stock > 0)
-       ORDER BY created_at DESC
-       LIMIT 1`,
-      []
-    );
-
-    const activeProgram = programResult.rows.length > 0 ? programResult.rows[0] : null;
-
-    res.json({
-      success: true,
-      data: {
-        monthly_count: monthlyCount,
-        monthly_fcfa: monthlyFcfa,
-        pending_count: pendingCount,
-        active_program: activeProgram ? { name: activeProgram.name } : null,
-        active_program_stock: activeProgram ? (activeProgram.stock === null ? 'Illimité' : activeProgram.stock) : null
-      }
-    });
-  } catch (error) {
-    console.error('[PARTENAIRE ROUTES] Erreur GET /stats:', error.message);
-    res.status(500).json({ success: false, error: 'server_error' });
-  }
+// GET /api/v1/partenaire/stats — DÉPRÉCIÉE
+// Interrogeait partner_vouchers, table jamais créée en prod (le système
+// zora_vouchers/partner_vouchers a été remplacé par partner_bons_zora,
+// cf. bon-zora.service.js). Seul consommateur : public/partenaire/dashboard.html,
+// lui-même inatteignable car POST /partenaire/login exige role='partenaire',
+// valeur qu'aucun compte réel ne porte. Neutralisée plutôt que réécrite :
+// pas de front vivant à servir tant que le concept de compte partenaire
+// générique n'est pas retranché (décision produit séparée).
+router.get('/stats', authMiddleware, requirePartenaire, (req, res) => {
+  res.status(410).json({
+    success: false,
+    message: 'Route dépréciée — système partner_vouchers jamais mis en production'
+  });
 });
 
 // POST /api/v1/partenaire/voucher/validate — Valider un voucher Zora
@@ -155,7 +111,16 @@ router.post('/voucher/validate', authMiddleware, requirePartenaire, (req, res) =
   });
 });
 
-// GET /api/v1/partenaire/validations — Liste des validations du jour
-router.get('/validations', authMiddleware, requirePartenaire, getValidationsHandler);
+// GET /api/v1/partenaire/validations — DÉPRÉCIÉE
+// getValidationsHandler (partenaire.controller.js) fait JOIN zv.voucher_code = v.uuid
+// (varchar = uuid, erreur SQL au runtime — colonne jamais compatible). Même
+// système zora_vouchers déprécié que /stats ci-dessus, même dashboard
+// inatteignable comme seul consommateur. Neutralisée pour la même raison.
+router.get('/validations', authMiddleware, requirePartenaire, (req, res) => {
+  res.status(410).json({
+    success: false,
+    message: 'Route dépréciée — système zora_vouchers jamais mis en production'
+  });
+});
 
 module.exports = router;
