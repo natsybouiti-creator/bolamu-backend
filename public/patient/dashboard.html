@@ -360,7 +360,7 @@
           <span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">person_add</span>
           <span id="follow-requests-badge" class="notif-badge" style="display:none">0</span>
         </button>
-        <button data-testid="btn-profil" onclick="A.openProfile()" style="height: 40px; width: 40px; border: 2px solid #003FB1; border-radius: 9999px; background: #0A2463; color: #fff; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="b-patientInitiales">—</span></button>
+        <button id="navbar-patient-avatar" data-testid="btn-profil" onclick="A.openProfile()" style="height: 40px; width: 40px; border: 2px solid #003FB1; border-radius: 9999px; background: #0A2463; color: #fff; font-weight: 800; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="b-patientInitiales">—</span></button>
       </div>
     </div>
   </header>
@@ -2587,6 +2587,16 @@
       photoContainer.style.backgroundImage = 'none';
       photoContainer.style.backgroundColor = '#0A2463';
       photoContainer.innerHTML = initials || '—';
+    }
+
+    var navAvatar = document.getElementById('navbar-patient-avatar');
+    if (navAvatar) {
+      navAvatar.innerHTML = window.BolamuAvatar.render({
+        photoUrl: A._patientPhotoUrl || null,
+        fullName: A._patientNom || '',
+        role: 'patient',
+        size: 36
+      });
     }
   };
 
