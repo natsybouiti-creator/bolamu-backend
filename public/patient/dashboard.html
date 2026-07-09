@@ -447,7 +447,12 @@
       <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px;">
         <!-- MES ÉVÉNEMENTS -->
         <div>
-          <h2 style="margin: 0 0 14px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;">Mes événements</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;">
+            <h2 style="margin:0;font-size:1.35rem;font-weight:800;letter-spacing:-0.01em;color:#0A2463;">Mes événements</h2>
+            <button onclick="A.goGagner();A.gagnerSport();" style="display:inline-flex;align-items:center;gap:6px;background:#1E3A8A;color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+              <span class="material-symbols-outlined" style="font-size:15px;">bolt</span>Événements
+            </button>
+          </div>
           <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 20px;">
             <div id="myreg-empty">
               <div style="text-align: center; padding: 30px; color: #9CA3AF;">
@@ -1947,7 +1952,7 @@
     var el = $('consultations-list'); if (!el) return;
     el.style.display = list.length ? 'flex' : 'none';
     var voirPlusBtn = $('consultations-voir-plus');
-    if (voirPlusBtn) voirPlusBtn.style.display = (A._recentConsultations || []).length > 6 ? 'block' : 'none';
+    if (voirPlusBtn) voirPlusBtn.style.display = 'block';
     el.innerHTML = list.map(function (c) {
       var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
       var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
