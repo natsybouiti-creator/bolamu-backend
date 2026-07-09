@@ -367,7 +367,8 @@ async function registerDoctor(req, res) {
         specialty, registration_number, order_country,
         country_of_residence, consultation_languages,
         is_international, city, document_file_id, documents_file_ids, trust_score, cgu_accepted,
-        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville
+        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville,
+        photoData
     } = req.body;
 
     if (!phone || !full_name || !specialty || !registration_number) {
@@ -394,6 +395,23 @@ async function registerDoctor(req, res) {
         const passwordHash = await bcrypt.hash(initialPassword, 10);
         logger.info('[REGISTER] Compte créé', { phone: normalizedPhone });
 
+        // Upload photo sur Cloudinary si fournie
+        let photoUrl = null;
+        if (photoData) {
+            try {
+                const base64Data = photoData.replace(/^data:image\/\w+;base64,/, '');
+                const buffer = Buffer.from(base64Data, 'base64');
+                const uploadResult = await uploadToCloudinary(buffer, 'bolamu/photos', {
+                    public_id: `doctor_${normalizedPhone}_${Date.now()}`,
+                    transformation: { width: 400, height: 400, crop: 'fill' }
+                });
+                photoUrl = uploadResult.secure_url;
+            } catch (photoErr) {
+                console.error('[CLOUDINARY UPLOAD REGISTER]', photoErr.message);
+                // Ne pas bloquer l'inscription si l'upload échoue
+            }
+        }
+
         let newUser;
         const client = await pool.connect();
         try {
@@ -407,7 +425,8 @@ async function registerDoctor(req, res) {
                     is_international, city,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, documents_file_ids, created_at,
-                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville
+                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville,
+                    photo_url
                  ) VALUES (
                     $1, 'doctor', $2, $3, $4,
                     $5, $6, $7,
@@ -415,7 +434,8 @@ async function registerDoctor(req, res) {
                     $10, $11,
                     $12, $13, $14, NOW(),
                     $15, $16, $17, NOW(),
-                    $18, $19, $20, $21, $22
+                    $18, $19, $20, $21, $22,
+                    $23
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [
                     normalizedPhone, full_name, first_name || null, last_name || null,
@@ -427,7 +447,8 @@ async function registerDoctor(req, res) {
                         diploma: (documents_file_ids && documents_file_ids.diploma) || document_file_id || null,
                         ordre: (documents_file_ids && documents_file_ids.ordre) || null
                     }),
-                    etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null
+                    etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null,
+                    photoUrl
                 ]
             );
 
@@ -436,14 +457,16 @@ async function registerDoctor(req, res) {
                     phone, user_id, full_name, specialty, registration_number,
                     city, neighborhood, bio, status, is_active, member_code,
                     trust_score, momo_number,
-                    country_of_residence, order_country, consultation_languages, is_international
-                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14,$15,$16)
+                    country_of_residence, order_country, consultation_languages, is_international,
+                    photo_url
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,FALSE,$10,$11,$12,$13,$14,$15,$16,$17)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, full_name, specialty, registration_number,
                  city, null, null, autoStatus, member_code,
                  score, normalizedPhone,
                  country_of_residence || null, order_country || null,
-                 consultation_languages || null, is_international || false]
+                 consultation_languages || null, is_international || false,
+                 photoUrl]
             );
 
             await client.query('COMMIT');
@@ -491,7 +514,7 @@ async function registerDoctor(req, res) {
 // ============================================================
 async function registerPharmacie(req, res) {
     const { phone, name, responsible_name, rccm_number, city, neighborhood, document_file_id, documents_file_ids, trust_score, cgu_accepted,
-        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville } = req.body;
+        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville, photoData } = req.body;
 
     if (!phone || !name || !responsible_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom de la pharmacie et responsable sont obligatoires." });
@@ -517,6 +540,23 @@ async function registerPharmacie(req, res) {
         const passwordHash = await bcrypt.hash(initialPassword, 10);
         logger.info('[REGISTER] Compte créé', { phone: normalizedPhone });
 
+        // Upload photo sur Cloudinary si fournie
+        let photoUrl = null;
+        if (photoData) {
+            try {
+                const base64Data = photoData.replace(/^data:image\/\w+;base64,/, '');
+                const buffer = Buffer.from(base64Data, 'base64');
+                const uploadResult = await uploadToCloudinary(buffer, 'bolamu/photos', {
+                    public_id: `pharmacie_${normalizedPhone}_${Date.now()}`,
+                    transformation: { width: 400, height: 400, crop: 'fill' }
+                });
+                photoUrl = uploadResult.secure_url;
+            } catch (photoErr) {
+                console.error('[CLOUDINARY UPLOAD REGISTER]', photoErr.message);
+                // Ne pas bloquer l'inscription si l'upload échoue
+            }
+        }
+
         let newUser;
         const client = await pool.connect();
         try {
@@ -528,30 +568,33 @@ async function registerPharmacie(req, res) {
                     city, neighborhood,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, documents_file_ids, created_at,
-                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville
+                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville,
+                    photo_url
                  ) VALUES (
                     $1, 'pharmacie', $2, $3, $4,
                     $5, $6,
                     $7, $8, $9, NOW(),
                     $10, $11, $12, NOW(),
-                    $13, $14, $15, $16, $17
+                    $13, $14, $15, $16, $17,
+                    $18
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, score, member_code, cgu_accepted || false, is_active, passwordHash, JSON.stringify({
                     rccm: (documents_file_ids && documents_file_ids.rccm) || document_file_id || null,
                     autorisation: (documents_file_ids && documents_file_ids.autorisation) || null
-                }), etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null]
+                }), etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null,
+                photoUrl]
             );
 
             await client.query(
                 `INSERT INTO pharmacies (
                     phone, user_id, name, responsible_name, rccm_number,
                     city, neighborhood, status, is_active, member_code,
-                    trust_score, momo_number
-                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11)
+                    trust_score, momo_number, photo_url
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, name, responsible_name || null, rccm_number || null,
                  city || null, neighborhood || null, autoStatus, member_code,
-                 score, normalizedPhone]
+                 score, normalizedPhone, photoUrl]
             );
 
             await client.query('COMMIT');
@@ -599,7 +642,7 @@ async function registerPharmacie(req, res) {
 // ============================================================
 async function registerLaboratoire(req, res) {
     const { phone, name, director_name, agrement_number, rccm_number, city, document_file_id, documents_file_ids, trust_score, cgu_accepted,
-        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville } = req.body;
+        etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville, photoData } = req.body;
 
     if (!phone || !name || !director_name) {
         return res.status(400).json({ success: false, message: "Téléphone, nom du laboratoire et directeur sont obligatoires." });
@@ -625,6 +668,23 @@ async function registerLaboratoire(req, res) {
         const passwordHash = await bcrypt.hash(initialPassword, 10);
         logger.info('[REGISTER] Compte créé', { phone: normalizedPhone });
 
+        // Upload photo sur Cloudinary si fournie
+        let photoUrl = null;
+        if (photoData) {
+            try {
+                const base64Data = photoData.replace(/^data:image\/\w+;base64,/, '');
+                const buffer = Buffer.from(base64Data, 'base64');
+                const uploadResult = await uploadToCloudinary(buffer, 'bolamu/photos', {
+                    public_id: `laboratoire_${normalizedPhone}_${Date.now()}`,
+                    transformation: { width: 400, height: 400, crop: 'fill' }
+                });
+                photoUrl = uploadResult.secure_url;
+            } catch (photoErr) {
+                console.error('[CLOUDINARY UPLOAD REGISTER]', photoErr.message);
+                // Ne pas bloquer l'inscription si l'upload échoue
+            }
+        }
+
         let newUser;
         const client = await pool.connect();
         try {
@@ -636,30 +696,33 @@ async function registerLaboratoire(req, res) {
                     city,
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, documents_file_ids, created_at,
-                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville
+                    etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville,
+                    photo_url
                  ) VALUES (
                     $1, 'laboratoire', $2, $3, $4, $5,
                     $6,
                     $7, $8, $9, NOW(),
                     $10, $11, $12, NOW(),
-                    $13, $14, $15, $16, $17
+                    $13, $14, $15, $16, $17,
+                    $18
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, score, member_code, cgu_accepted || false, is_active, passwordHash, JSON.stringify({
                     agrement: (documents_file_ids && documents_file_ids.agrement) || document_file_id || null,
                     rccm: (documents_file_ids && documents_file_ids.rccm) || null
-                }), etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null]
+                }), etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null,
+                photoUrl]
             );
 
             await client.query(
                 `INSERT INTO laboratories (
                     phone, user_id, name, director_name, agrement_number, rccm_number,
                     city, status, is_active, member_code,
-                    trust_score, momo_number
-                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11)
+                    trust_score, momo_number, photo_url
+                 ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,FALSE,$9,$10,$11,$12)
                  ON CONFLICT (phone) DO NOTHING`,
                 [normalizedPhone, newUser.rows[0].id, name, director_name || null, agrement_number || null, rccm_number || null,
                  city || null, autoStatus, member_code,
-                 score, normalizedPhone]
+                 score, normalizedPhone, photoUrl]
             );
 
             await client.query('COMMIT');
