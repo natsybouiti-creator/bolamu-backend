@@ -145,8 +145,6 @@ const adminDocsRoutes      = require('./routes/admin-docs.routes');
 const agenceRoutes         = require('./routes/agence.routes');
 const agentRoutes          = require('./routes/agent.routes');
 const zoraRoutes           = require('./routes/zora.routes');
-// DEPRECATED (zora_vouchers remplacé par partner_vouchers) — routes neutralisées avec 410 Gone
-// const zoraMarketplaceRoutes = require('./routes/zora-marketplace.routes.DEPRECATED');
 const zoraGamesRoutes       = require('./routes/zora-games.routes');
 // DEPRECATED (Task B4) — remplacé par clubs.routes.js (implémentation canonique)
 // const sportGroupsRoutes     = require('./routes/sport-groups.routes');
@@ -230,8 +228,6 @@ app.use('/api/v1/pre-rdv',       preRdvRoutes);
 app.use('/api/v1/ai-consult',   aiConsultRoutes);
 app.use('/api/v1/upload',       uploadRoutes);
 app.use('/api/v1/zora',         zoraRoutes);
-// DEPRECATED (zora_vouchers remplacé par partner_vouchers) — routes neutralisées avec 410 Gone
-// app.use('/api/v1/zora',         zoraMarketplaceRoutes);
 app.use('/api/v1/zora',         zoraGamesRoutes);
 app.use('/api/v1/bons-zora',    bonZoraRoutes);
 app.use('/api/v1/partenaire',   partenaireRoutes);
