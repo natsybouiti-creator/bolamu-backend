@@ -385,12 +385,17 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('forgot-link').addEventListener('click', showForgot);
   document.getElementById('btn-forgot').addEventListener('click', doForgotPassword);
   document.getElementById('back-login-link').addEventListener('click', showLogin);
-  checkMagicLink();
-  checkForgotPasswordLink();
 
-  const reason = new URLSearchParams(window.location.search).get('reason');
-  if (reason === 'session_expired') {
-    showMsg('Votre session a expiré. Veuillez vous reconnecter.', 'error');
+  const existingToken = localStorage.getItem('bolamu_patient_token');
+  if (existingToken) {
+    window.location.href = '/patient/dashboard.html';
+  } else {
+    checkMagicLink();
+    checkForgotPasswordLink();
+    const reason = new URLSearchParams(window.location.search).get('reason');
+    if (reason === 'session_expired') {
+      showMsg('Votre session a expiré. Veuillez vous reconnecter.', 'error');
+    }
   }
 });
 </script>
