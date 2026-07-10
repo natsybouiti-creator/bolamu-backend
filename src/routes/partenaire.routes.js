@@ -36,10 +36,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ success: false, error: 'invalid_phone' });
     }
 
-    // Vérifier utilisateur avec role='partenaire'
+    // Vérifier utilisateur avec role='partenaire_commercial' (ou 'partenaire' legacy, jamais réellement utilisé)
     const userResult = await pool.query(
-      'SELECT * FROM users WHERE phone = $1 AND role = $2',
-      [phoneNormalized, 'partenaire']
+      'SELECT * FROM users WHERE phone = $1 AND role = ANY($2::text[])',
+      [phoneNormalized, ['partenaire', 'partenaire_commercial']]
     );
 
     if (userResult.rows.length === 0) {

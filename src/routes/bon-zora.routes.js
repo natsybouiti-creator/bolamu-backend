@@ -31,7 +31,7 @@ const {
 
 // Middleware inline pour rôle partenaire (fabrique globale inexistante)
 // Rôles réels des comptes partenaires du système (aucun compte n'a jamais role='partenaire')
-const PARTENAIRE_ROLES = ['pharmacie', 'doctor', 'laboratoire'];
+const PARTENAIRE_ROLES = ['pharmacie', 'doctor', 'laboratoire', 'partenaire_commercial'];
 const requirePartenaire = (req, res, next) => {
   if (!req.user) return res.status(401).json({ success: false, error: 'non_authentifie' });
   if (!PARTENAIRE_ROLES.includes(req.user.role)) {
@@ -41,7 +41,7 @@ const requirePartenaire = (req, res, next) => {
 };
 
 // Rôles autorisés à gérer des offres (partenaires santé + partenaire commercial + admin)
-const PROGRAM_MANAGER_ROLES = [...PARTENAIRE_ROLES, 'partenaire_commercial', 'admin'];
+const PROGRAM_MANAGER_ROLES = [...PARTENAIRE_ROLES, 'admin'];
 const requireProgramManager = (req, res, next) => {
   if (!req.user) return res.status(401).json({ success: false, error: 'non_authentifie' });
   if (!PROGRAM_MANAGER_ROLES.includes(req.user.role)) {
