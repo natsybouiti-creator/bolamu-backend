@@ -130,7 +130,7 @@ exports.getViewers = async (req, res) => {
         }
 
         const result = await pool.query(`
-            SELECT sv.viewed_at, u.full_name, u.avatar_url, u.phone
+            SELECT sv.viewed_at, u.full_name, u.photo_url, u.phone
             FROM story_views sv
             JOIN users u ON u.phone = sv.phone
             WHERE sv.story_id = $1
