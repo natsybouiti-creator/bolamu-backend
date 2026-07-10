@@ -274,7 +274,11 @@
       <h2 class="tab-title">Mes programmes de fidélité</h2>
       <div class="card">
         <div class="section-title">
-          <span>Programmes actifs</span>
+          <span>Mes offres</span>
+          <button class="btn btn-primary btn-sm" id="btn-new-program" data-testid="btn-new-program">
+            <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+            <span>Créer une offre</span>
+          </button>
         </div>
         <div class="table-wrap">
           <table>
@@ -285,11 +289,12 @@
                 <th>Coût Zora</th>
                 <th>Valeur FCFA</th>
                 <th>Stock</th>
+                <th>Statut</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody id="programs-list">
-              <tr><td colspan="6" style="text-align: center; color: var(--texte-doux);">Chargement...</td></tr>
+              <tr><td colspan="7" style="text-align: center; color: var(--texte-doux);">Chargement...</td></tr>
             </tbody>
           </table>
         </div>
@@ -298,6 +303,48 @@
 
   </div>
 </main>
+
+<!-- MODAL CRÉATION / ÉDITION D'OFFRE -->
+<div id="program-modal-backdrop" style="display: none; position: fixed; inset: 0; z-index: 400; background: rgba(10,36,99,0.4); align-items: center; justify-content: center; padding: 16px;">
+  <div style="background: var(--blanc); border-radius: 16px; padding: 28px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto;">
+    <h3 id="program-modal-title" style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 20px;">Créer une offre</h3>
+    <input type="hidden" id="program-id">
+    <div class="form-group">
+      <label class="form-label" for="program-name">Nom de l'offre</label>
+      <input type="text" id="program-name" class="form-input" placeholder="Ex : Réduction 15% sur..." data-testid="program-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="program-description">Description</label>
+      <input type="text" id="program-description" class="form-input" placeholder="Description de l'offre" data-testid="program-description">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="program-category">Catégorie</label>
+      <input type="text" id="program-category" class="form-input" placeholder="Ex : Santé, Télécom, Hôtellerie..." data-testid="program-category">
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="form-group">
+        <label class="form-label" for="program-zora-cost">Coût Zora</label>
+        <input type="number" id="program-zora-cost" class="form-input" min="1" data-testid="program-zora-cost">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="program-fcfa-value">Valeur FCFA</label>
+        <input type="number" id="program-fcfa-value" class="form-input" min="0" data-testid="program-fcfa-value">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="program-stock">Stock (laisser vide = illimité)</label>
+      <input type="number" id="program-stock" class="form-input" min="0" placeholder="Illimité" data-testid="program-stock">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="program-image">Image (optionnel)</label>
+      <input type="file" id="program-image" class="form-input" accept="image/*" data-testid="program-image">
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 20px;">
+      <button class="btn btn-outline" id="btn-cancel-program" style="flex: 1; justify-content: center;">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-program" data-testid="btn-save-program" style="flex: 1; justify-content: center;">Enregistrer</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -380,29 +427,119 @@
     }
   }
 
-  // Load programs
+  // Échappement HTML — les offres sont créées par des partenaires (multi-tenant),
+  // jamais injecter leur contenu (name/description/category) sans échappement.
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Load programs (uniquement ceux du partenaire connecté, actifs + désactivés)
+  let myPrograms = [];
   async function loadPrograms() {
-    const data = await api('/bons-zora/programs');
+    const data = await api('/bons-zora/programs/mine');
     if (data && data.success) {
+      myPrograms = data.data;
       const tbody = document.getElementById('programs-list');
-      if (data.data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--texte-doux);">Aucun programme disponible</td></tr>';
+      if (myPrograms.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--texte-doux);">Aucune offre créée — cliquez sur "Créer une offre"</td></tr>';
         return;
       }
-      tbody.innerHTML = data.data.map(p => `
+      tbody.innerHTML = myPrograms.map(p => `
         <tr>
-          <td>${p.name}</td>
-          <td>${p.category || '—'}</td>
+          <td>${escapeHtml(p.name)}</td>
+          <td>${escapeHtml(p.category) || '—'}</td>
           <td>${p.zora_cost}</td>
           <td>${p.fcfa_value || '—'}</td>
           <td>${p.stock === null ? 'Illimité' : p.stock}</td>
-          <td>
-            <button class="btn btn-sm btn-outline" onclick="showToast('Contactez votre gestionnaire')">
-              <span class="material-symbols-outlined" style="font-size: 16px;">contact_support</span>
+          <td>${p.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-grey">Désactivée</span>'}</td>
+          <td style="white-space: nowrap;">
+            <button class="btn btn-sm btn-outline" onclick="openProgramModal(${p.id})" data-testid="btn-edit-program-${p.id}">
+              <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
             </button>
+            ${p.is_active ? `
+            <button class="btn btn-sm btn-outline" onclick="deactivateProgramUi(${p.id})" data-testid="btn-deactivate-program-${p.id}" style="color: var(--rouge);">
+              <span class="material-symbols-outlined" style="font-size: 16px;">block</span>
+            </button>` : ''}
           </td>
         </tr>
       `).join('');
+    }
+  }
+
+  // Modal création / édition
+  function openProgramModal(id) {
+    const modal = document.getElementById('program-modal-backdrop');
+    const program = id ? myPrograms.find(p => p.id === id) : null;
+    document.getElementById('program-modal-title').textContent = program ? 'Modifier l\'offre' : 'Créer une offre';
+    document.getElementById('program-id').value = program ? program.id : '';
+    document.getElementById('program-name').value = program ? program.name : '';
+    document.getElementById('program-description').value = program ? (program.description || '') : '';
+    document.getElementById('program-category').value = program ? (program.category || '') : '';
+    document.getElementById('program-zora-cost').value = program ? program.zora_cost : '';
+    document.getElementById('program-fcfa-value').value = program ? (program.fcfa_value || '') : '';
+    document.getElementById('program-stock').value = program && program.stock !== null ? program.stock : '';
+    document.getElementById('program-image').value = '';
+    modal.style.display = 'flex';
+  }
+  function closeProgramModal() {
+    document.getElementById('program-modal-backdrop').style.display = 'none';
+  }
+  document.getElementById('btn-new-program').addEventListener('click', () => openProgramModal(null));
+  document.getElementById('btn-cancel-program').addEventListener('click', closeProgramModal);
+
+  document.getElementById('btn-save-program').addEventListener('click', async () => {
+    const id = document.getElementById('program-id').value;
+    const name = document.getElementById('program-name').value.trim();
+    const zoraCost = document.getElementById('program-zora-cost').value;
+    if (!name || !zoraCost) { showToast('Nom et coût Zora requis'); return; }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', document.getElementById('program-description').value.trim());
+    formData.append('category', document.getElementById('program-category').value.trim());
+    formData.append('zora_cost', zoraCost);
+    formData.append('fcfa_value', document.getElementById('program-fcfa-value').value);
+    formData.append('stock', document.getElementById('program-stock').value);
+    const imageFile = document.getElementById('program-image').files[0];
+    if (imageFile) formData.append('image', imageFile);
+
+    const btn = document.getElementById('btn-save-program');
+    btn.disabled = true;
+    try {
+      const res = await fetch(API + (id ? '/bons-zora/programs/' + id : '/bons-zora/programs'), {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(id ? 'Offre modifiée' : 'Offre créée');
+        closeProgramModal();
+        loadPrograms();
+      } else {
+        showToast(data.error || 'Erreur');
+      }
+    } catch (e) {
+      showToast('Erreur de connexion');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  async function deactivateProgramUi(id) {
+    if (!confirm('Désactiver cette offre ? Elle ne sera plus visible des patients.')) return;
+    const data = await api('/bons-zora/programs/' + id, { method: 'DELETE' });
+    if (data && data.success) {
+      showToast('Offre désactivée');
+      loadPrograms();
+    } else {
+      showToast((data && data.error) || 'Erreur');
     }
   }
 

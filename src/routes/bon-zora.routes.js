@@ -24,6 +24,7 @@ const {
   getPatientBonsZora,
   getProgramsByCategory,
   getProgramById,
+  getMyPrograms,
   createProgram,
   updateProgram,
   deactivateProgram
@@ -71,6 +72,23 @@ router.get('/programs', async (req, res) => {
     }
   } catch (error) {
     console.error('[BON ZORA ROUTES] Erreur GET /programs:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
+});
+
+// GET /api/v1/bons-zora/programs/mine — Toutes les offres (actives + désactivées) du partenaire connecté
+// IMPORTANT : doit être déclarée AVANT /programs/:id, sinon Express capture
+// "mine" comme valeur de :id (même piège documenté dans clubs.routes.js)
+router.get('/programs/mine', authMiddleware, requireProgramManager, async (req, res) => {
+  try {
+    const result = await getMyPrograms(req.user.phone);
+    if (result.success) {
+      res.json({ success: true, data: result.data });
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('[BON ZORA ROUTES] Erreur GET /programs/mine:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });

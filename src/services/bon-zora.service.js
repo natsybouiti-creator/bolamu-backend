@@ -472,6 +472,26 @@ async function getProgramById(id) {
 }
 
 /**
+ * getMyPrograms — Toutes les offres (actives ET désactivées) du partenaire connecté.
+ * @param {string} partnerPhone
+ */
+async function getMyPrograms(partnerPhone) {
+  try {
+    const result = await pool.query(
+      `SELECT id, partner_phone, name, description, zora_cost, fcfa_value, category, stock, image_url, is_active, created_at
+       FROM partner_programs
+       WHERE partner_phone = $1
+       ORDER BY created_at DESC`,
+      [partnerPhone]
+    );
+    return { success: true, data: result.rows };
+  } catch (error) {
+    console.error('[BON ZORA] Erreur getMyPrograms:', error.message);
+    return { success: false, error: 'server_error' };
+  }
+}
+
+/**
  * createProgram — Un partenaire (ou l'admin pour un partenaire précis) crée une offre.
  * @param {Object} data - { partner_phone, name, description, zora_cost, fcfa_value, category, stock, image_url }
  */
@@ -632,6 +652,7 @@ module.exports = {
   getPatientBonsZora,
   getProgramsByCategory,
   getProgramById,
+  getMyPrograms,
   createProgram,
   updateProgram,
   deactivateProgram
