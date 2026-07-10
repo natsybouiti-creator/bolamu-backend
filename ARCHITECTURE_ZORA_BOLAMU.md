@@ -10,6 +10,7 @@
 | 1.0 | Juillet 2026 | Version initiale (vision produit, jamais implémentée telle quelle) |
 | 1.1 | Juillet 2026 | Ajout de sections vision supplémentaires (19-23) |
 | 2.0 | 7 juillet 2026 | Réécriture intégrale : documente l'existant réel vérifié dans le code, déplace tout ce qui n'est pas implémenté en section Roadmap |
+| 2.1 | 10 juillet 2026 | Clôture du Chantier 3 (§7.5) : flux bon Zora + WhatsApp + QR partenaire confirmé complet et testé de bout en bout. Incident police Plus Jakarta Sans/`FONTCONFIG_FILE` documenté et résolu (§7.6). `dossier-qr` retiré des points ouverts du Chantier 3 : repris par le flux DMN (`GET /api/v1/dmn/qr-payload`), sans rapport avec les bons Zora (§12.1) |
 
 ---
 
@@ -180,9 +181,11 @@ Le dashboard `partenaire/dashboard.html` (rôle `partenaire`, aligné avec `requ
 
 **Cible** : avant l'échange (voir gap §7.1), afficher un popup de détail au clic sur une carte "Échangeable" — au format modal centré validé dans `ARCHITECTURE_SOCIAL_COMMUNAUTE_BOLAMU.md` §9.1 (pattern `.modal-bg`/`#modal-event-detail` : carte centrée `max-width:520px`, backdrop flouté bloquant, hero, fermeture par clic-backdrop ou bouton close). Le bouton "Échanger" à l'intérieur de ce popup déclencherait alors l'appel `POST /bons-zora/generate` actuel (aucun changement du service backend, seulement une route de lecture à ajouter et le frontend). Nécessite au minimum une route `GET /bons-zora/programs/:id` (absente à ce jour) pour charger le détail avant affichage. Chantier non réalisé dans le cadre de cette mise à jour documentaire.
 
-### 7.5 Flux réel bon + WhatsApp + QR partenaire scannable — IMPLÉMENTÉ ET DÉPLOYÉ (Chantier 3, 9 juillet 2026)
+### 7.5 Flux réel bon + WhatsApp + QR partenaire scannable — CHANTIER 3 CLOS (9-10 juillet 2026)
 
-**Statut** : implémenté et déployé en production le 9 juillet 2026 (commits `924b68e` → `a18890e`, `d05785c` pour la police). Ce qui suit décrit le fonctionnement réel, testé en conditions réelles (comptes QA `+242069735419`/`+242069735418`), pas une cible.
+**Statut** : implémenté, déployé en production et **clos** — audité et testé de bout en bout le 10 juillet 2026 (commits `924b68e` → `a18890e`, `d05785c` pour la police). Ce qui suit décrit le fonctionnement réel, testé en conditions réelles (comptes QA `+242069735419`/`+242069735418`), pas une cible.
+
+**Résumé du flux confirmé** : le patient échange ses points contre un bon (`generateBonZora()`, débit direct de `zora_points`, insertion `partner_bons_zora`) → une carte cadeau PNG (Plus Jakarta Sans, QR, code, montant) est envoyée par WhatsApp de façon **non bloquante** (échec sans impact sur le bon déjà généré/débité) → le partenaire valide le bon via son code ou son QR (`validateBonZora()`, idempotent, `SELECT ... FOR UPDATE`), qui marque `partner_bons_zora.status = 'used'`. Les trois étapes sont confirmées cohérentes avec le schéma `partner_bons_zora` (section 10).
 
 **Fonctionnement réel** : `generateBonZora()` (`bon-zora.service.js`), après le `COMMIT` de la transaction (bon déjà généré, solde déjà débité), appelle `generateBonZoraCard()` (`src/services/image-generator.service.js`) qui compose une image PNG côté serveur — fond navy plein, logo + wordmark Bolamu, nom du partenaire, description de l'offre, QR code, code du bon, badge du montant débité — via `sharp` + rendu SVG, en résolvant la police **Plus Jakarta Sans** par `fontconfig` (fichier statique `assets/fonts/PlusJakartaSans-Bold.ttf`, variable `FONTCONFIG_FILE` dans `render.yaml`, pointant vers `assets/fonts/fonts.conf`). Le buffer PNG résultant est envoyé via `sendImageMessage()` (`whatsapp.service.js`) sur `POST /api/sendImage` de WAHA, session `'Communaute'` (la seule session existante, confirmé §2 de l'état des lieux WAHA), image encodée en base64 inline dans le payload.
 
@@ -194,7 +197,19 @@ Le dashboard `partenaire/dashboard.html` (rôle `partenaire`, aligné avec `requ
 
 **Contrainte DB étendue** : `notifications_type_check` inclut désormais `'whatsapp_image'` (migration_070), distinct de `'whatsapp_message'` (utilisé par `sendAutoMessage()`) — bug découvert par test d'intégration réel (l'INSERT échouait silencieusement contre l'ancienne contrainte, absorbé par le `try/catch` de `sendImageMessage()`), corrigé avant mise en production finale.
 
-**Non couvert par ce chantier** (limites assumées, pas des oublis) : `validateBonZora()` (validation partenaire) n'envoie toujours aucune notification — hors périmètre du Chantier 3, qui ne couvrait que la génération. Intégration visuelle dans `hero-qr`/`dossier-qr` (§12.1) non traitée — le **POINT OUVERT** sur `dossier-qr` reste entier.
+**Points ouverts restants, assumés (pas des oublis)** :
+- `validateBonZora()` (validation partenaire) n'envoie toujours aucune notification WhatsApp à la validation — hors périmètre du Chantier 3, qui ne couvrait que la génération. Limite assumée, non traitée.
+- Intégration visuelle du bon Zora dans le dashboard patient (au-delà du visuel WhatsApp) : **tranchée en "non nécessaire" (option A)** — le visuel reçu par le patient sur WhatsApp suffit, aucun composant dédié n'est prévu dans le dashboard. `dossier-qr` (§12.1) n'est **pas concerné** par cette décision : il est repris par un flux totalement distinct (DMN), voir §12.1.
+
+### 7.6 Incident police Plus Jakarta Sans / `FONTCONFIG_FILE` — résolu le 10 juillet 2026
+
+**Symptôme** : la carte cadeau bon Zora (§7.5) était fonctionnellement validée (réception WhatsApp réelle confirmée), mais la police réellement rendue sur le visuel n'était pas Plus Jakarta Sans — repli silencieux sur une police serif système.
+
+**Cause** : `render.yaml` déclare la variable `FONTCONFIG_FILE` (pointant vers `assets/fonts/fonts.conf`, requise par `sharp`/`librsvg` pour résoudre Plus Jakarta Sans côté serveur), mais **Render ne synchronise pas automatiquement les variables d'environnement d'un `render.yaml` modifié vers un service déjà déployé** — un ajout manuel dans le dashboard Render (Environment) est nécessaire pour qu'un service existant en tienne compte.
+
+**Résolution** : variable ajoutée manuellement dans le dashboard Render, service redéployé le 10 juillet 2026. Confirmé effectif par une preuve cryptographique, pas seulement visuelle : le fichier PNG réellement livré à un compte patient réel (récupéré via l'historique WAHA du chat, `fileSHA256` des métadonnées du message) est **bit-à-bit identique** (même hash SHA256, même taille en octets) à une régénération locale de la même carte (mêmes données réelles : nom partenaire, description, code, coût) effectuée avec `FONTCONFIG_FILE` correctement pointé vers `assets/fonts/fonts.conf`.
+
+**Note pour l'avenir** : toute variable ajoutée ou modifiée dans `render.yaml` doit être vérifiée manuellement dans le dashboard Render (Environment) pour tout service **déjà existant** — `render.yaml` seul ne suffit pas à la propager.
 
 ---
 
@@ -321,7 +336,7 @@ Aucune des routes `/api/zora/wallet*`, `/api/zora/offers*`, `/api/admin/zora/*`,
 | Jeux Zora | `GET /zora/games/config`, `POST /zora/games/play` | Onglet dédié, hors périmètre de cette réécriture |
 | Leaderboard hebdo | `GET /leaderboard/weekly` | Toujours affiché |
 | `hero-qr` (QR principal du dashboard) | `GET /qr/generate` | Toujours affiché — encode un token d'urgence (`/urgence?token=...`), **sans aucun rapport avec les bons Zora**. Ajouté au document le 7 juillet 2026 (angle mort de la version précédente) |
-| `dossier-qr` (carte membre / titulaire) | **Aucun** | **QR mort** : le `<div id="dossier-qr">` (`dashboard.html:880`) n'est rempli par aucun code JS trouvé (recherche exhaustive du littéral `dossier-qr` dans tout le fichier — seule sa propre définition HTML apparaît). Ajouté au document le 7 juillet 2026. **POINT OUVERT (non tranché)**, non couvert par le Chantier 3 (§7.5, implémenté le 9 juillet 2026 mais limité à l'envoi WhatsApp) : réactiver ce composant pour y afficher le dernier bon Zora actif, ou créer un composant séparé dédié aux bons sur la carte membre — décision produit toujours à trancher |
+| `dossier-qr` (carte membre / titulaire) | `GET /api/v1/dmn/qr-payload` | **Sans rapport avec les bons Zora** — repris par le flux DMN (dossier médical numérique) : `A.loadDossierQr()` charge un payload signé (24h) et l'affiche via `A.renderQR('dossier-qr', d.data.signed, 66)` (`dashboard.html`, route `dmn.routes.js:163`). N'est plus un point ouvert du Chantier Zora (mis à jour le 10 juillet 2026 — l'ancien constat "QR mort" du 7 juillet 2026 est obsolète, le composant a depuis été branché sur le flux DMN, indépendamment du Chantier 3) |
 
 ### 12.2 Pharmacie / Laboratoire (`public/pharmacie/dashboard.html`, `public/laboratoire/dashboard.html`)
 
