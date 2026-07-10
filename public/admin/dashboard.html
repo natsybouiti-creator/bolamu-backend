@@ -367,6 +367,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
     <button class="nav-btn" id="nav-smartflow" data-panel="smartflow"><span class="material-symbols-outlined" style="font-size:18px;">analytics</span>Smart Flow</button>
     <button class="nav-btn" id="nav-events" data-panel="events"><span class="material-symbols-outlined" style="font-size:18px;">event</span>Événements<span class="nav-badge amber-b" id="bdg-events">0</span></button>
     <button class="nav-btn" id="nav-vouchers" data-panel="vouchers"><span class="material-symbols-outlined" style="font-size:18px;">local_offer</span>Vouchers</button>
+    <button class="nav-btn" id="nav-offers" data-panel="offers"><span class="material-symbols-outlined" style="font-size:18px;">sell</span>Offres partenaires</button>
   </nav>
   <div class="sidebar-foot">
     <div class="user-row">
@@ -875,6 +876,25 @@ tr:hover td{background:rgba(255,255,255,.018);}
       </div>
     </div>
 
+    <div id="panel-offers" class="panel">
+      <div class="section-hd">
+        <div><h2>Offres partenaires</h2><p>Toutes les offres, tous partenaires confondus (santé + commercial)</p></div>
+        <button class="primary-btn" data-ononclick="openNewOfferModal">+ Nouvelle offre</button>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-head">
+          <span class="tbl-title">Offres</span>
+          <span class="tbl-count" id="offers-count">—</span>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Nom</th><th>Partenaire</th><th>Catégorie</th><th>Coût Zora</th><th>Valeur FCFA</th><th>Stock</th><th>Statut</th><th>Action</th>
+          </tr></thead>
+          <tbody id="tbody-offers"><tr><td colspan="8" class="loading">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
   </div><!-- /content -->
 
 <footer class="bg-brand-navy py-8 px-container-margin text-white">
@@ -1103,7 +1123,7 @@ function showBannerErr(msg){
 /* -----------------------------------
    NAVIGATION
 ----------------------------------- */
-const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits',smartflow:'Smart Flow',events:'Événements',vouchers:'Vouchers'};
+const TITLES={overview:'Tableau de bord',activity:'Activité temps réel',pending:'En attente',doctors:'Médecins',pharmacies:'Pharmacies',laboratories:'Laboratoires',patients:'Patients',appointments:'Rendez-vous',prescriptions:'Ordonnances',payments:'Paiements',fraud:'Fraudes',audit:"Journal d'audit",config:'Configuration',credits:'Crédits',ratings:'⭐ Notations',collecte:'💰 Collecte',conventions:'🤝 Conventions',clearing:'🏦 Clearing CDR',conflits:'⚖️ Conflits',smartflow:'Smart Flow',events:'Événements',vouchers:'Vouchers',offers:'Offres partenaires'};
 
 function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sb-ov').classList.toggle('open');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
@@ -1130,7 +1150,7 @@ function go(name){
   loadPanel(name);
 }
 function loadPanel(name){
-  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits,smartflow:loadSmartFlow,events:loadEvents,vouchers:loadVouchers};
+  const m={overview:loadOverview,activity:loadActivity,pending:loadPending,doctors:()=>loadDoctors(),pharmacies:loadPharmacies,laboratories:loadLabos,patients:loadPatients,appointments:loadAppts,prescriptions:loadPresc,payments:loadPayments,fraud:loadFraud,audit:()=>loadAudit(),config:loadConfig,credits:loadCredits,ratings:loadRatings,collecte:loadCollecte,conventions:loadConventions,clearing:loadClearing,conflits:loadConflits,smartflow:loadSmartFlow,events:loadEvents,vouchers:loadVouchers,offers:loadOffers};
   if(m[name])m[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
@@ -1685,6 +1705,121 @@ async function loadVouchers(){
   }catch(e){
     console.error('[loadVouchers]',e);
     document.getElementById('tbody-vouchers').innerHTML='<tr><td colspan="7" class="empty">Erreur</td></tr>';
+  }
+}
+
+/* -----------------------------------
+   OFFRES PARTENAIRES (Phase 4A)
+----------------------------------- */
+let allOffers=[];
+function escapeHtmlOffer(str){
+  if(str===null||str===undefined)return'';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+async function loadOffers(){
+  try{
+    const res=await api('/bons-zora/programs/all');
+    allOffers=res.data||[];
+    const cnt=document.getElementById('offers-count');
+    if(cnt)cnt.textContent=allOffers.length+' offre(s)';
+    const el=document.getElementById('tbody-offers');
+    if(!allOffers.length){
+      el.innerHTML='<tr><td colspan="8" class="empty">Aucune offre</td></tr>';
+      return;
+    }
+    el.innerHTML=allOffers.map(p=>`<tr>
+      <td>${escapeHtmlOffer(p.name)}</td>
+      <td>${escapeHtmlOffer(p.partner_name)||p.partner_phone||'—'}</td>
+      <td>${escapeHtmlOffer(p.category)||'—'}</td>
+      <td>${p.zora_cost}</td>
+      <td>${p.fcfa_value||'—'}</td>
+      <td>${p.stock===null?'Illimité':p.stock}</td>
+      <td>${p.is_active?'<span class="badge b-green">Active</span>':'<span class="badge b-muted">Désactivée</span>'}</td>
+      <td>
+        <button class="mbtn mbtn-cancel" style="padding:4px 10px;font-size:12px;" data-onclick="openEditOfferModal" data-arg="${p.id}">Modifier</button>
+        ${p.is_active?`<button class="mbtn mbtn-cancel" style="padding:4px 10px;font-size:12px;color:var(--error);" data-onclick="deactivateOfferAdmin" data-arg="${p.id}">Désactiver</button>`:''}
+      </td>
+    </tr>`).join('');
+  }catch(e){
+    console.error('[loadOffers]',e);
+    document.getElementById('tbody-offers').innerHTML='<tr><td colspan="8" class="empty">Erreur</td></tr>';
+  }
+}
+function openNewOfferModal(){
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Nouvelle offre</div><div class="modal-sub">Créer une offre pour un partenaire précis</div>
+    <input type="hidden" id="offer-id">
+    <div class="mf"><label>Téléphone du partenaire</label><input class="mi" id="offer-partner-phone" placeholder="+242..."></div>
+    <div class="mf"><label>Nom de l'offre</label><input class="mi" id="offer-name" placeholder="Ex : Réduction 15%..."></div>
+    <div class="mf"><label>Description</label><input class="mi" id="offer-description" placeholder="Description"></div>
+    <div class="mf"><label>Catégorie</label><input class="mi" id="offer-category" placeholder="Santé, Télécom..."></div>
+    <div class="m2"><div class="mf"><label>Coût Zora</label><input class="mi" type="number" id="offer-zora-cost" min="1"></div><div class="mf"><label>Valeur FCFA</label><input class="mi" type="number" id="offer-fcfa-value" min="0"></div></div>
+    <div class="mf"><label>Stock (vide = illimité)</label><input class="mi" type="number" id="offer-stock" min="0" placeholder="Illimité"></div>
+    <div class="mf"><label>Image (optionnel)</label><input class="mi" type="file" id="offer-image" accept="image/*"></div>
+    <div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-violet" data-ononclick="saveOfferAdmin">Créer</button></div>`;
+  openModal();
+}
+function openEditOfferModal(id){
+  const p=allOffers.find(o=>String(o.id)===String(id));
+  if(!p)return;
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Modifier l'offre</div><div class="modal-sub">${escapeHtmlOffer(p.partner_name)||p.partner_phone}</div>
+    <input type="hidden" id="offer-id" value="${p.id}">
+    <div class="mf"><label>Nom de l'offre</label><input class="mi" id="offer-name" value="${escapeHtmlOffer(p.name)}"></div>
+    <div class="mf"><label>Description</label><input class="mi" id="offer-description" value="${escapeHtmlOffer(p.description||'')}"></div>
+    <div class="mf"><label>Catégorie</label><input class="mi" id="offer-category" value="${escapeHtmlOffer(p.category||'')}"></div>
+    <div class="m2"><div class="mf"><label>Coût Zora</label><input class="mi" type="number" id="offer-zora-cost" min="1" value="${p.zora_cost}"></div><div class="mf"><label>Valeur FCFA</label><input class="mi" type="number" id="offer-fcfa-value" min="0" value="${p.fcfa_value||''}"></div></div>
+    <div class="mf"><label>Stock (vide = illimité)</label><input class="mi" type="number" id="offer-stock" min="0" value="${p.stock!==null?p.stock:''}" placeholder="Illimité"></div>
+    <div class="mf"><label>Image (optionnel, remplace l'existante)</label><input class="mi" type="file" id="offer-image" accept="image/*"></div>
+    <div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-violet" data-ononclick="saveOfferAdmin">Enregistrer</button></div>`;
+  openModal();
+}
+async function saveOfferAdmin(){
+  const btn=document.querySelector('[data-ononclick="saveOfferAdmin"]');
+  if(btn&&btn.disabled)return; // évite la double-soumission (double-clic)
+  const id=document.getElementById('offer-id').value;
+  const name=document.getElementById('offer-name').value.trim();
+  const zoraCost=document.getElementById('offer-zora-cost').value;
+  if(!name||!zoraCost){alert('Nom et coût Zora requis');return;}
+  if(btn)btn.disabled=true;
+  const formData=new FormData();
+  formData.append('name',name);
+  formData.append('description',document.getElementById('offer-description').value.trim());
+  formData.append('category',document.getElementById('offer-category').value.trim());
+  formData.append('zora_cost',zoraCost);
+  formData.append('fcfa_value',document.getElementById('offer-fcfa-value').value);
+  formData.append('stock',document.getElementById('offer-stock').value);
+  if(!id){
+    const partnerPhone=document.getElementById('offer-partner-phone').value.trim();
+    if(!partnerPhone){alert('Téléphone du partenaire requis');return;}
+    formData.append('partner_phone',partnerPhone);
+  }
+  const imageInput=document.getElementById('offer-image');
+  if(imageInput&&imageInput.files[0])formData.append('image',imageInput.files[0]);
+  try{
+    const res=await fetch(`${API}/bons-zora/programs${id?'/'+id:''}`,{
+      method:id?'PUT':'POST',
+      headers:{'Authorization':'Bearer '+token},
+      body:formData
+    });
+    const data=await res.json();
+    if(res.ok&&data.success){
+      closeModal();
+      loadOffers();
+    }else{
+      alert(data.error||'Erreur');
+    }
+  }catch(e){
+    alert('Erreur de connexion');
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+async function deactivateOfferAdmin(id){
+  if(!confirm('Désactiver cette offre ?'))return;
+  try{
+    await api('/bons-zora/programs/'+id,{method:'DELETE'});
+    loadOffers();
+  }catch(e){
+    alert('Erreur lors de la désactivation');
   }
 }
 

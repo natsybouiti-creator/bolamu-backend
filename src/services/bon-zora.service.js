@@ -492,6 +492,27 @@ async function getMyPrograms(partnerPhone) {
 }
 
 /**
+ * getAllPrograms — Toutes les offres, tous partenaires confondus (admin uniquement).
+ * Jointure users pour le nom du partenaire propriétaire.
+ */
+async function getAllPrograms() {
+  try {
+    const result = await pool.query(
+      `SELECT pp.id, pp.partner_phone, u.full_name as partner_name, u.role as partner_role,
+              pp.name, pp.description, pp.zora_cost, pp.fcfa_value, pp.category, pp.stock,
+              pp.image_url, pp.is_active, pp.created_at
+       FROM partner_programs pp
+       LEFT JOIN users u ON u.phone = pp.partner_phone
+       ORDER BY pp.created_at DESC`
+    );
+    return { success: true, data: result.rows };
+  } catch (error) {
+    console.error('[BON ZORA] Erreur getAllPrograms:', error.message);
+    return { success: false, error: 'server_error' };
+  }
+}
+
+/**
  * createProgram — Un partenaire (ou l'admin pour un partenaire précis) crée une offre.
  * @param {Object} data - { partner_phone, name, description, zora_cost, fcfa_value, category, stock, image_url }
  */
@@ -653,6 +674,7 @@ module.exports = {
   getProgramsByCategory,
   getProgramById,
   getMyPrograms,
+  getAllPrograms,
   createProgram,
   updateProgram,
   deactivateProgram

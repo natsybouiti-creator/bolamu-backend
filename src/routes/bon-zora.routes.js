@@ -25,6 +25,7 @@ const {
   getProgramsByCategory,
   getProgramById,
   getMyPrograms,
+  getAllPrograms,
   createProgram,
   updateProgram,
   deactivateProgram
@@ -89,6 +90,25 @@ router.get('/programs/mine', authMiddleware, requireProgramManager, async (req, 
     }
   } catch (error) {
     console.error('[BON ZORA ROUTES] Erreur GET /programs/mine:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
+});
+
+// GET /api/v1/bons-zora/programs/all — Toutes les offres, tous partenaires (admin uniquement)
+// Même piège d'ordre de route que /programs/mine ci-dessus (déclarer avant /:id).
+router.get('/programs/all', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'acces_reserve_admin' });
+    }
+    const result = await getAllPrograms();
+    if (result.success) {
+      res.json({ success: true, data: result.data });
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('[BON ZORA ROUTES] Erreur GET /programs/all:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });
