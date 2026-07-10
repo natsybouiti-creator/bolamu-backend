@@ -3106,25 +3106,39 @@
   };
 
   /* --------------------------- CHAT --------------------------- */
+  A._communauteConvId = 1; // valeur par défaut (id réel actuel), mise à jour par A._ensureCommunaute()
+  A._ensureCommunaute = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return Promise.resolve();
+    // GET /chat/communaute inscrit le patient dans conversation_participants (ON CONFLICT DO NOTHING côté backend)
+    // — sans cet appel, un patient jamais inscrit prend un 403 au premier envoi de message.
+    return apiFetch('https://www.bolamu.co/api/v1/chat/communaute', { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(function (res) { return res.json(); })
+      .then(function (d) { if (d && d.success && d.data && d.data.id) { A._communauteConvId = d.data.id; } })
+      .catch(function () {});
+  };
+  A._communauteReady = A._ensureCommunaute();
   A.openChatReal = function () {
     var token = localStorage.getItem('bolamu_patient_token');
     A.setState({ chatOpen: true });
     if (!token) return;
     A.setState({ chatLoading: true });
-    apiFetch('https://www.bolamu.co/api/v1/chat/conversations/1/messages', { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(function (res) { return res.json(); }).then(function (d) {
-        if (d.success && d.data) { A._chatMessages = d.data; A.setState({ chatMessages: d.data, chatLoading: false }); A.scrollToChatBottom(); }
-        else { A.setState({ chatLoading: false }); }
-        if (A._socket) {
-          A._socket.emit('join_conversation', 1);
-          A.setState({ chatConnected: true });
-        }
-      }).catch(function () { A.setState({ chatLoading: false }); });
+    (A._communauteReady || Promise.resolve()).then(function () {
+      apiFetch('https://www.bolamu.co/api/v1/chat/conversations/' + A._communauteConvId + '/messages', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function (res) { return res.json(); }).then(function (d) {
+          if (d.success && d.data) { A._chatMessages = d.data; A.setState({ chatMessages: d.data, chatLoading: false }); A.scrollToChatBottom(); }
+          else { A.setState({ chatLoading: false }); }
+          if (A._socket) {
+            A._socket.emit('join_conversation', A._communauteConvId);
+            A.setState({ chatConnected: true });
+          }
+        }).catch(function () { A.setState({ chatLoading: false }); });
+    });
   };
   A.sendChatMessage = function () {
     var s = A.state; var token = localStorage.getItem('bolamu_patient_token');
     if (!s.chatInput || !token) return;
-    apiFetch('https://www.bolamu.co/api/v1/chat/conversations/1/messages', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: s.chatInput }) })
+    apiFetch('https://www.bolamu.co/api/v1/chat/conversations/' + A._communauteConvId + '/messages', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: s.chatInput }) })
       .then(function (res) { return res.json(); }).then(function (d) {
         if (d.success && d.data) { var inp = $('chat-input'); if (inp) inp.value = ''; A.state.chatInput = ''; if (A._socket) A._socket.emit('new_message', d.data); }
       }).catch(function () {});
