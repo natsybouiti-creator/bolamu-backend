@@ -173,18 +173,30 @@ Découverte associée : **`dmn_access_log` et `dossier_access_log` sont deux tab
 
 ## BUGS CORRIGÉS (HISTORIQUE)
 
-*(Aucun bug corrigé dans cette session)*
+### BUG-014: Production down — migration_072 rejouée en boucle au démarrage (crash-loop)
+**Sévérité :** 🔴 CRITIQUE (production réellement en panne)
+**Module :** Backend - Système de migration automatique
+**Description :** `migration_072_add_zora_balance_check.sql` (`ALTER TABLE zora_points ADD CONSTRAINT zora_points_balance_check CHECK (balance >= 0)`) avait été appliquée manuellement en test réel (étape 3 de son propre commit `b96aaf8`, `UPDATE ... SET balance = -100` pour vérifier le rejet), mais **la ligne correspondante n'a jamais été insérée dans `migrations_applied`**. Au démarrage suivant, le système de migration automatique a retenté `migration_072`, provoqué `ERROR: constraint "zora_points_balance_check" already exists`, et crashé en boucle — service en ligne indisponible.
+**Impact :** Panne de production complète jusqu'à correction.
+**Statut :** ✅ CORRIGÉ
+**Assigné à :** —
+**Date découverte :** 10 juillet 2026
+**Correction appliquée :**
+1. Vérifié `SELECT * FROM migrations_applied WHERE filename LIKE '%072%'` → 0 ligne (cause confirmée), et `pg_constraint` → contrainte bien présente et correcte (`CHECK ((balance >= 0))`).
+2. **Insertion manuelle en production** : `INSERT INTO migrations_applied (filename, applied_at) VALUES ('migration_072_add_zora_balance_check.sql', NOW())` — ligne `id=51`. Intervention manuelle directe en base, à noter explicitement pour toute personne qui consulterait l'historique des migrations plus tard : ce n'est pas le système automatique qui a créé cette ligne.
+3. Fichier de migration rendu idempotent (`DO $$ ... EXCEPTION WHEN duplicate_object THEN NULL; END $$;`) pour qu'un rejeu futur sur un autre environnement (ou après une nouvelle désynchronisation de `migrations_applied`) ne fasse plus jamais crasher le serveur.
+**Recommandation pour l'avenir :** Ne jamais exécuter manuellement en prod le DDL d'un fichier de migration pas encore marqué dans `migrations_applied` (même pour un test rapide) sans soit (a) insérer la ligne `migrations_applied` dans la même opération, soit (b) écrire le DDL sous forme idempotente dès le départ.
 
 ---
 
 ## STATISTIQUES
 
-- **Total bugs :** 9
-- **Critiques :** 2
+- **Total bugs :** 10
+- **Critiques :** 3
 - **Moyens :** 4
 - **Mineurs :** 1
 - **Dette technique :** 2
-- **Corrigés :** 0
+- **Corrigés :** 1
 - **Ouverts :** 9
 
 ---

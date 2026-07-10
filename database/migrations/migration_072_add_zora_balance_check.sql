@@ -9,5 +9,10 @@
 --              SELECT phone, balance FROM zora_points WHERE balance < 0
 --              → 0 ligne, aucune violation actuelle des données.
 
-ALTER TABLE zora_points ADD CONSTRAINT zora_points_balance_check
-  CHECK (balance >= 0);
+DO $$
+BEGIN
+  ALTER TABLE zora_points ADD CONSTRAINT zora_points_balance_check
+    CHECK (balance >= 0);
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
