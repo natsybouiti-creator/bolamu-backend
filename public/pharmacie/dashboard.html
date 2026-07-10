@@ -206,6 +206,7 @@
   <button class="tab" id="tab-smartflow" data-tab="smartflow">Smart Flow</button>
   <button class="tab" id="tab-historique" data-tab="historique">Historique</button>
   <button class="tab" id="tab-abonnement" data-tab="abonnement">Abonnement Pro</button>
+  <button class="tab" id="tab-offres" data-tab="offres">Mes offres</button>
   <button class="tab" id="tab-profil" data-tab="profil">Mon profil</button>
 </div>
 <div class="main">
@@ -410,6 +411,53 @@
         <div class="abo-period">FCFA / mois</div>
         <ul class="abo-features"><li>Tout le Basique inclus</li><li>Apparaît en premier dans la liste patients</li><li>Badge "Pharmacie recommandée" visible</li><li>Carte GPS — position prioritaire</li><li>Statistiques détaillées</li></ul>
         <button class="btn-abo" id="btn-abo-pro">Devenir Pharmacie Pro →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-offres">
+    <div class="section-header"><h2 class="section-title-dash">Mes offres</h2></div>
+    <div style="background:white;border-radius:24px;padding:28px;border:1px solid var(--line);box-shadow:var(--shadow-soft);margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+        <div style="font-size:16px;font-weight:700;color:var(--navy);">Mes offres de fidélité Zora</div>
+        <button id="btn-new-offer" style="flex:0 0 auto;padding:10px 20px;background:var(--turquoise);color:white;border:none;border-radius:9999px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">+ Créer une offre</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="text-align:left;">
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);padding:10px 12px;border-bottom:2px solid var(--line);">Nom</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);padding:10px 12px;border-bottom:2px solid var(--line);">Catégorie</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);padding:10px 12px;border-bottom:2px solid var(--line);">Coût Zora</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);padding:10px 12px;border-bottom:2px solid var(--line);">Valeur FCFA</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);padding:10px 12px;border-bottom:2px solid var(--line);">Stock</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);padding:10px 12px;border-bottom:2px solid var(--line);">Statut</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);padding:10px 12px;border-bottom:2px solid var(--line);">Action</th>
+            </tr>
+          </thead>
+          <tbody id="offers-list"><tr><td colspan="7" style="text-align:center;color:var(--ink-soft);padding:20px;">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CRÉATION / ÉDITION D'OFFRE -->
+  <div id="offer-modal-backdrop" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(10,36,99,0.4);align-items:center;justify-content:center;padding:16px;">
+    <div style="background:white;border-radius:16px;padding:28px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;">
+      <h3 id="offer-modal-title" style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:20px;">Créer une offre</h3>
+      <input type="hidden" id="offer-id">
+      <div style="margin-bottom:16px;"><label style="display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;">Nom de l'offre</label><input type="text" id="offer-name" style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--line);outline:none;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;" placeholder="Ex : Réduction 15%..."></div>
+      <div style="margin-bottom:16px;"><label style="display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;">Description</label><input type="text" id="offer-description" style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--line);outline:none;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;" placeholder="Description"></div>
+      <div style="margin-bottom:16px;"><label style="display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;">Catégorie</label><input type="text" id="offer-category" style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--line);outline:none;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;" placeholder="Santé"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="margin-bottom:16px;"><label style="display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;">Coût Zora</label><input type="number" id="offer-zora-cost" min="1" style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--line);outline:none;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;"></div>
+        <div style="margin-bottom:16px;"><label style="display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;">Valeur FCFA</label><input type="number" id="offer-fcfa-value" min="0" style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--line);outline:none;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;"></div>
+      </div>
+      <div style="margin-bottom:16px;"><label style="display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;">Stock (vide = illimité)</label><input type="number" id="offer-stock" min="0" style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--line);outline:none;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;" placeholder="Illimité"></div>
+      <div style="margin-bottom:16px;"><label style="display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:8px;">Image (optionnel)</label><input type="file" id="offer-image" accept="image/*" style="width:100%;"></div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button id="btn-cancel-offer" style="flex:1;justify-content:center;padding:12px;border-radius:10px;border:1.5px solid var(--line);background:white;color:var(--navy);font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Annuler</button>
+        <button id="btn-save-offer" style="flex:1;justify-content:center;padding:12px;border-radius:10px;border:none;background:var(--turquoise);color:white;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Enregistrer</button>
       </div>
     </div>
   </div>
@@ -1462,6 +1510,102 @@ async function confirmImportCatalogue() {
   }
 }
 
+/* -----------------------------------
+   MES OFFRES (Phase 4B)
+----------------------------------- */
+function escapeHtmlOffre(str){
+  if(str===null||str===undefined)return'';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+let myOffers=[];
+async function loadOffers(){
+  try{
+    const res=await fetch(`${API}/bons-zora/programs/mine`,{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    if(!data.success)return;
+    myOffers=data.data;
+    const tbody=document.getElementById('offers-list');
+    if(!myOffers.length){
+      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ink-soft);padding:20px;">Aucune offre créée</td></tr>';
+      return;
+    }
+    tbody.innerHTML=myOffers.map(p=>`<tr>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--line);">${escapeHtmlOffre(p.name)}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--line);">${escapeHtmlOffre(p.category)||'—'}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--line);">${p.zora_cost}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--line);">${p.fcfa_value||'—'}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--line);">${p.stock===null?'Illimité':p.stock}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--line);">${p.is_active?'<span style="color:#00875f;font-weight:700;">Active</span>':'<span style="color:var(--ink-soft);font-weight:700;">Désactivée</span>'}</td>
+      <td style="padding:12px;white-space:nowrap;border-bottom:1px solid var(--line);">
+        <button onclick="openOfferModal(${p.id})" style="padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:white;cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;">Modifier</button>
+        ${p.is_active?`<button onclick="deactivateOfferUi(${p.id})" style="padding:6px 12px;border:1px solid #BA1A1A;border-radius:8px;background:white;color:#BA1A1A;cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;">Désactiver</button>`:''}
+      </td>
+    </tr>`).join('');
+  }catch(e){console.error('[loadOffers]',e);}
+}
+function openOfferModal(id){
+  const modal=document.getElementById('offer-modal-backdrop');
+  const p=id?myOffers.find(o=>o.id===id):null;
+  document.getElementById('offer-modal-title').textContent=p?"Modifier l'offre":'Créer une offre';
+  document.getElementById('offer-id').value=p?p.id:'';
+  document.getElementById('offer-name').value=p?p.name:'';
+  document.getElementById('offer-description').value=p?(p.description||''):'';
+  document.getElementById('offer-category').value=p?(p.category||''):'';
+  document.getElementById('offer-zora-cost').value=p?p.zora_cost:'';
+  document.getElementById('offer-fcfa-value').value=p?(p.fcfa_value||''):'';
+  document.getElementById('offer-stock').value=p&&p.stock!==null?p.stock:'';
+  document.getElementById('offer-image').value='';
+  modal.style.display='flex';
+}
+function closeOfferModal(){document.getElementById('offer-modal-backdrop').style.display='none';}
+document.getElementById('btn-new-offer').addEventListener('click',()=>openOfferModal(null));
+document.getElementById('btn-cancel-offer').addEventListener('click',closeOfferModal);
+document.getElementById('btn-save-offer').addEventListener('click',async()=>{
+  const btn=document.getElementById('btn-save-offer');
+  if(btn.disabled)return;
+  const id=document.getElementById('offer-id').value;
+  const name=document.getElementById('offer-name').value.trim();
+  const zoraCost=document.getElementById('offer-zora-cost').value;
+  if(!name||!zoraCost){alert('Nom et coût Zora requis');return;}
+  btn.disabled=true;
+  const formData=new FormData();
+  formData.append('name',name);
+  formData.append('description',document.getElementById('offer-description').value.trim());
+  formData.append('category',document.getElementById('offer-category').value.trim());
+  formData.append('zora_cost',zoraCost);
+  formData.append('fcfa_value',document.getElementById('offer-fcfa-value').value);
+  formData.append('stock',document.getElementById('offer-stock').value);
+  const imageFile=document.getElementById('offer-image').files[0];
+  if(imageFile)formData.append('image',imageFile);
+  try{
+    const res=await fetch(`${API}/bons-zora/programs${id?'/'+id:''}`,{
+      method:id?'PUT':'POST',
+      headers:{'Authorization':'Bearer '+token},
+      body:formData
+    });
+    const data=await res.json();
+    if(res.ok&&data.success){
+      closeOfferModal();
+      loadOffers();
+    }else{
+      alert(data.error||'Erreur');
+    }
+  }catch(e){
+    alert('Erreur de connexion');
+  }finally{
+    btn.disabled=false;
+  }
+});
+async function deactivateOfferUi(id){
+  if(!confirm('Désactiver cette offre ?'))return;
+  try{
+    await fetch(`${API}/bons-zora/programs/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    loadOffers();
+  }catch(e){
+    alert('Erreur lors de la désactivation');
+  }
+}
+
 loadProfil();
 loadHistorique();
 loadPosition();
@@ -1480,6 +1624,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
   document.getElementById('tab-historique').addEventListener('click', () => showTab('historique', document.getElementById('tab-historique')));
   document.getElementById('tab-abonnement').addEventListener('click', () => showTab('abonnement', document.getElementById('tab-abonnement')));
+  document.getElementById('tab-offres').addEventListener('click', () => { showTab('offres', document.getElementById('tab-offres')); loadOffers(); });
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
 
   // Scanner buttons

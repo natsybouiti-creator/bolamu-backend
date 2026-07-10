@@ -306,6 +306,12 @@ if (typeof BarcodeDetector !== 'undefined') {
       <line x1="6" y1="20" x2="6" y2="14"/>
     </svg>Smart Flow
   </button>
+  <button class="tab" id="tab-offres" data-tab="offres">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+      <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.82Z"/>
+      <circle cx="8" cy="8" r="1"/>
+    </svg>Mes offres
+  </button>
   <button class="tab" id="tab-profil" data-tab="profil">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -643,6 +649,32 @@ if (typeof BarcodeDetector !== 'undefined') {
         <button class="btn-primary" id="btn-verifier-dmn" style="padding:12px 24px;background:var(--grad-btn);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Vérifier</button>
       </div>
       <div id="dmn-result" style="display:none;margin-top:20px;"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-offres">
+    <div class="section-header"><h2 class="section-title">Mes offres</h2></div>
+    <div style="background:white;border-radius:24px;padding:28px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,36,99,0.04);margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;color:var(--bleu);">Mes offres de fidélité Zora</div>
+        <button id="btn-new-offer" style="flex:0 0 auto;padding:10px 20px;background:var(--grad-btn);color:white;border:none;border-radius:9999px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;min-height:auto;">+ Créer une offre</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="text-align:left;">
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--texte-doux);padding:10px 12px;border-bottom:2px solid var(--border);">Nom</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--texte-doux);padding:10px 12px;border-bottom:2px solid var(--border);">Catégorie</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--texte-doux);padding:10px 12px;border-bottom:2px solid var(--border);">Coût Zora</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--texte-doux);padding:10px 12px;border-bottom:2px solid var(--border);">Valeur FCFA</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--texte-doux);padding:10px 12px;border-bottom:2px solid var(--border);">Stock</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--texte-doux);padding:10px 12px;border-bottom:2px solid var(--border);">Statut</th>
+              <th style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--texte-doux);padding:10px 12px;border-bottom:2px solid var(--border);">Action</th>
+            </tr>
+          </thead>
+          <tbody id="offers-list"><tr><td colspan="7" style="text-align:center;color:var(--texte-doux);padding:20px;">Chargement...</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -1441,6 +1473,102 @@ async function confirmerValidation(){
 
 function fermerModal(){document.getElementById('modal-validation').classList.remove('open');}
 document.getElementById('modal-validation').addEventListener('click',function(e){if(e.target===this)fermerModal();});
+
+/* -----------------------------------
+   MES OFFRES (Phase 4B)
+----------------------------------- */
+function escapeHtmlOffre(str){
+  if(str===null||str===undefined)return'';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+async function loadOffers(){
+  try{
+    const res=await fetch(`${API}/bons-zora/programs/mine`,{headers:{'Authorization':`Bearer ${getAuthToken()}`}});
+    const data=await res.json();
+    if(!data.success)return;
+    window._myOffers=data.data;
+    const tbody=document.getElementById('offers-list');
+    if(!data.data.length){
+      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--texte-doux);padding:20px;">Aucune offre créée</td></tr>';
+      return;
+    }
+    tbody.innerHTML=data.data.map(p=>`<tr>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--border);">${escapeHtmlOffre(p.name)}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--border);">${escapeHtmlOffre(p.category)||'—'}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--border);">${p.zora_cost}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--border);">${p.fcfa_value||'—'}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--border);">${p.stock===null?'Illimité':p.stock}</td>
+      <td style="padding:12px;font-size:13px;border-bottom:1px solid var(--border);">${p.is_active?'<span style="color:#00875f;font-weight:700;">Active</span>':'<span style="color:var(--texte-doux);font-weight:700;">Désactivée</span>'}</td>
+      <td style="padding:12px;white-space:nowrap;border-bottom:1px solid var(--border);">
+        <button data-action="ouvrir-offre" data-id="${p.id}" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;">Modifier</button>
+        ${p.is_active?`<button data-action="desactiver-offre" data-id="${p.id}" style="padding:6px 12px;border:1px solid var(--rouge);border-radius:8px;background:white;color:var(--rouge);cursor:pointer;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;">Désactiver</button>`:''}
+      </td>
+    </tr>`).join('');
+  }catch(e){console.error('[loadOffers]',e);}
+}
+function ouvrirOffre(id){
+  const p=id?(window._myOffers||[]).find(o=>String(o.id)===String(id)):null;
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">${p?"Modifier l'offre":'Créer une offre'}</div>
+    <input type="hidden" id="offer-id" value="${p?p.id:''}">
+    <div class="form-group"><label class="form-label">Nom de l'offre</label><input class="form-input" id="offer-name" value="${p?escapeHtmlOffre(p.name):''}" placeholder="Ex : Réduction 15%..."></div>
+    <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="offer-description" value="${p?escapeHtmlOffre(p.description||''):''}" placeholder="Description"></div>
+    <div class="form-group"><label class="form-label">Catégorie</label><input class="form-input" id="offer-category" value="${p?escapeHtmlOffre(p.category||''):''}" placeholder="Santé"></div>
+    <div class="form-group"><label class="form-label">Coût Zora</label><input class="form-input" type="number" id="offer-zora-cost" min="1" value="${p?p.zora_cost:''}"></div>
+    <div class="form-group"><label class="form-label">Valeur FCFA</label><input class="form-input" type="number" id="offer-fcfa-value" min="0" value="${p?(p.fcfa_value||''):''}"></div>
+    <div class="form-group"><label class="form-label">Stock (vide = illimité)</label><input class="form-input" type="number" id="offer-stock" min="0" value="${p&&p.stock!==null?p.stock:''}" placeholder="Illimité"></div>
+    <div class="form-group"><label class="form-label">Image (optionnel)</label><input class="form-input" type="file" id="offer-image" accept="image/*"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" data-action="fermer-modal">Annuler</button>
+      <button class="btn-primary" data-action="enregistrer-offre">Enregistrer</button>
+    </div>`;
+  document.getElementById('modal-validation').classList.add('open');
+}
+async function enregistrerOffre(){
+  const btn=document.querySelector('[data-action="enregistrer-offre"]');
+  if(btn&&btn.disabled)return;
+  const id=document.getElementById('offer-id').value;
+  const name=document.getElementById('offer-name').value.trim();
+  const zoraCost=document.getElementById('offer-zora-cost').value;
+  if(!name||!zoraCost){alert('Nom et coût Zora requis');return;}
+  if(btn)btn.disabled=true;
+  const formData=new FormData();
+  formData.append('name',name);
+  formData.append('description',document.getElementById('offer-description').value.trim());
+  formData.append('category',document.getElementById('offer-category').value.trim());
+  formData.append('zora_cost',zoraCost);
+  formData.append('fcfa_value',document.getElementById('offer-fcfa-value').value);
+  formData.append('stock',document.getElementById('offer-stock').value);
+  const imageInput=document.getElementById('offer-image');
+  if(imageInput&&imageInput.files[0])formData.append('image',imageInput.files[0]);
+  try{
+    const res=await fetch(`${API}/bons-zora/programs${id?'/'+id:''}`,{
+      method:id?'PUT':'POST',
+      headers:{'Authorization':`Bearer ${getAuthToken()}`},
+      body:formData
+    });
+    const data=await res.json();
+    if(res.ok&&data.success){
+      fermerModal();
+      loadOffers();
+    }else{
+      alert(data.error||'Erreur');
+    }
+  }catch(e){
+    alert('Erreur de connexion');
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+async function desactiverOffre(id){
+  if(!confirm('Désactiver cette offre ?'))return;
+  try{
+    await fetch(`${API}/bons-zora/programs/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${getAuthToken()}`}});
+    loadOffers();
+  }catch(e){
+    alert('Erreur lors de la désactivation');
+  }
+}
 
 // AI Briefing Functions
 async function generateBriefing(){
@@ -2289,6 +2417,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tab-zora').addEventListener('click', () => { showTab('zora', document.getElementById('tab-zora')); loadZoraHistory(); });
   document.getElementById('tab-dmn').addEventListener('click', () => showTab('dmn', document.getElementById('tab-dmn')));
   document.getElementById('tab-smartflow').addEventListener('click', () => showTab('smartflow', document.getElementById('tab-smartflow')));
+  document.getElementById('tab-offres').addEventListener('click', () => { showTab('offres', document.getElementById('tab-offres')); loadOffers(); });
+  document.getElementById('btn-new-offer').addEventListener('click', () => ouvrirOffre(null));
   document.getElementById('tab-profil').addEventListener('click', () => showTab('profil', document.getElementById('tab-profil')));
 
   // Tabs mobile
@@ -2371,6 +2501,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'supprimer-creneau') supprimerCreneau(id);
     if (action === 'generate-briefing') generateBriefing();
     if (action === 'renewal') generateRenewal();
+    if (action === 'ouvrir-offre') ouvrirOffre(id);
+    if (action === 'enregistrer-offre') enregistrerOffre();
+    if (action === 'desactiver-offre') desactiverOffre(id);
   });
   
   // Event listener pour boutons briefing IA (éléments dynamiques)
