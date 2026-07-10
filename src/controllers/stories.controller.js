@@ -18,7 +18,7 @@ exports.getActiveStories = async (req, res) => {
                 p.created_at,
                 p.expires_at,
                 u.full_name AS author_name,
-                u.avatar_url AS author_avatar,
+                u.photo_url AS author_avatar,
                 COUNT(sv.phone) AS views_count,
                 BOOL_OR(sv.phone = $1) AS viewed_by_me
             FROM posts p
@@ -33,7 +33,7 @@ exports.getActiveStories = async (req, res) => {
                         SELECT following_phone FROM follows WHERE follower_phone = $1
                     )
                 )
-            GROUP BY p.id, u.full_name, u.avatar_url
+            GROUP BY p.id, u.full_name, u.photo_url
             ORDER BY viewed_by_me ASC, p.created_at DESC
         `, [phone]);
 

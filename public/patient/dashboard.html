@@ -3784,8 +3784,9 @@
         el.innerHTML = d.data.map(function (m) {
           var mine = m.sender_phone === myPhone;
           var name = ((m.first_name || '') + ' ' + (m.last_name || '')).trim() || 'Membre';
+          var avatarHtml = window.BolamuAvatar.render({ photoUrl: m.photo_url || null, fullName: name, role: 'patient', size: 20 });
           return '<div style="display:flex;flex-direction:column;align-items:' + (mine ? 'flex-end' : 'flex-start') + ';">' +
-            (mine ? '' : '<div style="font-size:0.7rem;color:#9498a8;margin-bottom:2px;margin-left:4px;">' + A.escapeHtml(name) + '</div>') +
+            (mine ? '' : '<div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;color:#9498a8;margin-bottom:2px;margin-left:4px;">' + avatarHtml + '<span>' + A.escapeHtml(name) + '</span></div>') +
             '<div style="max-width:75%;padding:10px 14px;border-radius:16px;font-size:0.88rem;line-height:1.4;' + (mine ? 'background:#0A2463;color:#fff;border-bottom-right-radius:4px;' : 'background:#fff;border:1px solid #EDEDF8;color:#0A2463;border-bottom-left-radius:4px;') + '">' + A.escapeHtml(m.content) + '</div></div>';
         }).join('');
         el.scrollTop = el.scrollHeight;
@@ -4195,6 +4196,15 @@
   A.openCreatePost = function (mode) {
     var modal = $('modal-create-post');
     if (modal) modal.style.display = 'flex';
+    var composerAvatar = $('composer-avatar');
+    if (composerAvatar) {
+      composerAvatar.innerHTML = window.BolamuAvatar.render({
+        photoUrl: A._patientPhotoUrl || null,
+        fullName: A._patientNom || '',
+        role: 'patient',
+        size: 40
+      });
+    }
     if (mode === 'photo') { var input = $('post-photo-input'); if (input) input.click(); }
   };
 
@@ -4284,6 +4294,15 @@
     A._storyPhone = story.author_phone || '';
     $('sv-name').textContent = story.author_name;
     $('sv-time').textContent = A.formatTimeAgo(story.created_at);
+    var svAvatar = $('sv-avatar');
+    if (svAvatar) {
+      svAvatar.innerHTML = window.BolamuAvatar.render({
+        photoUrl: story.author_avatar || null,
+        fullName: story.author_name || '',
+        role: 'patient',
+        size: 56
+      });
+    }
 
     var mediaContainer = $('sv-media');
     mediaContainer.innerHTML = '';

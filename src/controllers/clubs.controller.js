@@ -288,7 +288,7 @@ async function getClubMessages(req, res) {
     }
 
     const result = await pool.query(
-      `SELECT m.id, m.sender_phone, m.content, m.sent_at, u.first_name, u.last_name
+      `SELECT m.id, m.sender_phone, m.content, m.sent_at, u.first_name, u.last_name, u.photo_url
        FROM messages m
        LEFT JOIN users u ON m.sender_phone = u.phone
        WHERE m.conversation_id = $1 AND m.is_deleted = false
