@@ -86,19 +86,68 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/v1/partenaire/stats — DÉPRÉCIÉE
-// Interrogeait partner_vouchers, table jamais créée en prod (le système
-// zora_vouchers/partner_vouchers a été remplacé par partner_bons_zora,
-// cf. bon-zora.service.js). Seul consommateur : public/partenaire/dashboard.html,
-// lui-même inatteignable car POST /partenaire/login exige role='partenaire',
-// valeur qu'aucun compte réel ne porte. Neutralisée plutôt que réécrite :
-// pas de front vivant à servir tant que le concept de compte partenaire
-// générique n'est pas retranché (décision produit séparée).
-router.get('/stats', authMiddleware, requirePartenaire, (req, res) => {
-  res.status(410).json({
-    success: false,
-    message: 'Route dépréciée — système partner_vouchers jamais mis en production'
-  });
+// GET /api/v1/partenaire/stats — Statistiques du partenaire connecté
+// Réécrite (Phase 3C) pour interroger partner_bons_zora / partner_programs,
+// le système réellement actif (partner_vouchers n'a jamais existé en prod).
+router.get('/stats', authMiddleware, requirePartenaire, async (req, res) => {
+  try {
+    const phone = req.user.phone;
+
+    // Bons que CE partenaire a personnellement validés ce mois-ci
+    const monthResult = await pool.query(
+      `SELECT COUNT(*) as count, COALESCE(SUM(fcfa_value), 0) as total_fcfa
+       FROM partner_bons_zora
+       WHERE used_by = $1
+         AND status = 'used'
+         AND used_at >= DATE_TRUNC('month', CURRENT_DATE)`,
+      [phone]
+    );
+
+    const monthlyCount = parseInt(monthResult.rows[0].count) || 0;
+    const monthlyFcfa = parseInt(monthResult.rows[0].total_fcfa) || 0;
+
+    // Bons actifs (non encore validés) émis sur les programmes de CE partenaire.
+    // NOTE : partner_bons_zora.partner_id référence en réalité partner_programs.id
+    // (nom de colonne trompeur, cf. commentaire bon-zora.service.js ligne 161).
+    const pendingResult = await pool.query(
+      `SELECT COUNT(*) as count
+       FROM partner_bons_zora pbz
+       JOIN partner_programs pp ON pp.id = pbz.partner_id
+       WHERE pp.partner_phone = $1
+         AND pbz.status = 'active'`,
+      [phone]
+    );
+
+    const pendingCount = parseInt(pendingResult.rows[0].count) || 0;
+
+    // Programme de fidélité actif le plus récent de ce partenaire
+    const programResult = await pool.query(
+      `SELECT id, name, stock
+       FROM partner_programs
+       WHERE partner_phone = $1
+         AND is_active = TRUE
+         AND (stock IS NULL OR stock > 0)
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [phone]
+    );
+
+    const activeProgram = programResult.rows.length > 0 ? programResult.rows[0] : null;
+
+    res.json({
+      success: true,
+      data: {
+        monthly_count: monthlyCount,
+        monthly_fcfa: monthlyFcfa,
+        pending_count: pendingCount,
+        active_program: activeProgram ? { name: activeProgram.name } : null,
+        active_program_stock: activeProgram ? (activeProgram.stock === null ? 'Illimité' : activeProgram.stock) : null
+      }
+    });
+  } catch (error) {
+    console.error('[PARTENAIRE ROUTES] Erreur GET /stats:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
 });
 
 // POST /api/v1/partenaire/voucher/validate — Valider un voucher Zora
@@ -111,16 +160,49 @@ router.post('/voucher/validate', authMiddleware, requirePartenaire, (req, res) =
   });
 });
 
-// GET /api/v1/partenaire/validations — DÉPRÉCIÉE
-// getValidationsHandler (partenaire.controller.js) fait JOIN zv.voucher_code = v.uuid
-// (varchar = uuid, erreur SQL au runtime — colonne jamais compatible). Même
-// système zora_vouchers déprécié que /stats ci-dessus, même dashboard
-// inatteignable comme seul consommateur. Neutralisée pour la même raison.
-router.get('/validations', authMiddleware, requirePartenaire, (req, res) => {
-  res.status(410).json({
-    success: false,
-    message: 'Route dépréciée — système zora_vouchers jamais mis en production'
-  });
+// GET /api/v1/partenaire/validations — Historique des validations de CE partenaire
+// Réécrite (Phase 3C) sur partner_validations/partner_bons_zora (système actif).
+// BHP : jamais le nom complet du patient — patient_initiales déjà embarqué dans
+// qr_payload à la génération du bon (cf. bon-zora.service.js buildInitials()).
+router.get('/validations', authMiddleware, requirePartenaire, async (req, res) => {
+  try {
+    const phone = req.user.phone;
+
+    const result = await pool.query(
+      `SELECT pv.method, pv.validated_at, pbz.code, pbz.fcfa_value, pbz.qr_payload
+       FROM partner_validations pv
+       JOIN partner_bons_zora pbz ON pbz.id = pv.voucher_id
+       WHERE pv.partner_phone = $1
+       ORDER BY pv.validated_at DESC
+       LIMIT 20`,
+      [phone]
+    );
+
+    const validations = result.rows.map(row => {
+      let patientInitiales = '—';
+      let partnerName = null;
+      try {
+        const payload = typeof row.qr_payload === 'string' ? JSON.parse(row.qr_payload) : row.qr_payload;
+        if (payload && payload.patient_initiales) patientInitiales = payload.patient_initiales;
+        if (payload && payload.partner_name) partnerName = payload.partner_name;
+      } catch (_) {
+        // payload illisible — garder les placeholders
+      }
+      return {
+        code: row.code,
+        patient_name: patientInitiales,
+        reward_name: partnerName,
+        fcfa_value: row.fcfa_value,
+        validated_at: row.validated_at,
+        method: row.method
+      };
+    });
+
+    res.json({ success: true, data: validations });
+  } catch (error) {
+    console.error('[PARTENAIRE ROUTES] Erreur GET /validations:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
 });
 
 module.exports = router;
