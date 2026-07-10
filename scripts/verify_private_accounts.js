@@ -1,5 +1,8 @@
 const pool = require('../src/config/db');
+const { awardZora } = require('../src/services/zora.service');
 
+// ⚠️ PHONE_A a un zora_ledger décorrélé de zora_points.balance suite à des set-zora-balance
+// répétés (voir NOTES_TEST_ACCOUNTS.md) — ne pas l'utiliser pour un test d'intégrité balance=SUM(ledger).
 const PHONE_A = '+242099999999'; // Test Zora, ID 62 (compte privé)
 const PHONE_B = '+242069735419'; // Sarah Test, ID 225 (visiteur)
 
@@ -117,6 +120,109 @@ async function main() {
       return;
     }
 
+    if (arg === 'find-daffe-3a') {
+      const r = await client.query("SELECT id, phone, full_name, role FROM users WHERE full_name ILIKE '%daffe%' OR full_name ILIKE '%daffé%' OR full_name ILIKE '%3a%'");
+      console.log(r.rows);
+      return;
+    }
+
+    if (arg === 'find-known-partners') {
+      const pharma = await client.query("SELECT id, phone, full_name FROM users WHERE role='pharmacie' OR role='pharmacy'").catch(e => ({rows:[{error:e.message}]}));
+      const labo = await client.query("SELECT id, phone, full_name FROM users WHERE role='laboratoire' OR role='laboratory'").catch(e => ({rows:[{error:e.message}]}));
+      const clinic = await client.query("SELECT id, phone, full_name FROM users WHERE full_name ILIKE '%louise michel%' OR full_name ILIKE '%clinique%'").catch(e => ({rows:[{error:e.message}]}));
+      console.log('Pharmacies:', pharma.rows);
+      console.log('Laboratoires:', labo.rows);
+      console.log('Cliniques (nom):', clinic.rows);
+      return;
+    }
+
+    if (arg === 'schema-partner-programs-full') {
+      const cols = await client.query(
+        `SELECT column_name, data_type, is_nullable, column_default, character_maximum_length
+         FROM information_schema.columns WHERE table_name = 'partner_programs' ORDER BY ordinal_position`
+      );
+      const checks = await client.query(
+        `SELECT conname, pg_get_constraintdef(oid) AS def FROM pg_constraint
+         WHERE conrelid = 'partner_programs'::regclass AND contype IN ('c','f','u','p')`
+      );
+      console.log('Colonnes:', cols.rows);
+      console.log('\nContraintes (CHECK/FK/UNIQUE/PK):', checks.rows);
+      return;
+    }
+
+    if (arg === 'set-zora-balance') {
+      const phone = process.argv[3];
+      const amount = parseInt(process.argv[4], 10);
+      const r = await client.query(
+        `UPDATE zora_points SET balance = $1, total_earned = GREATEST(total_earned, $1) WHERE phone = $2 RETURNING phone, balance, total_earned`,
+        [amount, phone]
+      );
+      console.log(r.rows);
+      return;
+    }
+
+    if (arg === 'cleanup-bonzora-test') {
+      const phone = process.argv[3];
+      const code = process.argv[4];
+      try {
+        await client.query('BEGIN');
+        const before = await client.query('SELECT phone, balance, total_earned FROM zora_points WHERE phone = $1', [phone]);
+        const r1 = await client.query(
+          'UPDATE zora_points SET balance = 300 WHERE phone = $1 RETURNING phone, balance, total_earned',
+          [phone]
+        );
+        const r2 = await client.query(
+          "UPDATE partner_bons_zora SET status = 'cancelled' WHERE code = $1 RETURNING id, code, status",
+          [code]
+        );
+        await client.query('COMMIT');
+        console.log('AVANT:', before.rows[0]);
+        console.log('APRES zora_points:', r1.rows[0]);
+        console.log('APRES partner_bons_zora:', r2.rows[0]);
+      } catch (e) {
+        await client.query('ROLLBACK');
+        console.error('Erreur, ROLLBACK effectué:', e.message);
+      }
+      return;
+    }
+
+    if (arg === 'award-zora-test') {
+      const phone = process.argv[3];
+      const r1 = await awardZora({ phone, action_type: 'bilan_annuel', proof_class: 'system_event', proof_source: 'test_chantier2', recording_method: null, proof_reference: 'test_chantier2_bilan_' + Date.now() });
+      const r2 = await awardZora({ phone, action_type: 'consultation', proof_class: 'system_event', proof_source: 'test_chantier2', recording_method: null, proof_reference: 'test_chantier2_consult_' + Date.now() });
+      console.log('Crédit 1 (bilan_annuel):', r1);
+      console.log('Crédit 2 (consultation):', r2);
+      return;
+    }
+
+    if (arg === 'award-zora-test2') {
+      const phone = process.argv[3];
+      const r1 = await awardZora({ phone, action_type: 'parrainage', proof_class: 'system_event', proof_source: 'test_chantier3', recording_method: null, proof_reference: 'test_chantier3_parrainage_' + Date.now() });
+      const r2 = await awardZora({ phone, action_type: 'profil_complete', proof_class: 'system_event', proof_source: 'test_chantier3', recording_method: null, proof_reference: 'test_chantier3_profil_' + Date.now() });
+      console.log('Crédit 1 (parrainage):', r1);
+      console.log('Crédit 2 (profil_complete):', r2);
+      return;
+    }
+
+    if (arg === 'check-zora-state') {
+      const phone = process.argv[3];
+      const points = await client.query('SELECT phone, balance, total_earned, tier FROM zora_points WHERE phone = $1', [phone]);
+      const ledgerSum = await client.query('SELECT COALESCE(SUM(points),0) AS sum FROM zora_ledger WHERE phone = $1', [phone]);
+      const ledgerRows = await client.query('SELECT id, points, category, action_type, proof_reference, earned_at FROM zora_ledger WHERE phone = $1 ORDER BY earned_at DESC LIMIT 10', [phone]);
+      const bon = await client.query("SELECT id, code, patient_phone, partner_id, zora_cost, fcfa_value, status, generated_at, expires_at FROM partner_bons_zora WHERE code = $1", [process.argv[4] || 'BOL-PEMC-7AGS']);
+      console.log('zora_points:', points.rows);
+      console.log('SUM(zora_ledger.points):', ledgerSum.rows[0].sum);
+      console.log('10 dernières lignes ledger:', ledgerRows.rows);
+      console.log('bon test:', bon.rows);
+      return;
+    }
+
+    if (arg === 'select-partner-programs') {
+      const r = await client.query('SELECT * FROM partner_programs ORDER BY id');
+      console.log(JSON.stringify(r.rows, null, 2));
+      return;
+    }
+
     if (arg === 'check-partner-programs') {
       const total = await client.query('SELECT COUNT(*) FROM partner_programs');
       const active = await client.query("SELECT COUNT(*) FROM partner_programs WHERE is_active = TRUE AND (stock IS NULL OR stock > 0)");
@@ -129,7 +235,7 @@ async function main() {
 
     if (arg === 'schema-partner-bons-zora') {
       const r = await client.query(
-        "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'partner_bons_zora' ORDER BY ordinal_position"
+        "SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_name = 'partner_bons_zora' ORDER BY ordinal_position"
       );
       console.log(r.rows);
       return;

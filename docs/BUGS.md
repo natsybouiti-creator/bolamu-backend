@@ -1,6 +1,6 @@
 # BUGS - BOLAMU BACKEND
 
-**Dernière mise à jour :** 21 juin 2026
+**Dernière mise à jour :** 10 juillet 2026
 
 ---
 
@@ -47,10 +47,10 @@
 **Module :** Frontend - Dashboard Patient
 **Description :** Lorsqu'un token invalide est injecté dans localStorage, la page ne redirige pas vers login et n'affiche pas de message d'erreur
 **Impact :** Mauvaise UX en cas de session expirée
-**Statut :** 🔴 OUVERT
-**Assigné à :** À assigner
+**Statut :** ✅ CORRIGÉ (23 juin 2026)
+**Assigné à :** Cascade
 **Date découverte :** 21 juin 2026
-**Recommandation :** Ajouter une vérification du token au chargement de la page et rediriger vers login si invalide.
+**Correction appliquée :** `dashboard-v3-design.html` devient le dashboard patient principal, avec intercepteur 401 global (redirection automatique vers login sur token invalide/expiré). Commit `41386fb`.
 
 ---
 
@@ -147,10 +147,10 @@
 1. `src/routes/clearing.routes.js:487` — `GET /clearing/bons-zora/pending` (montée sur `/api/v1/clearing`, `server.js:203`), **réellement appelée par `public/admin/dashboard.html:2224,2252,2264`** pour la gestion des règlements/virements aux partenaires bon Zora (`LEFT JOIN zora_partners zp ON zp.phone = bzr.partner_phone` pour afficher `partner_name`). Un `DROP TABLE zora_partners` casserait cette route immédiatement (`relation does not exist`), même en `LEFT JOIN`.
 2. `src/jobs/abonnement.job.js:212-242` — étape 7 du cron `jobAbonnement` (démarré sans condition dans `server.js:360`, donc actif en prod), rappel WhatsApp "voucher expire dans 48h" sur `zora_vouchers`/`zora_rewards`/`zora_partners`. Encapsulée dans un `try/catch` local — ne ferait pas planter le job, mais générerait une erreur silencieuse à chaque exécution.
 **Impact :** Aucun aujourd'hui (les tables existent encore). Bloque la purge prévue de `zora_rewards`/`zora_partners` tant que ces 2 points ne sont pas traités.
-**Statut :** 🔴 OUVERT
-**Assigné à :** À assigner
+**Statut :** ✅ CORRIGÉ (10 juillet 2026)
+**Assigné à :** Cascade
 **Date découverte :** 9 juillet 2026
-**Recommandation :** Avant de purger : (1) réécrire `clearing.routes.js:487` pour sourcer `partner_name` depuis `users` (le compte pharmacie/doctor/laboratoire réel, via `bzr.partner_phone`) au lieu de `zora_partners` ; (2) retirer ou réécrire l'étape 7 de `abonnement.job.js` (le système `zora_vouchers` qu'elle sert n'a jamais été mis en production, cf. BUG neutralisation partenaire.routes.js). Une fois ces deux points corrigés et testés, `DROP TABLE zora_rewards, zora_partners` peut s'exécuter sans risque, avec suppression de `zora-marketplace.service.js`, `zora-voucher.service.js` et `partenaire.controller.js` (déjà morts, plus aucune route ne les importe).
+**Correction appliquée :** (1) `clearing.routes.js` sourcé sur `users.full_name` via jointure sur `partner_phone` au lieu de `zora_partners` ; (2) étape 7 de `abonnement.job.js` (rappel voucher 48h, système `zora_vouchers` jamais mis en prod) retirée — commit `53dc209`. Purge effective de `zora_rewards`/`zora_partners` et du code mort associé (`zora-marketplace.service.js`, `zora-voucher.service.js`, `partenaire.controller.js`) — commit `84187db`.
 
 ---
 
@@ -164,10 +164,10 @@ Audit des 3 mécanismes QR existants avant décision — aucun n'est un match s�
 3. **QR DMN** (`dmn-qr-med`, bouton "Générer mon QR médical", `GET /api/v1/dmn/qr-payload`) — **génère un JWT signé (type `dmn_qr`) mais aucune route ne le vérifie jamais**. `grep` exhaustif de `dmn_qr`/`QR_TOKEN_TYPE` dans tout le repo : 0 route de vérification. L'`acces_url` embarquée dans le payload (`https://bolamu.co/patient/dossier?qr=1&p=...`) pointe vers une page qui n'existe pas (ni fichier statique, ni route serveur). **Ce QR, déjà en production, ne peut être scanné-et-exploité par personne aujourd'hui.**
 Découverte associée : **`dmn_access_log` et `dossier_access_log` sont deux tables de traçabilité d'accès au dossier distinctes, jamais réconciliées** (`dmn.service.js` écrit dans la première, `consultation-report.controller.js:logDossierAccess` — utilisée par le flux urgence — écrit dans la seconde). Même pattern de duplication que le classement Zora et les vouchers déjà documentés (BUG-012).
 **Impact :** Aucune régression (l'élément retiré n'a jamais fonctionné). Fonctionnalité "accès dossier via QR" absente de la carte membre en attendant une vraie spécification.
-**Statut :** 🔴 OUVERT
-**Assigné à :** À assigner
+**Statut :** ✅ CORRIGÉ (10 juillet 2026)
+**Assigné à :** Cascade
 **Date découverte :** 9 juillet 2026
-**Recommandation :** Avant de réintroduire un QR "accès dossier" sur la carte membre, trancher côté produit : qui peut scanner (professionnel authentifié uniquement, ou public comme le QR urgence ?), quel consentement BHP est requis pour l'accès aux `health_records`, quelles données exactes sont exposées. Une fois la route de vérification correspondante conçue et implémentée (avec contrôle de consentement conforme BHP v1.2), réconcilier `dmn_access_log`/`dossier_access_log` en une seule table de traçabilité, puis brancher `dmn-qr-med` (déjà en prod mais non fonctionnel côté scan) sur cette même route.
+**Correction appliquée :** Flux complet d'accès au dossier médical via QR implémenté (route de vérification pour `dmn-qr-med`, contrôle de consentement BHP v1.2) — commit `4f598e8`. À vérifier lors d'une prochaine session : réconciliation effective de `dmn_access_log`/`dossier_access_log` en une seule table de traçabilité (mentionnée comme piste dans la découverte initiale, statut non confirmé dans le commit).
 
 ---
 
@@ -191,13 +191,13 @@ Découverte associée : **`dmn_access_log` et `dossier_access_log` sont deux tab
 
 ## STATISTIQUES
 
-- **Total bugs :** 10
-- **Critiques :** 3
-- **Moyens :** 4
-- **Mineurs :** 1
-- **Dette technique :** 2
-- **Corrigés :** 1
-- **Ouverts :** 9
+- **Total bugs :** 14
+- **Critiques :** 2 (BUG-001, BUG-002)
+- **Moyens :** 4 (BUG-003, BUG-007, BUG-008, BUG-011)
+- **Mineurs :** 1 (BUG-006)
+- **Dette technique :** 0
+- **Corrigés :** 6 (BUG-004, BUG-009, BUG-010, BUG-012, BUG-013, BUG-014)
+- **Ouverts :** 7
 
 ---
 
