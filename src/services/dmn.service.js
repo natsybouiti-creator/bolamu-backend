@@ -191,7 +191,7 @@ async function generateQRPayload(patient_phone) {
   if (!phone) throw new Error('Numéro de téléphone invalide');
 
   const userRes = await pool.query(
-    `SELECT full_name, groupe_sanguin, allergies
+    `SELECT id, full_name, groupe_sanguin, allergies
      FROM users WHERE phone = $1 AND role = 'patient'`,
     [phone]
   );
@@ -209,7 +209,6 @@ async function generateQRPayload(patient_phone) {
     nom_initiales,
     groupe_sanguin:      u.groupe_sanguin || null,
     allergies_critiques: u.allergies || null,
-    acces_url:           `https://bolamu.co/patient/dossier?qr=1&p=${encodeURIComponent(phone)}`,
     generated_at,
     expires_at
   };
@@ -221,7 +220,40 @@ async function generateQRPayload(patient_phone) {
     { expiresIn: '24h' }
   );
 
+  // BHP v1.2 : générer le QR vaut consentement explicite du patient au partage
+  // de son dossier avec le professionnel qui le scannera (24h, révocable à
+  // tout moment via DELETE /api/v1/consent/dmn_qr_scan — cf. hasDmnQrConsent()
+  // appelé dans GET /dmn/verify). Sans ce consentement enregistré, aucun scan
+  // ne peut aboutir.
+  await pool.query(
+    `INSERT INTO patient_consents (patient_id, consent_type, granted, granted_at)
+     VALUES ($1, 'dmn_qr_scan', true, NOW())
+     ON CONFLICT (patient_id, consent_type)
+     DO UPDATE SET granted = true, granted_at = NOW(), revoked_at = NULL`,
+    [u.id]
+  );
+
   return { payload, signed };
+}
+
+// ─────────────────────────────────────────────────────────────
+// hasDmnQrConsent(patient_phone)
+// BHP v1.2 : vrai uniquement si le patient a généré un QR dossier et ne l'a
+// pas révoqué depuis (DELETE /api/v1/consent/dmn_qr_scan). Jamais d'accès
+// professionnel au dossier complet sans ce consentement actif.
+// ─────────────────────────────────────────────────────────────
+async function hasDmnQrConsent(patient_phone) {
+  const phone = normalizePhone(patient_phone);
+  if (!phone) return false;
+
+  const result = await pool.query(
+    `SELECT pc.granted
+     FROM patient_consents pc
+     JOIN users u ON u.id = pc.patient_id
+     WHERE u.phone = $1 AND pc.consent_type = 'dmn_qr_scan'`,
+    [phone]
+  );
+  return result.rows.length > 0 && result.rows[0].granted === true;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -247,5 +279,6 @@ module.exports = {
   verifyDmnToken,
   verifyQrToken,
   generateQRPayload,
+  hasDmnQrConsent,
   logAccess
 };

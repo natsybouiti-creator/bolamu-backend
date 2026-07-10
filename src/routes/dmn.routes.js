@@ -16,6 +16,7 @@ const {
   verifyDmnToken,
   verifyQrToken,
   generateQRPayload,
+  hasDmnQrConsent,
   logAccess
 } = require('../services/dmn.service');
 const { creditWellnessAction } = require('../services/wellness.service');
@@ -198,6 +199,13 @@ router.get('/verify', authMiddleware, requireProfessionnelSante, async (req, res
   }
 
   try {
+    // BHP v1.2 : le patient doit avoir un consentement actif (accordé à la génération
+    // du QR, révocable à tout moment) avant qu'un professionnel n'accède au dossier complet.
+    const consented = await hasDmnQrConsent(decoded.patient_phone);
+    if (!consented) {
+      return res.status(403).json({ success: false, message: 'Consentement patient absent ou révoqué pour ce dossier' });
+    }
+
     const dossier = await getFullDossier(decoded.patient_phone);
     // BHP : log obligatoire — accessor_phone = le professionnel authentifié, jamais null ici.
     logAccess(decoded.patient_phone, req.user.phone, 'qr_scan_verified', { scanner_role: req.user.role }, req.ip).catch(() => {});

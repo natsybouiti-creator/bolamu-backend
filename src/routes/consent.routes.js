@@ -7,8 +7,9 @@ const authMiddleware = require('../middleware/auth.middleware');
 router.post('/:type', authMiddleware, async (req, res) => {
   try {
     const validTypes = [
-      'ordonnances', 'prescriptions_labo', 
-      'historique_medecin', 'stats_employeur'
+      'ordonnances', 'prescriptions_labo',
+      'historique_medecin', 'stats_employeur',
+      'dmn_qr_scan'
     ];
     if (!validTypes.includes(req.params.type)) {
       return res.status(400).json({ 
