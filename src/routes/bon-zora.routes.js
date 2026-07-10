@@ -6,12 +6,27 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
+const multer = require('multer');
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+const handleMulterError = (err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
+  }
+  next(err);
+};
+const { uploadToCloudinary } = require('../utils/cloudinary');
 const {
   generateBonZora,
   validateBonZora,
   getPatientBonsZora,
   getProgramsByCategory,
-  getProgramById
+  getProgramById,
+  createProgram,
+  updateProgram,
+  deactivateProgram
 } = require('../services/bon-zora.service');
 
 // Middleware inline pour rôle partenaire (fabrique globale inexistante)
@@ -21,6 +36,16 @@ const requirePartenaire = (req, res, next) => {
   if (!req.user) return res.status(401).json({ success: false, error: 'non_authentifie' });
   if (!PARTENAIRE_ROLES.includes(req.user.role)) {
     return res.status(403).json({ success: false, error: 'acces_reserve_partenaire' });
+  }
+  next();
+};
+
+// Rôles autorisés à gérer des offres (partenaires santé + partenaire commercial + admin)
+const PROGRAM_MANAGER_ROLES = [...PARTENAIRE_ROLES, 'partenaire_commercial', 'admin'];
+const requireProgramManager = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ success: false, error: 'non_authentifie' });
+  if (!PROGRAM_MANAGER_ROLES.includes(req.user.role)) {
+    return res.status(403).json({ success: false, error: 'acces_reserve_gestionnaire_offres' });
   }
   next();
 };
@@ -63,6 +88,118 @@ router.get('/programs/:id', authMiddleware, async (req, res) => {
     }
   } catch (error) {
     console.error('[BON ZORA ROUTES] Erreur GET /programs/:id:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
+});
+
+// POST /api/v1/bons-zora/programs — Créer une offre (partenaire authentifié ou admin)
+router.post('/programs', authMiddleware, requireProgramManager, upload.single('image'), handleMulterError, async (req, res) => {
+  try {
+    const { name, description, zora_cost, fcfa_value, category, stock } = req.body;
+
+    if (!name || !zora_cost) {
+      return res.status(400).json({ success: false, error: 'missing_required_fields' });
+    }
+
+    // partner_phone = le partenaire authentifié, sauf si l'admin crée pour un partenaire précis
+    let partnerPhone = req.user.phone;
+    if (req.user.role === 'admin' && req.body.partner_phone) {
+      partnerPhone = req.body.partner_phone;
+    }
+
+    let imageUrl = null;
+    if (req.file) {
+      const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/partner_programs', {
+        public_id: `program_${Date.now()}`,
+        transformation: { width: 600, height: 300, crop: 'fill' }
+      });
+      imageUrl = uploadResult.secure_url;
+    }
+
+    const result = await createProgram({
+      partner_phone: partnerPhone,
+      name,
+      description,
+      zora_cost: parseInt(zora_cost, 10),
+      fcfa_value: fcfa_value !== undefined && fcfa_value !== '' ? parseInt(fcfa_value, 10) : null,
+      category,
+      stock: stock !== undefined && stock !== '' ? parseInt(stock, 10) : null,
+      image_url: imageUrl
+    });
+
+    if (result.success) {
+      res.status(201).json({ success: true, data: result.data });
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('[BON ZORA ROUTES] Erreur POST /programs:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
+});
+
+// PUT /api/v1/bons-zora/programs/:id — Modifier une offre (propriétaire ou admin)
+router.put('/programs/:id', authMiddleware, requireProgramManager, upload.single('image'), handleMulterError, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, zora_cost, fcfa_value, category, stock, is_active } = req.body;
+
+    let imageUrl;
+    if (req.file) {
+      const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/partner_programs', {
+        public_id: `program_${id}_${Date.now()}`,
+        transformation: { width: 600, height: 300, crop: 'fill' }
+      });
+      imageUrl = uploadResult.secure_url;
+    }
+
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (description !== undefined) updates.description = description;
+    if (zora_cost !== undefined) updates.zora_cost = parseInt(zora_cost, 10);
+    if (fcfa_value !== undefined) updates.fcfa_value = parseInt(fcfa_value, 10);
+    if (category !== undefined) updates.category = category;
+    if (stock !== undefined) updates.stock = (stock === '' || stock === null) ? null : parseInt(stock, 10);
+    if (is_active !== undefined) updates.is_active = (is_active === true || is_active === 'true');
+    if (imageUrl !== undefined) updates.image_url = imageUrl;
+
+    const result = await updateProgram(id, req.user.phone, req.user.role, updates);
+
+    if (result.success) {
+      res.json({ success: true, data: result.data });
+    } else {
+      const statusMap = {
+        'program_not_found': 404,
+        'not_owner': 403,
+        'no_fields_to_update': 400
+      };
+      const statusCode = statusMap[result.error] || 500;
+      res.status(statusCode).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('[BON ZORA ROUTES] Erreur PUT /programs/:id:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
+});
+
+// DELETE /api/v1/bons-zora/programs/:id — Désactive une offre (is_active = false, propriétaire ou admin)
+router.delete('/programs/:id', authMiddleware, requireProgramManager, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await deactivateProgram(id, req.user.phone, req.user.role);
+
+    if (result.success) {
+      res.json({ success: true });
+    } else {
+      const statusMap = {
+        'program_not_found': 404,
+        'not_owner': 403
+      };
+      const statusCode = statusMap[result.error] || 500;
+      res.status(statusCode).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('[BON ZORA ROUTES] Erreur DELETE /programs/:id:', error.message);
     res.status(500).json({ success: false, error: 'server_error' });
   }
 });

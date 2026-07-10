@@ -471,10 +471,168 @@ async function getProgramById(id) {
   }
 }
 
+/**
+ * createProgram — Un partenaire (ou l'admin pour un partenaire précis) crée une offre.
+ * @param {Object} data - { partner_phone, name, description, zora_cost, fcfa_value, category, stock, image_url }
+ */
+async function createProgram(data) {
+  const { partner_phone, name, description, zora_cost, fcfa_value, category, stock, image_url } = data;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const result = await client.query(
+      `INSERT INTO partner_programs
+       (partner_phone, name, description, zora_cost, fcfa_value, category, stock, image_url, is_active, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, NOW())
+       RETURNING id, partner_phone, name, description, zora_cost, fcfa_value, category, stock, image_url, is_active, created_at`,
+      [partner_phone, name, description || null, zora_cost, fcfa_value || null, category || null, stock ?? null, image_url || null]
+    );
+
+    const program = result.rows[0];
+
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('partner_program_created', $1, 'partner_programs', $2, $3::jsonb)`,
+      [partner_phone, String(program.id), JSON.stringify({ name, zora_cost, fcfa_value, category })]
+    );
+
+    await client.query('COMMIT');
+    return { success: true, data: program };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[BON ZORA] Erreur createProgram:', error.message);
+    return { success: false, error: 'server_error' };
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * updateProgram — Modifie une offre existante (propriétaire ou admin uniquement).
+ * @param {number|string} id
+ * @param {string} requesterPhone
+ * @param {string} requesterRole
+ * @param {Object} updates - champs à modifier (partner_phone jamais accepté)
+ */
+async function updateProgram(id, requesterPhone, requesterRole, updates) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      `SELECT id, partner_phone FROM partner_programs WHERE id = $1 FOR UPDATE`,
+      [id]
+    );
+
+    if (existing.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'program_not_found' };
+    }
+
+    const program = existing.rows[0];
+
+    if (requesterRole !== 'admin' && program.partner_phone !== requesterPhone) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'not_owner' };
+    }
+
+    const allowedFields = ['name', 'description', 'zora_cost', 'fcfa_value', 'category', 'stock', 'image_url', 'is_active'];
+    const setClauses = [];
+    const values = [];
+    let idx = 1;
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined) {
+        setClauses.push(`${field} = $${idx}`);
+        values.push(updates[field]);
+        idx++;
+      }
+    }
+
+    if (setClauses.length === 0) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'no_fields_to_update' };
+    }
+
+    values.push(id);
+    const result = await client.query(
+      `UPDATE partner_programs SET ${setClauses.join(', ')} WHERE id = $${idx}
+       RETURNING id, partner_phone, name, description, zora_cost, fcfa_value, category, stock, image_url, is_active`,
+      values
+    );
+
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('partner_program_updated', $1, 'partner_programs', $2, $3::jsonb)`,
+      [requesterPhone, String(id), JSON.stringify(updates)]
+    );
+
+    await client.query('COMMIT');
+    return { success: true, data: result.rows[0] };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[BON ZORA] Erreur updateProgram:', error.message);
+    return { success: false, error: 'server_error' };
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * deactivateProgram — Désactive une offre (is_active = false, jamais de suppression physique).
+ * Propriétaire ou admin uniquement.
+ * @param {number|string} id
+ * @param {string} requesterPhone
+ * @param {string} requesterRole
+ */
+async function deactivateProgram(id, requesterPhone, requesterRole) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      `SELECT id, partner_phone FROM partner_programs WHERE id = $1 FOR UPDATE`,
+      [id]
+    );
+
+    if (existing.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'program_not_found' };
+    }
+
+    const program = existing.rows[0];
+
+    if (requesterRole !== 'admin' && program.partner_phone !== requesterPhone) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'not_owner' };
+    }
+
+    await client.query(`UPDATE partner_programs SET is_active = FALSE WHERE id = $1`, [id]);
+
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('partner_program_deactivated', $1, 'partner_programs', $2, $3::jsonb)`,
+      [requesterPhone, String(id), '{}']
+    );
+
+    await client.query('COMMIT');
+    return { success: true };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('[BON ZORA] Erreur deactivateProgram:', error.message);
+    return { success: false, error: 'server_error' };
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   generateBonZora,
   validateBonZora,
   getPatientBonsZora,
   getProgramsByCategory,
-  getProgramById
+  getProgramById,
+  createProgram,
+  updateProgram,
+  deactivateProgram
 };
