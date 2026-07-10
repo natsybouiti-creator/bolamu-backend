@@ -565,27 +565,28 @@
     }
   }
 
-  // Validate code (Zora vouchers)
-  async function validateCode(code) {
-    const data = await api('/partenaire/voucher/validate', {
+  // Validate code (bons Zora — partner_bons_zora, système actif)
+  async function validateCode(code, method) {
+    const endpoint = method === 'qr' ? '/bons-zora/validate/qr' : '/bons-zora/validate';
+    const data = await api(endpoint, {
       method: 'POST',
-      body: JSON.stringify({ voucher_code: code })
+      body: JSON.stringify({ code })
     });
     if (data && data.success) {
       document.getElementById('qr-result').classList.add('show');
-      document.getElementById('qr-result-value').textContent = `${data.data.patient_name} — ${data.data.reward_name}`;
-      showToast('Voucher validé avec succès');
+      document.getElementById('qr-result-value').textContent = `${data.data.patient_initiales} — ${data.data.partner_name}`;
+      showToast('Bon Zora validé avec succès');
       loadStats();
       loadValidationHistory();
     } else {
-      showToast(data.error || 'Erreur de validation');
+      showToast((data && data.error) || 'Erreur de validation');
     }
   }
 
   document.getElementById('btn-validate-code').addEventListener('click', () => {
     const code = document.getElementById('code-input').value.trim().toUpperCase();
     if (!code) { showToast('Entrez un code'); return; }
-    validateCode(code);
+    validateCode(code, 'manual');
   });
 
   // QR Scanner
@@ -602,7 +603,7 @@
           html5QrCode.stop();
           reader.style.display = 'none';
           document.getElementById('code-input').value = decodedText;
-          validateCode(decodedText);
+          validateCode(decodedText, 'qr');
         },
         (errorMessage) => {}
       ).catch(err => {
