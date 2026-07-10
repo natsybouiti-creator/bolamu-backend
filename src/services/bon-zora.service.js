@@ -76,7 +76,7 @@ async function generateBonZora(patient_phone, program_id) {
 
     // 1. Charger le programme actif (verrou pour le stock)
     const programResult = await client.query(
-      `SELECT id, partner_id, name, description, zora_cost, fcfa_value, category, is_active, stock
+      `SELECT id, name, description, zora_cost, fcfa_value, category, is_active, stock
        FROM partner_programs
        WHERE id = $1 AND is_active = TRUE
        FOR UPDATE`,
@@ -411,7 +411,7 @@ async function getPatientBonsZora(patient_phone) {
 async function getProgramsByCategory(category) {
   try {
     let query = `
-      SELECT id, partner_id, name, description, zora_cost, fcfa_value, category, stock, created_at
+      SELECT id, name, description, zora_cost, fcfa_value, category, stock, created_at
       FROM partner_programs
       WHERE is_active = TRUE
         AND (stock IS NULL OR stock > 0)
@@ -435,14 +435,12 @@ async function getProgramsByCategory(category) {
 
 /**
  * getProgramById — Détail d'un programme partenaire (actif ou non).
- * partner_programs n'a pas de colonne image/image_url — data.image est toujours null
- * (pas de FK sur partner_id — data.partner_id renvoyé tel quel, sans jointure).
  * @param {number|string} id
  */
 async function getProgramById(id) {
   try {
     const result = await pool.query(
-      `SELECT id, partner_id, name, description, zora_cost, fcfa_value, category, is_active, stock, created_at
+      `SELECT id, name, description, zora_cost, fcfa_value, category, is_active, stock, created_at, partner_phone, image_url
        FROM partner_programs
        WHERE id = $1`,
       [id]
@@ -462,8 +460,8 @@ async function getProgramById(id) {
         category: row.category,
         is_active: row.is_active,
         stock: row.stock,
-        image: null,
-        partner_id: row.partner_id,
+        image: row.image_url,
+        partner_phone: row.partner_phone,
         created_at: row.created_at
       }
     };
