@@ -112,6 +112,13 @@ router.post('/inscrire-patient', authMiddleware, requireAgent, async (req, res) 
         expires.setMonth(expires.getMonth() + 1);
         const patientPhone = captured.body.data.phone;
 
+        // Désactiver les anciens abonnements actifs avant d'en créer un nouveau
+        await pool.query(
+          `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
+           WHERE patient_phone = $1 AND is_active = TRUE`,
+          [patientPhone]
+        );
+
         await pool.query(
           `INSERT INTO subscriptions (patient_phone, plan, status, amount_fcfa, started_at, expires_at, payment_reference)
            VALUES ($1, $2, 'active', $3, NOW(), $4, $5)`,

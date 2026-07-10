@@ -160,6 +160,13 @@ router.post('/souscrire', requireAgent, async (req, res) => {
     const expires = new Date();
     expires.setMonth(expires.getMonth() + 1);
 
+    // Désactiver les anciens abonnements actifs avant d'en créer un nouveau
+    await client.query(
+      `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
+       WHERE patient_phone = $1 AND is_active = TRUE`,
+      [patient_phone]
+    );
+
     const sub = await client.query(
       `INSERT INTO subscriptions (patient_phone, plan, status, amount_fcfa, started_at, expires_at, payment_reference)
        VALUES ($1, $2, 'active', $3, NOW(), $4, $5)
@@ -341,6 +348,13 @@ router.post('/souscrire-complet', requireAgent, async (req, res) => {
     const paymentRef = `AGENT-${(payment_mode || 'especes').toUpperCase()}-${Date.now()}`;
     if (momo_number) paymentRef += `-${momo_number}`;
     if (virement_ref) paymentRef += `-${virement_ref}`;
+
+    // Désactiver les anciens abonnements actifs avant d'en créer un nouveau
+    await client.query(
+      `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
+       WHERE patient_phone = $1 AND is_active = TRUE`,
+      [phone]
+    );
 
     const sub = await client.query(
       `INSERT INTO subscriptions (patient_phone, plan, status, amount_fcfa, started_at, expires_at, payment_reference)
@@ -571,6 +585,13 @@ router.post('/import-employes', requireAgent, async (req, res) => {
         expires.setMonth(expires.getMonth() + 1);
 
         const paymentRef = `AGENT-IMPORT-${payment_method.toUpperCase()}-${Date.now()}-${phone}`;
+
+        // Désactiver les anciens abonnements actifs avant d'en créer un nouveau
+        await client.query(
+          `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
+           WHERE patient_phone = $1 AND is_active = TRUE`,
+          [phone]
+        );
 
         const sub = await client.query(
           `INSERT INTO subscriptions (patient_phone, plan, status, amount_fcfa, started_at, expires_at, payment_reference)

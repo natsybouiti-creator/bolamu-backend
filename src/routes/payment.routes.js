@@ -94,8 +94,18 @@ router.post('/confirm/:reference', authMiddleware, idempotencyMiddleware('paymen
             [reference]
         );
 
+        // Ancien plan actif, capturé avant désactivation (pour historique_abonnements si upgrade — BUG-008)
+        let ancien_plan = null;
+
         // 3. Si c'est un abonnement — activer l'abonnement du patient
         if (payment.plan) {
+            const oldSubResult = await client.query(
+                `SELECT plan FROM subscriptions WHERE patient_phone = $1 AND is_active = TRUE
+                 ORDER BY started_at DESC LIMIT 1`,
+                [payment.patient_phone]
+            );
+            ancien_plan = oldSubResult.rows[0]?.plan || null;
+
             // Désactiver les anciens abonnements actifs
             await client.query(
                 `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
@@ -119,6 +129,19 @@ router.post('/confirm/:reference', authMiddleware, idempotencyMiddleware('paymen
         }
 
         await client.query('COMMIT');
+
+        // Upgrade payant confirmé — écrire historique_abonnements, hors transaction critique
+        // (BUG-008). payment_type = 'upgrade' fixé par le caller à l'initiation (POST /initiate).
+        if (payment.payment_type === 'upgrade' && ancien_plan && ancien_plan !== payment.plan) {
+            db.query(
+                `INSERT INTO historique_abonnements
+                    (patient_phone, ancien_plan, nouveau_plan, montant_du, coupon_applique, date_upgrade)
+                 VALUES ($1, $2, $3, $4, NULL, NOW())`,
+                [payment.patient_phone, ancien_plan, payment.plan, payment.amount_fcfa]
+            ).catch((histErr) => {
+                console.error('[payment.confirm] Échec insertion historique_abonnements (non bloquant):', histErr.message);
+            });
+        }
 
         res.json({
             success: true,
