@@ -253,7 +253,8 @@ router.post('/medecin/:medecin_phone', authMiddleware, async (req, res) => {
 
     const conversation = await chatService.getOrCreateConversation(
       req.user.phone,
-      req.params.medecin_phone
+      req.params.medecin_phone,
+      req.user.role
     );
 
     res.json({ success: true, data: conversation });

@@ -137,7 +137,7 @@ async function getPatientDoctors({ patient_phone }) {
 // NOUVEAU SYSTÈME — conversations (Sprint 3)
 // ============================================================
 
-async function getOrCreateConversation(patient_phone, medecin_phone) {
+async function getOrCreateConversation(patient_phone, medecin_phone, patientRole) {
   const pPhone = normalizePhone(patient_phone);
   const dPhone = normalizePhone(medecin_phone);
 
@@ -168,10 +168,20 @@ async function getOrCreateConversation(patient_phone, medecin_phone) {
     );
     const conversation_id = convResult.rows[0].id;
 
+    // Rôle réel du médecin lu depuis users.role — le seul appelant possible
+    // de cette fonction est un patient (POST /medecin/:medecin_phone
+    // restreint req.user.role === 'patient'), impossible de dériver le
+    // rôle du médecin depuis le token appelant.
+    const doctorRoleResult = await client.query(
+      'SELECT role FROM users WHERE phone = $1',
+      [dPhone]
+    );
+    const doctorRole = doctorRoleResult.rows[0]?.role || null;
+
     await client.query(
       `INSERT INTO conversation_participants (conversation_id, participant_phone, role)
-       VALUES ($1, $2, 'patient'), ($1, $3, 'medecin')`,
-      [conversation_id, pPhone, dPhone]
+       VALUES ($1, $2, $3), ($1, $4, $5)`,
+      [conversation_id, pPhone, patientRole, dPhone, doctorRole]
     );
 
     await client.query('COMMIT');
