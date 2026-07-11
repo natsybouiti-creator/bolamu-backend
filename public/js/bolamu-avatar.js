@@ -55,12 +55,16 @@
     var extraClass = opts.className ? ' ' + opts.className : '';
     var fontSize = Math.round(size * 0.4);
 
-    var fallback = '<span class="bolamu-avatar__fallback" style="display:' + (photoUrl ? 'none' : 'flex') + ';font-size:' + fontSize + 'px;">' + escapeHtml(ini) + '</span>';
+    var fallback = '<span class="bolamu-avatar__fallback" style="display:' + (photoUrl ? 'none' : 'flex') + ';font-size:' + fontSize + 'px;color:#fff;">' + escapeHtml(ini) + '</span>';
     var img = photoUrl
       ? '<img src="' + escapeHtml(photoUrl) + '" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">'
       : '';
 
-    return '<span class="bolamu-avatar' + extraClass + '" style="width:' + size + 'px;height:' + size + 'px;background:var(' + roleVar + ');">' + img + fallback + '</span>';
+    // Fallback #0A2463 codé en dur : certaines pages (ex. patient/dashboard.html)
+    // n'importent pas bolamu-ds.css, donc var(--role-X) ne résoud à rien et le
+    // fond restait blanc/transparent. var(--role-X, #0A2463) garantit un fond
+    // plein dans tous les cas — couleur de rôle si le CSS est chargé, navy sinon.
+    return '<span class="bolamu-avatar' + extraClass + '" style="width:' + size + 'px;height:' + size + 'px;background:var(' + roleVar + ', #0A2463);color:#fff;">' + img + fallback + '</span>';
   }
 
   window.BolamuAvatar = { render: render, initials: initials };
