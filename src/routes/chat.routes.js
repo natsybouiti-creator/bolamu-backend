@@ -142,7 +142,7 @@ router.post('/conversations', authMiddleware, async (req, res) => {
     `, [myPhone, participant_phone]);
 
     if (existing.rows.length) {
-      return res.json({ success: true, conversation_id: existing.rows[0].id });
+      return res.json({ success: true, conversation_id: existing.rows[0].id, created: false });
     }
 
     // Créer conversation + ajouter les 2 participants
@@ -161,10 +161,53 @@ router.post('/conversations', authMiddleware, async (req, res) => {
       [convId, participant_phone, otherRole]
     );
 
-    return res.status(201).json({ success: true, conversation_id: convId });
+    return res.status(201).json({ success: true, conversation_id: convId, created: true });
   } catch (error) {
     console.error('[chat/conversations]', error.message);
     return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/v1/chat/users/search?q=...&role=...
+ * Recherche d'utilisateurs pour démarrer une nouvelle conversation
+ * (bouton "+ Nouvelle conversation", Phase 5/12). Ouvert à tous les
+ * rôles authentifiés (aucune restriction sur qui peut chercher) —
+ * content_admin exclu des résultats (hors scope du chantier chat),
+ * l'appelant lui-même exclu.
+ */
+router.get('/users/search', authMiddleware, async (req, res) => {
+  try {
+    const q = (req.query.q || '').trim();
+    if (q.length < 2) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const pool = require('../config/db');
+    const params = [`%${q}%`, req.user.phone];
+    let roleClause = '';
+    if (req.query.role) {
+      params.push(req.query.role);
+      roleClause = ' AND role = $3';
+    }
+
+    const result = await pool.query(
+      `SELECT phone, full_name, role, photo_url
+       FROM users
+       WHERE is_active = true
+         AND role != 'content_admin'
+         AND phone != $2
+         AND (full_name ILIKE $1 OR phone LIKE $1)
+         ${roleClause}
+       ORDER BY full_name ASC
+       LIMIT 10`,
+      params
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[chat/users/search]', err.message);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
