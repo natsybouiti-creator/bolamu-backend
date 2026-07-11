@@ -18,6 +18,8 @@
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script src="/js/bolamu-avatar.js?v=2"></script>
 <script src="/js/bolamu-profile-card.js"></script>
+<link rel="stylesheet" href="/css/bolamu-chat-window.css">
+<script src="/js/bolamu-chat-window.js"></script>
 
 <style>
   /* ===== Reset & base (identiques à l'original) ===== */
@@ -351,7 +353,7 @@
         </div>
         <button onclick="A.openChatReal()" style="position: relative; height: 40px; width: 40px; border: 1px solid #E4E4F2; background: #fff; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
           <span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">forum</span>
-          <span id="chat-badge" style="display: none;"></span>
+          <span id="chat-badge" class="notif-badge" style="display: none;"></span>
         </button>
         <button class="notif-bell-btn" onclick="A.toggleNotifDropdown()" style="position: relative; height: 40px; width: 40px; border: 1px solid #E4E4F2; background: #fff; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
           <span class="material-symbols-outlined" style="color: #434654; font-size: 22px;">notifications</span>
@@ -1081,7 +1083,7 @@
     </div>
     <div style="display: flex; gap: 4px; padding: 12px 20px; border-bottom: 1px solid #EDEDF8;">
       <button id="chat-tab-comm" onclick="A.chatCommunaute()" style="background: #003FB1; color: #fff; border: none; padding: 8px 16px; border-radius: 9999px; font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Communauté</button>
-      <button id="chat-tab-med" onclick="A.chatMedecins()" style="background: #F3F3FE; color: #434654; border: none; padding: 8px 16px; border-radius: 9999px; font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Médecins</button>
+      <button id="chat-tab-med" onclick="A.chatMedecins()" style="background: #F3F3FE; color: #434654; border: none; padding: 8px 16px; border-radius: 9999px; font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Messages</button>
     </div>
     <div style="flex: 1; overflow-y: auto; padding: 16px 20px;" class="chat-messages-container">
       <div id="chat-comm" style="display: block;">
@@ -1091,18 +1093,32 @@
         </div>
       </div>
       <div id="chat-med" style="display: none;">
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #EDEDF8; border-radius: 14px;"><span style="width: 40px; height: 40px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/medecin-1.jpg'); background-size: cover; background-position: center; background-color: #00C9A7; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800; flex-shrink: 0;">MN</span><div style="flex: 1;"><div style="font-size: 0.86rem; font-weight: 700; color: #0A2463;">Dr Marc Ntolo</div><div style="font-size: 0.74rem; color: #434654;">Vos résultats sont bons, continuez.</div></div><span style="font-size: 0.66rem; color: #9498a8;">14 juin</span></div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #EDEDF8; border-radius: 14px;"><span style="width: 40px; height: 40px; border-radius: 9999px; background-image: url('https://bolamu.co/images/community/medecin-2.jpg'); background-size: cover; background-position: center; background-color: #003FB1; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800; flex-shrink: 0;">AB</span><div style="flex: 1;"><div style="font-size: 0.86rem; font-weight: 700; color: #0A2463;">Dr Alice Bekono</div><div style="font-size: 0.74rem; color: #434654;">N'oubliez pas votre rappel vaccinal.</div></div><span style="font-size: 0.66rem; color: #9498a8;">3 juin</span></div>
-          <div style="display: flex; align-items: center; gap: 6px; background: rgba(186,26,26,0.06); border-radius: 10px; padding: 10px 12px; margin-top: 4px;"><span class="material-symbols-outlined" style="color: #BA1A1A; font-size: 17px;">emergency</span><span style="font-size: 0.74rem; font-weight: 700; color: #BA1A1A;">Pour une urgence, appelez le 117.</span></div>
+        <div class="bcw-conv-list-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span style="font-size: 0.95rem; font-weight: 800; color: #0A2463;">Messages</span>
+          <button id="bcw-new-conv-btn" onclick="A.openNewConvModal()" style="background: #003FB1; color: #fff; border: none; padding: 7px 14px; border-radius: 9999px; font-family: inherit; font-size: 0.76rem; font-weight: 700; cursor: pointer;">+ Nouvelle conversation</button>
+        </div>
+        <div id="bcw-conv-list">
+          <!-- chargé dynamiquement par A.loadConversations() -->
         </div>
       </div>
     </div>
-    <div style="padding: 14px 20px; border-top: 1px solid #EDEDF8; display: flex; gap: 8px;">
+    <div id="chat-footer" style="padding: 14px 20px; border-top: 1px solid #EDEDF8; display: flex; gap: 8px;">
       <input id="chat-input" type="text" oninput="A.chatInputInput(event)" placeholder="Écrire un message…" style="flex: 1; padding: 11px 14px; border: 1px solid #C3C5D7; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; color: #191B23;">
       <button onclick="A.sendChatMessage()" style="width: 42px; height: 42px; border: none; border-radius: 9999px; background: #003FB1; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 20px;">send</span></button>
     </div>
   </aside>
+
+  <!-- ===== MODAL NOUVELLE CONVERSATION (Phase 5/12) ===== -->
+  <div id="bcw-new-conv-modal" class="modal-bg" onclick="A.closeNewConvModal()">
+    <div onclick="A.stop(event)" style="background: #fff; border-radius: 20px; padding: 20px; width: 100%; max-width: 380px; max-height: 70vh; display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(10,36,99,0.25);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0A2463;">Nouvelle conversation</h3>
+        <button onclick="A.closeNewConvModal()" style="background: #F3F3FE; border: none; width: 32px; height: 32px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 18px;">close</span></button>
+      </div>
+      <input id="bcw-search-input" type="text" oninput="A.onSearchInput(event)" placeholder="Rechercher un contact…" style="padding: 11px 14px; border: 1px solid #C3C5D7; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; color: #191B23; margin-bottom: 10px;">
+      <div id="bcw-search-results" style="overflow-y: auto; flex: 1;"></div>
+    </div>
+  </div>
 
   <!-- ===== MODAL RDV ===== -->
   <div id="modal-rdv" class="modal-bg" onclick="A.closeModal()">
@@ -1786,6 +1802,10 @@
     show($('chat-comm'), comm); show($('chat-med'), !comm);
     show($('chat-loading'), s.chatLoading);
     show($('chat-empty'), !s.chatLoading && (!s.chatMessages || s.chatMessages.length === 0));
+    // Composer partagé pertinent seulement pour la Communauté (conversation
+    // unique) — l'onglet Messages est une liste, l'envoi se fait dans le
+    // drawer BolamuChatWindow ouvert au clic sur une conversation.
+    var footer = $('chat-footer'); if (footer) footer.style.display = comm ? 'flex' : 'none';
   };
 
   A.syncAbonnement = function () {
@@ -2327,8 +2347,162 @@
   // Chat
   A.closeChat = function () { A.setState({ chatOpen: false }); };
   A.chatCommunaute = function () { A.setState({ chatTab: 'communaute' }); };
-  A.chatMedecins = function () { A.setState({ chatTab: 'medecins' }); };
+  A.chatMedecins = function () {
+    // Onglet renommé "Messages" côté UI (Phase 5/12) — id/nom de fonction
+    // conservés tels quels : réutilisés par window.__bolamu_test (protocole
+    // de test), renommer aurait cassé cette exposition sans bénéfice réel.
+    A.setState({ chatTab: 'medecins' });
+    A._messagesUnread = 0;
+    A.updateMessagesBadge();
+    A.loadConversations();
+  };
   A.chatInputInput = function (e) { A.state.chatInput = e.target.value; };
+
+  // ─── Messages (Phase 5/12) — liste de conversations + ChatWindow ───
+  A._messagesUnread = 0;
+  A.updateMessagesBadge = function () {
+    var badge = $('chat-badge');
+    if (!badge) return;
+    var n = A._messagesUnread || 0;
+    badge.textContent = n > 9 ? '9+' : String(n);
+    badge.style.display = n > 0 ? 'flex' : 'none';
+  };
+
+  A.loadConversations = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    var list = $('bcw-conv-list');
+    if (!token || !list) return;
+    list.innerHTML = '<div style="text-align:center;padding:24px;color:#9498a8;font-size:0.85rem;">Chargement…</div>';
+    apiFetch('https://www.bolamu.co/api/v1/chat/conversations', { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(function (res) { return res.json(); })
+      .then(function (d) {
+        if (!d || !d.success || !d.data || !d.data.length) {
+          list.innerHTML = '<div style="text-align:center;padding:32px 16px;color:#9498a8;font-size:0.85rem;font-weight:600;">Aucune conversation.<br>Démarrez-en une avec le bouton ci-dessus.</div>';
+          return;
+        }
+        list.innerHTML = d.data.map(function (conv) {
+          var name = conv.other_name || 'Contact';
+          var photo = conv.other_photo_url || null;
+          var avatarHtml = (window.BolamuAvatar && typeof window.BolamuAvatar.render === 'function')
+            ? window.BolamuAvatar.render({ photoUrl: photo, fullName: name, size: 44 })
+            : '<span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#0A2463;color:#fff;font-weight:800;flex-shrink:0;">' + esc(name.charAt(0).toUpperCase()) + '</span>';
+          var lastMsg = conv.last_message ? esc(conv.last_message.length > 50 ? conv.last_message.slice(0, 50) + '…' : conv.last_message) : 'Aucun message';
+          var time = conv.last_message_at ? A.chatTimeAgo(conv.last_message_at) : '';
+          var unread = parseInt(conv.unread_count) || 0;
+          var badgeHtml = unread > 0 ? '<span style="background:#BA1A1A;color:#fff;font-size:0.66rem;font-weight:800;border-radius:9999px;padding:2px 7px;flex-shrink:0;">' + (unread > 9 ? '9+' : unread) + '</span>' : '';
+          var photoArg = photo ? "'" + esc(photo).replace(/'/g, "\\'") + "'" : 'null';
+          return '<div onclick="A.openConversation(' + conv.id + ', \'' + esc(name).replace(/'/g, "\\'") + '\', ' + photoArg + ')" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;cursor:pointer;border:1px solid #EDEDF8;margin-bottom:8px;">' +
+            avatarHtml +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-size:0.88rem;font-weight:700;color:#0A2463;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(name) + '</div>' +
+              '<div style="font-size:0.76rem;color:#9498a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + lastMsg + '</div>' +
+            '</div>' +
+            '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">' +
+              '<span style="font-size:0.66rem;color:#9498a8;">' + time + '</span>' +
+              badgeHtml +
+            '</div>' +
+          '</div>';
+        }).join('');
+      })
+      .catch(function () {
+        list.innerHTML = '<div style="text-align:center;padding:24px;color:#BA1A1A;font-size:0.85rem;">Erreur de chargement</div>';
+      });
+  };
+
+  A.chatTimeAgo = function (dateStr) {
+    var diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return 'à l\'instant';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' h';
+    if (diff < 172800) return 'hier';
+    if (diff < 604800) return Math.floor(diff / 86400) + ' j';
+    return new Date(dateStr).toLocaleDateString('fr-FR');
+  };
+
+  A.openConversation = function (conversationId, recipientName, recipientAvatar) {
+    if (!window.BolamuChatWindow) return;
+    window.BolamuChatWindow.open({
+      conversationId: conversationId,
+      currentUserPhone: A._patientPhone || localStorage.getItem('bolamu_patient_phone'),
+      recipientName: recipientName,
+      recipientAvatar: recipientAvatar,
+      socketInstance: A._socket
+    });
+  };
+
+  // ─── Modale Nouvelle conversation ───
+  // Recherche câblée sur GET /api/v1/chat/users/search : route inexistante
+  // à ce jour (vérifié dans chat.routes.js), prévue en Phase 6 selon le
+  // plan du chantier. Échoue proprement (message "indisponible") tant que
+  // la route n'existe pas — aucun changement nécessaire ici une fois créée.
+  A._searchDebounce = null;
+  A.openNewConvModal = function () {
+    var modal = $('bcw-new-conv-modal');
+    if (modal) modal.style.display = 'flex';
+    var input = $('bcw-search-input');
+    if (input) { input.value = ''; setTimeout(function () { input.focus(); }, 50); }
+    var results = $('bcw-search-results');
+    if (results) results.innerHTML = '';
+  };
+  A.closeNewConvModal = function () {
+    var modal = $('bcw-new-conv-modal');
+    if (modal) modal.style.display = 'none';
+  };
+  A.onSearchInput = function (e) {
+    var q = e.target.value.trim();
+    clearTimeout(A._searchDebounce);
+    var results = $('bcw-search-results');
+    if (q.length < 2) { if (results) results.innerHTML = ''; return; }
+    A._searchDebounce = setTimeout(function () { A.searchUsers(q); }, 300);
+  };
+  A.searchUsers = function (q) {
+    var token = localStorage.getItem('bolamu_patient_token');
+    var results = $('bcw-search-results');
+    if (!token || !results) return;
+    results.innerHTML = '<div style="text-align:center;padding:16px;color:#9498a8;font-size:0.82rem;">Recherche…</div>';
+    apiFetch('https://www.bolamu.co/api/v1/chat/users/search?q=' + encodeURIComponent(q), { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(function (res) { return res.json(); })
+      .then(function (d) {
+        if (!d || !d.success || !d.data || !d.data.length) {
+          results.innerHTML = '<div style="text-align:center;padding:16px;color:#9498a8;font-size:0.82rem;">Aucun résultat</div>';
+          return;
+        }
+        results.innerHTML = d.data.map(function (u) {
+          var av = (window.BolamuAvatar && typeof window.BolamuAvatar.render === 'function')
+            ? window.BolamuAvatar.render({ photoUrl: u.photo_url, fullName: u.full_name, size: 36 })
+            : '<span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#0A2463;color:#fff;font-weight:800;flex-shrink:0;">' + esc((u.full_name || '?').charAt(0)) + '</span>';
+          return '<div onclick="A.startConversationWith(\'' + esc(u.phone) + '\')" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;cursor:pointer;">' +
+            av +
+            '<div><div style="font-size:0.85rem;font-weight:700;color:#0A2463;">' + esc(u.full_name) + '</div><div style="font-size:0.72rem;color:#9498a8;">' + esc(u.role || '') + '</div></div>' +
+          '</div>';
+        }).join('');
+      })
+      .catch(function () {
+        results.innerHTML = '<div style="text-align:center;padding:16px;color:#BA1A1A;font-size:0.82rem;">Recherche indisponible pour l\'instant</div>';
+      });
+  };
+  A.startConversationWith = function (phone) {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    apiFetch('https://www.bolamu.co/api/v1/chat/conversations', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ participant_phone: phone })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (d) {
+        if (!d || !d.success) return;
+        A.closeNewConvModal();
+        A.loadConversations();
+        window.BolamuChatWindow.open({
+          conversationId: d.conversation_id,
+          currentUserPhone: A._patientPhone || localStorage.getItem('bolamu_patient_phone'),
+          recipientName: 'Contact',
+          socketInstance: A._socket
+        });
+      })
+      .catch(function () {});
+  };
 
   // Abonnement
   A.openAbonnementPanel = function () { A.setState({ abonnementOpen: true }); window.scrollTo(0, 0); };
@@ -4495,6 +4669,22 @@
     });
     A._socket.on('new_message', function (msg) { A.setState({ chatMessages: A.state.chatMessages.concat([msg]) }); A.scrollToChatBottom(); });
     A._socket.on('leaderboard_updated', function (data) { if (data.top5) { A._leaderboard = data.top5; A.renderLeaderboard(); } });
+
+    // Badge onglet Messages (Phase 5/12) — écouteur séparé, ne remplace pas
+    // celui ci-dessus (dédié à la conversation communauté du drawer déjà
+    // ouvert). Exclut : la conversation communauté elle-même (déjà gérée
+    // par l'écouteur ci-dessus), les messages reçus quand le drawer
+    // BolamuChatWindow est déjà ouvert (déjà vus), et l'écho de mes propres
+    // messages envoyés.
+    A._socket.on('new_message', function (payload) {
+      if (!payload) return;
+      if (String(payload.conversation_id) === String(A._communauteConvId)) return;
+      if (window.BolamuChatWindow && window.BolamuChatWindow.isOpen()) return;
+      var myPhone = A._patientPhone || localStorage.getItem('bolamu_patient_phone');
+      if (payload.sender_phone === myPhone) return;
+      A._messagesUnread = (A._messagesUnread || 0) + 1;
+      A.updateMessagesBadge();
+    });
   };
 
   /* --------------------------- DÉMARRAGE --------------------------- */
