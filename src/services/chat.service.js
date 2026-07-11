@@ -184,7 +184,7 @@ async function getOrCreateConversation(patient_phone, medecin_phone) {
   }
 }
 
-async function getCommunauteConversation(phone) {
+async function getCommunauteConversation(phone, role) {
   const existing = await pool.query(
     `SELECT id FROM conversations WHERE type = 'communaute' AND is_active = true LIMIT 1`
   );
@@ -202,16 +202,29 @@ async function getCommunauteConversation(phone) {
   if (phone) {
     await pool.query(
       `INSERT INTO conversation_participants (conversation_id, participant_phone, role)
-       VALUES ($1, $2, 'patient')
+       VALUES ($1, $2, $3)
        ON CONFLICT DO NOTHING`,
-      [conv.id, phone]
+      [conv.id, phone, role]
     );
   }
 
   return conv;
 }
 
-async function getConversationMessages(conversation_id, limit = 20, before_id = null) {
+async function getConversationMessages(conversation_id, requester_phone, limit = 20, before_id = null) {
+  const phone = normalizePhone(requester_phone);
+
+  // Vérifier que l'appelant est bien participant (même pattern que sendConversationMessage)
+  const check = await pool.query(
+    `SELECT 1 FROM conversation_participants
+     WHERE conversation_id = $1 AND participant_phone = $2`,
+    [parseInt(conversation_id), phone]
+  );
+
+  if (check.rows.length === 0) {
+    throw new Error('Accès non autorisé à cette conversation');
+  }
+
   const params = [parseInt(conversation_id)];
 
   let beforeClause = '';

@@ -31,7 +31,7 @@ router.get('/unread', authMiddleware, async (req, res) => {
  */
 router.get('/communaute', authMiddleware, async (req, res) => {
   try {
-    const conv = await chatService.getCommunauteConversation(req.user.phone);
+    const conv = await chatService.getCommunauteConversation(req.user.phone, req.user.role);
     res.json({ success: true, data: conv });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -62,12 +62,14 @@ router.get('/conversations/:id/messages', authMiddleware, async (req, res) => {
     const { limit = 20, before_id } = req.query;
     const messages = await chatService.getConversationMessages(
       id,
+      req.user.phone,
       Math.min(parseInt(limit) || 20, 100),
       before_id ? parseInt(before_id) : null
     );
     res.json({ success: true, data: messages });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    const status = err.message.includes('Accès non autorisé') ? 403 : 500;
+    res.status(status).json({ success: false, message: err.message });
   }
 });
 
@@ -151,12 +153,12 @@ router.post('/conversations', authMiddleware, async (req, res) => {
     const convId = conv.rows[0].id;
 
     await pool.query(
-      `INSERT INTO conversation_participants (conversation_id, participant_phone, role) VALUES ($1, $2, 'patient')`,
-      [convId, myPhone]
+      `INSERT INTO conversation_participants (conversation_id, participant_phone, role) VALUES ($1, $2, $3)`,
+      [convId, myPhone, myRole]
     );
     await pool.query(
-      `INSERT INTO conversation_participants (conversation_id, participant_phone, role) VALUES ($1, $2, 'patient')`,
-      [convId, participant_phone]
+      `INSERT INTO conversation_participants (conversation_id, participant_phone, role) VALUES ($1, $2, $3)`,
+      [convId, participant_phone, otherRole]
     );
 
     return res.status(201).json({ success: true, conversation_id: convId });
