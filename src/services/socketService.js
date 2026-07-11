@@ -3,9 +3,22 @@
 // ============================================================
 
 const pool = require('../config/db');
+const chatService = require('./chat.service');
 
 let io = null;
 const rooms = new Map(); // conversation_id -> Set of socket IDs
+const onlineUsers = new Map(); // phone -> Set of socket.id (multi-onglets)
+
+// Vérifie l'appartenance à une conversation (même pattern que
+// sendConversationMessage/getConversationMessages dans chat.service.js).
+async function isParticipant(conversationId, phone) {
+  const check = await pool.query(
+    `SELECT 1 FROM conversation_participants
+     WHERE conversation_id = $1 AND participant_phone = $2`,
+    [parseInt(conversationId), phone]
+  );
+  return check.rows.length > 0;
+}
 
 function initializeSocket(server) {
   const { Server } = require('socket.io');
@@ -29,6 +42,18 @@ function initializeSocket(server) {
         socket.data.phone = decoded.phone;
         socket.join(`user:${decoded.phone}`);
         socket.emit('authenticated', { status: 'ok' });
+
+        // Présence — Set de socket.id par phone (multi-onglets). user_online
+        // émis seulement à la transition offline -> online, pas à chaque
+        // nouvel onglet du même utilisateur déjà connecté ailleurs.
+        if (!onlineUsers.has(decoded.phone)) {
+          onlineUsers.set(decoded.phone, new Set());
+        }
+        const wasOffline = onlineUsers.get(decoded.phone).size === 0;
+        onlineUsers.get(decoded.phone).add(socket.id);
+        if (wasOffline) {
+          io.emit('user_online', { user_phone: decoded.phone });
+        }
       } catch (err) {
         socket.emit('auth_error', { message: 'Token invalide' });
       }
@@ -44,13 +69,8 @@ function initializeSocket(server) {
       }
 
       try {
-        const check = await pool.query(
-          `SELECT 1 FROM conversation_participants
-           WHERE conversation_id = $1 AND participant_phone = $2`,
-          [parseInt(conversationId), socket.data.phone]
-        );
-
-        if (check.rows.length === 0) {
+        const authorized = await isParticipant(conversationId, socket.data.phone);
+        if (!authorized) {
           socket.emit('unauthorized_conversation', { conversationId, reason: 'not_participant' });
           return;
         }
@@ -84,6 +104,80 @@ function initializeSocket(server) {
       console.log(`[Socket.io] Socket ${socket.id} a quitté conversation_${conversationId}`);
     });
 
+    // Envoyer un message dans une conversation — réutilise
+    // sendConversationMessage (chat.service.js), déjà sécurisée (vérifie
+    // l'appartenance en interne) et qui émet déjà new_message via emitToRoom
+    // (payload {id, sent_at} — cf. commentaire plus bas, pas de réémission
+    // ici pour éviter un double événement new_message).
+    socket.on('send_message', async ({ conversation_id, content } = {}) => {
+      if (!socket.data.phone) {
+        socket.emit('unauthorized_conversation', { conversationId: conversation_id, reason: 'not_authenticated' });
+        return;
+      }
+      if (!conversation_id || !content || !String(content).trim()) return;
+
+      try {
+        const authorized = await isParticipant(conversation_id, socket.data.phone);
+        if (!authorized) {
+          socket.emit('unauthorized_conversation', { conversationId: conversation_id, reason: 'not_participant' });
+          return;
+        }
+        // sendConversationMessage émet déjà 'new_message' en interne
+        // (emitToRoom) — payload {id, sent_at} uniquement. L'enrichir avec
+        // sender_name/sender_avatar_url nécessiterait de modifier
+        // chat.service.js, hors scope de cette phase (cf. rapport).
+        await chatService.sendConversationMessage(conversation_id, socket.data.phone, String(content).trim());
+      } catch (err) {
+        console.error('[Socket.io] Erreur send_message:', err.message);
+        socket.emit('unauthorized_conversation', { conversationId: conversation_id, reason: 'server_error' });
+      }
+    });
+
+    // Marquer une conversation comme lue — markAsRead (chat.service.js) est
+    // au grain conversation (conversation_participants.last_read_at), pas
+    // message par message : messages n'a pas de colonne read_at (vérifié
+    // information_schema.columns). message_id renvoyé tel quel pour l'UI.
+    socket.on('mark_read', async ({ conversation_id, message_id } = {}) => {
+      if (!socket.data.phone || !conversation_id) return;
+
+      try {
+        const authorized = await isParticipant(conversation_id, socket.data.phone);
+        if (!authorized) {
+          socket.emit('unauthorized_conversation', { conversationId: conversation_id, reason: 'not_participant' });
+          return;
+        }
+        await chatService.markAsRead(conversation_id, socket.data.phone);
+        const read_at = new Date().toISOString();
+        io.to(`conversation_${conversation_id}`).emit('message_read', { conversation_id, message_id, read_at });
+      } catch (err) {
+        console.error('[Socket.io] Erreur mark_read:', err.message);
+      }
+    });
+
+    // Indicateur de saisie — lecture seule, aucune écriture en base. Relayé
+    // aux AUTRES membres de la room uniquement (socket.to, pas io.to).
+    socket.on('typing_start', async ({ conversation_id } = {}) => {
+      if (!socket.data.phone || !conversation_id) return;
+      try {
+        const authorized = await isParticipant(conversation_id, socket.data.phone);
+        if (!authorized) return;
+        socket.to(`conversation_${conversation_id}`).emit('typing_start', { conversation_id, user_phone: socket.data.phone });
+      } catch (err) {
+        console.error('[Socket.io] Erreur typing_start:', err.message);
+      }
+    });
+
+    socket.on('typing_stop', async ({ conversation_id } = {}) => {
+      if (!socket.data.phone || !conversation_id) return;
+      try {
+        const authorized = await isParticipant(conversation_id, socket.data.phone);
+        if (!authorized) return;
+        socket.to(`conversation_${conversation_id}`).emit('typing_stop', { conversation_id, user_phone: socket.data.phone });
+      } catch (err) {
+        console.error('[Socket.io] Erreur typing_stop:', err.message);
+      }
+    });
+
     // Notification utilisateur rejoint un groupe
     socket.on('user_joined_group', (data) => {
       const { groupId, phone, firstName } = data;
@@ -102,6 +196,17 @@ function initializeSocket(server) {
         socketSet.delete(socket.id);
         if (socketSet.size === 0) {
           rooms.delete(conversationId);
+        }
+      }
+
+      // Présence — retire ce socket.id ; user_offline émis seulement si
+      // plus aucun onglet de ce user n'est connecté.
+      if (socket.data.phone && onlineUsers.has(socket.data.phone)) {
+        const set = onlineUsers.get(socket.data.phone);
+        set.delete(socket.id);
+        if (set.size === 0) {
+          onlineUsers.delete(socket.data.phone);
+          io.emit('user_offline', { user_phone: socket.data.phone });
         }
       }
     });
@@ -135,10 +240,15 @@ function getIo() {
   return io;
 }
 
+function isOnline(phone) {
+  return onlineUsers.has(phone) && onlineUsers.get(phone).size > 0;
+}
+
 module.exports = {
   initializeSocket,
   emitToRoom,
   emitToGroup,
   emitToAll,
-  getIo
+  getIo,
+  isOnline
 };
