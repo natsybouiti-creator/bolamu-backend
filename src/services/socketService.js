@@ -2,6 +2,8 @@
 // BOLAMU — Boucle 2 : Socket.io Service temps réel
 // ============================================================
 
+const pool = require('../config/db');
+
 let io = null;
 const rooms = new Map(); // conversation_id -> Set of socket IDs
 
@@ -24,6 +26,7 @@ function initializeSocket(server) {
       try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.data.phone = decoded.phone;
         socket.join(`user:${decoded.phone}`);
         socket.emit('authenticated', { status: 'ok' });
       } catch (err) {
@@ -31,15 +34,39 @@ function initializeSocket(server) {
       }
     });
 
-    // Rejoindre une room de conversation
-    socket.on('join_conversation', (conversationId) => {
+    // Rejoindre une room de conversation — appartenance vérifiée contre
+    // conversation_participants (même pattern que sendConversationMessage/
+    // getConversationMessages dans chat.service.js), socket authentifié requis.
+    socket.on('join_conversation', async (conversationId) => {
+      if (!socket.data.phone) {
+        socket.emit('unauthorized_conversation', { conversationId, reason: 'not_authenticated' });
+        return;
+      }
+
+      try {
+        const check = await pool.query(
+          `SELECT 1 FROM conversation_participants
+           WHERE conversation_id = $1 AND participant_phone = $2`,
+          [parseInt(conversationId), socket.data.phone]
+        );
+
+        if (check.rows.length === 0) {
+          socket.emit('unauthorized_conversation', { conversationId, reason: 'not_participant' });
+          return;
+        }
+      } catch (err) {
+        console.error('[Socket.io] Erreur vérification appartenance conversation:', err.message);
+        socket.emit('unauthorized_conversation', { conversationId, reason: 'server_error' });
+        return;
+      }
+
       socket.join(`conversation_${conversationId}`);
-      
+
       if (!rooms.has(conversationId)) {
         rooms.set(conversationId, new Set());
       }
       rooms.get(conversationId).add(socket.id);
-      
+
       console.log(`[Socket.io] Socket ${socket.id} rejoint conversation_${conversationId}`);
     });
 
