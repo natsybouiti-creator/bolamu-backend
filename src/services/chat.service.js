@@ -295,20 +295,42 @@ async function sendConversationMessage(conversation_id, sender_phone, content) {
   const result = await pool.query(
     `INSERT INTO messages (conversation_id, sender_phone, content)
      VALUES ($1, $2, $3)
-     RETURNING id, sent_at`,
+     RETURNING id, conversation_id, sender_phone, content, sent_at`,
     [parseInt(conversation_id), phone, content]
   );
+  const message = result.rows[0];
+
+  // Enrichir avec les infos d'affichage de l'expéditeur pour éviter un 2e
+  // appel côté frontend. users.nom/prenom n'existent pas — colonne réelle
+  // full_name (vérifié information_schema). users.avatar_url existe mais
+  // est vide sur 78/78 comptes (colonne morte) ; photo_url est la colonne
+  // réellement peuplée et utilisée partout ailleurs dans le projet
+  // (BolamuAvatar.render, GET /patients/profil, etc.).
+  const sender = await pool.query(
+    `SELECT full_name, photo_url FROM users WHERE phone = $1`,
+    [phone]
+  );
+
+  const enriched = {
+    id: message.id,
+    conversation_id: message.conversation_id,
+    sender_phone: message.sender_phone,
+    content: message.content,
+    created_at: message.sent_at,
+    sender_name: sender.rows[0]?.full_name || null,
+    sender_avatar_url: sender.rows[0]?.photo_url || null
+  };
 
   // Émettre via Socket.io
   try {
     const { emitToRoom } = require('./socketService');
-    emitToRoom(conversation_id, 'new_message', result.rows[0]);
+    emitToRoom(conversation_id, 'new_message', enriched);
   } catch (socketErr) {
     console.error('[Socket.io] Échec émission new_message:', socketErr.message);
     // ne jamais faire échouer l'envoi du message
   }
 
-  return result.rows[0];
+  return enriched;
 }
 
 async function markAsRead(conversation_id, participant_phone) {
