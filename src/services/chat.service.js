@@ -398,6 +398,14 @@ async function getPatientConversations(patient_phone) {
          LIMIT 1
        ) as other_name,
        (
+         SELECT u.photo_url
+         FROM conversation_participants cp2
+         JOIN users u ON cp2.participant_phone = u.phone
+         WHERE cp2.conversation_id = c.id
+           AND cp2.participant_phone != $1
+         LIMIT 1
+       ) as other_photo_url,
+       (
          SELECT cp2.participant_phone
          FROM conversation_participants cp2
          WHERE cp2.conversation_id = c.id
