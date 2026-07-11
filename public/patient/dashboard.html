@@ -1969,27 +1969,11 @@
       var avatarHtml = (typeof BolamuAvatar !== 'undefined')
         ? BolamuAvatar.render({ photoUrl: c.doctor_photo_url, fullName: c.doctor_name, role: 'medecin', size: 44 })
         : '<div style="width:44px;height:44px;border-radius:12px;background:#0A2463;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;">' + esc((c.doctor_name||'M').charAt(0)) + '</div>';
-      var medsHtml = '';
-      if (c.medications && c.medications.length) {
-        medsHtml = '<div style="width:100%;margin-top:8px;padding-top:8px;border-top:1px solid #EDEDF8;">' +
-          c.medications.map(function (m) {
-            // is_ssp est calculé depuis la migration_059 — les ordonnances
-            // antérieures ont is_ssp=null (jamais évalué), à ne pas confondre
-            // avec false (confirmé hors catalogue).
-            var color = m.is_ssp === true ? '#00875f' : (m.is_ssp === false ? '#BA1A1A' : '#9498a8');
-            var label = m.is_ssp === true ? 'Gratuit (SSP)' : (m.is_ssp === false ? 'À votre charge' : 'Statut non évalué');
-            return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:0.7rem;padding:2px 0;">' +
-              '<span style="color:#434654;">' + esc(m.medicament) + '</span>' +
-              '<span style="color:' + color + ';font-weight:700;">' + label + '</span></div>';
-          }).join('') + '</div>';
-      }
-
       return '<div style="display:flex;align-items:center;gap:12px;padding:14px;min-height:72px;box-sizing:border-box;background:#FAF8FF;border:1px solid #EDEDF8;border-radius:14px;">' +
         '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="cursor:' + (phone ? 'pointer' : 'default') + ';flex-shrink:0;">' + avatarHtml + '</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:2px;cursor:' + (phone ? 'pointer' : 'default') + ';">' + esc(c.doctor_name) + '</div>' +
           '<div style="font-size:0.78rem;color:#9498a8;">' + esc(c.specialty) + ' · ' + esc(c.date) + '</div>' +
-          medsHtml +
         '</div>' +
         '<span style="font-size:11px;font-weight:700;background:' + statusBg + ';color:' + statusColor + ';border-radius:8px;padding:4px 8px;white-space:nowrap;flex-shrink:0;">' + esc(c.status) + '</span>' +
         (phone ? '<button onclick="A.openModal(\'' + phone + '\')" style="background:#0A2463;color:#fff;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">RDV</button>' : '') +
