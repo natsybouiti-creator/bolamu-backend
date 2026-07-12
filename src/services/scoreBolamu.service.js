@@ -72,6 +72,14 @@ async function calculerScoreBolamu(patientPhone) {
       : 0;
 
     // 2. Engagement Elonga (25%) - Événements suivis (checked_in) sur 90 jours, plafonné à 5
+    // Corrigé le 12 juillet 2026 (audit Zora/Score) : le filtre
+    // `e.pillar = 'activite'` excluait de fait la quasi-totalité des
+    // événements réels — 33 des 40 événements en base utilisent
+    // pillar='sport' (le reste : nutrition/sante/anti_infectieux), et le
+    // seul check-in réel jamais enregistré était sur un événement
+    // pillar='nutrition'. Aucun check-in réel ne matchait donc jamais ce
+    // filtre. Retiré : "Engagement Elonga" compte tout événement du
+    // programme Elonga honoré, quel que soit le pilier.
     const elongaQuery = `
       SELECT COUNT(*) AS attended
       FROM event_registrations er
@@ -79,7 +87,6 @@ async function calculerScoreBolamu(patientPhone) {
       WHERE er.patient_phone = $1
         AND er.status = 'checked_in'
         AND er.checked_in_at >= $2
-        AND e.pillar = 'activite'
     `;
     const elongaResult = await pool.query(elongaQuery, [normalizedPhone, ninetyDaysAgo]);
     const elongaAttended = elongaResult.rows[0].attended || 0;
@@ -94,7 +101,6 @@ async function calculerScoreBolamu(patientPhone) {
         AND er.status = 'checked_in'
         AND er.checked_in_at >= $2
         AND er.checked_in_at < $3
-        AND e.pillar = 'activite'
     `;
     const elongaPrevResult = await pool.query(elongaPrevQuery, [normalizedPhone, ninetyTo180DaysAgo, ninetyDaysAgo]);
     const elongaPrevAttended = elongaPrevResult.rows[0].attended || 0;
