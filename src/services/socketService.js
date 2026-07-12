@@ -88,6 +88,11 @@ function initializeSocket(server) {
       rooms.get(conversationId).add(socket.id);
 
       console.log(`[Socket.io] Socket ${socket.id} rejoint conversation_${conversationId}`);
+
+      // Ack — le client attend cet événement avant d'activer ses listeners
+      // new_message/typing/message_read (évite la race condition envoi
+      // avant appartenance à la room confirmée). Uniquement à l'émetteur.
+      socket.emit('conversation_joined', { conversation_id: conversationId, status: 'ok' });
     });
 
     // Quitter une room de conversation
