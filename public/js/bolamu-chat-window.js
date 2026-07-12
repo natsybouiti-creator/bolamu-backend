@@ -76,7 +76,8 @@
     loadingOlder: false,
     isTypingActive: false,
     typingTimer: null,
-    tempCounter: 0
+    tempCounter: 0,
+    openGeneration: 0    // ignore ack/timeout d'un open() précédent (close rapide + réouverture)
   };
 
   // ─────────────────────────────────────────────────────────────
@@ -359,15 +360,31 @@
     state.drawer.classList.add('bcw-open');
     state.isOpenFlag = true;
 
-    // Écoute attachée immédiatement, PAS retardée de 1500ms (déviation
-    // volontaire du plan initial — cf. rapport Phase 4 : retarder
-    // l'attachement du listener JS n'atténue pas le problème signalé en
-    // Phase 3 (absence d'accusé de réception sur join_conversation côté
-    // serveur), et ferait perdre tout message reçu pendant ce délai —
-    // pas de mécanisme de rejeu socket.io côté client pour un événement
-    // sans listener actif au moment de sa réception).
-    attachSocketListeners();
+    // Attend l'ack serveur conversation_joined (dette technique post-chat-
+    // unifié, item 2) avant d'activer les listeners qui nécessitent d'être
+    // dans la room (new_message/typing/message_read) — remplace le délai
+    // fixe empirique envisagé en Phase 4, désormais possible car
+    // socketService.js émet un vrai accusé de réception après socket.join().
+    // Timeout de sécurité 5s : dégradé gracieux si l'ack n'arrive jamais
+    // (perte réseau, event non reçu) — n'attend jamais indéfiniment.
+    state.openGeneration++;
+    var myGeneration = state.openGeneration;
+    var joinedConvId = state.conversationId;
+    var listenersAttached = false;
+    var ackTimeout = setTimeout(function () {
+      if (listenersAttached || myGeneration !== state.openGeneration) return;
+      listenersAttached = true;
+      attachSocketListeners();
+    }, 5000);
+
     state.socket.emit('join_conversation', state.conversationId);
+    state.socket.once('conversation_joined', function (ack) {
+      if (!ack || String(ack.conversation_id) !== String(joinedConvId)) return;
+      if (listenersAttached || myGeneration !== state.openGeneration) return;
+      clearTimeout(ackTimeout);
+      listenersAttached = true;
+      attachSocketListeners();
+    });
 
     loadInitialMessages();
   }
