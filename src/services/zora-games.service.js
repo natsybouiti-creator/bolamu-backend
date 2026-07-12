@@ -255,53 +255,84 @@ async function playGame({ phone, game_type, play_type }) {
         [phone, game.id, play_type, costPaid, prizeId, pointsWon, serverSeed]
       );
       
-      // ÉTAPE 6 — Créditer les points si gain > 0
-      if (pointsWon > 0) {
-        await awardZora({
-          phone,
-          action_type: 'game_' + game_type,
-          proof_class: 'system_event',
-          proof_source: 'game_engine',
-          recording_method: null,
-          proof_reference: playResult.rows[0].id.toString()
-        });
-
-        // Envoyer WhatsApp gain jeu Zora (non bloquant)
-        setImmediate(async () => {
-          try {
-            const balanceResult = await pool.query(
-              `SELECT balance FROM zora_points WHERE phone = $1`,
-              [phone]
-            );
-            const solde = balanceResult.rows[0]?.balance || 0;
-
-            const gameLabels = {
-              scratch: 'carte à gratter',
-              wheel: 'roue de la fortune',
-              chest: 'coffre mystère',
-              quiz: 'quiz santé'
-            };
-
-            await sendAutoMessage(phone, 'gain_jeu_zora', [
-              pointsWon.toString(),
-              gameLabels[game_type] || 'jeu',
-              solde.toString()
-            ]);
-          } catch (whatsappErr) {
-            console.error('[ZORA GAMES] Erreur envoi WhatsApp gain (non bloquante):', whatsappErr.message);
-          }
-        });
-      }
-      
       await client.query('COMMIT');
-      
+
+      // ÉTAPE 6 — Créditer les points si gain > 0. Appelé APRÈS le COMMIT
+      // ci-dessus : awardZora() ouvre sa propre connexion/transaction sur
+      // zora_points, et un play_type='paid' a déjà verrouillé cette même
+      // ligne (déduction du coût, étape 2) dans la transaction `client` —
+      // appeler awardZora() avant COMMIT provoque un deadlock inter-connexion
+      // (constaté en conditions réelles le 12 juillet 2026 : awardZora()
+      // bloqué en attente du verrou tenu par la transaction `client` qui
+      // elle-même attend le retour de awardZora()). Le retour de awardZora()
+      // est vérifié : si le crédit échoue (règle manquante, plafond atteint,
+      // etc.), la réponse HTTP ne doit pas annoncer un points_won fictif
+      // (cf. audit Zora du 12 juillet 2026 — Roue/Coffre/Quiz annonçaient un
+      // gain jamais crédité en base).
+      let creditedPoints = 0;
+      if (pointsWon > 0) {
+        try {
+          const zoraResult = await awardZora({
+            phone,
+            action_type: 'game_' + game_type,
+            proof_class: 'system_event',
+            proof_source: 'game_engine',
+            recording_method: null,
+            proof_reference: playResult.rows[0].id.toString()
+          });
+
+          if (zoraResult.success) {
+            creditedPoints = pointsWon;
+
+            // Envoyer WhatsApp gain jeu Zora (non bloquant) — uniquement si
+            // le crédit a réellement eu lieu.
+            setImmediate(async () => {
+              try {
+                const balanceResult = await pool.query(
+                  `SELECT balance FROM zora_points WHERE phone = $1`,
+                  [phone]
+                );
+                const solde = balanceResult.rows[0]?.balance || 0;
+
+                const gameLabels = {
+                  scratch: 'carte à gratter',
+                  wheel: 'roue de la fortune',
+                  chest: 'coffre mystère',
+                  quiz: 'quiz santé'
+                };
+
+                await sendAutoMessage(phone, 'gain_jeu_zora', [
+                  pointsWon.toString(),
+                  gameLabels[game_type] || 'jeu',
+                  solde.toString()
+                ]);
+              } catch (whatsappErr) {
+                console.error('[ZORA GAMES] Erreur envoi WhatsApp gain (non bloquante):', whatsappErr.message);
+              }
+            });
+          } else {
+            console.error(
+              `[ZORA GAMES] Crédit échoué pour phone=${phone}, action=game_${game_type}, ` +
+              `play_id=${playResult.rows[0].id}, prix_tiré=${pointsWon}, raison=${zoraResult.reason}`
+            );
+          }
+        } catch (creditError) {
+          // La partie est déjà validée (COMMIT ci-dessus) — une erreur ici
+          // ne doit jamais faire échouer la réponse HTTP de la partie jouée.
+          console.error(
+            `[ZORA GAMES] Exception lors du crédit pour phone=${phone}, action=game_${game_type}, ` +
+            `play_id=${playResult.rows[0].id}:`, creditError.message
+          );
+        }
+      }
+
       return {
         success: true,
         play_id: playResult.rows[0].id,
-        prize_label: prizeLabel,
-        points_won: pointsWon,
+        prize_label: creditedPoints > 0 ? prizeLabel : (prizes.find(p => p.points_value === 0)?.label_fr || prizeLabel),
+        points_won: creditedPoints,
         server_seed: serverSeed,
-        daily_gain_today: dailyGainToday + pointsWon,
+        daily_gain_today: dailyGainToday + creditedPoints,
         free_plays_remaining: Math.max(0, game.daily_free_plays - freePlaysUsed - 1)
       };
     }
@@ -379,24 +410,45 @@ async function submitQuizAnswer({ phone, play_id, answer }) {
       [pointsWon, play_id]
     );
     
-    if (pointsWon > 0) {
-      await awardZora({
-        phone,
-        action_type: 'game_quiz',
-        proof_class: 'system_event',
-        proof_source: 'game_engine',
-        recording_method: null,
-        proof_reference: play_id.toString()
-      });
-    }
-    
     await client.query('COMMIT');
-    
+
+    // Appelé après COMMIT, même précaution que playGame() (évite tout
+    // risque de deadlock inter-connexion sur zora_points, cf. commentaire
+    // détaillé dans playGame()). Retour de awardZora() vérifié : ne pas
+    // annoncer un points_won fictif si le crédit échoue réellement.
+    let creditedPoints = 0;
+    if (pointsWon > 0) {
+      try {
+        const zoraResult = await awardZora({
+          phone,
+          action_type: 'game_quiz',
+          proof_class: 'system_event',
+          proof_source: 'game_engine',
+          recording_method: null,
+          proof_reference: play_id.toString()
+        });
+
+        if (zoraResult.success) {
+          creditedPoints = pointsWon;
+        } else {
+          console.error(
+            `[ZORA GAMES] Crédit échoué pour phone=${phone}, action=game_quiz, ` +
+            `play_id=${play_id}, prix_tiré=${pointsWon}, raison=${zoraResult.reason}`
+          );
+        }
+      } catch (creditError) {
+        console.error(
+          `[ZORA GAMES] Exception lors du crédit pour phone=${phone}, action=game_quiz, ` +
+          `play_id=${play_id}:`, creditError.message
+        );
+      }
+    }
+
     return {
       success: true,
       correct: isCorrect,
       correct_answer: play.correct_answer,
-      points_won: pointsWon
+      points_won: creditedPoints
     };
   } catch (error) {
     await client.query('ROLLBACK');
