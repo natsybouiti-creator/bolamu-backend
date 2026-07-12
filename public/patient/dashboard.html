@@ -413,10 +413,6 @@
                 </div>
               </div>
             </div>
-            <div id="score-composantes" style="display: none;">
-              <div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 10px;">Détail du Score Bolamu</div>
-              <div id="score-composantes-list" style="display: flex; flex-direction: column; gap: 9px;"></div>
-            </div>
             <div id="reward-band" style="display: none; margin-top: 0;">
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
                 <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #434654;">Échangeable maintenant avec vos Zora</div>
@@ -812,6 +808,11 @@
             <div style="flex: 1; text-align: center;"><div style="font-size: 0.74rem; font-weight: 800; color: #9498a8;">Nkembo</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">3 000</div></div>
             <div style="flex: 1; text-align: right;"><div style="font-size: 0.74rem; font-weight: 800; color: #9498a8;">Elonga</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">7 000</div></div>
           </div>
+        </div>
+
+        <div id="score-composantes" class="enter" style="display: none; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 22px;">
+          <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654; margin-bottom: 18px;">Détail du Score Bolamu</div>
+          <div id="score-composantes-list" style="display: flex; flex-direction: column; gap: 9px;"></div>
         </div>
 
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
@@ -2363,7 +2364,7 @@
   // Sous-onglets
   A.gagnerSport = function () { A.setState({ gagnerTab: 'sport' }); setTimeout(function () { A.initEventsMap(); }, 60); };
   A.gagnerSante = function () { A.setState({ gagnerTab: 'sante' }); setTimeout(function () { A.initReseauMap(); A.applyReseauFilter(); }, 60); };
-  A.suivreZora = function () { A.setState({ suivreTab: 'zora' }); };
+  A.suivreZora = function () { A.setState({ suivreTab: 'zora' }); A.renderScoreComposantes(); };
   A.suivreDossier = function () { A.setState({ suivreTab: 'dossier' }); };
 
   // Filtres
