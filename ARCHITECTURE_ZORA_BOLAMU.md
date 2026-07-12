@@ -11,6 +11,7 @@
 | 1.1 | Juillet 2026 | Ajout de sections vision supplémentaires (19-23) |
 | 2.0 | 7 juillet 2026 | Réécriture intégrale : documente l'existant réel vérifié dans le code, déplace tout ce qui n'est pas implémenté en section Roadmap |
 | 2.1 | 10 juillet 2026 | Clôture du Chantier 3 (§7.5) : flux bon Zora + WhatsApp + QR partenaire confirmé complet et testé de bout en bout. Incident police Plus Jakarta Sans/`FONTCONFIG_FILE` documenté et résolu (§7.6). `dossier-qr` retiré des points ouverts du Chantier 3 : repris par le flux DMN (`GET /api/v1/dmn/qr-payload`), sans rapport avec les bons Zora (§12.1) |
+| 2.2 | 12 juillet 2026 | Audit et correction de la chaîne de mise à jour du solde Zora après action patient (§3.4) : règles manquantes `zora_earn_rules` pour Roue/Coffre/Quiz, deadlock inter-connexion sur `zora_points`, silence sur échec de crédit consultation, resynchronisation frontend absente. Score Bolamu documenté pour la première fois (§3.5) : corrélation Zora existante (composante "Régularité Zora") mise en évidence côté frontend, 2 composantes sur 5 corrigées (Assiduité RDV, Engagement Elonga — tables/filtres ne captaient jamais de données réelles). Corrige une inexactitude préexistante en §3.3 (`scoreBolamu` n'appelle pas `awardZora()`) |
 
 ---
 
@@ -81,7 +82,55 @@ Il n'existe **aucun rôle `reward_partner`/`health_partner`** en base — ces no
 
 ### 3.3 Appelants réels de `awardZora()`
 
-Confirmé par le modèle de données §1.5 : `routes/clubs.routes.js`, `controllers/{clubs,qr}.controller.js`, `services/{event,notification,zora-voucher,zora-games,communityService,scoreBolamu,bon-zora,wellness,zora-marketplace,leaderboard}.service.js`, `routes/{admin,patient,elonga-events}.routes.js`, `cron/zora-expiration.js`. Autrement dit, le crédit Zora est déclenché depuis des points d'ancrage dispersés dans le code (clubs, QR, événements Elonga, jeux, encouragements, score bien-être), **pas** depuis une carte d'intégration centralisée façon "table 17.1" de la v1.1 — cette carte reste une bonne intention de documentation, pas un fait vérifié fichier par fichier dans le cadre de cette réécriture.
+Confirmé par le modèle de données §1.5 : `routes/clubs.routes.js`, `controllers/{clubs,qr}.controller.js`, `services/{event,notification,zora-voucher,zora-games,communityService,bon-zora,wellness,zora-marketplace,leaderboard}.service.js`, `routes/{admin,patient,elonga-events}.routes.js`, `cron/zora-expiration.js`. Autrement dit, le crédit Zora est déclenché depuis des points d'ancrage dispersés dans le code (clubs, QR, événements Elonga, jeux, encouragements), **pas** depuis une carte d'intégration centralisée façon "table 17.1" de la v1.1 — cette carte reste une bonne intention de documentation, pas un fait vérifié fichier par fichier dans le cadre de cette réécriture.
+
+**Correction du 12 juillet 2026** : `scoreBolamu.service.js` était listé ici dans une version antérieure de ce document — vérifié inexact (grep exhaustif, zéro occurrence de `awardZora` dans ce fichier). La relation réelle entre Zora et le Score Bolamu est **unidirectionnelle et inverse** : le score *lit* `zora_ledger` (fréquence de gains, pas de crédit), il n'écrit jamais dedans. Voir §3.5.
+
+### 3.4 Jeux Zora (scratch/wheel/chest/quiz) — règles manquantes et resynchronisation frontend, résolu le 12 juillet 2026
+
+**Symptôme rapporté** : le solde Zora affiché ne se mettait pas à jour de façon fiable après une partie de jeu (grattage, roue, coffre, quiz).
+
+**Cause confirmée par audit (lecture de code + tests HTTP/DB réels)**, deux bugs indépendants cumulés :
+
+1. **`zora_earn_rules` n'avait de ligne active que pour `action_type='game_scratch'`.** `awardZora()` rejetait systématiquement `game_wheel`/`game_chest`/`game_quiz` (`reason:'rule_unknown'`, étape 1 de §3.1) — mais `zora-games.service.js` (`playGame()`/`submitQuizAnswer()`) **n'a jamais vérifié le retour de `awardZora()`** avant de répondre `success:true` avec un `points_won` correspondant au prix tiré, jamais réellement crédité. Preuve en base avant correctif : 3 parties de roue réelles gagnantes, 40 pts affichés au total, **zéro entrée `game_wheel` dans `zora_ledger`**.
+2. **`consultation-report.controller.js`** (`submitReport()`, awardZora `action_type='consultation'`, cf. §7.5) capturait déjà le retour de `awardZora()` mais ne traitait que le cas succès — un échec (notamment `daily_cap_reached`, `zora_earn_rules.consultation.daily_cap = 1` : un seul crédit consultation par jour et par patient) passait totalement inaperçu, sans log ni trace.
+
+**Corrections apportées** :
+- `migration_080_zora_game_rules_missing.sql` : ajoute les 3 règles manquantes — `points` aligné sur le plafond de gain déjà défini par jeu dans `zora_games.daily_gain_cap` (wheel=50, chest=75, quiz=40), `daily_cap=3`, `category='engagement'`, `required_proof_class='system_event'` — identique au seul précédent existant (`game_scratch`).
+- `zora-games.service.js` : le retour de `awardZora()` est désormais vérifié dans les deux fonctions ; `points_won` renvoyé au frontend reflète le crédit réel (0 si le crédit échoue), pas le prix tiré ; le message WhatsApp de gain n'est envoyé que si le crédit a réellement eu lieu ; échec loggé explicitement.
+- **Effet de bord découvert en testant** : une fois les règles actives, l'appel à `awardZora()` (connexion/transaction séparée, cf. §3.1) entrait en **deadlock inter-connexion** avec la transaction de `playGame()` sur une partie `'paid'` gagnante — les deux verrouillaient la même ligne `zora_points` pour le même `phone`, chacune attendant l'autre indéfiniment. Corrigé en déplaçant l'appel à `awardZora()` **après** le `COMMIT` de la transaction de jeu (scratch/wheel/chest/quiz).
+- `consultation-report.controller.js` : ajoute un log explicite (`raison=zoraResult.reason`) sur échec de crédit — le plafond `daily_cap=1` lui-même n'est pas modifié (comportement anti-abus voulu), seul le silence est corrigé.
+- **Frontend** (`dashboard.html`) : `A.addZora(n)` incrémentait `A.state.zora`, une variable **jamais lue par `renderScalars()`** (qui affiche `.b-zoraTxt` à partir de `A._zoraBalance` uniquement, confirmé par preuve DOM réelle) — l'incrément optimiste après un jeu n'avait donc aucun effet visible à l'écran. `A.addZora()` déclenche désormais `A.syncZoraBalance()`, un vrai `fetch('/zora/balance')` qui met à jour `A._zoraBalance` et re-render.
+
+**Non corrigé, hors périmètre de cette session** : le montant réellement crédité reste celui de la règle (`points` fixe), pas le prix affiché au joueur (`zora_game_prizes.points_value`, variable) — limitation déjà présente sur `game_scratch` avant ce correctif, étendue par construction aux 3 jeux nouvellement corrigés. Passer le montant réel à `awardZora()` nécessiterait de faire évoluer sa signature, utilisée par une dizaine d'appelants (§3.3) — non fait ici.
+
+**Testé en conditions réelles** (compte QA) : partie de roue payante gagnante → `zora_ledger` contient une entrée `game_wheel` pour la première fois, solde cohérent, aucun deadlock. 2ᵉ compte-rendu de consultation le même jour → rapport enregistré normalement, `zora_ledger` reste vide (plafond respecté), log serveur explicite désormais présent.
+
+### 3.5 Score Bolamu — corrélation avec Zora, rendu pleinement opérationnel le 12 juillet 2026
+
+**Ce que c'est** : `src/services/scoreBolamu.service.js` (`calculerScoreBolamu()`), exposé via `GET /api/v1/patients/score-bienetre` (`patient.routes.js:165`), affiché à l'accueil du dashboard patient (`A._scoreBolamu`, anneau SVG + label). N'apparaissait dans aucune version antérieure de ce document.
+
+**Composition réelle** — 5 composantes pondérées, tendance calculée vs période précédente :
+
+| Composante | Poids | Source réelle | Fenêtre | Plafond |
+|---|---|---|---|---|
+| Assiduité RDV | 30% | `appointments` (`status='termine'` / `IN ('confirme','en_cours','termine')`) | 90 j | ratio plafonné à 100% |
+| Engagement Elonga | 25% | `event_registrations` × `elonga_events` (`status='checked_in'`) | 90 j | 5 événements |
+| Activité club | 20% | `club_members` (`is_active=true`) | 30 j (adhésions récentes) | 3 clubs |
+| **Régularité Zora** | **15%** | `zora_ledger` (**nombre de transactions**, pas leur montant) | 30 j | 10 transactions |
+| Suivi médical | 10% | `consultations` | 6 mois | 2 consultations |
+
+**Corrélation avec Zora** : directe, via "Régularité Zora" — chaque ligne `zora_ledger` (jeux, consultations, événements, etc., cf. §3.1) compte pour la fréquence d'activité, indépendamment du nombre de points. Relation strictement unidirectionnelle (Zora → score) : `scoreBolamu.service.js` ne crédite jamais `zora_ledger` (voir correction §3.3).
+
+**Bugs trouvés par audit et corrigés** :
+- **Assiduité RDV (30%, le poids le plus important)** lisait une table `rendez_vous` — vérifié : **aucun code applicatif n'y écrit** (grep exhaustif, seulement 4 lignes de test manuelles trouvées) — toujours 0 pour n'importe quel patient réel. Remplacée par `appointments`, la vraie table utilisée par toute la plateforme. Le ratio lui-même était aussi incorrect (comparait deux ensembles de statuts mutuellement exclusifs, sans plafonnement à 100% contrairement aux 4 autres composantes) — corrigé au passage.
+- **Engagement Elonga (25%)** filtrait sur `e.pillar = 'activite'` — vérifié : 33 des 40 événements réels en base utilisent `pillar='sport'` (le reste : nutrition/sante/anti_infectieux), et le seul check-in réel jamais enregistré dans toute la plateforme portait sur un événement `pillar='nutrition'`. Aucun check-in réel ne matchait donc jamais ce filtre. Filtre retiré.
+
+**Confirmées correctes sans modification** (données réelles vérifiées, mêmes tables déjà auditées ailleurs dans ce document) : Activité club, Régularité Zora (capte automatiquement les nouveaux `game_wheel`/`game_chest` de §3.4, aucune modification nécessaire — la requête ne filtre pas par `action_type`), Suivi médical.
+
+**Résultat** : score recalculé pour le compte QA (activité réelle la plus riche en base) passé de 0/0/100/100/100 (RDV et Elonga cassés) à 18/20/100/100/100 — score global 55/100, plus aucun plafonnement artificiel.
+
+**Frontend** : la décomposition par composante, jusqu'ici calculée mais jamais affichée, est désormais visible à l'accueil sous le score global (`#score-composantes`, `A.renderScoreComposantes()`) — 5 mini-barres, celle de "Régularité Zora" mise en évidence en zora-gold (`#F5A623`) pour rendre visible la corrélation avec les Zora (Option A retenue — cf. audit du 12 juillet 2026 ; Option B, repondération de "Régularité Zora" par catégorie plutôt que par fréquence brute, restée en discussion, non implémentée).
 
 ---
 
@@ -333,7 +382,7 @@ Aucune des routes `/api/zora/wallet*`, `/api/zora/offers*`, `/api/admin/zora/*`,
 | Bande "Échangeable maintenant avec vos Zora" | `GET /bons-zora/programs` | **`display:none` tant que `partner_programs` ne renvoie aucune ligne active** — bug diagnostiqué et corrigé le 7 juillet 2026 (catalogue vide = donnée manquante, pas bug de code après correctif du champ `d.data`) |
 | "Mes bons d'achat" | `GET /bons-zora/my` | Vide si aucun bon ; corrigé le 7 juillet 2026 (lisait `d.data.vouchers`, clé inexistante) |
 | Génération d'un bon | `POST /bons-zora/generate {program_id}` | Depuis le clic sur une carte de la bande "Échangeable" — **échange direct sans confirmation** (voir gap §7.1, cible §7.4) |
-| Jeux Zora | `GET /zora/games/config`, `POST /zora/games/play` | Onglet dédié, hors périmètre de cette réécriture |
+| Jeux Zora | `GET /zora/games/config`, `POST /zora/games/play` | Onglet dédié. Mécanisme de crédit audité et corrigé le 12 juillet 2026, voir §3.4 — l'UI de jeu elle-même (rendu scratch/roue/coffre/quiz) reste hors périmètre de cette réécriture |
 | Leaderboard hebdo | `GET /leaderboard/weekly` | Toujours affiché |
 | `hero-qr` (QR principal du dashboard) | `GET /qr/generate` | Toujours affiché — encode un token d'urgence (`/urgence?token=...`), **sans aucun rapport avec les bons Zora**. Ajouté au document le 7 juillet 2026 (angle mort de la version précédente) |
 | `dossier-qr` (carte membre / titulaire) | `GET /api/v1/dmn/qr-payload` | **Sans rapport avec les bons Zora** — repris par le flux DMN (dossier médical numérique) : `A.loadDossierQr()` charge un payload signé (24h) et l'affiche via `A.renderQR('dossier-qr', d.data.signed, 66)` (`dashboard.html`, route `dmn.routes.js:163`). N'est plus un point ouvert du Chantier Zora (mis à jour le 10 juillet 2026 — l'ancien constat "QR mort" du 7 juillet 2026 est obsolète, le composant a depuis été branché sur le flux DMN, indépendamment du Chantier 3) |
