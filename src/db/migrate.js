@@ -114,13 +114,28 @@ function parseSQL(sql) {
 }
 
 /**
+ * Détecte si une migration contient une opération destructive
+ * (DROP TABLE, DROP COLUMN) — insensible à la casse.
+ */
+function isDestructiveMigration(sql) {
+  return /DROP\s+TABLE|DROP\s+COLUMN/i.test(sql);
+}
+
+/**
  * Exécuter une migration
  */
 async function executeMigration(filename) {
   const filePath = path.join(MIGRATIONS_DIR, filename);
   const sql = fs.readFileSync(filePath, 'utf8');
+
+  if (isDestructiveMigration(sql) && process.env.ALLOW_DESTRUCTIVE_MIGRATIONS !== 'true') {
+    console.warn(`[MIGRATION] ⚠️  Migration destructive détectée : ${filename}`);
+    console.warn(`[MIGRATION] Définir ALLOW_DESTRUCTIVE_MIGRATIONS=true pour l'appliquer.`);
+    return;
+  }
+
   const instructions = parseSQL(sql);
-  
+
   console.log(`🔄 Exécution de ${filename} (${instructions.length} instructions)`);
   
   const client = await pool.connect();
