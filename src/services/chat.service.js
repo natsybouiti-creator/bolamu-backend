@@ -83,6 +83,10 @@ async function addReaction({ message_id, phone, reaction = 'encourage' }) {
   };
 }
 
+// Portée vers le NOUVEAU SYSTÈME (Phase 11/12) : poste dans la conversation
+// communauté (messages/conversations) au lieu de chat_messages. Champ
+// achievement_data retiré (perte assumée, comme documenté migration_077 —
+// zora.service.js n'utilise pas la valeur de retour, appel fire-and-forget).
 async function postAchievement({ phone, action_type, points }) {
   const messages = {
     bilan_annuel: 'a complété un bilan annuel',
@@ -103,13 +107,20 @@ async function postAchievement({ phone, action_type, points }) {
   const firstName = userResult.rows[0]?.first_name || 'Un adhérent';
   const content = `${firstName} ${message} · +${points} Zora`;
 
-  await sendMessage({
-    sender_phone: phone,
-    channel: 'community',
-    content,
-    message_type: 'achievement',
-    achievement_data: { phone, action_type, points }
-  });
+  const convResult = await pool.query(
+    `SELECT id FROM conversations WHERE type = 'communaute' LIMIT 1`
+  );
+  const conversation_id = convResult.rows[0]?.id;
+  if (!conversation_id) return;
+
+  const result = await pool.query(
+    `INSERT INTO messages (conversation_id, sender_phone, content)
+     VALUES ($1, $2, $3)
+     RETURNING id, conversation_id, sender_phone, content, sent_at`,
+    [conversation_id, phone, content]
+  );
+
+  return { success: true, message: result.rows[0] };
 }
 
 async function getPatientDoctors({ patient_phone }) {
