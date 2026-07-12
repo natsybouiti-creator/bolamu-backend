@@ -2906,7 +2906,24 @@
     if (A._toastT) clearTimeout(A._toastT);
     A._toastT = setTimeout(function () { A.state.toast = null; A.renderToast(); }, 2800);
   };
-  A.addZora = function (n) { A.state.zora += n; A.renderScalars(); };
+  A.addZora = function (n) { A.state.zora += n; A.renderScalars(); A.syncZoraBalance(); };
+
+  // Resynchronise A._zoraBalance (seule valeur réellement affichée par
+  // renderScalars() via .b-zoraTxt) avec le vrai solde serveur — l'incrément
+  // optimiste de A.state.zora ci-dessus n'est jamais rendu à l'écran, et
+  // peut diverger du solde réel si le crédit serveur échoue ou diffère du
+  // montant affiché (cf. audit Zora).
+  A.syncZoraBalance = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    var H = { headers: { 'Authorization': 'Bearer ' + token } };
+    apiFetch('https://www.bolamu.co/api/v1/zora/balance', H).then(function (r) { return r && r.json(); }).then(function (d) {
+      if (d && d.success && d.data) {
+        A._zoraBalance = d.data.points || d.data.balance || 0;
+        A.renderScalars();
+      }
+    }).catch(function () {});
+  };
 
   /* --------------------------- QR / cartes / scratch --------------------------- */
   A.renderQR = function (id, text, size, attempt) {
