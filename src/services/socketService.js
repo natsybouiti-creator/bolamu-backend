@@ -54,6 +54,13 @@ function initializeSocket(server) {
         if (wasOffline) {
           io.emit('user_online', { user_phone: decoded.phone });
         }
+
+        // Présence multi-instances (dette technique post-chat-unifié, item 3) —
+        // écrit aussi dans Neon (users.last_seen_at) pour que isOnline() reste
+        // correct si une autre instance Render détient la Map in-memory à jour.
+        // Non-bloquant : pas de await dans ce handler temps réel.
+        pool.query('UPDATE users SET last_seen_at = NOW() WHERE phone = $1', [decoded.phone])
+          .catch((err) => console.error('[presence]', err.message));
       } catch (err) {
         socket.emit('auth_error', { message: 'Token invalide' });
       }
@@ -214,6 +221,12 @@ function initializeSocket(server) {
           io.emit('user_offline', { user_phone: socket.data.phone });
         }
       }
+
+      // Présence multi-instances — dernier "vu" en base, non-bloquant.
+      if (socket.data.phone) {
+        pool.query('UPDATE users SET last_seen_at = NOW() WHERE phone = $1', [socket.data.phone])
+          .catch((err) => console.error('[presence]', err.message));
+      }
     });
   });
 
@@ -245,8 +258,20 @@ function getIo() {
   return io;
 }
 
-function isOnline(phone) {
-  return onlineUsers.has(phone) && onlineUsers.get(phone).size > 0;
+// Hybride Map+DB (item 3, dette technique post-chat-unifié) : la Map locale
+// reste la source rapide pour les users connectés à CETTE instance (pas de
+// requête DB par vérification) ; le fallback Neon (last_seen_at < 30s)
+// couvre les users connectés à une AUTRE instance quand Render scale à
+// plusieurs instances (la Map, par instance, ne les verrait pas sinon).
+async function isOnline(phone) {
+  if (onlineUsers.has(phone) && onlineUsers.get(phone).size > 0) {
+    return true;
+  }
+  const result = await pool.query(
+    `SELECT 1 FROM users WHERE phone = $1 AND last_seen_at > NOW() - INTERVAL '30 seconds'`,
+    [phone]
+  );
+  return result.rows.length > 0;
 }
 
 module.exports = {
