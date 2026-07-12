@@ -490,7 +490,7 @@
               </div>
             </div>
             <div id="consultations-list" style="display: none; flex-direction: column; gap: 12px;"></div>
-            <button id="consultations-voir-plus" onclick="A.goSuivre(); A.suivreDossier();" style="display: none; margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir plus</button>
+            <button id="consultations-voir-plus" onclick="A.loadMoreConsultations()" style="display: none; margin-top: 14px; width: 100%; background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.82rem; padding: 11px; border-radius: 9999px; cursor: pointer;">Voir plus</button>
           </div>
         </div>
       </div>
@@ -1962,7 +1962,6 @@
 
   A.renderMesConsultationsAccueil = function () {
     var list = A._recentConsultations || [];
-    list = list.slice(0, 6);
     show($('consultations-empty'), list.length === 0);
     if (list.length === 0) {
       document.getElementById('consultations-empty').innerHTML =
@@ -1981,7 +1980,7 @@
     var el = $('consultations-list'); if (!el) return;
     el.style.display = list.length ? 'flex' : 'none';
     var voirPlusBtn = $('consultations-voir-plus');
-    if (voirPlusBtn) voirPlusBtn.style.display = 'block';
+    if (voirPlusBtn) voirPlusBtn.style.display = A._consultationsHasMore ? 'block' : 'none';
     el.innerHTML = list.map(function (c) {
       var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
       var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
@@ -1999,6 +1998,26 @@
         (phone ? '<button onclick="A.openModal(\'' + phone + '\')" style="background:#0A2463;color:#fff;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">RDV</button>' : '') +
       '</div>';
     }).join('');
+  };
+
+  // Expansion sur place (pattern _myRegExpanded/renderMyReg) — l'API pagine
+  // réellement (limit/offset), donc "voir plus" déclenche un fetch de la
+  // page suivante plutôt qu'un simple slice d'un tableau déjà chargé en
+  // entier côté client.
+  A.loadMoreConsultations = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) return;
+    var H = { headers: { 'Authorization': 'Bearer ' + token } };
+    var offset = (A._recentConsultations || []).length;
+    apiFetch('https://www.bolamu.co/api/v1/patients/consultations/recentes?limit=4&offset=' + offset, H)
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.success && d.data) {
+          A._recentConsultations = (A._recentConsultations || []).concat(d.data);
+          A._consultationsHasMore = !!d.has_more;
+          A.renderMesConsultationsAccueil();
+        }
+      }).catch(function () {});
   };
 
   A.renderSportGroups = function () {
@@ -3468,7 +3487,7 @@
 
     apiFetch('https://www.bolamu.co/api/v1/doctors', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data && d.data.doctors) { A._doctors = d.data.doctors; A.renderRdvDoctors(); } }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/patients/consultations/recentes', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._recentConsultations = d.data; A.renderMesConsultationsAccueil(); } }).catch(function () {});
+    apiFetch('https://www.bolamu.co/api/v1/patients/consultations/recentes', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._recentConsultations = d.data; A._consultationsHasMore = !!d.has_more; A.renderMesConsultationsAccueil(); } }).catch(function () {});
 
     apiFetch('https://www.bolamu.co/api/v1/bons-zora/programs', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && Array.isArray(d.data) && d.data.length) { A.rewards = d.data.map(function (rw) { return { id: rw.id, name: rw.name, cost: rw.zora_cost, img: A.rewardImgByTitle(rw.name || '', rw.category || rw.cat), seed: 'rw' + rw.id, cat: rw.category || rw.cat || 'tout' }; }); }
