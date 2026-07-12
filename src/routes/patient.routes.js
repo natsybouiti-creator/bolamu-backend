@@ -173,12 +173,17 @@ router.get('/score-bienetre', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/patient/consultations/recentes - 4 dernières consultations du patient
+// GET /api/patient/consultations/recentes - consultations du patient, paginées
+// (limit=4 par défaut si absent, conserve le comportement historique de l'accueil)
 router.get('/consultations/recentes', authMiddleware, async (req, res) => {
   try {
     const phone = normalizePhone(req.user.phone);
     const now = new Date();
+    const limit = Math.min(parseInt(req.query.limit) || 4, 50);
+    const offset = Math.max(parseInt(req.query.offset) || 0, 0);
 
+    // LIMIT $2+1 : une ligne de plus que demandé pour savoir s'il reste des
+    // résultats au-delà de cette page (has_more), sans requête COUNT séparée.
     const result = await pool.query(
       `SELECT c.id, c.started_at, c.status, c.doctor_phone,
               d.full_name as doctor_name, d.specialty, d.photo_url as doctor_photo_url
@@ -186,9 +191,12 @@ router.get('/consultations/recentes', authMiddleware, async (req, res) => {
        LEFT JOIN doctors d ON d.phone = c.doctor_phone
        WHERE c.patient_phone = $1
        ORDER BY c.started_at DESC
-       LIMIT 4`,
-      [phone]
+       LIMIT $2 OFFSET $3`,
+      [phone, limit + 1, offset]
     );
+
+    const hasMore = result.rows.length > limit;
+    if (hasMore) result.rows.length = limit;
 
     // Statut SSP/hors-catalogue des médicaments prescrits pendant chaque
     // consultation — pour que le patient voie ce qui est gratuit vs à sa charge
@@ -233,7 +241,7 @@ router.get('/consultations/recentes', authMiddleware, async (req, res) => {
       };
     });
 
-    res.json({ success: true, data: consultations });
+    res.json({ success: true, data: consultations, has_more: hasMore });
   } catch (err) {
     console.error('[consultations-recentes]', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
