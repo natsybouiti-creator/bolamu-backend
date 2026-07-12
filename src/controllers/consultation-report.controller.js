@@ -87,6 +87,17 @@ async function submitReport(req, res) {
                         '50',
                         solde.toString()
                     ]);
+                } else {
+                    // Perte silencieuse jusqu'ici (audit Zora du 12 juillet 2026) :
+                    // daily_cap=1 sur 'consultation' fait qu'une 2e consultation
+                    // réelle le même jour ne crédite jamais rien, sans aucune trace.
+                    // Le plafond reste inchangé (anti-abus voulu) — seul le silence
+                    // est corrigé ici.
+                    console.error(
+                        `[submitReport] Crédit Zora consultation non effectué — ` +
+                        `patient_phone=${patient_phone}, appointment_id=${appointment_id}, ` +
+                        `raison=${zoraResult.reason}`
+                    );
                 }
             } catch (zoraErr) {
                 console.error('[submitReport] Erreur gain Zora (non bloquante):', zoraErr.message);
