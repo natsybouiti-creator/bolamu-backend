@@ -6,6 +6,11 @@ const { getLeaderboard, getTop3 } = require('../services/leaderboard.service');
 /**
  * GET /api/v1/leaderboard/weekly
  * Top 10 + position du demandeur (auth requise)
+ * getLeaderboard() (leaderboard.service.js) calcule désormais en live sur
+ * zora_ledger au lieu de lire la table leaderboard_weekly — le contrat de
+ * retour ({success, top, my_position}) est inchangé, donc aucune adaptation
+ * n'est nécessaire ici : vérifié le 13 juillet 2026, source unique de vérité
+ * avec la modale "Voir tout" (/api/v1/patients/leaderboard/weekly).
  */
 async function getWeeklyLeaderboard(req, res) {
   const phone = req.user?.phone;
