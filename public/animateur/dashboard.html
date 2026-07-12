@@ -11,7 +11,11 @@
   <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
   <link href="/fonts/material-symbols.css" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="/js/bolamu-avatar.js?v=2"></script>
   <script src="/js/bolamu-profile-card.js"></script>
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <link rel="stylesheet" href="/css/bolamu-chat-window.css">
+  <script src="/js/bolamu-chat-window.js"></script>
   <style>
     :root {
       --amber: #F59E0B;
@@ -183,6 +187,10 @@
     <button class="nav-item" data-testid="nav-notifications" onclick="goTab('notifications',this)">
       <span class="material-symbols-outlined">notifications</span> Notifications
     </button>
+    <button class="nav-item" data-testid="nav-messages" onclick="goTab('messages',this)">
+      <span class="material-symbols-outlined">forum</span> Messages
+      <span id="bcw-badge-animateur" style="display:none;background:#BA1A1A;color:#fff;font-size:0.62rem;font-weight:800;border-radius:9999px;padding:1px 6px;margin-left:4px;">0</span>
+    </button>
   </div>
   <div class="sidebar-footer">
     <button class="btn-logout" data-testid="btn-logout" onclick="logout()">
@@ -209,6 +217,10 @@
     <button class="bnav-item" data-testid="bnav-notifications" onclick="goTab('notifications',null,'notifications')">
       <span class="material-symbols-outlined bnav-icon">notifications</span>
       <span class="bnav-label">Notifs</span>
+    </button>
+    <button class="bnav-item" data-testid="bnav-messages" onclick="goTab('messages',null,'messages')">
+      <span class="material-symbols-outlined bnav-icon">forum</span>
+      <span class="bnav-label">Messages</span>
     </button>
   </div>
 </nav>
@@ -359,6 +371,26 @@
       </div>
     </div>
 
+    <!-- ── TAB MESSAGES (Phase 7/12) ── -->
+    <div id="tab-messages" class="tab">
+      <h2 class="tab-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Messages</span>
+        <button id="bcw-new-conv-btn" onclick="openNewConvModal()" class="btn btn-primary">+ Nouvelle conversation</button>
+      </h2>
+      <div id="bcw-conv-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="bcw-new-conv-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('bcw-new-conv-modal')">
+  <div class="modal" style="max-width:380px;display:flex;flex-direction:column;max-height:70vh;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="margin:0;font-size:1.05rem;font-weight:800;color:#0A2463;">Nouvelle conversation</h3>
+      <button onclick="closeModal('bcw-new-conv-modal')" style="background:#F3F3FE;border:none;width:32px;height:32px;border-radius:9999px;cursor:pointer;">✕</button>
+    </div>
+    <input id="bcw-search-input" type="text" oninput="onSearchInput(event)" placeholder="Rechercher un contact…" style="padding:11px 14px;border:1px solid #C3C5D7;border-radius:9999px;font-family:inherit;font-size:0.85rem;margin-bottom:10px;">
+    <div id="bcw-search-results" style="overflow-y:auto;flex:1;"></div>
   </div>
 </div>
 
@@ -555,6 +587,7 @@ window.__bolamu_test = {
   USER_NAME = localStorage.getItem('bolamu_animateur_name') || USER_PHONE;
   document.getElementById('user-chip').textContent = USER_NAME || USER_PHONE;
   try { loadAll(); } catch(e) { console.error('[ANIMATEUR INIT FAIL]', e.message, e.stack); }
+  initBcwSocket();
 })();
 
 function logout() {
@@ -579,10 +612,145 @@ async function apiFetch(path, opts) {
   return r.json();
 }
 
+// ── MESSAGES (Phase 7/12) ───────────────────────────────────────────────────
+// Réutilise apiFetch/TOKEN/USER_PHONE déjà définis dans ce fichier.
+function escBcw(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function bcwTimeAgo(dateStr){
+  const diff=Math.floor((Date.now()-new Date(dateStr).getTime())/1000);
+  if(diff<60)return "à l'instant";
+  if(diff<3600)return Math.floor(diff/60)+' min';
+  if(diff<86400)return Math.floor(diff/3600)+' h';
+  if(diff<172800)return 'hier';
+  if(diff<604800)return Math.floor(diff/86400)+' j';
+  return new Date(dateStr).toLocaleDateString('fr-FR');
+}
+let bcwUnread=0;
+function updateMessagesBadge(){
+  const badge=document.getElementById('bcw-badge-animateur');
+  if(!badge)return;
+  badge.textContent=bcwUnread>9?'9+':String(bcwUnread);
+  badge.style.display=bcwUnread>0?'inline-block':'none';
+}
+function initBcwSocket(){
+  if(typeof io==='undefined'||window.__bolamuSocket)return;
+  window.__bolamuSocket=io('https://www.bolamu.co');
+  window.__bolamuSocket.emit('authenticate',TOKEN);
+  window.__bolamuSocket.on('new_message',function(payload){
+    if(!payload)return;
+    if(window.BolamuChatWindow&&window.BolamuChatWindow.isOpen())return;
+    if(payload.sender_phone===USER_PHONE)return;
+    bcwUnread++;
+    updateMessagesBadge();
+  });
+}
+async function loadConversations(){
+  const list=document.getElementById('bcw-conv-list');
+  if(!list||!TOKEN)return;
+  list.innerHTML='<div style="text-align:center;padding:24px;color:#9498a8;">Chargement…</div>';
+  try{
+    const d=await apiFetch('/chat/conversations');
+    if(!d||!d.success||!d.data||!d.data.length){
+      list.innerHTML='<div style="text-align:center;padding:32px 16px;color:#9498a8;">Aucune conversation.<br>Démarrez-en une avec le bouton ci-dessus.</div>';
+      return;
+    }
+    list.innerHTML=d.data.map(conv=>{
+      const name=conv.other_name||'Contact';
+      const photo=conv.other_photo_url||null;
+      const avatarHtml=(window.BolamuAvatar&&typeof window.BolamuAvatar.render==='function')
+        ?window.BolamuAvatar.render({photoUrl:photo,fullName:name,size:44})
+        :`<span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#0A2463;color:#fff;font-weight:800;flex-shrink:0;">${escBcw(name.charAt(0).toUpperCase())}</span>`;
+      const lastMsg=conv.last_message?escBcw(conv.last_message.length>50?conv.last_message.slice(0,50)+'…':conv.last_message):'Aucun message';
+      const time=conv.last_message_at?bcwTimeAgo(conv.last_message_at):'';
+      const unread=parseInt(conv.unread_count)||0;
+      const badgeHtml=unread>0?`<span style="background:#BA1A1A;color:#fff;font-size:0.66rem;font-weight:800;border-radius:9999px;padding:2px 7px;flex-shrink:0;">${unread>9?'9+':unread}</span>`:'';
+      const photoArg=photo?`'${escBcw(photo).replace(/'/g,"\\'")}'`:'null';
+      return `<div onclick="openConversation(${conv.id}, '${escBcw(name).replace(/'/g,"\\'")}', ${photoArg})" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;cursor:pointer;border:1px solid #EDEDF8;margin-bottom:8px;background:#fff;">
+        ${avatarHtml}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.88rem;font-weight:700;color:#0A2463;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escBcw(name)}</div>
+          <div style="font-size:0.76rem;color:#9498a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lastMsg}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+          <span style="font-size:0.66rem;color:#9498a8;">${time}</span>
+          ${badgeHtml}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    list.innerHTML='<div style="text-align:center;padding:24px;color:#BA1A1A;">Erreur de chargement</div>';
+  }
+}
+function openConversation(conversationId,recipientName,recipientAvatar){
+  if(!window.BolamuChatWindow)return;
+  initBcwSocket();
+  window.BolamuChatWindow.open({
+    conversationId:conversationId,
+    currentUserPhone:USER_PHONE,
+    recipientName:recipientName,
+    recipientAvatar:recipientAvatar,
+    socketInstance:window.__bolamuSocket
+  });
+}
+let bcwSearchDebounce=null;
+function openNewConvModal(){
+  document.getElementById('bcw-new-conv-modal').classList.add('open');
+  const input=document.getElementById('bcw-search-input');
+  if(input){input.value='';setTimeout(()=>input.focus(),50);}
+  const results=document.getElementById('bcw-search-results');
+  if(results)results.innerHTML='';
+}
+function onSearchInput(e){
+  const q=e.target.value.trim();
+  clearTimeout(bcwSearchDebounce);
+  const results=document.getElementById('bcw-search-results');
+  if(q.length<2){if(results)results.innerHTML='';return;}
+  bcwSearchDebounce=setTimeout(()=>searchUsers(q),300);
+}
+async function searchUsers(q){
+  const results=document.getElementById('bcw-search-results');
+  if(!TOKEN||!results)return;
+  results.innerHTML='<div style="text-align:center;padding:16px;color:#9498a8;">Recherche…</div>';
+  try{
+    const d=await apiFetch('/chat/users/search?q='+encodeURIComponent(q));
+    if(!d||!d.success||!d.data||!d.data.length){
+      results.innerHTML='<div style="text-align:center;padding:16px;color:#9498a8;">Aucun résultat</div>';
+      return;
+    }
+    results.innerHTML=d.data.map(u=>{
+      const av=(window.BolamuAvatar&&typeof window.BolamuAvatar.render==='function')
+        ?window.BolamuAvatar.render({photoUrl:u.photo_url,fullName:u.full_name,size:36})
+        :`<span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#0A2463;color:#fff;font-weight:800;flex-shrink:0;">${escBcw((u.full_name||'?').charAt(0))}</span>`;
+      return `<div onclick="startConversationWith('${escBcw(u.phone)}')" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;cursor:pointer;">
+        ${av}
+        <div><div style="font-size:0.85rem;font-weight:700;color:#0A2463;">${escBcw(u.full_name)}</div><div style="font-size:0.72rem;color:#9498a8;">${escBcw(u.role||'')}</div></div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    results.innerHTML='<div style="text-align:center;padding:16px;color:#BA1A1A;">Recherche indisponible pour l\'instant</div>';
+  }
+}
+async function startConversationWith(participantPhone){
+  if(!TOKEN)return;
+  try{
+    const d=await apiFetch('/chat/conversations',{method:'POST',body:JSON.stringify({participant_phone:participantPhone})});
+    if(!d||!d.success)return;
+    closeModal('bcw-new-conv-modal');
+    loadConversations();
+    initBcwSocket();
+    window.BolamuChatWindow.open({
+      conversationId:d.conversation_id,
+      currentUserPhone:USER_PHONE,
+      recipientName:'Contact',
+      socketInstance:window.__bolamuSocket
+    });
+  }catch(e){}
+}
+
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
 function goTab(name, btn, bnavName) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'messages') { bcwUnread = 0; updateMessagesBadge(); loadConversations(); }
 
   // sidebar
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
