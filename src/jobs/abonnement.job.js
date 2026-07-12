@@ -241,14 +241,17 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
     }
 
     // 9. Calculer classement hebdo — Sprint 6A
-    try {
-      const leaderboardResult = await computeWeeklyLeaderboard();
-      nb_traites += leaderboardResult.count;
-      allDetails.push(`Classement hebdo calculé : ${leaderboardResult.count} joueurs`);
-    } catch (leaderboardErr) {
-      nb_erreurs++;
-      allDetails.push(`Erreur classement hebdo : ${leaderboardErr.message}`);
-    }
+    // DÉSACTIVÉ — classement maintenant calculé en live depuis zora_ledger
+    // La table leaderboard_weekly est conservée pour historique uniquement
+    // Voir src/services/leaderboard.service.js — computeWeeklyLeaderboard()
+    // try {
+    //   const leaderboardResult = await computeWeeklyLeaderboard();
+    //   nb_traites += leaderboardResult.count;
+    //   allDetails.push(`Classement hebdo calculé : ${leaderboardResult.count} joueurs`);
+    // } catch (leaderboardErr) {
+    //   nb_erreurs++;
+    //   allDetails.push(`Erreur classement hebdo : ${leaderboardErr.message}`);
+    // }
 
   } catch (globalErr) {
     nb_erreurs++;
