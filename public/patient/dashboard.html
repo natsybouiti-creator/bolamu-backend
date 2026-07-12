@@ -2062,7 +2062,7 @@
           '<div style="font-size:0.74rem;color:#434654;">' + esc(c.category || c.sport_type || 'Club') + '</div>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:8px;padding-right:12px;flex-shrink:0;">' +
-          '<button onclick="openClubChat(' + c.id + ', \'' + esc(c.name).replace(/'/g, "\\'") + '\')" style="background:rgba(0,201,167,0.12);color:#00875f;border:none;padding:8px 14px;border-radius:9999px;font-size:0.76rem;font-weight:700;cursor:pointer;">Chat</button>' +
+          '<button onclick="openClubChat(' + c.id + ', \'' + esc(c.name).replace(/'/g, "\\'") + '\', ' + (c.conversation_id || 'null') + ')" style="background:rgba(0,201,167,0.12);color:#00875f;border:none;padding:8px 14px;border-radius:9999px;font-size:0.76rem;font-weight:700;cursor:pointer;">Chat</button>' +
           (isAnimateur
             ? '<button onclick="openClubManage(' + c.id + ')" style="background:rgba(245,166,35,0.12);color:#B0680A;border:none;padding:8px 14px;border-radius:9999px;font-size:0.76rem;font-weight:700;cursor:pointer;">Gérer</button>'
             : '<button onclick="leaveClub(' + c.id + ')" style="background:#F3F3FE;color:#BA1A1A;border:none;padding:8px 14px;border-radius:9999px;font-size:0.76rem;font-weight:700;cursor:pointer;">Quitter</button>') +
@@ -3904,7 +3904,7 @@
           if (!isMember) {
             actionButtons = '<button id="club-action-btn" onclick="joinClub(\'' + clubId + '\')" style="flex:1;background: #0A2463; color: #fff; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; padding: 16px; border-radius: 9999px;">Rejoindre</button>';
           } else {
-            actionButtons = '<button onclick="openClubChat(\'' + clubId + '\', \'' + (club.name || 'Club').replace(/'/g, "\\'") + '\')" style="flex:1;background: #00C9A7; color: #fff; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; padding: 14px; border-radius: 9999px;">Chat</button>' +
+            actionButtons = '<button onclick="openClubChat(\'' + clubId + '\', \'' + (club.name || 'Club').replace(/'/g, "\\'") + '\', ' + (club.conversation_id || 'null') + ')" style="flex:1;background: #00C9A7; color: #fff; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; padding: 14px; border-radius: 9999px;">Chat</button>' +
               (isAnimateur
                 ? '<button onclick="openClubManage(\'' + clubId + '\')" style="flex:1;background: #F5A623; color: #fff; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; padding: 14px; border-radius: 9999px;">Gérer</button>'
                 : '<button onclick="leaveClub(\'' + clubId + '\')" style="flex:1;background: #F3F3FE; color: #BA1A1A; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; padding: 14px; border-radius: 9999px;">Quitter</button>');
@@ -3948,57 +3948,68 @@
       }).catch(function () { A.showToast('Erreur réseau'); });
   };
 
-  /* --------------------------- CHAT CLUB (polling 5s) --------------------------- */
+  /* --------------------------- CHAT CLUB (Socket.io temps réel, Phase 9/12) ---------------------------
+     Ancien polling 5s retiré. clubId sert toujours au GET initial (REST, /clubs/:id/messages,
+     réutilisé tel quel pour le chargement à l'ouverture), conversationId sert au temps réel
+     (join_conversation / send_message / new_message, socketService.js). A._socket est le socket
+     déjà initialisé par A.initSocket() (pas de window.__bolamuSocket dans ce dashboard — convention
+     propre au patient depuis Phase 5, distincte de celle des 7 dashboards non-patients Phase 7). */
   window._clubChatId = null;
-  window._clubChatPollTimer = null;
-  window.openClubChat = function (clubId, clubName) {
+  window._clubChatConvId = null;
+  window.openClubChat = function (clubId, clubName, conversationId) {
     window._clubChatId = clubId;
+    window._clubChatConvId = conversationId || null;
     document.getElementById('club-chat-title').textContent = clubName || 'Chat';
     document.getElementById('club-chat-messages').innerHTML = '<div style="text-align:center;color:#9CA3AF;font-size:0.85rem;padding:20px;">Chargement...</div>';
     document.getElementById('club-chat-panel').classList.add('active');
     loadClubChatMessages();
-    if (window._clubChatPollTimer) clearInterval(window._clubChatPollTimer);
-    window._clubChatPollTimer = setInterval(loadClubChatMessages, 5000);
+    if (window._clubChatConvId && A._socket) A._socket.emit('join_conversation', window._clubChatConvId);
   };
   window.closeClubChat = function () {
     document.getElementById('club-chat-panel').classList.remove('active');
-    if (window._clubChatPollTimer) { clearInterval(window._clubChatPollTimer); window._clubChatPollTimer = null; }
+    if (window._clubChatConvId && A._socket) A._socket.emit('leave_conversation', window._clubChatConvId);
     window._clubChatId = null;
+    window._clubChatConvId = null;
   };
+  function renderClubChatMessageHtml(m) {
+    var myPhone = A._patientPhone || '';
+    var mine = m.sender_phone === myPhone;
+    // REST (/clubs/:id/messages) renvoie first_name/last_name/photo_url ;
+    // le socket new_message (chat.service.js enriched) renvoie sender_name/sender_avatar_url.
+    var name = (m.sender_name || ((m.first_name || '') + ' ' + (m.last_name || '')).trim()) || 'Membre';
+    var avatarHtml = window.BolamuAvatar.render({ photoUrl: m.sender_avatar_url || m.photo_url || null, fullName: name, role: 'patient', size: 20 });
+    return '<div style="display:flex;flex-direction:column;align-items:' + (mine ? 'flex-end' : 'flex-start') + ';">' +
+      (mine ? '' : '<div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;color:#9498a8;margin-bottom:2px;margin-left:4px;">' + avatarHtml + '<span>' + A.escapeHtml(name) + '</span></div>') +
+      '<div style="max-width:75%;padding:10px 14px;border-radius:16px;font-size:0.88rem;line-height:1.4;' + (mine ? 'background:#0A2463;color:#fff;border-bottom-right-radius:4px;' : 'background:#fff;border:1px solid #EDEDF8;color:#0A2463;border-bottom-left-radius:4px;') + '">' + A.escapeHtml(m.content) + '</div></div>';
+  }
   function loadClubChatMessages() {
     if (!window._clubChatId) return;
     apiFetch('https://www.bolamu.co/api/v1/clubs/' + window._clubChatId + '/messages', {})
       .then(function (r) { return r && r.json(); }).then(function (d) {
         if (!d || !d.success) return;
         var el = document.getElementById('club-chat-messages');
-        var myPhone = A._patientPhone || '';
         if (!d.data || d.data.length === 0) {
           el.innerHTML = '<div style="text-align:center;color:#9CA3AF;font-size:0.85rem;padding:20px;">Aucun message. Lancez la conversation !</div>';
           return;
         }
-        el.innerHTML = d.data.map(function (m) {
-          var mine = m.sender_phone === myPhone;
-          var name = ((m.first_name || '') + ' ' + (m.last_name || '')).trim() || 'Membre';
-          var avatarHtml = window.BolamuAvatar.render({ photoUrl: m.photo_url || null, fullName: name, role: 'patient', size: 20 });
-          return '<div style="display:flex;flex-direction:column;align-items:' + (mine ? 'flex-end' : 'flex-start') + ';">' +
-            (mine ? '' : '<div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;color:#9498a8;margin-bottom:2px;margin-left:4px;">' + avatarHtml + '<span>' + A.escapeHtml(name) + '</span></div>') +
-            '<div style="max-width:75%;padding:10px 14px;border-radius:16px;font-size:0.88rem;line-height:1.4;' + (mine ? 'background:#0A2463;color:#fff;border-bottom-right-radius:4px;' : 'background:#fff;border:1px solid #EDEDF8;color:#0A2463;border-bottom-left-radius:4px;') + '">' + A.escapeHtml(m.content) + '</div></div>';
-        }).join('');
+        el.innerHTML = d.data.map(renderClubChatMessageHtml).join('');
         el.scrollTop = el.scrollHeight;
       }).catch(function () {});
+  }
+  function appendClubChatMessage(m) {
+    var panel = document.getElementById('club-chat-panel');
+    var el = document.getElementById('club-chat-messages');
+    if (!panel || !el || !panel.classList.contains('active')) return;
+    if (el.children.length === 1 && el.textContent.indexOf('Aucun message') !== -1) el.innerHTML = '';
+    el.insertAdjacentHTML('beforeend', renderClubChatMessageHtml(m));
+    el.scrollTop = el.scrollHeight;
   }
   window.sendClubChatMessage = function () {
     var input = document.getElementById('club-chat-input');
     var content = input.value.trim();
-    if (!content || !window._clubChatId) return;
+    if (!content || !window._clubChatConvId || !A._socket) return;
     input.value = '';
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + window._clubChatId + '/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: content })
-    }).then(function (r) { return r && r.json(); }).then(function (d) {
-      if (d && d.success) loadClubChatMessages();
-    }).catch(function () {});
+    A._socket.emit('send_message', { conversation_id: window._clubChatConvId, content: content });
   };
 
   /* --------------------------- GESTION CLUB (animateur) --------------------------- */
@@ -4705,6 +4716,15 @@
       if (payload.sender_phone === myPhone) return;
       A._messagesUnread = (A._messagesUnread || 0) + 1;
       A.updateMessagesBadge();
+    });
+
+    // Chat club temps réel (Phase 9/12) — remplace le polling 5s. Filtré sur
+    // window._clubChatConvId (fenêtre club ouverte) pour ne pas interférer
+    // avec les écouteurs new_message ci-dessus (communauté / badge Messages).
+    A._socket.on('new_message', function (payload) {
+      if (!payload || !window._clubChatConvId) return;
+      if (String(payload.conversation_id) !== String(window._clubChatConvId)) return;
+      appendClubChatMessage(payload);
     });
   };
 
