@@ -260,6 +260,7 @@ router.get('/leaderboard/weekly', authMiddleware, async (req, res) => {
          AND u.is_active = true
          AND zl.earned_at >= date_trunc('week', NOW())
        GROUP BY u.phone, u.full_name, u.first_name, u.last_name, u.photo_url
+       HAVING SUM(zl.points) > 0
        ORDER BY weekly_points DESC
        LIMIT 50`
     );
