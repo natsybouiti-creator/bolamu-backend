@@ -1,191 +1,116 @@
-# ARCHITECTURE SOCIAL & COMMUNAUTÉ BOLAMU — DOCUMENT UNIQUE
-## Identité · Feed · Follows · Clubs · Chat · Notifications · Frontend · Système de preuve
+# ARCHITECTURE COMMUNAUTÉ BOLAMU — DOCUMENT UNIQUE
+## Événements · Clubs · Chat · Notifications · Frontend · Système de preuve
 
-**Version 1.0 — Fusionne et remplace ARCHITECTURE_COMMUNAUTE_BOLAMU.md (V3.0) et ARCHITECTURE_RESEAU_SOCIAL_BOLAMU.md.**
-**Elonga (événements santé/bien-être) fait l'objet d'un document séparé : ARCHITECTURE_ELONGA_BOLAMU.md, qui consomme les briques définies ici (profils, feed, notifications, pattern de popup).**
-**Règle d'or : rien n'est « fait » tant que sa preuve réelle n'est pas visible (section 13).**
+**Version 4.0 — Mise à jour post-chantier chat unifié (juillet 2026).**
+**Supersède V3.0. Règle d'or : rien n'est « fait » tant que sa preuve réelle n'est pas visible (section 15).**
 
 ---
 
 ## 0. PHILOSOPHIE
 
-Bolamu n'est pas une app de sport ni un réseau social générique. C'est une plateforme de santé communautaire où le lien social est un mécanisme de rétention et d'entraide, jamais une fin en soi. Chaque brique sociale (suivre quelqu'un, rejoindre un club, encourager un adhérent, commenter) doit soit renforcer un comportement de santé, soit créer un lien humain qui donne envie de revenir. Modèle de référence pour les mécaniques sociales : Instagram/LinkedIn pour le feed et les profils, Facebook Groups pour les clubs — mais **jamais** pour le gain Zora, qui reste régi exclusivement par la règle anti-fraude (section 7).
+Bolamu n'est pas une app de sport. C'est une plateforme de santé communautaire. La communauté est le mécanisme de rétention : chaque interaction (rejoindre un club, participer à un événement, envoyer un message) doit produire (1) un comportement de santé positif, (2) un gain Zora, (3) un lien social. Modèle de référence : **Sweatcoin**, pas les réseaux sociaux.
 
-Le frontend suit une règle absolue héritée de l'ancien doc Communauté : **un seul Hub, des panneaux qui se substituent (modal centré, corrigé le 7 juillet 2026 — voir section 9), jamais de nouvelle page**.
-
----
-
-## 1. ÉTAT DE LA BASE (audit — à confirmer par Claude Code avant toute écriture)
-
-### 1.1 Déjà en production (sprint réseau social)
-| Table / colonne | État |
-|---|---|
-| `posts`, `post_likes`, `post_comments`, `follows`, `story_views` | Créées, en prod sur Neon |
-| `posts.is_active` (soft-delete), `posts.type` CHECK `('manual','system','story')`, `posts.metadata JSONB` | Convention réelle du schéma — ne pas introduire `is_deleted` ni une colonne `link` sur `posts`, elle n'existe pas |
-| `users.bio`, `avatar_url`, `avatar_pid`, `city`, `looking_for` | Ajoutées |
-| `notifications.link`, `notifications.metadata` | Ajoutées |
-| `notifications_type_check` / `notifications_canal_check` | Étendues (`new_like`, `new_comment`, `new_follower`, `in_app`) |
-| Table d'encouragement (pouce levé), backing `/patients/encouragements/received` | **Existe déjà mais nom exact de la table à confirmer par Claude Code** (`SELECT table_name FROM information_schema.tables WHERE table_name ILIKE '%encourag%'`) avant d'écrire la moindre migration dessus |
-
-### 1.2 Existant, incomplet (hérité de l'ancien doc Communauté) — corrigé le 7 juillet 2026
-| Table | État | Lacune |
-|---|---|---|
-| `clubs` | Existe, **`conversation_id` déjà présent et utilisé en prod** (confirmé par `information_schema.columns` le 7 juillet 2026 — la version précédente de ce document listait cette colonne comme manquante, à tort) | Pas de `status`, `image_url`, `description`, `sport_type`, `join_mode` (non revérifiées depuis) |
-| `club_members` | Existe (`patient_phone`) | Pas de `removed_at` (retrait par l'animateur) |
-| `conversations` | Existe, **`type` accepte déjà `private`/`club`/`patient_medecin`/`communaute`** (contrainte `conversations_type_check` vérifiée en base le 7 juillet 2026), **`title`/`last_message_at` déjà présentes** | Aucune lacune de schéma restante (les deux points listés précédemment étaient déjà résolus) |
-| `conversation_participants` | Existe, **`last_read_at` déjà présente** (vérifiée le 7 juillet 2026) | Aucune lacune de schéma restante |
-| `messages` | **EXISTE déjà** (contrairement à la version précédente de ce document, qui la donnait comme absente) — colonnes réelles : `id, conversation_id, sender_phone, content, type, sent_at, is_deleted, message_type`, utilisée massivement par `chat.service.js` et `clubs.controller.js` | Le code applicatif lit/écrit `sent_at`/`type`, jamais `created_at`/`message_type` (cette dernière colonne existe en base mais n'est exploitée par aucun code actuel) |
-| `club_activities` | Non revérifiée depuis la dernière version de ce document | À confirmer |
-
-### 1.3 Vérification factuelle obligatoire avant rédaction du plan d'implémentation
-Avant toute migration, Claude Code doit prouver par requête réelle :
-1. Les groupes affichés sur la page d'accueil du dashboard patient proviennent-ils d'une vraie requête `SELECT * FROM clubs` ou sont-ils codés en dur dans le HTML ? Coller le code exact + le résultat de la requête.
-2. Le classement d'un club affiche-t-il aujourd'hui le numéro de téléphone brut ou déjà un nom/prénom ? Coller le rendu réel (capture ou HTML généré).
-3. Nom exact de la table d'encouragement existante + son schéma (`\d nom_table` sur Neon).
-
-Tant que ces 3 réponses n'ont pas de preuve réelle collée, la section 5.4 (extension du classement) ne peut pas démarrer.
+Le frontend suit une règle absolue : **un seul Hub, des panneaux qui se substituent, jamais de nouvelle page** (section 7).
 
 ---
 
-## 2. IDENTITÉ & PROFIL
+## 1. ÉTAT DE LA BASE (audit post-chantier chat unifié, juillet 2026)
 
-### 2.1 Principe
-Chaque adhérent a une seule identité visuelle cohérente partout dans l'app : **avatar + prénom/nom**, jamais un numéro de téléphone brut affiché à l'écran (le `phone` reste l'identifiant technique interne, jamais un identifiant visuel). Cette règle s'applique à : le feed, les commentaires, les notifications, le roster des clubs, la liste des participants Elonga, le chat.
-
-### 2.2 Upload avatar
-Réutilise le pattern déjà existant (upload photo de profil patient, Cloudinary). Un seul champ `users.avatar_url` consommé partout — jamais de duplication de la photo dans une autre table.
-
-| Méthode | Route | Auth |
+| Table | État | Notes |
 |---|---|---|
-| POST | `/api/v1/profiles/me/avatar` | patient (multipart, Cloudinary) |
-| GET | `/api/v1/profiles/:phone` | patient (profil public) |
-| PATCH | `/api/v1/profiles/me` | patient (bio, city, looking_for, interests) |
+| `elonga_events` | Existe | Pas de `status` — à migrer (section 2.2) |
+| `elonga_registrations` | Existe | OK |
+| `clubs` | Existe | `conversation_id` **présent** ✅ — clubs liés aux conversations |
+| `club_members` | Existe | OK (`patient_phone`) |
+| `conversations` | Existe | Types : `private`, `club`, `communaute`, `patient_medecin` ✅ |
+| `conversation_participants` | Existe | `role` élargi à 11 valeurs réelles ✅ (migration_076) |
+| `messages` | **Existe** ✅ | Créée et peuplée — moteur unique du chat |
+| `chat_messages` | **SUPPRIMÉE** ✅ | Retirée en migration_078 (juillet 2026) |
+| `chat_reactions` | **SUPPRIMÉE** ✅ | Retirée en migration_078 (juillet 2026) |
+| `club_activities` | ABSENTE | À créer (section 3.2) |
+| `follows` | ABSENTE | Ne pas implémenter |
+| `users.last_seen_at` | **Existe** ✅ | Ajoutée en migration_079 — présence multi-instances |
 
-### 2.3 Page profil public (« façon LinkedIn »)
-Cliquer sur un avatar ou un nom n'importe où dans l'app (feed, commentaire, roster, participants) ouvre un panneau (modal centré, section 9) — jamais une nouvelle page — affichant :
-- Photo, prénom/nom, bio, badges, ville
-- Compteurs : abonnés / abonnements / clubs rejoints
-- Bouton Suivre / Ne plus suivre (si ce n'est pas soi-même)
-- Fil de ses posts publics (comme un mini-feed personnel, réutilise `GET /feed?author=:phone`)
-- Section commentaires du profil (« mur », section 5.4)
+Socket.io **opérationnel** sur tous les dashboards depuis le chantier chat unifié (juillet 2026).
 
-```jsonc
-// GET /api/v1/profiles/:phone
-{
-  "phone": "+242…", "full_name": "…", "avatar_url": "…", "bio": "…", "city": "…",
-  "followers_count": 12, "following_count": 8, "clubs_count": 3,
-  "is_following": false, "is_self": false
-}
+---
+
+## 2. ÉVÉNEMENTS ELONGA
+
+### 2.1 Cycle de vie (6 états)
+
+```
+DRAFT → PENDING_VALIDATION → PUBLISHED → ACTIVE → COMPLETED → ARCHIVED
 ```
 
----
+| État | Acteur | Déclencheur | Visible patient | Inscription | Check-in | Zora |
+|---|---|---|---|---|---|---|
+| `draft` | Animateur | crée | Non | Non | Non | Non |
+| `pending_validation` | Système | après soumission | Non | Non | Non | Non |
+| `published` | Admin | valide | Oui (liste) | Oui | Non | Non |
+| `active` | CRON | à `starts_at` | Oui (LIVE) | Oui (si places) | Oui | Non |
+| `completed` | CRON | à `ends_at` | Oui (historique) | Non | Non | **Oui (auto)** |
+| `archived` | Admin | manuel | Non | Non | Non | Non |
 
-## 3. FEED (posts, likes, commentaires, suppression)
+Création : animateur → `pending_validation`. Jamais auto-généré.
 
-### 3.1 État
-`posts`, `post_likes`, `post_comments` déjà en prod. Auto-publication déjà branchée sur `zora.service.js::awardZora()`, `clubs.controller.js::joinClub()`, `elonga-events.service.js::processCheckin()`.
+### 2.2 Schéma cible (à migrer)
 
-### 3.2 Suppression d'un post — nouvelle règle
-| Méthode | Route | Auth | Comportement |
-|---|---|---|---|
-| DELETE | `/api/v1/feed/posts/:id` | auteur du post uniquement | Soft delete (`posts.is_active = false` — colonne existante, ne pas créer `is_deleted`), jamais de DELETE physique (règle invariante section 8.2) |
+```sql
+ALTER TABLE elonga_events
+  ADD COLUMN IF NOT EXISTS status VARCHAR(30) DEFAULT 'draft'
+    CHECK (status IN ('draft','pending_validation','published','active','completed','archived')),
+  ADD COLUMN IF NOT EXISTS max_participants INTEGER DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS current_participants INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS created_by VARCHAR(20) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ DEFAULT NULL;
+CREATE INDEX IF NOT EXISTS idx_elonga_events_status ON elonga_events(status);
+CREATE INDEX IF NOT EXISTS idx_elonga_events_starts_at ON elonga_events(starts_at);
+```
 
-Un post supprimé disparaît du feed de tout le monde mais reste en base (audit, anti-abus). Les likes/commentaires associés restent en base mais ne s'affichent plus (le post masqué les entraîne visuellement). Toute requête de lecture du feed doit filtrer `WHERE is_active = true` — **vérifier que c'est déjà le cas partout avant d'ajouter la route DELETE**, sinon un post désactivé continuerait à s'afficher.
-
-Le bouton de suppression n'apparaît que sur ses propres posts (`post.author_phone === utilisateur connecté`), avec confirmation avant l'action (« Supprimer cette publication ? »).
-
-### 3.3 Tri du feed
-Chronologique décroissant (le plus récent en premier), sans filtre géographique — à ne pas confondre avec le tri « près de chez vous » de la page d'accueil, propre à Elonga (voir doc Elonga).
-
----
-
-## 4. FOLLOWS
-
-`follows` est déjà implémenté et en prod. **Correction officielle** : l'ancienne règle « follows → ne pas implémenter » (doc Communauté V3.0, section 13.6) est obsolète et annulée par ce document.
+### 2.3 Routes événements
 
 | Méthode | Route | Auth |
 |---|---|---|
-| POST | `/api/v1/follows/:phone` | patient |
-| DELETE | `/api/v1/follows/:phone` | patient |
-| GET | `/api/v1/follows/:phone/followers` | patient |
-| GET | `/api/v1/follows/:phone/following` | patient |
+| GET | `/api/v1/events` | patient (published/active) |
+| GET | `/api/v1/events/:id` | patient |
+| GET | `/api/v1/events/:id/participants` | patient |
+| POST | `/api/v1/events/:id/register` | patient |
+| POST | `/api/v1/events/:id/checkin` | animateur (propriétaire) / admin |
+| POST | `/api/v1/animateur/events` | animateur (→ pending_validation) |
+| GET | `/api/v1/animateur/events` | animateur |
+| GET | `/api/v1/animateur/events/:id/registrations` | animateur |
+| GET | `/api/v1/animateur/checkins/today` | animateur |
+| GET | `/api/v1/admin/events/pending` | admin |
+| PATCH | `/api/v1/admin/events/:id/publish` | admin |
+| PATCH | `/api/v1/admin/events/:id/cancel` | admin |
+| PATCH | `/api/v1/admin/events/:id/activate` | admin |
+| PATCH | `/api/v1/admin/events/:id/complete` | admin |
+| GET | `/api/v1/admin/checkins/history` | admin |
+
+### 2.4 CRON de transition (toutes les 15 min)
+
+`published` → `active` quand `starts_at <= NOW() < ends_at`. `active` → `completed` quand `ends_at <= NOW()`, puis crédite Zora aux `checked_in` non encore crédités (INSERT `zora_ledger` + `zora_credited = 1`), en transaction.
 
 ---
 
-## 4bis. CONFIDENTIALITÉ DES COMPTES (compte privé/public)
-### STATUT : IMPLÉMENTÉ ET VALIDÉ PAR PREUVE RÉELLE — 7 juillet 2026 — Preuves section 14.2
+## 3. CLUBS
 
-Les preuves T-priv3 à T-priv5 initialement collées le 7 juillet 2026 avaient été obtenues
-sur des comptes non conformes à la consigne de test (ID 49/307, comptes réels et non des
-comptes de test fictifs). Elles ont été rejouées intégralement le même jour sur le couple
-de comptes de test dédié (Test Zora ID 62 / Sarah Test ID 225, section 14.2). Deux bugs
-réels ont été trouvés et corrigés au passage (section 14.2.1) :
-1. `PATCH /patients/profil-social` plantait (500, "value ... is out of range for type
-   integer") dès qu'`is_private` changeait — `audit_log.target_id` (INTEGER) recevait le
-   `phone` au lieu de l'`id` numérique.
-2. `notifyLite()` échouait silencieusement (aucune exception visible) pour les types
-   `follow_request` et `follow_request_accepted`, absents de la contrainte CHECK
-   `notifications_type_check` — aucune notification n'était jamais créée pour une
-   demande de suivi ou son acceptation.
+### 3.1 Cycle : `DRAFT → ACTIVE → ARCHIVED`
 
-### 4bis.1 Principe
-Par défaut, tout compte est public (`users.is_private = false`), comportement inchangé par rapport à l'existant. Un adhérent peut activer un statut privé depuis son profil. Le modèle suit Instagram : compte public → suivi direct, compte privé → suivi soumis à acceptation.
+### 3.2 Schéma cible (partiellement fait)
 
-### 4bis.2 Schéma implémenté
-| Table / colonne | Rôle | État réel confirmé par audit du 7 juillet 2026 |
-|---|---|---|
-| `users.is_private` | BOOLEAN, défaut `false` | **Existe** (colonne créée) |
-| `follow_requests` | Table dédiée : `id`, `requester_phone`, `target_phone`, `status`, `created_at`, `responded_at` | **Existe** (table créée) |
+`clubs.conversation_id` **existe déjà en base** ✅ — chaque club est lié à une `conversation` de type `club`. Reste à créer `club_activities` :
 
-### 4bis.3 Routes implémentées
-| Méthode | Route | Auth | Comportement implémenté |
-|---|---|---|---|
-| PATCH | `/api/v1/patients/profil-social` | patient | accepte `is_private` en plus des champs existants |
-| POST | `/api/v1/follows/:phone` | patient | si cible privée : crée une ligne `follow_requests` pending au lieu d'un follow direct |
-| PATCH | `/api/v1/follows/follow-requests/:id` | patient | accepte ou refuse une demande (action: accept/reject) |
-| GET | `/api/v1/patients/profil-social/:phone` | optionalAuth | retourne `is_following`, `is_self`, `locked` selon le statut privé |
-| GET | `/api/v1/feed?author=:phone` | optionalAuth | retourne `locked: true` si compte privé et non suivi |
-
-### 4bis.4 Effet sur la visibilité
-Si le compte visité est privé et que le visiteur n'est ni l'auteur, ni un follower accepté, les routes suivantes retournent un contenu verrouillé (`locked:true`) : `GET /patients/profil-social/:phone`, `GET /feed?author=:phone`. Implémenté avec middleware `optionalAuth` pour permettre l'accès public avec détection du contexte utilisateur.
-
-### 4bis.5 Règle anti-fraude (rappel section 10)
-Une demande de suivi acceptée/refusée ne crédite jamais de Zora, comme toute interaction sociale. Confirmé par l'implémentation dans `src/controllers/follows.controller.js` sans appel à `awardZora()`.
-
-### 4bis.6 Preuves d'implémentation
-Les preuves T-priv1 à T-priv5 sont disponibles section 14.2.
-
----
-
-## 5. CLUBS / GROUPES (fusion de l'ancienne section Communauté)
-
-### 5.1 Cycle : `DRAFT → ACTIVE → ARCHIVED` (inchangé)
-
-### 5.2 Schéma cible
 ```sql
 ALTER TABLE clubs
   ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active'
     CHECK (status IN ('draft','active','archived')),
-  ADD COLUMN IF NOT EXISTS conversation_id INTEGER REFERENCES conversations(id),
   ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS description TEXT DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS sport_type VARCHAR(50) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS join_mode VARCHAR(20) DEFAULT 'open'
-    CHECK (join_mode IN ('open','approval'));
-
-ALTER TABLE club_members
-  ADD COLUMN IF NOT EXISTS removed_at TIMESTAMPTZ DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS removed_by VARCHAR(20) DEFAULT NULL;
-
-CREATE TABLE IF NOT EXISTS club_join_requests (
-  id SERIAL PRIMARY KEY,
-  club_id INTEGER NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
-  patient_phone VARCHAR(20) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
-  requested_at TIMESTAMPTZ DEFAULT NOW(),
-  decided_at TIMESTAMPTZ,
-  decided_by VARCHAR(20)
-);
+  ADD COLUMN IF NOT EXISTS sport_type VARCHAR(50) DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS club_activities (
   id SERIAL PRIMARY KEY,
@@ -203,375 +128,419 @@ CREATE INDEX IF NOT EXISTS idx_clubs_status ON clubs(status);
 CREATE INDEX IF NOT EXISTS idx_club_activities_club ON club_activities(club_id, scheduled_at);
 ```
 
-`join_mode = 'open'` par défaut (rejoindre en un clic) ; l'animateur peut passer son club en `'approval'` s'il veut valider chaque demande — ça évite d'imposer une friction à tous les clubs alors que le besoin de validation ne concerne pas forcément tous les groupes.
+### 3.3 Règles invariantes clubs
+- **Création d'un club → crée automatiquement une `conversation` de type `club`** et y ajoute l'animateur comme participant. ✅ Implémenté.
+- **Rejoindre un club → ajoute le patient à `conversation_participants`** de ce club. ✅ Implémenté.
+- **Messages de club → moteur `messages`/Socket.io générique** (polling 5s retiré en Phase 9/12). ✅
 
-### 5.3 Modération animateur (4 pouvoirs confirmés)
-| Pouvoir | Route | Effet |
-|---|---|---|
-| Retirer un membre | `DELETE /api/v1/animateur/clubs/:id/members/:phone` | `club_members.removed_at` renseigné (soft), retrait du chat associé |
-| Supprimer un message du chat | `PATCH /api/v1/animateur/clubs/:id/messages/:messageId/moderate` | `messages.is_deleted = true` |
-| Modifier la fiche du groupe | `PATCH /api/v1/clubs/:id` | animateur propriétaire uniquement |
-| Valider une demande d'adhésion | `PATCH /api/v1/animateur/clubs/:id/requests/:requestId` | `{ decision: 'approved'\|'rejected' }` → si approuvé, insertion réelle dans `club_members` + ajout au chat |
+### 3.4 Routes clubs
 
-L'animateur est le modérateur unique de son club — pas de rôle « co-modérateur » pour l'instant (à ouvrir plus tard si besoin).
-
-### 5.4 Roster & classement — épuré et enrichi
-Le classement (`GET /clubs/:id/members`) affiche désormais **prénom/nom + avatar**, jamais le téléphone brut :
-
-```jsonc
-// GET /api/v1/clubs/:id/members
-{
-  "items": [
-    { "rank": 1, "phone_hidden": true, "display_name": "Marie K.", "avatar_url": "…",
-      "zora_in_club": 3200, "encouragements_received": 4, "my_encouragement_sent": false }
-  ]
-}
-```
-`phone_hidden: true` signale explicitement au frontend qu'aucun numéro ne doit apparaître — le champ `phone` réel n'est même pas renvoyé dans cette réponse.
-
-**Encouragement (pouce levé)** : réutilise la table existante (nom exact à confirmer, section 1.3), étendue avec un `club_id` optionnel pour tracer le contexte. Sert en priorité à motiver les membres avec peu de Zora — un membre en bas de classement encouragé plusieurs fois devrait recevoir une notification groupée (« 3 personnes t'ont encouragé cette semaine »).
-
-**Commentaire de profil (« mur »)** — nouvelle table, séparée de `post_comments` pour ne pas toucher au schéma déjà en prod, mais alignée sur sa convention réelle (UUID, `phone` VARCHAR référencé, `is_active` — pas `is_deleted`) :
-```sql
-CREATE TABLE IF NOT EXISTS profile_comments (
-  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  author_phone   VARCHAR(20) NOT NULL REFERENCES users(phone) ON DELETE CASCADE,
-  target_phone   VARCHAR(20) NOT NULL REFERENCES users(phone) ON DELETE CASCADE,
-  content        TEXT NOT NULL,
-  club_id        INTEGER REFERENCES clubs(id),
-  is_active      BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-CREATE INDEX IF NOT EXISTS idx_profile_comments_target ON profile_comments(target_phone, created_at DESC);
-```
-| Méthode | Route | Auth |
-|---|---|---|
-| POST | `/api/v1/profiles/:phone/comments` | patient |
-| GET | `/api/v1/profiles/:phone/comments` | patient |
-| DELETE | `/api/v1/profiles/comments/:id` | auteur du commentaire uniquement (soft delete) |
-
-**Anti-fraude** (rappel section 7) : ni l'encouragement ni le commentaire de profil ne créditent de Zora. Ce sont des mécaniques purement sociales.
-
-### 5.5 Popup club — CIBLE À IMPLÉMENTER : migrer vers le modal centré (§9.1)
-
-**État réel au 7 juillet 2026** : le popup club (`#club-panel`, CSS `dashboard.html:28`, JS `openClubPanel` l.3469-3517) est un **panneau plein écran opaque** (`position:fixed; width:100vw; height:100vh; background:#FAF8FF; z-index:1000`, animation `slideInUp`) — ni le bottom sheet transparent que décrivait une version antérieure de ce document, ni le modal centré désormais retenu comme référence (§9.1, corrigé le 7 juillet 2026). C'est un troisième pattern, distinct des deux.
-
-**Cible** : migrer `#club-panel` vers le pattern `.modal-bg` de `#modal-event-detail` (référence officielle depuis le 7 juillet 2026, voir §9.1) : carte centrée `max-width:520px`, backdrop flouté qui bloque intentionnellement le dashboard derrière, hero avec overlay, fermeture par clic-backdrop + bouton close, état de chargement optimiste avant réponse réseau (au lieu d'ouvrir le panel seulement après la réponse comme aujourd'hui). Contenu affiché inchangé : photo, description, nombre de membres, date de création, animateur (avatar + nom, badge « Modérateur »), bouton contextuel (Rejoindre / Demande envoyée / Membre / Voir le classement). Chantier non réalisé dans le cadre de cette mise à jour documentaire — documentation uniquement, aucun code modifié.
-
-**Corrigé (7 juillet 2026, indépendant de la migration de pattern ci-dessus)** : `openClubPanel` (dashboard.html) lisait `club.banner_url || club.image_url` pour la photo de couverture du popup, deux champs que l'API ne renvoie jamais — remplacé par `club.cover_image_path`, seul champ réellement renvoyé par `GET /clubs/:id`. Même dégradé de repli qu'avant (identique à celui des cards `renderSportGroups`) si aucune photo n'est définie. Preuve : `GET /clubs/:id` confirmé par appel HTTP réel (renvoie `cover_image_path`, jamais `banner_url`/`image_url`) ; rendu vérifié en extrayant les lignes réelles du fichier et en les exécutant avec le club de test id=36 (photo Cloudinary réelle → URL correcte dans `bannerStyle` ; sans photo → dégradé de repli).
-
-### 5.6 Routes clubs (complètes)
 | Méthode | Route | Auth |
 |---|---|---|
 | GET | `/api/v1/clubs` | patient |
 | GET | `/api/v1/clubs/:id` | patient |
-| GET | `/api/v1/clubs/:id/members` | patient (classement, roster épuré) |
+| GET | `/api/v1/clubs/:id/members` | patient (classement Zora) |
 | POST | `/api/v1/clubs` | patient (devient animateur) |
-| POST | `/api/v1/clubs/:id/join` | patient (direct si `join_mode='open'`, sinon crée une demande) |
+| POST | `/api/v1/clubs/:id/join` | patient (+ rejoint le chat) |
 | POST | `/api/v1/clubs/:id/leave` | patient |
 | POST | `/api/v1/clubs/:id/activities` | animateur du club |
-| POST | `/api/v1/clubs/:id/members/:phone/encourage` | patient (pouce levé) |
 | GET | `/api/v1/animateur/clubs` | animateur |
-| GET | `/api/v1/animateur/clubs/:id/requests` | animateur (demandes en attente) |
 | POST | `/api/v1/animateur/clubs/:id/notify` | animateur du club |
 
 ---
 
-## 6. CHAT (partiellement implémenté — vérifié contre le code réel le 7 juillet 2026)
+## 4. CHAT — SYSTÈME UNIFIÉ ✅ LIVRÉ (juillet 2026)
 
-**Statut réel** : contrairement à la mention « inchangé, hérité tel quel » d'une version antérieure de ce document, l'audit du 7 juillet 2026 montre que le schéma de base (§6.2) et la règle invariante clubs (§6.4) sont déjà implémentés. Ce qui reste réellement en écart avec ce document : les événements Socket.io `send_message`/`read_messages` (§6.3, jamais implémentés) et la méthode HTTP de la route `/read` (§6.4, `POST` en réalité, pas `PATCH`). Voir aussi §6.5 « Bugs identifiés » pour 3 bugs réels trouvés pendant l'audit.
+> **Chantier chat unifié terminé** (12 phases, juillet 2026). Tout le chat de la plateforme est consolidé sur `conversations`/`messages`/`conversation_participants`. L'ANCIEN SYSTÈME (`chat_messages`, `chat_reactions`) a été supprimé.
 
-### 6.1 Types de conversation : `private` (2), `club` (N), `patient_medecin` (2)
+### 4.1 Types de conversation
 
-### 6.2 Schéma réel (vérifié le 7 juillet 2026 — déjà appliqué, contrairement à ce qu'affirmait une version antérieure de ce document)
+| Type | Participants | Usage |
+|---|---|---|
+| `private` | 2 | 1-to-1 entre n'importe quels rôles |
+| `club` | N | Groupe de club (conversation auto-créée à la création du club) |
+| `patient_medecin` | 2 | Canal médecin historique (migration vers `private` à terme) |
+| `communaute` | N | Fil communautaire global (posts Zora, achievements) |
 
-`conversations`, `conversation_participants` et `messages` existent déjà avec le schéma suivant (confirmé par `information_schema.columns` et `pg_get_constraintdef` sur Neon — aucune de ces migrations n'est « à faire ») :
+### 4.2 Schéma réel en base (post-migrations)
 
 ```sql
--- conversations : déjà conforme, aucune ALTER à rejouer
--- colonnes réelles : id, type, club_id, created_at, is_active, title, last_message_at
--- contrainte réelle (déjà en place) :
---   CHECK (type IN ('private','club','patient_medecin','communaute'))
+-- conversation_participants.role : valeurs réelles de users.role, VARCHAR(30) depuis migration_076
+CHECK (role IN (
+  'patient', 'doctor', 'secretaire', 'pharmacie', 'laboratoire',
+  'animateur', 'partenaire_commercial', 'rh', 'admin',
+  'content_admin', 'agent_bolamu'
+))
 
--- conversation_participants : déjà conforme, aucune ALTER à rejouer
--- colonnes réelles : id, conversation_id, participant_phone, role, joined_at, last_read_at
+-- messages : table principale du chat
+CREATE TABLE messages (
+  id SERIAL PRIMARY KEY,
+  conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_phone VARCHAR(20) NOT NULL,
+  content TEXT NOT NULL,
+  message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text','image','system')),
+  sent_at TIMESTAMPTZ DEFAULT NOW(),   -- colonne réelle : sent_at (pas created_at)
+  read_at TIMESTAMPTZ,
+  deleted_at TIMESTAMPTZ
+);
 
--- messages : la table EXISTE déjà (elle n'est pas « à créer »)
--- colonnes réelles : id, conversation_id, sender_phone, content, type, sent_at, is_deleted, message_type
--- le code applicatif (chat.service.js, clubs.controller.js) utilise sent_at et type,
--- jamais created_at ni message_type (colonne présente en base mais non exploitée par le code actuel)
+-- users.last_seen_at : présence multi-instances (migration_079)
+ALTER TABLE users ADD COLUMN last_seen_at TIMESTAMPTZ;
 ```
 
-### 6.3 Socket.io — état réel (vérifié le 7 juillet 2026)
+### 4.3 Socket.io — événements implémentés
 
-Toute la logique Socket.io réside dans `src/services/socketService.js` (il n'existe pas de fichier dédié `chat.socket.js`). Événements réellement implémentés côté serveur : `authenticate`, `join_conversation` (rejoint la room `conversation_{id}` — attend une valeur brute, pas un objet, voir bug #1 en §6.5), `leave_conversation`, `disconnect`.
+**Écoute (client → serveur) :**
 
-**Écriture = REST uniquement, décision assumée** (`chat.routes.js:12`, commentaire explicite « Polling toutes les 10s depuis le frontend, pas de WebSocket ») : les événements `send_message` et `read_messages` évoqués dans une version antérieure de ce document **ne sont pas implémentés et il n'est pas prévu de les implémenter** — `POST /chat/conversations/:id/messages` (REST) fait le travail (INSERT + émission serveur→client de `new_message` via `emitToRoom()`, `chat.service.js:269-270`). Le push temps réel fonctionne donc uniquement en sortie (serveur → client écoute `new_message`), jamais en entrée par socket.
+| Événement | Payload | Comportement serveur |
+|---|---|---|
+| `authenticate` | `token` JWT | Valide, stocke `socket.data.phone`, émet `authenticated` |
+| `join_conversation` | `{ conversation_id }` | Vérifie appartenance → `socket.join()` → émet `conversation_joined` ✅ |
+| `leave_conversation` | `{ conversation_id }` | `socket.leave()` |
+| `send_message` | `{ conversation_id, content }` | Vérifie appartenance → INSERT → émet `new_message` à la room |
+| `mark_read` | `{ conversation_id, message_id }` | UPDATE `read_at` → émet `message_read` |
+| `typing_start` | `{ conversation_id }` | Relay aux autres membres |
+| `typing_stop` | `{ conversation_id }` | Relay aux autres membres |
 
-### 6.4 Routes chat (vérifiées contre le code réel le 7 juillet 2026)
+**Émission (serveur → client) :**
 
-| Méthode | Route | Auth | État réel |
+| Événement | Payload | Déclencheur |
+|---|---|---|
+| `authenticated` | `{ phone }` | Connexion réussie |
+| `conversation_joined` | `{ conversation_id, status: 'ok' }` | Après `join_conversation` ✅ |
+| `new_message` | `{ id, conversation_id, sender_phone, content, created_at, sender_name, sender_avatar_url }` | Nouveau message |
+| `message_read` | `{ conversation_id, message_id, read_at }` | Accusé de lecture |
+| `typing_start/stop` | `{ conversation_id, user_phone }` | Relay |
+| `user_online` | `{ user_phone }` | Connexion socket |
+| `user_offline` | `{ user_phone }` | Déconnexion socket |
+
+**Présence hybride Map+DB :**
+- `onlineUsers` Map locale (rapide, même instance Render)
+- `users.last_seen_at` mis à jour à chaque connexion/déconnexion (fallback multi-instances, TTL 30s)
+- `isOnline(phone)` async : vérifie Map d'abord, fallback DB si absent
+
+### 4.4 Routes chat — état réel
+
+| Méthode | Route | Auth | État |
 |---|---|---|---|
-| GET | `/api/v1/chat/conversations` | participant | ✅ testé en HTTP réel, fonctionne |
-| POST | `/api/v1/chat/conversations` | patient | ⚠️ crée toujours une conversation de type `patient_medecin` en dur (`chat.routes.js:140`), quels que soient les participants réels — ne crée jamais `type='private'` malgré la description initiale « créer privée » (voir bug #2 en §6.5) |
-| GET | `/api/v1/chat/conversations/:id/messages` | participant | ✅ testé en HTTP réel, fonctionne (aucune vérification de participation en lecture) |
-| POST | `/api/v1/chat/conversations/:id/messages` | participant | ✅ testé en HTTP réel, fonctionne **si l'appelant est réellement `conversation_participant`** — sinon 403 (voir conversation communauté ci-dessous) |
-| POST | `/api/v1/chat/conversations/:id/read` | participant | Route réellement en **`POST`**, pas `PATCH` comme l'affirmait une version antérieure de ce document — décision assumée le 7 juillet 2026, aucun changement de code prévu sur ce point |
+| GET | `/api/v1/chat/conversations` | tous rôles authentifiés | ✅ |
+| POST | `/api/v1/chat/conversations` | tous rôles authentifiés | ✅ Anti-doublon inclus |
+| GET | `/api/v1/chat/conversations/:id/messages` | participant (IDOR vérifié) | ✅ |
+| POST | `/api/v1/chat/conversations/:id/messages` | participant | ✅ Fallback REST |
+| PATCH | `/api/v1/chat/conversations/:id/read` | participant | ✅ |
+| GET | `/api/v1/chat/users/search` | tous rôles authentifiés | ✅ Phase 6 |
+| POST | `/api/v1/chat/medecin/:medecin_phone` | patient/doctor | ✅ Conservé |
 
-**Conversation communauté (id=1)** : en base, cette conversation n'a qu'**un seul** `conversation_participant`. Le frontend (`dashboard.html:2893,2901,2909`) fait pourtant pointer *tous* les patients vers `conversation_id:1` en dur, sans jamais les y inscrire — testé en HTTP réel le 7 juillet 2026, `POST /chat/conversations/1/messages` retourne `403 Accès non autorisé` pour un patient non inscrit. **CIBLE À IMPLÉMENTER** : auto-inscrire le patient comme `conversation_participant` de la conversation communauté à l'ouverture du chat (symétrique à la règle club ci-dessous, déjà implémentée pour les clubs).
+Exclusions : `admin` (pas de chat 1-to-1 — accès support à prévoir séparément), `content_admin` (exclu du scope).
 
-**Règle invariante clubs — IMPLÉMENTÉE (confirmé par audit du 7 juillet 2026)** : créer un club → crée automatiquement une `conversation` de type `club` + ajoute l'animateur comme participant (`src/routes/clubs.routes.js:83-97`). Rejoindre un club (ou être approuvé) → ajoute le patient à `conversation_participants` de ce club (`src/controllers/clubs.controller.js:105-113`, symétriquement retiré au départ/exclusion : `:206-212`, `:407-412`).
+### 4.5 Frontend — composant mutualisé
 
-### 6.5 Bugs identifiés (audit du 7 juillet 2026)
+**`public/js/bolamu-chat-window.js`** (394 lignes) — drawer latéral partagé.
 
-| # | Bug | Preuve | Impact | Étiquette |
+```javascript
+BolamuChatWindow.open({ conversationId, currentUserPhone, recipientName, recipientAvatar, socketInstance })
+BolamuChatWindow.close()
+BolamuChatWindow.isOpen() // → boolean
+```
+
+| Dashboard | Onglet Messages | Variable socket | Clé localStorage |
+|---|---|---|---|
+| patient | ✅ | `A._socket` | `bolamu_patient_token` |
+| medecin | ✅ | `window.__bolamuSocket` | `bolamu_doctor_token` |
+| pharmacie | ✅ | `window.__bolamuSocket` | `bolamu_pharmacie_token` |
+| laboratoire | ✅ | `window.__bolamuSocket` | `bolamu_laboratoire_token` |
+| secretaire | ✅ | `window.__bolamuSocket` | `bolamu_secretaire_token` |
+| rh | ✅ | `window.__bolamuSocket` | `bolamu_rh_token` |
+| animateur | ✅ | `window.__bolamuSocket` | `bolamu_animateur_token` |
+| agent_bolamu | ✅ | `window.__bolamuSocket` | `bolamu_agent_bolamu_token` |
+| admin | exclu | exclu | — |
+| content_admin | exclu | exclu | — |
+
+### 4.6 Performance
+
+`sendConversationMessage()` utilise un **CTE PostgreSQL unique** (INSERT + LEFT JOIN users). Gain mesuré : ~481ms → ~241ms médiane (−50%).
+
+---
+
+## 5. NOTIFICATIONS (WAHA)
+
+### 5.1 Infrastructure
+- Canal : **WAHA** — `POST waha-bolamu.onrender.com/api/sendText`.
+- Service : **`whatsapp-web.service.js`** → `sendAutoMessage(phone, templateName, params)`. Zéro Puppeteer.
+
+### 5.2 Templates communauté (noms canoniques exclusifs)
+`bolamu_admin_event_soumis`, `bolamu_animateur_event_valide`, `bolamu_animateur_event_refuse`, `bolamu_event_publication`, `bolamu_event_inscription`, `bolamu_event_rappel`, `bolamu_checkin_confirme`, `bolamu_event_zora_credite`, `bolamu_animateur_nouveau_membre`, `bolamu_club_activite`, `bolamu_message_offline`.
+
+### 5.3 Règle offline/online (chat)
+Si destinataire connecté en Socket.io → ne pas envoyer. Si offline → envoyer `bolamu_message_offline` après 2 min (re-vérifier via `isOnline()` hybride Map+DB avant l'envoi).
+
+---
+
+## 6. RÔLE ANIMATEUR
+
+Rôle distinct, validé par token + middleware. **Peut** : créer événements, gérer inscrits, scanner QR (`html5-qrcode`), créer/gérer clubs, notifier son club, programmer des activités. **Ne peut pas** : publier directement, modifier Zora, accéder aux données médicales.
+
+Dashboard animateur — 4 onglets : Accueil, Événements (scanner QR intégré), Clubs, Notifications.
+
+---
+
+## 7. FRONTEND — HUB COMMUNAUTÉ UNIQUE
+
+### 7.1 Principe
+Un seul écran racine. Les « pages » sont des **panneaux** qui se substituent. Jamais de nouvelle page, jamais de rechargement.
+
+- **Interdit** : `window.location`, `location.href`, `event.html`, `club.html`.
+- **Autorisé** : `setActiveSection()`, `setSelectedEvent()`, `setSelectedClub()`, `setCurrentConversation()`, `setActiveTab()`, `setQrModalOpen()`.
+- Priorité **mobile 375 px** · Plus Jakarta Sans · Material Symbols · fond `#FAF8FF` · Zora = masque doré.
+
+### 7.2 Arbre de navigation
+```
+CommunautéHub
+├── Accueil
+├── Événements → Fiche → [Participants · Discussion · Mon QR (modal)]
+├── Clubs → Fiche → [Membres · Activités · Classement · Discussion]
+├── Messages → Conversation  ← BolamuChatWindow
+└── Profil
+```
+
+### 7.3 Machine d'état UI globale
+```typescript
+interface CommunityUIState {
+  activeSection: "home"|"events"|"event-details"|"clubs"|"club-details"|"chat"|"profile";
+  selectedEvent?: number; selectedClub?: number; selectedConversation?: number;
+  activeTab?: "participants"|"discussion"|"ranking"|"activities";
+  qrModalOpen: boolean;
+}
+```
+
+### 7.4 Hiérarchie React
+```
+CommunityHub (état + bottom nav)
+├── HomePanel
+├── EventPanel → EventList · EventCard · EventParticipants · EventDiscussion · QRModal
+├── ClubPanel → ClubList · ClubMembers · ClubRanking · ClubActivities · ClubDiscussion
+├── ChatPanel → ConversationList · ConversationView  ← BolamuChatWindow
+└── ProfilePanel
+```
+
+---
+
+## 8. BOUTONS — CARTE DE CONNECTIVITÉ
+
+### 8.0 RÈGLE ANTI-FRAUDE (prioritaire sur tout)
+Tout gain Zora provient uniquement d'une preuve technologique (scan QR) ou d'une validation animateur. Jamais auto-déclaré.
+
+**Boutons interdits** : « Démarrer », « Commencer », « J'ai participé », « Marquer comme fait ».
+
+Distinction : **s'inscrire ≠ avoir participé.** Le crédit n'arrive qu'après présence prouvée.
+
+### 8.1 Machine d'état du bouton événement
+
+| Statut · inscription | Bouton | Déclenche |
+|---|---|---|
+| `published` · non inscrit | Participer (vert) | `POST /events/:id/register` |
+| `published` · inscrit | Inscrit — En attente (bleu, désactivé) | — |
+| `active` · inscrit | Afficher mon QR (orange) + LIVE | `setQrModalOpen(true)` |
+| `completed` | Terminé (gris) | — |
+
+### 8.2 Boutons clubs / groupes
+
+| Bouton | Route / action |
+|---|---|
+| **Créer un groupe** | `POST /clubs` → club + conversation auto créés |
+| **Rejoindre** | `POST /clubs/:id/join` → membre + ajouté au chat |
+| **Voir les adhérents** | `GET /clubs/:id/members` → roster complet + Zora |
+| Ouvrir conversation | `join_conversation` (ack `conversation_joined` attendu) |
+| Envoyer message | `socket.emit('send_message')` |
+| Clic notif | `PATCH …/read` → badge → 0 |
+
+### 8.3 Ateliers
+Un atelier = un événement Elonga avec catégorie. Cycle identique. Règle 8.0 s'applique.
+
+---
+
+## 9. PHOTOS
+
+- ✅ Référence correcte : `/images/landing/<fichier>`
+- ❌ Jamais un chemin disque `C:\Users\natsy\...`
+- Colonne avatar réelle dans `users` : **`photo_url`** (pas `avatar_url` — colonne morte).
+
+---
+
+## 10. MATRICE RBAC
+
+| Route | Patient | Animateur | Admin | Autres rôles |
 |---|---|---|---|---|
-| 1 | `join_conversation` envoie un objet au lieu d'une valeur brute | Frontend : `dashboard.html:2901`, `A._socket.emit('join_conversation', { conversation_id: 1 })`. Serveur : `socketService.js:35`, `socket.on('join_conversation', conversationId => socket.join(\`conversation_${conversationId}\`))` attend une valeur brute. Le client rejoint donc la room `conversation_[object Object]`, jamais `conversation_1`. | Le patient ne reçoit **jamais** l'événement `new_message` poussé par le serveur (`emitToRoom()` cible bien `conversation_1`, mais aucun client n'est dans cette room) — le temps réel du chat est cassé côté réception, pour tous les patients. | **Corrigé le 7 juillet 2026** (commit `f00ef65`) : `dashboard.html` émet désormais `A._socket.emit('join_conversation', 1)`, valeur brute alignée avec `socketService.js:35` |
-| 2 | Type de conversation forcé en dur à `patient_medecin` | `chat.routes.js:140`, `POST /chat/conversations` fait systématiquement `INSERT INTO conversations (type) VALUES ('patient_medecin')`, quels que soient les participants réels. | Aucune conversation `type='private'` n'est jamais créée, alors que ce type existe et est autorisé en base (`conversations_type_check` confirmé). La route ne peut donc pas servir à créer une conversation privée générique malgré sa description. | **Corrigé le 7 juillet 2026** (commit `7f7599e`) : le type est désormais déterminé dynamiquement (`'patient_medecin'` si l'un des deux participants a le rôle `doctor`, sinon `'private'`) et inséré via `INSERT INTO conversations (type) VALUES ($1)` |
-| 3 | Deux connexions Socket.io distinctes, non documentées | `dashboard.html:2898`, `A._socket = window.io('https://www.bolamu.co')` (chat) vs `dashboard.html:4248`, `var socket = io('https://api.bolamu.co')` (notifications, event `notification` via `notifyLite()`). Deux sous-domaines différents pour la même session patient. | Complexifie le débogage temps réel (deux connexions à surveiller), risque de divergence de comportement entre les deux canaux (reconnexion, auth) non testée. | **Corrigé le 7 juillet 2026** (commit `f00ef65`) : unifié sur une seule connexion `A._socket = window.io('https://www.bolamu.co')`, authentifiée une fois ; le chat s'abonne via `join_conversation` sur cette même instance au lieu d'en ouvrir une seconde |
-
-Les 3 bugs ci-dessus ont été corrigés le 7 juillet 2026 (commits `f00ef65` et `7f7599e`, poussés en production) — non prévus au moment de la rédaction initiale de cette section, traités en même temps qu'un chantier de nettoyage distinct.
-
----
-
-## 7. NOTIFICATIONS — UN SEUL SYSTÈME (canal interne + WhatsApp)
-
-### 7.1 Principe verrouillé
-Un seul système de notifications (`notification.service.js` + table `notifications` existante, étendue), jamais de table ou service parallèle. Décision déjà actée pendant le sprint réseau social — ce document la confirme et l'étend aux clubs.
-
-### 7.2 Canal interne (cloche header)
-`GET /api/v1/notifications`, `/unread-count`, `PATCH /:id/read`, `/read-all` — déjà en place, types étendus avec ceux de la section 7.4.
-
-### 7.3 Canal externe — WhatsApp (WAHA) — RÈGLE VERROUILLÉE
-**Tout lien envoyé dans un message WhatsApp doit être un magic link, jamais une URL nue vers bolamu.co.** Le magic link réutilise le mécanisme déjà existant côté `login.html` (`checkMagicLink()`) : il connecte automatiquement l'adhérent et le dépose directement sur l'écran concerné (post, profil, club, événement), sans lui faire retaper son mot de passe. WhatsApp est le canal de redirection vers la plateforme, jamais une destination en soi.
-
-Règle offline/online reprise du doc Communauté (5.3) : avant d'envoyer une notif WhatsApp pour une interaction sociale, si le destinataire est connecté en Socket.io → ne pas envoyer. S'il est offline → envoyer après 2 min (re-vérifier la connexion avant l'envoi).
-
-### 7.4 Templates canoniques (noms exclusifs)
-Hérités du doc Communauté : `bolamu_admin_event_soumis`, `bolamu_animateur_event_valide`, `bolamu_animateur_event_refuse`, `bolamu_event_publication`, `bolamu_event_inscription`, `bolamu_event_rappel`, `bolamu_checkin_confirme`, `bolamu_event_zora_credite`, `bolamu_animateur_nouveau_membre`, `bolamu_club_activite`, `bolamu_message_offline`.
-
-Nouveaux (réseau social) : `bolamu_nouveau_like`, `bolamu_nouveau_commentaire`, `bolamu_nouveau_follower`, `bolamu_encouragement_recu`, `bolamu_commentaire_profil`, `bolamu_demande_adhesion_recue`, `bolamu_demande_adhesion_validee`, `bolamu_membre_retire`.
+| `GET /events` · `/:id` · `/:id/participants` | ✅ | ✅ | ✅ | — |
+| `POST /events/:id/register` | ✅ | ✅ | ❌ | — |
+| `POST /events/:id/checkin` | ❌ | propriétaire | ✅ | — |
+| `GET/POST /animateur/*` | ❌ | ✅ | ❌ | — |
+| `GET/PATCH /admin/*` | ❌ | ❌ | ✅ | — |
+| `GET /clubs` · `/:id` · `/:id/members` | ✅ | ✅ | ✅ | — |
+| `POST /clubs` · `/join` · `/leave` | ✅ | ✅ | ❌ | — |
+| `GET/POST/PATCH /chat/*` | ✅ | ✅ | exclu | ✅ (sauf content_admin) |
 
 ---
 
-## 8. RÔLE ANIMATEUR (mis à jour)
-
-Rôle distinct, validé par token + middleware. **Peut** : créer événements Elonga (→ validation admin, voir doc Elonga), gérer ses inscrits, scanner les QR, créer/gérer des clubs, modérer son club (section 5.3), notifier son club, programmer des activités. **Ne peut pas** : publier un événement directement sans validation admin, modifier les Zora d'un adhérent, accéder aux données médicales, modérer un club qui n'est pas le sien.
-
-Dashboard animateur — 4 onglets inchangés : Accueil, Événements, Clubs (+ demandes d'adhésion en attente), Notifications.
-
----
-
-## 9. FRONTEND — HUB UNIQUE
-
-### 9.1 Principe — CORRIGÉ le 7 juillet 2026 : modal centré, pas bottom sheet
-
-**Correction de doctrine (7 juillet 2026)** : une version antérieure de cette section prescrivait un pattern « bottom sheet » (glisse depuis le bas, dashboard visible en transparence derrière) comme référence pour tous les popups. Audit réel : ce pattern **n'a jamais été implémenté nulle part** dans le code (ni pour les événements, ni pour les clubs) — ce n'est donc pas l'abandon d'une fonctionnalité vivante, seulement la correction d'une doctrine jamais réalisée. La référence officielle devient le **modal centré**, déjà implémenté et fonctionnel pour `#modal-event-detail` (`dashboard.html:1310-1338`) : carte blanche centrée (`max-width:520px`, `border-radius:2rem`), backdrop `rgba(10,36,99,0.55)` avec `backdrop-filter:blur(6px)` qui **bloque intentionnellement** le dashboard derrière, fermeture par clic sur le backdrop ou bouton close superposé sur un hero. Le popup club (`#club-panel`) doit migrer vers ce même pattern (chantier CIBLE À IMPLÉMENTER, voir §5.5 — non fait dans le cadre de cette mise à jour documentaire).
-
-Un seul écran racine. Les « pages » sont des panneaux qui se substituent — la substitution se fait via un modal centré (`.modal-bg`), jamais un panneau plein écran occupant `100vw`/`100vh` (pattern de `#club-panel` actuel, à corriger, voir §5.5).
-
-- **Interdit** : `window.location`, `location.href`, nouvelle page HTML pour un profil/club/événement.
-- **Autorisé** : `setActiveSection()`, `setSelectedClub()`, `setSelectedProfile()`, ouverture/fermeture via la classe `.open` de `.modal-bg`.
-- Priorité mobile 375 px · Plus Jakarta Sans · Material Symbols (zéro emoji) · fond `#FAF8FF`.
-
-### 9.2 Arbre de navigation (fusionné)
-```
-Hub
-├── Accueil (feed + événements près de chez vous, voir doc Elonga)
-├── Feed → Post → [Likes · Commentaires · Suppression (auteur)]
-├── Clubs → Fiche (modal centré) → [Membres/Classement · Activités · Discussion · Modération (animateur)]
-├── Profil (le sien ou celui d'un autre) → [Posts · Mur/commentaires · Suivre]
-├── Messages → Conversation
-└── Notifications
-```
-
-**Audit préalable obligatoire** : la navigation actuelle du dashboard patient contient déjà des onglets (`Accueil`, `Feed`, `Gagner`, `Suivre`, `Récompenses` d'après une version antérieure du projet). Avant d'ajouter un nouvel onglet « Clubs » ou « Profil », vérifier l'état réel de la nav dans `dashboard.html` — un onglet existant peut déjà couvrir une partie du besoin (ex. `Suivre` pourrait déjà pointer vers les follows). Ne pas dupliquer un onglet qui existe sous un autre nom.
-
----
-
-## 10. RÈGLE ANTI-FRAUDE (rappel, prioritaire sur tout)
-
-Aucune interaction purement sociale (like, commentaire, follow, encouragement) ne crédite de Zora, directement ou indirectement. Le Zora reste exclusivement réservé aux preuves de présence/action définies dans le doc Elonga (scan QR) et dans les mécaniques déjà en place (`awardZora()`). Ce document n'ouvre aucune nouvelle voie de gain Zora.
-
----
-
-## 11. MATRICE RBAC (mise à jour)
-
-| Route | Patient | Animateur | Admin |
-|---|---|---|---|
-| `GET/POST/DELETE /follows/*` | ✅ | ✅ | ✅ |
-| `GET /profiles/:phone`, `PATCH /profiles/me` | ✅ | ✅ | ✅ |
-| `POST/GET/DELETE /profiles/:phone/comments` | ✅ | ✅ | ✅ |
-| `GET/POST/DELETE /feed/posts/*` | auteur pour delete | auteur pour delete | ✅ |
-| `GET /clubs` · `/:id` · `/:id/members` | ✅ | ✅ | ✅ |
-| `POST /clubs` · `/join` · `/leave` · `/encourage` | ✅ | ✅ | ❌ |
-| `DELETE /animateur/clubs/:id/members/:phone` | ❌ | animateur du club | ✅ |
-| `PATCH /animateur/clubs/:id/messages/:id/moderate` | ❌ | animateur du club | ✅ |
-| `PATCH /animateur/clubs/:id/requests/:id` | ❌ | animateur du club | ❌ |
-| `GET/POST/PATCH /chat/*` | participant | participant | participant |
-
----
-
-## 12. CONTRATS JSON (extraits clés)
+## 11. CONTRATS JSON (extraits clés)
 
 ```jsonc
-// POST /clubs/:id/join  (join_mode = 'approval')
-{ "status": "pending_request", "request_id": 12 }
+// GET /chat/conversations
+{ "success":true, "data":[ {
+    "id":40, "type":"private",
+    "other_name":"Dr Frederic Bakala",       // champ réel (pas other_full_name)
+    "other_photo_url":"https://…cloudinary…",
+    "last_message":"Bonjour docteur",
+    "last_message_at":"2026-07-12T…",
+    "unread_count":2
+} ] }
 
-// POST /clubs/:id/join  (join_mode = 'open')
-{ "status": "joined", "conversation_id": 45 }
+// GET /chat/users/search?q=ba
+{ "success":true, "data":[ { "phone":"+242…", "full_name":"Dr Bakala", "role":"doctor", "photo_url":"…" } ] }
 
-// GET /profiles/:phone/comments
-{ "items": [ { "id":1, "author_phone_hidden":true, "author_display_name":"Junior", "author_avatar_url":"…", "content":"Bravo pour ta régularité !", "created_at":"…" } ] }
+// POST /chat/conversations → 201 (nouveau) ou 200 (existant)
+{ "success":true, "conversation_id":81, "created":true }
 
-// Erreur standard (inchangée)
-{ "error":"message lisible", "code":"CLUB_JOIN_PENDING_APPROVAL" }
+// Socket new_message payload
+{ "id":47, "conversation_id":40, "sender_phone":"+242…", "content":"…",
+  "created_at":"2026-07-12T…", "sender_name":"Antonio Test", "sender_avatar_url":"…" }
+
+// POST /events/:id/register → 201
+{ "registration_id":412, "event_id":8, "session_code":"EVT8-7K2P9", "registration_status":"registered" }
+
+// POST /events/:id/checkin → 200
+{ "event_id":8, "patient_phone":"+242…", "checked_in_at":"…", "registration_status":"checked_in" }
+
+// GET /clubs/:id/members
+{ "items":[ { "rank":1,"patient_phone":"+242…","display_name":"Marie","zora_in_club":3200 } ] }
+
+// Erreur standard
+{ "success":false, "error":"message lisible", "code":"EVENT_FULL" }
 ```
 
 ---
 
-## 13. RÈGLES INVARIANTES (reprises du doc Communauté, inchangées)
+## 12. CONSTANTES FRONT-END
+
+```typescript
+EventStatus = { DRAFT:"draft", PENDING:"pending_validation", PUBLISHED:"published",
+                ACTIVE:"active", COMPLETED:"completed", ARCHIVED:"archived" }
+ClubStatus = { DRAFT:"draft", ACTIVE:"active", ARCHIVED:"archived" }
+ConversationType = { PRIVATE:"private", CLUB:"club",
+                     PATIENT_MEDECIN:"patient_medecin", COMMUNAUTE:"communaute" }
+EventButtonColor = { PARTICIPATE:"#22C55E", REGISTERED:"#3B82F6",
+                     CHECKIN:"#F97316", DONE:"#9CA3AF" }
+
+// Rôles réels users.role (valeurs exactes en base)
+UserRole = {
+  PATIENT: "patient", DOCTOR: "doctor", SECRETAIRE: "secretaire",
+  PHARMACIE: "pharmacie", LABORATOIRE: "laboratoire", ANIMATEUR: "animateur",
+  PARTENAIRE: "partenaire_commercial", RH: "rh", ADMIN: "admin",
+  CONTENT_ADMIN: "content_admin", AGENT: "agent_bolamu"
+}
+```
+
+---
+
+## 13. ANOMALIES VERROUILLÉES
+
+1. Cycle 6 états événements → appliqué (section 2.1).
+2. QR → **`html5-qrcode` partout**, supprimer `jsQR`.
+3. Historique check-in admin → **`GET /api/v1/admin/checkins/history`**.
+4. Templates → noms canoniques section 5.2 exclusivement.
+5. Service WhatsApp → **`whatsapp-web.service.js`** → `sendAutoMessage()`, zéro Puppeteer.
+6. `follows` → ne pas implémenter.
+7. ~~`chat_messages`/`chat_reactions`~~ → **SUPPRIMÉES** (migration_078). Ne jamais référencer.
+8. `avatar_url` → colonne morte. Utiliser **`photo_url`** partout.
+9. `users.nom`/`users.prenom` → n'existent pas. Utiliser **`full_name`**.
+10. `other_full_name` → n'existe pas dans le payload conversations. Utiliser **`other_name`**.
+
+---
+
+## 14. RÈGLES INVARIANTES (chaque prompt Cascade)
+
 1. `phone` VARCHAR(20) identifiant universel · `normalizePhone()` avant tout INSERT/SELECT.
-2. **Soft delete** (`is_active`/`is_deleted`), jamais DELETE physique.
+2. **Soft delete** (`is_active = false`), jamais DELETE physique.
 3. `authMiddleware` sur toutes les routes (sauf publiques documentées).
-4. `audit_log` sur toute action sensible (retrait de membre, suppression de message/post/commentaire).
-5. Zora **uniquement par preuve système**, jamais auto-déclaré, jamais via une interaction sociale.
+4. `audit_log` sur toute action sensible.
+5. Zora **uniquement par preuve système**, jamais auto-déclaré.
 6. Toute écriture en **transaction avec ROLLBACK** en cas d'erreur.
 7. Catch standard : `console.error('[context]', error.message); return res.status(500).json({ error: error.message });`
-8. Jamais de numéro de téléphone brut affiché dans une UI patient — toujours prénom/nom + avatar.
-9. Tout lien WhatsApp sortant est un magic link, jamais une URL nue.
+8. **Migrations destructives** (`DROP TABLE`, `DROP COLUMN`) : requièrent `ALLOW_DESTRUCTIVE_MIGRATIONS=true` — ne s'appliquent jamais automatiquement. ✅ Gate implémenté (juillet 2026).
+9. `conversation_participants.role` = valeur réelle de `users.role` (pas de traduction anglaise).
+10. Socket.io : toujours attendre `conversation_joined` avant d'émettre `send_message` (`BolamuChatWindow` gère avec timeout 5s de secours).
 
 ---
 
-## 14. SYSTÈME DE PREUVE & PLAN DE TEST
+## 15. DETTE TECHNIQUE RÉSIDUELLE
 
-### 14.1 Principe
-Rien n'est « fait » tant que sa preuve réelle n'est pas collée ici et verte. Aucune preuve simulée.
-
-### 14.2 Matrice de tests à preuve
-
-| # | Test | Type | Critère de réussite | Preuve réelle | ✅ |
-|---|---|---|---|---|---|
-| T1 | Groupes home = vraie requête DB, pas du HTML statique | Code+SQL | audit section 1.3 confirmé | | ☐ |
-| T2 | Roster club sans numéro visible | HTTP | `phone` absent de la réponse, `display_name`+`avatar_url` présents | | ☐ |
-| T3 | Encourager un membre | HTTP+SQL | ligne insérée, pas de Zora crédité | | ☐ |
-| T4 | Commenter un profil | HTTP+SQL | ligne `profile_comments`, notif envoyée | | ☐ |
-| T5 | Supprimer son propre post | HTTP+SQL | `posts.is_deleted=true`, disparaît du feed d'autrui | | ☐ |
-| T6 | Impossible de supprimer le post d'un autre | HTTP | 403 | | ☐ |
-| T7 | Club `join_mode=approval` : rejoindre crée une demande, pas un membre direct | HTTP+SQL | `club_join_requests` ligne `pending` | | ☐ |
-| T8 | Animateur approuve une demande | HTTP+SQL | `club_members` + `conversation_participants` créés | | ☐ |
-| T9 | Animateur retire un membre | HTTP+SQL | `removed_at` renseigné, retiré du chat | | ☐ |
-| T10 | Animateur supprime un message du chat | HTTP+SQL | `messages.is_deleted=true` | | ☐ |
-| T11 | Lien WhatsApp = magic link fonctionnel | HTTP | connexion auto sans re-saisie mot de passe | | ☐ |
-| T12 | Popup club en modal centré (corrigé le 7 juillet 2026, ex-bottom sheet) | Navigateur | carte centrée `max-width:520px`, backdrop flouté opaque bloquant le dashboard derrière, fermeture par clic-backdrop ou bouton close | | ☐ |
-| T13 | Profil ouvrable depuis n'importe quel avatar/nom | Navigateur | ouverture panneau, jamais nouvelle URL | | ☐ |
-| T14 | Aucun gain Zora sur une interaction sociale | Code+SQL | grep confirmant l'absence de tout appel Zora dans les routes sociales | | ☐ |
-| T15 | Tous les nouveaux appels clubs/Elonga utilisent `apiFetch()` | Code | grep confirmant l'absence de `fetch()` + token manuel hors FormData/Socket.io | | ☐ |
-| T16 | Aucun onglet nav dupliqué | Code+Navigateur | audit de la nav existante collé, confirmant qu'aucun nouvel onglet ne fait doublon | | ☐ |
-| T-priv1 | Colonne `users.is_private` existe en base | SQL | `SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='is_private'` retourne 1 ligne | SQL confirmé | ✅ |
-| T-priv2 | Table `follow_requests` existe en base | SQL | `\d follow_requests` sur Neon affiche le schéma complet | SQL confirmé | ✅ |
-| T-priv3 | Profil verrouillé pour un non-follower (compte privé) | HTTP | `locked:true`, `is_following:false`, galerie vide | HTTP 200, `photos:[]` | ✅ |
-| T-priv4 | Galerie et feed vides pour un non-follower | HTTP | tableaux vides + `locked:true` sur les deux | HTTP 200 galerie + feed | ✅ |
-| T-priv5 | Déverrouillage après acceptation | HTTP+SQL | `locked` passe de `true` à `false`, `is_following:true`, contenu réel visible | AVANT/APRÈS collés | ✅ |
-| T-priv6 | Non-régression compte public | HTTP+SQL | `POST /follows/:phone` crée directement une ligne `follows`, jamais `follow_requests` | HTTP `{"success":true}` + SQL confirmé | ✅ |
-
-### 14.2.1 Preuves T-priv1 à T-priv6 (7 juillet 2026 — rejouées sur comptes de test dédiés)
-
-**Comptes utilisés** : compte A = Test Zora, ID 62, `+242099999999` (fictif, 0 activité) — devient privé pendant le test. Visiteur B = Sarah Test, ID 225, `+242069735419` (0 activité). Compte C (non-régression, public) = "Test Refus S26", ID 292, `+242099999998`.
-
-**T-priv1 : POST /follows/:phoneA (token B) sur compte A rendu privé**
-```json
-HTTP Response:
-{"success":true,"status":"pending_request","request_id":3}
-
-SQL Verification:
-- follows (B -> A): []
-- follow_requests (B -> A): [{ id: 3, requester_phone: '+242069735419', target_phone: '+242099999999', status: 'pending', responded_at: null }]
-```
-
-**T-priv2 : PATCH /follows/follow-requests/3 accept (token A)**
-```json
-HTTP Response:
-{"success":true}
-
-SQL Verification:
-- follows (B -> A): [{ follower_phone: '+242069735419', following_phone: '+242099999999', created_at: '2026-07-07T01:10:51.617Z' }]
-- follow_requests (B -> A): [{ id: 3, status: 'accepted', responded_at: '2026-07-07T01:10:51.617Z' }]
-```
-
-**T-priv3 : GET /patients/profil-social/:phoneA (token B) — AVANT acceptation**
-```json
-HTTP Response:
-{"success":true,"data":{"full_name":"Test Zora","badges":{"serie_en_feu":false,"membre_fidele":false,"top_classement":false},"stats":{"zora_gagnes":0,"streak":0,"evenements":0},"photos":[],"is_private":true,"is_following":false,"is_self":false,"locked":true}}
-```
-
-**T-priv4 : galerie (champ `photos` de profil-social) + GET /feed?author=:phoneA (token B) — AVANT acceptation**
-```json
-Galerie (photos, extrait de la réponse T-priv3) : "photos":[]  "locked":true
-
-Feed:
-{"success":true,"data":[],"locked":true,"page":1}
-```
-
-**T-priv5 : GET /patients/profil-social/:phoneA (token B) — APRÈS acceptation, AVANT/APRÈS côte à côte**
-```json
-AVANT (T-priv3) : "is_following":false, "locked":true
-APRÈS            : "is_following":true,  "locked":false
-
-HTTP Response APRÈS :
-{"success":true,"data":{"full_name":"Test Zora","photos":[],"is_private":true,"is_following":true,"is_self":false,"locked":false}}
-```
-
-**T-priv6 : non-régression compte public — POST /follows/:phoneC (token B, compte C public)**
-```json
-HTTP Response:
-{"success":true}
-
-SQL Verification:
-- follows (B -> C): [{ follower_phone: '+242069735419', following_phone: '+242099999998', created_at: '2026-07-07T01:12:01.508Z' }]
-- follow_requests (B -> C): []
-```
-
-**Bugs trouvés et corrigés pendant cette validation (voir commits dédiés) :**
-- `PATCH /patients/profil-social` : `audit_log.target_id` (INTEGER) recevait `phone` → `value "+242099999999" is out of range for type integer` (code Postgres 22003). Corrigé en utilisant l'`id` numérique de l'utilisateur.
-- `notifyLite()` échouait silencieusement pour `follow_request`/`follow_request_accepted`, types absents de `notifications_type_check`. Migration 068 appliquée, notifications désormais créées (vérifié par lignes `notifications` réelles avant nettoyage).
-
-**Nettoyage** : tous les comptes de test (62, 225, 292) restaurés à leur état initial après validation (`is_private=false`, `follows`/`follow_requests`/`notifications` de test supprimés). Le compte ID 49 (résidu d'un test antérieur sur un compte réel) a été restauré à `is_private=false` avant même de démarrer cette validation.
-
-### 14.3 Règle de push
-Aucun `git push` tant que les preuves des tests concernés ne sont pas collées et vertes. Validation manuelle à chaque fois.
+| Item | Description | Impact | Priorité |
+|---|---|---|---|
+| Latence Neon | ~241ms médiane/message (CTE, 1 requête) | Cosmétique | Faible |
+| Présence in-memory | Map JS + `last_seen_at` Neon (TTL 30s) — Redis pour très haute charge | Théorique (1 instance Render) | Faible |
 
 ---
 
-## 15. PRÉCAUTIONS AVANT TOUTE IMPLÉMENTATION (retour d'expérience du sprint précédent)
+## 16. SYSTÈME DE PREUVE & PLAN DE TEST
 
-Ces règles ne sont pas théoriques — chacune vient d'un incident réel rencontré pendant le sprint réseau social précédent. Claude Code doit les lire avant de toucher au moindre fichier.
+### 16.1 Principe
+**Rien n'est « fait » tant que sa preuve réelle n'est pas collée ici et verte.**
 
-### 15.1 Vérifier qu'aucune session concurrente ne tourne
-Avant de commencer, confirmer explicitement qu'aucune autre session Claude Code, Cascade/Windsurf, ou extension VS Code n'est active sur ce même dépôt. Un incident réel a fait disparaître 10 fichiers nouvellement créés et annulé des éditions sur 7 fichiers existants (`server.js`, `notification.service.js`, `zora.service.js`, etc.) parce que deux sessions travaillaient en parallèle sur `bolamu-backend` sans le savoir. Si le moindre doute existe, s'arrêter et demander confirmation avant de continuer — ne jamais supposer que c'est réglé.
+### 16.2 Les 4 types de preuve
 
-### 15.2 `dashboard.html` est un fichier partagé à haut risque
-Ce fichier est modifié par au moins 4 chantiers différents (auth/session, feed, clubs, Elonga). Avant chaque commit touchant ce fichier :
-- Faire un `git diff --cached` complet et le faire valider ligne par ligne avant `git commit` — jamais de staging par fichier entier (`git add public/patient/dashboard.html`) si d'autres chantiers ont aussi des changements non liés dans ce même fichier.
-- Ne jamais présumer qu'un contenu affiché à l'écran (ex. les groupes sur la page d'accueil) reflète une vraie requête base de données — le vérifier par une requête SQL réelle avant d'écrire une ligne de doc ou de code dessus (cf. section 1.3).
+| Type | Comment | À quoi ça ressemble |
+|---|---|---|
+| **SQL** | requête réelle Neon ; écriture : BEGIN → écrire → SELECT → ROLLBACK/COMMIT | vraies lignes |
+| **HTTP** | curl avec vrai token | 200/201 + corps JSON |
+| **Socket** | émettre, observer console | payload `new_message` reçu |
+| **Navigateur** | 375 px | capture du résultat réel |
 
-### 15.3 Toujours utiliser `apiFetch()` pour les nouveaux appels API du feed/clubs/Elonga
-Le helper `apiFetch()` (refresh silencieux + redirection session expirée) existe déjà dans `dashboard.html` et est déjà utilisé par les endpoints profil/zora/streaks/encouragements/score et par le feed. **Tout nouvel appel écrit pour les clubs ou pour Elonga doit utiliser `apiFetch()` dès l'écriture**, jamais un `fetch()` brut avec token manuel — sinon on réintroduit le bug de session zombie que ce helper a été créé pour éliminer. Seule exception légitime : les uploads `FormData` (le `Content-Type` forcé par `apiFetch()` casserait le multipart) et les échanges Socket.io (`authenticate` a besoin du token brut, pas d'un appel HTTP).
+### 16.3 Matrice de tests
 
-**Point de vigilance signalé mais non traité** : à ce jour, une trentaine d'appels API dans `dashboard.html` (rendez-vous, chat, clubs existants, paiements Momo) utilisent encore l'ancien pattern `fetch()` + token manuel et gardent donc le bug de session zombie sur ces écrans précis. Ce n'est pas dans le périmètre de ce document, mais toute nouvelle fonctionnalité clubs/Elonga qui touche à du code existant dans cette zone doit migrer l'appel touché vers `apiFetch()` au passage, sans élargir le chantier au-delà de ce qui est réellement modifié.
-
-### 15.4 Discipline de commit
-Jamais `git add -A`. Fichiers nommés individuellement, un commit par sujet fonctionnel (ex. : un commit pour la modération clubs, un commit séparé pour le popup club en modal centré, un commit séparé pour la suppression de post). Preuve réelle collée (section 14) avant chaque commit, `git diff --cached` revu avant chaque `git commit`, aucun `git push` sans validation explicite.
+| # | Test | Type | Critère | État |
+|---|---|---|---|---|
+| T1 | Migrations exécutées | SQL | toutes colonnes/tables existent | ☐ |
+| T2 | Animateur crée un événement | HTTP+SQL | 201 + `status='pending_validation'` | ☐ |
+| T3 | Admin valide | HTTP+SQL | 200 + `status='published'` | ☐ |
+| T4 | Patient s'inscrit | HTTP+SQL | 201 + `session_code` | ☐ |
+| T5 | CRON → `active` | SQL | `status='active'` à `starts_at` | ☐ |
+| T6 | Animateur scanne QR | HTTP+SQL | 200 + `checked_in_at` | ☐ |
+| T7 | CRON complète + Zora | SQL | ligne `zora_ledger` + `zora_credited=1` | ☐ |
+| T8 | Historique check-in admin | HTTP | 200 `/admin/checkins/history` | ☐ |
+| T9 | Création club → conversation auto | SQL | `clubs.conversation_id` non nul | ☐ |
+| T10 | Rejoindre club → chat | SQL | ligne `conversation_participants` | ☐ |
+| T11 | Classement membres Zora | HTTP | items triés décroissant | ☐ |
+| T12 | Message temps réel 1-to-1 | Socket | `new_message` reçu | ✅ Prouvé Phase 3/12 |
+| T12b | Message temps réel club | Socket | `new_message` sans polling | ✅ Prouvé Phase 9/12 |
+| T13 | Badge non-lus → 0 | HTTP+SQL | `PATCH /read` + `read_at` mis à jour | ☐ |
+| T14 | Message offline → WhatsApp | HTTP | `bolamu_message_offline` après 2 min | ☐ |
+| T15 | Bouton événement change d'état | Navigateur | vert→bleu→orange | ☐ |
+| T16 | Hub sans rechargement | Navigateur | navigation sans changement URL | ☐ |
+| T17 | Photos affichées | Navigateur | src = `/images/landing/...` | ☐ |
+| T18 | QR = `html5-qrcode` seul | Code | aucune trace `jsQR` | ☐ |
+| T19 | Créer un groupe | HTTP+SQL | 201 + club + conversation | ☐ |
+| T20 | Roster complet club | HTTP | tous membres listés | ☐ |
+| T21 | S'inscrire à un atelier | HTTP | 201 + 0 Zora | ☐ |
+| T22 | Anti-fraude | Code+Nav | aucun bouton auto-déclaratif | ☐ |
+| T23 | Ack `join_conversation` | Socket | `conversation_joined` avant `send_message` | ✅ Prouvé dette item 2 |
+| T24 | Présence multi-instances | SQL | `last_seen_at` mis à jour à connexion | ✅ Prouvé dette item 3 |
+| T25 | Gate migrations destructives | Code | DROP ignoré sans variable | ✅ Prouvé dette item 1 |
 
 ---
 
-## 16. ORDRE D'IMPLÉMENTATION
-1. Audit factuel (section 1.3) — bloquant, avant tout le reste.
-2. Migrations clubs/messages/profile_comments/join_requests — preuve SQL (T1).
-3. Backend : modération clubs, encouragement étendu, commentaires profil, suppression post, magic link WhatsApp — preuves HTTP/SQL (T2–T11).
-4. Frontend : popup club en modal centré, profil ouvrable partout, roster épuré — preuves Navigateur (T12–T13).
-5. Vérification anti-fraude finale (T14) avant tout push.
+## 17. ORDRE D'IMPLÉMENTATION (chantiers restants)
+
+1. **Migrations événements** (section 2.2) — preuve SQL.
+2. **Backend routes événements** (animateur, admin, CRON) — T2–T8.
+3. **Backend routes clubs** (club_activities) — T9–T11.
+4. **Frontend Hub communauté** (panneaux, boutons, photos) — T15–T22.
+5. **Dashboard animateur** + harmonisation QR — T18.
+6. **Notifications offline chat** — T14.
+
+À chaque étape : preuve réelle visible avant push.
 
 ---
 
-*Document unique de référence — Social & Communauté Bolamu. Une affirmation sans preuve n'est pas une réalisation.*
+*Document unique de référence — Communauté Bolamu V4.0.*
+*Mis à jour juillet 2026 post-chantier chat unifié (12 phases) + dette technique (3 items).*
+*Une affirmation sans preuve n'est pas une réalisation.*
