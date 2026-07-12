@@ -1,6 +1,6 @@
 # BUGS - BOLAMU BACKEND
 
-**Dernière mise à jour :** 11 juillet 2026
+**Dernière mise à jour :** 12 juillet 2026
 
 ---
 
@@ -203,12 +203,24 @@ Découverte associée : **`dmn_access_log` et `dossier_access_log` sont deux tab
 
 ---
 
+### BUG-016: Déploiement Render applique les migrations sans gate humain pour le DROP
+**Sévérité :** 🟠 MOYEN (process/infrastructure, pas de perte de données)
+**Module :** Backend - Système de migration automatique
+**Description :** `server.js` appelle `runMigrations()` à chaque démarrage, et Render redéploie automatiquement à chaque push sur `main` (pas de `autoDeploy: false` dans `render.yaml`). Conséquence découverte lors du chantier chat unifié (Phase 12/12, juillet 2026) : `migration_078_drop_chat_messages.sql` (DROP TABLE) a été appliquée en production **automatiquement au push**, avant toute validation explicite — le pattern "commit le fichier mais attends validation avant d'appliquer", utilisé depuis le début du chantier, ne protégeait en réalité rien.
+**Impact :** Toute migration destructive committée sur `main` s'applique en production sans étape de validation humaine réelle. Dans ce cas précis, l'application était de toute façon souhaitée (King l'a confirmée a posteriori), donc aucune perte réelle — mais le risque était générique et se serait reproduit pour toute migration future.
+**Statut :** ✅ CORRIGÉ (12 juillet 2026)
+**Assigné à :** Cascade
+**Date découverte :** 12 juillet 2026 (Phase 12/12 du chantier chat unifié)
+**Correction appliquée :** `src/db/migrate.js::executeMigration()` détecte désormais les migrations destructives (`DROP TABLE`/`DROP COLUMN`, regex insensible à la casse) et les ignore (log un warning, ne les enregistre pas dans `migrations_applied`, ne fait pas planter le démarrage) sauf si `ALLOW_DESTRUCTIVE_MIGRATIONS=true` est défini — variable absente par défaut sur Render, donc jamais appliquée automatiquement au déploiement. Testé avec un fichier de migration jetable (`migration_999_test_destructive.sql`) : skip confirmé sans la variable, application confirmée avec `ALLOW_DESTRUCTIVE_MIGRATIONS=true`. Les migrations non destructives (ex. `migration_079_users_last_seen_at.sql`, `ADD COLUMN`) continuent de s'appliquer automatiquement au push — comportement accepté explicitement par King pour ce cas (non destructif, réversible).
+
+---
+
 ## STATISTIQUES
 
-- **Total bugs :** 15
+- **Total bugs :** 16
 - **Ouverts :** 1 (BUG-011 — test E2E, hors périmètre des sessions de correction backend/frontend/données)
 - **Dette technique ouverte :** 0
-- **Corrigés :** 14 (BUG-001, BUG-002, BUG-003, BUG-004, BUG-005, BUG-006, BUG-007, BUG-008, BUG-009, BUG-010, BUG-012, BUG-013, BUG-014, BUG-015)
+- **Corrigés :** 15 (BUG-001, BUG-002, BUG-003, BUG-004, BUG-005, BUG-006, BUG-007, BUG-008, BUG-009, BUG-010, BUG-012, BUG-013, BUG-014, BUG-015, BUG-016)
 
 ---
 
