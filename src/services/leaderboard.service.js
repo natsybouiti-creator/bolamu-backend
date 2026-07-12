@@ -59,62 +59,60 @@ async function computeWeeklyLeaderboard() {
   }
 }
 
+// Masquer les noms (Jean-Paul M. au lieu de Jean-Paul Martin) — logique
+// identique des deux côtés (getLeaderboard/getTop3), factorisée.
+function toDisplayName(fullName) {
+  const parts = (fullName || 'Anonyme').trim().split(' ');
+  const firstName = parts[0] || 'Anonyme';
+  const lastNameInitial = parts.length > 1 ? parts[parts.length - 1].charAt(0) + '.' : '';
+  return `${firstName} ${lastNameInitial}`.trim();
+}
+
 /**
- * Récupérer le classement hebdo
+ * Récupérer le classement hebdo — calcul live sur zora_ledger (source unique
+ * de vérité, cf. audit du 13 juillet 2026 : la table leaderboard_weekly,
+ * snapshot recalculé 1×/jour par le cron abonnement.job.js, divergeait de ce
+ * calcul live utilisé par la modale "Voir tout", au point d'afficher des
+ * rangs contradictoires pour le même patient dans la même session).
+ * RANK() OVER (...) calculé sur l'ensemble des patients qualifiés (pas de
+ * LIMIT en SQL) pour que my_position reste correct même au-delà du top
+ * affiché ; le LIMIT demandé (10 par défaut) n'est appliqué qu'à `top`.
  * @param {Object} params - { phone, limit }
  * @returns {Object} - { top, my_position }
  */
 async function getLeaderboard({ phone, limit = 10 }) {
   try {
-    const weekStartResult = await pool.query(
-      `SELECT date_trunc('week', NOW()) as week_start`
+    const rankedResult = await pool.query(
+      `SELECT phone, full_name, points_earned, rank FROM (
+         SELECT u.phone, u.full_name, SUM(zl.points) as points_earned,
+                RANK() OVER (ORDER BY SUM(zl.points) DESC) as rank
+         FROM users u
+         JOIN zora_ledger zl ON zl.phone = u.phone
+         WHERE u.role = 'patient'
+           AND u.is_active = true
+           AND zl.earned_at >= date_trunc('week', NOW())
+         GROUP BY u.phone, u.full_name
+         HAVING SUM(zl.points) > 0
+       ) ranked
+       ORDER BY rank ASC`
     );
-    const weekStart = weekStartResult.rows[0].week_start;
-    
-    // Top N
-    const topResult = await pool.query(
-      `SELECT lw.phone, lw.points_earned, lw.rank,
-              COALESCE(u.full_name, u.first_name || ' ' || u.last_name, 'Anonyme') as full_name
-       FROM leaderboard_weekly lw
-       JOIN users u ON u.phone = lw.phone
-       WHERE lw.week_start = $1
-       ORDER BY lw.rank ASC
-       LIMIT $2`,
-      [weekStart, limit]
-    );
-    
-    // Masquer les noms (Jean-Paul M. au lieu de Jean-Paul Martin)
-    const top = topResult.rows.map(row => {
-      const parts = row.full_name.trim().split(' ');
-      const firstName = parts[0] || 'Anonyme';
-      const lastNameInitial = parts.length > 1 ? parts[parts.length - 1].charAt(0) + '.' : '';
-      return {
-        rank: row.rank,
-        points_earned: row.points_earned,
-        display_name: `${firstName} ${lastNameInitial}`.trim()
-      };
-    });
-    
-    // Position du demandeur
+
+    const top = rankedResult.rows.slice(0, limit).map(row => ({
+      rank: row.rank,
+      points_earned: row.points_earned,
+      display_name: toDisplayName(row.full_name)
+    }));
+
     let myPosition = null;
     if (phone) {
-      const myResult = await pool.query(
-        `SELECT lw.rank, lw.points_earned
-         FROM leaderboard_weekly lw
-         WHERE lw.week_start = $1 AND lw.phone = $2`,
-        [weekStart, phone]
-      );
-      
-      if (myResult.rows.length > 0) {
-        myPosition = {
-          rank: myResult.rows[0].rank,
-          points_earned: myResult.rows[0].points_earned
-        };
+      const mine = rankedResult.rows.find(row => row.phone === phone);
+      if (mine) {
+        myPosition = { rank: mine.rank, points_earned: mine.points_earned };
       }
     }
-    
+
     return { success: true, top, my_position: myPosition };
-    
+
   } catch (error) {
     console.error('[LEADERBOARD] Erreur getLeaderboard:', error);
     throw error;
@@ -122,39 +120,35 @@ async function getLeaderboard({ phone, limit = 10 }) {
 }
 
 /**
- * Récupérer le top 3 sans auth (pour landing page)
+ * Récupérer le top 3 sans auth (pour landing page) — même source live que
+ * getLeaderboard(), cf. commentaire ci-dessus.
  */
 async function getTop3() {
   try {
-    const weekStartResult = await pool.query(
-      `SELECT date_trunc('week', NOW()) as week_start`
-    );
-    const weekStart = weekStartResult.rows[0].week_start;
-    
     const result = await pool.query(
-      `SELECT lw.rank, lw.points_earned,
-              COALESCE(u.full_name, u.first_name || ' ' || u.last_name, 'Anonyme') as full_name
-       FROM leaderboard_weekly lw
-       JOIN users u ON u.phone = lw.phone
-       WHERE lw.week_start = $1
-       ORDER BY lw.rank ASC
-       LIMIT 3`,
-      [weekStart]
+      `SELECT phone, full_name, points_earned, rank FROM (
+         SELECT u.phone, u.full_name, SUM(zl.points) as points_earned,
+                RANK() OVER (ORDER BY SUM(zl.points) DESC) as rank
+         FROM users u
+         JOIN zora_ledger zl ON zl.phone = u.phone
+         WHERE u.role = 'patient'
+           AND u.is_active = true
+           AND zl.earned_at >= date_trunc('week', NOW())
+         GROUP BY u.phone, u.full_name
+         HAVING SUM(zl.points) > 0
+       ) ranked
+       ORDER BY rank ASC
+       LIMIT 3`
     );
-    
-    const top3 = result.rows.map(row => {
-      const parts = row.full_name.trim().split(' ');
-      const firstName = parts[0] || 'Anonyme';
-      const lastNameInitial = parts.length > 1 ? parts[parts.length - 1].charAt(0) + '.' : '';
-      return {
-        rank: row.rank,
-        points_earned: row.points_earned,
-        display_name: `${firstName} ${lastNameInitial}`.trim()
-      };
-    });
-    
+
+    const top3 = result.rows.map(row => ({
+      rank: row.rank,
+      points_earned: row.points_earned,
+      display_name: toDisplayName(row.full_name)
+    }));
+
     return { success: true, data: top3 };
-    
+
   } catch (error) {
     console.error('[LEADERBOARD] Erreur getTop3:', error);
     throw error;
