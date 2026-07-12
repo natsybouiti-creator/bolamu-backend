@@ -32,34 +32,43 @@ async function calculerScoreBolamu(patientPhone) {
 
   try {
     // 1. Assiduité RDV (30%) - RDV honorés / planifiés sur 90 jours
+    // Corrigé le 12 juillet 2026 (audit Zora/Score) : lisait la table
+    // `rendez_vous`, jamais écrite par aucun code applicatif (4 lignes de
+    // test manuelles trouvées) — remplacée par `appointments`, la vraie
+    // table de RDV utilisée par toute la plateforme. `honored`/`scheduled`
+    // (et non `planned`) : le ratio d'origine comparait des ensembles de
+    // statuts mutuellement exclusifs (complétés vs en attente), ce qui
+    // pouvait dépasser 100% sans plafonnement — `scheduled` inclut
+    // désormais aussi les RDV honorés, et le score est plafonné à 100%
+    // comme les 4 autres composantes.
     const rdvQuery = `
-      SELECT 
-        COUNT(*) FILTER (WHERE status = 'completed') AS honored,
-        COUNT(*) FILTER (WHERE status IN ('pending', 'confirmed', 'in_progress')) AS planned
-      FROM rendez_vous
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'termine') AS honored,
+        COUNT(*) FILTER (WHERE status IN ('confirme', 'en_cours', 'termine')) AS scheduled
+      FROM appointments
       WHERE patient_phone = $1
-        AND scheduled_at >= $2
+        AND appointment_date >= $2
     `;
     const rdvResult = await pool.query(rdvQuery, [normalizedPhone, ninetyDaysAgo]);
     const rdvData = rdvResult.rows[0];
-    const rdvScore = rdvData.planned > 0 
-      ? (rdvData.honored / rdvData.planned) * 100 
+    const rdvScore = rdvData.scheduled > 0
+      ? Math.min(rdvData.honored / rdvData.scheduled, 1) * 100
       : 0;
 
     // RDV période précédente pour tendance
     const rdvPrevQuery = `
-      SELECT 
-        COUNT(*) FILTER (WHERE status = 'completed') AS honored,
-        COUNT(*) FILTER (WHERE status IN ('pending', 'confirmed', 'in_progress')) AS planned
-      FROM rendez_vous
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'termine') AS honored,
+        COUNT(*) FILTER (WHERE status IN ('confirme', 'en_cours', 'termine')) AS scheduled
+      FROM appointments
       WHERE patient_phone = $1
-        AND scheduled_at >= $2
-        AND scheduled_at < $3
+        AND appointment_date >= $2
+        AND appointment_date < $3
     `;
     const rdvPrevResult = await pool.query(rdvPrevQuery, [normalizedPhone, ninetyTo180DaysAgo, ninetyDaysAgo]);
     const rdvPrevData = rdvPrevResult.rows[0];
-    const rdvPrevScore = rdvPrevData.planned > 0 
-      ? (rdvPrevData.honored / rdvPrevData.planned) * 100 
+    const rdvPrevScore = rdvPrevData.scheduled > 0
+      ? Math.min(rdvPrevData.honored / rdvPrevData.scheduled, 1) * 100
       : 0;
 
     // 2. Engagement Elonga (25%) - Événements suivis (checked_in) sur 90 jours, plafonné à 5
@@ -195,7 +204,7 @@ async function calculerScoreBolamu(patientPhone) {
 
     // Composantes détaillées
     const composantes = {
-      assiduite_rdv: { score: Math.round(rdvScore), poids: 30, details: { honors: rdvData.honored, planned: rdvData.planned } },
+      assiduite_rdv: { score: Math.round(rdvScore), poids: 30, details: { honored: rdvData.honored, scheduled: rdvData.scheduled } },
       engagement_elonga: { score: Math.round(elongaScore), poids: 25, details: { attended: elongaAttended } },
       activite_club: { score: Math.round(clubScore), poids: 20, details: { active_memberships: clubActive } },
       regularite_zora: { score: Math.round(zoraScore), poids: 15, details: { transactions: zoraCount } },
