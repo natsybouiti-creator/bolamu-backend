@@ -413,6 +413,10 @@
                 </div>
               </div>
             </div>
+            <div id="score-composantes" style="display: none;">
+              <div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #9498a8; margin-bottom: 10px;">Détail du Score Bolamu</div>
+              <div id="score-composantes-list" style="display: flex; flex-direction: column; gap: 9px;"></div>
+            </div>
             <div id="reward-band" style="display: none; margin-top: 0;">
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
                 <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #434654;">Échangeable maintenant avec vos Zora</div>
@@ -1882,6 +1886,37 @@
     setText('bonZoraQrPartner', A._bonZoraQrPartner || '');
     setText('bonZoraQrCode', A._bonZoraQrCode || '');
     A.syncTimers();
+  };
+
+  // Décomposition du Score Bolamu (5 composantes pondérées, cf.
+  // scoreBolamu.service.js) — rend visible la corrélation avec les Zora
+  // (composante "Régularité Zora", mise en évidence en zora-gold).
+  A.renderScoreComposantes = function () {
+    var wrap = $('score-composantes');
+    var el = $('score-composantes-list');
+    var comp = A._scoreComposantes;
+    if (!wrap || !el) return;
+    if (!comp) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    var rows = [
+      { key: 'assiduite_rdv', label: 'Assiduité RDV', color: '#003FB1' },
+      { key: 'engagement_elonga', label: 'Engagement Elonga', color: '#003FB1' },
+      { key: 'activite_club', label: 'Activité club', color: '#003FB1' },
+      { key: 'regularite_zora', label: 'Régularité Zora', color: '#F5A623' },
+      { key: 'suivi_medical', label: 'Suivi médical', color: '#003FB1' }
+    ];
+    el.innerHTML = rows.map(function (r) {
+      var c = comp[r.key];
+      if (!c) return '';
+      var score = Math.max(0, Math.min(100, c.score || 0));
+      return '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="display:flex;justify-content:space-between;font-size:0.72rem;font-weight:700;color:#434654;margin-bottom:3px;"><span>' + esc(r.label) + '</span><span style="color:#9498a8;font-weight:600;">' + c.poids + '%</span></div>' +
+          '<div style="height:5px;background:#F3F3FE;border-radius:9999px;overflow:hidden;"><div style="height:100%;width:' + score + '%;background:' + r.color + ';border-radius:9999px;"></div></div>' +
+        '</div>' +
+        '<div style="font-size:0.78rem;font-weight:800;color:#0A2463;width:28px;text-align:right;flex-shrink:0;">' + score + '</div>' +
+      '</div>';
+    }).join('');
   };
 
   /* --------------------------- LISTES --------------------------- */
@@ -3419,7 +3454,9 @@
         A._scoreBolamu = d.data.score;
         A._scoreTendance = d.data.tendance;
         A._scoreLabel = d.data.label;
+        A._scoreComposantes = d.data.composantes;
         setText('scoreBolamu', d.data.score !== null ? d.data.score : '—');
+        A.renderScoreComposantes();
         var tendanceEl = $('score-tendance');
         if (tendanceEl) {
           var tendanceIcon = d.data.tendance === 'up' ? '↑' : d.data.tendance === 'down' ? '↓' : '=';
