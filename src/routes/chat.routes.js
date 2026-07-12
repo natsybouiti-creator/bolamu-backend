@@ -1,5 +1,5 @@
 // ============================================================
-// Routes : Chat (Sprint 3 — conversation-based + ancien canal)
+// Routes : Chat (conversation-based — ancien système canal retiré Phase 11/12)
 // ============================================================
 
 const express = require('express');
@@ -212,76 +212,11 @@ router.get('/users/search', authMiddleware, async (req, res) => {
 });
 
 // ============================================================
-// ANCIEN SYSTÈME — canal médecins (conservé pour compatibilité)
-// Les routes fixes sont déclarées AVANT /:medecin_phone dynamique
+// NOUVEAU SYSTÈME — trouver/créer une conversation patient↔médecin
+// (mal classée « ancien système » avant Phase 11/12 : utilise déjà
+// getOrCreateConversation, conversations/conversation_participants —
+// conservée telle quelle, cf. rapport Phase 11/12)
 // ============================================================
-
-/**
- * GET /api/v1/chat/medecin/messages
- * Messages avec un médecin (ancien système canal)
- */
-router.get('/medecin/messages', authMiddleware, async (req, res) => {
-  try {
-    const { doctor_phone } = req.query;
-    const phone = req.user.phone;
-
-    if (req.user.role !== 'patient' && req.user.role !== 'doctor') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients et médecins' });
-    }
-
-    if (!doctor_phone) {
-      return res.status(400).json({ success: false, message: 'Numéro de médecin requis' });
-    }
-
-    const channel = `medecin_${doctor_phone}`;
-    const { limit = 20, before_id } = req.query;
-
-    const messages = await chatService.getMessages({
-      channel,
-      limit: parseInt(limit),
-      before_id: before_id ? parseInt(before_id) : null
-    });
-
-    res.json({ success: true, data: messages });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-/**
- * POST /api/v1/chat/medecin/messages
- * Envoyer un message à un médecin (ancien système canal)
- */
-router.post('/medecin/messages', authMiddleware, async (req, res) => {
-  try {
-    const { content, doctor_phone } = req.body;
-    const sender_phone = req.user.phone;
-
-    if (req.user.role !== 'patient' && req.user.role !== 'doctor') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients et médecins' });
-    }
-
-    if (!doctor_phone) {
-      return res.status(400).json({ success: false, message: 'Numéro de médecin requis' });
-    }
-
-    if (!content || !content.trim()) {
-      return res.status(400).json({ success: false, message: 'Contenu du message requis' });
-    }
-
-    const channel = `medecin_${doctor_phone}`;
-    const message = await chatService.sendMessage({
-      sender_phone,
-      channel,
-      content,
-      message_type: 'text'
-    });
-
-    res.json({ success: true, data: message });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
 
 /**
  * POST /api/v1/chat/medecin/:medecin_phone
@@ -301,103 +236,6 @@ router.post('/medecin/:medecin_phone', authMiddleware, async (req, res) => {
     );
 
     res.json({ success: true, data: conversation });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-/**
- * GET /api/v1/chat/doctors
- * Liste des médecins avec qui le patient a eu des RDV
- */
-router.get('/doctors', authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
-    }
-    const doctors = await chatService.getPatientDoctors({ patient_phone: req.user.phone });
-    res.json({ success: true, data: doctors });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// ============================================================
-// ANCIEN SYSTÈME — canal communauté / groupes sport
-// ============================================================
-
-/**
- * POST /api/v1/chat/messages/:id/react
- * Ajouter une réaction à un message (groupes sport)
- */
-router.post('/messages/:id/react', authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
-    }
-    const result = await chatService.addReaction({
-      message_id: req.params.id,
-      phone: req.user.phone,
-      reaction: req.body.reaction || 'encourage'
-    });
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-/**
- * GET /api/v1/chat/:channel/messages
- * Messages d'un canal (groupes sport, communauté)
- */
-router.get('/:channel/messages', authMiddleware, async (req, res) => {
-  try {
-    const { channel } = req.params;
-    const { limit = 20, before_id } = req.query;
-
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
-    }
-
-    const messages = await chatService.getMessages({
-      channel,
-      limit: parseInt(limit),
-      before_id: before_id ? parseInt(before_id) : null
-    });
-
-    res.json({ success: true, data: messages });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-/**
- * POST /api/v1/chat/:channel/messages
- * Envoyer un message dans un canal (groupes sport, communauté)
- */
-router.post('/:channel/messages', authMiddleware, async (req, res) => {
-  try {
-    const { channel } = req.params;
-    const { content, message_type = 'text', achievement_data } = req.body;
-    const sender_phone = req.user.phone;
-
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Accès réservé aux patients' });
-    }
-
-    if (!content || !content.trim()) {
-      return res.status(400).json({ success: false, message: 'Contenu du message requis' });
-    }
-
-    const message = await chatService.sendMessage({
-      sender_phone,
-      channel,
-      content,
-      message_type,
-      achievement_data
-    });
-
-    res.json({ success: true, data: message });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
