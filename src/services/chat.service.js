@@ -5,84 +5,6 @@
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 
-// ============================================================
-// ANCIEN SYSTÈME — canal sport/groupes (conservé pour compatibilité)
-// ============================================================
-
-async function getMessages({ channel, limit = 20, before_id = null }) {
-  let query = `
-    SELECT
-      cm.id,
-      cm.channel,
-      cm.sender_phone,
-      CONCAT(SUBSTRING(u.full_name, 1, 1), '.', SUBSTRING(u.full_name, POSITION(' ' IN u.full_name) + 1, 1)) as sender_name,
-      cm.content,
-      cm.message_type,
-      cm.achievement_data,
-      cm.created_at,
-      COUNT(cr.id) as reaction_count
-    FROM chat_messages cm
-    JOIN users u ON cm.sender_phone = u.phone
-    LEFT JOIN chat_reactions cr ON cm.id = cr.message_id
-    WHERE cm.channel = $1
-      AND cm.is_deleted = false
-  `;
-
-  const params = [channel];
-
-  if (before_id) {
-    query += ' AND cm.id < $2';
-    params.push(before_id);
-  }
-
-  query += `
-    GROUP BY cm.id, cm.channel, cm.sender_phone, u.full_name, cm.content, cm.message_type, cm.achievement_data, cm.created_at
-    ORDER BY cm.created_at DESC
-    LIMIT $${params.length + 1}
-  `;
-  params.push(limit);
-
-  const result = await pool.query(query, params);
-  return result.rows;
-}
-
-async function sendMessage({ sender_phone, channel, content, message_type = 'text', achievement_data = null }) {
-  if (message_type === 'achievement' && achievement_data) {
-    if (achievement_data.phone !== sender_phone) {
-      throw new Error('Vous ne pouvez poster que vos propres exploits');
-    }
-  }
-
-  const result = await pool.query(
-    `INSERT INTO chat_messages (sender_phone, channel, content, message_type, achievement_data)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, created_at`,
-    [sender_phone, channel, content, message_type, achievement_data ? JSON.stringify(achievement_data) : null]
-  );
-
-  return result.rows[0];
-}
-
-async function addReaction({ message_id, phone, reaction = 'encourage' }) {
-  const result = await pool.query(
-    `INSERT INTO chat_reactions (message_id, phone, reaction)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (message_id, phone, reaction) DO NOTHING
-     RETURNING id`,
-    [message_id, phone, reaction]
-  );
-
-  const countResult = await pool.query(
-    'SELECT COUNT(*) as reaction_count FROM chat_reactions WHERE message_id = $1',
-    [message_id]
-  );
-
-  return {
-    success: result.rows.length > 0,
-    reaction_count: parseInt(countResult.rows[0].reaction_count)
-  };
-}
-
 // Portée vers le NOUVEAU SYSTÈME (Phase 11/12) : poste dans la conversation
 // communauté (messages/conversations) au lieu de chat_messages. Champ
 // achievement_data retiré (perte assumée, comme documenté migration_077 —
@@ -121,27 +43,6 @@ async function postAchievement({ phone, action_type, points }) {
   );
 
   return { success: true, message: result.rows[0] };
-}
-
-async function getPatientDoctors({ patient_phone }) {
-  const result = await pool.query(
-    `
-    SELECT DISTINCT
-      d.phone,
-      d.full_name,
-      d.specialty,
-      MAX(a.appointment_date) as last_appointment
-    FROM appointments a
-    JOIN doctors d ON a.doctor_id = d.id
-    WHERE a.patient_phone = $1
-      AND a.status IN ('confirme', 'termine', 'en_cours')
-    GROUP BY d.phone, d.full_name, d.specialty
-    ORDER BY last_appointment DESC
-    `,
-    [patient_phone]
-  );
-
-  return result.rows;
 }
 
 // ============================================================
@@ -440,12 +341,7 @@ async function getPatientConversations(patient_phone) {
 }
 
 module.exports = {
-  // Ancien système (canal sport/groupes)
-  getMessages,
-  sendMessage,
-  addReaction,
   postAchievement,
-  getPatientDoctors,
   // Nouveau système (conversations Sprint 3)
   getOrCreateConversation,
   getCommunauteConversation,
