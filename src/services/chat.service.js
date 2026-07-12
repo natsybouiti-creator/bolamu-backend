@@ -292,34 +292,32 @@ async function sendConversationMessage(conversation_id, sender_phone, content) {
     throw new Error('Accès non autorisé à cette conversation');
   }
 
+  // INSERT + enrichissement expéditeur en une seule requête (CTE) au lieu de
+  // deux allers-retours séquentiels. users.nom/prenom n'existent pas —
+  // colonne réelle full_name (vérifié information_schema). users.avatar_url
+  // existe mais est vide sur 78/78 comptes (colonne morte) ; photo_url est
+  // la colonne réellement peuplée et utilisée partout ailleurs dans le
+  // projet (BolamuAvatar.render, GET /patients/profil, etc.).
   const result = await pool.query(
-    `INSERT INTO messages (conversation_id, sender_phone, content)
-     VALUES ($1, $2, $3)
-     RETURNING id, conversation_id, sender_phone, content, sent_at`,
+    `WITH inserted AS (
+       INSERT INTO messages (conversation_id, sender_phone, content)
+       VALUES ($1, $2, $3)
+       RETURNING id, conversation_id, sender_phone, content, sent_at
+     )
+     SELECT
+       i.id,
+       i.conversation_id,
+       i.sender_phone,
+       i.content,
+       i.sent_at AS created_at,
+       u.full_name AS sender_name,
+       u.photo_url AS sender_avatar_url
+     FROM inserted i
+     LEFT JOIN users u ON u.phone = i.sender_phone`,
     [parseInt(conversation_id), phone, content]
   );
-  const message = result.rows[0];
 
-  // Enrichir avec les infos d'affichage de l'expéditeur pour éviter un 2e
-  // appel côté frontend. users.nom/prenom n'existent pas — colonne réelle
-  // full_name (vérifié information_schema). users.avatar_url existe mais
-  // est vide sur 78/78 comptes (colonne morte) ; photo_url est la colonne
-  // réellement peuplée et utilisée partout ailleurs dans le projet
-  // (BolamuAvatar.render, GET /patients/profil, etc.).
-  const sender = await pool.query(
-    `SELECT full_name, photo_url FROM users WHERE phone = $1`,
-    [phone]
-  );
-
-  const enriched = {
-    id: message.id,
-    conversation_id: message.conversation_id,
-    sender_phone: message.sender_phone,
-    content: message.content,
-    created_at: message.sent_at,
-    sender_name: sender.rows[0]?.full_name || null,
-    sender_avatar_url: sender.rows[0]?.photo_url || null
-  };
+  const enriched = result.rows[0];
 
   // Émettre via Socket.io
   try {
