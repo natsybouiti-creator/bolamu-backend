@@ -1288,12 +1288,28 @@ Services : leaderboard.service.js, streak.service.js
 WhatsApp : envoi DIRECT via whatsapp.service.js (sendWhatsAppTemplate), AUCUNE dépendance BullMQ/Redis
 Statut : ✅ prod confirmée
 
-### Sprint 6B — Groupes de sport + Chat communauté/médecins
-Tables : sport_groups, sport_group_members, chat_messages, chat_reactions
-Endpoints : /api/v1/sport-groups/*, /api/v1/chat/*
-Services : sport-groups.service.js, chat.service.js
-Auto-post achievements branché dans zora.service.js
-Statut : ✅ prod confirmée, 6 groupes actifs
+### Sprint 6B — Groupes de sport + Chat communauté/médecins (SUPERSÉDÉ juillet 2026)
+Tables historiques (SUPPRIMÉES migration_078, juillet 2026) : chat_messages, chat_reactions
+Tables actuelles : sport_groups, sport_group_members
+Statut : ✅ prod confirmée, 6 groupes actifs — chat déplacé vers le chantier "chat unifié" ci-dessous
+
+### Chantier chat unifié (12 phases, juillet 2026) — ✅ TERMINÉ
+Consolidation de tout le chat de la plateforme (ancien canal chat_messages/chat_reactions + polling clubs 5s)
+sur conversations/messages/conversation_participants + Socket.io temps réel.
+Tables : conversations, messages, conversation_participants
+Endpoints : /api/v1/chat/* (conversations, messages, users/search, medecin/:phone)
+Services : chat.service.js, socketService.js
+Migrations clés : migration_076 (élargissement conversation_participants.role, 11 rôles réels),
+  migration_077 (migration données chat_messages → messages), migration_078 (DROP chat_messages/chat_reactions),
+  migration_079 (users.last_seen_at, présence multi-instances)
+Socket.io : authenticate, join_conversation (ack conversation_joined), leave_conversation,
+  send_message, mark_read, typing_start/stop, new_message, user_online/offline
+Frontend : composant mutualisé public/js/bolamu-chat-window.js, intégré dans les 8 dashboards
+  (patient + medecin/pharmacie/laboratoire/secretaire/rh/animateur/agent_bolamu) — admin et content_admin exclus (décision actée)
+Auto-post achievements (zora.service.js → chat.service.js::postAchievement) porté vers conversations/messages
+Détail complet : docs/ARCHITECTURE_SOCIAL_COMMUNAUTE_BOLAMU.md (V4.0)
+Statut : ✅ prod confirmée — 3 items de dette technique résiduelle traités dans la foulée (gate migrations
+  destructives ALLOW_DESTRUCTIVE_MIGRATIONS, ack conversation_joined, présence hybride Map+DB)
 
 ### Sprint 7 + 8 — Design system unifié
 Fichiers sources uniques : public/css/bolamu-ds.css, public/js/bolamu-nav.js
@@ -1332,3 +1348,13 @@ Statut : ✅ prod confirmée sur les 6 dashboards
    migrations fonctionnelles.
 
 8. VÉRIFICATION PROD — utiliser curl.exe explicitement sous PowerShell, tester sur www.bolamu.co (pas api.bolamu.co).
+
+9. DÉPLOIEMENT = APPLICATION DES MIGRATIONS — leçon chantier chat unifié (juillet 2026) :
+   server.js appelle runMigrations() à CHAQUE démarrage, et Render redéploie automatiquement
+   à chaque push sur main (pas de autoDeploy: false dans render.yaml). Conséquence : committer
+   et pousser un fichier de migration l'applique en production au prochain déploiement, qu'on
+   l'ait "appliqué" manuellement ou non — il n'y a PAS de vraie étape "commit sans appliquer".
+   Gate ajouté (src/db/migrate.js) : toute migration contenant DROP TABLE / DROP COLUMN est
+   automatiquement ignorée au démarrage sauf si ALLOW_DESTRUCTIVE_MIGRATIONS=true est défini
+   (absent par défaut sur Render). Les migrations non destructives (ADD COLUMN, etc.) continuent
+   de s'appliquer automatiquement au push — comportement accepté pour ce cas.
