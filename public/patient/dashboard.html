@@ -2107,12 +2107,12 @@
     }).join('');
   };
 
-  // NOTE: cette liste utilise /api/v1/leaderboard/weekly (noms masqués,
-  // display_name), différente de la route du modal
-  // /api/v1/patients/leaderboard/weekly (noms complets). Les deux
-  // routes existent indépendamment - à unifier dans un futur chantier
-  // si le produit veut un comportement de confidentialité cohérent
-  // entre liste inline et modal.
+  // NOTE: /api/v1/leaderboard/weekly et /api/v1/patients/leaderboard/weekly
+  // partagent depuis le Fix 6 (13 juillet 2026) le même format
+  // { success, data: { top, my_position } } et les mêmes champs par entrée
+  // (phone, display_name, full_name, photo_url, weekly_points). Cette liste
+  // accueil choisit d'afficher display_name (masqué) ; la modale affiche
+  // full_name (complet) — un choix d'affichage, plus une différence d'API.
   A.renderLeaderboard = function () {
     var el = $('leaderboard-list'); if (!el) return;
     var lb = A._leaderboard || [];
@@ -2126,7 +2126,7 @@
         '<span style="width:28px;height:28px;border-radius:9999px;background:' + rankBg + ';color:' + rankCol + ';display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;flex-shrink:0;">' + (i + 1) + '</span>' +
         '<span style="width:36px;height:36px;border-radius:9999px;background:#003FB1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;flex-shrink:0;">' + esc(initials) + '</span>' +
         '<span style="flex:1;font-size:0.9rem;font-weight:600;color:#191B23;">' + esc(name) + '</span>' +
-        '<span style="font-size:0.85rem;font-weight:800;color:#B0680A;">' + esc(lr.points_earned) + ' pts</span></div>' +
+        '<span style="font-size:0.85rem;font-weight:800;color:#B0680A;">' + esc(lr.weekly_points) + ' pts</span></div>' +
         '<div style="display:flex;gap:8px;padding-left:48px;"><button onclick="A.toastEncourager()" style="display:inline-flex;align-items:center;gap:4px;background:none;border:none;color:#FF6B35;font-family:inherit;font-size:0.7rem;font-weight:700;cursor:pointer;padding:0;"><span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1;font-size:16px;">thumb_up</span>Encourager</button></div>';
     }).join('');
   };
@@ -2692,8 +2692,9 @@
     var token = localStorage.getItem('bolamu_patient_token');
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
     apiFetch('https://www.bolamu.co/api/v1/patients/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) {
-      if (d.success && d.data) {
-        A._weeklyLeaderboard = d.data;
+      if (d.success && d.data && d.data.top) {
+        A._weeklyLeaderboard = d.data.top;
+        A._myWeeklyPosition = d.data.my_position;
         A.renderLeaderboardModal();
       } else {
         $('leaderboard-modal-list').innerHTML = '<div style="text-align: center; padding: 24px; font-size: 0.86rem; font-weight: 600; color: #9498a8;">Classement vide cette semaine</div>';
@@ -3508,7 +3509,7 @@
       show($('leaderboard-empty'), false);
       if (lbListEl) lbListEl.innerHTML = '<div style="text-align:center;padding:18px 0;font-size:0.86rem;font-weight:600;color:#9498a8;">Chargement…</div>';
       apiFetch('https://www.bolamu.co/api/v1/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) {
-        if (d.success && d.top) { A._leaderboard = d.top.slice(0, 5); A._myPosition = d.my_position; A.renderLeaderboard(); }
+        if (d.success && d.data && d.data.top) { A._leaderboard = d.data.top.slice(0, 5); A._myPosition = d.data.my_position; A.renderLeaderboard(); }
         else if (lbListEl) { lbListEl.innerHTML = ''; show($('leaderboard-empty'), true); }
       }).catch(function () {
         if (lbListEl) lbListEl.innerHTML = '<div style="text-align:center;padding:18px 0;font-size:0.86rem;font-weight:600;color:#9498a8;">Classement temporairement indisponible.</div>';
