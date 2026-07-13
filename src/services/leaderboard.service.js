@@ -164,5 +164,6 @@ async function getTop3() {
 module.exports = {
   computeWeeklyLeaderboard,
   getLeaderboard,
-  getTop3
+  getTop3,
+  toDisplayName
 };
