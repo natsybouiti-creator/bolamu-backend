@@ -4,7 +4,6 @@ const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
 const { sendAutoMessage } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
-const { computeWeeklyLeaderboard } = require('../services/leaderboard.service');
 
 // Cron quotidien à 02h00 heure Brazzaville (UTC+1 = 01h00 UTC)
 const jobAbonnement = cron.schedule('0 1 * * *', async () => {
