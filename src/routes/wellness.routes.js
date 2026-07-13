@@ -32,7 +32,8 @@ router.post('/credit', authMiddleware, creditWellnessActionController);
 router.get('/stats/daily', authMiddleware, getDailyStatsController);
 router.get('/stats/weekly', authMiddleware, getWeeklyStatsController);
 
-// Leaderboard (public)
-router.get('/leaderboard', getLeaderboardController);
+// Classement cumulatif all-time Zora (distinct du classement hebdomadaire)
+// Protégé — patients actifs uniquement
+router.get('/leaderboard', authMiddleware, getLeaderboardController);
 
 module.exports = router;
