@@ -10,6 +10,7 @@ const idempotencyMiddleware = require('../middleware/idempotency');
 const { upgradeAbonnement } = require('../services/prorata.service');
 const { calculerScoreBolamu } = require('../services/scoreBolamu.service');
 const { encourageMember, calculateBadges } = require('../services/communityService');
+const { toDisplayName } = require('../services/leaderboard.service');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const multer = require('multer');
 const upload = multer({ 
@@ -268,6 +269,7 @@ router.get('/leaderboard/weekly', authMiddleware, async (req, res) => {
     const leaderboard = result.rows.map((row, index) => ({
       rank: index + 1,
       phone: row.phone,
+      display_name: toDisplayName(row.full_name),
       full_name: row.full_name,
       first_name: row.first_name,
       last_name: row.last_name,
@@ -275,7 +277,9 @@ router.get('/leaderboard/weekly', authMiddleware, async (req, res) => {
       weekly_points: parseInt(row.weekly_points) || 0
     }));
 
-    res.json({ success: true, data: leaderboard });
+    const myPosition = leaderboard.find(row => row.phone === req.user.phone) || null;
+
+    res.json({ success: true, data: { top: leaderboard, my_position: myPosition } });
   } catch (err) {
     console.error('[leaderboard-weekly]', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
