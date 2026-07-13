@@ -83,15 +83,15 @@ function toDisplayName(fullName) {
 async function getLeaderboard({ phone, limit = 10 }) {
   try {
     const rankedResult = await pool.query(
-      `SELECT phone, full_name, points_earned, rank FROM (
-         SELECT u.phone, u.full_name, SUM(zl.points) as points_earned,
+      `SELECT phone, full_name, photo_url, weekly_points, rank FROM (
+         SELECT u.phone, u.full_name, u.photo_url, SUM(zl.points) as weekly_points,
                 RANK() OVER (ORDER BY SUM(zl.points) DESC) as rank
          FROM users u
          JOIN zora_ledger zl ON zl.phone = u.phone
          WHERE u.role = 'patient'
            AND u.is_active = true
            AND zl.earned_at >= date_trunc('week', NOW())
-         GROUP BY u.phone, u.full_name
+         GROUP BY u.phone, u.full_name, u.photo_url
          HAVING SUM(zl.points) > 0
        ) ranked
        ORDER BY rank ASC`
@@ -99,15 +99,18 @@ async function getLeaderboard({ phone, limit = 10 }) {
 
     const top = rankedResult.rows.slice(0, limit).map(row => ({
       rank: row.rank,
-      points_earned: row.points_earned,
-      display_name: toDisplayName(row.full_name)
+      phone: row.phone,
+      display_name: toDisplayName(row.full_name),
+      full_name: row.full_name,
+      photo_url: row.photo_url,
+      weekly_points: row.weekly_points
     }));
 
     let myPosition = null;
     if (phone) {
       const mine = rankedResult.rows.find(row => row.phone === phone);
       if (mine) {
-        myPosition = { rank: mine.rank, points_earned: mine.points_earned };
+        myPosition = { rank: mine.rank, weekly_points: mine.weekly_points };
       }
     }
 
@@ -121,13 +124,16 @@ async function getLeaderboard({ phone, limit = 10 }) {
 
 /**
  * Récupérer le top 3 sans auth (pour landing page) — même source live que
- * getLeaderboard(), cf. commentaire ci-dessus.
+ * getLeaderboard(), cf. commentaire ci-dessus. Route publique non
+ * authentifiée : phone/full_name/photo_url volontairement exclus du retour
+ * (confirmé orpheline côté frontend le 13 juillet 2026, mais on garde le
+ * format minimal par prudence si elle est un jour consommée publiquement).
  */
 async function getTop3() {
   try {
     const result = await pool.query(
-      `SELECT phone, full_name, points_earned, rank FROM (
-         SELECT u.phone, u.full_name, SUM(zl.points) as points_earned,
+      `SELECT phone, full_name, weekly_points, rank FROM (
+         SELECT u.phone, u.full_name, SUM(zl.points) as weekly_points,
                 RANK() OVER (ORDER BY SUM(zl.points) DESC) as rank
          FROM users u
          JOIN zora_ledger zl ON zl.phone = u.phone
@@ -143,8 +149,8 @@ async function getTop3() {
 
     const top3 = result.rows.map(row => ({
       rank: row.rank,
-      points_earned: row.points_earned,
-      display_name: toDisplayName(row.full_name)
+      display_name: toDisplayName(row.full_name),
+      weekly_points: row.weekly_points
     }));
 
     return { success: true, data: top3 };
