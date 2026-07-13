@@ -3503,7 +3503,17 @@
       }
     }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.top) { A._leaderboard = d.top.slice(0, 5); A._myPosition = d.my_position; A.renderLeaderboard(); } }).catch(function () {});
+    (function () {
+      var lbListEl = $('leaderboard-list');
+      show($('leaderboard-empty'), false);
+      if (lbListEl) lbListEl.innerHTML = '<div style="text-align:center;padding:18px 0;font-size:0.86rem;font-weight:600;color:#9498a8;">Chargement…</div>';
+      apiFetch('https://www.bolamu.co/api/v1/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) {
+        if (d.success && d.top) { A._leaderboard = d.top.slice(0, 5); A._myPosition = d.my_position; A.renderLeaderboard(); }
+        else if (lbListEl) { lbListEl.innerHTML = ''; show($('leaderboard-empty'), true); }
+      }).catch(function () {
+        if (lbListEl) lbListEl.innerHTML = '<div style="text-align:center;padding:18px 0;font-size:0.86rem;font-weight:600;color:#9498a8;">Classement temporairement indisponible.</div>';
+      });
+    })();
 
     apiFetch('https://www.bolamu.co/api/v1/zora/balance?phone=' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data) { var tierMap = { kimia: 'Kimia', liboso: 'Liboso', nkembo: 'Nkembo', elonga: 'Elonga' }; A._zoraTier = tierMap[d.data.tier] || d.data.tier; A._zoraNextTier = tierMap[d.data.next_tier] || d.data.next_tier; A._zoraPointsToNext = d.data.points_to_next || 0; A._zoraTotalEarned = d.data.total_earned || 0; A.renderScalars(); }
