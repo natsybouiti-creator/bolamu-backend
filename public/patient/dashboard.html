@@ -315,6 +315,18 @@
   .modal-actions-row { display: flex; align-items: center; gap: 0.75rem; }
   .modal-footer { padding: 1rem 1.5rem 1.5rem; }
   .modal-footer .btn-primary { border-radius: 2rem; }
+  /* Commentaires */
+  #comments-list { display: flex; flex-direction: column; gap: 0.85rem; min-height: 60px; }
+  .comment-item { display: flex; gap: 0.6rem; align-items: flex-start; }
+  .comment-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; overflow: hidden; }
+  .comment-bubble { background: #F8F8FC; border-radius: 1rem; padding: 0.5rem 0.85rem; flex: 1; }
+  .comment-author { font-size: 0.8rem; font-weight: 700; color: #0A2463; cursor: pointer; }
+  .comment-text { font-size: 0.85rem; color: #434654; margin-top: 0.1rem; word-break: break-word; }
+  .comment-time { font-size: 0.7rem; color: rgba(10,36,99,0.4); margin-top: 0.25rem; }
+  .comment-delete { background: none; border: none; color: rgba(10,36,99,0.35); cursor: pointer; padding: 0 0.25rem; }
+  .comment-loading, .comment-empty { text-align: center; color: rgba(10,36,99,0.4); padding: 1rem; font-size: 0.85rem; }
+  #comment-input { max-height: 90px; }
+
   .story-upload-zone {
     display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 2rem;
     border: 2px dashed rgba(10,36,99,0.2); border-radius: 1rem; cursor: pointer; color: rgba(10,36,99,0.5);
@@ -628,6 +640,27 @@
           </div>
           <div class="modal-footer">
             <button class="btn-primary" onclick="A.submitPost()">Publier</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal commentaires -->
+      <div id="modal-comments" class="modal-overlay" style="display:none">
+        <div class="modal-panel">
+          <div class="modal-header">
+            <h2>Commentaires</h2>
+            <button class="modal-close" onclick="A.closeFeedModal('modal-comments')">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div id="comments-list"></div>
+          </div>
+          <div class="modal-footer" style="display:flex;gap:0.6rem;align-items:flex-end;padding-top:0">
+            <textarea id="comment-input" placeholder="Ajouter un commentaire…" rows="1" style="flex:1"></textarea>
+            <button class="btn-icon" onclick="A.submitComment()" aria-label="Envoyer">
+              <span class="material-symbols-outlined">send</span>
+            </button>
           </div>
         </div>
       </div>
@@ -4415,6 +4448,7 @@
 
     var div = document.createElement('div');
     div.className = 'post-card';
+    div.dataset.postId = post.id;
     div.innerHTML =
       '<div class="post-header">' +
         '<div class="post-avatar" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' +
@@ -4437,7 +4471,7 @@
         '</button>' +
         '<button class="post-action-btn" onclick="A.openComments(\'' + post.id + '\')">' +
           '<span class="material-symbols-outlined">chat_bubble_outline</span>' +
-          (post.comments_count || 0) +
+          '<span class="comment-count-num">' + (post.comments_count || 0) + '</span>' +
         '</button>' +
       '</div>';
     container.appendChild(div);
@@ -4463,7 +4497,101 @@
     }).catch(function (err) { console.error('[feed] toggleLike:', err); });
   };
 
-  A.openComments = function () { A.comingSoon(); };
+  A.openComments = function (postId) {
+    A._currentCommentsPostId = postId;
+    var modal = $('modal-comments');
+    if (modal) modal.style.display = 'flex';
+    $('comments-list').innerHTML = '<div class="comment-loading">Chargement…</div>';
+    $('comment-input').value = '';
+    A.loadComments(postId);
+  };
+
+  A.loadComments = function (postId) {
+    apiFetch('https://www.bolamu.co/api/v1/feed/' + postId + '/comments', {})
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (A._currentCommentsPostId !== postId) return; // modale refermée/rouverte entre-temps
+        var list = $('comments-list');
+        if (!list) return;
+        var comments = (d && d.data) || [];
+        if (!comments.length) {
+          list.innerHTML = '<div class="comment-empty">Aucun commentaire. Soyez le premier !</div>';
+          return;
+        }
+        list.innerHTML = '';
+        comments.forEach(function (c) { list.appendChild(A.buildCommentEl(c)); });
+      }).catch(function (err) {
+        console.error('[feed] loadComments:', err);
+        var list = $('comments-list');
+        if (list) list.innerHTML = '<div class="comment-empty">Impossible de charger les commentaires.</div>';
+      });
+  };
+
+  A.buildCommentEl = function (c) {
+    var myPhone = A._patientPhone || localStorage.getItem('bolamu_patient_phone');
+    var isMine = myPhone && c.phone === myPhone;
+    var div = document.createElement('div');
+    div.className = 'comment-item';
+    div.dataset.commentId = c.id;
+    div.innerHTML =
+      '<div class="comment-avatar" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(c.phone || '') + '\')" style="cursor:pointer;">' +
+        window.BolamuAvatar.render({ photoUrl: c.author_avatar || null, fullName: c.author_name || '', role: 'patient', size: 32 }) +
+      '</div>' +
+      '<div class="comment-bubble">' +
+        '<span class="comment-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(c.phone || '') + '\')">' + A.escapeHtml(c.author_name || '') + '</span>' +
+        '<div class="comment-text">' + A.escapeHtml(c.content || '') + '</div>' +
+        '<div class="comment-time">' + A.formatTimeAgo(c.created_at) +
+          (isMine ? ' · <button class="comment-delete" onclick="A.deleteComment(\'' + c.id + '\', this)">Supprimer</button>' : '') +
+        '</div>' +
+      '</div>';
+    return div;
+  };
+
+  A.submitComment = function () {
+    var postId = A._currentCommentsPostId;
+    if (!postId) return;
+    var input = $('comment-input');
+    var content = (input.value || '').trim();
+    if (!content) return;
+
+    apiFetch('https://www.bolamu.co/api/v1/feed/' + postId + '/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: content })
+    }).then(function (r) { return r && r.json(); }).then(function (d) {
+      if (!d || !d.success) { A.showToast('Impossible d\'envoyer le commentaire'); return; }
+      input.value = '';
+      // La réponse POST ne contient pas author_name/author_avatar (pas de jointure users
+      // sur le RETURNING * du contrôleur) : on recharge la liste plutôt que d'insérer d.data.
+      A.loadComments(postId);
+
+      var card = document.querySelector('.post-card[data-post-id="' + postId + '"]');
+      if (card) {
+        var counter = card.querySelector('.comment-count-num');
+        if (counter) counter.textContent = (parseInt(counter.textContent.trim(), 10) || 0) + 1;
+      }
+    }).catch(function (err) { console.error('[feed] submitComment:', err); A.showToast('Erreur réseau'); });
+  };
+
+  A.deleteComment = function (commentId, btn) {
+    var postId = A._currentCommentsPostId;
+    if (!postId) return;
+    apiFetch('https://www.bolamu.co/api/v1/feed/' + postId + '/comments/' + commentId, { method: 'DELETE' })
+      .then(function (r) { return r && r.json(); }).then(function (d) {
+      if (!d || !d.success) return;
+      var item = btn.closest('.comment-item');
+      if (item) item.remove();
+      var list = $('comments-list');
+      if (list && !list.children.length) {
+        list.innerHTML = '<div class="comment-empty">Aucun commentaire. Soyez le premier !</div>';
+      }
+      var card = document.querySelector('.post-card[data-post-id="' + postId + '"]');
+      if (card) {
+        var counter = card.querySelector('.comment-count-num');
+        if (counter) counter.textContent = Math.max(0, (parseInt(counter.textContent.trim(), 10) || 0) - 1);
+      }
+    }).catch(function (err) { console.error('[feed] deleteComment:', err); });
+  };
 
   A.openCreatePost = function (mode) {
     var modal = $('modal-create-post');
