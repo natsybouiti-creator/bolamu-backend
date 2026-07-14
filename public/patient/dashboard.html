@@ -265,6 +265,38 @@
   .story-nav--prev { left: 1rem; }
   .story-nav--next { right: 1rem; }
 
+  /* Reels viewer plein écran — scroll vertical façon TikTok */
+  .reels-viewer-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; }
+  .reels-viewer-close, .reels-viewer-create {
+    position: absolute; z-index: 3; background: rgba(255,255,255,0.15); border: none;
+    border-radius: 50%; width: 40px; height: 40px; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .reels-viewer-close { top: 1rem; right: 1rem; }
+  .reels-viewer-create { top: 1rem; left: 1rem; }
+  .reels-scroll { height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+  .reels-scroll::-webkit-scrollbar { display: none; }
+  .reel-slide {
+    height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always;
+    position: relative; display: flex; align-items: center; justify-content: center; background: #000;
+  }
+  .reel-slide video, .reel-slide img { width: 100%; height: 100%; object-fit: contain; }
+  .reel-mute-btn {
+    position: absolute; bottom: 110px; right: 1rem; background: rgba(255,255,255,0.15); border: none;
+    border-radius: 50%; width: 40px; height: 40px; color: #fff; cursor: pointer; z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .reel-actions { position: absolute; right: 1rem; bottom: 170px; display: flex; flex-direction: column; align-items: center; gap: 1.25rem; z-index: 2; }
+  .reel-action-btn {
+    background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center;
+    gap: 4px; font-size: 0.7rem; font-weight: 700; cursor: pointer;
+  }
+  .reel-action-btn .material-symbols-outlined { font-size: 32px; }
+  .reel-action-btn.liked .material-symbols-outlined { color: #E03A3A; }
+  .reel-author { position: absolute; left: 1rem; bottom: 4.5rem; display: flex; align-items: center; gap: 0.5rem; color: #fff; z-index: 2; cursor: pointer; font-weight: 700; }
+  .reel-caption { position: absolute; left: 1rem; bottom: 2rem; max-width: 65%; color: #fff; z-index: 2; font-size: 0.85rem; }
+  .reel-empty { color: #fff; text-align: center; padding-top: 40vh; }
+
   /* Cloche notifications header */
   .notif-badge {
     position: absolute; top: -4px; right: -4px; width: 18px; height: 18px;
@@ -306,7 +338,7 @@
 
   /* Modal (réutilise le pattern .modal-bg existant si compatible, sinon overlay dédié) */
   .modal-overlay {
-    position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center;
+    position: fixed; inset: 0; z-index: 10000; align-items: center; justify-content: center;
     padding: 20px; background: rgba(10,36,99,0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   }
   .modal-overlay[style*="flex"] { display: flex; }
@@ -580,6 +612,10 @@
                 <span class="material-symbols-outlined">add_circle</span>
                 Story
               </button>
+              <button class="composer-action-btn" onclick="A.openReelsViewer()">
+                <span class="material-symbols-outlined">movie</span>
+                Reels
+              </button>
             </div>
           </div>
 
@@ -702,11 +738,11 @@
         </div>
       </div>
 
-      <!-- Modal créer story -->
+      <!-- Modal créer story / reel (modale partagée — cf. A.openCreateStory / A.openCreateReel) -->
       <div id="modal-create-story" class="modal-overlay" style="display:none">
         <div class="modal-panel modal-panel--story">
           <div class="modal-header">
-            <h2>Nouvelle story</h2>
+            <h2 id="create-story-title">Nouvelle story</h2>
             <button class="modal-close" onclick="A.closeFeedModal('modal-create-story')">
               <span class="material-symbols-outlined">close</span>
             </button>
@@ -714,14 +750,14 @@
           <div class="modal-body">
             <label class="story-upload-zone" for="story-media-input">
               <span class="material-symbols-outlined">add_photo_alternate</span>
-              <span>Photo ou vidéo (max 60s)</span>
+              <span id="create-story-zone-label">Photo ou vidéo (max 60s)</span>
               <input type="file" id="story-media-input" accept="image/*,video/mp4" style="display:none" onchange="A.previewStoryMedia(this)">
             </label>
             <div id="story-preview" style="display:none"></div>
             <textarea id="story-text" placeholder="Texte (optionnel)" rows="2"></textarea>
           </div>
           <div class="modal-footer">
-            <button class="btn-primary" onclick="A.submitStory()">
+            <button class="btn-primary" id="create-story-submit-btn" onclick="A.submitStory()">
               Publier (24h)
             </button>
           </div>
@@ -748,6 +784,17 @@
         <button class="story-nav story-nav--next" onclick="A.nextStory()">
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
+      </div>
+
+      <!-- Visionneuse reels plein écran (scroll vertical, façon TikTok) -->
+      <div id="reels-viewer" class="reels-viewer-overlay" style="display:none">
+        <button class="reels-viewer-close" onclick="A.closeReelsViewer()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <button class="reels-viewer-create" onclick="A.openCreateReel()" title="Publier un reel">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+        <div id="reels-scroll" class="reels-scroll"></div>
       </div>
 
     </section>
@@ -4611,7 +4658,7 @@
       // sur le RETURNING * du contrôleur) : on recharge la liste plutôt que d'insérer d.data.
       A.loadComments(postId);
 
-      var card = document.querySelector('.post-card[data-post-id="' + postId + '"]');
+      var card = document.querySelector('[data-post-id="' + postId + '"]');
       if (card) {
         var counter = card.querySelector('.comment-count-num');
         if (counter) counter.textContent = (parseInt(counter.textContent.trim(), 10) || 0) + 1;
@@ -4631,7 +4678,7 @@
       if (list && !list.children.length) {
         list.innerHTML = '<div class="comment-empty">Aucun commentaire. Soyez le premier !</div>';
       }
-      var card = document.querySelector('.post-card[data-post-id="' + postId + '"]');
+      var card = document.querySelector('[data-post-id="' + postId + '"]');
       if (card) {
         var counter = card.querySelector('.comment-count-num');
         if (counter) counter.textContent = Math.max(0, (parseInt(counter.textContent.trim(), 10) || 0) - 1);
@@ -4827,7 +4874,23 @@
     $('story-viewer').style.display = 'none';
   };
 
-  A.openCreateStory = function () { $('modal-create-story').style.display = 'flex'; };
+  A.openCreateStory = function () {
+    A._creatingReel = false;
+    $('create-story-title').textContent = 'Nouvelle story';
+    $('create-story-submit-btn').textContent = 'Publier (24h)';
+    $('create-story-zone-label').textContent = 'Photo ou vidéo (max 60s)';
+    $('modal-create-story').style.display = 'flex';
+  };
+
+  // Réutilise la même modale et le même A.previewStoryMedia que la story —
+  // seul le texte et l'endpoint de publication changent (cf. A.submitStory).
+  A.openCreateReel = function () {
+    A._creatingReel = true;
+    $('create-story-title').textContent = 'Nouveau reel';
+    $('create-story-submit-btn').textContent = 'Publier';
+    $('create-story-zone-label').textContent = 'Vidéo courte (max 60s)';
+    $('modal-create-story').style.display = 'flex';
+  };
 
   A.previewStoryMedia = function (input) {
     var file = input.files[0];
@@ -4855,21 +4918,122 @@
   A.submitStory = function () {
     var mediaInput = $('story-media-input');
     var text = $('story-text').value.trim();
+    var isReel = !!A._creatingReel;
 
     if (!mediaInput.files[0] && !text) { A.showToast('Ajoutez un média ou un texte'); return; }
+    if (isReel && !mediaInput.files[0]) { A.showToast('Une vidéo est requise pour un reel'); return; }
 
     var formData = new FormData();
     if (text) formData.append('content', text);
     if (mediaInput.files[0]) formData.append('media', mediaInput.files[0]);
 
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/stories', {
+    var url = isReel ? 'https://www.bolamu.co/api/v1/reels' : 'https://www.bolamu.co/api/v1/stories';
+    apiFetch(url, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token },
       body: formData
     }).then(function (r) { return r.json(); }).then(function (data) {
-      if (data.success) { A.closeFeedModal('modal-create-story'); A.loadStories(); }
+      if (!data.success) return;
+      A.closeFeedModal('modal-create-story');
+      if (isReel) A.loadReels(); else A.loadStories();
     }).catch(function (err) { console.error('[stories] submitStory:', err); });
+  };
+
+  /* --------------------------- REELS --------------------------- */
+  A.openReelsViewer = function () {
+    $('reels-viewer').style.display = 'block';
+    A.loadReels();
+  };
+
+  A.closeReelsViewer = function () {
+    $('reels-viewer').style.display = 'none';
+    document.querySelectorAll('#reels-scroll video').forEach(function (v) { v.pause(); });
+    if (A._reelsObserver) A._reelsObserver.disconnect();
+  };
+
+  A.loadReels = function () {
+    apiFetch('https://www.bolamu.co/api/v1/reels?limit=10', {})
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        var container = $('reels-scroll');
+        if (!container) return;
+        container.innerHTML = '';
+        if (!d || !d.data || !d.data.length) {
+          container.innerHTML = '<div class="reel-empty">Aucun reel pour l\'instant. Suivez des membres !</div>';
+          return;
+        }
+        d.data.forEach(function (reel) { container.appendChild(A.buildReelSlide(reel)); });
+        A.wireReelsAutoplay();
+      }).catch(function (err) { console.error('[reels] loadReels:', err); });
+  };
+
+  A.buildReelSlide = function (reel) {
+    var div = document.createElement('div');
+    div.className = 'reel-slide';
+    div.dataset.postId = reel.id;
+    var isVideo = reel.photo_url && reel.photo_url.indexOf('/video/') !== -1;
+    div.innerHTML =
+      (isVideo
+        ? '<video src="' + reel.photo_url + '" loop muted playsinline></video>'
+        : '<img src="' + reel.photo_url + '" alt="">') +
+      (isVideo
+        ? '<button class="reel-mute-btn" onclick="A.toggleReelSound(this)"><span class="material-symbols-outlined">volume_off</span></button>'
+        : '') +
+      '<div class="reel-actions">' +
+        '<button class="reel-action-btn ' + (reel.liked_by_me ? 'liked' : '') + '" onclick="A.toggleReelLike(\'' + reel.id + '\', this)">' +
+          '<span class="material-symbols-outlined">' + (reel.liked_by_me ? 'favorite' : 'favorite_border') + '</span>' +
+          '<span class="reel-like-count">' + (reel.likes_count || 0) + '</span>' +
+        '</button>' +
+        '<button class="reel-action-btn" onclick="A.openComments(\'' + reel.id + '\')">' +
+          '<span class="material-symbols-outlined">chat_bubble_outline</span>' +
+          '<span class="comment-count-num">' + (reel.comments_count || 0) + '</span>' +
+        '</button>' +
+      '</div>' +
+      '<div class="reel-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(reel.author_phone || '') + '\')">' +
+        window.BolamuAvatar.render({ photoUrl: reel.author_avatar || null, fullName: reel.author_name || '', role: 'patient', size: 36 }) +
+        '<span>' + A.escapeHtml(reel.author_name || '') + '</span>' +
+      '</div>' +
+      (reel.content ? '<div class="reel-caption">' + A.escapeHtml(reel.content) + '</div>' : '');
+    return div;
+  };
+
+  A.toggleReelSound = function (btn) {
+    var slide = btn.closest('.reel-slide');
+    var video = slide.querySelector('video');
+    if (!video) return;
+    video.muted = !video.muted;
+    btn.querySelector('.material-symbols-outlined').textContent = video.muted ? 'volume_off' : 'volume_up';
+  };
+
+  A.toggleReelLike = function (reelId, btn) {
+    apiFetch('https://www.bolamu.co/api/v1/feed/' + reelId + '/like', { method: 'POST' })
+      .then(function (r) { return r && r.json(); }).then(function (data) {
+      if (!data) return;
+      var icon = btn.querySelector('.material-symbols-outlined');
+      var count = btn.querySelector('.reel-like-count');
+      var current = parseInt(count.textContent.trim(), 10) || 0;
+      if (data.liked) {
+        btn.classList.add('liked'); icon.textContent = 'favorite'; count.textContent = current + 1;
+      } else {
+        btn.classList.remove('liked'); icon.textContent = 'favorite_border'; count.textContent = Math.max(0, current - 1);
+      }
+    }).catch(function (err) { console.error('[reels] toggleReelLike:', err); });
+  };
+
+  // Autoplay muet : la vidéo visible à >=60% joue, les autres se coupent —
+  // évite d'avoir plusieurs pistes audio/vidéo actives en même temps au scroll.
+  A.wireReelsAutoplay = function () {
+    var videos = document.querySelectorAll('#reels-scroll .reel-slide video');
+    if (A._reelsObserver) A._reelsObserver.disconnect();
+    if (!videos.length) return;
+    A._reelsObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) entry.target.play().catch(function () {});
+        else entry.target.pause();
+      });
+    }, { threshold: 0.6 });
+    videos.forEach(function (v) { A._reelsObserver.observe(v); });
   };
 
   /* --------------------------- SUGGESTIONS / FOLLOW --------------------------- */
