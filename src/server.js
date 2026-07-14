@@ -237,6 +237,7 @@ app.use('/api/v1',              smartflowRoutes);
 app.use('/api/v1',              symptomsRoutes);
 app.use('/api/v1/feed',          require('./routes/feed.routes'));
 app.use('/api/v1/stories',       require('./routes/stories.routes'));
+app.use('/api/v1/reels',         require('./routes/reels.routes'));
 app.use('/api/v1/follows',       require('./routes/follows.routes'));
 // ============================================================
 // 4. ROUTES WEB
