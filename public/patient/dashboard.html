@@ -665,6 +665,30 @@
         </div>
       </div>
 
+      <!-- Modal signalement -->
+      <div id="modal-report" class="modal-overlay" style="display:none">
+        <div class="modal-panel">
+          <div class="modal-header">
+            <h2>Signaler</h2>
+            <button class="modal-close" onclick="A.closeFeedModal('modal-report')">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <select id="report-reason">
+              <option value="spam">Spam ou publicité</option>
+              <option value="inapproprie">Contenu inapproprié</option>
+              <option value="harcelement">Harcèlement</option>
+              <option value="fausse_info">Fausse information</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-primary" onclick="A.submitReport()">Envoyer le signalement</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Modal créer story -->
       <div id="modal-create-story" class="modal-overlay" style="display:none">
         <div class="modal-panel modal-panel--story">
@@ -4445,6 +4469,8 @@
     if (!container) return;
     var isSystem = post.type === 'system';
     var timeAgo = A.formatTimeAgo(post.created_at);
+    var myPhone = A._patientPhone || localStorage.getItem('bolamu_patient_phone');
+    var isMine = myPhone && post.author_phone === myPhone;
 
     var div = document.createElement('div');
     div.className = 'post-card';
@@ -4473,6 +4499,10 @@
           '<span class="material-symbols-outlined">chat_bubble_outline</span>' +
           '<span class="comment-count-num">' + (post.comments_count || 0) + '</span>' +
         '</button>' +
+        (isMine ? '' :
+          '<button class="post-action-btn" onclick="A.openReport(\'post\', \'' + post.id + '\')" title="Signaler" aria-label="Signaler">' +
+            '<span class="material-symbols-outlined">flag</span>' +
+          '</button>') +
       '</div>';
     container.appendChild(div);
   };
@@ -4541,7 +4571,9 @@
         '<span class="comment-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(c.phone || '') + '\')">' + A.escapeHtml(c.author_name || '') + '</span>' +
         '<div class="comment-text">' + A.escapeHtml(c.content || '') + '</div>' +
         '<div class="comment-time">' + A.formatTimeAgo(c.created_at) +
-          (isMine ? ' · <button class="comment-delete" onclick="A.deleteComment(\'' + c.id + '\', this)">Supprimer</button>' : '') +
+          (isMine
+            ? ' · <button class="comment-delete" onclick="A.deleteComment(\'' + c.id + '\', this)">Supprimer</button>'
+            : ' · <button class="comment-delete" onclick="A.openReport(\'comment\', \'' + c.id + '\')">Signaler</button>') +
         '</div>' +
       '</div>';
     return div;
@@ -4591,6 +4623,36 @@
         if (counter) counter.textContent = Math.max(0, (parseInt(counter.textContent.trim(), 10) || 0) - 1);
       }
     }).catch(function (err) { console.error('[feed] deleteComment:', err); });
+  };
+
+  A.openReport = function (type, id) {
+    A._reportTarget = { type: type, id: id };
+    var select = $('report-reason');
+    if (select) select.value = 'spam';
+    var modal = $('modal-report');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  A.submitReport = function () {
+    var target = A._reportTarget;
+    if (!target) return;
+    var reason = $('report-reason').value;
+    var url = target.type === 'post'
+      ? 'https://www.bolamu.co/api/v1/feed/' + target.id + '/report'
+      : 'https://www.bolamu.co/api/v1/feed/comments/' + target.id + '/report';
+
+    apiFetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: reason })
+    }).then(function (r) { return r && r.json(); }).then(function (d) {
+      A.closeFeedModal('modal-report');
+      A.showToast(d && d.success ? 'Signalement envoyé, merci.' : 'Impossible d\'envoyer le signalement');
+    }).catch(function (err) {
+      console.error('[feed] submitReport:', err);
+      A.closeFeedModal('modal-report');
+      A.showToast('Erreur réseau');
+    });
   };
 
   A.openCreatePost = function (mode) {

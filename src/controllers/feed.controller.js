@@ -349,6 +349,86 @@ exports.deleteComment = async (req, res) => {
     }
 };
 
+// POST /api/v1/feed/:postId/report
+// Alimente la file de modération (audit_log) — ne masque rien automatiquement.
+// audit_log.target_id est un entier (héritage) : les id de posts/commentaires sont
+// des UUID, donc stockés dans payload plutôt que target_id (laissé NULL), comme déjà
+// fait pour BHP_PURGE_PHYSIQUE (cf. bhpPurge.job.js) quand la cible n'a pas d'id entier.
+exports.reportPost = async (req, res) => {
+    const phone = req.user.phone;
+    const { postId } = req.params;
+    const { reason } = req.body;
+
+    if (!reason || !reason.trim()) {
+        return res.status(400).json({
+            success: false,
+            error: { code: 'REASON_REQUIRED', message: 'Motif de signalement requis' }
+        });
+    }
+
+    try {
+        if (!(await isPostVisibleTo(postId, phone))) {
+            return res.status(404).json({
+                success: false,
+                error: { code: 'POST_NOT_FOUND', message: 'Post introuvable' }
+            });
+        }
+
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('post_reported', $1, 'posts', NULL, $2::jsonb)`,
+            [phone, JSON.stringify({ post_id: postId, reason: reason.trim() })]
+        );
+
+        return res.status(201).json({ success: true });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            error: { code: 'REPORT_ERROR', message: err.message }
+        });
+    }
+};
+
+// POST /api/v1/feed/comments/:commentId/report
+exports.reportComment = async (req, res) => {
+    const phone = req.user.phone;
+    const { commentId } = req.params;
+    const { reason } = req.body;
+
+    if (!reason || !reason.trim()) {
+        return res.status(400).json({
+            success: false,
+            error: { code: 'REASON_REQUIRED', message: 'Motif de signalement requis' }
+        });
+    }
+
+    try {
+        const comment = await pool.query(
+            'SELECT post_id FROM post_comments WHERE id = $1 AND is_active = TRUE',
+            [commentId]
+        );
+        if (!comment.rows.length || !(await isPostVisibleTo(comment.rows[0].post_id, phone))) {
+            return res.status(404).json({
+                success: false,
+                error: { code: 'COMMENT_NOT_FOUND', message: 'Commentaire introuvable' }
+            });
+        }
+
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('comment_reported', $1, 'post_comments', NULL, $2::jsonb)`,
+            [phone, JSON.stringify({ comment_id: commentId, reason: reason.trim() })]
+        );
+
+        return res.status(201).json({ success: true });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            error: { code: 'REPORT_ERROR', message: err.message }
+        });
+    }
+};
+
 // GET /api/v1/feed/profile/:phone
 exports.getProfile = async (req, res) => {
     const { phone } = req.params;

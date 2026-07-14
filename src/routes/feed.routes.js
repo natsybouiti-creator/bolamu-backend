@@ -22,6 +22,10 @@ router.get('/:postId/comments',         authMiddleware, feedCtrl.getComments);
 router.post('/:postId/comments',        authMiddleware, feedCtrl.addComment);
 router.delete('/:postId/comments/:id',  authMiddleware, feedCtrl.deleteComment);
 
+// Signalement (alimente la file de modération — ne masque rien automatiquement)
+router.post('/comments/:commentId/report', authMiddleware, feedCtrl.reportComment);
+router.post('/:postId/report',          authMiddleware, feedCtrl.reportPost);
+
 // Supprimer son propre post
 router.delete('/:postId',               authMiddleware, feedCtrl.deletePost);
 
