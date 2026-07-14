@@ -5,6 +5,14 @@
 // ============================================================
 const pool = require('../config/db');
 const cloudinaryService = require('../services/cloudinary.service');
+const { getRoleLabel } = require('../utils/roleLabels');
+
+function withRoleLabel(row) {
+    row.author_role_label = getRoleLabel(row.role, row.specialty);
+    delete row.role;
+    delete row.specialty;
+    return row;
+}
 
 // GET /api/v1/reels
 // Reels des follows + les siens, plus récents d'abord. Même logique de
@@ -25,11 +33,14 @@ exports.getReels = async (req, res) => {
                 p.created_at,
                 u.full_name AS author_name,
                 u.photo_url AS author_avatar,
+                u.role,
+                d.specialty,
                 COUNT(DISTINCT pl.phone) AS likes_count,
                 COUNT(DISTINCT pc.id)   AS comments_count,
                 BOOL_OR(pl.phone = $1)  AS liked_by_me
             FROM posts p
             JOIN users u ON u.phone = p.author_phone
+            LEFT JOIN doctors d ON d.phone = u.phone
             LEFT JOIN post_likes    pl ON pl.post_id = p.id
             LEFT JOIN post_comments pc ON pc.post_id = p.id AND pc.is_active = TRUE
             WHERE p.is_active = TRUE
@@ -40,12 +51,12 @@ exports.getReels = async (req, res) => {
                         SELECT following_phone FROM follows WHERE follower_phone = $1
                     )
                 )
-            GROUP BY p.id, u.full_name, u.photo_url
+            GROUP BY p.id, u.full_name, u.photo_url, u.role, d.specialty
             ORDER BY p.created_at DESC
             LIMIT $2 OFFSET $3
         `, [phone, limit, offset]);
 
-        return res.json({ success: true, data: result.rows, page: +page });
+        return res.json({ success: true, data: result.rows.map(withRoleLabel), page: +page });
     } catch (err) {
         return res.status(500).json({
             success: false,

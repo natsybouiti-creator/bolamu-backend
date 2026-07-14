@@ -6,6 +6,14 @@ const cloudinaryService = require('../services/cloudinary.service');
 const notifService = require('../services/notification.service');
 const { isPostVisibleTo } = require('../services/feed.service');
 const { normalizePhone } = require('../utils/phone');
+const { getRoleLabel } = require('../utils/roleLabels');
+
+function withRoleLabel(row) {
+    row.author_role_label = getRoleLabel(row.role, row.specialty);
+    delete row.role;
+    delete row.specialty;
+    return row;
+}
 
 // GET /api/v1/feed
 // Feed : posts des follows + posts système
@@ -71,11 +79,14 @@ exports.getFeed = async (req, res) => {
                     p.created_at,
                     u.full_name AS author_name,
                     u.photo_url AS author_avatar,
+                    u.role,
+                    d.specialty,
                     COUNT(DISTINCT pl.phone) AS likes_count,
                     COUNT(DISTINCT pc.id)   AS comments_count,
                     BOOL_OR(pl.phone = $1)  AS liked_by_me
                 FROM posts p
                 JOIN users u ON u.phone = p.author_phone
+                LEFT JOIN doctors d ON d.phone = u.phone
                 LEFT JOIN post_likes    pl ON pl.post_id = p.id
                 LEFT JOIN post_comments pc ON pc.post_id = p.id AND pc.is_active = TRUE
                 WHERE p.is_active = TRUE
@@ -83,12 +94,12 @@ exports.getFeed = async (req, res) => {
                     AND p.author_phone = $2
                     AND (p.expires_at IS NULL OR p.expires_at > NOW())
                     AND ($3::text IS NULL OR p.city = $3)
-                GROUP BY p.id, u.full_name, u.photo_url
+                GROUP BY p.id, u.full_name, u.photo_url, u.role, d.specialty
                 ORDER BY p.created_at DESC
                 LIMIT $4 OFFSET $5
             `, [visitorPhone || null, targetPhone, city || null, limit, offset]);
 
-            return res.json({ success: true, data: result.rows, page: +page });
+            return res.json({ success: true, data: result.rows.map(withRoleLabel), page: +page });
         }
 
         // Feed normal (sans paramètre author)
@@ -104,11 +115,14 @@ exports.getFeed = async (req, res) => {
                 p.created_at,
                 u.full_name AS author_name,
                 u.photo_url AS author_avatar,
+                u.role,
+                d.specialty,
                 COUNT(DISTINCT pl.phone) AS likes_count,
                 COUNT(DISTINCT pc.id)   AS comments_count,
                 BOOL_OR(pl.phone = $1)  AS liked_by_me
             FROM posts p
             JOIN users u ON u.phone = p.author_phone
+            LEFT JOIN doctors d ON d.phone = u.phone
             LEFT JOIN post_likes    pl ON pl.post_id = p.id
             LEFT JOIN post_comments pc ON pc.post_id = p.id AND pc.is_active = TRUE
             WHERE p.is_active = TRUE
@@ -122,12 +136,12 @@ exports.getFeed = async (req, res) => {
                     OR p.type = 'system'
                 )
                 AND ($3::text IS NULL OR p.city = $3)
-            GROUP BY p.id, u.full_name, u.photo_url
+            GROUP BY p.id, u.full_name, u.photo_url, u.role, d.specialty
             ORDER BY p.created_at DESC
             LIMIT $2 OFFSET $4
         `, [phone, limit, city || null, offset]);
 
-        return res.json({ success: true, data: result.rows, page: +page });
+        return res.json({ success: true, data: result.rows.map(withRoleLabel), page: +page });
     } catch (err) {
         return res.status(500).json({
             success: false,
@@ -242,13 +256,15 @@ exports.getComments = async (req, res) => {
         }
 
         const result = await pool.query(`
-            SELECT pc.*, u.full_name AS author_name, u.photo_url AS author_avatar
+            SELECT pc.*, u.full_name AS author_name, u.photo_url AS author_avatar,
+                u.role, d.specialty
             FROM post_comments pc
             JOIN users u ON u.phone = pc.phone
+            LEFT JOIN doctors d ON d.phone = u.phone
             WHERE pc.post_id = $1 AND pc.is_active = TRUE
             ORDER BY pc.created_at ASC
         `, [postId]);
-        return res.json({ success: true, data: result.rows });
+        return res.json({ success: true, data: result.rows.map(withRoleLabel) });
     } catch (err) {
         return res.status(500).json({
             success: false,
@@ -501,8 +517,10 @@ exports.getSuggestions = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT u.phone, u.full_name, u.photo_url AS avatar_url, u.city, u.bio,
+                u.role, d.specialty,
                 (SELECT COUNT(*) FROM follows WHERE following_phone = u.phone) AS followers_count
             FROM users u
+            LEFT JOIN doctors d ON d.phone = u.phone
             WHERE u.phone <> $1
                 AND u.is_active = TRUE
                 AND u.phone NOT IN (
@@ -511,7 +529,7 @@ exports.getSuggestions = async (req, res) => {
             ORDER BY followers_count DESC, RANDOM()
             LIMIT 8
         `, [phone]);
-        return res.json({ success: true, data: result.rows });
+        return res.json({ success: true, data: result.rows.map(withRoleLabel) });
     } catch (err) {
         return res.status(500).json({
             success: false,

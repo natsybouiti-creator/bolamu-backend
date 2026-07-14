@@ -216,6 +216,7 @@
   .post-avatar { width: 40px; height: 40px; border-radius: 50%; background: #0A2463; flex-shrink: 0; overflow: hidden; }
   .post-author-name { font-weight: 600; font-size: 0.9rem; color: #0A2463; }
   .post-time { font-size: 0.75rem; color: rgba(10,36,99,0.45); }
+  .author-role-label { font-size: 0.75rem; color: rgba(10,36,99,0.45); font-weight: 500; }
   .post-type-badge { margin-left: auto; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 1rem; background: rgba(0,201,167,0.12); color: #00C9A7; font-weight: 600; }
   .post-content { font-size: 0.9rem; color: #0A2463; line-height: 1.5; margin-bottom: 0.75rem; }
   .post-photo { width: 100%; border-radius: 0.875rem; margin-bottom: 0.75rem; object-fit: cover; max-height: 400px; }
@@ -294,6 +295,7 @@
   .reel-action-btn .material-symbols-outlined { font-size: 32px; }
   .reel-action-btn.liked .material-symbols-outlined { color: #E03A3A; }
   .reel-author { position: absolute; left: 1rem; bottom: 4.5rem; display: flex; align-items: center; gap: 0.5rem; color: #fff; z-index: 2; cursor: pointer; font-weight: 700; }
+  .reel-author .author-role-label { color: rgba(255,255,255,0.7); font-weight: 500; }
   .reel-caption { position: absolute; left: 1rem; bottom: 2rem; max-width: 65%; color: #fff; z-index: 2; font-size: 0.85rem; }
   .reel-empty { color: #fff; text-align: center; padding-top: 40vh; }
 
@@ -4544,7 +4546,9 @@
             : '<span class="material-symbols-outlined" style="color:white;font-size:1.2rem">person</span>') +
         '</div>' +
         '<div>' +
-          '<div class="post-author-name" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' + A.escapeHtml(post.author_name) + '</div>' +
+          '<div class="post-author-name" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' + A.escapeHtml(post.author_name) +
+            (post.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(post.author_role_label) + '</span>' : '') +
+          '</div>' +
           '<div class="post-time">' + timeAgo + (post.city ? ' · ' + A.escapeHtml(post.city) : '') + '</div>' +
         '</div>' +
         (isSystem ? '<span class="post-type-badge">Activité</span>' : '') +
@@ -4630,6 +4634,7 @@
       '</div>' +
       '<div class="comment-bubble">' +
         '<span class="comment-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(c.phone || '') + '\')">' + A.escapeHtml(c.author_name || '') + '</span>' +
+        (c.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(c.author_role_label) + '</span>' : '') +
         '<div class="comment-text">' + A.escapeHtml(c.content || '') + '</div>' +
         '<div class="comment-time">' + A.formatTimeAgo(c.created_at) +
           (isMine
@@ -4992,7 +4997,9 @@
       '</div>' +
       '<div class="reel-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(reel.author_phone || '') + '\')">' +
         window.BolamuAvatar.render({ photoUrl: reel.author_avatar || null, fullName: reel.author_name || '', role: 'patient', size: 36 }) +
-        '<span>' + A.escapeHtml(reel.author_name || '') + '</span>' +
+        '<span>' + A.escapeHtml(reel.author_name || '') +
+          (reel.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(reel.author_role_label) + '</span>' : '') +
+        '</span>' +
       '</div>' +
       (reel.content ? '<div class="reel-caption">' + A.escapeHtml(reel.content) + '</div>' : '');
     return div;
@@ -5056,6 +5063,7 @@
             '</div>' +
             '<div>' +
               '<div class="suggestion-name">' + A.escapeHtml(u.full_name) + '</div>' +
+              (u.author_role_label ? '<div class="author-role-label">' + A.escapeHtml(u.author_role_label) + '</div>' : '') +
               (u.city ? '<div class="suggestion-city">' + A.escapeHtml(u.city) + '</div>' : '') +
             '</div>' +
             '<button class="btn-follow" onclick="A.followUser(\'' + u.phone + '\', this)">Suivre</button>';
