@@ -4,6 +4,7 @@
 const pool = require('../config/db');
 const cloudinaryService = require('../services/cloudinary.service');
 const notifService = require('../services/notification.service');
+const { isPostVisibleTo } = require('../services/feed.service');
 const { normalizePhone } = require('../utils/phone');
 
 // GET /api/v1/feed
@@ -180,6 +181,13 @@ exports.toggleLike = async (req, res) => {
     const { postId } = req.params;
 
     try {
+        if (!(await isPostVisibleTo(postId, phone))) {
+            return res.status(404).json({
+                success: false,
+                error: { code: 'POST_NOT_FOUND', message: 'Post introuvable' }
+            });
+        }
+
         const existing = await pool.query(
             'SELECT 1 FROM post_likes WHERE post_id = $1 AND phone = $2',
             [postId, phone]
@@ -223,8 +231,16 @@ exports.toggleLike = async (req, res) => {
 
 // GET /api/v1/feed/:postId/comments
 exports.getComments = async (req, res) => {
+    const phone = req.user.phone;
     const { postId } = req.params;
     try {
+        if (!(await isPostVisibleTo(postId, phone))) {
+            return res.status(404).json({
+                success: false,
+                error: { code: 'POST_NOT_FOUND', message: 'Post introuvable' }
+            });
+        }
+
         const result = await pool.query(`
             SELECT pc.*, u.full_name AS author_name, u.photo_url AS author_avatar
             FROM post_comments pc
@@ -255,6 +271,13 @@ exports.addComment = async (req, res) => {
     }
 
     try {
+        if (!(await isPostVisibleTo(postId, phone))) {
+            return res.status(404).json({
+                success: false,
+                error: { code: 'POST_NOT_FOUND', message: 'Post introuvable' }
+            });
+        }
+
         const result = await pool.query(`
             INSERT INTO post_comments (post_id, phone, content)
             VALUES ($1, $2, $3)
@@ -304,8 +327,15 @@ exports.deletePost = async (req, res) => {
 // DELETE /api/v1/feed/:postId/comments/:id
 exports.deleteComment = async (req, res) => {
     const phone = req.user.phone;
-    const { id } = req.params;
+    const { postId, id } = req.params;
     try {
+        if (!(await isPostVisibleTo(postId, phone))) {
+            return res.status(404).json({
+                success: false,
+                error: { code: 'POST_NOT_FOUND', message: 'Post introuvable' }
+            });
+        }
+
         await pool.query(
             'UPDATE post_comments SET is_active = FALSE WHERE id = $1 AND phone = $2',
             [id, phone]

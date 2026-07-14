@@ -66,4 +66,41 @@ async function postEventCheckin(phone, eventName) {
     }
 }
 
-module.exports = { postZoraEarned, postClubJoined, postEventCheckin };
+/**
+ * isPostVisibleTo(postId, viewerPhone)
+ * Reproduit la règle de confidentialité déjà appliquée dans feed.controller.js
+ * (getFeed ?author=, getProfile) : un post est visible si —
+ *   - il est actif et non expiré (stories)
+ *   - ET c'est un post système (visible de tous, comme dans le feed)
+ *   - OU c'est l'auteur lui-même
+ *   - OU le compte auteur est public
+ *   - OU le compte auteur est privé mais le viewer le suit
+ * viewerPhone peut être null (visiteur non authentifié) : seuls les posts
+ * système ou d'un compte public restent alors visibles.
+ */
+async function isPostVisibleTo(postId, viewerPhone) {
+    const result = await pool.query(`
+        SELECT p.is_active, p.expires_at, p.type, p.author_phone, u.is_private
+        FROM posts p
+        JOIN users u ON u.phone = p.author_phone
+        WHERE p.id = $1
+    `, [postId]);
+
+    if (result.rows.length === 0) return false;
+    const post = result.rows[0];
+
+    if (!post.is_active) return false;
+    if (post.expires_at && new Date(post.expires_at) <= new Date()) return false;
+    if (post.type === 'system') return true;
+    if (viewerPhone && post.author_phone === viewerPhone) return true;
+    if (!post.is_private) return true;
+    if (!viewerPhone) return false;
+
+    const follow = await pool.query(
+        'SELECT 1 FROM follows WHERE follower_phone = $1 AND following_phone = $2',
+        [viewerPhone, post.author_phone]
+    );
+    return follow.rows.length > 0;
+}
+
+module.exports = { postZoraEarned, postClubJoined, postEventCheckin, isPostVisibleTo };
