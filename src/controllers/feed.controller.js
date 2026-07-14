@@ -69,7 +69,7 @@ exports.getFeed = async (req, res) => {
                     p.metadata,
                     p.created_at,
                     u.full_name AS author_name,
-                    u.avatar_url AS author_avatar,
+                    u.photo_url AS author_avatar,
                     COUNT(DISTINCT pl.phone) AS likes_count,
                     COUNT(DISTINCT pc.id)   AS comments_count,
                     BOOL_OR(pl.phone = $1)  AS liked_by_me
@@ -82,7 +82,7 @@ exports.getFeed = async (req, res) => {
                     AND p.author_phone = $2
                     AND (p.expires_at IS NULL OR p.expires_at > NOW())
                     AND ($3::text IS NULL OR p.city = $3)
-                GROUP BY p.id, u.full_name, u.avatar_url
+                GROUP BY p.id, u.full_name, u.photo_url
                 ORDER BY p.created_at DESC
                 LIMIT $4 OFFSET $5
             `, [visitorPhone || null, targetPhone, city || null, limit, offset]);
@@ -102,7 +102,7 @@ exports.getFeed = async (req, res) => {
                 p.metadata,
                 p.created_at,
                 u.full_name AS author_name,
-                u.avatar_url AS author_avatar,
+                u.photo_url AS author_avatar,
                 COUNT(DISTINCT pl.phone) AS likes_count,
                 COUNT(DISTINCT pc.id)   AS comments_count,
                 BOOL_OR(pl.phone = $1)  AS liked_by_me
@@ -121,7 +121,7 @@ exports.getFeed = async (req, res) => {
                     OR p.type = 'system'
                 )
                 AND ($3::text IS NULL OR p.city = $3)
-            GROUP BY p.id, u.full_name, u.avatar_url
+            GROUP BY p.id, u.full_name, u.photo_url
             ORDER BY p.created_at DESC
             LIMIT $2 OFFSET $4
         `, [phone, limit, city || null, offset]);
@@ -226,7 +226,7 @@ exports.getComments = async (req, res) => {
     const { postId } = req.params;
     try {
         const result = await pool.query(`
-            SELECT pc.*, u.full_name AS author_name, u.avatar_url AS author_avatar
+            SELECT pc.*, u.full_name AS author_name, u.photo_url AS author_avatar
             FROM post_comments pc
             JOIN users u ON u.phone = pc.phone
             WHERE pc.post_id = $1 AND pc.is_active = TRUE
@@ -325,7 +325,7 @@ exports.getProfile = async (req, res) => {
     const me = req.user.phone;
     try {
         const user = await pool.query(`
-            SELECT phone, full_name, bio, avatar_url, city, looking_for, is_private,
+            SELECT phone, full_name, bio, photo_url AS avatar_url, city, looking_for, is_private,
                 (SELECT COUNT(*) FROM follows WHERE follower_phone = u.phone)  AS following_count,
                 (SELECT COUNT(*) FROM follows WHERE following_phone = u.phone) AS followers_count,
                 (SELECT COUNT(*) FROM posts WHERE author_phone = u.phone AND is_active = TRUE AND type = 'manual') AS posts_count
@@ -390,7 +390,7 @@ exports.getSuggestions = async (req, res) => {
     const phone = req.user.phone;
     try {
         const result = await pool.query(`
-            SELECT u.phone, u.full_name, u.avatar_url, u.city, u.bio,
+            SELECT u.phone, u.full_name, u.photo_url AS avatar_url, u.city, u.bio,
                 (SELECT COUNT(*) FROM follows WHERE following_phone = u.phone) AS followers_count
             FROM users u
             WHERE u.phone <> $1
