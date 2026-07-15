@@ -82,7 +82,30 @@ router.get('/profil', authMiddleware, async (req, res) => {
             return res.status(404).json({ success: false, message: 'Patient introuvable' });
         }
 
-        res.json({ success: true, data: result.rows[0] });
+        const patient = result.rows[0];
+
+        // Auto-réparation : certains comptes (insérés hors du flux d'inscription
+        // normal) n'ont jamais reçu de member_code. On le génère à la première
+        // lecture du profil pour ne pas casser le parrainage (member_code = code
+        // partagé). Même pattern MAX()+1 que registerPatient (auth.controller.js).
+        if (!patient.member_code) {
+            try {
+                const maxResult = await pool.query(
+                    `SELECT MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)) FROM users WHERE role = 'patient' AND member_code IS NOT NULL`
+                );
+                const nextNum = (maxResult.rows[0].max || 0) + 1;
+                const memberCode = `BLM-${String(nextNum).padStart(5, '0')}`;
+                const updateResult = await pool.query(
+                    `UPDATE users SET member_code = $1 WHERE phone = $2 AND role = 'patient' RETURNING member_code`,
+                    [memberCode, phone]
+                );
+                patient.member_code = updateResult.rows[0].member_code;
+            } catch (genErr) {
+                console.error('[patient-profil] Génération member_code:', genErr.message);
+            }
+        }
+
+        res.json({ success: true, data: patient });
     } catch (err) {
         console.error('[patient-profil]', err.message);
         res.status(500).json({ success: false, message: 'Erreur lors de la récupération du profil' });

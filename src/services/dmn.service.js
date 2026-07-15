@@ -40,7 +40,7 @@ async function getFullDossier(patient_phone) {
   const parts     = (u.full_name || '').trim().split(/\s+/);
   const initiales = parts.map(p => (p[0] || '')).join('').toUpperCase().slice(0, 3);
 
-  const [appointmentsRes, documentsRes, wellnessRes, accessRes] = await Promise.all([
+  const [appointmentsRes, documentsRes, wellnessRes, accessRes, labResultsRes] = await Promise.all([
     // 5 dernières consultations terminées
     pool.query(
       `SELECT a.id, a.appointment_date, a.appointment_time, a.status,
@@ -77,6 +77,18 @@ async function getFullDossier(patient_phone) {
        WHERE patient_phone = $1
        ORDER BY accessed_at DESC LIMIT 5`,
       [phone]
+    ),
+    // Résultats de laboratoire (déposés par un labo, jamais rattachés à `documents`)
+    pool.query(
+      `SELECT lr.id, lr.resultats, lr.fichier_url, lr.status, lr.created_at,
+              lp.examens, d.full_name AS doctor_name, l.name AS lab_name
+       FROM lab_results lr
+       LEFT JOIN lab_prescriptions lp ON lr.lab_prescription_id = lp.id
+       LEFT JOIN doctors d ON lr.doctor_phone = d.phone
+       LEFT JOIN laboratories l ON lr.lab_phone = l.phone
+       WHERE lr.patient_phone = $1
+       ORDER BY lr.created_at DESC LIMIT 20`,
+      [phone]
     )
   ]);
 
@@ -105,7 +117,8 @@ async function getFullDossier(patient_phone) {
     consultations:   appointmentsRes.rows,
     documents:       documentsRes.rows,
     wellness_actions: wellnessRes.rows,
-    acces_recents:   accessRes.rows
+    acces_recents:   accessRes.rows,
+    lab_results:     labResultsRes.rows
   };
 }
 

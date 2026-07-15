@@ -848,7 +848,7 @@
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;"><span style="width: 4px; height: 18px; border-radius: 9999px; background: #00C9A7;"></span><span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654;">Actions santé</span></div>
         <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px;">
           <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/portrait-adrien-sante.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Consultation médicale</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+50 pts</span><button onclick="A.openModal()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Prendre RDV</button></div></div></div>
-          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/bilan-sante.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Analyse laboratoire</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+75 pts</span><button onclick="A.toastReserver()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Réserver</button></div></div></div>
+          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/bilan-sante.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Analyse laboratoire</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+75 pts</span><button onclick="A.goSuivre(); A.suivreDossier(); A.openDmnPasswordModal();" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Voir mes résultats</button></div></div></div>
           <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/depistage.png'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Bilan annuel complet</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span><button onclick="A.openModal(null, 'Bilan annuel complet')" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Planifier</button></div></div></div>
           <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/portrait-femme-africaine.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Parrainer un ami</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span><button onclick="A.partagerParrainage()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Inviter via WhatsApp</button></div></div></div>
         </div>
@@ -1276,24 +1276,6 @@
     </div>
   </div>
 
-  <!-- ===== MODAL RÉSULTATS LABO ===== -->
-  <div id="modal-labres" class="modal-bg" onclick="A.closeLabRes()">
-    <div onclick="A.stop(event)" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 440px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); max-height: 90vh; overflow-y: auto;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Résultats — Bilan sanguin</h3>
-        <button onclick="A.closeLabRes()" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
-      </div>
-      <div style="font-size: 0.78rem; font-weight: 600; color: #9498a8; margin-bottom: 14px;">Laboratoire Biotech · 10/06/2026</div>
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: #F3F3FE; border-radius: 12px;"><span style="font-size: 0.84rem; font-weight: 600; color: #191B23;">Glycémie à jeun</span><span style="font-size: 0.84rem; font-weight: 800; color: #00875f;">0,9 g/L · Normal</span></div>
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: #F3F3FE; border-radius: 12px;"><span style="font-size: 0.84rem; font-weight: 600; color: #191B23;">Cholestérol total</span><span style="font-size: 0.84rem; font-weight: 800; color: #00875f;">1,8 g/L · Normal</span></div>
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: #F3F3FE; border-radius: 12px;"><span style="font-size: 0.84rem; font-weight: 600; color: #191B23;">Hémoglobine</span><span style="font-size: 0.84rem; font-weight: 800; color: #00875f;">13,4 g/dL · Normal</span></div>
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: rgba(255,107,53,0.08); border-radius: 12px;"><span style="font-size: 0.84rem; font-weight: 600; color: #191B23;">Vitamine D</span><span style="font-size: 0.84rem; font-weight: 800; color: #B0680A;">22 ng/mL · Bas</span></div>
-      </div>
-      <button onclick="A.toastPdf()" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.88rem; cursor: pointer;"><span class="material-symbols-outlined" style="font-size: 19px;">download</span>Télécharger le PDF</button>
-    </div>
-  </div>
-
   <!-- ===== MODAL GRATTAGE ===== -->
   <div id="modal-scratch" class="modal-bg" onclick="A.closeGame()">
     <div onclick="A.stop(event)" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 440px; box-shadow: 0 24px 64px rgba(10,36,99,0.25);">
@@ -1416,6 +1398,9 @@
         <div id="dmndocs-list"></div>
         <div id="dmndocs-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun document disponible</span></div>
       </div>
+      <h4 style="margin: 0 0 10px; font-size: 0.9rem; font-weight: 800; color: #0A2463;">Résultats de laboratoire</h4>
+      <div id="dmnlab-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;"></div>
+      <div id="dmnlab-empty" style="display: none; align-items: center; justify-content: center; padding: 18px 0; margin-bottom: 16px;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun résultat disponible pour le moment</span></div>
       <div style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 14px; color: #FF6B35;">schedule</span>Accès valable 15 min · Lien de téléchargement sécurisé</div>
     </div>
   </div>
@@ -1660,7 +1645,7 @@
     chatOpen: false, chatTab: 'communaute', profileOpen: false,
     chatMessages: [], chatInput: '', chatConnected: false, chatLoading: false,
     leaderboardGroupId: '',
-    modal: false, editConst: false, qrUrg: false, labRes: false, bonZoraModal: false, bonZoraQrModal: false, abonnementOpen: false,
+    modal: false, editConst: false, qrUrg: false, bonZoraModal: false, bonZoraQrModal: false, abonnementOpen: false,
     selectedPlan: null, selectedPaymentMethod: 'mtn', transactionId: '',
     dmnPasswordModal: false, dmnDocsModal: false, dmnQrModal: false, dmnPassword: '',
     rdvDoctorId: '', rdvDate: '', rdvSlot: '', rdvBooking: false,
@@ -1869,7 +1854,6 @@
     m('modal-rdv', s.modal);
     m('modal-const', s.editConst);
     m('modal-qrurg', s.qrUrg);
-    m('modal-labres', s.labRes);
     m('modal-scratch', s.game === 'scratch');
     m('modal-wheel', s.game === 'wheel');
     m('modal-chest', s.game === 'chest');
@@ -2307,6 +2291,43 @@
     }).join('');
   };
 
+  A.renderDmnLabResults = function () {
+    var list = $('dmnlab-list'), empty = $('dmnlab-empty');
+    if (!list || !empty) return;
+    var items = A._dmnLabResults || [];
+    if (!items.length) { list.innerHTML = ''; empty.style.display = 'flex'; return; }
+    empty.style.display = 'none';
+    var parseMaybeJson = function (v) { try { return JSON.parse(v); } catch (e) { return null; } };
+    var examensLabel = function (raw) {
+      var parsed = parseMaybeJson(raw);
+      if (parsed && Array.isArray(parsed.examens)) return parsed.examens.map(function (x) { return x.nom || x.code || ''; }).filter(Boolean).join(', ');
+      return raw || 'Analyse';
+    };
+    var resultatsRows = function (raw) {
+      var parsed = parseMaybeJson(raw);
+      if (parsed && typeof parsed === 'object') {
+        return Object.keys(parsed).map(function (k) {
+          var v = parsed[k];
+          return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: #F3F3FE; border-radius: 10px;"><span style="font-size: 0.8rem; font-weight: 600; color: #191B23;">' + esc(k) + '</span><span style="font-size: 0.8rem; font-weight: 800; color: #00875f;">' + esc(typeof v === 'object' ? JSON.stringify(v) : v) + '</span></div>';
+        }).join('');
+      }
+      return '<div style="padding: 9px 12px; background: #F3F3FE; border-radius: 10px; font-size: 0.8rem; font-weight: 600; color: #191B23;">' + esc(raw || '—') + '</div>';
+    };
+    list.innerHTML = items.map(function (item) {
+      var dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      var labOrDoctor = item.lab_name || item.doctor_name || 'Bolamu';
+      var dl = item.fichier_url
+        ? '<button onclick="window.open(\'' + esc(item.fichier_url) + '\', \'_blank\')" style="width: 100%; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: rgba(0,63,177,0.08); color: #003FB1; border: none; padding: 9px; border-radius: 9999px; font-weight: 700; font-size: 0.76rem; cursor: pointer;"><span class="material-symbols-outlined" style="font-size: 16px;">download</span>Télécharger le document</button>'
+        : '';
+      return '<div style="border: 1px solid #EDEDF8; border-radius: 14px; padding: 12px;">' +
+        '<div style="font-size: 0.72rem; font-weight: 600; color: #9498a8; margin-bottom: 8px;">' + esc(labOrDoctor) + ' · ' + esc(dateStr) + '</div>' +
+        '<div style="font-size: 0.8rem; font-weight: 700; color: #0A2463; margin-bottom: 8px;">' + esc(examensLabel(item.examens)) + '</div>' +
+        '<div style="display: flex; flex-direction: column; gap: 6px;">' + resultatsRows(item.resultats) + '</div>' +
+        dl +
+        '</div>';
+    }).join('');
+  };
+
   A.renderAffordable = function () {
     var el = $('affordable-list'); if (!el) return;
     var rewards = A.rewards || [];
@@ -2529,8 +2550,6 @@
     }
   };
   A.closeModal = function () { A.setState({ modal: false }); };
-  A.openLabRes = function () { A.setState({ labRes: true }); };
-  A.closeLabRes = function () { A.setState({ labRes: false }); };
   A.openQrUrg = function () { A.setState({ qrUrg: true }); A.renderQR('urg-qr', 'https://www.bolamu.co/urgence?token=' + (A._qrToken || ''), 168); };
   A.closeQrUrg = function () { A.setState({ qrUrg: false }); };
   A.stop = function (e) { if (e) e.stopPropagation(); };
@@ -2908,9 +2927,7 @@
   // Toasts
   A.toastEncourager = function () { A.openLeaderboardModal(); };
   A.toastConvertir = function () { A.showToast('Conversion Zora Cash bientôt disponible'); };
-  A.toastPdf = function () { A.showToast('Téléchargement PDF bientôt disponible'); };
   A.toastPartenaire = function () { A.showToast('Bientôt disponible'); };
-  A.toastReserver = function () { A.showToast('Réservation bientôt disponible'); };
   A.toastPlanifier = function () { A.showToast('Planification bientôt disponible'); };
   A.toastWhatsapp = function () { A.showToast('Parrainage WhatsApp bientôt disponible'); };
   // Parrainage réel : lien d'inscription avec le code de parrainage (member_code,
@@ -3456,7 +3473,14 @@
           A._dmnToken = d.token; A._dmnTokenExpires = d.expires_at;
           A.setState({ dmnPasswordModal: false, dmnPassword: '' });
           apiFetch('https://www.bolamu.co/api/v1/dmn/summary', { headers: { 'Authorization': 'Bearer ' + token } })
-            .then(function (r) { return r.json(); }).then(function (sm) { if (sm.success && sm.data) { A._dmnDocs = sm.data.documents || []; A.setState({ dmnDocsModal: true }); } }).catch(function () {});
+            .then(function (r) { return r.json(); }).then(function (sm) {
+              if (sm.success && sm.data) {
+                A._dmnDocs = sm.data.documents || [];
+                A._dmnLabResults = sm.data.lab_results || [];
+                A.setState({ dmnDocsModal: true });
+                A.renderDmnLabResults();
+              }
+            }).catch(function () {});
         } else { A.showToast('Mot de passe incorrect'); }
       }).catch(function () { A.showToast('Erreur réseau'); });
   };
@@ -4428,11 +4452,7 @@
     // Modal QR urgence
     openQrUrg: () => A.openQrUrg(),
     closeQrUrg: () => A.closeQrUrg(),
-    
-    // Modal résultats labo
-    openLabRes: () => A.openLabRes(),
-    closeLabRes: () => A.closeLabRes(),
-    
+
     // Modal RDV
     openModal: () => A.openModal(),
     closeModal: () => A.closeModal(),
@@ -4484,11 +4504,9 @@
     // Toasts
     toastEncourager: () => A.toastEncourager(),
     toastConvertir: () => A.toastConvertir(),
-    toastPdf: () => A.toastPdf(),
     toastCreerGroupe: () => A.comingSoon(),
     toastChat: () => A.comingSoon(),
     toastPartenaire: () => A.toastPartenaire(),
-    toastReserver: () => A.toastReserver(),
     toastPlanifier: () => A.toastPlanifier(),
     toastWhatsapp: () => A.toastWhatsapp(),
     partagerParrainage: () => A.partagerParrainage(),
