@@ -1,5 +1,5 @@
 # ARCHITECTURE_RESEAU_SOCIAL_BOLAMU.md
-> Version 1.0 — Juillet 2026  
+> Version 1.1 — Juillet 2026  
 > Auteur : King (NBA Gestion SARLU)  
 > Agent d'exécution : Claude Code (Windsurf)
 
@@ -27,9 +27,10 @@
 On ajoute un **réseau social santé** au dashboard patient de Bolamu.  
 Inspiré de Strava + Sweatcoin, ancré santé, filtré par ville (essentiel Congo-Brazzaville).
 
-### Trois fonctionnalités principales
+### Fonctionnalités principales
 - **Feed** — fil social chronologique avec posts manuels et posts système automatiques
 - **Stories** — contenu éphémère 24h (photo ou vidéo courte)
+- **Reels** — vidéos courtes verticales (`posts.type = 'reel'`), pas d'expiration (contrairement aux stories qui expirent à 24h). Viewer plein écran, scroll vertical (`scroll-snap-type: y mandatory`)
 - **Lives** — streaming temps réel (Phase 2 — roadmap documentée ici, non implémentée)
 
 ### Philosophie
@@ -274,6 +275,12 @@ router.get('/profile/:phone',           auth, feedCtrl.getProfile);
 // Suggestions de membres à suivre (par ville)
 router.get('/suggestions',              auth, feedCtrl.getSuggestions);
 
+// Signaler un post
+router.post('/:postId/report',              auth, feedCtrl.reportPost);
+
+// Signaler un commentaire
+router.post('/comments/:commentId/report',  auth, feedCtrl.reportComment);
+
 module.exports = router;
 ```
 
@@ -361,7 +368,52 @@ module.exports = router;
 
 ---
 
-### 4.6 Enregistrer les routes dans `app.js` ou `index.js`
+### 4.6 Routes Reels — `src/routes/reels.routes.js`
+
+```javascript
+const express = require('express');
+const router = express.Router();
+const authMiddleware = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
+const reelsCtrl = require('../controllers/reels.controller');
+
+// GET /api/v1/reels — reels paginés, même filtre de confidentialité que getFeed
+router.get('/',   authMiddleware, reelsCtrl.getReels);
+
+// POST /api/v1/reels — publier un reel (upload vidéo via multer/Cloudinary)
+router.post('/',  authMiddleware, upload.single('video'), reelsCtrl.createReel);
+
+module.exports = router;
+```
+
+---
+
+### 4.7 Routes Admin Modération Feed — `src/routes/admin-feed.routes.js`
+
+```javascript
+const express = require('express');
+const router = express.Router();
+const authMiddleware = require('../middleware/auth.middleware');
+const adminFeedCtrl = require('../controllers/admin-feed.controller');
+
+// GET /api/v1/admin/feed/reports — liste des signalements
+// (croise audit_log sur post_reported / comment_reported)
+// ?include_resolved=true pour voir aussi les signalements déjà traités
+router.get('/reports',        authMiddleware, adminFeedCtrl.getReports);
+
+// PATCH /api/v1/admin/feed/posts/:id — masquer ou supprimer un post
+// body: { action: 'hide'|'delete', reason }
+router.patch('/posts/:id',    authMiddleware, adminFeedCtrl.moderatePost);
+
+// PATCH /api/v1/admin/feed/comments/:id — même chose sur un commentaire
+router.patch('/comments/:id', authMiddleware, adminFeedCtrl.moderateComment);
+
+module.exports = router;
+```
+
+---
+
+### 4.8 Enregistrer les routes dans `app.js` ou `index.js`
 
 ```javascript
 // Ajouter après les routes existantes
@@ -369,13 +421,31 @@ app.use('/api/feed',          require('./routes/feed.routes'));
 app.use('/api/stories',       require('./routes/stories.routes'));
 app.use('/api/follows',       require('./routes/follows.routes'));
 app.use('/api/notifications', require('./routes/notifications.routes'));
+app.use('/api/v1/reels',      require('./routes/reels.routes'));
+app.use('/api/v1/admin/feed', require('./routes/admin-feed.routes'));
 ```
 
 ---
 
-## 5. CONTROLLERS — LOGIQUE MÉTIER
+## 5. CONTRÔLE D'ACCÈS ET SÉCURITÉ
 
-### 5.1 `src/controllers/feed.controller.js`
+- Tous les rôles sans exception ont accès au feed (patient, médecin, secrétaire, pharmacie, laboratoire, animateur, partenaire, rh) — même logique que Facebook/LinkedIn, le feed est le cœur du réseau pour tous les membres.
+- Fonction `isPostVisibleTo(postId, viewerPhone)` dans `feed.service.js` — vérifiée en tête de `toggleLike`, `addComment`, `getComments`, `deleteComment`. Retourne `404` (pas `403`) si le post n'est pas visible (inactif, expiré, profil privé non suivi).
+- `content_admin` peut masquer et supprimer posts et commentaires (pas seulement lecture). Accès : `/admin/stats`, `/admin/users` (lecture) + `/admin/feed/reports`, `/admin/feed/posts/:id`, `/admin/feed/comments/:id` (modération). Toujours sans accès financier ni configuration plateforme.
+
+---
+
+## 6. MODÉRATION
+
+- **Signalement** : ne masque rien automatiquement, alimente uniquement la file de modération dans `audit_log` (`event_type: 'post_reported'` / `'comment_reported'`, `actor_phone`, `target_table`, `target_id`, `payload: { reason }`).
+- **Action de modération** : soft delete uniquement (`is_active = false`), jamais `DELETE` physique. Tracée dans `audit_log` (`event_type: 'post_moderated'` / `'comment_moderated'`, `actor_phone`, `payload: { action, reason, author_phone }`).
+- **Panneau de modération** : `public/admin/dashboard.html` et `public/admin/content.html` (point d'entrée réel de `content_admin`).
+
+---
+
+## 7. CONTROLLERS — LOGIQUE MÉTIER
+
+### 7.1 `src/controllers/feed.controller.js`
 
 ```javascript
 const { pool } = require('../config/db');
@@ -694,7 +764,7 @@ exports.getSuggestions = async (req, res) => {
 
 ---
 
-### 5.2 `src/controllers/stories.controller.js`
+### 7.2 `src/controllers/stories.controller.js`
 
 ```javascript
 const { pool } = require('../config/db');
@@ -864,7 +934,7 @@ exports.deleteStory = async (req, res) => {
 
 ---
 
-### 5.3 `src/controllers/follows.controller.js`
+### 7.3 `src/controllers/follows.controller.js`
 
 ```javascript
 const { pool } = require('../config/db');
@@ -989,7 +1059,7 @@ exports.getStatus = async (req, res) => {
 
 ---
 
-### 5.4 `src/services/notifications.service.js`
+### 7.4 `src/services/notifications.service.js`
 
 ```javascript
 // Service centralisé pour créer des notifs in-app
@@ -1020,7 +1090,7 @@ exports.create = async ({ phone, type, title, body, link, metadata = {} }) => {
 
 ---
 
-### 5.5 `src/services/feed.service.js` — Posts système automatiques
+### 7.5 `src/services/feed.service.js` — Posts système automatiques
 
 ```javascript
 // Ce service est appelé par les controllers existants
@@ -1094,9 +1164,9 @@ exports.postEventCheckin = async (phone, eventName) => {
 
 ---
 
-## 6. SOCKET.IO — NOTIFICATIONS TEMPS RÉEL
+## 8. SOCKET.IO — NOTIFICATIONS TEMPS RÉEL
 
-### 6.1 Configuration dans `app.js` ou `server.js`
+### 8.1 Configuration dans `app.js` ou `server.js`
 
 ```javascript
 const { Server } = require('socket.io');
@@ -1133,9 +1203,9 @@ io.on('connection', (socket) => {
 
 ---
 
-## 7. CLOUDINARY — CONFIGURATION UPLOAD
+## 9. CLOUDINARY — CONFIGURATION UPLOAD
 
-### 7.1 `src/middleware/upload.middleware.js`
+### 9.1 `src/middleware/upload.middleware.js`
 
 ```javascript
 // Vérifier si multer est déjà installé : npm list multer
@@ -1163,7 +1233,7 @@ module.exports = multer({
 });
 ```
 
-### 7.2 Méthode à ajouter dans `src/services/cloudinary.service.js`
+### 9.2 Méthode à ajouter dans `src/services/cloudinary.service.js`
 
 ```javascript
 // Ajouter cette méthode si uploadBuffer n'existe pas encore
@@ -1182,9 +1252,9 @@ exports.uploadBuffer = (buffer, options = {}) => {
 
 ---
 
-## 8. CRON — NETTOYAGE STORIES EXPIRÉES
+## 10. CRON — NETTOYAGE STORIES EXPIRÉES
 
-### 8.1 `src/cron/stories-cleanup.js`
+### 10.1 `src/cron/stories-cleanup.js`
 
 ```javascript
 // Ajouter dans le cron existant ou créer un nouveau job
@@ -1213,9 +1283,9 @@ exports.cleanExpiredStories = async () => {
 
 ---
 
-## 9. FRONTEND — ONGLET FEED DANS `dashboard.html`
+## 11. FRONTEND — ONGLET FEED DANS `dashboard.html`
 
-### 9.1 Section HTML à ajouter
+### 11.1 Section HTML à ajouter
 
 ```html
 <!-- ===== SECTION FEED ===== -->
@@ -1381,7 +1451,7 @@ exports.cleanExpiredStories = async () => {
 
 ---
 
-### 9.2 CSS à ajouter dans `dashboard.html` (section `<style>`)
+### 11.2 CSS à ajouter dans `dashboard.html` (section `<style>`)
 
 ```css
 /* ===== FEED ===== */
@@ -1851,7 +1921,7 @@ exports.cleanExpiredStories = async () => {
 
 ---
 
-### 9.3 JavaScript à ajouter dans `dashboard.html`
+### 11.3 JavaScript à ajouter dans `dashboard.html`
 
 ```javascript
 // ===== FEED — Variables d'état =====
@@ -2336,7 +2406,7 @@ function getToken() {
 
 ---
 
-## 10. INTÉGRATION DANS LE SWITCH D'ONGLETS EXISTANT
+## 12. INTÉGRATION DANS LE SWITCH D'ONGLETS EXISTANT
 
 Trouver dans `dashboard.html` la fonction de changement d'onglet (probablement `switchTab()` ou `showSection()`).
 
@@ -2412,7 +2482,7 @@ async function loadNotifications() {
 
 ---
 
-## 11. DÉPENDANCES À INSTALLER
+## 13. DÉPENDANCES À INSTALLER
 
 ```bash
 # Si pas encore installés
@@ -2425,7 +2495,7 @@ npm install multer socket.io
 
 ---
 
-## 12. POINTS D'INTÉGRATION DANS LE CODE EXISTANT
+## 14. POINTS D'INTÉGRATION DANS LE CODE EXISTANT
 
 | Fichier existant | Action |
 |---|---|
@@ -2437,7 +2507,7 @@ npm install multer socket.io
 
 ---
 
-## 13. ROADMAP LIVES (PHASE 2)
+## 15. ROADMAP LIVES (PHASE 2)
 
 > Non implémenté en Phase 1. Architecture documentée pour référence.
 
@@ -2489,38 +2559,45 @@ CREATE TABLE live_viewers (
 
 ---
 
-## 14. CHECKLIST D'EXÉCUTION POUR CLAUDE CODE
+## 16. CHECKLIST D'EXÉCUTION POUR CLAUDE CODE
 
 ```
-[ ] 1. Exécuter les migrations SQL (script Node.js temporaire → supprimer après)
-[ ] 2. Créer src/services/notifications.service.js
-[ ] 3. Créer src/services/feed.service.js
-[ ] 4. Créer src/controllers/feed.controller.js
-[ ] 5. Créer src/controllers/stories.controller.js
-[ ] 6. Créer src/controllers/follows.controller.js
-[ ] 7. Créer src/controllers/notifications.controller.js
-[ ] 8. Créer src/routes/feed.routes.js
-[ ] 9. Créer src/routes/stories.routes.js
-[ ] 10. Créer src/routes/follows.routes.js
-[ ] 11. Créer src/routes/notifications.routes.js
-[ ] 12. Ajouter les 4 routes dans app.js
-[ ] 13. Ajouter uploadBuffer dans cloudinary.service.js
-[ ] 14. Créer/vérifier upload.middleware.js (multer)
-[ ] 15. Configurer Socket.io dans server.js
-[ ] 16. Modifier dashboard.html : nav + section Feed + CSS + JS
-[ ] 17. Ajouter appels feedService dans zora/clubs/elonga controllers
-[ ] 18. npm install multer socket.io (si absents)
-[ ] 19. Ajouter socket.io CDN dans dashboard.html
-[ ] 20. Créer cron stories-cleanup.js
-[ ] 21. node --check sur tous les nouveaux fichiers JS
-[ ] 22. git add [fichiers nommés] — PAS de git add -A
-[ ] 23. git commit -m "feat: réseau social feed + stories + follows + notifications in-app"
+[x] 1. Exécuter les migrations SQL (script Node.js temporaire → supprimer après)
+[x] 2. Créer src/services/notifications.service.js
+[x] 3. Créer src/services/feed.service.js
+[x] 4. Créer src/controllers/feed.controller.js
+[x] 5. Créer src/controllers/stories.controller.js
+[x] 6. Créer src/controllers/follows.controller.js
+[x] 7. Créer src/controllers/notifications.controller.js
+[x] 8. Créer src/routes/feed.routes.js
+[x] 9. Créer src/routes/stories.routes.js
+[x] 10. Créer src/routes/follows.routes.js
+[x] 11. Créer src/routes/notifications.routes.js
+[x] 12. Ajouter les 4 routes dans app.js
+[x] 13. Ajouter uploadBuffer dans cloudinary.service.js
+[x] 14. Créer/vérifier upload.middleware.js (multer)
+[x] 15. Configurer Socket.io dans server.js
+[x] 16. Modifier dashboard.html : nav + section Feed + CSS + JS
+[x] 17. Ajouter appels feedService dans zora/clubs/elonga controllers
+[x] 18. npm install multer socket.io (si absents)
+[x] 19. Ajouter socket.io CDN dans dashboard.html
+[x] 20. Créer cron stories-cleanup.js
+[x] 21. node --check sur tous les nouveaux fichiers JS
+[x] 22. git add [fichiers nommés] — PAS de git add -A
+[x] 23. git commit -m "feat: réseau social feed + stories + follows + notifications in-app"
 [ ] 24. Attendre validation King avant git push
 ```
 
+Chantier feed FIX 1 à 9 terminé et pushé.
+
+### Dette technique connue
+
+- Signalements ignorés (`report_dismissed`) réapparaissent au rechargement — le filtre `GET /admin/feed/reports` ne croise pas encore l'historique des dismiss dans `audit_log`.
+- Dashboard partenaire non testé en conditions réelles (pas d'identifiants de test disponibles au moment du déploiement).
+
 ---
 
-## 15. VARIABLES D'ENVIRONNEMENT REQUISES
+## 17. VARIABLES D'ENVIRONNEMENT REQUISES
 
 Toutes déjà présentes dans `.env` — aucune nouvelle variable requise.
 
@@ -2533,4 +2610,4 @@ WAHA_URL           ← WhatsApp (déjà configuré)
 
 ---
 
-*Fin du document — ARCHITECTURE_RESEAU_SOCIAL_BOLAMU.md v1.0*
+*Fin du document — ARCHITECTURE_RESEAU_SOCIAL_BOLAMU.md v1.1*
