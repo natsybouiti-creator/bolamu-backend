@@ -4,6 +4,7 @@
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
 const { sendAutoMessage } = require('../services/whatsapp.service');
+const { awardZora } = require('../services/zora.service');
 // const logger = require('../config/logger');
 
 /**
@@ -147,6 +148,19 @@ async function joinClub(req, res) {
       await feedService.postClubJoined(normalizedPhone, club.name);
     } catch (feedError) {
       console.error('[CLUBS] Erreur post feed (non bloquante):', feedError.message);
+    }
+
+    // Créditer Zora pour l'inscription au club (non bloquant)
+    try {
+      await awardZora({
+        phone: normalizedPhone,
+        action_type: 'club_join',
+        proof_class: 'system_event',
+        proof_source: 'clubs_service',
+        proof_reference: 'club_' + id + '_' + normalizedPhone
+      });
+    } catch (zoraError) {
+      console.error('[CLUBS] Erreur award Zora club_join (non bloquante):', zoraError.message);
     }
 
     res.json({ success: true, message: 'Club rejoint avec succès' });
