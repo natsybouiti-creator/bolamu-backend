@@ -17,6 +17,7 @@
   <link rel="preload" href="/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
   <link href="/fonts/material-symbols.css" rel="stylesheet">
   <script src="/js/bolamu-avatar.js?v=2"></script>
+  <script src="/js/bolamu-profile-card.js"></script>
   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
   <link rel="stylesheet" href="/css/bolamu-chat-window.css">
   <script src="/js/bolamu-chat-window.js"></script>
@@ -178,6 +179,264 @@
         display: block !important;
       }
     }
+
+  /* ===== FEED (réseau social) — bloc porté depuis le dashboard patient ===== */
+  .feed-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.5rem 0;
+  }
+
+  @media (max-width: 880px) {
+    .feed-layout { grid-template-columns: 1fr; }
+    .feed-sidebar { display: none; }
+  }
+
+  /* Stories bar */
+  .stories-bar {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+    scrollbar-width: none;
+  }
+
+  .stories-list { display: flex; gap: 1rem; }
+
+  .story-add-btn, .story-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .story-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #0A2463;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2.5px solid #00C9A7;
+    overflow: hidden;
+    color: #fff;
+  }
+
+  .story-avatar--add { border-color: #0A2463; background: rgba(10,36,99,0.06); color: #0A2463; }
+  .story-avatar--unseen { border-color: #00C9A7; }
+  .story-avatar--seen   { border-color: rgba(10,36,99,0.2); }
+
+  .story-label {
+    font-size: 0.7rem;
+    color: #0A2463;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Post composer */
+  .post-composer { padding: 1rem 1.25rem; margin-bottom: 1rem; background: #fff; border: 1px solid #EDEDF8; border-radius: 2rem; box-shadow: 0 12px 40px rgba(0,63,177,0.05); }
+  .composer-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .composer-avatar { width: 40px; height: 40px; border-radius: 50%; background: #0A2463; flex-shrink: 0; }
+
+  .composer-trigger {
+    flex: 1;
+    padding: 0.625rem 1rem;
+    border: 1.5px solid rgba(10,36,99,0.15);
+    border-radius: 2rem;
+    background: rgba(10,36,99,0.03);
+    color: rgba(10,36,99,0.45);
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.875rem;
+    transition: border-color 0.2s;
+  }
+  .composer-trigger:hover { border-color: #00C9A7; }
+
+  .composer-actions { display: flex; gap: 0.5rem; }
+  .composer-action-btn {
+    display: flex; align-items: center; gap: 0.375rem;
+    padding: 0.375rem 0.875rem;
+    border: 1px solid rgba(10,36,99,0.12);
+    border-radius: 2rem;
+    background: transparent;
+    color: #0A2463;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .composer-action-btn:hover { background: rgba(10,36,99,0.05); }
+  .composer-action-btn .material-symbols-outlined { font-size: 1.1rem; }
+
+  /* Feed filters */
+  .feed-filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 0.375rem 1rem;
+    border-radius: 2rem;
+    border: 1.5px solid rgba(10,36,99,0.15);
+    background: transparent;
+    color: #0A2463;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-chip.active, .filter-chip:hover { background: #0A2463; color: #fff; border-color: #0A2463; }
+
+  /* Post card */
+  .post-card { background: #fff; border-radius: 2rem; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 12px 40px rgba(0,63,177,0.05); border: 1px solid #EDEDF8; }
+  .post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .post-avatar { width: 40px; height: 40px; border-radius: 50%; background: #0A2463; flex-shrink: 0; overflow: hidden; }
+  .post-author-name { font-weight: 600; font-size: 0.9rem; color: #0A2463; }
+  .post-time { font-size: 0.75rem; color: rgba(10,36,99,0.45); }
+  .author-role-label { font-size: 0.75rem; color: rgba(10,36,99,0.45); font-weight: 500; }
+  .post-type-badge { margin-left: auto; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 1rem; background: rgba(0,201,167,0.12); color: #00C9A7; font-weight: 600; }
+  .post-content { font-size: 0.9rem; color: #0A2463; line-height: 1.5; margin-bottom: 0.75rem; }
+  .post-photo { width: 100%; border-radius: 0.875rem; margin-bottom: 0.75rem; object-fit: cover; max-height: 400px; }
+  .post-actions { display: flex; gap: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(10,36,99,0.06); }
+  .post-action-btn {
+    display: flex; align-items: center; gap: 0.375rem;
+    background: none; border: none; color: rgba(10,36,99,0.55);
+    font-size: 0.85rem; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 0.25rem 0.5rem; border-radius: 0.5rem; transition: all 0.2s;
+  }
+  .post-action-btn:hover { background: rgba(10,36,99,0.05); color: #0A2463; }
+  .post-action-btn.liked { color: #E03A3A; }
+  .post-action-btn .material-symbols-outlined { font-size: 1.15rem; }
+
+  /* Sidebar suggestions */
+  .sidebar-suggestions, .sidebar-partners { background: #fff; border: 1px solid #EDEDF8; border-radius: 2rem; padding: 1.25rem; box-shadow: 0 12px 40px rgba(0,63,177,0.05); }
+  .sidebar-partners { margin-top: 1.25rem; }
+  .sidebar-title { font-size: 0.9rem; font-weight: 700; color: #0A2463; margin-bottom: 0.875rem; }
+  .partner-item { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.875rem; cursor: pointer; }
+  .partner-item:last-child { margin-bottom: 0; }
+  .partner-icon { width: 38px; height: 38px; border-radius: 50%; background: #F3F3FE; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .partner-icon .material-symbols-outlined { font-size: 1.1rem; color: #003FB1; }
+  .partner-name { font-size: 0.85rem; font-weight: 600; color: #0A2463; }
+  .partner-cat { font-size: 0.72rem; color: rgba(10,36,99,0.45); }
+  .suggestion-item { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.875rem; }
+  .suggestion-avatar { width: 38px; height: 38px; border-radius: 50%; background: #0A2463; flex-shrink: 0; }
+  .suggestion-name { font-size: 0.85rem; font-weight: 600; color: #0A2463; }
+  .suggestion-city { font-size: 0.75rem; color: rgba(10,36,99,0.45); }
+  .btn-follow {
+    margin-left: auto; padding: 0.3rem 0.875rem;
+    border: 1.5px solid #0A2463; border-radius: 2rem;
+    background: transparent; color: #0A2463;
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+  }
+  .btn-follow:hover, .btn-follow.following { background: #0A2463; color: #fff; }
+
+  /* Story viewer plein écran */
+  .story-viewer-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+  .story-progress-bar { position: absolute; top: 0.75rem; left: 1rem; right: 1rem; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; }
+  .story-progress-fill { height: 100%; background: #fff; border-radius: 2px; transition: width 0.1s linear; width: 0%; }
+  .story-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #fff; cursor: pointer; z-index: 2; }
+  .story-author-info { position: absolute; top: 1.5rem; left: 1rem; display: flex; align-items: center; gap: 0.5rem; color: #fff; z-index: 2; }
+  .story-media-container { width: 100%; max-width: 480px; max-height: 85vh; display: flex; align-items: center; justify-content: center; }
+  .story-media-container img, .story-media-container video { width: 100%; border-radius: 0.5rem; object-fit: contain; }
+  .story-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 40px; height: 40px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .story-nav--prev { left: 1rem; }
+  .story-nav--next { right: 1rem; }
+
+  /* Reels viewer plein écran — scroll vertical façon TikTok */
+  .reels-viewer-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; }
+  .reels-viewer-close, .reels-viewer-create {
+    position: absolute; z-index: 3; background: rgba(255,255,255,0.15); border: none;
+    border-radius: 50%; width: 40px; height: 40px; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .reels-viewer-close { top: 1rem; right: 1rem; }
+  .reels-viewer-create { top: 1rem; left: 1rem; }
+  .reels-scroll { height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+  .reels-scroll::-webkit-scrollbar { display: none; }
+  .reel-slide {
+    height: 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always;
+    position: relative; display: flex; align-items: center; justify-content: center; background: #000;
+  }
+  .reel-slide video, .reel-slide img { width: 100%; height: 100%; object-fit: contain; }
+  .reel-mute-btn {
+    position: absolute; bottom: 110px; right: 1rem; background: rgba(255,255,255,0.15); border: none;
+    border-radius: 50%; width: 40px; height: 40px; color: #fff; cursor: pointer; z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .reel-actions { position: absolute; right: 1rem; bottom: 170px; display: flex; flex-direction: column; align-items: center; gap: 1.25rem; z-index: 2; }
+  .reel-action-btn {
+    background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center;
+    gap: 4px; font-size: 0.7rem; font-weight: 700; cursor: pointer;
+  }
+  .reel-action-btn .material-symbols-outlined { font-size: 32px; }
+  .reel-action-btn.liked .material-symbols-outlined { color: #E03A3A; }
+  .reel-author { position: absolute; left: 1rem; bottom: 4.5rem; display: flex; align-items: center; gap: 0.5rem; color: #fff; z-index: 2; cursor: pointer; font-weight: 700; }
+  .reel-author .author-role-label { color: rgba(255,255,255,0.7); font-weight: 500; }
+  .reel-caption { position: absolute; left: 1rem; bottom: 2rem; max-width: 65%; color: #fff; z-index: 2; font-size: 0.85rem; }
+  .reel-empty { color: #fff; text-align: center; padding-top: 40vh; }
+
+  /* Loading spinner feed */
+  .feed-loading { display: flex; justify-content: center; padding: 2rem; color: rgba(10,36,99,0.35); }
+
+  /* Boutons/modale génériques du feed — préfixés feed- pour ne pas entrer en
+     collision avec .btn-primary/.modal-overlay déjà définis par ce dashboard. */
+  .feed-btn-primary {
+    background: #003FB1; color: #fff; border: none; border-radius: 9999px;
+    padding: 0.75rem 1.5rem; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer; width: 100%;
+  }
+  .feed-btn-secondary {
+    background: transparent; color: #003FB1; border: 1.5px solid #003FB1; border-radius: 9999px;
+    padding: 0.7rem 1.5rem; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.85rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 0.75rem;
+  }
+  .feed-btn-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 50%; background: rgba(10,36,99,0.06);
+    color: #0A2463; cursor: pointer; flex-shrink: 0;
+  }
+
+  .feed-modal-overlay {
+    position: fixed; inset: 0; z-index: 10000; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(10,36,99,0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .feed-modal-overlay[style*="flex"] { display: flex; }
+  .feed-modal-panel { background: #fff; border-radius: 2rem; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .feed-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #EDEDF8; }
+  .feed-modal-header h2 { font-size: 1.1rem; font-weight: 800; color: #0A2463; margin: 0; }
+  .feed-modal-close { background: none; border: none; cursor: pointer; color: #434654; }
+  .feed-modal-body { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+  .feed-modal-body textarea, .feed-modal-body select {
+    width: 100%; border: 1.5px solid rgba(10,36,99,0.15); border-radius: 1rem; padding: 0.75rem 1rem;
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem; color: #0A2463; resize: vertical;
+  }
+  .feed-modal-actions-row { display: flex; align-items: center; gap: 0.75rem; }
+  .feed-modal-footer { padding: 1rem 1.5rem 1.5rem; }
+  .feed-modal-footer .feed-btn-primary { border-radius: 2rem; }
+  /* Commentaires */
+  #comments-list { display: flex; flex-direction: column; gap: 0.85rem; min-height: 60px; }
+  .comment-item { display: flex; gap: 0.6rem; align-items: flex-start; }
+  .comment-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; overflow: hidden; }
+  .comment-bubble { background: #F8F8FC; border-radius: 1rem; padding: 0.5rem 0.85rem; flex: 1; }
+  .comment-author { font-size: 0.8rem; font-weight: 700; color: #0A2463; cursor: pointer; }
+  .comment-text { font-size: 0.85rem; color: #434654; margin-top: 0.1rem; word-break: break-word; }
+  .comment-time { font-size: 0.7rem; color: rgba(10,36,99,0.4); margin-top: 0.25rem; }
+  .comment-delete { background: none; border: none; color: rgba(10,36,99,0.35); cursor: pointer; padding: 0 0.25rem; }
+  .comment-loading, .comment-empty { text-align: center; color: rgba(10,36,99,0.4); padding: 1rem; font-size: 0.85rem; }
+  #comment-input { max-height: 90px; }
+
+  .story-upload-zone {
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 2rem;
+    border: 2px dashed rgba(10,36,99,0.2); border-radius: 1rem; cursor: pointer; color: rgba(10,36,99,0.5);
+    font-size: 0.85rem;
+  }
   </style>
 </head>
 <body>
@@ -202,6 +461,7 @@
     <button class="tab" id="tab-icp" data-tab="icp">ICP Mensuel</button>
     <button class="tab" id="tab-config" data-tab="config">Configuration</button>
     <button class="tab" id="tab-messages" data-tab="messages">Messages <span id="bcw-badge-rh" style="display:none;background:#BA1A1A;color:#fff;font-size:0.62rem;font-weight:800;border-radius:9999px;padding:1px 6px;margin-left:4px;">0</span></button>
+    <button class="tab" id="tab-feed" data-tab="feed">Feed</button>
   </div>
 
   <div class="main">
@@ -416,6 +676,231 @@
       </div>
       <div id="bcw-conv-list" style="margin-top:16px;"></div>
     </div>
+
+    <div class="panel" id="panel-feed">
+
+      <!-- Stories bar -->
+      <div class="stories-bar">
+        <div class="story-add-btn" onclick="A.openCreateStory()">
+          <div class="story-avatar story-avatar--add">
+            <span class="material-symbols-outlined">add_circle</span>
+          </div>
+          <span class="story-label">Ma story</span>
+        </div>
+        <div id="stories-list" class="stories-list">
+          <!-- Injecté par JS -->
+        </div>
+      </div>
+
+      <!-- Feed layout -->
+      <div class="feed-layout">
+
+        <!-- Colonne principale -->
+        <div class="feed-main">
+
+          <!-- Créer un post -->
+          <div class="post-composer">
+            <div class="composer-row">
+              <div class="composer-avatar" id="composer-avatar"></div>
+              <button class="composer-trigger" onclick="A.openCreatePost()">
+                Partager quelque chose...
+              </button>
+            </div>
+            <div class="composer-actions">
+              <button class="composer-action-btn" onclick="A.openCreatePost('photo')">
+                <span class="material-symbols-outlined">photo_camera</span>
+                Photo
+              </button>
+              <button class="composer-action-btn" onclick="A.openCreateStory()">
+                <span class="material-symbols-outlined">add_circle</span>
+                Story
+              </button>
+              <button class="composer-action-btn" onclick="A.openReelsViewer()">
+                <span class="material-symbols-outlined">movie</span>
+                Reels
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtre ville -->
+          <div class="feed-filters">
+            <button class="filter-chip active" data-city="">Tout</button>
+            <button class="filter-chip" data-city="Brazzaville">Brazzaville</button>
+            <button class="filter-chip" data-city="Pointe-Noire">Pointe-Noire</button>
+            <button class="filter-chip" data-city="Dolisie">Dolisie</button>
+          </div>
+
+          <!-- Posts -->
+          <div id="feed-posts-list">
+            <div class="feed-loading">
+              <span class="material-symbols-outlined rotating">autorenew</span>
+            </div>
+          </div>
+
+          <button id="feed-load-more" class="feed-btn-secondary" onclick="A.loadMorePosts()" style="display:none">
+            Voir plus
+          </button>
+        </div>
+
+        <!-- Sidebar desktop -->
+        <aside class="feed-sidebar">
+          <div class="sidebar-suggestions">
+            <h3 class="sidebar-title">Membres suggérés</h3>
+            <div id="suggestions-list">
+              <!-- Injecté par JS -->
+            </div>
+          </div>
+          <div class="sidebar-partners">
+            <h3 class="sidebar-title">Partenaires Bolamu</h3>
+            <div id="sidebar-partners-list">
+              <!-- Injecté par JS -->
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- Modal créer post -->
+      <div id="modal-create-post" class="feed-modal-overlay" style="display:none">
+        <div class="feed-modal-panel">
+          <div class="feed-modal-header">
+            <h2>Nouveau post</h2>
+            <button class="feed-modal-close" onclick="A.closeFeedModal('modal-create-post')">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="feed-modal-body">
+            <textarea id="post-content" placeholder="Quoi de neuf ?" rows="4"></textarea>
+            <div id="post-photo-preview" style="display:none">
+              <img id="post-photo-img" src="" alt="Aperçu">
+              <button onclick="A.removePostPhoto()">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+            <div class="feed-modal-actions-row">
+              <label class="feed-btn-icon" for="post-photo-input">
+                <span class="material-symbols-outlined">photo_camera</span>
+              </label>
+              <input type="file" id="post-photo-input" accept="image/*" style="display:none" onchange="A.previewPostPhoto(this)">
+              <select id="post-city">
+                <option value="">Ville (optionnel)</option>
+                <option value="Brazzaville">Brazzaville</option>
+                <option value="Pointe-Noire">Pointe-Noire</option>
+                <option value="Dolisie">Dolisie</option>
+              </select>
+            </div>
+          </div>
+          <div class="feed-modal-footer">
+            <button class="feed-btn-primary" onclick="A.submitPost()">Publier</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal commentaires -->
+      <div id="modal-comments" class="feed-modal-overlay" style="display:none">
+        <div class="feed-modal-panel">
+          <div class="feed-modal-header">
+            <h2>Commentaires</h2>
+            <button class="feed-modal-close" onclick="A.closeFeedModal('modal-comments')">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="feed-modal-body">
+            <div id="comments-list"></div>
+          </div>
+          <div class="feed-modal-footer" style="display:flex;gap:0.6rem;align-items:flex-end;padding-top:0">
+            <textarea id="comment-input" placeholder="Ajouter un commentaire…" rows="1" style="flex:1"></textarea>
+            <button class="feed-btn-icon" onclick="A.submitComment()" aria-label="Envoyer">
+              <span class="material-symbols-outlined">send</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal signalement -->
+      <div id="modal-report" class="feed-modal-overlay" style="display:none">
+        <div class="feed-modal-panel">
+          <div class="feed-modal-header">
+            <h2>Signaler</h2>
+            <button class="feed-modal-close" onclick="A.closeFeedModal('modal-report')">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="feed-modal-body">
+            <select id="report-reason">
+              <option value="spam">Spam ou publicité</option>
+              <option value="inapproprie">Contenu inapproprié</option>
+              <option value="harcelement">Harcèlement</option>
+              <option value="fausse_info">Fausse information</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="feed-modal-footer">
+            <button class="feed-btn-primary" onclick="A.submitReport()">Envoyer le signalement</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal créer story / reel (modale partagée — cf. A.openCreateStory / A.openCreateReel) -->
+      <div id="modal-create-story" class="feed-modal-overlay" style="display:none">
+        <div class="feed-modal-panel">
+          <div class="feed-modal-header">
+            <h2 id="create-story-title">Nouvelle story</h2>
+            <button class="feed-modal-close" onclick="A.closeFeedModal('modal-create-story')">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="feed-modal-body">
+            <label class="story-upload-zone" for="story-media-input">
+              <span class="material-symbols-outlined">add_photo_alternate</span>
+              <span id="create-story-zone-label">Photo ou vidéo (max 60s)</span>
+              <input type="file" id="story-media-input" accept="image/*,video/mp4" style="display:none" onchange="A.previewStoryMedia(this)">
+            </label>
+            <div id="story-preview" style="display:none"></div>
+            <textarea id="story-text" placeholder="Texte (optionnel)" rows="2"></textarea>
+          </div>
+          <div class="feed-modal-footer">
+            <button class="feed-btn-primary" id="create-story-submit-btn" onclick="A.submitStory()">
+              Publier (24h)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visionneuse story plein écran -->
+      <div id="story-viewer" class="story-viewer-overlay" style="display:none">
+        <div class="story-progress-bar">
+          <div id="story-progress" class="story-progress-fill"></div>
+        </div>
+        <button class="story-close" onclick="A.closeStoryViewer()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="story-author-info">
+          <div id="sv-avatar" class="story-avatar" onclick="BolamuProfileCard.open(A._storyPhone || '')" style="cursor:pointer;"></div>
+          <span id="sv-name" onclick="BolamuProfileCard.open(A._storyPhone || '')" style="cursor:pointer;"></span>
+          <span id="sv-time" class="story-time"></span>
+        </div>
+        <div id="sv-media" class="story-media-container"></div>
+        <button class="story-nav story-nav--prev" onclick="A.prevStory()">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button class="story-nav story-nav--next" onclick="A.nextStory()">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+
+      <!-- Visionneuse reels plein écran (scroll vertical, façon TikTok) -->
+      <div id="reels-viewer" class="reels-viewer-overlay" style="display:none">
+        <button class="reels-viewer-close" onclick="A.closeReelsViewer()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <button class="reels-viewer-create" onclick="A.openCreateReel()" title="Publier un reel">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+        <div id="reels-scroll" class="reels-scroll"></div>
+      </div>
+
+    </div>
   </div>
   </div>
 
@@ -472,6 +957,7 @@
       document.getElementById('panel-' + tabId).classList.add('active');
       tabBtn.classList.add('active');
       if (tabId === 'messages') { bcwUnread = 0; updateMessagesBadge(); loadConversations(); }
+      if (tabId === 'feed') { A.initFeed(); }
     }
 
     // ─── Messages (Phase 7/12) ─────────────────────────────────────────
@@ -771,6 +1257,9 @@
 
       const tabMessages = document.getElementById('tab-messages');
       if (tabMessages) tabMessages.addEventListener('click', () => showTab('messages', tabMessages));
+
+      const tabFeed = document.getElementById('tab-feed');
+      if (tabFeed) tabFeed.addEventListener('click', () => showTab('feed', tabFeed));
       initBcwSocket();
 
       const employesMois = document.getElementById('employes-mois');
@@ -1027,5 +1516,670 @@
     <p class="text-white/50 text-xs font-medium">© 2026 Bolamu. Tous droits réservés.</p>
   </div>
 </footer>
+
+<script>
+(function () {
+  'use strict';
+  var A = window.A || (window.A = {});
+
+  function $(id) { return document.getElementById(id); }
+
+  A.escapeHtml = function (str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  };
+
+  A.formatTimeAgo = function (dateStr) {
+    var diff = Date.now() - new Date(dateStr).getTime();
+    var m = Math.floor(diff / 60000);
+    if (m < 1) return 'À l\'instant';
+    if (m < 60) return m + ' min';
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + 'h';
+    return Math.floor(h / 24) + 'j';
+  };
+
+  A.showToast = function (msg) {
+    var el = document.createElement('div');
+    el.textContent = msg;
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0A2463;color:#fff;padding:12px 20px;border-radius:9999px;font-family:"Plus Jakarta Sans",sans-serif;font-size:0.85rem;font-weight:600;z-index:99999;box-shadow:0 8px 24px rgba(10,36,99,0.25);';
+    document.body.appendChild(el);
+    setTimeout(function () { el.remove(); }, 2800);
+  };
+
+  A.comingSoon = function () { A.showToast('Bientôt disponible'); };
+  A.toastPartenaire = function () { A.showToast('Bientôt disponible'); };
+
+  // Réutilise A.partners (mêmes données que la section Récompenses du dashboard
+  // patient) — pas de nouvelle source de données pour ce bloc dans les dashboards pro.
+  A.partners = [
+    { icon: 'smartphone', cat: 'Électronique', name: 'Smartphone Tecno Spark' },
+    { icon: 'watch', cat: 'Électronique', name: 'Montre connectée' },
+    { icon: 'headphones', cat: 'Électronique', name: 'Écouteurs sans fil' }
+  ];
+
+  function feedApiFetch(url, options) {
+    options = options || {};
+    var token = getToken();
+    var isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+    var baseHeaders = isFormData ? {} : { 'Content-Type': 'application/json' };
+    var headers = Object.assign(baseHeaders, options.headers || {}, { 'Authorization': 'Bearer ' + token });
+    return fetch(url, Object.assign({}, options, { headers: headers }));
+  }
+
+  A.closeFeedModal = function (id) { var el = $(id); if (el) el.style.display = 'none'; };
+
+  A.initFeed = function () {
+    A.loadFeed(true);
+    A.loadStories();
+    A.loadSuggestions();
+    A.renderSidebarPartners();
+
+    if (!A._feedInitialized) {
+      A._feedInitialized = true;
+      document.querySelectorAll('#panel-feed .filter-chip').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('#panel-feed .filter-chip').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          A._feedCity = btn.dataset.city;
+          A.loadFeed(true);
+        });
+      });
+    }
+  };
+
+  A.loadFeed = function (reset) {
+    if (A._feedLoading) return;
+    A._feedLoading = true;
+
+    if (reset) {
+      A._feedPage = 1;
+      var listEl = $('feed-posts-list');
+      if (listEl) listEl.innerHTML = '<div class="feed-loading"><span class="material-symbols-outlined rotating">autorenew</span></div>';
+    }
+
+    var params = new URLSearchParams({ page: A._feedPage, limit: 10 });
+    if (A._feedCity) params.append('city', A._feedCity);
+
+    feedApiFetch(API + '/feed?' + params, {}).then(function (r) { return r && r.json(); }).then(function (d) {
+      if (!d) return;
+      var container = $('feed-posts-list');
+      if (reset && container) container.innerHTML = '';
+
+      if (!d.data || d.data.length === 0) {
+        if (reset && container) container.innerHTML = '<p style="text-align:center;color:rgba(10,36,99,0.4);padding:2rem">Aucun post pour l\'instant. Suivez des membres !</p>';
+      } else {
+        d.data.forEach(function (post) { A.renderPost(post); });
+        var moreBtn = $('feed-load-more');
+        if (moreBtn) moreBtn.style.display = d.data.length === 10 ? 'block' : 'none';
+        A._feedPage++;
+      }
+    }).catch(function (err) { console.error('[feed] loadFeed:', err); }).finally(function () { A._feedLoading = false; });
+  };
+
+  A.loadMorePosts = function () { A.loadFeed(false); };
+
+  A.renderPost = function (post) {
+    var container = $('feed-posts-list');
+    if (!container) return;
+    var isSystem = post.type === 'system';
+    var timeAgo = A.formatTimeAgo(post.created_at);
+    var myPhone = getPhone();
+    var isMine = myPhone && post.author_phone === myPhone;
+
+    var div = document.createElement('div');
+    div.className = 'post-card';
+    div.dataset.postId = post.id;
+    div.innerHTML =
+      '<div class="post-header">' +
+        '<div class="post-avatar" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' +
+          (post.author_avatar
+            ? '<img src="' + post.author_avatar + '" alt="" style="width:100%;height:100%;object-fit:cover">'
+            : '<span class="material-symbols-outlined" style="color:white;font-size:1.2rem">person</span>') +
+        '</div>' +
+        '<div>' +
+          '<div class="post-author-name" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' + A.escapeHtml(post.author_name) +
+            (post.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(post.author_role_label) + '</span>' : '') +
+          '</div>' +
+          '<div class="post-time">' + timeAgo + (post.city ? ' · ' + A.escapeHtml(post.city) : '') + '</div>' +
+        '</div>' +
+        (isSystem ? '<span class="post-type-badge">Activité</span>' : '') +
+      '</div>' +
+      (post.content ? '<div class="post-content">' + A.escapeHtml(post.content) + '</div>' : '') +
+      (post.photo_url ? '<img class="post-photo" src="' + post.photo_url + '" alt="Photo du post" loading="lazy">' : '') +
+      '<div class="post-actions">' +
+        '<button class="post-action-btn ' + (post.liked_by_me ? 'liked' : '') + '" onclick="A.toggleLike(\'' + post.id + '\', this)">' +
+          '<span class="material-symbols-outlined">' + (post.liked_by_me ? 'favorite' : 'favorite_border') + '</span>' +
+          (post.likes_count || 0) +
+        '</button>' +
+        '<button class="post-action-btn" onclick="A.openComments(\'' + post.id + '\')">' +
+          '<span class="material-symbols-outlined">chat_bubble_outline</span>' +
+          '<span class="comment-count-num">' + (post.comments_count || 0) + '</span>' +
+        '</button>' +
+        (isMine ? '' :
+          '<button class="post-action-btn" onclick="A.openReport(\'post\', \'' + post.id + '\')" title="Signaler" aria-label="Signaler">' +
+            '<span class="material-symbols-outlined">flag</span>' +
+          '</button>') +
+      '</div>';
+    container.appendChild(div);
+  };
+
+  A.toggleLike = function (postId, btn) {
+    feedApiFetch(API + '/feed/' + postId + '/like', { method: 'POST' })
+      .then(function (r) { return r && r.json(); }).then(function (data) {
+      if (!data) return;
+      var icon = btn.querySelector('.material-symbols-outlined');
+      var countText = btn.childNodes[btn.childNodes.length - 1];
+      var currentCount = parseInt(countText.textContent.trim()) || 0;
+
+      if (data.liked) {
+        btn.classList.add('liked');
+        icon.textContent = 'favorite';
+        countText.textContent = ' ' + (currentCount + 1);
+      } else {
+        btn.classList.remove('liked');
+        icon.textContent = 'favorite_border';
+        countText.textContent = ' ' + Math.max(0, currentCount - 1);
+      }
+    }).catch(function (err) { console.error('[feed] toggleLike:', err); });
+  };
+
+  A.openComments = function (postId) {
+    A._currentCommentsPostId = postId;
+    var modal = $('modal-comments');
+    if (modal) modal.style.display = 'flex';
+    $('comments-list').innerHTML = '<div class="comment-loading">Chargement…</div>';
+    $('comment-input').value = '';
+    A.loadComments(postId);
+  };
+
+  A.loadComments = function (postId) {
+    feedApiFetch(API + '/feed/' + postId + '/comments', {})
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (A._currentCommentsPostId !== postId) return; // modale refermée/rouverte entre-temps
+        var list = $('comments-list');
+        if (!list) return;
+        var comments = (d && d.data) || [];
+        if (!comments.length) {
+          list.innerHTML = '<div class="comment-empty">Aucun commentaire. Soyez le premier !</div>';
+          return;
+        }
+        list.innerHTML = '';
+        comments.forEach(function (c) { list.appendChild(A.buildCommentEl(c)); });
+      }).catch(function (err) {
+        console.error('[feed] loadComments:', err);
+        var list = $('comments-list');
+        if (list) list.innerHTML = '<div class="comment-empty">Impossible de charger les commentaires.</div>';
+      });
+  };
+
+  A.buildCommentEl = function (c) {
+    var myPhone = getPhone();
+    var isMine = myPhone && c.phone === myPhone;
+    var div = document.createElement('div');
+    div.className = 'comment-item';
+    div.dataset.commentId = c.id;
+    div.innerHTML =
+      '<div class="comment-avatar" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(c.phone || '') + '\')" style="cursor:pointer;">' +
+        window.BolamuAvatar.render({ photoUrl: c.author_avatar || null, fullName: c.author_name || '', role: 'rh', size: 32 }) +
+      '</div>' +
+      '<div class="comment-bubble">' +
+        '<span class="comment-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(c.phone || '') + '\')">' + A.escapeHtml(c.author_name || '') + '</span>' +
+        (c.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(c.author_role_label) + '</span>' : '') +
+        '<div class="comment-text">' + A.escapeHtml(c.content || '') + '</div>' +
+        '<div class="comment-time">' + A.formatTimeAgo(c.created_at) +
+          (isMine
+            ? ' · <button class="comment-delete" onclick="A.deleteComment(\'' + c.id + '\', this)">Supprimer</button>'
+            : ' · <button class="comment-delete" onclick="A.openReport(\'comment\', \'' + c.id + '\')">Signaler</button>') +
+        '</div>' +
+      '</div>';
+    return div;
+  };
+
+  A.submitComment = function () {
+    var postId = A._currentCommentsPostId;
+    if (!postId) return;
+    var input = $('comment-input');
+    var content = (input.value || '').trim();
+    if (!content) return;
+
+    feedApiFetch(API + '/feed/' + postId + '/comments', {
+      method: 'POST',
+      body: JSON.stringify({ content: content })
+    }).then(function (r) { return r && r.json(); }).then(function (d) {
+      if (!d || !d.success) { A.showToast('Impossible d\'envoyer le commentaire'); return; }
+      input.value = '';
+      // La réponse POST ne contient pas author_name/author_avatar (pas de jointure users
+      // sur le RETURNING * du contrôleur) : on recharge la liste plutôt que d'insérer d.data.
+      A.loadComments(postId);
+
+      var card = document.querySelector('[data-post-id="' + postId + '"]');
+      if (card) {
+        var counter = card.querySelector('.comment-count-num');
+        if (counter) counter.textContent = (parseInt(counter.textContent.trim(), 10) || 0) + 1;
+      }
+    }).catch(function (err) { console.error('[feed] submitComment:', err); A.showToast('Erreur réseau'); });
+  };
+
+  A.deleteComment = function (commentId, btn) {
+    var postId = A._currentCommentsPostId;
+    if (!postId) return;
+    feedApiFetch(API + '/feed/' + postId + '/comments/' + commentId, { method: 'DELETE' })
+      .then(function (r) { return r && r.json(); }).then(function (d) {
+      if (!d || !d.success) return;
+      var item = btn.closest('.comment-item');
+      if (item) item.remove();
+      var list = $('comments-list');
+      if (list && !list.children.length) {
+        list.innerHTML = '<div class="comment-empty">Aucun commentaire. Soyez le premier !</div>';
+      }
+      var card = document.querySelector('[data-post-id="' + postId + '"]');
+      if (card) {
+        var counter = card.querySelector('.comment-count-num');
+        if (counter) counter.textContent = Math.max(0, (parseInt(counter.textContent.trim(), 10) || 0) - 1);
+      }
+    }).catch(function (err) { console.error('[feed] deleteComment:', err); });
+  };
+
+  A.openReport = function (type, id) {
+    A._reportTarget = { type: type, id: id };
+    var select = $('report-reason');
+    if (select) select.value = 'spam';
+    var modal = $('modal-report');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  A.submitReport = function () {
+    var target = A._reportTarget;
+    if (!target) return;
+    var reason = $('report-reason').value;
+    var url = target.type === 'post'
+      ? API + '/feed/' + target.id + '/report'
+      : API + '/feed/comments/' + target.id + '/report';
+
+    feedApiFetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ reason: reason })
+    }).then(function (r) { return r && r.json(); }).then(function (d) {
+      A.closeFeedModal('modal-report');
+      A.showToast(d && d.success ? 'Signalement envoyé, merci.' : 'Impossible d\'envoyer le signalement');
+    }).catch(function (err) {
+      console.error('[feed] submitReport:', err);
+      A.closeFeedModal('modal-report');
+      A.showToast('Erreur réseau');
+    });
+  };
+
+  A.openCreatePost = function (mode) {
+    var modal = $('modal-create-post');
+    if (modal) modal.style.display = 'flex';
+    var composerAvatar = $('composer-avatar');
+    if (composerAvatar) {
+      composerAvatar.innerHTML = window.BolamuAvatar.render({
+        photoUrl: null,
+        fullName: '',
+        role: 'rh',
+        size: 40
+      });
+    }
+    if (mode === 'photo') { var input = $('post-photo-input'); if (input) input.click(); }
+  };
+
+  A.previewPostPhoto = function (input) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      $('post-photo-img').src = e.target.result;
+      $('post-photo-preview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  A.removePostPhoto = function () {
+    $('post-photo-input').value = '';
+    $('post-photo-preview').style.display = 'none';
+  };
+
+  A.submitPost = function () {
+    var content = $('post-content').value.trim();
+    var photoInput = $('post-photo-input');
+    var city = $('post-city').value;
+
+    if (!content && !photoInput.files[0]) { A.showToast('Ajoutez un texte ou une photo'); return; }
+
+    var formData = new FormData();
+    if (content) formData.append('content', content);
+    if (city) formData.append('city', city);
+    if (photoInput.files[0]) formData.append('photo', photoInput.files[0]);
+
+    feedApiFetch(API + '/feed', {
+      method: 'POST',
+      body: formData
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.success) {
+        A.closeFeedModal('modal-create-post');
+        $('post-content').value = '';
+        A.removePostPhoto();
+        A.loadFeed(true);
+      }
+    }).catch(function (err) { console.error('[feed] submitPost:', err); });
+  };
+
+  /* --------------------------- STORIES --------------------------- */
+  A.loadStories = function () {
+    feedApiFetch(API + '/stories', {})
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (!d) return;
+        A._currentStories = d.data || [];
+        A.renderStoriesBar(A._currentStories);
+      }).catch(function (err) { console.error('[stories] loadStories:', err); });
+  };
+
+  A.renderStoriesBar = function (stories) {
+    var list = $('stories-list');
+    if (!list) return;
+    list.innerHTML = '';
+    stories.forEach(function (story, i) {
+      var div = document.createElement('div');
+      div.className = 'story-item';
+      div.onclick = function () { A.openStoryViewer(i); };
+      var seenClass = story.viewed_by_me ? 'story-avatar--seen' : 'story-avatar--unseen';
+      div.innerHTML =
+        '<div class="story-avatar ' + seenClass + '">' +
+          (story.author_avatar
+            ? '<img src="' + story.author_avatar + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+            : '<span class="material-symbols-outlined" style="color:white">person</span>') +
+        '</div>' +
+        '<span class="story-label">' + A.escapeHtml((story.author_name || '').split(' ')[0] || '') + '</span>';
+      list.appendChild(div);
+    });
+  };
+
+  A.openStoryViewer = function (index) {
+    A._currentStoryIndex = index;
+    $('story-viewer').style.display = 'flex';
+    A.showStory(A._currentStoryIndex);
+  };
+
+  A.showStory = function (index) {
+    if (index < 0 || index >= A._currentStories.length) { A.closeStoryViewer(); return; }
+    var story = A._currentStories[index];
+    A._storyPhone = story.author_phone || '';
+    $('sv-name').textContent = story.author_name;
+    $('sv-time').textContent = A.formatTimeAgo(story.created_at);
+    var svAvatar = $('sv-avatar');
+    if (svAvatar) {
+      svAvatar.innerHTML = window.BolamuAvatar.render({
+        photoUrl: story.author_avatar || null,
+        fullName: story.author_name || '',
+        role: 'rh',
+        size: 56
+      });
+    }
+
+    var mediaContainer = $('sv-media');
+    mediaContainer.innerHTML = '';
+
+    if (story.photo_url) {
+      var isVideo = story.photo_url.indexOf('/video/') !== -1;
+      if (isVideo) {
+        var video = document.createElement('video');
+        video.src = story.photo_url;
+        video.autoplay = true;
+        video.muted = false;
+        video.style.width = '100%';
+        mediaContainer.appendChild(video);
+      } else {
+        var img = document.createElement('img');
+        img.src = story.photo_url;
+        img.alt = '';
+        mediaContainer.appendChild(img);
+      }
+    }
+
+    feedApiFetch(API + '/stories/' + story.id + '/view', { method: 'POST' }).catch(function () {});
+
+    $('story-progress').style.width = '0%';
+    if (A._storyTimer) clearInterval(A._storyTimer);
+    var elapsed = 0;
+    A._storyTimer = setInterval(function () {
+      elapsed += 100;
+      var pct = Math.min((elapsed / A._STORY_DURATION) * 100, 100);
+      $('story-progress').style.width = pct + '%';
+      if (elapsed >= A._STORY_DURATION) { clearInterval(A._storyTimer); A.nextStory(); }
+    }, 100);
+  };
+  A._STORY_DURATION = 5000;
+
+  A.nextStory = function () {
+    if (A._currentStoryIndex < A._currentStories.length - 1) { A._currentStoryIndex++; A.showStory(A._currentStoryIndex); }
+    else A.closeStoryViewer();
+  };
+
+  A.prevStory = function () {
+    if (A._currentStoryIndex > 0) { A._currentStoryIndex--; A.showStory(A._currentStoryIndex); }
+  };
+
+  A.closeStoryViewer = function () {
+    if (A._storyTimer) clearInterval(A._storyTimer);
+    $('story-viewer').style.display = 'none';
+  };
+
+  A.openCreateStory = function () {
+    A._creatingReel = false;
+    $('create-story-title').textContent = 'Nouvelle story';
+    $('create-story-submit-btn').textContent = 'Publier (24h)';
+    $('create-story-zone-label').textContent = 'Photo ou vidéo (max 60s)';
+    $('modal-create-story').style.display = 'flex';
+  };
+
+  // Réutilise la même modale et le même A.previewStoryMedia que la story —
+  // seul le texte et l'endpoint de publication changent (cf. A.submitStory).
+  A.openCreateReel = function () {
+    A._creatingReel = true;
+    $('create-story-title').textContent = 'Nouveau reel';
+    $('create-story-submit-btn').textContent = 'Publier';
+    $('create-story-zone-label').textContent = 'Vidéo courte (max 60s)';
+    $('modal-create-story').style.display = 'flex';
+  };
+
+  A.previewStoryMedia = function (input) {
+    var file = input.files[0];
+    if (!file) return;
+    var preview = $('story-preview');
+    preview.innerHTML = '';
+    preview.style.display = 'block';
+
+    if (file.type.indexOf('video/') === 0) {
+      var video = document.createElement('video');
+      video.src = URL.createObjectURL(file);
+      video.controls = true;
+      video.style.maxWidth = '100%';
+      video.style.borderRadius = '0.875rem';
+      preview.appendChild(video);
+    } else {
+      var img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.style.maxWidth = '100%';
+      img.style.borderRadius = '0.875rem';
+      preview.appendChild(img);
+    }
+  };
+
+  A.submitStory = function () {
+    var mediaInput = $('story-media-input');
+    var text = $('story-text').value.trim();
+    var isReel = !!A._creatingReel;
+
+    if (!mediaInput.files[0] && !text) { A.showToast('Ajoutez un média ou un texte'); return; }
+    if (isReel && !mediaInput.files[0]) { A.showToast('Une vidéo est requise pour un reel'); return; }
+
+    var formData = new FormData();
+    if (text) formData.append('content', text);
+    if (mediaInput.files[0]) formData.append('media', mediaInput.files[0]);
+
+    var url = isReel ? (API + '/reels') : (API + '/stories');
+    feedApiFetch(url, {
+      method: 'POST',
+      body: formData
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (!data.success) return;
+      A.closeFeedModal('modal-create-story');
+      if (isReel) A.loadReels(); else A.loadStories();
+    }).catch(function (err) { console.error('[stories] submitStory:', err); });
+  };
+
+  /* --------------------------- REELS --------------------------- */
+  A.openReelsViewer = function () {
+    $('reels-viewer').style.display = 'block';
+    A.loadReels();
+  };
+
+  A.closeReelsViewer = function () {
+    $('reels-viewer').style.display = 'none';
+    document.querySelectorAll('#reels-scroll video').forEach(function (v) { v.pause(); });
+    if (A._reelsObserver) A._reelsObserver.disconnect();
+  };
+
+  A.loadReels = function () {
+    feedApiFetch(API + '/reels?limit=10', {})
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        var container = $('reels-scroll');
+        if (!container) return;
+        container.innerHTML = '';
+        if (!d || !d.data || !d.data.length) {
+          container.innerHTML = '<div class="reel-empty">Aucun reel pour l\'instant. Suivez des membres !</div>';
+          return;
+        }
+        d.data.forEach(function (reel) { container.appendChild(A.buildReelSlide(reel)); });
+        A.wireReelsAutoplay();
+      }).catch(function (err) { console.error('[reels] loadReels:', err); });
+  };
+
+  A.buildReelSlide = function (reel) {
+    var div = document.createElement('div');
+    div.className = 'reel-slide';
+    div.dataset.postId = reel.id;
+    var isVideo = reel.photo_url && reel.photo_url.indexOf('/video/') !== -1;
+    div.innerHTML =
+      (isVideo
+        ? '<video src="' + reel.photo_url + '" loop muted playsinline></video>'
+        : '<img src="' + reel.photo_url + '" alt="">') +
+      (isVideo
+        ? '<button class="reel-mute-btn" onclick="A.toggleReelSound(this)"><span class="material-symbols-outlined">volume_off</span></button>'
+        : '') +
+      '<div class="reel-actions">' +
+        '<button class="reel-action-btn ' + (reel.liked_by_me ? 'liked' : '') + '" onclick="A.toggleReelLike(\'' + reel.id + '\', this)">' +
+          '<span class="material-symbols-outlined">' + (reel.liked_by_me ? 'favorite' : 'favorite_border') + '</span>' +
+          '<span class="reel-like-count">' + (reel.likes_count || 0) + '</span>' +
+        '</button>' +
+        '<button class="reel-action-btn" onclick="A.openComments(\'' + reel.id + '\')">' +
+          '<span class="material-symbols-outlined">chat_bubble_outline</span>' +
+          '<span class="comment-count-num">' + (reel.comments_count || 0) + '</span>' +
+        '</button>' +
+      '</div>' +
+      '<div class="reel-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(reel.author_phone || '') + '\')">' +
+        window.BolamuAvatar.render({ photoUrl: reel.author_avatar || null, fullName: reel.author_name || '', role: 'rh', size: 36 }) +
+        '<span>' + A.escapeHtml(reel.author_name || '') +
+          (reel.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(reel.author_role_label) + '</span>' : '') +
+        '</span>' +
+      '</div>' +
+      (reel.content ? '<div class="reel-caption">' + A.escapeHtml(reel.content) + '</div>' : '');
+    return div;
+  };
+
+  A.toggleReelSound = function (btn) {
+    var slide = btn.closest('.reel-slide');
+    var video = slide.querySelector('video');
+    if (!video) return;
+    video.muted = !video.muted;
+    btn.querySelector('.material-symbols-outlined').textContent = video.muted ? 'volume_off' : 'volume_up';
+  };
+
+  A.toggleReelLike = function (reelId, btn) {
+    feedApiFetch(API + '/feed/' + reelId + '/like', { method: 'POST' })
+      .then(function (r) { return r && r.json(); }).then(function (data) {
+      if (!data) return;
+      var icon = btn.querySelector('.material-symbols-outlined');
+      var count = btn.querySelector('.reel-like-count');
+      var current = parseInt(count.textContent.trim(), 10) || 0;
+      if (data.liked) {
+        btn.classList.add('liked'); icon.textContent = 'favorite'; count.textContent = current + 1;
+      } else {
+        btn.classList.remove('liked'); icon.textContent = 'favorite_border'; count.textContent = Math.max(0, current - 1);
+      }
+    }).catch(function (err) { console.error('[reels] toggleReelLike:', err); });
+  };
+
+  // Autoplay muet : la vidéo visible à >=60% joue, les autres se coupent —
+  // évite d'avoir plusieurs pistes audio/vidéo actives en même temps au scroll.
+  A.wireReelsAutoplay = function () {
+    var videos = document.querySelectorAll('#reels-scroll .reel-slide video');
+    if (A._reelsObserver) A._reelsObserver.disconnect();
+    if (!videos.length) return;
+    A._reelsObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) entry.target.play().catch(function () {});
+        else entry.target.pause();
+      });
+    }, { threshold: 0.6 });
+    videos.forEach(function (v) { A._reelsObserver.observe(v); });
+  };
+
+  /* --------------------------- SUGGESTIONS / FOLLOW --------------------------- */
+  A.loadSuggestions = function () {
+    feedApiFetch(API + '/feed/suggestions', {})
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (!d) return;
+        var list = $('suggestions-list');
+        if (!list) return;
+        list.innerHTML = '';
+        (d.data || []).forEach(function (u) {
+          var div = document.createElement('div');
+          div.className = 'suggestion-item';
+          div.innerHTML =
+            '<div class="suggestion-avatar">' +
+              (u.avatar_url
+                ? '<img src="' + u.avatar_url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+                : '<span class="material-symbols-outlined" style="color:white;font-size:1.1rem">person</span>') +
+            '</div>' +
+            '<div>' +
+              '<div class="suggestion-name">' + A.escapeHtml(u.full_name) + '</div>' +
+              (u.author_role_label ? '<div class="author-role-label">' + A.escapeHtml(u.author_role_label) + '</div>' : '') +
+              (u.city ? '<div class="suggestion-city">' + A.escapeHtml(u.city) + '</div>' : '') +
+            '</div>' +
+            '<button class="btn-follow" onclick="A.followUser(\'' + u.phone + '\', this)">Suivre</button>';
+          list.appendChild(div);
+        });
+      }).catch(function (err) { console.error('[feed] loadSuggestions:', err); });
+  };
+
+  A.renderSidebarPartners = function () {
+    var list = $('sidebar-partners-list');
+    if (!list || !A.partners) return;
+    list.innerHTML = A.partners.slice(0, 3).map(function (p) {
+      return '<div class="partner-item" onclick="A.toastPartenaire()">' +
+        '<div class="partner-icon"><span class="material-symbols-outlined">' + A.escapeHtml(p.icon) + '</span></div>' +
+        '<div>' +
+          '<div class="partner-name">' + A.escapeHtml(p.name) + '</div>' +
+          '<div class="partner-cat">' + A.escapeHtml(p.cat) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  };
+
+  A.followUser = function (targetPhone, btn) {
+    feedApiFetch(API + '/follows/' + targetPhone, { method: 'POST' })
+      .then(function (r) { return r && r.json(); }).then(function (data) {
+      if (data && data.success) { btn.textContent = 'Suivi'; btn.classList.add('following'); btn.disabled = true; }
+    }).catch(function (err) { console.error('[follows] followUser:', err); });
+  };
+})();
+</script>
 </body>
 </html>
