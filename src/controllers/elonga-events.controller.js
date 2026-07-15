@@ -6,7 +6,7 @@ const pool = require('../config/db');
 
 /**
  * GET /api/v1/events - Liste publique des événements
- * Query params : city, pillar
+ * Query params : city, pillar, limit (défaut 20, max 100)
  */
 async function getEvents(req, res) {
   try {
@@ -41,9 +41,11 @@ async function getEvents(req, res) {
     if (conditions.length > 0) {
       query += ' AND ' + conditions.join(' AND ');
     }
-    
-    query += ' ORDER BY e.created_at DESC LIMIT 5';
-    
+
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    query += ` ORDER BY e.created_at DESC LIMIT $${params.length + 1}`;
+    params.push(limit);
+
     const result = await pool.query(query, params);
     
     res.json({ success: true, data: result.rows });
