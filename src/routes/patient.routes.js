@@ -562,6 +562,25 @@ router.get('/profil-social/:phone', optionalAuth, async (req, res) => {
       evenements
     };
 
+    // Compteurs sociaux (abonnés / abonnements / posts)
+    const followersCountResult = await pool.query(
+      'SELECT COUNT(*) AS count FROM follows WHERE following_phone = $1',
+      [targetPhone]
+    );
+    const followingCountResult = await pool.query(
+      'SELECT COUNT(*) AS count FROM follows WHERE follower_phone = $1',
+      [targetPhone]
+    );
+    const postsCountResult = await pool.query(
+      `SELECT COUNT(*) AS count FROM posts WHERE author_phone = $1 AND is_active = TRUE AND type = 'manual'`,
+      [targetPhone]
+    );
+    const social = {
+      followers_count: parseInt(followersCountResult.rows[0]?.count) || 0,
+      following_count: parseInt(followingCountResult.rows[0]?.count) || 0,
+      posts_count: parseInt(postsCountResult.rows[0]?.count) || 0
+    };
+
     // Calcul des badges
     const badges = await calculateBadges(targetPhone);
 
@@ -598,6 +617,7 @@ router.get('/profil-social/:phone', optionalAuth, async (req, res) => {
       role: user.role,
       badges,
       stats,
+      social,
       photos,
       is_private: user.is_private,
       is_following: isFollowing,

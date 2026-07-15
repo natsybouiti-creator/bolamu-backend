@@ -62,7 +62,14 @@
     + '.bpc-locked .material-symbols-outlined{font-size:32px;color:#D1D5DB;margin-bottom:8px;}'
     + '.bpc-locked p{font-size:0.85rem;color:#9498a8;font-weight:600;margin:0 0 1.25rem;}'
     + '.bpc-loading{padding:3rem 1.5rem;text-align:center;color:#9498a8;font-size:0.85rem;font-weight:600;}'
-    + '.bpc-error{padding:3rem 1.5rem;text-align:center;color:#BA1A1A;font-size:0.85rem;font-weight:600;}';
+    + '.bpc-error{padding:3rem 1.5rem;text-align:center;color:#BA1A1A;font-size:0.85rem;font-weight:600;}'
+    + '.bpc-social-stats{display:flex;gap:10px;padding:0 0 1.1rem;}'
+    + '.bpc-social-stat{flex:1;text-align:center;}'
+    + '.bpc-social-stat b{display:block;font-size:0.95rem;font-weight:800;color:#0A2463;}'
+    + '.bpc-social-stat span{font-size:0.66rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#9498a8;}'
+    + '.bpc-photos-title{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#9498a8;margin:0 0 0.6rem;}'
+    + '.bpc-photos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}'
+    + '.bpc-photos-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:0.5rem;background:#F3F3FE;}';
 
   var state = { injected: false, overlay: null, card: null, currentPhone: null };
 
@@ -144,6 +151,8 @@
   function renderProfile(phone, data) {
     var showRdv = !data.is_self && (data.role === 'doctor' || data.role === 'medecin');
     var stats = data.stats || {};
+    var social = data.social || {};
+    var photos = data.photos || [];
 
     var html = '<div class="bpc-hero"></div>'
       + '<div class="bpc-avatar-wrap">' + avatarHtml(data.photo_url, data.full_name) + '</div>'
@@ -151,6 +160,11 @@
       + '<h2 class="bpc-name">' + escapeHtml(data.full_name || 'Utilisateur') + '</h2>'
       + (data.city ? ('<div class="bpc-city"><span class="material-symbols-outlined">location_on</span>' + escapeHtml(data.city) + '</div>') : '')
       + (data.bio ? ('<div class="bpc-bio">' + escapeHtml(data.bio) + '</div>') : '')
+      + '<div class="bpc-social-stats">'
+      + '<div class="bpc-social-stat"><b>' + fmtNum(social.followers_count) + '</b><span>Abonnés</span></div>'
+      + '<div class="bpc-social-stat"><b>' + fmtNum(social.following_count) + '</b><span>Abonnements</span></div>'
+      + '<div class="bpc-social-stat"><b>' + fmtNum(social.posts_count) + '</b><span>Posts</span></div>'
+      + '</div>'
       + '<div class="bpc-stats">'
       + '<div class="bpc-stat"><b>' + fmtNum(stats.zora_gagnes) + '</b><span>Zora (7j)</span></div>'
       + '<div class="bpc-stat"><b>' + fmtNum(stats.streak) + '</b><span>Streak</span></div>'
@@ -160,6 +174,11 @@
       + followButtonHtml(data)
       + (showRdv ? '<button class="bpc-btn bpc-btn-rdv" id="bpc-rdv-btn"><span class="material-symbols-outlined" style="font-size:18px;">calendar_month</span>Prendre RDV</button>' : '')
       + '</div>'
+      + (photos.length ? ('<div class="bpc-photos-title">Derniers posts</div><div class="bpc-photos-grid">'
+          + photos.map(function (p) {
+              return '<img src="' + escapeHtml(p.photo_url) + '" alt="" loading="lazy">';
+            }).join('')
+          + '</div>') : '')
       + '</div>';
     state.content.innerHTML = html;
     wireFollowButton(phone, data);

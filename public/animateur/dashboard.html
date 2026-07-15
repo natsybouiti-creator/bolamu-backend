@@ -1830,9 +1830,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
     div.innerHTML =
       '<div class="post-header">' +
         '<div class="post-avatar" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' +
-          (post.author_avatar
-            ? '<img src="' + post.author_avatar + '" alt="" style="width:100%;height:100%;object-fit:cover">'
-            : '<span class="material-symbols-outlined" style="color:white;font-size:1.2rem">person</span>') +
+          window.BolamuAvatar.render({ photoUrl: post.author_avatar || null, fullName: post.author_name || '', role: 'animateur', size: 40 }) +
         '</div>' +
         '<div>' +
           '<div class="post-author-name" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' + A.escapeHtml(post.author_name) +
@@ -2343,13 +2341,11 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
           var div = document.createElement('div');
           div.className = 'suggestion-item';
           div.innerHTML =
-            '<div class="suggestion-avatar">' +
-              (u.avatar_url
-                ? '<img src="' + u.avatar_url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-                : '<span class="material-symbols-outlined" style="color:white;font-size:1.1rem">person</span>') +
+            '<div class="suggestion-avatar" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(u.phone || '') + '\')" style="cursor:pointer;">' +
+              window.BolamuAvatar.render({ photoUrl: u.avatar_url || null, fullName: u.full_name || '', role: 'animateur', size: 38 }) +
             '</div>' +
             '<div>' +
-              '<div class="suggestion-name">' + A.escapeHtml(u.full_name) + '</div>' +
+              '<div class="suggestion-name" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(u.phone || '') + '\')" style="cursor:pointer;">' + A.escapeHtml(u.full_name) + '</div>' +
               (u.author_role_label ? '<div class="author-role-label">' + A.escapeHtml(u.author_role_label) + '</div>' : '') +
               (u.city ? '<div class="suggestion-city">' + A.escapeHtml(u.city) + '</div>' : '') +
             '</div>' +
