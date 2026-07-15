@@ -4,6 +4,7 @@ const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
 const { sendAutoMessage } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
+const { awardZora } = require('../services/zora.service');
 
 // Cron quotidien à 02h00 heure Brazzaville (UTC+1 = 01h00 UTC)
 const jobAbonnement = cron.schedule('0 1 * * *', async () => {
@@ -251,6 +252,48 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
     //   nb_erreurs++;
     //   allDetails.push(`Erreur classement hebdo : ${leaderboardErr.message}`);
     // }
+
+    // 10. Crédit parrainage (carte Gagner > Santé) — le parrain est crédité
+    // dès que son filleul (users.referred_by) a un abonnement payant actif.
+    // Un seul crédit par filleul, idempotent via zora_ledger.proof_reference =
+    // phone du filleul (indépendant des renouvellements ultérieurs).
+    try {
+      const parrainagesResult = await db.query(
+        `SELECT u.phone AS filleul_phone, u.referred_by AS parrain_phone
+         FROM users u
+         JOIN subscriptions s ON s.patient_phone = u.phone
+         WHERE u.referred_by IS NOT NULL
+           AND s.is_active = TRUE
+           AND s.plan IN ('essentiel', 'standard', 'premium')
+           AND NOT EXISTS (
+             SELECT 1 FROM zora_ledger zl
+             WHERE zl.action_type = 'parrainage' AND zl.proof_reference = u.phone
+           )`
+      );
+
+      for (const row of parrainagesResult.rows) {
+        try {
+          const result = await awardZora({
+            phone: row.parrain_phone,
+            action_type: 'parrainage',
+            proof_class: 'system_event',
+            proof_source: 'cron_abonnement_parrainage',
+            recording_method: null,
+            proof_reference: row.filleul_phone
+          });
+          if (result.success) {
+            nb_traites++;
+            allDetails.push(`Parrainage crédité : ${row.parrain_phone} (filleul ${row.filleul_phone})`);
+          }
+        } catch (err) {
+          nb_erreurs++;
+          allDetails.push(`Erreur crédit parrainage ${row.parrain_phone}: ${err.message}`);
+        }
+      }
+    } catch (parrainageErr) {
+      nb_erreurs++;
+      allDetails.push(`Erreur requête parrainage : ${parrainageErr.message}`);
+    }
 
   } catch (globalErr) {
     nb_erreurs++;

@@ -435,11 +435,23 @@ async function recalculateBalance(phone) {
   }
 }
 
+// Motif RDV réservé au flux "Bilan annuel complet" (carte Gagner > Santé) —
+// un RDV planifié avec ce motif exact déclenche action_type='bilan_annuel'
+// (200 pts) à sa validation, au lieu de 'consultation' (50 pts), sur les 3
+// chemins de crédit existants (appointment.routes.js /validate,
+// consultation-report.controller.js, consultation.service.js closeConsultation).
+const BILAN_ANNUEL_MOTIF = 'Bilan annuel complet';
+function resolveConsultationActionType(motif) {
+  return (motif || '').trim() === BILAN_ANNUEL_MOTIF ? 'bilan_annuel' : 'consultation';
+}
+
 module.exports = {
   awardZora,
   getZoraBalance,
   getZoraLedger,
   getZoraTiers,
   getZoraEarnRules,
-  recalculateBalance
+  recalculateBalance,
+  BILAN_ANNUEL_MOTIF,
+  resolveConsultationActionType
 };

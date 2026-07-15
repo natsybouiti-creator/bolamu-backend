@@ -8,35 +8,40 @@ const { normalizePhone } = require('../utils/phone');
 router.get('/intervenants', async (req, res) => {
   try {
     // Médecins validés avec GPS
+    // Corrigé (audit Gagner/Santé, 15 juillet 2026) : la requête référençait
+    // d.consultation_fee / d.is_available, p.opening_hours, l.examens_disponibles
+    // — colonnes inexistantes sur doctors/pharmacies/laboratories, ce qui faisait
+    // échouer systématiquement les 3 requêtes (500 sur toute la route depuis sa
+    // création). is_active vient désormais de la table spécifique du partenaire
+    // (doctors/pharmacies/laboratories), jamais de users, conformément à la règle
+    // absolue du projet.
     const doctors = await pool.query(`
       SELECT u.phone, u.full_name, u.address, u.latitude, u.longitude,
-             d.specialty, d.consultation_fee, d.is_available,
+             d.specialty,
              'doctor' as type
       FROM users u
       JOIN doctors d ON d.phone = u.phone
-      WHERE u.is_active = true AND u.banned = false
+      WHERE d.is_active = true AND u.banned = false
       AND u.latitude IS NOT NULL AND u.longitude IS NOT NULL
     `);
 
     // Pharmacies validées avec GPS
     const pharmacies = await pool.query(`
       SELECT u.phone, u.full_name, u.address, u.latitude, u.longitude,
-             p.opening_hours,
              'pharmacie' as type
       FROM users u
       JOIN pharmacies p ON p.phone = u.phone
-      WHERE u.is_active = true AND u.banned = false
+      WHERE p.is_active = true AND u.banned = false
       AND u.latitude IS NOT NULL AND u.longitude IS NOT NULL
     `);
 
     // Laboratoires validés avec GPS
     const labs = await pool.query(`
       SELECT u.phone, u.full_name, u.address, u.latitude, u.longitude,
-             l.examens_disponibles,
       'laboratoire' as type
       FROM users u
       JOIN laboratories l ON l.phone = u.phone
-      WHERE u.is_active = true AND u.banned = false
+      WHERE l.is_active = true AND u.banned = false
       AND u.latitude IS NOT NULL AND u.longitude IS NOT NULL
     `);
 

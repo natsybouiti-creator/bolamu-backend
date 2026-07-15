@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
-const { awardZora } = require('../services/zora.service');
+const { awardZora, resolveConsultationActionType } = require('../services/zora.service');
 const { sendAutoMessage } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
 
@@ -57,12 +57,14 @@ async function submitReport(req, res) {
             [appointment_id]
         );
 
-        // Créditer points Zora pour consultation (non bloquant)
+        // Créditer points Zora pour consultation (non bloquant). rdv.motif = motif du
+        // RDV posé par le patient à la réservation (appointments.motif) — à ne pas
+        // confondre avec le `motif` du compte rendu médecin (req.body, autre table).
         setImmediate(async () => {
             try {
                 const zoraResult = await awardZora({
                     phone: patient_phone,
-                    action_type: 'consultation',
+                    action_type: resolveConsultationActionType(rdv.motif),
                     proof_class: 'system_event',
                     proof_source: doctor_phone,
                     proof_reference: appointment_id.toString()

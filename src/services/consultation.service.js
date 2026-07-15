@@ -71,9 +71,13 @@ async function closeConsultation(consultation_id, doctor_phone, data) {
 
     const normalizedDoctor = normalizePhone(doctor_phone);
 
-    // Récupérer consultation
+    // Récupérer consultation (+ motif du RDV d'origine, appointments.motif,
+    // pour distinguer un bilan annuel d'une consultation classique)
     const consultResult = await client.query(
-      `SELECT * FROM consultations WHERE id = $1 AND doctor_phone = $2`,
+      `SELECT c.*, a.motif AS appointment_motif
+       FROM consultations c
+       LEFT JOIN appointments a ON a.id = c.appointment_id
+       WHERE c.id = $1 AND c.doctor_phone = $2`,
       [consultation_id, normalizedDoctor]
     );
 
@@ -145,7 +149,7 @@ async function closeConsultation(consultation_id, doctor_phone, data) {
       try {
         await zoraService.awardZora({
           phone: consultation.patient_phone,
-          action_type: 'consultation',
+          action_type: zoraService.resolveConsultationActionType(consultation.appointment_motif),
           proof_class: 'system_event',
           proof_source: 'consultation_system',
           recording_method: null,

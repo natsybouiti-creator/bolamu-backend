@@ -8,7 +8,7 @@ const { normalizePhone } = require('../utils/phone');
 const { notify } = require('../services/notification.service');
 const { buildWameLink } = require('../services/wame.service');
 const { sendAutoMessage } = require('../services/whatsapp.service');
-const { awardZora } = require('../services/zora.service');
+const { awardZora, resolveConsultationActionType } = require('../services/zora.service');
 
 // Middleware pour restreindre aux médecins (même convention que lab.routes.js /
 // consultation-report.routes.js) — évite qu'un compte authentifié quelconque
@@ -117,7 +117,7 @@ router.get('/slots/:doctor_id', async (req, res) => {
 
 // 2. Réserver (Ligne 33 corrigée : le handler est défini ici directement)
 router.post('/book', authMiddleware, async (req, res) => {
-    const { patient_phone, doctor_id, date, time } = req.body;
+    const { patient_phone, doctor_id, date, time, motif } = req.body;
     try {
         // a) Vérifier double booking
         const existingAppointment = await pool.query(
@@ -147,9 +147,9 @@ router.post('/book', authMiddleware, async (req, res) => {
 
         const session_code = Math.floor(1000 + Math.random() * 9000).toString();
         const result = await pool.query(
-            `INSERT INTO appointments (patient_phone, doctor_id, appointment_date, appointment_time, session_code, status)
-             VALUES ($1, $2, $3, $4, $5, 'confirme') RETURNING *`,
-            [patient_phone, doctor_id, date, time, session_code]
+            `INSERT INTO appointments (patient_phone, doctor_id, appointment_date, appointment_time, session_code, status, motif)
+             VALUES ($1, $2, $3, $4, $5, 'confirme', $6) RETURNING *`,
+            [patient_phone, doctor_id, date, time, session_code, motif || null]
         );
         
         // Notifications asynchrones (ne bloquent pas la réponse)
@@ -315,14 +315,15 @@ router.post('/:id/validate', authMiddleware, doctorOnly, async (req, res) => {
         }
         await pool.query(`UPDATE appointments SET status = 'termine', validated_at = NOW() WHERE id = $1`, [id]);
         
-        // Award Zora points for completed consultation
-        const appointmentResult = await pool.query(`SELECT patient_phone FROM appointments WHERE id = $1`, [id]);
+        // Award Zora points for completed consultation (ou bilan_annuel si le RDV a été
+        // planifié avec ce motif — cf. resolveConsultationActionType)
+        const appointmentResult = await pool.query(`SELECT patient_phone, motif FROM appointments WHERE id = $1`, [id]);
         if (appointmentResult.rows.length > 0) {
           const patientPhone = appointmentResult.rows[0].patient_phone;
           try {
             await awardZora({
               phone: patientPhone,
-              action_type: 'consultation',
+              action_type: resolveConsultationActionType(appointmentResult.rows[0].motif),
               proof_class: 'system_event',
               proof_source: 'appointment_system',
               recording_method: null,

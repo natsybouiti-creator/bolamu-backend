@@ -245,12 +245,12 @@ async function getLoginToken(req, res) {
 // 5. REGISTER PATIENT
 // ============================================================
 async function registerPatient(req, res) {
-    const { phone, first_name, last_name, full_name, gender, age, city, neighborhood, niu, id_card_file_id, documents_file_ids, cgu_accepted, photoData } = req.body;
+    const { phone, first_name, last_name, full_name, gender, age, city, neighborhood, niu, id_card_file_id, documents_file_ids, cgu_accepted, photoData, referral_code } = req.body;
 
     if (!phone || !first_name || !last_name) {
         return res.status(400).json({ success: false, message: "Prénom, nom et téléphone sont obligatoires." });
     }
-    
+
     // Normalisation du numéro
     const normalizedPhone = normalizePhone(phone);
 
@@ -258,6 +258,19 @@ async function registerPatient(req, res) {
         const existing = await pool.query(`SELECT id FROM users WHERE phone = $1`, [normalizedPhone]);
         if (existing.rows.length > 0) {
             return res.status(409).json({ success: false, message: "Un compte existe déjà avec ce numéro." });
+        }
+
+        // Code de parrainage = member_code du parrain (déjà unique). Code invalide ou
+        // absent → inscription non bloquée, simplement pas de parrain enregistré.
+        let referredByPhone = null;
+        if (referral_code) {
+            const referrerResult = await pool.query(
+                `SELECT phone FROM users WHERE member_code = $1 AND role = 'patient'`,
+                [referral_code.trim()]
+            );
+            if (referrerResult.rows.length > 0 && referrerResult.rows[0].phone !== normalizedPhone) {
+                referredByPhone = referrerResult.rows[0].phone;
+            }
         }
 
         const maxResult = await pool.query(`SELECT MAX(CAST(SUBSTRING(member_code FROM 5) AS INTEGER)) FROM users WHERE role = 'patient' AND member_code IS NOT NULL`);
@@ -295,14 +308,16 @@ async function registerPatient(req, res) {
                     phone, role, full_name, first_name, last_name,
                     gender, age, city, neighborhood, niu, documents_file_ids,
                     member_code, cgu_accepted, cgu_accepted_at,
-                    is_active, trust_score, password_hash, photo_url, temp_password_must_change, created_at
+                    is_active, trust_score, password_hash, photo_url, temp_password_must_change, created_at,
+                    referred_by
                  ) VALUES (
                     $1, 'patient', $2, $3, $4,
                     $5, $6, $7, $8, $9, $10,
                     $11, $12, NOW(),
-                    false, 80, $13, $14, true, NOW()
+                    false, 80, $13, $14, true, NOW(),
+                    $15
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
-                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, JSON.stringify({ id_card: id_card_file_id || (documents_file_ids && documents_file_ids.id_card) || null }), member_code, cgu_accepted || false, passwordHash, photoUrl]
+                [normalizedPhone, finalName, first_name, last_name, gender || null, age || null, city || null, neighborhood || null, niu || null, JSON.stringify({ id_card: id_card_file_id || (documents_file_ids && documents_file_ids.id_card) || null }), member_code, cgu_accepted || false, passwordHash, photoUrl, referredByPhone]
             );
 
             const user = insertResult.rows[0];
@@ -339,7 +354,7 @@ async function registerPatient(req, res) {
 
             await pool.query(
                 `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('register.patient', $1, 'users', $2, $3::jsonb)`,
-                [normalizedPhone, user.id, JSON.stringify({ member_code, photo_url: photoUrl })]
+                [normalizedPhone, user.id, JSON.stringify({ member_code, photo_url: photoUrl, referred_by: referredByPhone })]
             ).catch((err) => logger.error('[registerPatient] Audit log error:', err.message));
 
             return res.status(201).json({ success: true, message: "Compte patient créé avec succès", token, phone: normalizedPhone, role: user.role, member_code: user.member_code, whatsapp_link: wameLink });

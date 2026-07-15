@@ -72,7 +72,7 @@ router.get('/profil', authMiddleware, async (req, res) => {
         const phone = normalizePhone(req.user.phone);
 
         const result = await pool.query(
-            `SELECT phone, full_name, gender, birth_date, city, neighborhood, bolamu_id, is_active, created_at, photo_url
+            `SELECT phone, full_name, gender, birth_date, city, neighborhood, bolamu_id, member_code, is_active, created_at, photo_url
              FROM users
              WHERE phone = $1 AND role = 'patient'`,
             [phone]

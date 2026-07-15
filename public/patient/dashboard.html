@@ -834,19 +834,19 @@
 
       <!-- SANTÉ -->
       <div id="santeTab" style="display: none;">
-        <div class="enter" style="background: #0A2463; border-radius: 18px; padding: 16px; margin-bottom: 28px; max-width: 360px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;"><span style="background: rgba(255,107,53,0.18); color: #FF6B35; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 9px; border-radius: 9999px;">Défi jour</span><span style="display: inline-flex; align-items: center; gap: 3px; color: #F5A623; font-size: 0.78rem; font-weight: 800;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 14px;">star</span>+200</span></div>
-          <div style="font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 12px;">Bilan annuel complet</div>
-          <div style="background: rgba(255,255,255,0.1); border-radius: 9999px; height: 6px; overflow: hidden; margin-bottom: 7px;"><div style="height: 100%; width: 20%; background: linear-gradient(90deg, #FF6B35, #F5A623); border-radius: 9999px;"></div></div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.68rem; font-weight: 600; color: rgba(255,255,255,0.5);"><span>20%</span><span class="b-defi2Txt">Expire dans —</span></div>
+        <div class="enter" style="background: #0A2463; border-radius: 18px; padding: 16px; margin-bottom: 28px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;"><span style="background: rgba(255,107,53,0.18); color: #FF6B35; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 9px; border-radius: 9999px;">Engagement santé</span><span style="display: inline-flex; align-items: center; gap: 3px; color: #F5A623; font-size: 0.78rem; font-weight: 800;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 14px;">favorite</span><span id="defi-sante-poids">—</span></span></div>
+          <div id="defi-sante-titre" style="font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 12px;">Suivi médical</div>
+          <div style="background: rgba(255,255,255,0.1); border-radius: 9999px; height: 6px; overflow: hidden; margin-bottom: 7px;"><div id="defi-sante-progress" style="height: 100%; width: 0%; background: linear-gradient(90deg, #FF6B35, #F5A623); border-radius: 9999px;"></div></div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.68rem; font-weight: 600; color: rgba(255,255,255,0.5);"><span id="defi-sante-detail">—</span><span id="defi-sante-score">Score Bolamu —</span></div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;"><span style="width: 4px; height: 18px; border-radius: 9999px; background: #00C9A7;"></span><span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654;">Actions santé</span></div>
         <div class="col2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px;">
           <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/portrait-adrien-sante.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Consultation médicale</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+50 pts</span><button onclick="A.openModal()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Prendre RDV</button></div></div></div>
           <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/bilan-sante.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Analyse laboratoire</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+75 pts</span><button onclick="A.toastReserver()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Réserver</button></div></div></div>
-          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/depistage.png'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Bilan annuel complet</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span><button onclick="A.toastPlanifier()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Planifier</button></div></div></div>
-          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/portrait-femme-africaine.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Parrainer un ami</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span><button onclick="A.toastWhatsapp()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Inviter via WhatsApp</button></div></div></div>
+          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/depistage.png'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Bilan annuel complet</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span><button onclick="A.openModal(null, 'Bilan annuel complet')" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Planifier</button></div></div></div>
+          <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/portrait-femme-africaine.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Parrainer un ami</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span><button onclick="A.partagerParrainage()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Inviter via WhatsApp</button></div></div></div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;"><span style="width: 4px; height: 18px; border-radius: 9999px; background: #003FB1;"></span><span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654;">Réseau partenaires</span></div>
@@ -859,6 +859,7 @@
           </div>
           <div id="reseau-map" style="height: 320px; border-radius: 14px; overflow: hidden; background: #EDEDF8; margin-bottom: 14px;"></div>
           <div id="reseauplaces-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          <div id="reseauplaces-empty" style="display: none; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun établissement partenaire géolocalisé pour le moment</span></div>
         </div>
       </div>
     </section>
@@ -1228,8 +1229,8 @@
         <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Médecin</label><select id="rdv-doctors" onchange="A.rdvSelectDoctor(event)" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23; background: #fff;"><option value="">Choisir un médecin</option></select></div>
         <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Date</label><input type="date" onchange="A.rdvSelectDate(event)" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23;"></div>
         <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Créneau</label><select id="rdv-slots" onchange="A.rdvSelectSlot(event)" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #191B23; background: #fff;"><option value="">Choisir un créneau</option></select></div>
-        <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Motif</label><textarea placeholder="Ex : suivi tension" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 500; color: #191B23; resize: vertical; min-height: 60px;"></textarea></div>
-        <div style="display: flex; align-items: center; gap: 7px; background: rgba(0,201,167,0.08); border-radius: 10px; padding: 10px 12px;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">info</span><span style="font-size: 0.76rem; font-weight: 600; color: #00875f;">Ce RDV rapporte +50 pts Zora après consultation.</span></div>
+        <div><label style="display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #434654; margin-bottom: 6px;">Motif</label><textarea id="rdv-motif" placeholder="Ex : suivi tension" style="width: 100%; padding: 12px 14px; border: 1px solid #C3C5D7; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 500; color: #191B23; resize: vertical; min-height: 60px;"></textarea></div>
+        <div style="display: flex; align-items: center; gap: 7px; background: rgba(0,201,167,0.08); border-radius: 10px; padding: 10px 12px;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">info</span><span id="rdv-info-pts" style="font-size: 0.76rem; font-weight: 600; color: #00875f;">Ce RDV rapporte +50 pts Zora après consultation.</span></div>
         <div style="display: flex; gap: 10px;"><button onclick="A.closeModal()" style="flex: 1; background: transparent; color: #434654; border: 1px solid #C3C5D7; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Annuler</button><button onclick="A.confirmRdv()" style="flex: 2; background: #003FB1; color: #fff; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 8px 24px rgba(0,63,177,0.25);">Confirmer</button></div>
       </div>
     </div>
@@ -1687,19 +1688,8 @@
   A.wheelColors = ['#003FB1', '#0A2463', '#003FB1', '#F5A623', '#003FB1', '#0A2463', '#003FB1', '#00C9A7'];
   A.quizData = { pilier: 'Nutrition', q: 'Combien de verres d\'eau faut-il boire en moyenne par jour ?', options: ['1 à 2 verres', '3 à 4 verres', '6 à 8 verres', 'Plus de 15 verres'], answer: 2, feedbackOk: 'Bonne réponse ! 6 à 8 verres (1,5 à 2 L) par jour sont recommandés. +25 Zora.', feedbackNo: 'La bonne réponse était 6 à 8 verres par jour. Réessayez demain !' };
   A.rewards = [];
-  A.etabs = [
-    { id: 'p1', name: 'Clinique El Rapha', type: 'clinique', addr: 'Centre-ville, Brazzaville', lat: -4.2710, lng: 15.2620, tel: '+242060000001', partner: true, icon: 'local_hospital' },
-    { id: 'p2', name: 'Polyclinique Marie Curie', type: 'clinique', addr: 'Loandjili, Pointe-Noire', lat: -4.7820, lng: 11.8630, tel: '+242060000002', partner: false, icon: 'local_hospital' },
-    { id: 'p3', name: 'Pharmacie Daffé', type: 'pharmacie', addr: 'Poto-Poto, Brazzaville', lat: -4.2660, lng: 15.2750, tel: '+242060000003', partner: true, icon: 'local_pharmacy' },
-    { id: 'p4', name: 'Pharmacie de la Gare', type: 'pharmacie', addr: 'Centre, Pointe-Noire', lat: -4.7895, lng: 11.8550, tel: '+242060000004', partner: false, icon: 'local_pharmacy' },
-    { id: 'p5', name: 'Laboratoire Biotech', type: 'laboratoire', addr: 'Bacongo, Brazzaville', lat: -4.2800, lng: 15.2530, tel: '+242060000005', partner: true, icon: 'biotech' },
-    { id: 'p6', name: 'Labo Bio-Santé', type: 'laboratoire', addr: 'Tié-Tié, Pointe-Noire', lat: -4.7760, lng: 11.8700, tel: '+242060000006', partner: false, icon: 'biotech' },
-    { id: 'p7', name: 'Centre Médical Talangaï', type: 'clinique', addr: 'Talangaï, Brazzaville', lat: -4.2300, lng: 15.2900, tel: '+242060000007', partner: false, icon: 'local_hospital' },
-    { id: 'p8', name: 'Pharmacie Mavré', type: 'pharmacie', addr: 'Mpaka, Pointe-Noire', lat: -4.8000, lng: 11.8480, tel: '+242060000008', partner: true, icon: 'local_pharmacy' },
-    { id: 'p9', name: 'Clinique Guénin', type: 'clinique', addr: 'Centre, Pointe-Noire', lat: -4.7850, lng: 11.8590, tel: '+242060000009', partner: true, icon: 'local_hospital' },
-    { id: 'p10', name: 'Pharmacie Tchikobo', type: 'pharmacie', addr: 'Tchikobo, Pointe-Noire', lat: -4.8080, lng: 11.8500, tel: '+242060000010', partner: false, icon: 'local_pharmacy' },
-    { id: 'p11', name: 'Laboratoire Pasteur', type: 'laboratoire', addr: 'Moungali, Brazzaville', lat: -4.2620, lng: 15.2680, tel: '+242060000011', partner: true, icon: 'biotech' }
-  ];
+  // Chargé depuis GET /api/v1/map/intervenants (voir A._loadAll) — plus de données statiques.
+  A.etabs = [];
   A.partners = [
     { icon: 'smartphone', cat: 'Électronique', name: 'Smartphone Tecno Spark', desc: 'Smartphone 4G écran 6,6 pouces', pts: '18 000 pts', stock: true },
     { icon: 'watch', cat: 'Électronique', name: 'Montre connectée', desc: 'Smartwatch suivi d\'activité', pts: '9 500 pts' },
@@ -1778,7 +1768,6 @@
     var d1u = A.hoursLeft(ends.defi1 || 0) < 2;
     setText('defi1Txt', 'Expire dans ' + A.remain(ends.defi1 || 0));
     var d1 = $('defi1'); if (d1) { d1.style.color = d1u ? '#FF6B35' : 'rgba(255,255,255,0.5)'; d1.style.fontWeight = d1u ? '800' : '600'; }
-    setText('defi2Txt', 'Expire dans ' + A.remain(ends.defi2 || 0));
     setText('offerTxt', A.remain(ends.offer || 0) + ' restantes');
     setText('qrRemaining', A._qrRemaining || 60);
 
@@ -2010,6 +1999,36 @@
         '<div style="font-size:0.78rem;font-weight:800;color:#0A2463;width:28px;text-align:right;flex-shrink:0;">' + score + '</div>' +
       '</div>';
     }).join('');
+  };
+
+  // Carte "Défi du jour" — onglet Gagner > Santé (cf. audit Gagner/Santé du
+  // 15 juillet 2026). Remplace l'ancien widget "Bilan annuel complet" à 20%
+  // codé en dur par le taux d'engagement santé réel — composante
+  // 'suivi_medical' du Score Bolamu déjà calculée par
+  // scoreBolamu.service.js/calculerScoreBolamu() (consultations sur 6 mois,
+  // plafonné à 2, poids 10% dans le score global). Aucune nouvelle formule
+  // inventée : réutilise telle quelle la définition déjà existante et déjà
+  // exposée par GET /api/v1/patients/score-bienetre.
+  A.renderDefiSante = function () {
+    var progressEl = $('defi-sante-progress');
+    var detailEl = $('defi-sante-detail');
+    var scoreEl = $('defi-sante-score');
+    var poidsEl = $('defi-sante-poids');
+    if (!progressEl || !detailEl || !scoreEl || !poidsEl) return;
+    var comp = A._scoreComposantes && A._scoreComposantes.suivi_medical;
+    if (!comp) {
+      progressEl.style.width = '0%';
+      detailEl.textContent = 'Données insuffisantes';
+      scoreEl.textContent = 'Score Bolamu —';
+      poidsEl.textContent = '—';
+      return;
+    }
+    var score = Math.max(0, Math.min(100, comp.score || 0));
+    var consultations = (comp.details && comp.details.consultations) || 0;
+    progressEl.style.width = score + '%';
+    detailEl.textContent = consultations + ' consultation(s) / 2 (6 derniers mois)';
+    scoreEl.textContent = 'Score Bolamu ' + (A._scoreBolamu != null ? A._scoreBolamu : '—');
+    poidsEl.textContent = comp.poids + '% du score';
   };
 
   /* --------------------------- LISTES --------------------------- */
@@ -2332,9 +2351,12 @@
     var tintByType = { clinique: '#003FB1', pharmacie: '#00C9A7', laboratoire: '#FF6B35' };
     var f = A.state.mapFilter;
     var match = function (t) { return f === 'tout' || (f === 'cliniques' && t === 'clinique') || (f === 'pharmacies' && t === 'pharmacie') || (f === 'labos' && t === 'laboratoire'); };
-    el.innerHTML = A.etabs.filter(function (x) { return match(x.type); }).map(function (x) {
+    var filtered = A.etabs.filter(function (x) { return match(x.type); });
+    el.innerHTML = filtered.map(function (x) {
       return placeRowHtml({ name: x.name, addr: x.addr, tint: tintByType[x.type], icon: x.icon }, 'A.focusReseau(\'' + x.id + '\')');
     }).join('');
+    var empty = $('reseauplaces-empty');
+    if (empty) empty.style.display = filtered.length ? 'none' : 'flex';
   };
 
   A.renderGames = function () {
@@ -2448,7 +2470,7 @@
   // Navigation
   A.goAccueil = function () { A.setState({ panel: 'accueil', profileOpen: false }); window.scrollTo(0, 0); };
   A.goFeed = function () { A.setState({ panel: 'feed', profileOpen: false }); window.scrollTo(0, 0); A.initFeed(); };
-  A.goGagner = function () { A.setState({ panel: 'gagner', profileOpen: false }); window.scrollTo(0, 0); setTimeout(function () { if (A.state.gagnerTab === 'sante') { A.initReseauMap(); A.applyReseauFilter(); } else { A.initEventsMap(); } }, 80); };
+  A.goGagner = function () { A.setState({ panel: 'gagner', profileOpen: false }); window.scrollTo(0, 0); if (A.state.gagnerTab === 'sante') A.renderDefiSante(); setTimeout(function () { if (A.state.gagnerTab === 'sante') { A.initReseauMap(); A.applyReseauFilter(); } else { A.initEventsMap(); } }, 80); };
   A.goSuivre = function () { A.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); A.loadDossierQr(); };
   A.goRecompenses = function () { A.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); A.initScratch(); };
   A.openProfile = function () { A.setState({ profileOpen: true }); window.scrollTo(0, 0); A.loadProfilSocial(); };
@@ -2456,7 +2478,7 @@
 
   // Sous-onglets
   A.gagnerSport = function () { A.setState({ gagnerTab: 'sport' }); setTimeout(function () { A.initEventsMap(); }, 60); };
-  A.gagnerSante = function () { A.setState({ gagnerTab: 'sante' }); setTimeout(function () { A.initReseauMap(); A.applyReseauFilter(); }, 60); };
+  A.gagnerSante = function () { A.setState({ gagnerTab: 'sante' }); A.renderDefiSante(); setTimeout(function () { A.initReseauMap(); A.applyReseauFilter(); }, 60); };
   A.suivreZora = function () { A.setState({ suivreTab: 'zora' }); A.renderScoreComposantes(); };
   A.suivreDossier = function () { A.setState({ suivreTab: 'dossier' }); };
 
@@ -2469,8 +2491,21 @@
   A.filterCat = function (c) { A.setState({ filterCategorie: c }); };
 
   // Modals
-  A.openModal = function (doctorPhone) {
+  A.openModal = function (doctorPhone, presetMotif) {
     A.setState({ modal: true });
+    setTimeout(function () {
+      var motifEl = document.getElementById('rdv-motif');
+      var infoEl = document.getElementById('rdv-info-pts');
+      if (motifEl) {
+        motifEl.value = presetMotif || '';
+        motifEl.readOnly = !!presetMotif;
+      }
+      if (infoEl) {
+        infoEl.textContent = presetMotif === 'Bilan annuel complet'
+          ? 'Ce bilan annuel rapporte +200 pts Zora une fois validé par le médecin.'
+          : 'Ce RDV rapporte +50 pts Zora après consultation.';
+      }
+    }, 0);
     if (doctorPhone) {
       setTimeout(function () {
         var el = document.getElementById('rdv-doctors');
@@ -2870,6 +2905,17 @@
   A.toastReserver = function () { A.showToast('Réservation bientôt disponible'); };
   A.toastPlanifier = function () { A.showToast('Planification bientôt disponible'); };
   A.toastWhatsapp = function () { A.showToast('Parrainage WhatsApp bientôt disponible'); };
+  // Parrainage réel : lien d'inscription avec le code de parrainage (member_code,
+  // déjà unique par patient) partagé via l'app WhatsApp du patient. Le crédit
+  // +200 pts est déclenché par le cron abonnement.job.js quand le filleul
+  // souscrit un abonnement payant (voir migration_082 + section "10. Crédit
+  // parrainage").
+  A.partagerParrainage = function () {
+    if (!A._patientMemberCode) { A.showToast('Code de parrainage indisponible — réessayez dans un instant'); return; }
+    var lien = 'https://www.bolamu.co/register.html?ref=' + encodeURIComponent(A._patientMemberCode);
+    var texte = 'Rejoins-moi sur Bolamu, la plateforme santé qui récompense tes actes de soin en points Zora ! Inscris-toi avec mon code ' + A._patientMemberCode + ' : ' + lien;
+    window.open('https://wa.me/?text=' + encodeURIComponent(texte), '_blank');
+  };
 
   // Profil
   A.logout = function () { localStorage.clear(); window.location.href = '/login.html'; };
@@ -3263,10 +3309,12 @@
     if (!s.rdvDoctorId || !s.rdvDate || !s.rdvSlot) { A.showToast('Choisis un médecin, une date et un créneau'); return; }
     var token = localStorage.getItem('bolamu_patient_token'); if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
     var patientPhone = A._patientPhone || localStorage.getItem('bolamu_patient_phone') || '';
+    var motifEl = document.getElementById('rdv-motif');
+    var motif = motifEl ? motifEl.value.trim() : '';
     s.rdvBooking = true;
-    apiFetch('https://www.bolamu.co/api/v1/appointments/book', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ patient_phone: patientPhone, doctor_id: s.rdvDoctorId, date: s.rdvDate, time: s.rdvSlot }) })
+    apiFetch('https://www.bolamu.co/api/v1/appointments/book', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ patient_phone: patientPhone, doctor_id: s.rdvDoctorId, date: s.rdvDate, time: s.rdvSlot, motif: motif || null }) })
       .then(function (r) { return r.json(); }).then(function (d) {
-        if (d.success) { A.showToast('Rendez-vous confirmé · +50 Zora après consultation'); A.setState({ modal: false, rdvBooking: false, rdvDoctorId: '', rdvDate: '', rdvSlot: '' }); A._slots = []; }
+        if (d.success) { A.showToast(motif === 'Bilan annuel complet' ? 'Bilan annuel planifié · +200 Zora après validation' : 'Rendez-vous confirmé · +50 Zora après consultation'); A.setState({ modal: false, rdvBooking: false, rdvDoctorId: '', rdvDate: '', rdvSlot: '' }); A._slots = []; }
         else { A.showToast(d.message || d.error || 'Réservation impossible'); A.setState({ rdvBooking: false }); }
       }).catch(function () { A.showToast('Erreur réseau — vérifie ta connexion'); A.setState({ rdvBooking: false }); });
   };
@@ -3497,7 +3545,7 @@
     // jusqu'à la résolution du fetch réel (voir A._loadAll, animation à partir des vraies données)
 
     var now = new Date(); var midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
-    A.ends = { defi1: now.getTime() + (4 * 3600 + 32 * 60) * 1000, defi2: now.getTime() + (23 * 3600) * 1000, offer: midnight.getTime() };
+    A.ends = { defi1: now.getTime() + (4 * 3600 + 32 * 60) * 1000, offer: midnight.getTime() };
     A._timer = setInterval(function () { A.state.now = Date.now(); A.syncTimers(); }, 1000);
 
     A.renderWheelStatic();
@@ -3522,7 +3570,7 @@
   A._loadAll = function (token, phone) {
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
     apiFetch('https://www.bolamu.co/api/v1/patients/profil?phone=' + encodeURIComponent(phone), H).then(function (r) { return r && r.json(); }).then(function (d) {
-      if (d && d.success && d.data) { A._patientPrenom = (d.data.full_name || '').split(' ')[0]; A._patientNom = d.data.full_name || ''; A._patientPhone = d.data.phone || ''; A._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel'; A._patientId = d.data.bolamu_id || ''; A._patientData = d.data; A._patientPhotoUrl = d.data.photo_url; A.setState({ gender: d.data.gender }); A.renderProfilePhoto(); A.renderScalars(); }
+      if (d && d.success && d.data) { A._patientPrenom = (d.data.full_name || '').split(' ')[0]; A._patientNom = d.data.full_name || ''; A._patientPhone = d.data.phone || ''; A._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel'; A._patientId = d.data.bolamu_id || ''; A._patientMemberCode = d.data.member_code || ''; A._patientData = d.data; A._patientPhotoUrl = d.data.photo_url; A.setState({ gender: d.data.gender }); A.renderProfilePhoto(); A.renderScalars(); }
     }).catch(function () {});
 
     apiFetch('https://www.bolamu.co/api/v1/zora/balance', H).then(function (r) { return r && r.json(); }).then(function (d) {
@@ -3548,6 +3596,7 @@
         A._scoreComposantes = d.data.composantes;
         setText('scoreBolamu', d.data.score !== null ? d.data.score : '—');
         A.renderScoreComposantes();
+        A.renderDefiSante();
         var tendanceEl = $('score-tendance');
         if (tendanceEl) {
           var tendanceIcon = d.data.tendance === 'up' ? '↑' : d.data.tendance === 'down' ? '↓' : '=';
@@ -3592,6 +3641,21 @@
         A.setState({ events: A.state.events.map(function (e) { return registeredIds.indexOf(e.dbId) !== -1 ? Object.assign({}, e, { registered: true }) : e; }), myRegistrations: A._myRegistrations });
       }
     }).catch(function () {});
+
+    // Réseau partenaires (carte Gagner > Santé) — établissements réels géolocalisés,
+    // remplace l'ancien tableau A.etabs codé en dur.
+    apiFetch('https://www.bolamu.co/api/v1/map/intervenants', H).then(function (r) { return r && r.json(); }).then(function (d) {
+      if (d && d.success && Array.isArray(d.data)) {
+        var typeMap = { doctor: 'clinique', pharmacie: 'pharmacie', laboratoire: 'laboratoire' };
+        var iconMap = { clinique: 'local_hospital', pharmacie: 'local_pharmacy', laboratoire: 'biotech' };
+        A.etabs = d.data.map(function (e) {
+          var t = typeMap[e.type] || e.type;
+          return { id: e.phone, name: e.full_name, type: t, addr: e.address || 'Adresse non renseignée', lat: parseFloat(e.latitude), lng: parseFloat(e.longitude), tel: e.phone, partner: true, icon: iconMap[t] || 'place' };
+        });
+        A.renderReseauPlaces();
+        if (A._reseauMap) { A._reseauMap.remove(); A._reseauMap = null; A._reseauMarkers = null; A.initReseauMap(); A.applyReseauFilter(); }
+      }
+    }).catch(function () { A.renderReseauPlaces(); });
 
     (function () {
       var lbListEl = $('leaderboard-list');
@@ -4398,6 +4462,7 @@
     toastReserver: () => A.toastReserver(),
     toastPlanifier: () => A.toastPlanifier(),
     toastWhatsapp: () => A.toastWhatsapp(),
+    partagerParrainage: () => A.partagerParrainage(),
     
     // Profil
     logout: () => A.logout(),

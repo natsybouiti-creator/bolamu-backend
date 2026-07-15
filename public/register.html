@@ -391,7 +391,10 @@ const state = {
   trustScore:30, cguAccepted:false,
   // Étape 5 — abonnement / paiement
   selectedPlan:'', selectedAmount:0, selectedOperator:'MTN',
-  subscriptionId:null, patientToken:'', paymentReference:''
+  subscriptionId:null, patientToken:'', paymentReference:'',
+  // Code de parrainage (carte Gagner > Santé) — récupéré depuis le lien WhatsApp
+  // partagé par le parrain (?ref=BLM-XXXXX), jamais saisi manuellement
+  referralCode: new URLSearchParams(window.location.search).get('ref') || ''
 };
 
 // Plans abonnement — libellés d'affichage (base = essentiel/standard/premium)
@@ -945,7 +948,7 @@ async function finalRegister(){
       neighborhood:state.neighborhood||null,
       photoData:state.photoData||null
     };
-    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);payload.niu=state.niu||null;payload.id_card_file_id=state.docs.id_card||null;}
+    if(state.role==='patient'){payload.first_name=state.firstName;payload.last_name=state.lastName;payload.full_name=`${state.firstName} ${state.lastName}`.trim();payload.gender=state.gender;payload.age=parseInt(state.age);payload.niu=state.niu||null;payload.id_card_file_id=state.docs.id_card||null;payload.referral_code=state.referralCode||null;}
     else if(state.role==='doctor'){payload.full_name=`Dr. ${state.firstName} ${state.lastName}`.trim();payload.specialty=state.specialty;payload.registration_number=state.registrationNumber;payload.order_country=state.orderCountry;payload.country_of_residence=state.countryOfResidence;payload.consultation_languages=state.consultationLanguages.join(', ');payload.is_international=state.isInternational;payload.document_file_id=state.docs.diploma||null;}
     else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;payload.document_file_id=state.docs.rccm||null;}
     else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;payload.document_file_id=state.docs.agrement||null;}
