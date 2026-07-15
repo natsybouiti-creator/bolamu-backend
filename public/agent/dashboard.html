@@ -346,19 +346,23 @@
               <option value="pharmacie">Pharmacie</option>
               <option value="laboratoire">Laboratoire</option>
               <option value="clinique">Clinique (médecin)</option>
+              <option value="animateur">Animateur</option>
+              <option value="rh">RH entreprise</option>
+              <option value="secretaire">Secrétaire</option>
+              <option value="partenaire_commercial">Partenaire commercial</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">Nom de la structure</label>
-            <input type="text" class="form-input" id="partenaire-nom" required>
+          <div class="form-group" id="partenaire-nom-group">
+            <label class="form-label" id="partenaire-nom-label">Nom de la structure</label>
+            <input type="text" class="form-input" id="partenaire-nom">
           </div>
           <div class="form-group">
             <label class="form-label">Téléphone</label>
             <input type="tel" class="form-input" id="partenaire-telephone" placeholder="+242XXXXXXXXX" required>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="partenaire-ville-group">
             <label class="form-label">Ville</label>
-            <input type="text" class="form-input" id="partenaire-ville" required>
+            <input type="text" class="form-input" id="partenaire-ville">
           </div>
           <div id="partenaire-champs-specifiques"></div>
           <button type="submit" class="btn-primary">Inscrire le partenaire</button>
@@ -1080,22 +1084,95 @@
       }
     }
 
+    function setNomVilleVisible(showNom, nomLabel, nomRequired, showVille, villeRequired) {
+      const nomGroup = document.getElementById('partenaire-nom-group');
+      const nomInput = document.getElementById('partenaire-nom');
+      const villeGroup = document.getElementById('partenaire-ville-group');
+      const villeInput = document.getElementById('partenaire-ville');
+      nomGroup.style.display = showNom ? '' : 'none';
+      nomInput.required = !!nomRequired;
+      if (!showNom) nomInput.value = '';
+      document.getElementById('partenaire-nom-label').textContent = nomLabel;
+      villeGroup.style.display = showVille ? '' : 'none';
+      villeInput.required = !!villeRequired;
+      if (!showVille) villeInput.value = '';
+    }
+
+    async function loadContractsForAgentSelect() {
+      const select = document.getElementById('rh-contract-select');
+      if (!select) return;
+      select.innerHTML = '<option value="">Chargement…</option>';
+      try {
+        const data = await apiFetch('/admin/company-contracts');
+        if (data && data.success) {
+          select.innerHTML = '<option value="">Sélectionner un contrat…</option>' +
+            data.data.map(c => `<option value="${c.id}">${c.company_name} (${c.company_code || c.reference})</option>`).join('');
+        } else {
+          select.innerHTML = '<option value="">Erreur de chargement</option>';
+        }
+      } catch (e) {
+        select.innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    }
+
+    async function loadDoctorsForAgentSelect() {
+      const select = document.getElementById('secretaire-partenaire-select');
+      if (!select) return;
+      select.innerHTML = '<option value="">Chargement…</option>';
+      try {
+        const data = await apiFetch('/doctors');
+        const doctors = (data && data.data && (data.data.doctors || data.data)) || [];
+        select.innerHTML = '<option value="">Sélectionner un médecin…</option>' +
+          doctors.map(d => `<option value="${d.phone}">${d.full_name || d.name} — ${d.phone}</option>`).join('');
+      } catch (e) {
+        select.innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    }
+
     function renderPartenaireChampsSpecifiques() {
       const type = document.getElementById('partenaire-type').value;
       const container = document.getElementById('partenaire-champs-specifiques');
       if (type === 'pharmacie') {
+        setNomVilleVisible(true, 'Nom de la structure', true, true, true);
         container.innerHTML = `
           <div class="form-group"><label class="form-label">Nom du responsable</label><input type="text" class="form-input" id="partenaire-responsable" required></div>
           <div class="form-group"><label class="form-label">N° RCCM</label><input type="text" class="form-input" id="partenaire-rccm" required></div>`;
       } else if (type === 'laboratoire') {
+        setNomVilleVisible(true, 'Nom de la structure', true, true, true);
         container.innerHTML = `
           <div class="form-group"><label class="form-label">Nom du directeur</label><input type="text" class="form-input" id="partenaire-responsable" required></div>
           <div class="form-group"><label class="form-label">N° RCCM</label><input type="text" class="form-input" id="partenaire-rccm" required></div>`;
       } else if (type === 'clinique') {
+        setNomVilleVisible(true, 'Nom de la structure', true, true, true);
         container.innerHTML = `
           <div class="form-group"><label class="form-label">Spécialité</label><input type="text" class="form-input" id="partenaire-specialite" required></div>
           <div class="form-group"><label class="form-label">N° d'ordre</label><input type="text" class="form-input" id="partenaire-numordre" required></div>`;
+      } else if (type === 'animateur') {
+        setNomVilleVisible(true, 'Nom complet', true, true, true);
+        container.innerHTML = `
+          <div class="form-group"><label class="form-label">Spécialité (optionnel)</label><input type="text" class="form-input" id="animateur-specialite"></div>`;
+      } else if (type === 'partenaire_commercial') {
+        setNomVilleVisible(true, 'Nom complet', true, true, true);
+        container.innerHTML = `
+          <div class="form-group"><label class="form-label">Secteur d'activité (optionnel)</label><input type="text" class="form-input" id="partenaire-commercial-secteur"></div>`;
+      } else if (type === 'rh') {
+        setNomVilleVisible(true, 'Nom complet', true, false, false);
+        container.innerHTML = `
+          <div class="form-group"><label class="form-label">Contrat entreprise de rattachement</label>
+            <select class="form-select" id="rh-contract-select" required><option value="">Chargement…</option></select>
+          </div>`;
+        loadContractsForAgentSelect();
+      } else if (type === 'secretaire') {
+        setNomVilleVisible(false, '', false, false, false);
+        container.innerHTML = `
+          <div class="form-group"><label class="form-label">Prénom</label><input type="text" class="form-input" id="secretaire-prenom" required></div>
+          <div class="form-group"><label class="form-label">Nom</label><input type="text" class="form-input" id="secretaire-nom" required></div>
+          <div class="form-group"><label class="form-label">Médecin de rattachement</label>
+            <select class="form-select" id="secretaire-partenaire-select" required><option value="">Chargement…</option></select>
+          </div>`;
+        loadDoctorsForAgentSelect();
       } else {
+        setNomVilleVisible(true, 'Nom de la structure', false, true, false);
         container.innerHTML = '';
       }
     }
@@ -1124,24 +1201,49 @@
       }
     }
 
+    // Types staff : comptes actifs immédiatement (lien magique WhatsApp),
+    // à la différence de pharmacie/laboratoire/clinique (validation admin différée)
+    const PARTENAIRE_TYPES_STAFF = ['animateur', 'rh', 'secretaire', 'partenaire_commercial'];
+
     async function submitInscrirePartenaire(e) {
       e.preventDefault();
       const type = document.getElementById('partenaire-type').value;
-      const body = {
-        type,
-        phone: document.getElementById('partenaire-telephone').value.trim(),
-        city: document.getElementById('partenaire-ville').value.trim()
-      };
+      const body = { type, phone: document.getElementById('partenaire-telephone').value.trim() };
+
       if (type === 'pharmacie' || type === 'laboratoire') {
+        body.city = document.getElementById('partenaire-ville').value.trim();
         body.name = document.getElementById('partenaire-nom').value.trim();
         body.rccm_number = document.getElementById('partenaire-rccm').value.trim();
         if (type === 'pharmacie') body.responsible_name = document.getElementById('partenaire-responsable').value.trim();
         if (type === 'laboratoire') body.director_name = document.getElementById('partenaire-responsable').value.trim();
       } else if (type === 'clinique') {
+        body.city = document.getElementById('partenaire-ville').value.trim();
         body.full_name = document.getElementById('partenaire-nom').value.trim();
         body.specialty = document.getElementById('partenaire-specialite').value.trim();
         body.registration_number = document.getElementById('partenaire-numordre').value.trim();
+      } else if (type === 'animateur') {
+        body.city = document.getElementById('partenaire-ville').value.trim();
+        body.full_name = document.getElementById('partenaire-nom').value.trim();
+        body.specialite = document.getElementById('animateur-specialite').value.trim() || undefined;
+      } else if (type === 'partenaire_commercial') {
+        body.city = document.getElementById('partenaire-ville').value.trim();
+        body.full_name = document.getElementById('partenaire-nom').value.trim();
+        body.secteur = document.getElementById('partenaire-commercial-secteur').value.trim() || undefined;
+      } else if (type === 'rh') {
+        body.full_name = document.getElementById('partenaire-nom').value.trim();
+        body.contract_id = document.getElementById('rh-contract-select').value || undefined;
+        if (!body.contract_id) {
+          return alert('Le RH doit être rattaché à un contrat entreprise existant.');
+        }
+      } else if (type === 'secretaire') {
+        body.prenom = document.getElementById('secretaire-prenom').value.trim();
+        body.nom = document.getElementById('secretaire-nom').value.trim();
+        body.partenaire_phone = document.getElementById('secretaire-partenaire-select').value || undefined;
+        if (!body.partenaire_phone) {
+          return alert('Sélectionnez le médecin de rattachement de la secrétaire.');
+        }
       }
+
       try {
         const data = await apiFetch('/agent/inscrire-partenaire', { method: 'POST', body: JSON.stringify(body) });
         if (data && data.success) {
@@ -1149,8 +1251,12 @@
           document.getElementById('partenaire-champs-specifiques').innerHTML = '';
           const box = document.getElementById('partenaire-success');
           box.classList.add('show');
-          document.getElementById('partenaire-success-detail').textContent =
-            `${data.data ? (data.data.name || data.data.full_name) : ''} — en attente de validation`;
+          if (PARTENAIRE_TYPES_STAFF.includes(type)) {
+            document.getElementById('partenaire-success-detail').textContent = data.message || 'Compte créé.';
+          } else {
+            document.getElementById('partenaire-success-detail').textContent =
+              `${data.data ? (data.data.name || data.data.full_name) : ''} — en attente de validation`;
+          }
           loadDashboard();
         } else if (data) {
           alert(data.message || 'Erreur lors de l\'inscription');

@@ -11,6 +11,12 @@ const { registerPatient } = require('../controllers/patient.controller');
 const { registerDoctor } = require('../controllers/doctor.controller');
 const { registerPharmacie } = require('../controllers/pharmacie.controller');
 const { registerLaboratoire } = require('../controllers/laboratoire.controller');
+const {
+  registerAnimateur,
+  registerRH,
+  registerSecretaireAgent,
+  registerPartenaireCommercial
+} = require('../controllers/agent-staff.controller');
 
 // Middleware : agent Bolamu uniquement (pas de données médicales, pas de routes admin)
 function requireAgent(req, res, next) {
@@ -143,12 +149,18 @@ router.post('/inscrire-partenaire', authMiddleware, requireAgent, async (req, re
   const handlers = {
     pharmacie: registerPharmacie,
     laboratoire: registerLaboratoire,
-    clinique: registerDoctor // Pas de table "cliniques" dédiée — mappé sur doctors (cf. anomalies)
+    clinique: registerDoctor, // Pas de table "cliniques" dédiée — mappé sur doctors (cf. anomalies)
+    // Comptes staff — actifs immédiatement, lien de connexion magique
+    // (à la différence des types ci-dessus qui restent en attente de validation admin)
+    animateur: registerAnimateur,
+    rh: registerRH,
+    secretaire: registerSecretaireAgent,
+    partenaire_commercial: registerPartenaireCommercial
   };
 
   const handler = handlers[type];
   if (!handler) {
-    return res.status(400).json({ success: false, message: 'Type invalide. Attendu : pharmacie, laboratoire ou clinique' });
+    return res.status(400).json({ success: false, message: 'Type invalide. Attendu : pharmacie, laboratoire, clinique, animateur, rh, secretaire ou partenaire_commercial' });
   }
 
   return handler(req, res);
