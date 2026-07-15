@@ -29,8 +29,9 @@ function adminOrAgent(req, res, next) {
 }
 
 // Périmètre content_admin élargi (décision produit) : lecture seule sur
-// /admin/stats et /admin/users uniquement — aucune route financière, de
-// modération ou de configuration n'utilise ce garde.
+// /admin/stats et /admin/users, plus modération du feed social sur
+// /admin/feed/reports, /admin/feed/posts/:id et /admin/feed/comments/:id.
+// Toujours aucun accès financier ni de configuration plateforme.
 function adminOrContentAdmin(req, res, next) {
     if (!['admin', 'content_admin'].includes(req.user?.role)) {
         return res.status(403).json({ success: false, message: 'Accès réservé aux administrateurs.' });
@@ -1647,5 +1648,112 @@ router.post('/waha-webhook', wahaWebhook);
 //     return res.status(500).json({ success: false, message: 'Erreur serveur.' });
 //   }
 // });
+
+// ─── MODÉRATION FEED (signalements post/commentaire) ─────────────────────────
+// FIX 9. audit_log.target_id est un entier (héritage) : les id de posts/
+// post_comments sont des UUID, donc récupérés depuis payload->>'post_id' ou
+// payload->>'comment_id' (jamais target_id, laissé NULL par feed.controller.js
+// reportPost/reportComment — cf. commentaire au-dessus de ces fonctions).
+router.get('/feed/reports', authMiddleware, adminOrContentAdmin, async (req, res) => {
+    try {
+        const includeResolved = req.query.include_resolved === 'true';
+        const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+        const offset = parseInt(req.query.offset, 10) || 0;
+
+        const result = await pool.query(`
+            SELECT
+                al.id AS report_id,
+                al.event_type,
+                al.actor_phone AS reporter_phone,
+                al.payload->>'reason' AS reason,
+                al.created_at,
+                CASE WHEN al.event_type = 'post_reported' THEN al.payload->>'post_id' ELSE al.payload->>'comment_id' END AS target_id,
+                CASE WHEN al.event_type = 'post_reported' THEN p.content ELSE c.content END AS content,
+                CASE WHEN al.event_type = 'post_reported' THEN p.author_phone ELSE c.phone END AS author_phone,
+                CASE WHEN al.event_type = 'post_reported' THEN p.is_active ELSE c.is_active END AS is_active
+            FROM audit_log al
+            LEFT JOIN posts p ON al.event_type = 'post_reported' AND p.id = (al.payload->>'post_id')::uuid
+            LEFT JOIN post_comments c ON al.event_type = 'comment_reported' AND c.id = (al.payload->>'comment_id')::uuid
+            WHERE al.event_type IN ('post_reported', 'comment_reported')
+                AND ($1::boolean = TRUE OR COALESCE(
+                    CASE WHEN al.event_type = 'post_reported' THEN p.is_active ELSE c.is_active END,
+                    FALSE
+                ) = TRUE)
+            ORDER BY al.created_at DESC
+            LIMIT $2 OFFSET $3
+        `, [includeResolved, limit, offset]);
+
+        return ok(res, result.rows);
+    } catch (e) {
+        console.error('[ADMIN FEED REPORTS]', e.message);
+        return err(res, 500, 'Erreur serveur.');
+    }
+});
+
+router.patch('/feed/posts/:id', authMiddleware, adminOrContentAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action, reason } = req.body;
+        if (!['hide', 'delete', 'dismiss'].includes(action)) {
+            return err(res, 400, 'action doit être hide, delete ou dismiss.');
+        }
+
+        const post = await pool.query('SELECT author_phone FROM posts WHERE id = $1', [id]);
+        if (!post.rows.length) return err(res, 404, 'Post introuvable.');
+
+        if (action === 'dismiss') {
+            await pool.query(
+                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+                 VALUES ('report_dismissed', $1, 'posts', NULL, $2::jsonb)`,
+                [req.user.phone, JSON.stringify({ post_id: id, reason: reason || null })]
+            );
+            return ok(res, { id, action });
+        }
+
+        await pool.query('UPDATE posts SET is_active = FALSE WHERE id = $1', [id]);
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('post_moderated', $1, 'posts', NULL, $2::jsonb)`,
+            [req.user.phone, JSON.stringify({ action, reason: reason || null, author_phone: post.rows[0].author_phone, post_id: id })]
+        );
+        return ok(res, { id, action });
+    } catch (e) {
+        console.error('[ADMIN FEED MODERATE POST]', e.message);
+        return err(res, 500, 'Erreur serveur.');
+    }
+});
+
+router.patch('/feed/comments/:id', authMiddleware, adminOrContentAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action, reason } = req.body;
+        if (!['hide', 'delete', 'dismiss'].includes(action)) {
+            return err(res, 400, 'action doit être hide, delete ou dismiss.');
+        }
+
+        const comment = await pool.query('SELECT phone FROM post_comments WHERE id = $1', [id]);
+        if (!comment.rows.length) return err(res, 404, 'Commentaire introuvable.');
+
+        if (action === 'dismiss') {
+            await pool.query(
+                `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+                 VALUES ('report_dismissed', $1, 'post_comments', NULL, $2::jsonb)`,
+                [req.user.phone, JSON.stringify({ comment_id: id, reason: reason || null })]
+            );
+            return ok(res, { id, action });
+        }
+
+        await pool.query('UPDATE post_comments SET is_active = FALSE WHERE id = $1', [id]);
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('comment_moderated', $1, 'post_comments', NULL, $2::jsonb)`,
+            [req.user.phone, JSON.stringify({ action, reason: reason || null, author_phone: comment.rows[0].phone, comment_id: id })]
+        );
+        return ok(res, { id, action });
+    } catch (e) {
+        console.error('[ADMIN FEED MODERATE COMMENT]', e.message);
+        return err(res, 500, 'Erreur serveur.');
+    }
+});
 
 module.exports = router;
