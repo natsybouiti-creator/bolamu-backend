@@ -4531,6 +4531,7 @@
     var container = $('feed-posts-list');
     if (!container) return;
     var isSystem = post.type === 'system';
+    var isReel = post.type === 'reel';
     var timeAgo = A.formatTimeAgo(post.created_at);
     var myPhone = A._patientPhone || localStorage.getItem('bolamu_patient_phone');
     var isMine = myPhone && post.author_phone === myPhone;
@@ -4552,9 +4553,12 @@
           '<div class="post-time">' + timeAgo + (post.city ? ' · ' + A.escapeHtml(post.city) : '') + '</div>' +
         '</div>' +
         (isSystem ? '<span class="post-type-badge">Activité</span>' : '') +
+        (isReel ? '<span class="post-type-badge" style="background:rgba(255,107,53,0.12);color:#FF6B35">Reel</span>' : '') +
       '</div>' +
       (post.content ? '<div class="post-content">' + A.escapeHtml(post.content) + '</div>' : '') +
-      (post.photo_url ? '<img class="post-photo" src="' + post.photo_url + '" alt="Photo du post" loading="lazy">' : '') +
+      (isReel && post.photo_url
+        ? '<video class="post-photo" src="' + post.photo_url + '" controls playsinline muted style="background:#000" preload="metadata"></video>'
+        : (post.photo_url ? '<img class="post-photo" src="' + post.photo_url + '" alt="Photo du post" loading="lazy">' : '')) +
       '<div class="post-actions">' +
         '<button class="post-action-btn ' + (post.liked_by_me ? 'liked' : '') + '" onclick="A.toggleLike(\'' + post.id + '\', this)">' +
           '<span class="material-symbols-outlined">' + (post.liked_by_me ? 'favorite' : 'favorite_border') + '</span>' +

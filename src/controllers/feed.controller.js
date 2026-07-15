@@ -90,7 +90,7 @@ exports.getFeed = async (req, res) => {
                 LEFT JOIN post_likes    pl ON pl.post_id = p.id
                 LEFT JOIN post_comments pc ON pc.post_id = p.id AND pc.is_active = TRUE
                 WHERE p.is_active = TRUE
-                    AND p.type IN ('manual', 'system')
+                    AND p.type IN ('manual', 'system', 'reel')
                     AND p.author_phone = $2
                     AND (p.expires_at IS NULL OR p.expires_at > NOW())
                     AND ($3::text IS NULL OR p.city = $3)
@@ -126,7 +126,7 @@ exports.getFeed = async (req, res) => {
             LEFT JOIN post_likes    pl ON pl.post_id = p.id
             LEFT JOIN post_comments pc ON pc.post_id = p.id AND pc.is_active = TRUE
             WHERE p.is_active = TRUE
-                AND p.type IN ('manual', 'system')
+                AND p.type IN ('manual', 'system', 'reel')
                 AND (p.expires_at IS NULL OR p.expires_at > NOW())
                 AND (
                     p.author_phone = $1
