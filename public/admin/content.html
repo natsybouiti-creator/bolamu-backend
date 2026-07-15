@@ -214,6 +214,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
     <div class="nav-section">Administration</div>
     <button class="nav-item" id="nav-stats" data-action="show-panel" data-panel="stats"><span class="icon">📊</span> Statistiques</button>
     <button class="nav-item" id="nav-users" data-action="show-panel" data-panel="users"><span class="icon">👥</span> Utilisateurs</button>
+    <button class="nav-item" id="nav-signalements" data-action="show-panel" data-panel="signalements"><span class="icon">🚩</span> Signalements</button>
   </nav>
   <div class="sidebar-footer">
     <div class="admin-info">
@@ -382,6 +383,29 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--noir);color:var
       </table>
     </div>
 
+    <!-- SIGNALEMENTS FEED (modération posts/commentaires) -->
+    <div class="panel" id="panel-signalements">
+      <div class="editor-banner">
+        <div class="editor-banner-icon">🚩</div>
+        <div><div class="editor-banner-title">Signalements feed</div><div class="editor-banner-sub">Posts et commentaires signalés par les utilisateurs — masquer, supprimer ou ignorer.</div></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:var(--noir3);">
+            <th style="padding:8px 10px;text-align:left;">Type</th>
+            <th style="padding:8px 10px;text-align:left;">Contenu</th>
+            <th style="padding:8px 10px;text-align:left;">Signalé par</th>
+            <th style="padding:8px 10px;text-align:left;">Motif</th>
+            <th style="padding:8px 10px;text-align:left;">Date</th>
+            <th style="padding:8px 10px;text-align:left;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="signalements-tbody">
+          <tr><td colspan="6" style="padding:14px;text-align:center;opacity:.6;">Chargement...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
@@ -471,9 +495,9 @@ function hideBootBanner(){const b=document.getElementById('ed-boot-banner');if(b
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
 
-const panelTitles={articles:'Articles & Blog',vitrine:'Vitrine & Hero',plans:'Offres & Tarifs',textes:'Textes du site',reseaux:'Réseaux sociaux',stats:'Statistiques',users:'Utilisateurs'};
+const panelTitles={articles:'Articles & Blog',vitrine:'Vitrine & Hero',plans:'Offres & Tarifs',textes:'Textes du site',reseaux:'Réseaux sociaux',stats:'Statistiques',users:'Utilisateurs',signalements:'Signalements feed'};
 
-function showPanel(name,btn){
+function showContentPanel(name,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -482,7 +506,7 @@ function showPanel(name,btn){
   loadPanel(name);
 }
 function loadPanel(name){
-  const fn={articles:loadArticles,vitrine:loadVitrine,plans:loadPlans,textes:loadTextes,reseaux:loadReseaux,stats:loadStats,users:loadUsersList};
+  const fn={articles:loadArticles,vitrine:loadVitrine,plans:loadPlans,textes:loadTextes,reseaux:loadReseaux,stats:loadStats,users:loadUsersList,signalements:loadReports};
   if(fn[name])fn[name]();
 }
 function refreshAll(){loadPanel(document.querySelector('.panel.active')?.id?.replace('panel-',''));}
@@ -542,6 +566,51 @@ async function loadUsersList(){
         <td style="padding:8px 10px;">${u.created_at?new Date(u.created_at).toLocaleDateString('fr-FR'):'—'}</td>
       </tr>`).join(''):'<tr><td colspan="5" style="padding:14px;text-align:center;opacity:.6;">Aucun utilisateur</td></tr>';
   }catch(e){tbody.innerHTML='<tr><td colspan="5" style="padding:14px;text-align:center;opacity:.6;">Erreur de chargement</td></tr>';}
+}
+
+/* ══════════════════════════════════════════
+   SIGNALEMENTS FEED (FIX 9 — modération)
+══════════════════════════════════════════ */
+function escFeed(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+async function loadReports(){
+  const tbody=document.getElementById('signalements-tbody');
+  tbody.innerHTML='<tr><td colspan="6" style="padding:14px;text-align:center;opacity:.6;">Chargement...</td></tr>';
+  try{
+    const res=await api('/admin/feed/reports');
+    const rows=res.data||[];
+    tbody.innerHTML=rows.length?rows.map(r=>{
+      const type=r.event_type==='post_reported'?'post':'comment';
+      const excerpt=escFeed((r.content||'').slice(0,50))+((r.content||'').length>50?'…':'');
+      const date=r.created_at?new Date(r.created_at).toLocaleString('fr-FR'):'—';
+      return `
+      <tr id="report-row-${r.report_id}" style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 10px;">${type==='post'?'📝 Post':'💬 Commentaire'}</td>
+        <td style="padding:8px 10px;">${excerpt||'—'}</td>
+        <td style="padding:8px 10px;">${escFeed(r.reporter_phone)||'—'}</td>
+        <td style="padding:8px 10px;">${escFeed(r.reason)||'—'}</td>
+        <td style="padding:8px 10px;">${date}</td>
+        <td style="padding:8px 10px;white-space:nowrap;">
+          <button class="btn-confirm" style="padding:5px 9px;font-size:10px;" data-onclick="moderateReport" data-arg="${r.report_id},${type},${r.target_id},hide">Masquer</button>
+          <button class="btn-confirm red" style="padding:5px 9px;font-size:10px;" data-onclick="moderateReport" data-arg="${r.report_id},${type},${r.target_id},delete">Supprimer</button>
+          <button class="btn-cancel-modal" style="padding:5px 9px;font-size:10px;" data-onclick="moderateReport" data-arg="${r.report_id},${type},${r.target_id},dismiss">Ignorer</button>
+        </td>
+      </tr>`;
+    }).join(''):'<tr><td colspan="6" style="padding:14px;text-align:center;opacity:.6;">Aucun signalement en attente</td></tr>';
+  }catch(e){tbody.innerHTML='<tr><td colspan="6" style="padding:14px;text-align:center;opacity:.6;">Erreur de chargement</td></tr>';}
+}
+
+async function moderateReport(arg){
+  const [reportId,type,targetId,action]=arg.split(',');
+  const endpoint=type==='post'?`/admin/feed/posts/${targetId}`:`/admin/feed/comments/${targetId}`;
+  const reason=action==='dismiss'?'Signalement ignoré depuis le panneau admin':`Modéré depuis le panneau admin (${action})`;
+  try{
+    const res=await api(endpoint,{method:'PATCH',body:JSON.stringify({action,reason})});
+    if(!res||!res.success){showToast('Action impossible','error');return;}
+    const row=document.getElementById('report-row-'+reportId);
+    if(row)row.remove();
+    showToast(action==='dismiss'?'Signalement ignoré':action==='hide'?'Contenu masqué':'Contenu supprimé');
+  }catch(e){showToast('Erreur réseau','error');}
 }
 
 /* ══════════════════════════════════════════
@@ -898,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var el = e.target.closest('[data-action]');
     if (!el) return;
     var action = el.getAttribute('data-action');
-    if (action === 'show-panel') { showPanel(el.getAttribute('data-panel'), el); return; }
+    if (action === 'show-panel') { showContentPanel(el.getAttribute('data-panel'), el); return; }
     if (action === 'filter-admin') { filterArticlesAdmin(el.getAttribute('data-category'), el); return; }
     if (action === 'trigger-click') {
       var target = document.getElementById(el.getAttribute('data-target-id'));
