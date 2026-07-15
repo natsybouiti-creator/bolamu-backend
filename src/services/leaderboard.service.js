@@ -3,6 +3,13 @@
 // ============================================================
 const pool = require('../config/db');
 
+// Comptes de test QA (cf. CLAUDE.md "Comptes de test") exclus du classement —
+// constaté le 15 juillet 2026 (audit Gagner/Santé) : le compte patient de test
+// +242069735418 ("Antonio Test") occupait la 1ère place du classement hebdo
+// réel, entièrement via des crédits Zora de test/audit, jamais des actions
+// patient réelles.
+const TEST_PHONES_EXCLUDED_FROM_LEADERBOARD = ['+242069735418', '+242069735419', '+242099999999'];
+
 /**
  * Calculer le classement hebdomadaire
  * Semaine : lundi 00h00 → dimanche 23h59
@@ -90,11 +97,13 @@ async function getLeaderboard({ phone, limit = 10 }) {
          JOIN zora_ledger zl ON zl.phone = u.phone
          WHERE u.role = 'patient'
            AND u.is_active = true
+           AND u.phone <> ALL($1)
            AND zl.earned_at >= date_trunc('week', NOW())
          GROUP BY u.phone, u.full_name, u.photo_url
          HAVING SUM(zl.points) > 0
        ) ranked
-       ORDER BY rank ASC`
+       ORDER BY rank ASC`,
+      [TEST_PHONES_EXCLUDED_FROM_LEADERBOARD]
     );
 
     const top = rankedResult.rows.slice(0, limit).map(row => ({
@@ -139,12 +148,14 @@ async function getTop3() {
          JOIN zora_ledger zl ON zl.phone = u.phone
          WHERE u.role = 'patient'
            AND u.is_active = true
+           AND u.phone <> ALL($1)
            AND zl.earned_at >= date_trunc('week', NOW())
          GROUP BY u.phone, u.full_name
          HAVING SUM(zl.points) > 0
        ) ranked
        ORDER BY rank ASC
-       LIMIT 3`
+       LIMIT 3`,
+      [TEST_PHONES_EXCLUDED_FROM_LEADERBOARD]
     );
 
     const top3 = result.rows.map(row => ({
@@ -165,5 +176,6 @@ module.exports = {
   computeWeeklyLeaderboard,
   getLeaderboard,
   getTop3,
-  toDisplayName
+  toDisplayName,
+  TEST_PHONES_EXCLUDED_FROM_LEADERBOARD
 };

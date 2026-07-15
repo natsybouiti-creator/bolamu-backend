@@ -19,7 +19,6 @@ const {
   hasDmnQrConsent,
   logAccess
 } = require('../services/dmn.service');
-const { creditWellnessAction } = require('../services/wellness.service');
 
 // Middleware — patient uniquement, jamais croisé
 const requirePatient = (req, res, next) => {
@@ -291,9 +290,10 @@ router.post('/update', authMiddleware, requirePatient, async (req, res) => {
     // BHP : log obligatoire
     logAccess(phone, phone, 'update', { fields: updates.map(u => u.split(' = ')[0]) }, req.ip).catch(() => {});
 
-    // Crédit Zora 30 pts — 1x/jour via wellness_actions (idempotent)
-    const today = new Date().toISOString().slice(0, 10);
-    creditWellnessAction(phone, 'dossier_update', `dmn_${phone}_${today}`, null).catch(() => {});
+    // Crédit Zora dossier_update : déplacé vers constantes-medicales.controller.js
+    // (updateConstantesPatient) — la seule route réellement appelée par le
+    // frontend (A.saveConst()). Cette route /dmn/update n'est appelée par aucun
+    // client connu ; le crédit ici était donc mort (jamais exécuté en prod).
 
     res.json({ success: true, message: 'Dossier mis à jour' });
   } catch (err) {

@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
+const { creditWellnessAction } = require('../services/wellness.service');
 
 // ─── RÉCUPÉRER LES CONSTANTES MÉDICALES D'UN PATIENT ─────────────────────────
 async function getConstantes(req, res) {
@@ -186,6 +187,13 @@ async function updateConstantesPatient(req, res) {
                 JSON.stringify({ actor_role: 'patient', new_values: result.rows[0], ip_address: req.ip || null })
             ]
         );
+
+        // Crédit Zora 30 pts — 1x/jour via wellness_actions (idempotent).
+        // Route réellement appelée par A.saveConst() (dashboard patient) — ce
+        // crédit vivait auparavant dans dmn.routes.js, sur une route jamais
+        // appelée par le frontend, donc jamais déclenché en pratique.
+        const today = new Date().toISOString().slice(0, 10);
+        creditWellnessAction(userPhone, 'dossier_update', `constantes_${userPhone}_${today}`, null).catch(() => {});
 
         return res.json({
             success: true,

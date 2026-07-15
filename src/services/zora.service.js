@@ -146,16 +146,18 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
       [phone, rule.points, rule.category, action_type, proof_class, proof_source, recording_method, proof_reference, expiresAt]
     );
     
-    // UPDATE zora_points — balance TOUJOURS recalculé depuis ledger
+    // UPDATE zora_points — balance TOUJOURS recalculé depuis ledger.
+    // GREATEST(...,0) : zora_points.balance a un CHECK (balance >= 0) — cf.
+    // recalculateBalance() pour le contexte (audit 15 juillet 2026).
     const pointsUpdate = await client.query(
       `INSERT INTO zora_points (phone, balance, total_earned, tier, last_activity_at, created_at, updated_at)
        VALUES ($1, $2, $3, 'kimia', NOW(), NOW(), NOW())
        ON CONFLICT (phone) DO UPDATE SET
-         balance = (
-           SELECT COALESCE(SUM(points), 0) 
-           FROM zora_ledger 
+         balance = GREATEST((
+           SELECT COALESCE(SUM(points), 0)
+           FROM zora_ledger
            WHERE phone = $1
-         ),
+         ), 0),
          total_earned = zora_points.total_earned + $3,
          last_activity_at = NOW(),
          updated_at = NOW()
@@ -395,13 +397,18 @@ async function getZoraEarnRules() {
 async function recalculateBalance(phone) {
   try {
     const ledgerSumResult = await pool.query(
-      `SELECT COALESCE(SUM(points), 0) as ledger_sum 
-       FROM zora_ledger 
+      `SELECT COALESCE(SUM(points), 0) as ledger_sum
+       FROM zora_ledger
        WHERE phone = $1`,
       [phone]
     );
-    
-    const ledgerSum = parseInt(ledgerSumResult.rows[0].ledger_sum);
+
+    // Plancher à 0 — zora_points.balance a un CHECK (balance >= 0). Un ledger
+    // dont la somme brute est négative (constaté le 15 juillet 2026 : bons Zora
+    // générés contre un solde jamais réellement gagné via awardZora) signale une
+    // incohérence plus profonde à traiter séparément (cf. audit), pas une raison
+    // de faire planter la resynchronisation.
+    const ledgerSum = Math.max(parseInt(ledgerSumResult.rows[0].ledger_sum), 0);
     
     const updateResult = await pool.query(
       `UPDATE zora_points 

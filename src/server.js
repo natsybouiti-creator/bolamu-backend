@@ -366,6 +366,13 @@ console.log('[CRON] Job nettoyage stories expirées démarré (toutes les heures
 const { startWellnessCron } = require('./jobs/wellness.cron');
 startWellnessCron();
 
+// Job cron expiration/dérive Zora — démarrage automatique
+// Corrigé (audit Gagner/Santé, 15 juillet 2026) : ce cron existait depuis le
+// Sprint 2 mais n'avait jamais été enregistré ici — jamais exécuté en prod.
+const { scheduleExpiration } = require('./cron/zora-expiration');
+scheduleExpiration();
+console.log('[CRON] Job expiration/dérive Zora démarré (02h00 Brazzaville)');
+
 // ============================================================
 // BullMQ Workers — SMS abandonné (WhatsApp direct), Push actif si REDIS_URL configuré
 // ============================================================

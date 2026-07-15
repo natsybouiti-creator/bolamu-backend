@@ -288,6 +288,10 @@ async function getWeeklyStats(patientPhone) {
  * @returns {Promise<Array>} Top 10
  */
 async function getLeaderboard() {
+  // Comptes de test QA exclus du classement all-time (même liste que le
+  // classement hebdo, cf. leaderboard.service.js — audit Gagner/Santé du
+  // 15 juillet 2026).
+  const { TEST_PHONES_EXCLUDED_FROM_LEADERBOARD } = require('./leaderboard.service');
   const result = await pool.query(
     `SELECT
        u.full_name,
@@ -297,9 +301,11 @@ async function getLeaderboard() {
      FROM zora_points zp
      JOIN users u ON zp.phone = u.phone
      WHERE u.role = 'patient'
+       AND u.phone <> ALL($1)
        AND zp.last_activity_at >= NOW() - INTERVAL '7 days'
      ORDER BY zp.total_earned DESC
-     LIMIT 10`
+     LIMIT 10`,
+    [TEST_PHONES_EXCLUDED_FROM_LEADERBOARD]
   );
 
   const leaderboard = result.rows.map(row => {

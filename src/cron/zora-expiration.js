@@ -6,7 +6,7 @@
 // ============================================================
 
 const pool = require('../config/db');
-const { getZoraTiers } = require('../services/zora.service');
+const { getZoraTiers, recalculateBalance } = require('../services/zora.service');
 
 /**
  * Fonction principale d'expiration
@@ -39,47 +39,74 @@ async function runExpiration() {
     console.log(`[ZORA CRON] ${expireResult.rows.length} lignes ledger expirées`);
     
     // ÉTAPE 3 — Recalculer le solde réel pour chaque utilisateur affecté
+    // Corrigé (audit Gagner/Santé, 15 juillet 2026) : la formule inline
+    // (SUM filtré points>0 AND verified=TRUE) divergeait de recalculateBalance()
+    // — la formule utilisée par awardZora() (SUM de TOUTE la ligne ledger, y
+    // compris les débits négatifs de rachat/bons Zora). Réutilise désormais
+    // recalculateBalance() pour ne jamais avoir deux définitions du solde.
     const affectedPhones = new Set(expireResult.rows.map(r => r.phone));
-    
+
     for (const phone of affectedPhones) {
-      const balanceResult = await client.query(
-        `UPDATE zora_points zp
-         SET balance = COALESCE((
-           SELECT SUM(points) 
-           FROM zora_ledger 
-           WHERE phone = zp.phone 
-             AND points > 0 
-             AND verified = TRUE
-         ), 0),
-         updated_at = NOW()
-         WHERE phone = $1
-         RETURNING balance, total_earned`,
+      const { balance } = await recalculateBalance(phone);
+      console.log(`[ZORA CRON] Solde recalculé pour ${phone}: ${balance}`);
+
+      const totalEarnedResult = await client.query(
+        'SELECT total_earned FROM zora_points WHERE phone = $1',
         [phone]
       );
-      
-      if (balanceResult.rows.length > 0) {
-        const points = balanceResult.rows[0];
-        console.log(`[ZORA CRON] Solde recalculé pour ${phone}: ${points.balance} (total_earned: ${points.total_earned})`);
-        
-        // ÉTAPE 4 — Recalculer le tier après expiration
-        const tiers = await getZoraTiers();
-        let newTier = 'kimia';
-        
-        for (const tier of tiers) {
-          if (points.total_earned >= tier.min_points) {
-            newTier = tier.tier_name;
-          }
+      const totalEarned = totalEarnedResult.rows[0]?.total_earned || 0;
+
+      // ÉTAPE 4 — Recalculer le tier après expiration
+      const tiers = await getZoraTiers();
+      let newTier = 'kimia';
+
+      for (const tier of tiers) {
+        if (totalEarned >= tier.min_points) {
+          newTier = tier.tier_name;
         }
-        
-        await client.query(
-          'UPDATE zora_points SET tier = $1 WHERE phone = $2',
-          [newTier, phone]
-        );
-        
-        console.log(`[ZORA CRON] Tier recalculé pour ${phone}: ${newTier}`);
       }
+
+      await client.query(
+        'UPDATE zora_points SET tier = $1 WHERE phone = $2',
+        [newTier, phone]
+      );
+
+      console.log(`[ZORA CRON] Tier recalculé pour ${phone}: ${newTier}`);
     }
-    
+
+    // ÉTAPE 5 — Détection + correction des dérives balance vs ledger, tous
+    // comptes confondus (pas seulement ceux affectés par une expiration du
+    // jour). Cf. audit Gagner/Santé du 15 juillet 2026 : une dérive de 2150
+    // points trouvée sur un compte, provenant d'une écriture directe en base
+    // hors du chemin awardZora()/recalculateBalance().
+    const driftResult = await client.query(
+      `SELECT zp.phone, zp.balance AS balance_stockee, COALESCE(SUM(zl.points), 0) AS somme_ledger
+       FROM zora_points zp
+       LEFT JOIN zora_ledger zl ON zl.phone = zp.phone
+       GROUP BY zp.phone, zp.balance
+       HAVING zp.balance <> COALESCE(SUM(zl.points), 0)`
+    );
+
+    if (driftResult.rows.length > 0) {
+      console.warn(`[ZORA CRON] ⚠️  ${driftResult.rows.length} compte(s) avec dérive balance/ledger détectée(s)`);
+      for (const row of driftResult.rows) {
+        console.warn(`[ZORA CRON] Dérive ${row.phone} : balance=${row.balance_stockee}, ledger=${row.somme_ledger}, écart=${row.balance_stockee - row.somme_ledger}`);
+        await client.query(
+          `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+           VALUES ('zora_balance_drift_detected', 'system', 'zora_points', NULL, $1::jsonb)`,
+          [JSON.stringify({
+            phone: row.phone,
+            balance_stockee: row.balance_stockee,
+            somme_ledger: row.somme_ledger,
+            ecart: row.balance_stockee - row.somme_ledger
+          })]
+        );
+        await recalculateBalance(row.phone);
+      }
+    } else {
+      console.log('[ZORA CRON] Aucune dérive balance/ledger détectée');
+    }
+
     // Audit log
     await client.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)

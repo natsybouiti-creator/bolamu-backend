@@ -10,6 +10,17 @@ const { buildWameLink } = require('../services/wame.service');
 const { sendAutoMessage } = require('../services/whatsapp.service');
 const { awardZora } = require('../services/zora.service');
 
+// Middleware pour restreindre aux médecins (même convention que lab.routes.js /
+// consultation-report.routes.js) — évite qu'un compte authentifié quelconque
+// (patient inclus) ne déclenche la validation d'un RDV tiers et son crédit Zora
+// associé en connaissant seulement l'id et le session_code.
+const doctorOnly = (req, res, next) => {
+    if (req.user?.role !== 'doctor') {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux médecins.' });
+    }
+    next();
+};
+
 // --- ROUTES ---
 
 // 1. Créneaux (Public)
@@ -294,7 +305,7 @@ router.get('/patient/:phone', authMiddleware, async (req, res) => {
 });
 
 // 5. Validation (Anti-fraude simplifié pour stabilité)
-router.post('/:id/validate', authMiddleware, async (req, res) => {
+router.post('/:id/validate', authMiddleware, doctorOnly, async (req, res) => {
     const { id } = req.params;
     const { session_code } = req.body;
     try {

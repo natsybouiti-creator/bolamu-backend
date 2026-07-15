@@ -135,10 +135,27 @@ async function closeConsultation(consultation_id, doctor_phone, data) {
       }
     }
 
-    // Créditer 50 Zora au patient
-    await zoraService.recalculateBalance(consultation.patient_phone, 50, 'consultation');
-
     await client.query('COMMIT');
+
+    // Créditer Zora pour consultation (non bloquant, même proof_reference que les
+    // autres chemins de crédit 'consultation' — appointment.routes.js /validate et
+    // consultation-report.controller.js — pour garantir l'idempotence via
+    // zora_ledger.proof_reference et éviter un double crédit sur le même RDV)
+    setImmediate(async () => {
+      try {
+        await zoraService.awardZora({
+          phone: consultation.patient_phone,
+          action_type: 'consultation',
+          proof_class: 'system_event',
+          proof_source: 'consultation_system',
+          recording_method: null,
+          proof_reference: (consultation.appointment_id || consultation_id).toString()
+        });
+      } catch (zoraError) {
+        console.error('[ZORA] Erreur lors du crédit consultation (closeConsultation):', zoraError.message);
+      }
+    });
+
     return { consultation_id, status: 'completed' };
   } catch (error) {
     await client.query('ROLLBACK');
