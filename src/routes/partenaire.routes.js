@@ -151,12 +151,12 @@ router.get('/stats', authMiddleware, requirePartenaire, async (req, res) => {
 });
 
 // POST /api/v1/partenaire/voucher/validate — Valider un voucher Zora
-// DÉPRÉCIÉ — utiliser /vouchers/* à la place
-// (zora-voucher.service.js consolidé vers partner_vouchers/voucher.service.js)
+// DÉPRÉCIÉ — utiliser /bons-zora/validate ou /bons-zora/validate/qr à la place
+// (remplacé par bon-zora.service.js / bon-zora.routes.js)
 router.post('/voucher/validate', authMiddleware, requirePartenaire, (req, res) => {
   res.status(410).json({
     success: false,
-    message: 'Route dépréciée — utiliser /vouchers/*'
+    message: 'Route dépréciée — utiliser /bons-zora/validate ou /bons-zora/validate/qr'
   });
 });
 

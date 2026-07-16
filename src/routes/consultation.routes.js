@@ -25,7 +25,7 @@ router.get('/queue',
 // GET /api/v1/consultations/patient/:phone/history - Historique patient (médecin/admin)
 router.get('/patient/:phone/history', 
   authMiddleware, 
-  bhpAccessMiddleware(['medecin', 'admin']),
+  bhpAccessMiddleware(['doctor', 'admin']),
   consultationController.getPatientHistory
 );
 

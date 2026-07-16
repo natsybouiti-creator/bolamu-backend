@@ -88,7 +88,7 @@ async function getOrdonnance(ordonnance_id, requester_phone, role) {
     throw new Error('ACCESS_DENIED');
   }
 
-  if (role === 'medecin' && ordonnance.doctor_phone !== normalizedRequester) {
+  if (role === 'doctor' && ordonnance.doctor_phone !== normalizedRequester) {
     throw new Error('ACCESS_DENIED');
   }
 

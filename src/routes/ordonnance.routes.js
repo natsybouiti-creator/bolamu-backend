@@ -17,7 +17,7 @@ router.post('/',
 // GET /api/v1/ordonnances/:id - Récupérer ordonnance (médecin/pharmacie/patient)
 router.get('/:id', 
   authMiddleware, 
-  bhpAccessMiddleware(['medecin', 'pharmacie', 'patient']),
+  bhpAccessMiddleware(['doctor', 'pharmacie', 'patient']),
   ordonnanceController.getOrdonnance
 );
 
