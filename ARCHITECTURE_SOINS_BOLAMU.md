@@ -2,7 +2,7 @@
 
 > Document de référence sur le parcours de soins réel (RDV → consultation → ordonnance → dispensation → labo → résultats).
 > S'appuie sur `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` (schéma) et `ARCHITECTURE_RBAC_GLOBAL_BOLAMU.md` (rôles) — non répétés ici, seulement cités.
-> Sources : `src/routes/appointment.routes.js`, `src/controllers/{doctor,qr,consultation-report,lab,prescription,secretary,constantes-medicales,preRdv}.controller.js`, `src/services/{consultation,ordonnance,lab,pharmacie,secretariat,preRdv,renouvellement,dmn,ai-consult}.service.js`, `src/middleware/bhpAccess.js`, `public/{patient,medecin,pharmacie,secretaire,laboratoire}/dashboard.html`.
+> Sources : `src/routes/{appointment,healthRecords,vaccination,dmn}.routes.js`, `src/controllers/{doctor,qr,consultation-report,lab,prescription,secretary,constantes-medicales,preRdv}.controller.js`, `src/services/{consultation,ordonnance,lab,pharmacie,secretariat,preRdv,renouvellement,dmn,ai-consult}.service.js`, `src/middleware/bhpAccess.js`, `public/{patient,medecin,pharmacie,secretaire,laboratoire}/dashboard.html`.
 
 ---
 
@@ -142,6 +142,33 @@ Migration `migration_059_ssp_is_ssp_flag.sql` (appliquée en prod) ajoute une co
 
 ---
 
+## 4bis. Carnet de vaccination
+
+**Contexte réglementaire** : contrairement au reste du parcours de soins (§1-4), la vaccination est administrée par trois types de professionnels distincts (`doctor`, `pharmacie`, `laboratoire`), pas seulement `doctor`. Ceci entre en conflit direct avec TC-033 (« Pharmacie JAMAIS accès dossier médical »), qui interdit à `pharmacie`/`laboratoire` toute écriture dans `health_records` — confirmé dans `healthRecords.routes.js:8-11` (`bhpAccessMiddleware(['doctor'])`, seule route d'écriture existante avant ce chantier). Décision produit retenue : **ne pas lever TC-033** — création d'une table dédiée pour pharmacie/laboratoire, agrégée en lecture avec `health_records` (arbitrage détaillé dans `docs/scoping_vaccination.md`).
+
+**Base de données** — deux sources, jamais fusionnées :
+
+| Source | Écrite par | Table | Identifiant patient |
+|---|---|---|---|
+| Médecin | `POST /api/v1/health-records` (`record_type='vaccination'`) | `health_records` (legacy, `patient_id` entier) | résolu depuis `patient_phone` si fourni — la route n'acceptait jusqu'ici que `patient_id`, inconnu des dashboards pro (ajout de ce chantier) |
+| Pharmacie / Laboratoire | `POST /api/v1/vaccination/attestation` | `vaccination_attestations` (migration_083, nouvelle table) | `patient_phone` (convention universelle du reste du backend) |
+
+**Backend** :
+- Écriture médecin : `healthRecords.routes.js` (route générique déjà existante, étendue) — après INSERT, si `record_type==='vaccination'`, résolution `patient_id→phone` puis `awardZora({action_type:'vaccination', proof_class:'ground_truth', proof_source:'doctor', proof_reference:'hr_'+id})`. Log BHP via `logAccessAttempt()` (`health_record_access_log`) — jusque-là jamais appelé sur ce POST (`bhpAccessMiddleware` ne journalise que si un `recordId` est présent dans les params, absent à la création), corrigé pour ce type d'enregistrement.
+- Écriture pharmacie/laboratoire : `src/routes/vaccination.routes.js` (nouveau, monté `/api/v1/vaccination`) — réservé aux deux rôles, INSERT `vaccination_attestations`, `awardZora()` identique (`proof_reference:'va_'+id`), log via `dmn.service.logAccess()` (`dmn_access_log`, `access_type='update'`).
+- **Préfixe `hr_`/`va_` sur `proof_reference`** : nécessaire pour éviter toute collision d'idempotence Zora entre les deux tables sources — un `health_records.id` et un `vaccination_attestations.id` numériquement identiques auraient sinon pu se neutraliser mutuellement sur la contrainte applicative `action_type`+`proof_reference`.
+- Lecture unifiée : `GET /api/v1/dmn/vaccinations/:phone` (`dmn.routes.js`) → `dmn.service.js::getVaccinationCarnet()`, `UNION ALL` SQL entre les deux sources. Accès : patient (son propre carnet), `doctor` avec RDV existant avec ce patient, `pharmacie`/`laboratoire` ayant déjà enregistré une attestation pour ce patient, ou admin.
+
+**Zora** : règle `vaccination` (`zora_earn_rules.id=4`, 100 pts, catégorie `sante`, `required_proof_class='ground_truth'`) — existait en base depuis un chantier antérieur mais **jamais déclenchée par aucun code** avant ce chantier (confirmé : les lignes `zora_ledger.action_type='vaccination'` préexistantes étaient toutes des crédits manuels de test, `proof_reference` du type `test_migration073_...`). `ground_truth` exigé et vérifié par la hiérarchie de preuve d'`awardZora()` (`src/services/zora.service.js`) — jamais `system_event` (utilisé par `analyse_labo`, §4), car la vaccination n'a pas d'équivalent « dépôt de résultat » intermédiaire : c'est l'acte lui-même, constaté directement par le professionnel qui l'administre.
+
+**Frontend** :
+- `medecin/dashboard.html` : modal « Enregistrer un vaccin » (même pattern que le modal « Prescrire un examen labo » existant), déclenché depuis chaque RDV confirmé/terminé.
+- `pharmacie/dashboard.html`, `laboratoire/dashboard.html` : carte « Enregistrer une vaccination » dans le panel DMN existant (scanner dossier), formulaire direct par téléphone patient — **pas de RDV ni de prescription préalable requis**, cohérent avec la réalité clinique (vaccination en officine/centre de biologie sans rendez-vous).
+- `patient/dashboard.html` : section « Carnet de vaccination » (Suivre > Dossier médical), lecture seule, triée par date décroissante ; carte vitrine dans Gagner > Santé (dernier vaccin + statut crédit), sans aucune action d'écriture — cohérent avec le pattern déjà en place pour Analyse labo/Bilan annuel.
+- **Lien calendrier vaccinal** : champ `prochain_rappel_prevu` (optionnel) stocké des deux côtés, affiché dans le carnet patient mais **aucun rappel automatique n'est envoyé** à ce jour — pas de cron ni de notification WhatsApp branchés sur cette date. Fonctionnalité future, hors périmètre de ce chantier.
+
+---
+
 ## 5. Constantes médicales
 
 **Base de données** — anomalie confirmée (déjà signalée dans `ARCHITECTURE_MODELE_DONNEES_BOLAMU.md` §1.2/§3) : la table `constantes_medicales` **n'existe pas** en production. Le flux réel écrit sur les colonnes dédiées de `users` (`groupe_sanguin`, `allergies`, `maladies_chroniques`, `antecedents_medicaux`, `traitements_en_cours`, `poids`, `taille`, `contact_urgence_*` — migration_014).
@@ -215,3 +242,4 @@ Le service d'envoi réel est `sendAutoMessage()` dans **`src/services/whatsapp.s
 8. **`consultation_reports` et `getPatientTimeline()` probablement morts** (§2) : seule vue qui unifie tous les systèmes de soins en lecture, mais aucun frontend ne l'appelle.
 9. **Aucun polling temps réel de file d'attente** sur les 5 dashboards audités (patient, médecin, pharmacie, secrétaire, laboratoire) — la queue n'est rafraîchie que par action utilisateur, malgré la présence de `setInterval` pour d'autres données (stats/RDV) sur médecin et secrétaire.
 10. **`public/secretaire/dashboard_v2.html`** est un prototype de test (guard désactivé en dur dans le code, endpoints non confirmés existants) — à ne pas confondre avec `dashboard.html`, seul fichier actif en prod.
+11. **Carnet de vaccination (§4bis) : deux journaux BHP distincts pour un même carnet** — écriture médecin loguée dans `health_record_access_log`, écriture pharmacie/laboratoire dans `dmn_access_log` (cohérent avec le mécanisme déjà utilisé par chaque table source, voir point 3 ci-dessus, mais un audit complet du carnet vaccinal d'un patient nécessite d'interroger deux tables distinctes, pas une vue unifiée).
