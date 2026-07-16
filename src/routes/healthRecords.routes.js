@@ -4,6 +4,7 @@ const db = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { bhpAccessMiddleware, logAccessAttempt } = require('../middleware/bhpAccess');
 const { awardZora } = require('../services/zora.service');
+const { normalizePhone } = require('../utils/phone');
 
 // POST — Créer un enregistrement médical
 // Rôles : doctor uniquement (TC-033 : pharmacie/laboratoire interdits)
@@ -12,10 +13,23 @@ router.post('/',
   bhpAccessMiddleware(['doctor']),
   async (req, res) => {
     try {
-      const {
-        patient_id, record_type, title,
+      let {
+        patient_id, patient_phone, record_type, title,
         content, company_id, consent_granted
       } = req.body;
+
+      // phone comme identifiant universel : le frontend (dashboards pro) ne
+      // connaît que le phone, jamais l'id numérique de health_records.
+      // patient_id reste accepté pour compatibilité, patient_phone est résolu
+      // en priorité s'il est fourni.
+      if (patient_phone) {
+        const phone = normalizePhone(patient_phone);
+        const patientRes = await db.query(`SELECT id FROM users WHERE phone = $1 AND role = 'patient'`, [phone]);
+        if (!patientRes.rows.length) {
+          return res.status(404).json({ success: false, message: 'Patient introuvable.' });
+        }
+        patient_id = patientRes.rows[0].id;
+      }
 
       const result = await db.query(
         `INSERT INTO health_records

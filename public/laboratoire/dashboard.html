@@ -557,6 +557,38 @@
       </div>
       <div id="dmn-result" style="display:none;margin-top:20px;"></div>
     </div>
+
+    <div class="scanner-card" style="background:white;border-radius:24px;padding:32px;border:1px solid var(--line);box-shadow:var(--shadow-soft);max-width:600px;margin-top:20px;">
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px;"><span class="material-symbols-outlined" style="font-size:24px;vertical-align:middle;">vaccines</span> Enregistrer une vaccination</h3>
+      <p style="font-size:14px;color:var(--ink-soft);margin-bottom:20px;">Vaccin administré en centre de biologie médicale. Le patient est crédité automatiquement en points Zora après enregistrement.</p>
+      <div class="form-group">
+        <label class="form-label">Téléphone du patient *</label>
+        <input class="form-input" id="vaccin-labo-phone" placeholder="+2420XXXXXXXX">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nom du vaccin *</label>
+        <input class="form-input" id="vaccin-labo-nom" placeholder="Ex : Fièvre jaune">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Numéro de dose (optionnel)</label>
+        <input class="form-input" id="vaccin-labo-dose" type="number" min="1" placeholder="Ex : 1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date d'administration *</label>
+        <input class="form-input" id="vaccin-labo-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Numéro de lot (optionnel)</label>
+        <input class="form-input" id="vaccin-labo-lot" placeholder="Ex : LOT-2026-001">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prochain rappel prévu (optionnel)</label>
+        <input class="form-input" id="vaccin-labo-rappel" type="date">
+      </div>
+      <button id="btn-vaccin-labo-envoyer" style="width:100%;padding:14px;background:var(--role-labo);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:8px;">
+        <span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">vaccines</span> Enregistrer
+      </button>
+    </div>
   </div>
 
   <div class="panel" id="panel-messages">
@@ -1263,6 +1295,53 @@ async function verifyDmnQr() {
         <div style="font-size:32px;"><span class="material-symbols-outlined" style="font-size:48px;">warning</span></div>
         <div><div style="font-size:16px;font-weight:700;color:var(--texte);">Erreur de connexion</div></div></div>
     </div>`;
+  }
+}
+
+async function envoyerVaccinLabo() {
+  const patientPhone = document.getElementById('vaccin-labo-phone').value.trim();
+  const vaccinNom = document.getElementById('vaccin-labo-nom').value.trim();
+  const dose = document.getElementById('vaccin-labo-dose').value.trim();
+  const dateAdmin = document.getElementById('vaccin-labo-date').value;
+  const lot = document.getElementById('vaccin-labo-lot').value.trim();
+  const rappel = document.getElementById('vaccin-labo-rappel').value;
+
+  if (!patientPhone || !vaccinNom || !dateAdmin) {
+    alert('Veuillez renseigner le téléphone du patient, le nom du vaccin et la date d\'administration.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-vaccin-labo-envoyer');
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement en cours...';
+
+  try {
+    const res = await fetch(`${API}/vaccination/attestation`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        patient_phone: patientPhone,
+        vaccin_nom: vaccinNom,
+        dose_numero: dose ? parseInt(dose, 10) : null,
+        date_administration: dateAdmin,
+        lot_vaccin: lot || null,
+        prochain_rappel_prevu: rappel || null
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Erreur enregistrement vaccin');
+    alert('Vaccin enregistré avec succès.');
+    document.getElementById('vaccin-labo-phone').value = '';
+    document.getElementById('vaccin-labo-nom').value = '';
+    document.getElementById('vaccin-labo-dose').value = '';
+    document.getElementById('vaccin-labo-date').value = '';
+    document.getElementById('vaccin-labo-lot').value = '';
+    document.getElementById('vaccin-labo-rappel').value = '';
+  } catch (e) {
+    alert('Erreur : ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">vaccines</span> Enregistrer';
   }
 }
 
@@ -2050,6 +2129,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-dmn-camera').addEventListener('click', toggleDmnCamera);
   document.getElementById('btn-stop-dmn-camera').addEventListener('click', stopDmnCamera);
   document.getElementById('btn-verifier-dmn').addEventListener('click', verifyDmnQr);
+
+  // Vaccination
+  document.getElementById('btn-vaccin-labo-envoyer').addEventListener('click', envoyerVaccinLabo);
 
   // Profil
   document.getElementById('btn-change-pwd').addEventListener('click', () => {

@@ -851,6 +851,7 @@
           <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/bilan-sante.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Analyse laboratoire</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+75 pts</span><button onclick="A.goSuivre(); A.suivreDossier(); A.openDmnPasswordModal();" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Voir mes résultats</button></div></div></div>
           <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/depistage.png'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Bilan annuel complet</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span><button onclick="A.openModal(null, 'Bilan annuel complet')" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Planifier</button></div></div></div>
           <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden;"><div style="height: 110px; background-image: url('/images/landing/portrait-femme-africaine.jpg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Parrainer un ami</div><div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+200 pts</span><button onclick="A.partagerParrainage()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 7px 14px; border-radius: 9999px; cursor: pointer;">Inviter via WhatsApp</button></div></div></div>
+          <div onclick="A.goSuivre(); A.suivreDossier();" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 16px; overflow: hidden; cursor: pointer;"><div style="height: 110px; background-image: url('/images/landing/carnet-de-sante.jpeg'); background-size: cover; background-position: center; position: relative;"><div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(10,36,99,0.5));"></div></div><div style="padding: 12px;"><div style="font-size: 0.84rem; font-weight: 700; color: #0A2463; margin-bottom: 6px;">Carnet de vaccination</div><div id="vaccin-vitrine-sub" style="font-size: 0.72rem; font-weight: 500; color: #434654; margin-bottom: 6px;">Aucune vaccination enregistrée</div><div style="display: flex; align-items: center; justify-content: space-between;"><span id="vaccin-vitrine-badge" style="font-size: 0.78rem; font-weight: 800; color: #00875f;">+100 pts</span><span style="font-size: 0.72rem; font-weight: 700; color: #003FB1;">Voir le carnet →</span></div></div></div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;"><span style="width: 4px; height: 18px; border-radius: 9999px; background: #003FB1;"></span><span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654;">Réseau partenaires</span></div>
@@ -987,6 +988,12 @@
           <div style="position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: #E4E4F2;"></div>
           <div id="timeline-list"></div>
           <div id="timeline-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucune consultation enregistrée</span></div>
+        </div>
+
+        <h3 style="margin: 22px 0 12px; font-size: 1.15rem; font-weight: 800; color: #0A2463;">Carnet de vaccination</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+          <div id="vaccinations-list"></div>
+          <div id="vaccinations-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucune vaccination enregistrée</span></div>
         </div>
 
         <!-- carte membre -->
@@ -2275,6 +2282,37 @@
         '<span class="material-symbols-outlined" style="color:#003FB1;font-size:20px;">' + esc(iconMap[al.access_type] || 'history') + '</span>' +
         '<div style="flex:1;"><div style="font-size:0.86rem;font-weight:700;color:#0A2463;">' + esc(accessor) + '</div><div style="font-size:0.72rem;font-weight:500;color:#434654;">' + esc(typeMap[al.access_type] || al.access_type) + ' · ' + esc((al.details && al.details.source) || '') + '</div></div>' +
         '<span style="font-size:0.72rem;font-weight:600;color:#9498a8;">' + date + '</span></div>';
+    }).join('');
+  };
+
+  A.renderDernierVaccin = function () {
+    var subEl = $('vaccin-vitrine-sub'), badgeEl = $('vaccin-vitrine-badge');
+    if (!subEl || !badgeEl) return;
+    var arr = A._vaccinations || [];
+    if (!arr.length) {
+      subEl.textContent = 'Aucune vaccination enregistrée';
+      badgeEl.textContent = '+100 pts';
+      return;
+    }
+    var dernier = arr[0];
+    var date = dernier.date_administration ? new Date(dernier.date_administration).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+    subEl.textContent = dernier.vaccin_nom + ' · ' + date;
+    badgeEl.innerHTML = '<span class="material-symbols-outlined" style="font-size: 13px; vertical-align: -2px;">check_circle</span> Crédité';
+  };
+
+  A.renderVaccinations = function () {
+    var el = $('vaccinations-list'); if (!el) return;
+    var arr = A._vaccinations || [];
+    show($('vaccinations-empty'), arr.length === 0, 'flex');
+    var etabLabel = { doctor: 'Médecin', pharmacie: 'Pharmacie', laboratoire: 'Laboratoire' };
+    el.innerHTML = arr.map(function (v) {
+      var date = v.date_administration ? new Date(v.date_administration).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+      var qui = v.professionnel_nom || (v.professionnel_phone ? ('…' + v.professionnel_phone.slice(-4)) : (etabLabel[v.etablissement_type] || v.etablissement_type));
+      var doseLabel = v.dose_numero ? (' · Dose ' + esc(v.dose_numero)) : '';
+      return '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;">' +
+        '<span class="material-symbols-outlined" style="color:#00875f;font-size:20px;">vaccines</span>' +
+        '<div style="flex:1;"><div style="font-size:0.86rem;font-weight:700;color:#0A2463;">' + esc(v.vaccin_nom) + doseLabel + '</div><div style="font-size:0.72rem;font-weight:500;color:#434654;">' + esc(etabLabel[v.etablissement_type] || v.etablissement_type) + ' · ' + esc(qui) + '</div></div>' +
+        '<span style="font-size:0.72rem;font-weight:600;color:#9498a8;">' + esc(date) + '</span></div>';
     }).join('');
   };
 
@@ -3783,6 +3821,11 @@
     apiFetch('https://www.bolamu.co/api/v1/bons-zora/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.data || []; A.renderBonsZora(); } }).catch(function () {});
 
     apiFetch('https://www.bolamu.co/api/v1/dmn/access-log', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data; A.renderAccessLog(); } }).catch(function () {});
+
+    // Carnet de vaccination (DMN + carte vitrine Gagner > Santé)
+    apiFetch('https://www.bolamu.co/api/v1/dmn/vaccinations/' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.success && Array.isArray(d.data)) { A._vaccinations = d.data; A.renderVaccinations(); A.renderDernierVaccin(); }
+    }).catch(function () {});
 
     var loadQR = function () {
       if (A._qrRefreshing) return;

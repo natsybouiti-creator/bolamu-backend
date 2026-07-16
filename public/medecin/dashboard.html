@@ -1726,8 +1726,10 @@ function renderRdvList(rdvs,containerId){
       <div class="rdv-actions">
         ${peutValider?`
           <button class="btn-valider" data-action="ouvrir-validation" data-id="${r.id}" data-patient="${r.patient_phone}" data-session="${r.session_code}" data-date="${dateRdv}" data-heure="${heureRdv}" data-symptomes-motif="${r.symptomes_motif||''}"><span class="material-symbols-outlined">check_circle</span> Valider</button>
-          <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>`:''}
-        ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>`:''}
+          <button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>
+          <button class="btn-labo" data-action="ouvrir-vaccin" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">vaccines</span> Enregistrer un vaccin</button>`:''}
+        ${termine?`<button class="btn-labo" data-action="ouvrir-labo" data-id="${r.id}" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">science</span> Prescrire labo</button>
+        <button class="btn-labo" data-action="ouvrir-vaccin" data-patient="${r.patient_phone}"><span class="material-symbols-outlined">vaccines</span> Enregistrer un vaccin</button>`:''}
       </div>
     </div>`;
   }).join('')}</div>`;
@@ -2385,6 +2387,84 @@ function ouvrirModalLabo(rdvId,patientPhone){
 function fermerModalLabo(){
   const modal=document.getElementById('modal-labo');
   if(modal)modal.remove();
+}
+
+function ouvrirModalVaccin(patientPhone){
+  const modal=document.createElement('div');
+  modal.className='modal-overlay open';
+  modal.id='modal-vaccin';
+  modal.innerHTML=`
+    <div class="modal">
+      <div class="modal-title">Enregistrer un vaccin</div>
+      <div class="modal-sub">Patient : ${patientPhone}</div>
+      <div class="form-group">
+        <label class="form-label">Nom du vaccin *</label>
+        <input class="form-input" id="vaccin-nom" placeholder="Ex : Fièvre jaune">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Numéro de dose (optionnel)</label>
+        <input class="form-input" id="vaccin-dose" type="number" min="1" placeholder="Ex : 1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date d'administration *</label>
+        <input class="form-input" id="vaccin-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Numéro de lot (optionnel)</label>
+        <input class="form-input" id="vaccin-lot" placeholder="Ex : LOT-2026-001">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prochain rappel prévu (optionnel)</label>
+        <input class="form-input" id="vaccin-rappel" type="date">
+      </div>
+      <div class="modal-actions" style="display:flex;gap:12px;margin-top:24px;">
+        <button class="btn-cancel" data-action="fermer-modal-vaccin">Annuler</button>
+        <button class="btn-primary" id="btn-vaccin-envoyer" data-action="envoyer-vaccin" data-patient="${patientPhone}"><span class="material-symbols-outlined">vaccines</span> Enregistrer</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',function(e){if(e.target===modal)fermerModalVaccin();});
+}
+
+function fermerModalVaccin(){
+  const modal=document.getElementById('modal-vaccin');
+  if(modal)modal.remove();
+}
+
+async function envoyerVaccin(patientPhone){
+  const vaccinNom=document.getElementById('vaccin-nom').value.trim();
+  const dose=document.getElementById('vaccin-dose').value.trim();
+  const dateAdmin=document.getElementById('vaccin-date').value;
+  const lot=document.getElementById('vaccin-lot').value.trim();
+  const rappel=document.getElementById('vaccin-rappel').value;
+  if(!vaccinNom||!dateAdmin){alert('Veuillez renseigner le nom du vaccin et la date d\'administration.');return;}
+
+  const btn=document.getElementById('btn-vaccin-envoyer');
+  btn.disabled=true;btn.textContent='Envoi en cours...';
+
+  try{
+    const res=await fetch(`${API}/health-records`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({
+      patient_phone:patientPhone,
+      record_type:'vaccination',
+      title:'Vaccination '+vaccinNom,
+      content:{
+        vaccin_nom:vaccinNom,
+        dose_numero:dose?parseInt(dose,10):null,
+        date_administration:dateAdmin,
+        lot_vaccin:lot||null,
+        prochain_rappel_prevu:rappel||null
+      },
+      consent_granted:true
+    })});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.message||'Erreur enregistrement vaccin');
+    fermerModalVaccin();
+    alert('Vaccin enregistré avec succès.');
+  }catch(e){
+    btn.disabled=false;
+    btn.innerHTML='<span class="material-symbols-outlined">vaccines</span> Enregistrer';
+    alert('Erreur : '+e.message);
+  }
 }
 
 async function envoyerPrescriptionLabo(rdvId,patientPhone){
@@ -3179,6 +3259,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (action === 'fermer-modal-load') { fermerModal(); loadRdv(); }
     if (action === 'fermer-modal-labo') fermerModalLabo();
     if (action === 'envoyer-labo') envoyerPrescriptionLabo(id, patient);
+    if (action === 'ouvrir-vaccin') ouvrirModalVaccin(patient);
+    if (action === 'fermer-modal-vaccin') fermerModalVaccin();
+    if (action === 'envoyer-vaccin') envoyerVaccin(patient);
     if (action === 'generer-qr-patient') genererQRPatient(patient);
     if (action === 'fermer-modal-qr-patient') fermerModalQRPatient();
     if (action === 'supprimer-creneau') supprimerCreneau(id);
