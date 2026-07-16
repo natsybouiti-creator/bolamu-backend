@@ -6,8 +6,9 @@ const { sendAutoMessage } = require('../services/whatsapp.service');
 const { normalizePhone } = require('../utils/phone');
 const { awardZora } = require('../services/zora.service');
 
-// Cron quotidien à 02h00 heure Brazzaville (UTC+1 = 01h00 UTC)
-const jobAbonnement = cron.schedule('0 1 * * *', async () => {
+// Fonction extraite du scheduler pour rester invocable directement (tests,
+// rattrapage manuel) sans dépendre du déclenchement cron.
+async function runAbonnementJob() {
   const maintenant = new Date();
   console.log(`[CRON ABONNEMENT] Démarrage — ${maintenant.toISOString()}`);
 
@@ -89,21 +90,32 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
       );
 
       // Mettre à jour les abonnements en une seule requête (tous canaux confondus)
-      await db.query(
+      const updatedSubs = await db.query(
         `UPDATE subscriptions
          SET statut_collecte = 'expire', is_active = FALSE, status = 'expired', updated_at = NOW()
-         WHERE patient_phone = ANY($1) AND is_active = TRUE AND expires_at < NOW()`,
+         WHERE patient_phone = ANY($1) AND is_active = TRUE AND expires_at < NOW()
+         RETURNING id, patient_phone`,
         [phones]
       );
 
-      // Log audit en une seule requête
-      for (const phone of phones) {
-        await db.query(
-          `INSERT INTO audit_log
-           (event_type, actor_phone, target_table, target_id, payload)
-           VALUES ('abonnement_expire', 'system', 'subscriptions', $1, $2::jsonb)`,
-          [phone, JSON.stringify({ raison: 'expiration_abonnement' })]
-        );
+      // Log audit — isolé dans son propre try/catch (pattern étapes 2/8) : un
+      // échec ici ne doit jamais annuler la cascade bénéficiaires/parrainage
+      // qui suit. BUG-FIX : target_id (integer) recevait auparavant le phone
+      // (varchar) au lieu de l'id numérique de la subscription — provoquait
+      // systématiquement "value ... is out of range for type integer" et
+      // avortait tout le reste du cron (constaté 6 fois en prod, 23/06→12/07).
+      try {
+        for (const sub of updatedSubs.rows) {
+          await db.query(
+            `INSERT INTO audit_log
+             (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('abonnement_expire', 'system', 'subscriptions', $1, $2::jsonb)`,
+            [sub.id, JSON.stringify({ raison: 'expiration_abonnement', patient_phone: sub.patient_phone })]
+          );
+        }
+      } catch (auditErr) {
+        nb_erreurs++;
+        allDetails.push(`Erreur audit_log expiration : ${auditErr.message}`);
       }
       
       // Notification WhatsApp en batch
@@ -316,8 +328,12 @@ const jobAbonnement = cron.schedule('0 1 * * *', async () => {
   console.log(
     `[CRON ABONNEMENT] Terminé — ${nb_traites} traités, ${nb_erreurs} erreurs`
   );
-}, {
+  return { nb_traites, nb_erreurs, details: allDetails };
+}
+
+// Cron quotidien à 02h00 heure Brazzaville (UTC+1 = 01h00 UTC)
+const jobAbonnement = cron.schedule('0 1 * * *', runAbonnementJob, {
   timezone: 'Africa/Brazzaville'
 });
 
-module.exports = { jobAbonnement };
+module.exports = { jobAbonnement, runAbonnementJob };
