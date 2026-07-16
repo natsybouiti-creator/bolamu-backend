@@ -388,6 +388,12 @@ const state = {
   pharmacyName:'', responsibleName:'', rccmNumber:'',
   labName:'', directorName:'', agrementNumber:'',
   niu: '',
+  // Établissement géolocalisé (rôles pro uniquement) — cf. audit onboarding
+  // partenaires du 16 juillet 2026 : sans capture dans state, finalRegister()
+  // (appelé à l'étape 5) lisait des éléments DOM de l'étape 3 déjà détruits par
+  // les rendus successifs de renderStep4()/renderStep5(), donc toujours vides.
+  etablissementNom:'', etablissementAdresse:'', etablissementVille:'Brazzaville',
+  etablissementLat:null, etablissementLng:null,
   trustScore:30, cguAccepted:false,
   // Étape 5 — abonnement / paiement
   selectedPlan:'', selectedAmount:0, selectedOperator:'MTN',
@@ -692,7 +698,10 @@ function renderStep3(){
     <div class="form-group">
       <label class="form-label">${d.label} <span class="required">*</span></label>
       <div class="upload-zone ${uploaded?'uploaded':''}" id="zone-${d.key}" data-upload-key="${d.key}">
-        <input type="file" id="input-${d.key}" data-upload-input="${d.key}" style="display:none" accept="image/*,application/pdf" onchange="uploadSecureFile(this, '${d.key}')">
+        <!-- upload déclenché par le listener 'change' délégué sur document (data-upload-input),
+             pas par un onchange inline — cf. audit onboarding partenaires du 16 juillet 2026 :
+             les deux ensemble déclenchaient 2 appels /upload/secure par fichier. -->
+        <input type="file" id="input-${d.key}" data-upload-input="${d.key}" style="display:none" accept="image/*,application/pdf">
         <div class="upload-icon" id="icon-${d.key}">${uploadIcon}</div>
         <div class="upload-text" id="text-${d.key}">${uploaded?'Document uploadé — cliquez pour remplacer':'Cliquez pour uploader<br><span style="font-size:11px;">'+d.hint+'</span>'}</div>
       </div>
@@ -730,27 +739,27 @@ function renderStep3(){
         <label for="reg-etab-nom">Nom de l'établissement *</label>
         <input type="text" id="reg-etab-nom" name="etablissement_nom"
                placeholder="Ex : Clinique Médicale Securex, Pharmacie de la Paix..."
-               class="form-input" />
+               class="form-input" value="${state.etablissementNom}" />
       </div>
       <div class="form-group">
         <label for="reg-etab-adresse">Adresse de l'établissement *</label>
         <input type="text" id="reg-etab-adresse" name="etablissement_adresse"
                placeholder="Ex : Avenue du Havre, Face Base Total, Pointe-Noire"
-               class="form-input"
+               class="form-input" value="${state.etablissementAdresse}"
                oninput="debounceGeocodeRegister()" />
         <div id="reg-geocode-result" style="font-size:11px;color:#636e72;margin-top:4px;"></div>
       </div>
       <div class="form-group">
         <label for="reg-etab-ville">Ville *</label>
         <select id="reg-etab-ville" name="etablissement_ville" class="form-select">
-          <option value="Brazzaville">Brazzaville</option>
-          <option value="Pointe-Noire">Pointe-Noire</option>
-          <option value="Dolisie">Dolisie</option>
-          <option value="Autre">Autre</option>
+          <option value="Brazzaville" ${state.etablissementVille==='Brazzaville'?'selected':''}>Brazzaville</option>
+          <option value="Pointe-Noire" ${state.etablissementVille==='Pointe-Noire'?'selected':''}>Pointe-Noire</option>
+          <option value="Dolisie" ${state.etablissementVille==='Dolisie'?'selected':''}>Dolisie</option>
+          <option value="Autre" ${state.etablissementVille==='Autre'?'selected':''}>Autre</option>
         </select>
       </div>
-      <input type="hidden" id="reg-etab-lat" name="etablissement_lat" />
-      <input type="hidden" id="reg-etab-lng" name="etablissement_lng" />
+      <input type="hidden" id="reg-etab-lat" name="etablissement_lat" value="${state.etablissementLat!=null?state.etablissementLat:''}" />
+      <input type="hidden" id="reg-etab-lng" name="etablissement_lng" value="${state.etablissementLng!=null?state.etablissementLng:''}" />
     </div>
     ${docZones}
     ${photoZone}
@@ -769,6 +778,12 @@ function renderStep3(){
     </div>`;
 
   calcScore();
+  // #etab-fields n'existe qu'à partir de cette étape (jamais avant) — le toggle
+  // doit être appelé ici, pas à la sélection du rôle à l'étape 1 (où l'élément
+  // n'existe pas encore et où un listener attaché aux .role-card initiales ne
+  // survit de toute façon pas au re-render de renderStep1() à chaque changement
+  // de rôle). Cf. audit onboarding partenaires, 16 juillet 2026.
+  toggleEtabFields();
 }
 
 function toggleLang(lang){
@@ -869,7 +884,14 @@ function goStep4(){
   const photoData = document.getElementById('reg-photo-data').value;
   if(!photoData)return showAlert('Veuillez capturer ou charger une photo d\'identité.');
   state.photoData = photoData;
-  renderStep4();
+  // L'étape 4 (choix de plan Bolamu + paiement MTN/Airtel) ne concerne que le
+  // patient — finalRegister() n'appelle initiateAndConfirmSubscription() que
+  // pour ce rôle, et aucune donnée de state.selectedPlan/transactionId n'est
+  // envoyée pour les rôles pro. Avant ce correctif, un médecin/pharmacie/
+  // laboratoire devait quand même sélectionner un plan et saisir un faux ID de
+  // transaction pour débloquer le bouton et atteindre les CGU, sans que ces
+  // données ne servent à rien. Cf. audit onboarding partenaires, 16 juillet 2026.
+  if(state.role==='patient'){ renderStep4(); } else { renderStep5(); }
 }
 
 function renderStep4(){
@@ -953,18 +975,16 @@ async function finalRegister(){
     else if(state.role==='pharmacie'){payload.name=state.pharmacyName;payload.responsible_name=state.responsibleName;payload.rccm_number=state.rccmNumber;payload.document_file_id=state.docs.rccm||null;}
     else if(state.role==='laboratoire'){payload.name=state.labName;payload.director_name=state.directorName;payload.agrement_number=state.agrementNumber;payload.rccm_number=state.rccmNumber;payload.document_file_id=state.docs.agrement||null;}
 
-    // Champs établissement géolocalisé — partenaires professionnels uniquement
+    // Champs établissement géolocalisé — partenaires professionnels uniquement.
+    // Lus depuis state (pas le DOM de l'étape 3, détruit par les rendus
+    // successifs de renderStep4()/renderStep5() avant que finalRegister() ne
+    // s'exécute) — cf. audit onboarding partenaires, 16 juillet 2026.
     if(['doctor','pharmacie','laboratoire'].includes(state.role)){
-      const etabNom=document.getElementById('reg-etab-nom');
-      const etabAdresse=document.getElementById('reg-etab-adresse');
-      const etabVille=document.getElementById('reg-etab-ville');
-      const etabLat=document.getElementById('reg-etab-lat');
-      const etabLng=document.getElementById('reg-etab-lng');
-      payload.etablissement_nom=etabNom&&etabNom.value.trim()?etabNom.value.trim():null;
-      payload.etablissement_adresse=etabAdresse&&etabAdresse.value.trim()?etabAdresse.value.trim():null;
-      payload.etablissement_ville=etabVille&&etabVille.value?etabVille.value:null;
-      payload.etablissement_lat=etabLat&&etabLat.value?parseFloat(etabLat.value):null;
-      payload.etablissement_lng=etabLng&&etabLng.value?parseFloat(etabLng.value):null;
+      payload.etablissement_nom=state.etablissementNom.trim()||null;
+      payload.etablissement_adresse=state.etablissementAdresse.trim()||null;
+      payload.etablissement_ville=state.etablissementVille||null;
+      payload.etablissement_lat=state.etablissementLat;
+      payload.etablissement_lng=state.etablissementLng;
     }
 
     const endpoint={patient:'/auth/register/patient',doctor:'/auth/register/doctor',pharmacie:'/auth/register/pharmacie',laboratoire:'/auth/register/laboratoire'}[state.role];
@@ -1133,7 +1153,7 @@ document.addEventListener('click', function(e) {
   if (e.target.closest('#btn-step3')) { goStep4(); return; }
   if (e.target.closest('#btn-back-step4')) { renderStep3(); return; }
   if (e.target.closest('#btn-validate-step4')) { validateStep4(); return; }
-  if (e.target.closest('#btn-back-step5')) { renderStep4(); return; }
+  if (e.target.closest('#btn-back-step5')) { if(state.role==='patient'){ renderStep4(); } else { renderStep3(); } return; }
   if (e.target.closest('#btn-register')) { finalRegister(); return; }
   
   // Upload zones (dynamiques par clé)
@@ -1164,9 +1184,10 @@ document.addEventListener('change', function(e) {
     state.orderCountry = e.target.options[e.target.selectedIndex].text; return; 
   }
   if (e.target.dataset && e.target.dataset.uploadInput) { uploadSecureFile(e.target, e.target.dataset.uploadInput); return; }
-  if (e.target.id === 'cgu-check') { 
-    state.cguAccepted = e.target.checked; return; 
+  if (e.target.id === 'cgu-check') {
+    state.cguAccepted = e.target.checked; return;
   }
+  if (e.target.id === 'reg-etab-ville') { state.etablissementVille = e.target.value; return; }
 });
 
 document.addEventListener('input', function(e) {
@@ -1187,9 +1208,11 @@ document.addEventListener('input', function(e) {
   if (e.target.id === 'f-agrement') { 
     state.agrementNumber = e.target.value; calcScore(); return; 
   }
-  if (e.target.id === 'f-phone') { 
-    state.phone = e.target.value; updateFullPhone(); return; 
+  if (e.target.id === 'f-phone') {
+    state.phone = e.target.value; updateFullPhone(); return;
   }
+  if (e.target.id === 'reg-etab-nom') { state.etablissementNom = e.target.value; return; }
+  if (e.target.id === 'reg-etab-adresse') { state.etablissementAdresse = e.target.value; return; }
 });
 
 // ─── PHOTO CAPTURE (REGISTER) ───
@@ -1255,24 +1278,15 @@ function regSetPhotoPreview(dataUrl) {
 }
 
 // ─── TOGGLE CHAMPS ÉTABLISSEMENT ───
+// Appelé depuis renderStep3() (seul endroit où #etab-fields existe réellement
+// dans le DOM) — cf. audit onboarding partenaires du 16 juillet 2026.
 function toggleEtabFields() {
-  const show = ['doctor', 'medecin', 'pharmacie', 'laboratoire'].includes(state.role);
+  const show = ['doctor', 'pharmacie', 'laboratoire'].includes(state.role);
   const etabFields = document.getElementById('etab-fields');
   if (etabFields) {
     etabFields.style.display = show ? 'block' : 'none';
   }
 }
-
-// Attacher l'event au chargement
-document.addEventListener('DOMContentLoaded', () => {
-  // Toggle champs établissement quand le rôle change
-  const roleCards = document.querySelectorAll('.role-card');
-  roleCards.forEach(card => {
-    card.addEventListener('click', () => {
-      setTimeout(toggleEtabFields, 100);
-    });
-  });
-});
 
 // ─── GÉOCODAGE NOMINATIM ───
 let geocodeRegisterTimeout = null;
@@ -1296,6 +1310,11 @@ async function geocodeRegisterAddress() {
       document.getElementById('reg-etab-lat').value = data[0].lat;
       document.getElementById('reg-etab-lng').value = data[0].lon;
       document.getElementById('reg-geocode-result').textContent = '📍 ' + data[0].display_name;
+      // state est la source lue par finalRegister() — les inputs cachés ci-dessus
+      // ne sont plus qu'un affichage, le DOM de l'étape 3 étant détruit avant la
+      // soumission (étapes 4/5). Cf. audit onboarding partenaires, 16 juillet 2026.
+      state.etablissementLat = parseFloat(data[0].lat);
+      state.etablissementLng = parseFloat(data[0].lon);
     }
   } catch(e) { console.error('Géocodage échoué:', e); }
 }

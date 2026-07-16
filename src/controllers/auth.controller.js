@@ -441,7 +441,7 @@ async function registerDoctor(req, res) {
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, documents_file_ids, created_at,
                     etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville,
-                    photo_url
+                    photo_url, latitude, longitude, address
                  ) VALUES (
                     $1, 'doctor', $2, $3, $4,
                     $5, $6, $7,
@@ -450,7 +450,7 @@ async function registerDoctor(req, res) {
                     $12, $13, $14, NOW(),
                     $15, $16, $17, NOW(),
                     $18, $19, $20, $21, $22,
-                    $23
+                    $23, $24, $25, $26
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [
                     normalizedPhone, full_name, first_name || null, last_name || null,
@@ -463,8 +463,22 @@ async function registerDoctor(req, res) {
                         ordre: (documents_file_ids && documents_file_ids.ordre) || null
                     }),
                     etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null,
-                    photoUrl
+                    photoUrl,
+                    // Pont vers les colonnes lues par /map/intervenants et PATCH /map/position
+                    // (cf. audit onboarding partenaires, 16 juillet 2026) — etablissement_lat/lng/adresse
+                    // sont les colonnes du formulaire d'inscription, latitude/longitude/address celles
+                    // consommées par la carte. Écrites en parallèle dès l'inscription : le partenaire
+                    // n'est de toute façon visible qu'une fois is_active=true (validation admin).
+                    etablissement_lat || null, etablissement_lng || null, etablissement_adresse || null
                 ]
+            );
+
+            // Réclamer les documents uploadés avant inscription (même pattern que
+            // registerPatient) — sans ça, owner_id restait NULL en permanence pour
+            // tous les partenaires. Cf. audit onboarding partenaires, 16 juillet 2026.
+            await client.query(
+                `UPDATE documents SET owner_id = $1 WHERE uploaded_by = $2 AND owner_id IS NULL`,
+                [newUser.rows[0].id, normalizedPhone]
             );
 
             await client.query(
@@ -584,20 +598,28 @@ async function registerPharmacie(req, res) {
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, documents_file_ids, created_at,
                     etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville,
-                    photo_url
+                    photo_url, latitude, longitude, address
                  ) VALUES (
                     $1, 'pharmacie', $2, $3, $4,
                     $5, $6,
                     $7, $8, $9, NOW(),
                     $10, $11, $12, NOW(),
                     $13, $14, $15, $16, $17,
-                    $18
+                    $18, $19, $20, $21
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [normalizedPhone, name, responsible_name, rccm_number || null, city || null, neighborhood || null, score, member_code, cgu_accepted || false, is_active, passwordHash, JSON.stringify({
                     rccm: (documents_file_ids && documents_file_ids.rccm) || document_file_id || null,
                     autorisation: (documents_file_ids && documents_file_ids.autorisation) || null
                 }), etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null,
-                photoUrl]
+                photoUrl,
+                // Pont vers latitude/longitude/address (cf. registerDoctor)
+                etablissement_lat || null, etablissement_lng || null, etablissement_adresse || null]
+            );
+
+            // Réclamer les documents uploadés avant inscription (cf. registerDoctor)
+            await client.query(
+                `UPDATE documents SET owner_id = $1 WHERE uploaded_by = $2 AND owner_id IS NULL`,
+                [newUser.rows[0].id, normalizedPhone]
             );
 
             await client.query(
@@ -712,20 +734,28 @@ async function registerLaboratoire(req, res) {
                     trust_score, member_code, cgu_accepted, cgu_accepted_at,
                     is_active, password_hash, documents_file_ids, created_at,
                     etablissement_nom, etablissement_adresse, etablissement_lat, etablissement_lng, etablissement_ville,
-                    photo_url
+                    photo_url, latitude, longitude, address
                  ) VALUES (
                     $1, 'laboratoire', $2, $3, $4, $5,
                     $6,
                     $7, $8, $9, NOW(),
                     $10, $11, $12, NOW(),
                     $13, $14, $15, $16, $17,
-                    $18
+                    $18, $19, $20, $21
                  ) RETURNING id, phone, role, full_name, member_code, is_active, banned`,
                 [normalizedPhone, name, director_name, agrement_number || null, rccm_number || null, city || null, score, member_code, cgu_accepted || false, is_active, passwordHash, JSON.stringify({
                     agrement: (documents_file_ids && documents_file_ids.agrement) || document_file_id || null,
                     rccm: (documents_file_ids && documents_file_ids.rccm) || null
                 }), etablissement_nom || null, etablissement_adresse || null, etablissement_lat || null, etablissement_lng || null, etablissement_ville || null,
-                photoUrl]
+                photoUrl,
+                // Pont vers latitude/longitude/address (cf. registerDoctor)
+                etablissement_lat || null, etablissement_lng || null, etablissement_adresse || null]
+            );
+
+            // Réclamer les documents uploadés avant inscription (cf. registerDoctor)
+            await client.query(
+                `UPDATE documents SET owner_id = $1 WHERE uploaded_by = $2 AND owner_id IS NULL`,
+                [newUser.rows[0].id, normalizedPhone]
             );
 
             await client.query(
