@@ -872,67 +872,12 @@
     <!-- ============================ SUIVRE ============================ -->
     <section id="sec-suivre" style="display: none;">
       <div style="display: inline-flex; gap: 4px; background: #EDEDF8; padding: 4px; border-radius: 9999px; margin-bottom: 24px;">
-        <button id="sub-zora" onclick="A.suivreZora()" style="background: #fff; color: #003FB1; border: none; padding: 9px 18px; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(0,63,177,0.12); transition: all 0.2s ease;">Mes Zora</button>
-        <button id="sub-dossier" data-testid="btn-dossier-medical" onclick="A.suivreDossier()" style="background: transparent; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: none; transition: all 0.2s ease;">Mon dossier médical</button>
-      </div>
-
-      <!-- MES ZORA -->
-      <div id="zoraTab" style="display: block;">
-        <div class="enter" style="position: relative; overflow: hidden; background: linear-gradient(135deg, #0A2463, #112d6b); border-radius: 24px; padding: 26px; margin-bottom: 22px;">
-          <div style="position: absolute; top: -40px; right: -30px; width: 150px; height: 150px; border-radius: 50%; background: rgba(245,166,35,0.1); pointer-events: none;"></div>
-          <div style="position: relative; z-index: 2; display: flex; gap: 22px; flex-wrap: wrap; align-items: center;">
-            <span class="zcoin float" style="width:76px;height:76px;font-size:36px;">Z</span>
-            <div style="flex: 1; min-width: 200px;">
-              <div style="display: flex; gap: 28px; flex-wrap: wrap;">
-                <div><div style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); margin-bottom: 3px;">Zora Points</div><div class="b-zoraTxt" style="font-size: 1.9rem; font-weight: 800; color: #fff; line-height: 1;">—</div></div>
-                <div><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"><span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.4);">Zora Cash</span><span style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #00C9A7; background: rgba(0,201,167,0.15); padding: 2px 6px; border-radius: 9999px;">MoMo</span></div><div class="b-zoraCashTxt" style="font-size: 1.9rem; font-weight: 800; color: #00C9A7; line-height: 1;">—</div></div>
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px; margin-top: 14px;"><span class="material-symbols-outlined" style="font-size: 14px; color: #FF6B35;">hourglass_bottom</span><span class="b-zoraResetLabel" style="font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.5);">—</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 22px;">
-          <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654; margin-bottom: 20px;">Votre parcours de paliers</div>
-          <div style="display: flex; align-items: center; gap: 0; margin-bottom: 8px;">
-            <div style="flex: 1; height: 8px; border-radius: 9999px 0 0 9999px; background: #B4733C;"></div>
-            <div style="flex: 1; height: 8px; background: linear-gradient(90deg, #64748B 50%, #EDEDF8 50%); position: relative;"><span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid #003FB1; box-shadow: 0 2px 8px rgba(0,63,177,0.3);"></span></div>
-            <div style="flex: 1; height: 8px; background: #EDEDF8;"></div>
-            <div style="flex: 1; height: 8px; border-radius: 0 9999px 9999px 0; background: #EDEDF8;"></div>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <div style="flex: 1;"><div style="font-size: 0.74rem; font-weight: 800; color: #B4733C;">Kimia</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">0</div></div>
-            <div style="flex: 1; text-align: center;"><div style="font-size: 0.74rem; font-weight: 800; color: #003FB1;">Liboso</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">500</div></div>
-            <div style="flex: 1; text-align: center;"><div style="font-size: 0.74rem; font-weight: 800; color: #9498a8;">Nkembo</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">3 000</div></div>
-            <div style="flex: 1; text-align: right;"><div style="font-size: 0.74rem; font-weight: 800; color: #9498a8;">Elonga</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">7 000</div></div>
-          </div>
-        </div>
-
-        <div id="score-composantes" class="enter" style="display: none; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 22px;">
-          <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654; margin-bottom: 18px;">Détail du Score Bolamu</div>
-          <div id="score-composantes-list" style="display: flex; flex-direction: column; gap: 9px;"></div>
-        </div>
-
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-          <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Historique des points</h3>
-          <button onclick="A.toastConvertir()" style="background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.8rem; padding: 9px 18px; border-radius: 9999px; cursor: pointer;">Convertir en Zora Cash (MoMo)</button>
-        </div>
-        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; overflow: hidden;">
-          <div id="ledger-list"></div>
-          <div id="ledger-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun mouvement enregistré</span></div>
-        </div>
-
-        <div style="display: flex; align-items: center; justify-content: space-between; margin: 28px 0 14px; flex-wrap: wrap; gap: 10px;">
-          <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Mes bons d'achat</h3>
-        </div>
-        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; overflow: hidden;">
-          <div id="bons-zora-list"></div>
-          <div id="bons-zora-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun Bon Zora disponible</span></div>
-        </div>
+        <button id="sub-dossier" data-testid="btn-dossier-medical" onclick="A.suivreDossier()" style="background: #fff; color: #003FB1; border: none; padding: 9px 18px; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(0,63,177,0.12); transition: all 0.2s ease;">Mon dossier médical</button>
+        <button id="sub-zora" onclick="A.suivreZora()" style="background: transparent; color: #434654; border: none; padding: 9px 18px; border-radius: 9999px; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: none; transition: all 0.2s ease;">Mes Zora</button>
       </div>
 
       <!-- DOSSIER MÉDICAL -->
-      <div id="dossierTab" style="display: none;">
+      <div id="dossierTab" style="display: block;">
         <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 14px;">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 22px;">badge</span><h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0A2463;">Informations</h3></div>
           <div style="display: flex; flex-wrap: wrap; gap: 16px 36px;">
@@ -1016,6 +961,61 @@
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 600; color: #434654;"><span class="material-symbols-outlined" style="font-size: 16px; color: #00C9A7;">lock</span>Vos données sont protégées (protocole BHP / Loi 29-2019).</div>
+      </div>
+
+      <!-- MES ZORA -->
+      <div id="zoraTab" style="display: none;">
+        <div class="enter" style="position: relative; overflow: hidden; background: linear-gradient(135deg, #0A2463, #112d6b); border-radius: 24px; padding: 26px; margin-bottom: 22px;">
+          <div style="position: absolute; top: -40px; right: -30px; width: 150px; height: 150px; border-radius: 50%; background: rgba(245,166,35,0.1); pointer-events: none;"></div>
+          <div style="position: relative; z-index: 2; display: flex; gap: 22px; flex-wrap: wrap; align-items: center;">
+            <span class="zcoin float" style="width:76px;height:76px;font-size:36px;">Z</span>
+            <div style="flex: 1; min-width: 200px;">
+              <div style="display: flex; gap: 28px; flex-wrap: wrap;">
+                <div><div style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); margin-bottom: 3px;">Zora Points</div><div class="b-zoraTxt" style="font-size: 1.9rem; font-weight: 800; color: #fff; line-height: 1;">—</div></div>
+                <div><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;"><span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,0.4);">Zora Cash</span><span style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #00C9A7; background: rgba(0,201,167,0.15); padding: 2px 6px; border-radius: 9999px;">MoMo</span></div><div class="b-zoraCashTxt" style="font-size: 1.9rem; font-weight: 800; color: #00C9A7; line-height: 1;">—</div></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 14px;"><span class="material-symbols-outlined" style="font-size: 14px; color: #FF6B35;">hourglass_bottom</span><span class="b-zoraResetLabel" style="font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.5);">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 22px;">
+          <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654; margin-bottom: 20px;">Votre parcours de paliers</div>
+          <div style="display: flex; align-items: center; gap: 0; margin-bottom: 8px;">
+            <div style="flex: 1; height: 8px; border-radius: 9999px 0 0 9999px; background: #B4733C;"></div>
+            <div style="flex: 1; height: 8px; background: linear-gradient(90deg, #64748B 50%, #EDEDF8 50%); position: relative;"><span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid #003FB1; box-shadow: 0 2px 8px rgba(0,63,177,0.3);"></span></div>
+            <div style="flex: 1; height: 8px; background: #EDEDF8;"></div>
+            <div style="flex: 1; height: 8px; border-radius: 0 9999px 9999px 0; background: #EDEDF8;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <div style="flex: 1;"><div style="font-size: 0.74rem; font-weight: 800; color: #B4733C;">Kimia</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">0</div></div>
+            <div style="flex: 1; text-align: center;"><div style="font-size: 0.74rem; font-weight: 800; color: #003FB1;">Liboso</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">500</div></div>
+            <div style="flex: 1; text-align: center;"><div style="font-size: 0.74rem; font-weight: 800; color: #9498a8;">Nkembo</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">3 000</div></div>
+            <div style="flex: 1; text-align: right;"><div style="font-size: 0.74rem; font-weight: 800; color: #9498a8;">Elonga</div><div style="font-size: 0.62rem; font-weight: 600; color: #9498a8;">7 000</div></div>
+          </div>
+        </div>
+
+        <div id="score-composantes" class="enter" style="display: none; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 22px;">
+          <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #434654; margin-bottom: 18px;">Détail du Score Bolamu</div>
+          <div id="score-composantes-list" style="display: flex; flex-direction: column; gap: 9px;"></div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Historique des points</h3>
+          <button onclick="A.toastConvertir()" style="background: transparent; border: 1px solid #003FB1; color: #003FB1; font-weight: 700; font-size: 0.8rem; padding: 9px 18px; border-radius: 9999px; cursor: pointer;">Convertir en Zora Cash (MoMo)</button>
+        </div>
+        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; overflow: hidden;">
+          <div id="ledger-list"></div>
+          <div id="ledger-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun mouvement enregistré</span></div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 28px 0 14px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Mes bons d'achat</h3>
+        </div>
+        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 18px; overflow: hidden;">
+          <div id="bons-zora-list"></div>
+          <div id="bons-zora-empty" style="display: flex; align-items: center; justify-content: center; padding: 18px 0;"><span style="font-size: 0.86rem; font-weight: 600; color: #9498a8;">Aucun Bon Zora disponible</span></div>
+        </div>
       </div>
     </section>
 
@@ -1648,7 +1648,7 @@
 
   /* ----------------------------- ÉTAT ----------------------------- */
   A.state = {
-    panel: 'accueil', suivreTab: 'zora', gagnerTab: 'sport', rewardIdx: 0, filterCategorie: 'tout',
+    panel: 'accueil', suivreTab: 'dossier', gagnerTab: 'sport', rewardIdx: 0, filterCategorie: 'tout',
     chatOpen: false, chatTab: 'communaute', profileOpen: false,
     chatMessages: [], chatInput: '', chatConnected: false, chatLoading: false,
     leaderboardGroupId: '',
