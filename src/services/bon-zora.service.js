@@ -246,7 +246,7 @@ async function validateBonZora(code, partner_phone, method = 'code_manual') {
 
     // 1. Charger le bon Zora avec verrou (idempotence)
     const bonResult = await client.query(
-      `SELECT id, code, patient_phone, fcfa_value, status, expires_at, qr_payload
+      `SELECT id, code, patient_phone, partner_id, fcfa_value, status, expires_at, qr_payload
        FROM partner_bons_zora
        WHERE code = $1
        FOR UPDATE`,
@@ -259,6 +259,21 @@ async function validateBonZora(code, partner_phone, method = 'code_manual') {
     }
 
     const bon = bonResult.rows[0];
+
+    // 1bis. Le bon doit être validé par le partenaire propriétaire du programme
+    // (partner_bons_zora.partner_id référence partner_programs.id, cf. commit b36f1db).
+    // Exception documentée : les programmes seed sans partner_phone (id 1,2,3, en
+    // attente de rattachement — cf. audit Lot 2b) n'ont pas encore de propriétaire
+    // assignable ; on les laisse validables par tout partenaire jusqu'à leur rattachement.
+    const programResult = await client.query(
+      `SELECT partner_phone, name FROM partner_programs WHERE id = $1`,
+      [bon.partner_id]
+    );
+    const program = programResult.rows[0];
+    if (program && program.partner_phone && normalizePhone(program.partner_phone) !== partnerPhone) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'bon_zora_wrong_partner' };
+    }
 
     // 2. Idempotence : déjà utilisé
     if (bon.status === 'used') {

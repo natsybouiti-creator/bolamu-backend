@@ -303,7 +303,8 @@ router.post('/validate', authMiddleware, requirePartenaire, async (req, res) => 
         'bon_zora_already_used': 400,
         'bon_zora_cancelled': 400,
         'bon_zora_expired': 400,
-        'bon_zora_not_active': 400
+        'bon_zora_not_active': 400,
+        'bon_zora_wrong_partner': 403
       };
       const statusCode = statusMap[result.error] || 500;
       res.status(statusCode).json({ success: false, error: result.error });
@@ -331,7 +332,8 @@ router.post('/validate/qr', authMiddleware, requirePartenaire, async (req, res) 
         'bon_zora_already_used': 400,
         'bon_zora_cancelled': 400,
         'bon_zora_expired': 400,
-        'bon_zora_not_active': 400
+        'bon_zora_not_active': 400,
+        'bon_zora_wrong_partner': 403
       };
       const statusCode = statusMap[result.error] || 500;
       res.status(statusCode).json({ success: false, error: result.error });
