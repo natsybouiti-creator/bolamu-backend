@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
-const { bhpAccessMiddleware } = require('../middleware/bhpAccess');
+const { bhpAccessMiddleware, logAccessAttempt } = require('../middleware/bhpAccess');
+const { awardZora } = require('../services/zora.service');
 
 // POST — Créer un enregistrement médical
 // Rôles : doctor uniquement (TC-033 : pharmacie/laboratoire interdits)
@@ -11,27 +12,55 @@ router.post('/',
   bhpAccessMiddleware(['doctor']),
   async (req, res) => {
     try {
-      const { 
-        patient_id, record_type, title, 
-        content, company_id, consent_granted 
+      const {
+        patient_id, record_type, title,
+        content, company_id, consent_granted
       } = req.body;
 
       const result = await db.query(
-        `INSERT INTO health_records 
-         (patient_id, record_type, title, content, 
-          source_role, source_user_id, company_id, 
+        `INSERT INTO health_records
+         (patient_id, record_type, title, content,
+          source_role, source_user_id, company_id,
           consent_granted, consent_date)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())
          RETURNING *`,
-        [patient_id, record_type, title, 
-         JSON.stringify(content), req.user.role, 
-         req.user.id, company_id || null, 
+        [patient_id, record_type, title,
+         JSON.stringify(content), req.user.role,
+         req.user.id, company_id || null,
          consent_granted || false]
       );
 
-      res.status(201).json({ 
-        success: true, 
-        record: result.rows[0] 
+      const record = result.rows[0];
+
+      // BHP : journalisation de la création, jamais loguée par
+      // bhpAccessMiddleware pour un POST (pas de recordId au moment du rôle-check).
+      logAccessAttempt(record.id, req.user, 'CREATE_' + String(record_type || '').toUpperCase(), req.ip).catch(() => {});
+
+      // Crédit Zora — vaccination uniquement (carnet de vaccination, ground_truth
+      // car acte réalisé par un médecin). Les autres record_type ne déclenchent
+      // rien ici (leur éventuel crédit suit un autre flux, ex. consultation via
+      // appointments).
+      if (record_type === 'vaccination') {
+        try {
+          const patientRes = await db.query(`SELECT phone FROM users WHERE id = $1`, [patient_id]);
+          if (patientRes.rows.length) {
+            await awardZora({
+              phone: patientRes.rows[0].phone,
+              action_type: 'vaccination',
+              proof_class: 'ground_truth',
+              proof_source: 'doctor',
+              recording_method: null,
+              proof_reference: 'hr_' + record.id
+            });
+          }
+        } catch (zoraErr) {
+          console.error('[ZORA] Erreur crédit vaccination (doctor):', zoraErr.message);
+        }
+      }
+
+      res.status(201).json({
+        success: true,
+        record
       });
     } catch (err) {
       console.error('[HEALTH_RECORDS] Erreur POST:', err.message);

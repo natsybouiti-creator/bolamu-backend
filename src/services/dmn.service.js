@@ -270,6 +270,58 @@ async function hasDmnQrConsent(patient_phone) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// getVaccinationCarnet(patient_phone)
+// Agrège les deux sources du carnet de vaccination : health_records
+// (record_type='vaccination', écrit par un médecin — TC-033) et
+// vaccination_attestations (écrit par pharmacie/laboratoire, TC-033
+// leur interdisant health_records). Contenu health_records normalisé
+// depuis le JSONB `content` avec les mêmes clés que vaccination_attestations.
+// ─────────────────────────────────────────────────────────────
+async function getVaccinationCarnet(patient_phone) {
+  const phone = normalizePhone(patient_phone);
+  if (!phone) throw new Error('Numéro de téléphone invalide');
+
+  const result = await pool.query(
+    `SELECT
+       'hr_' || hr.id AS id,
+       'doctor' AS etablissement_type,
+       hr.content->>'vaccin_nom' AS vaccin_nom,
+       NULLIF(hr.content->>'dose_numero', '')::int AS dose_numero,
+       (hr.content->>'date_administration')::date AS date_administration,
+       hr.content->>'lot_vaccin' AS lot_vaccin,
+       NULLIF(hr.content->>'prochain_rappel_prevu', '')::date AS prochain_rappel_prevu,
+       d.phone AS professionnel_phone,
+       d.full_name AS professionnel_nom,
+       hr.created_at
+     FROM health_records hr
+     JOIN users u ON u.id = hr.patient_id
+     LEFT JOIN doctors d ON d.user_id = hr.source_user_id
+     WHERE u.phone = $1 AND hr.record_type = 'vaccination' AND hr.is_deleted = false
+
+     UNION ALL
+
+     SELECT
+       'va_' || va.id AS id,
+       va.etablissement_type,
+       va.vaccin_nom,
+       va.dose_numero,
+       va.date_administration,
+       va.lot_vaccin,
+       va.prochain_rappel_prevu,
+       va.professionnel_phone,
+       NULL AS professionnel_nom,
+       va.created_at
+     FROM vaccination_attestations va
+     WHERE va.patient_phone = $1
+
+     ORDER BY date_administration DESC`,
+    [phone]
+  );
+
+  return result.rows;
+}
+
+// ─────────────────────────────────────────────────────────────
 // logAccess(patient_phone, accessor_phone, access_type, details, ip)
 // INSERT obligatoire sur TOUT accès DMN.
 // accessor_phone peut être null (scan QR anonyme).
@@ -293,5 +345,6 @@ module.exports = {
   verifyQrToken,
   generateQRPayload,
   hasDmnQrConsent,
+  getVaccinationCarnet,
   logAccess
 };

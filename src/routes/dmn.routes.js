@@ -17,6 +17,7 @@ const {
   verifyQrToken,
   generateQRPayload,
   hasDmnQrConsent,
+  getVaccinationCarnet,
   logAccess
 } = require('../services/dmn.service');
 
@@ -236,6 +237,57 @@ router.get('/access-log', authMiddleware, requirePatient, async (req, res) => {
   } catch (err) {
     console.error('[DMN] access-log:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/v1/dmn/vaccinations/:phone
+// Carnet de vaccination complet (health_records médecin + vaccination_attestations
+// pharmacie/laboratoire). Accès : le patient lui-même, un professionnel avec
+// relation de soin active, ou un admin. Jamais de phone en query param nu —
+// toujours vérifié via req.user avant toute requête.
+// ─────────────────────────────────────────────────────────────
+router.get('/vaccinations/:phone', authMiddleware, async (req, res) => {
+  const phone = normalizePhone(req.params.phone || '');
+  const userPhone = normalizePhone(req.user?.phone || '');
+  const userRole = req.user?.role;
+
+  try {
+    const isPatient = userPhone === phone;
+    const isAdmin = userRole === 'admin' || userRole === 'content_admin';
+
+    let isTreatingDoctor = false;
+    if (!isPatient && !isAdmin && userRole === 'doctor') {
+      const check = await pool.query(
+        `SELECT COUNT(*) FROM appointments
+         WHERE patient_phone = $1 AND doctor_id = (SELECT id FROM doctors WHERE phone = $2)`,
+        [phone, userPhone]
+      );
+      isTreatingDoctor = parseInt(check.rows[0].count) > 0;
+    }
+
+    let isTreatingPro = false;
+    if (!isPatient && !isAdmin && !isTreatingDoctor && ['pharmacie', 'laboratoire'].includes(userRole)) {
+      const check = await pool.query(
+        `SELECT COUNT(*) FROM vaccination_attestations
+         WHERE patient_phone = $1 AND professionnel_phone = $2`,
+        [phone, userPhone]
+      );
+      isTreatingPro = parseInt(check.rows[0].count) > 0;
+    }
+
+    if (!isPatient && !isAdmin && !isTreatingDoctor && !isTreatingPro) {
+      return res.status(403).json({ success: false, message: 'Accès refusé.' });
+    }
+
+    const carnet = await getVaccinationCarnet(phone);
+
+    logAccess(phone, userPhone, 'consultation', { source: 'vaccinations_carnet' }, req.ip).catch(() => {});
+
+    return res.json({ success: true, data: carnet });
+  } catch (err) {
+    console.error('[DMN] vaccinations:', err.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
 
