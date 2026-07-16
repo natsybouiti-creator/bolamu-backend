@@ -134,7 +134,7 @@ async function runAbonnementJob() {
 
     // 4. Suspension cascade — bénéficiaires dont le payeur est suspendu
     const payeursResult = await db.query(
-      `SELECT DISTINCT bf.beneficiaire_phone, bf.payeur_phone
+      `SELECT DISTINCT bf.beneficiaire_phone, bf.payeur_phone, ben.id AS beneficiaire_id
        FROM beneficiaires_familiaux bf
        JOIN users payeur ON payeur.phone = bf.payeur_phone
        JOIN users ben ON ben.phone = bf.beneficiaire_phone
@@ -142,26 +142,32 @@ async function runAbonnementJob() {
        AND ben.is_active = TRUE
        AND bf.actif = TRUE`
     );
-    
+
     if (payeursResult.rows.length > 0) {
       const beneficiaires = payeursResult.rows.map(row => row.beneficiaire_phone);
-      
+
       // Suspendre les bénéficiaires en une seule requête
       await db.query(
         `UPDATE users SET is_active = FALSE WHERE phone = ANY($1)`,
         [beneficiaires]
       );
-      
-      // Log audit en une seule requête
-      for (const row of payeursResult.rows) {
-        await db.query(
-          `INSERT INTO audit_log 
-           (event_type, actor_phone, target_table, target_id, payload)
-           VALUES ('beneficiaire_suspendu', 'system', 'users', $1, $2::jsonb)`,
-          [row.beneficiaire_phone, JSON.stringify({ payeur: row.payeur_phone, raison: 'payeur_suspendu' })]
-        );
+
+      // Log audit — isolé dans son propre try/catch (même bug/pattern que
+      // l'étape 3 : target_id est un integer, jamais un phone).
+      try {
+        for (const row of payeursResult.rows) {
+          await db.query(
+            `INSERT INTO audit_log
+             (event_type, actor_phone, target_table, target_id, payload)
+             VALUES ('beneficiaire_suspendu', 'system', 'users', $1, $2::jsonb)`,
+            [row.beneficiaire_id, JSON.stringify({ payeur: row.payeur_phone, beneficiaire_phone: row.beneficiaire_phone, raison: 'payeur_suspendu' })]
+          );
+        }
+      } catch (auditErr) {
+        nb_erreurs++;
+        allDetails.push(`Erreur audit_log cascade bénéficiaires : ${auditErr.message}`);
       }
-      
+
       nb_traites += beneficiaires.length;
       allDetails.push(`Bénéficiaires suspendus : ${beneficiaires.length}`);
     }
