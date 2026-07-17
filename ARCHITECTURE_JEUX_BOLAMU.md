@@ -12,6 +12,7 @@
 |---|---|---|
 | 1.0 | 17 juillet 2026 | Création initiale : audit frais du moteur de jeux Zora (existant réel, sections 1-9) + bibliothèque de jeux futurs solo et multijoueur (roadmap, sections 10-11) |
 | 1.1 | 17 juillet 2026 (soir) | Chantier correction : §9.1 (crédit ≠ montant tiré, scratch/wheel/chest/quiz), §9.2 (quota gratuit partagé/désynchronisé), §9.4 (quiz — réponse jamais transmise) et §9.6 (roue — segment visuel non aligné) résolus et testés de bout en bout (HTTP réel + SQL). §9.3 partiellement adressé (`GET /games/status` désormais utilisée pour le quota ; `GET /games/config` reste non lue). §9.5 (pas de bouton partie payante) non traité, hors périmètre de ce chantier. |
+| 1.2 | 17 juillet 2026 (nuit) | §9.5 résolu : point d'entrée UI pour les parties payantes ajouté (`dashboard.html`, commit `9d92f98`, aucune modification backend) — bouton "Rejouer · X Z", modal de confirmation, gestion du solde insuffisant. Testé de bout en bout (HTTP + SQL) pour scratch et wheel, quota gratuit confirmé intact après une partie payante. |
 
 ---
 
@@ -396,9 +397,13 @@ Confirmé en détail au §6.2 : `A._gamesConfig = d.data` (`dashboard.html`) res
 
 **Testé en conditions réelles** (Playwright + Chromium headless, serveur local + base Neon de production) : ouverture du quiz → vraie question aléatoire affichée (ex. *"Quel organe filtre le sang ?"*, options réelles Le foie/Les reins/Le cœur/Les poumons, différente à chaque partie) → réponse soumise → `POST /games/quiz/answer` répond `{correct:false, correct_answer:'b', points_won:0}` → l'écran affiche *"Dommage, la bonne réponse était "Les reins"."* et surligne la bonne réponse en vert, le choix erroné en rouge — vérifié par lecture directe du DOM, pas seulement de l'état JS. Cas de bonne réponse vérifié séparément côté backend (§9.1 : +10 Zora crédité et affiché pour une question facile).
 
-### 9.5 Roue — `play_type` toujours codé en dur à `'free'` — **non traité, hors périmètre**
+### 9.5 Absence de point d'entrée UI pour les parties payantes — **résolu le 17 juillet 2026 (chantier séparé)**
 
-Les 4 fonctions frontend envoient toutes `play_type: 'free'` en dur — aucun bouton ou flux ne permet d'envoyer `play_type: 'paid'` dans le dashboard patient actuel, alors que le backend supporte pleinement ce mode. **Inchangé par ce chantier** : ajouter un point d'entrée UI pour la partie payante est une fonctionnalité, pas une correction de bug — à traiter séparément si souhaité.
+**Constat avant correction** : les 4 fonctions frontend envoyaient toutes `play_type: 'free'` en dur — aucun bouton ou flux ne permettait d'envoyer `play_type: 'paid'` dans le dashboard patient, alors que le backend supportait pleinement ce mode (déduction de `extra_play_cost`, cf. §2).
+
+**Correction apportée** (`public/patient/dashboard.html`, commit `9d92f98`, aucune modification backend) : quand le quota gratuit du jour est épuisé, le bouton "Jouer" devient "Rejouer · X Z" (ambre, X = `extra_play_cost` réel lu depuis `GET /games/status`). Un clic ouvre un modal de confirmation (nom du jeu, coût, Annuler/Confirmer) avant tout débit. Si le solde est insuffisant, le bouton reste grisé avec un label "Solde insuffisant" — cliquable uniquement pour afficher un toast explicatif, pas de modal. Après confirmation, chacun des 4 déclencheurs de jeu (`spinWheel`, `openChest`, `startQuiz`, `playScratch`) consomme un flag transitoire `A.state.pendingPaidGame` pour envoyer `play_type:'paid'` au lieu de `'free'` — le jeu se déroule ensuite exactement comme une partie gratuite (même code de traitement de la réponse serveur).
+
+**Testé en conditions réelles** (HTTP + SQL, compte `+242069735418`) : partie scratch payante (coût 50, perdante) et partie wheel payante (coût 75, +5 Zora) — `zora_ledger` confirme un `game_play_cost` de -50 et -75 respectivement, `zora_game_plays.play_type='paid'` pour les deux, et le compteur de parties **gratuites** jouées ce jour-là reste à 1 pour chacun des deux jeux (la partie payante ne consomme pas le quota gratuit, cohérent avec le fix §9.2). Cas solde insuffisant vérifié sur les 4 jeux (bouton grisé, modal non ouvert, toast affiché). Non-régression du flux gratuit reconfirmée (quiz : vraie question chargée, `play_type='free'` en base).
 
 ### 9.6 Animation roue vs lot réel — **résolu le 17 juillet 2026 (soir)**
 
