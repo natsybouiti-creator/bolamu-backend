@@ -1,0 +1,30 @@
+-- ============================================================
+-- Migration 085 : retrait du daily_cap bloquant sur game_bingo
+-- Date : 17 juillet 2026
+--
+-- zora_earn_rules.action_type='game_bingo' avait daily_cap=1, copié par
+-- erreur du pattern des 4 autres jeux (1 partie/jour = 1 crédit/jour).
+-- Pour le Bingo, plusieurs événements distincts et légitimes peuvent
+-- survenir le même jour (ligne, colonne, diagonale, bingo complet) —
+-- chacun doit être crédité séparément. L'idempotence réelle est déjà
+-- garantie par bingo_grids.lines_rewarded/bingo_rewarded (une ligne ou
+-- le bingo complet ne peut être crédité qu'une seule fois, quel que
+-- soit le jour) — daily_cap=1 ne protège contre rien ici, il ne fait
+-- que bloquer des crédits légitimes (pire cas observé : le bonus bingo
+-- complet de 100 Zora non crédité si une ligne avait déjà consommé le
+-- cap du jour, cf. ARCHITECTURE_JEUX_BOLAMU.md §2.5).
+--
+-- Choix : NULL plutôt qu'une valeur haute arbitraire (ex. 10) — la
+-- colonne est nullable, et NULL désactive proprement la vérification
+-- (`if (rule.daily_cap && ...)` dans awardZora(), zora.service.js) sans
+-- introduire un plafond arbitraire qui pourrait, dans un cas extrême
+-- (plusieurs lignes complétées d'un coup après un reroll), reproduire
+-- le même bug sous une forme atténuée.
+--
+-- Scope strict : uniquement action_type='game_bingo'. Les daily_cap des
+-- 4 autres jeux (game_scratch/wheel/chest/quiz, tous à 3) restent
+-- inchangés — protègent un vrai abus potentiel (parties payantes
+-- répétées), contrairement au Bingo qui n'a pas de notion de "partie".
+-- ============================================================
+
+UPDATE zora_earn_rules SET daily_cap = NULL WHERE action_type = 'game_bingo';
