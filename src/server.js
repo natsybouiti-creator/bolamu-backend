@@ -147,6 +147,7 @@ const agenceRoutes         = require('./routes/agence.routes');
 const agentRoutes          = require('./routes/agent.routes');
 const zoraRoutes           = require('./routes/zora.routes');
 const zoraGamesRoutes       = require('./routes/zora-games.routes');
+const bingoRoutes           = require('./routes/bingo.routes');
 // DEPRECATED (Task B4) — remplacé par clubs.routes.js (implémentation canonique)
 // const sportGroupsRoutes     = require('./routes/sport-groups.routes');
 const wellnessRoutes        = require('./routes/wellness.routes');
@@ -231,6 +232,7 @@ app.use('/api/v1/ai-consult',   aiConsultRoutes);
 app.use('/api/v1/upload',       uploadRoutes);
 app.use('/api/v1/zora',         zoraRoutes);
 app.use('/api/v1/zora',         zoraGamesRoutes);
+app.use('/api/v1/zora',         bingoRoutes);
 app.use('/api/v1/bons-zora',    bonZoraRoutes);
 app.use('/api/v1/partenaire',   partenaireRoutes);
 app.use('/api/v1',              conflictRoutes);
