@@ -1169,7 +1169,7 @@
       <button id="bnav-gagner" data-testid="nav-gagner" onclick="A.goGagner()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">add_circle</span><span style="font-size: 0.6rem; font-weight: 800;">Gagner</span></button>
       <button id="bnav-suivre" data-testid="nav-suivre" onclick="A.goSuivre()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">account_balance_wallet</span><span style="font-size: 0.6rem; font-weight: 800;">Suivre</span></button>
       <button id="bnav-reward" data-testid="nav-recompenses" onclick="A.goRecompenses()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">redeem</span><span style="font-size: 0.6rem; font-weight: 800;">Récomp.</span></button>
-      <button id="bnav-profil" data-testid="nav-profil" onclick="A.openProfile()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span style="height: 22px; width: 22px; border-radius: 9999px; background: #0A2463; border: 1.5px solid currentColor; color: #fff; font-weight: 800; font-size: 0.5rem; display: flex; align-items: center; justify-content: center;"><span class="b-patientInitiales">—</span></span><span style="font-size: 0.6rem; font-weight: 800;">Profil</span></button>
+      <button id="bnav-profil" data-testid="nav-profil" onclick="A.openProfile()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span id="bnav-profil-avatar" style="height: 22px; width: 22px; border-radius: 9999px; background: #0A2463; border: 1.5px solid currentColor; color: #fff; font-weight: 800; font-size: 0.5rem; display: flex; align-items: center; justify-content: center;"><span class="b-patientInitiales">—</span></span><span style="font-size: 0.6rem; font-weight: 800;">Profil</span></button>
     </div>
   </nav>
 
@@ -3148,6 +3148,16 @@
         fullName: A._patientNom || '',
         role: 'patient',
         size: 36
+      });
+    }
+
+    var bnavAvatar = document.getElementById('bnav-profil-avatar');
+    if (bnavAvatar) {
+      bnavAvatar.innerHTML = window.BolamuAvatar.render({
+        photoUrl: A._patientPhotoUrl || null,
+        fullName: A._patientNom || '',
+        role: 'patient',
+        size: 20
       });
     }
   };
