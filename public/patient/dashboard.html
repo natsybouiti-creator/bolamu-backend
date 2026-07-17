@@ -86,7 +86,6 @@
   /* ===== Navigation ===== */
   .bottom-nav { display: none; }
   @media (max-width: 768px) { .hero-grid { grid-template-columns: 1fr !important; } }
-  @media (max-width: 400px) { .hero-tiles { grid-template-columns: 1fr !important; } }
   @media (max-width: 880px) {
     .top-nav { display: none !important; }
     .bottom-nav { display: flex !important; }
@@ -94,7 +93,13 @@
     .profil-edit-grid { grid-template-columns: 1fr !important; }
     .hide-mobile { display: none !important; }
     .pad-main { padding: 18px 14px 110px !important; }
-    .hero-mascotte { height: 130px !important; }
+    .hero-mascotte-wrap { position: absolute !important; right: 2px; bottom: 0; width: 80px !important; display: block !important; pointer-events: none; }
+    .hero-mascotte { width: 80px !important; height: 80px !important; }
+    .score-ring-wrap { width: 44px !important; height: 44px !important; }
+    .score-ring-svg { width: 44px !important; height: 44px !important; }
+    .score-tile { padding: 10px 8px !important; position: relative !important; }
+    .score-content { padding-right: 58px !important; }
+    .hero-tiles { grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr) !important; }
     #navbar-patient-avatar { display: none !important; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -444,7 +449,7 @@
               <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: #0A2463;"><span class="b-patientPrenom"></span>, <span class="b-genderAdj">prête</span> à gagner&nbsp;?</h1>
               <p style="margin: 6px 0 0; font-size: 0.84rem; font-weight: 600; color: #00875f;" class="b-patientsToNext">—</p>
             </div>
-            <div class="hero-tiles" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="hero-tiles" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
               <div style="position: relative; overflow: hidden; height: 104px; background: linear-gradient(135deg, #0A2463, #112d6b); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
                 <div style="position: absolute; top: -24px; right: -24px; width: 84px; height: 84px; border-radius: 50%; background: rgba(245,166,35,0.12); pointer-events: none;"></div>
                 <div style="position: relative; z-index: 2; flex-shrink: 0;"><span class="zcoin float" style="width:40px;height:40px;font-size:19px;">Z</span></div>
@@ -454,10 +459,10 @@
                   <span style="display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; background: rgba(245,166,35,0.15); border: 1px solid rgba(245,166,35,0.3); color: #F5A623; font-size: 0.58rem; font-weight: 800; padding: 2px 7px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1; font-size: 11px;">workspace_premium</span>Liboso</span>
                 </div>
               </div>
-              <div style="height: 104px; background: #F3F3FE; border: 1px solid #E4E4F2; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; overflow: visible;">
-                <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;">
-                  <div style="position: relative; width: 58px; height: 58px; flex-shrink: 0;">
-                    <svg width="58" height="58" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="#E4E4F2" stroke-width="7"></circle><circle id="score-ring" cx="36" cy="36" r="30" fill="none" stroke="#003FB1" stroke-width="7" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition: stroke-dashoffset 0.5s ease;"></circle></svg>
+              <div class="score-tile" style="height: 104px; background: #F3F3FE; border: 1px solid #E4E4F2; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; overflow: visible;">
+                <div class="score-content" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;">
+                  <div class="score-ring-wrap" style="position: relative; width: 58px; height: 58px; flex-shrink: 0;">
+                    <svg class="score-ring-svg" width="58" height="58" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="#E4E4F2" stroke-width="7"></circle><circle id="score-ring" cx="36" cy="36" r="30" fill="none" stroke="#003FB1" stroke-width="7" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition: stroke-dashoffset 0.5s ease;"></circle></svg>
                     <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #003FB1; font-size: 22px;">favorite</span></div>
                   </div>
                   <div style="min-width: 0;">
@@ -466,8 +471,8 @@
                     <div style="display: flex; align-items: center; gap: 4px; margin-top: 5px;" id="score-tendance"><span style="font-size: 0.68rem; font-weight: 800; color: #00875f;">—</span></div>
                   </div>
                 </div>
-                <div style="width: 128px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                  <div style="width: 128px; height: 128px; background-image: url('/images/landing/garcons3Dbleu.png'); background-size: cover; background-position: bottom center; background-repeat: no-repeat; animation: zoraFloat 4s ease-in-out infinite;"></div>
+                <div class="hero-mascotte-wrap" style="width: 128px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                  <div class="hero-mascotte" style="width: 128px; height: 128px; background-image: url('/images/landing/garcons3Dbleu.png'); background-size: cover; background-position: bottom center; background-repeat: no-repeat; animation: zoraFloat 4s ease-in-out infinite;"></div>
                 </div>
               </div>
             </div>
