@@ -1041,7 +1041,7 @@
 
       <div class="hscroll" style="display: flex; gap: 14px; padding-bottom: 8px; margin-bottom: 12px;">
         <div id="games-list" style="display: contents;"></div>
-        <div style="position: relative; flex: 0 0 200px; scroll-snap-align: start; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; align-items: flex-start; opacity: 0.92;"><span style="width: 52px; height: 52px; border-radius: 50%; background: #F3F3FE; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #9498a8; font-size: 26px;">grid_view</span></span><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463; margin-top: 12px;">Bingo Santé</div><div style="display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; font-size: 0.66rem; font-weight: 800; background: rgba(67,70,84,0.08); color: #434654; padding: 5px 10px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-size: 13px;">lock</span>Bientôt</div></div>
+        <div style="position: relative; flex: 0 0 200px; scroll-snap-align: start; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; align-items: flex-start;"><span style="width: 52px; height: 52px; border-radius: 50%; background: rgba(139,92,246,0.12); display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #8B5CF6; font-size: 26px;">grid_view</span></span><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463; margin-top: 12px;">Bingo Santé</div><div style="display: flex; align-items: center; gap: 5px; margin-top: 6px;"><span class="zcoin" style="width:16px;height:16px;font-size:8px;">Z</span><span style="font-size: 0.74rem; font-weight: 700; color: #B0680A;">Jusqu'à +100</span></div><div style="display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; font-size: 0.66rem; font-weight: 800; background: rgba(139,92,246,0.12); color: #8B5CF6; padding: 5px 10px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-size: 13px;">calendar_month</span>Hebdo</div><button data-testid="play-bingo" onclick="A.openGame('bingo')" style="margin-top:14px;width:100%;background:#8B5CF6;color:#fff;border:none;padding:10px;border-radius:9999px;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;">Jouer</button></div>
         <div style="position: relative; flex: 0 0 200px; scroll-snap-align: start; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; align-items: flex-start; opacity: 0.92;"><span style="width: 52px; height: 52px; border-radius: 50%; background: #F3F3FE; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #9498a8; font-size: 26px;">map</span></span><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463; margin-top: 12px;">Parcours Elonga</div><div style="display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; font-size: 0.66rem; font-weight: 800; background: rgba(67,70,84,0.08); color: #434654; padding: 5px 10px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-size: 13px;">lock</span>Bientôt</div></div>
         <div style="position: relative; flex: 0 0 200px; scroll-snap-align: start; background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; align-items: flex-start; opacity: 0.92;"><span style="width: 52px; height: 52px; border-radius: 50%; background: #F3F3FE; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #9498a8; font-size: 26px;">style</span></span><div style="font-size: 0.92rem; font-weight: 700; color: #0A2463; margin-top: 12px;">Album de Masques</div><div style="display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; font-size: 0.66rem; font-weight: 800; background: rgba(67,70,84,0.08); color: #434654; padding: 5px 10px; border-radius: 9999px;"><span class="material-symbols-outlined" style="font-size: 13px;">lock</span>Bientôt</div></div>
       </div>
@@ -1349,6 +1349,41 @@
       <div class="b-quizQ" style="font-size: 1rem; font-weight: 700; color: #0A2463; margin: 12px 0 16px;">—</div>
       <div id="quiz-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
       <div id="quiz-feedback" style="display:none; margin-top: 14px; font-size: 0.84rem; font-weight: 600; color: #434654;"></div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL BINGO SANTÉ ===== -->
+  <div id="modal-bingo" class="modal-bg" onclick="A.closeGame()">
+    <div onclick="A.stop(event)" style="background: #fff; border-radius: 24px; padding: 24px; width: 100%; max-width: 480px; box-shadow: 0 24px 64px rgba(10,36,99,0.25); max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Bingo Santé</h3>
+        <button onclick="A.closeGame()" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+      </div>
+      <div style="font-size: 0.76rem; font-weight: 500; color: #434654; margin-bottom: 14px;">Coche une action de santé au fur et à mesure de la semaine. Une ligne, une colonne ou une diagonale complétée rapporte des Zora — la grille entière déclenche un bonus Bingo.</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25); border-radius: 14px; padding: 10px 14px; margin-bottom: 14px;">
+        <span id="bingo-score" style="font-size: 0.84rem; font-weight: 800; color: #6D28D9;">Chargement…</span>
+        <button onclick="A.openBingoRerollModal()" style="background: none; border: none; color: #6D28D9; font-family: inherit; font-size: 0.7rem; font-weight: 700; cursor: pointer; text-decoration: underline;">Nouvelle grille</button>
+      </div>
+      <div id="bingo-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;"></div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL CONFIRMATION REROLL BINGO ===== -->
+  <div id="modal-bingo-reroll" class="modal-bg" onclick="A.closeBingoRerollModal()">
+    <div onclick="A.stop(event)" style="background: #fff; border-radius: 24px; padding: 28px; width: 100%; max-width: 400px; box-shadow: 0 24px 64px rgba(10,36,99,0.25);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0A2463;">Nouvelle grille de Bingo ?</h3>
+        <button onclick="A.closeBingoRerollModal()" style="background: #F3F3FE; border: none; width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="color: #434654; font-size: 20px;">close</span></button>
+      </div>
+      <div style="font-size: 0.82rem; font-weight: 500; color: #434654; margin: 10px 0 16px;">Tu vas perdre la progression de ta grille actuelle et recevoir 25 nouvelles actions pour cette semaine.</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3); border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;">
+        <span style="font-size: 0.82rem; font-weight: 700; color: #7a4e00;">Coût</span>
+        <span class="b-bingoRerollCost" style="font-size: 1rem; font-weight: 800; color: #B0680A;">— Zora</span>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="A.closeBingoRerollModal()" style="flex: 1; background: transparent; color: #434654; border: 1px solid #C3C5D7; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Annuler</button>
+        <button data-testid="confirm-bingo-reroll" onclick="A.confirmBingoReroll()" style="flex: 2; background: #F5A623; color: #7a4e00; border: none; padding: 13px; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 8px 24px rgba(245,166,35,0.3);">Confirmer · <span class="b-bingoRerollCostBtn">—</span> Z</button>
+      </div>
     </div>
   </div>
 
@@ -1675,7 +1710,7 @@
     selectedPlan: null, selectedPaymentMethod: 'mtn', transactionId: '',
     dmnPasswordModal: false, dmnDocsModal: false, dmnQrModal: false, dmnPassword: '',
     rdvDoctorId: '', rdvDate: '', rdvSlot: '', rdvBooking: false,
-    game: null, gamesStatus: {}, paidGameModal: null, pendingPaidGame: null,
+    game: null, gamesStatus: {}, paidGameModal: null, pendingPaidGame: null, bingoRerollModal: false,
     wheelDeg: 0, wheelSpinning: false, wheelDone: false, wheelResult: null,
     chestOpened: null, chestReward: null, quizPicked: null, quizPlayId: null, quizLoading: false,
     zora: 0, steps: 0, now: Date.now(), toast: null, mapFilter: 'tout',
@@ -1708,6 +1743,9 @@
   // fix 17 juillet 2026 : auparavant une question statique codée en dur, jamais remplacée,
   // et jamais comparée au vrai correct_answer (POST /zora/games/quiz/answer n'était jamais appelée).
   A._quizData = { pilier: '', q: 'Chargement de la question…', options: ['', '', '', ''], correctIndex: null, feedbackOk: '', feedbackNo: '' };
+  // Rempli par A.loadBingo() depuis GET /zora/games/bingo — 5e jeu Zora, grille
+  // hebdomadaire persistante (ajouté 17 juillet 2026, ne passe pas par playGame()).
+  A._bingoData = null;
   A.rewards = [];
   // Chargé depuis GET /api/v1/map/intervenants (voir A._loadAll) — plus de données statiques.
   A.etabs = [];
@@ -1890,6 +1928,8 @@
     m('modal-wheel', s.game === 'wheel');
     m('modal-chest', s.game === 'chest');
     m('modal-quiz', s.game === 'quiz');
+    m('modal-bingo', s.game === 'bingo');
+    m('modal-bingo-reroll', s.bingoRerollModal);
     m('modal-paid-game', !!s.paidGameModal);
     m('modal-bon-zora', s.bonZoraModal);
     m('modal-bon-zora-qr', s.bonZoraQrModal);
@@ -3340,7 +3380,7 @@
   };
 
   /* --------------------------- JEUX --------------------------- */
-  A.openGame = function (type) { A.setState({ game: type }); if (type === 'scratch') setTimeout(function () { A.initScratch(); }, 80); if (type === 'quiz') A.startQuiz(); };
+  A.openGame = function (type) { A.setState({ game: type }); if (type === 'scratch') setTimeout(function () { A.initScratch(); }, 80); if (type === 'quiz') A.startQuiz(); if (type === 'bingo') A.loadBingo(); };
   A.closeGame = function () { A.state.pendingPaidGame = null; A.setState({ game: null }); };
 
   // Partie payante (quota gratuit épuisé) : confirmation avant de débiter le solde Zora.
@@ -3485,6 +3525,95 @@
           A.showToast('+' + d.data.points_won + ' Zora gagnés au Grattage !');
         }
         else { A.showToast(d.error || 'Erreur — réessaie demain'); }
+      }).catch(function () { A.showToast('Erreur réseau — vérifie ta connexion'); });
+  };
+
+  /* --------------------------- BINGO SANTÉ --------------------------- */
+  // 5e jeu Zora (17 juillet 2026) : grille hebdomadaire persistante, routes
+  // dédiées GET/POST /zora/games/bingo(/check|/reroll) — ne passe jamais par
+  // A.openGame()'s scratch/wheel/chest/quiz apiFetch('.../games/play').
+  A.loadBingo = function () {
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
+    var el = $('bingo-grid'); if (el) el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#9498a8;font-size:0.8rem;">Chargement…</div>';
+    apiFetch('https://www.bolamu.co/api/v1/zora/games/bingo', { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(function (r) { return r.json(); }).then(function (d) {
+        if (d.success && d.data) { A._bingoData = d.data; A.renderBingo(); }
+        else { A.showToast(d.error || 'Erreur — réessaie plus tard'); }
+      }).catch(function () { A.showToast('Erreur réseau — vérifie ta connexion'); });
+  };
+
+  A._bingoLineLabel = function (key) {
+    if (key.indexOf('row') === 0) return 'la ligne ' + (parseInt(key.slice(3), 10) + 1);
+    if (key.indexOf('col') === 0) return 'la colonne ' + (parseInt(key.slice(3), 10) + 1);
+    return 'une diagonale';
+  };
+
+  A.renderBingo = function () {
+    var el = $('bingo-grid'); if (!el || !A._bingoData) return;
+    var d = A._bingoData;
+    var total = 0;
+    (d.lines_rewarded || []).forEach(function (key) { total += (key.indexOf('diag') === 0 ? 20 : 15); });
+    if (d.bingo_rewarded) total += 100;
+    var scoreEl = $('bingo-score');
+    if (scoreEl) scoreEl.textContent = total + ' Zora gagnés cette semaine' + (d.bingo_rewarded ? ' · Bingo complet !' : '');
+
+    el.innerHTML = d.cells.map(function (c) {
+      var bg = c.checked ? 'rgba(139,92,246,0.14)' : '#F8F8FC';
+      var col = c.checked ? '#6D28D9' : '#434654';
+      var bd = c.checked ? '1px solid rgba(139,92,246,0.4)' : '1px solid #EDEDF8';
+      var shortTxt = c.action.length > 34 ? c.action.slice(0, 32) + '…' : c.action;
+      return '<div data-testid="bingo-cell-' + c.index + '" onclick="A.checkBingoCell(' + c.index + ')" title="' + esc(c.action) + '" style="cursor:' + (c.checked ? 'default' : 'pointer') + ';background:' + bg + ';color:' + col + ';border:' + bd + ';border-radius:10px;padding:6px 4px;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;">' +
+        (c.checked ? '<span class="material-symbols-outlined" style="font-size:16px;">check_circle</span>' : '') +
+        '<span style="font-size:0.56rem;font-weight:700;line-height:1.15;">' + esc(shortTxt) + '</span></div>';
+    }).join('');
+  };
+
+  A.checkBingoCell = function (index) {
+    if (!A._bingoData) return;
+    var cell = A._bingoData.cells[index];
+    if (!cell || cell.checked) return;
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
+    apiFetch('https://www.bolamu.co/api/v1/zora/games/bingo/check', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ index: index }) })
+      .then(function (r) { return r.json(); }).then(function (d) {
+        if (d.success && d.data) {
+          A._bingoData = d.data;
+          A.renderBingo();
+          var gained = 0;
+          (d.data.newly_rewarded || []).forEach(function (rw) {
+            gained += rw.points;
+            A.showToast('+' + rw.points + ' Zora · ' + A._bingoLineLabel(rw.key) + ' complétée !');
+          });
+          if (d.data.bingo_just_won) { gained += 100; A.showToast('Bingo complet ! +100 Zora'); }
+          if (gained > 0) A.addZora(gained);
+        } else {
+          A.showToast(d.error || 'Erreur — réessaie dans un instant');
+        }
+      }).catch(function () { A.showToast('Erreur réseau — vérifie ta connexion'); });
+  };
+
+  A.openBingoRerollModal = function () {
+    var cost = A.gameCost('bingo');
+    setText('bingoRerollCost', cost + ' Zora');
+    setText('bingoRerollCostBtn', cost);
+    A.setState({ bingoRerollModal: true });
+  };
+  A.closeBingoRerollModal = function () { A.setState({ bingoRerollModal: false }); };
+  A.confirmBingoReroll = function () {
+    A.setState({ bingoRerollModal: false });
+    var token = localStorage.getItem('bolamu_patient_token');
+    if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
+    apiFetch('https://www.bolamu.co/api/v1/zora/games/bingo/reroll', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+      .then(function (r) { return r.json(); }).then(function (d) {
+        if (d.success && d.data) {
+          A._bingoData = d.data;
+          A.renderBingo();
+          A.syncZoraBalance();
+          A.showToast('Nouvelle grille de Bingo prête !');
+        } else {
+          A.showToast(d.error === 'insufficient_balance' ? 'Solde Zora insuffisant' : (d.error || 'Erreur — réessaie plus tard'));
+        }
       }).catch(function () { A.showToast('Erreur réseau — vérifie ta connexion'); });
   };
 
