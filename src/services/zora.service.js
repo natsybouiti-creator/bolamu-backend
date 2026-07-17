@@ -29,9 +29,12 @@ async function getTiersConfig() {
  * @param {string} params.proof_source - Source de la preuve (praticien, partenaire, device...)
  * @param {string|null} params.recording_method - Méthode d'enregistrement (auto_recorded, actively_recorded, manual_entry)
  * @param {string} params.proof_reference - Référence unique de la preuve (appointment_id, lab_result_id...)
+ * @param {number} [params.override_points] - Montant à créditer à la place de rule.points (ex: jeux Zora — le
+ *   tirage/la difficulté détermine un montant variable, contrairement aux actions à récompense fixe). Ignoré si
+ *   absent ou non numérique : comportement par défaut inchangé pour tous les appelants existants.
  * @returns {Promise<Object>} Résultat du crédit
  */
-async function awardZora({ phone, action_type, proof_class, proof_source, recording_method, proof_reference }) {
+async function awardZora({ phone, action_type, proof_class, proof_source, recording_method, proof_reference, override_points }) {
   const client = await pool.connect();
   
   try {
@@ -50,7 +53,12 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     }
     
     const rule = ruleResult.rows[0];
-    
+
+    // Montant réellement crédité : override_points si fourni et valide, sinon rule.points (comportement historique)
+    const creditPoints = (typeof override_points === 'number' && Number.isFinite(override_points) && override_points >= 0)
+      ? override_points
+      : rule.points;
+
     // Si is_active = FALSE → refus silencieux
     if (!rule.is_active) {
       console.log(`[ZORA] Règle inactive pour action_type: ${action_type} (phase: ${rule.phase})`);
@@ -120,8 +128,8 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     // ÉTAPE 5 — PLAFOND CATÉGORIE
     const categoryTotal    = parseInt(v.category_total) || 0;
     const totalEarned      = parseInt(v.total_earned)   || 0;
-    const newTotalEarned   = totalEarned + rule.points;
-    const newCategoryTotal = categoryTotal + rule.points;
+    const newTotalEarned   = totalEarned + creditPoints;
+    const newCategoryTotal = categoryTotal + creditPoints;
 
     // Plafond catégorie : ne s'applique QUE si total_earned >= 500 points
     if (totalEarned >= 500 && v.cap_percent != null && parseFloat(v.cap_percent) > 0) {
@@ -140,10 +148,10 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     
     // Insérer ligne ledger
     await client.query(
-      `INSERT INTO zora_ledger 
+      `INSERT INTO zora_ledger
        (phone, points, category, action_type, proof_class, proof_source, recording_method, proof_reference, verified, earned_at, expires_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, NOW(), $9)`,
-      [phone, rule.points, rule.category, action_type, proof_class, proof_source, recording_method, proof_reference, expiresAt]
+      [phone, creditPoints, rule.category, action_type, proof_class, proof_source, recording_method, proof_reference, expiresAt]
     );
     
     // UPDATE zora_points — balance TOUJOURS recalculé depuis ledger.
@@ -162,7 +170,7 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
          last_activity_at = NOW(),
          updated_at = NOW()
        RETURNING *`,
-      [phone, rule.points, rule.points]
+      [phone, creditPoints, creditPoints]
     );
     
     const updatedPoints = pointsUpdate.rows[0];
@@ -192,7 +200,7 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
         action_type,
         proof_class,
         proof_reference,
-        points: rule.points,
+        points: creditPoints,
         tier: newTier,
         expires_at: expiresAt
       })]
@@ -227,26 +235,26 @@ async function awardZora({ phone, action_type, proof_class, proof_source, record
     const achievementActions = ['bilan_annuel', 'vaccination', 'event_checkin', 'streak_7', 'streak_30'];
     if (achievementActions.includes(action_type)) {
       try {
-        await chatService.postAchievement({ phone, action_type, points: rule.points });
+        await chatService.postAchievement({ phone, action_type, points: creditPoints });
       } catch (chatError) {
         console.error('[ZORA] Erreur auto-post achievement:', chatError.message);
         // Ne pas bloquer le crédit si le chat échoue
       }
     }
     
-    console.log(`[ZORA] Crédit réussi pour phone: ${phone}, action: ${action_type}, points: ${rule.points}, tier: ${newTier}`);
+    console.log(`[ZORA] Crédit réussi pour phone: ${phone}, action: ${action_type}, points: ${creditPoints}, tier: ${newTier}`);
 
     // Post système automatique dans le feed réseau social (non bloquant)
     try {
       const feedService = require('./feed.service');
-      await feedService.postZoraEarned(phone, rule.points, action_type);
+      await feedService.postZoraEarned(phone, creditPoints, action_type);
     } catch (feedError) {
       console.error('[ZORA] Erreur post feed (non bloquante):', feedError.message);
     }
 
     return {
       success: true,
-      points: rule.points,
+      points: creditPoints,
       balance: updatedPoints.balance,
       total_earned: updatedPoints.total_earned,
       tier: newTier,

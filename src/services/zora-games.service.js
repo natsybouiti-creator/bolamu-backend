@@ -201,13 +201,17 @@ async function playGame({ phone, game_type, play_type }) {
         play_id: playResult.rows[0].id,
         question_id: question.id,
         question: question.question,
+        category: question.category,
         option_a: question.option_a,
         option_b: question.option_b,
         option_c: question.option_c,
         option_d: question.option_d,
         server_seed: serverSeed,
         daily_gain_today: dailyGainToday,
-        free_plays_remaining: Math.max(0, game.daily_free_plays - freePlaysUsed)
+        // fix 17 juillet 2026 : cette partie vient de consommer le quota gratuit du jour si
+        // play_type='free' — sans le "-1" ici, le frontend affichait encore 1 partie gratuite
+        // restante juste après l'avoir jouée (ne se corrigeait qu'au prochain GET /games/status).
+        free_plays_remaining: Math.max(0, game.daily_free_plays - freePlaysUsed - (play_type === 'free' ? 1 : 0))
       };
     } else {
       // Tirage pondéré pour scratch, wheel, chest
@@ -269,6 +273,11 @@ async function playGame({ phone, game_type, play_type }) {
       // etc.), la réponse HTTP ne doit pas annoncer un points_won fictif
       // (cf. audit Zora du 12 juillet 2026 — Roue/Coffre/Quiz annonçaient un
       // gain jamais crédité en base).
+      // override_points: pointsWon (fix 17 juillet 2026) — sans ce paramètre,
+      // awardZora() crédite rule.points (montant FIXE par action_type,
+      // ex. 50 pour game_scratch), totalement décorrélé du montant réellement
+      // tiré (0/5/10/20/30). creditedPoints n'était donc jamais réellement
+      // le montant inséré dans zora_ledger, même en cas de succès.
       let creditedPoints = 0;
       if (pointsWon > 0) {
         try {
@@ -278,7 +287,8 @@ async function playGame({ phone, game_type, play_type }) {
             proof_class: 'system_event',
             proof_source: 'game_engine',
             recording_method: null,
-            proof_reference: playResult.rows[0].id.toString()
+            proof_reference: playResult.rows[0].id.toString(),
+            override_points: pointsWon
           });
 
           if (zoraResult.success) {
@@ -333,7 +343,9 @@ async function playGame({ phone, game_type, play_type }) {
         points_won: creditedPoints,
         server_seed: serverSeed,
         daily_gain_today: dailyGainToday + creditedPoints,
-        free_plays_remaining: Math.max(0, game.daily_free_plays - freePlaysUsed - 1)
+        // fix 17 juillet 2026 : le "-1" ne doit s'appliquer que si CETTE partie était gratuite —
+        // une partie payante ne consomme pas le quota gratuit du jour.
+        free_plays_remaining: Math.max(0, game.daily_free_plays - freePlaysUsed - (play_type === 'free' ? 1 : 0))
       };
     }
   } catch (error) {
@@ -416,6 +428,9 @@ async function submitQuizAnswer({ phone, play_id, answer }) {
     // risque de deadlock inter-connexion sur zora_points, cf. commentaire
     // détaillé dans playGame()). Retour de awardZora() vérifié : ne pas
     // annoncer un points_won fictif si le crédit échoue réellement.
+    // override_points: pointsWon (fix 17 juillet 2026) — sans ce paramètre,
+    // awardZora() créditait toujours rule.points fixe (40), pas le montant
+    // réel selon difficulté (10/20/40).
     let creditedPoints = 0;
     if (pointsWon > 0) {
       try {
@@ -425,7 +440,8 @@ async function submitQuizAnswer({ phone, play_id, answer }) {
           proof_class: 'system_event',
           proof_source: 'game_engine',
           recording_method: null,
-          proof_reference: play_id.toString()
+          proof_reference: play_id.toString(),
+          override_points: pointsWon
         });
 
         if (zoraResult.success) {
