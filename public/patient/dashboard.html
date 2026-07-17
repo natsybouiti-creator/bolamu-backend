@@ -95,6 +95,7 @@
     .hide-mobile { display: none !important; }
     .pad-main { padding: 18px 14px 110px !important; }
     .hero-mascotte { height: 130px !important; }
+    #navbar-patient-avatar { display: none !important; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
@@ -1158,11 +1159,12 @@
   <!-- ===== BOTTOM NAV MOBILE ===== -->
   <nav class="bottom-nav" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 55; background: rgba(255,255,255,0.95); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid #EDEDF8; padding: 8px 10px calc(8px + env(safe-area-inset-bottom));">
     <div style="display: flex; justify-content: space-around; align-items: center;">
-      <button id="bnav-accueil" data-testid="nav-accueil" onclick="A.goAccueil()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 12px; color: #003FB1;"><span class="material-symbols-outlined" style="font-size: 23px;">home</span><span style="font-size: 0.6rem; font-weight: 800;">Accueil</span></button>
-      <button id="bnav-feed" data-testid="nav-feed" onclick="A.goFeed()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 12px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">dynamic_feed</span><span style="font-size: 0.6rem; font-weight: 800;">Feed</span></button>
-      <button id="bnav-gagner" data-testid="nav-gagner" onclick="A.goGagner()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 12px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">add_circle</span><span style="font-size: 0.6rem; font-weight: 800;">Gagner</span></button>
-      <button id="bnav-suivre" data-testid="nav-suivre" onclick="A.goSuivre()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 12px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">account_balance_wallet</span><span style="font-size: 0.6rem; font-weight: 800;">Suivre</span></button>
-      <button id="bnav-reward" data-testid="nav-recompenses" onclick="A.goRecompenses()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 12px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">redeem</span><span style="font-size: 0.6rem; font-weight: 800;">Récomp.</span></button>
+      <button id="bnav-accueil" data-testid="nav-accueil" onclick="A.goAccueil()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #003FB1;"><span class="material-symbols-outlined" style="font-size: 23px;">home</span><span style="font-size: 0.6rem; font-weight: 800;">Accueil</span></button>
+      <button id="bnav-feed" data-testid="nav-feed" onclick="A.goFeed()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">dynamic_feed</span><span style="font-size: 0.6rem; font-weight: 800;">Feed</span></button>
+      <button id="bnav-gagner" data-testid="nav-gagner" onclick="A.goGagner()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">add_circle</span><span style="font-size: 0.6rem; font-weight: 800;">Gagner</span></button>
+      <button id="bnav-suivre" data-testid="nav-suivre" onclick="A.goSuivre()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">account_balance_wallet</span><span style="font-size: 0.6rem; font-weight: 800;">Suivre</span></button>
+      <button id="bnav-reward" data-testid="nav-recompenses" onclick="A.goRecompenses()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span class="material-symbols-outlined" style="font-size: 23px;">redeem</span><span style="font-size: 0.6rem; font-weight: 800;">Récomp.</span></button>
+      <button id="bnav-profil" data-testid="nav-profil" onclick="A.openProfile()" style="display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 6px; color: #9498a8;"><span style="height: 22px; width: 22px; border-radius: 9999px; background: #0A2463; border: 1.5px solid currentColor; color: #fff; font-weight: 800; font-size: 0.5rem; display: flex; align-items: center; justify-content: center;"><span class="b-patientInitiales">—</span></span><span style="font-size: 0.6rem; font-weight: 800;">Profil</span></button>
     </div>
   </nav>
 
@@ -1839,15 +1841,16 @@
 
   /* --------------------------- NAV / PANELS --------------------------- */
   A.syncNav = function () {
-    var p = A.state.panel;
+    var p = A.state.panel, profileOpen = !!A.state.profileOpen;
     var tabs = ['accueil', 'feed', 'gagner', 'suivre', 'reward'];
     var navIds = { accueil: 'accueil', feed: 'feed', gagner: 'gagner', suivre: 'suivre', reward: 'recompenses' };
     tabs.forEach(function (t) {
-      var active = p === t;
+      var active = !profileOpen && p === t;
       var nav = $('nav-' + navIds[t]); if (nav) nav.style.color = active ? '#003FB1' : '#434654';
       var ind = $('ind-' + t); if (ind) ind.style.background = active ? '#003FB1' : 'transparent';
       var bn = $('bnav-' + t); if (bn) bn.style.color = active ? '#003FB1' : '#9498a8';
     });
+    var bnp = $('bnav-profil'); if (bnp) bnp.style.color = profileOpen ? '#003FB1' : '#9498a8';
   };
 
   A.syncPanels = function () {
