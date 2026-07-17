@@ -1064,11 +1064,8 @@
       <div class="col2" id="partner-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 36px;"></div>
 
       <h3 style="margin: 0 0 14px; font-size: 1.25rem; font-weight: 800; color: #0A2463;">Vos derniers échanges</h3>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;"><div style="width: 32px; height: 32px; border-radius: 9999px; background: rgba(0,201,167,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">smartphone</span></div><div style="flex: 1;"><div style="font-size: 0.86rem; font-weight: 600; color: #191B23;">Crédit MTN 5 000 FCFA</div><div style="font-size: 0.72rem; font-weight: 500; color: #9498a8;">12 juin 2026</div></div><span style="font-size: 0.82rem; font-weight: 800; color: #BA1A1A;">−500 pts</span></div>
-        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;"><div style="width: 32px; height: 32px; border-radius: 9999px; background: rgba(0,201,167,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">local_pharmacy</span></div><div style="flex: 1;"><div style="font-size: 0.86rem; font-weight: 600; color: #191B23;">Bon Pharmacie Daffé</div><div style="font-size: 0.72rem; font-weight: 500; color: #9498a8;">28 mai 2026</div></div><span style="font-size: 0.82rem; font-weight: 800; color: #BA1A1A;">−250 pts</span></div>
-        <div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;"><div style="width: 32px; height: 32px; border-radius: 9999px; background: rgba(0,201,167,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 18px;">local_gas_station</span></div><div style="flex: 1;"><div style="font-size: 0.86rem; font-weight: 600; color: #191B23;">Plein essence Total 30L</div><div style="font-size: 0.72rem; font-weight: 500; color: #9498a8;">14 mai 2026</div></div><span style="font-size: 0.82rem; font-weight: 800; color: #BA1A1A;">−800 pts</span></div>
-      </div>
+      <div id="recent-exchanges-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      <div id="recent-exchanges-empty" style="display:none;align-items:center;justify-content:center;padding:20px 0;"><span style="font-size:0.84rem;font-weight:600;color:#9498a8;">Aucun échange pour le moment.</span></div>
     </section>
 
     <!-- ============================ PROFIL ============================ -->
@@ -1787,6 +1784,7 @@
     A.renderLeaderboard();
     A.renderLedger();
     A.renderBonsZora();
+    A.renderRecentExchanges();
     A.renderAccessLog();
     A.renderDmnDocs();
     A.renderGames();
@@ -2310,6 +2308,23 @@
         '<div style="flex:1;min-width:0;"><div style="font-size:0.86rem;font-weight:600;color:#191B23;">' + esc(v.program_name || v.partner_name || '—') + '</div><div style="font-size:0.72rem;font-weight:500;color:#9498a8;">Expire le ' + expiresDate + '</div></div>' +
         '<div style="text-align:right;"><div style="font-size:0.78rem;font-weight:800;color:#0A2463;font-family:monospace;letter-spacing:0.08em;">' + esc(code || '—') + '</div><div style="' + statusStyle + '">' + (expired ? 'Expiré' : 'Actif') + '</div></div>' +
         '<button data-testid="bon-zora-my-qr-' + esc(code || i) + '" onclick="' + onqr + '" style="' + qrStyle + '">QR</button></div>';
+    }).join('');
+  };
+
+  // "Vos derniers échanges" (onglet Récompenses) — fix 17 juillet 2026 : remplace 3
+  // lignes statiques à dates fixes (identiques pour tout patient) par le vrai
+  // historique. Réutilise A._vouchers, déjà chargé par GET /bons-zora/my pour "Mes
+  // bons d'achat" (onglet Suivre) — aucun nouvel appel réseau nécessaire.
+  A.renderRecentExchanges = function () {
+    var el = $('recent-exchanges-list'); if (!el) return;
+    var arr = (A._vouchers || []).slice(0, 3);
+    show($('recent-exchanges-empty'), arr.length === 0, 'flex');
+    el.innerHTML = arr.map(function (v) {
+      var date = v.created_at ? new Date(v.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+      return '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;">' +
+        '<div style="width:32px;height:32px;border-radius:9999px;background:rgba(0,201,167,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="material-symbols-outlined" style="color:#00C9A7;font-size:18px;">redeem</span></div>' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:0.86rem;font-weight:600;color:#191B23;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(v.partner_name || 'Bon Zora') + '</div><div style="font-size:0.72rem;font-weight:500;color:#9498a8;">' + date + '</div></div>' +
+        '<span style="font-size:0.82rem;font-weight:800;color:#BA1A1A;white-space:nowrap;">−' + A.fmt(v.zora_cost || 0) + ' pts</span></div>';
     }).join('');
   };
 
@@ -4095,7 +4110,7 @@
       A._rewardsLoaded = true; A.renderAffordable(); A.renderPartners(); A.renderSidebarPartners();
     });
 
-    apiFetch('https://www.bolamu.co/api/v1/bons-zora/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.data || []; A.renderBonsZora(); } }).catch(function () {});
+    apiFetch('https://www.bolamu.co/api/v1/bons-zora/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.data || []; A.renderBonsZora(); A.renderRecentExchanges(); } }).catch(function () {});
 
     apiFetch('https://www.bolamu.co/api/v1/dmn/access-log', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data; A.renderAccessLog(); } }).catch(function () {});
 
