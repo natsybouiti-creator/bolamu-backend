@@ -376,7 +376,7 @@ async function getPatientBonsZora(patient_phone) {
 
   try {
     const result = await pool.query(
-      `SELECT id, code, partner_id, qr_payload, fcfa_value, status,
+      `SELECT id, code, partner_id, qr_payload, zora_cost, fcfa_value, status,
               generated_at, expires_at, used_at
        FROM partner_bons_zora
        WHERE patient_phone = $1
@@ -399,6 +399,7 @@ async function getPatientBonsZora(patient_phone) {
         code: row.code,
         program_id: row.partner_id,
         partner_name: partnerName,
+        zora_cost: row.zora_cost,
         fcfa_value: row.fcfa_value,
         status: row.status,
         created_at: row.generated_at,
