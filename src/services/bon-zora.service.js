@@ -476,7 +476,7 @@ async function getProgramById(id) {
         category: row.category,
         is_active: row.is_active,
         stock: row.stock,
-        image: row.image_url,
+        image_url: row.image_url,
         partner_phone: row.partner_phone,
         created_at: row.created_at
       }

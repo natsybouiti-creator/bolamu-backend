@@ -3700,6 +3700,21 @@
   };
 
   A._bonZoraDetailCurrent = null;
+  // Bandeau de couverture des modals d'échange (détail + confirmation) — photo réelle
+  // de l'offre (image_url) en cover avec dégradé sombre pour la lisibilité du texte,
+  // repli sur l'aplat navy du design system si l'offre n'a pas de photo (fix 17 juillet 2026).
+  A._bzBannerHtml = function (p, icon, label, title) {
+    var img = p && p.image_url;
+    var bg = img
+      ? "background-image:linear-gradient(to bottom, rgba(10,36,99,0.1), rgba(10,36,99,0.75)), url('" + img + "');background-size:cover;background-position:center;"
+      : 'background:#0A2463;';
+    return '<div style="height:160px;border-radius:2rem 2rem 0 0;' + bg + 'position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;">' +
+      '<span class="material-symbols-outlined" style="font-size:32px;color:rgba(255,255,255,0.7);margin-bottom:8px;">' + icon + '</span>' +
+      '<div style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.04em;">' + label + '</div>' +
+      '<div style="font-size:1.3rem;font-weight:800;color:#fff;">' + title + '</div>' +
+    '</div>';
+  };
+
   A.openBonZoraDetail = function (programId) {
     document.getElementById('modal-bon-zora-detail').classList.add('open');
     $('bz-modal-body').innerHTML = '<div style="padding:60px 20px;text-align:center;color:#9CA3AF;">Chargement...</div>';
@@ -3716,11 +3731,7 @@
         A._bonZoraDetailCurrent = p;
         var canAfford = after >= 0;
         $('bz-modal-body').innerHTML =
-          '<div style="height:160px;border-radius:2rem 2rem 0 0;background:#0A2463;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;">' +
-            '<span class="material-symbols-outlined" style="font-size:32px;color:rgba(255,255,255,0.7);margin-bottom:8px;">redeem</span>' +
-            '<div style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.04em;">Bolamu Récompenses</div>' +
-            '<div style="font-size:1.3rem;font-weight:800;color:#fff;">' + esc(p.name || 'Programme') + '</div>' +
-          '</div>' +
+          A._bzBannerHtml(p, 'redeem', 'Bolamu Récompenses', esc(p.name || 'Programme')) +
           '<div style="padding:1.5rem;">' +
             '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;">' +
               '<span style="display:inline-flex;align-items:center;gap:6px;background:#EEF2FF;color:#0A2463;font-size:0.82rem;font-weight:800;padding:6px 14px;border-radius:9999px;">' + A.fmt(p.zora_cost) + ' Zora</span>' +
@@ -3762,11 +3773,7 @@
   A.showBonZoraSuccess = function (bonData) {
     var p = A._bonZoraDetailCurrent || {};
     $('bz-modal-body').innerHTML =
-      '<div style="height:160px;border-radius:2rem 2rem 0 0;background:#0A2463;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem;">' +
-        '<span class="material-symbols-outlined" style="font-size:32px;color:rgba(255,255,255,0.7);margin-bottom:8px;">check</span>' +
-        '<div style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.04em;">Bolamu Récompenses · ' + esc(p.name || 'Programme') + '</div>' +
-        '<div style="font-size:1.3rem;font-weight:800;color:#fff;">Bon Zora généré</div>' +
-      '</div>' +
+      A._bzBannerHtml(p, 'check', 'Bolamu Récompenses · ' + esc(p.name || 'Programme'), 'Bon Zora généré') +
       '<div style="padding:1.5rem;text-align:center;">' +
         '<div id="bz-success-qr" style="width:140px;height:140px;margin:0 auto 18px;background:#fff;display:flex;align-items:center;justify-content:center;"></div>' +
         '<div style="display:inline-block;font-size:1.5rem;font-weight:800;color:#0A2463;letter-spacing:0.14em;background:#F3F3FE;border:2px dashed #C3C5D7;padding:14px 22px;border-radius:14px;margin-bottom:20px;font-family:monospace;">' + esc(bonData.code) + '</div>' +
