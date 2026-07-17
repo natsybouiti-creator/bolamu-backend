@@ -426,7 +426,7 @@ async function getPatientBonsZora(patient_phone) {
 async function getProgramsByCategory(category) {
   try {
     let query = `
-      SELECT id, name, description, zora_cost, fcfa_value, category, stock, created_at
+      SELECT id, name, description, zora_cost, fcfa_value, category, stock, created_at, image_url
       FROM partner_programs
       WHERE is_active = TRUE
         AND (stock IS NULL OR stock > 0)
