@@ -1001,7 +1001,12 @@ function toggleCamera() {
       { fps: 10, qrbox: { width: 250, height: 250 } },
       (decodedText) => {
         stopCamera();
-        document.getElementById('qr-token-input').value = decodedText;
+        let qrToken = decodedText;
+        if (typeof decodedText === 'string' && decodedText.indexOf('token=') !== -1) {
+          try { qrToken = new URL(decodedText).searchParams.get('token'); }
+          catch (e) { qrToken = decodedText.split('token=')[1]?.split('&')[0] || decodedText; }
+        }
+        document.getElementById('qr-token-input').value = qrToken;
         verifierQR();
       },
       () => {}
@@ -1046,28 +1051,26 @@ async function verifierQR() {
       return;
     }
     const d = data.data;
-    const remise = d.convention.discount_rate;
-    const cap = d.consumption.monthly_cap_fcfa;
-    const consomme = d.consumption.this_month_fcfa;
-    const restant = cap - consomme;
+    const remise = d.convention ? d.convention.discount_rate : null;
+    const cap = d.convention ? d.convention.monthly_cap_fcfa : null;
     resultEl.innerHTML = `<div style="background:rgba(0,201,167,0.1);border-radius:16px;padding:24px;border:1px solid #6ee7b7;">
       <div style="font-size:18px;font-weight:700;color:#064e3b;margin-bottom:16px;"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">check_circle</span> Patient vérifié — Abonnement actif</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
         <div style="background:white;border-radius:12px;padding:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Patient</div>
-          <div style="font-size:15px;font-weight:700;cursor:pointer;" onclick="BolamuProfileCard.open('${d.patient.phone}')">${d.patient.full_name || d.patient.phone}</div>
+          <div style="font-size:15px;font-weight:700;cursor:pointer;" onclick="BolamuProfileCard.open('${d.phone}')">${d.full_name || d.phone}</div>
         </div>
         <div style="background:white;border-radius:12px;padding:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Plan</div>
-          <div style="font-size:15px;font-weight:700;text-transform:capitalize;">${d.patient.plan}</div>
+          <div style="font-size:15px;font-weight:700;text-transform:capitalize;">${d.plan_nom || '—'}</div>
         </div>
         <div style="background:white;border-radius:12px;padding:14px;">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Remise applicable</div>
-          <div style="font-size:24px;font-weight:700;color:var(--role-labo);">${remise}%</div>
+          <div style="font-size:24px;font-weight:700;color:var(--role-labo);">${remise !== null ? remise + '%' : '—'}</div>
         </div>
         <div style="background:white;border-radius:12px;padding:14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Plafond restant</div>
-          <div style="font-size:15px;font-weight:700;">${restant.toLocaleString()} FCFA</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--texte-doux);margin-bottom:4px;">Plafond mensuel</div>
+          <div style="font-size:15px;font-weight:700;">${cap !== null ? cap.toLocaleString() + ' FCFA' : '—'}</div>
         </div>
       </div>
       <div style="background:white;border-radius:12px;padding:14px;margin-bottom:16px;font-size:14px;color:var(--texte);">
