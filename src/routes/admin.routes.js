@@ -1598,6 +1598,10 @@ router.delete('/test/cleanup', authMiddleware, adminOnly, async (req, res) => {
     // ayant déjà un solde Zora (safeDelete avale l'erreur FK).
     await safeDelete('DELETE FROM zora_ledger WHERE phone = ANY($1)', [phonesValides]);
     await safeDelete('DELETE FROM zora_points WHERE phone = ANY($1)', [phonesValides]);
+    // payments AVANT subscriptions (migration_091 : fk_payments_subscription_id) et
+    // AVANT users (fk_payments_patient_phone) -- mêmes conséquences que zora_points
+    // ci-dessus si oublié.
+    await safeDelete('DELETE FROM payments WHERE patient_phone = ANY($1)', [phonesValides]);
     await safeDelete('DELETE FROM subscriptions WHERE patient_phone = ANY($1)', [phonesValides]);
     await safeDelete('DELETE FROM documents WHERE uploaded_by = ANY($1)', [phonesValides]);
     await safeDelete('DELETE FROM users WHERE phone = ANY($1)', [phonesValides]);
