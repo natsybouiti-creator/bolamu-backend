@@ -481,3 +481,4 @@ Lancer dans cet ordre :
 8. **Imports depuis les bons modules** — vérifier pattern depuis fichier existant
 9. **Migrations idempotentes** — `CREATE TABLE IF NOT EXISTS` systématique
 10. **Secrets jamais loggés** — ni dans Winston, ni dans Sentry payloads
+11. **Catalogue SSP : `ssp_catalog` uniquement** — `medicaments_catalogue` (table morte, 0 requête dans le code) archivée en `_archive_medicaments_catalogue` par migration_032 (18 juillet 2026)
