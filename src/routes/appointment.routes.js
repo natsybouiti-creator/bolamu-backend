@@ -323,9 +323,15 @@ router.post('/:id/validate', authMiddleware, doctorOnly, async (req, res) => {
     const { id } = req.params;
     const { session_code } = req.body;
     try {
-        const result = await pool.query(`SELECT session_code FROM appointments WHERE id = $1`, [id]);
+        const result = await pool.query(`SELECT session_code, doctor_id FROM appointments WHERE id = $1`, [id]);
         if (!result.rows.length || result.rows[0].session_code !== session_code) {
             return res.status(403).json({ success: false, message: "Code invalide" });
+        }
+        const userPhone = normalizePhone(req.user?.phone || '');
+        const doc = await pool.query(`SELECT id FROM doctors WHERE phone = $1`, [userPhone]);
+        const isAssignedDoctor = doc.rows.length > 0 && doc.rows[0].id === result.rows[0].doctor_id;
+        if (!isAssignedDoctor) {
+            return res.status(403).json({ success: false, message: "Vous n'êtes pas le médecin assigné à ce rendez-vous." });
         }
         await pool.query(`UPDATE appointments SET status = 'termine', validated_at = NOW() WHERE id = $1`, [id]);
         
@@ -358,6 +364,22 @@ router.post('/:id/validate', authMiddleware, doctorOnly, async (req, res) => {
 router.post('/:id/open', authMiddleware, async (req, res) => {
   const { id } = req.params;
   try {
+    const appt = await pool.query(`SELECT doctor_id FROM appointments WHERE id = $1`, [id]);
+    if (!appt.rows.length)
+      return res.status(404).json({ success: false, message: 'RDV introuvable' });
+
+    const userPhone = normalizePhone(req.user?.phone || '');
+    const userRole = req.user?.role;
+    const isAdmin = userRole === 'admin' || userRole === 'content_admin';
+    let isAssignedDoctor = false;
+    if (userRole === 'doctor') {
+      const doc = await pool.query(`SELECT id FROM doctors WHERE phone = $1`, [userPhone]);
+      isAssignedDoctor = doc.rows.length > 0 && doc.rows[0].id === appt.rows[0].doctor_id;
+    }
+    if (!isAssignedDoctor && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Accès refusé.' });
+    }
+
     const result = await pool.query(
       `UPDATE appointments
        SET status = 'en_cours', updated_at = NOW()
@@ -365,8 +387,6 @@ router.post('/:id/open', authMiddleware, async (req, res) => {
        RETURNING *`,
       [id]
     );
-    if (!result.rows.length)
-      return res.status(404).json({ success: false, message: 'RDV introuvable' });
     return res.json({ success: true, appointment: result.rows[0] });
   } catch (e) {
     console.error('[openConsultation]', e.message);
