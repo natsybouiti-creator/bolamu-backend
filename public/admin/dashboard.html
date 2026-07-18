@@ -2329,7 +2329,9 @@ async function validerSEPA(phone) {
 async function loadConventions() {
   try {
     const d = await api('/admin/conventions');
-    const rows = Array.isArray(d) ? d : (d.conventions || []);
+    // Pre-existant : l'API renvoie {success, data:[...]}, pas {conventions:[...]}
+    // -- la liste des conventions n'affichait jamais rien, meme avec des lignes reelles en base.
+    const rows = Array.isArray(d) ? d : (d.data || []);
     document.getElementById('tbody-conventions').innerHTML =
       rows.length ? rows.map(r => `<tr>
         <td>${r.partner_phone}</td>
@@ -2348,8 +2350,26 @@ async function loadConventions() {
   }
 }
 
-function openNewConvention() {
-  toast('Module création convention — à venir', 'info');
+function openNewConvention(){
+  document.getElementById('modal-body').innerHTML=`<div class="modal-title">Nouvelle convention</div><div class="modal-sub">Tiers payant pharmacie/laboratoire — le taux de remise est repris automatiquement depuis platform_config, jamais saisi manuellement</div>
+    <div class="mf"><label>Téléphone du partenaire</label><input class="mi" id="conv-partner-phone" placeholder="+242..."></div>
+    <div class="mf"><label>Type de partenaire</label><select class="mi" id="conv-partner-type"><option value="pharmacie">Pharmacie</option><option value="laboratoire">Laboratoire</option></select></div>
+    <div class="modal-acts"><button class="mbtn mbtn-cancel" data-ononclick="closeModal">Annuler</button><button class="mbtn mbtn-violet" data-ononclick="saveConvention">Créer</button></div>`;
+  openModal();
+}
+async function saveConvention(){
+  const btn=document.querySelector('[data-ononclick="saveConvention"]');
+  if(btn&&btn.disabled)return;
+  const partnerPhone=document.getElementById('conv-partner-phone').value.trim();
+  const partnerType=document.getElementById('conv-partner-type').value;
+  if(!partnerPhone){alert('Téléphone du partenaire requis');return;}
+  if(btn)btn.disabled=true;
+  try{
+    const d=await api('/admin/conventions',{method:'POST',body:JSON.stringify({partner_phone:partnerPhone,partner_type:partnerType})});
+    if(d.success){closeModal();toast('Convention créée <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span>');loadConventions();}
+    else toast(d.message||'Erreur','err');
+  }catch(e){toast('Erreur reseau','err');}
+  finally{if(btn)btn.disabled=false;}
 }
 
 /* -----------------------------------
