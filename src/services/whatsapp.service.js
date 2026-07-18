@@ -106,6 +106,21 @@ const TEMPLATE_TITRES = {
   'bolamu_notification_fallback': 'Notification Bolamu'
 };
 
+// Templates critiques JAMAIS skippés par la préférence whatsapp_notif_enabled :
+// identifiants, mots de passe, codes d'accès, liens de connexion, alertes urgence.
+const CRITICAL_TEMPLATES = new Set([
+  'bolamu_bienvenue_patient_v4',      // contient le mot de passe
+  'bolamu_bienvenue_medecin_v4',      // contient le magic link
+  'bolamu_bienvenue_pharmacie',       // contient le magic link
+  'bolamu_bienvenue_laboratoire',     // contient le magic link
+  'bolamu_secretaire_bienvenue_v4',   // annonce le mot de passe temporaire
+  'bolamu_code_acces',                // code d'accès / mot de passe temporaire
+  'bolamu_magic_link',                // lien de connexion
+  'bolamu_mot_de_passe_oublie',       // réinitialisation mot de passe
+  'bolamu_inscription_patient_id',    // identifiant patient
+  'bolamu_urgence_dossier_consulte'   // alerte sécurité urgence
+]);
+
 async function sendAutoMessage(phone, templateName, params) {
   try {
     if (!WAHA_BASE_URL || !WAHA_API_KEY) {
@@ -114,6 +129,19 @@ async function sendAutoMessage(phone, templateName, params) {
     }
 
     const formattedPhone = normalizePhone(phone);
+
+    // Vérifier préférence WhatsApp avant envoi (sauf templates critiques)
+    if (!CRITICAL_TEMPLATES.has(templateName)) {
+      const prefCheck = await pool.query(
+        'SELECT whatsapp_notif_enabled FROM users WHERE phone = $1',
+        [formattedPhone]
+      );
+      if (prefCheck.rows.length && prefCheck.rows[0].whatsapp_notif_enabled === false) {
+        console.log(`[WhatsApp] Envoi skippé (préférence désactivée) pour ${formattedPhone}`);
+        return false;
+      }
+    }
+
     
     // Construire le message selon le template
     let message = '';
