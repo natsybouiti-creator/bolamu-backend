@@ -15,7 +15,7 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 ## INFRASTRUCTURE WAHA
 
 **Stack** : WAHA (WhatsApp HTTP API) — moteur GOWS — hébergé sur Render.
-**Numéro cible (prod)** : SIM dédiée Bolamu (MTN ou Airtel Congo).
+**Numéro WhatsApp officiel Bolamu (mis à jour le 18 juillet 2026)** : +242069735418, session WAHA `Communaute` — adopté comme numéro officiel définitif, aucune bascule technique prévue ni nécessaire (voir « Procédure de bascule » ci-dessous, conservée pour référence uniquement si un changement de numéro devait un jour être décidé).
 
 ### Schéma d'architecture globale
 
@@ -38,7 +38,7 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 
 ### Règles fondamentales infra
 
-- **Un seul numéro expéditeur** : la SIM dédiée Bolamu.
+- **Un seul numéro expéditeur** : +242069735418 (numéro WhatsApp officiel Bolamu, session WAHA `Communaute`).
 - **Un seul service d'envoi** : `whatsapp.service.js` → `sendAutoMessage(phone, templateName, params)`.
 - **Un seul appel HTTP** : `POST /api/sendText` vers WAHA avec `X-Api-Key`.
 - **Fallback** : si WAHA répond erreur → log erreur + INSERT `notifications` avec `sent_at = NULL`.
@@ -46,7 +46,9 @@ Tout nouveau template doit être ajouté ici AVANT d'être implémenté dans `sr
 - **Session persistée** : disque Render `/app/.sessions` — pas de QR à rescanner après redémarrage.
 - **Meta API (`whatsapp.service.META.DEPRECATED.js`, `graph.facebook.com`) est abandonnée** — WAHA (`whatsapp.service.js`) est le seul canal WhatsApp actif. **Correction de nom de fichier le 7 juillet 2026** : une version antérieure de ce document attribuait par erreur le nom `whatsapp.service.js` au fichier Meta abandonné — c'est l'inverse, `whatsapp.service.js` est le fichier WAHA actif, le fichier Meta mort porte l'extension `.META.DEPRECATED.js`. Un seul appel résiduel à l'ancienne fonction Meta (`sendWhatsAppTemplate()`) subsiste, en commentaire, dans `elonga-events.service.js:282` — jamais exécuté.
 
-### Procédure de bascule vers la SIM dédiée
+### Procédure de bascule (référence uniquement — non applicable actuellement)
+
+**Non nécessaire aujourd'hui** : +242069735418 est désormais le numéro WhatsApp officiel Bolamu (décision du 18 juillet 2026), la session WAHA `Communaute` reste inchangée. Cette procédure n'est conservée que pour mémoire, si un changement de numéro devait un jour être décidé.
 
 1. Insérer la SIM dans un téléphone Android (pas iPhone — incompatible).
 2. Créer un compte WhatsApp classique sur ce numéro.
@@ -332,3 +334,4 @@ ORDER BY created_at DESC LIMIT 3;
 - 25 juin 2026 : Ajout templates Boucle 6 (bolamu_voucher_genere, bolamu_voucher_utilise)
 - 4 juillet 2026 : Fusion de l'infrastructure WAHA (schéma architecture, procédure bascule SIM, schéma SQL table notifications) depuis "ARCHITECTURE_NOTIFICATIONS_BOLAMU (1).md" (désormais SUPERSEDED) — Meta API confirmée abandonnée, WAHA seul canal actif
 - 7 juillet 2026 : Correction du nom de fichier WhatsApp actif (`whatsapp.service.js`, pas `whatsapp-web.service.js` qui n'existe pas) et du nom du fichier Meta abandonné (`whatsapp.service.META.DEPRECATED.js`, inversé par erreur dans une version antérieure) ; ajout des templates `bolamu_voucher_genere`/`bolamu_voucher_utilise` au catalogue Boucle 6 (réellement actifs, manquaient jusqu'ici) ; `bolamu_bon_zora_genere`/`bolamu_bon_zora_utilise` reclassés CIBLE À IMPLÉMENTER (non appelés à ce jour, à distinguer explicitement des templates voucher) ; ajout des sections Canal Socket.io (`notifyLite()`) et Canal Push (VAPID, état réel) absentes des versions antérieures
+- 18 juillet 2026 : +242069735418 adopté comme numéro WhatsApp officiel Bolamu définitif (n'est plus un numéro personnel temporaire) — session WAHA `Communaute` inchangée, aucune bascule technique nécessaire ; « Procédure de bascule » reclassée référence uniquement, non applicable actuellement

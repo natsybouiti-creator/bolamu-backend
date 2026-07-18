@@ -270,7 +270,7 @@ consent, upload, symptoms, zora, events, leaderboard, streaks, sport-groups, cha
 ### /notification-engineer — WhatsApp · Push · SMS
 **Mission :** Fiabilité des notifications multi-canaux, templates Meta, fallbacks.
 **Canal principal :** WhatsApp Business API (`sendWhatsAppTemplate()` dans whatsapp.service.js)
-**Numéro API :** +242 06 520 7273 (headless — uniquement piloté par l'API)
+**Numéro WhatsApp officiel Bolamu :** +242069735418 (session WAHA "Communaute", voir `docs/ARCHITECTURE_NOTIFICATIONS.md`) — pas de bascule technique prévue
 **État templates :** 22 PENDING, 1 APPROVED (hello_world), bolamu_code_acces BLOQUÉ
   → Débloquer après vérification entreprise Meta (soumise 12 juin 2026)
 **Règle absolue :** `sendWhatsAppTemplate()` dans whatsapp.service.js — jamais de SMS direct
