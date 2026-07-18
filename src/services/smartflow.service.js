@@ -122,14 +122,16 @@ async function enregistrerHorsCatalogue(data) {
       return { success: false, message: 'Patient non actif' };
     }
     
-    // Détecter si salarié grand compte
+    // Détecter si salarié grand compte (company_employees.contract_id/employee_phone,
+    // pas company_contract_id/phone -- colonnes inexistantes, requête échouait
+    // silencieusement dans le catch, transaction jamais enregistrée)
     const employeeCheck = await client.query(
-      `SELECT company_contract_id FROM company_employees 
-       WHERE phone = $1 AND status = 'active'`,
+      `SELECT contract_id FROM company_employees
+       WHERE employee_phone = $1 AND status = 'active'`,
       [patient_phone]
     );
-    
-    const company_contract_id = employeeCheck.rows.length > 0 ? employeeCheck.rows[0].company_contract_id : null;
+
+    const company_contract_id = employeeCheck.rows.length > 0 ? employeeCheck.rows[0].contract_id : null;
     
     // Insérer la transaction hors catalogue
     const result = await client.query(
