@@ -530,22 +530,30 @@ async function calculerICP(contract_id, mois) {
 
     const avg_wellness = nb_actifs > 0 ? totalWellnessPoints / nb_actifs : 0;
 
-    // 3. Compter consultations du mois (actes SSP via clearing_transactions)
+    // 3. Compter consultations du mois (actes SSP via clearing_transactions) --
+    // scopé aux employés actifs de CE contrat uniquement. Avant : aucun filtre
+    // par entreprise, chaque contrat comptait les consultations de TOUTE la
+    // plateforme divisées par son seul effectif -- score ICP invalide, fuite de
+    // volume d'activité d'une entreprise vers le rapport d'une autre.
     const consultationsResult = await client.query(
       `SELECT COUNT(*) as nb_consultations
-       FROM clearing_transactions
-       WHERE reference_type = 'appointment'
-       AND TO_CHAR(created_at, 'YYYY-MM') = $1`,
-      [mois]
+       FROM clearing_transactions ct
+       JOIN appointments a ON a.id = ct.reference_id AND ct.reference_type = 'appointment'
+       JOIN company_employees ce ON ce.employee_phone = a.patient_phone
+       WHERE ce.contract_id = $1 AND ce.status = 'active'
+       AND TO_CHAR(ct.created_at, 'YYYY-MM') = $2`,
+      [contract_id, mois]
     );
     const nb_consultations = parseInt(consultationsResult.rows[0].nb_consultations) || 0;
 
-    // 4. Compter ordonnances du mois
+    // 4. Compter ordonnances du mois -- même scoping
     const ordonnancesResult = await client.query(
       `SELECT COUNT(*) as nb_ordonnances
-       FROM prescriptions
-       WHERE TO_CHAR(created_at, 'YYYY-MM') = $1`,
-      [mois]
+       FROM prescriptions p
+       JOIN company_employees ce ON ce.employee_phone = p.patient_phone
+       WHERE ce.contract_id = $1 AND ce.status = 'active'
+       AND TO_CHAR(p.created_at, 'YYYY-MM') = $2`,
+      [contract_id, mois]
     );
     const nb_ordonnances = parseInt(ordonnancesResult.rows[0].nb_ordonnances) || 0;
 
