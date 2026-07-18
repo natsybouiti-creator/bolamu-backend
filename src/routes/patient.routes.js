@@ -26,16 +26,16 @@ const handleMulterError = (err, req, res, next) => {
   next(err);
 };
 
-const register = patientController.registerPatient || ((req, res) => {
-    res.status(501).json({ success: false, message: "Fonction d'inscription non configurée" });
-});
-
 const subscription = patientController.getSubscription || ((req, res) => {
     res.status(501).json({ success: false, message: "Fonction d'abonnement non configurée" });
 });
 
-// --- ROUTES PUBLIQUES ---
-router.post('/register', register);
+// NB : inscription patient publique = POST /api/v1/auth/register/patient (auth.routes.js).
+// L'ancienne route POST /register ici exposait patientController.registerPatient — la même
+// fonction qu'utilise POST /agent/inscrire-patient — SANS authMiddleware/requireAgent,
+// permettant à quiconque de créer un compte patient actif pour n'importe quel numéro sans
+// aucune vérification. Supprimée (doublon non utilisé par le frontend ni les tests) ;
+// la fonction reste légitimement appelée en interne par agent.routes.js (agent authentifié).
 
 // --- ROUTES PROTÉGÉES ---
 router.get('/subscription', authMiddleware, subscription);
