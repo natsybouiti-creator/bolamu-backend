@@ -728,6 +728,21 @@
 
       </div>
 
+      <!-- Modal Partenaires Bolamu -->
+      <div id="modal-partner-programs" class="feed-modal-overlay" style="display:none">
+        <div class="feed-modal-panel">
+          <div class="feed-modal-header">
+            <h2>Partenaires Bolamu</h2>
+            <button class="feed-modal-close" onclick="A.closeFeedModal('modal-partner-programs')">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="feed-modal-body" id="partner-programs-list">
+            <!-- Injecté par JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- Modal créer post -->
       <div id="modal-create-post" class="feed-modal-overlay" style="display:none">
         <div class="feed-modal-panel">
@@ -1745,15 +1760,46 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   };
 
   A.comingSoon = function () { A.showToast('Bientôt disponible'); };
-  A.toastPartenaire = function () { A.showToast('Bientôt disponible'); };
 
-  // Réutilise A.partners (mêmes données que la section Récompenses du dashboard
-  // patient) — pas de nouvelle source de données pour ce bloc dans les dashboards pro.
-  A.partners = [
-    { icon: 'smartphone', cat: 'Électronique', name: 'Smartphone Tecno Spark' },
-    { icon: 'watch', cat: 'Électronique', name: 'Montre connectée' },
-    { icon: 'headphones', cat: 'Électronique', name: 'Écouteurs sans fil' }
-  ];
+  // Offres réelles depuis GET /bons-zora/programs (partner_programs) -- avant :
+  // A.partners était une liste statique factice ("Smartphone Tecno Spark"...),
+  // jamais reliée à la moindre donnée réelle, le clic n'ouvrait qu'un toast
+  // "Bientôt disponible". Même source que l'onglet Récompenses du dashboard patient.
+  A.partners = [];
+  A.loadPartnerPrograms = function () {
+    feedApiFetch(API + '/bons-zora/programs', {}).then(function (r) { return r && r.json(); }).then(function (d) {
+      if (d && d.success && Array.isArray(d.data)) {
+        A.partners = d.data.map(function (p) {
+          return { id: p.id, name: p.name, desc: p.description || '', cat: p.category || 'Partenaire', cost: p.zora_cost, img: p.image_url || null };
+        });
+      }
+      A.renderSidebarPartners();
+    }).catch(function (err) { console.error('[bons-zora] loadPartnerPrograms:', err); A.renderSidebarPartners(); });
+  };
+
+  A.openPartnerPrograms = function () {
+    var modal = $('modal-partner-programs');
+    if (modal) modal.style.display = 'flex';
+    var list = $('partner-programs-list');
+    if (!list) return;
+    if (!A.partners || !A.partners.length) {
+      list.innerHTML = '<p style="color:#434654;text-align:center;padding:1rem 0;">Aucune offre partenaire disponible pour le moment.</p>';
+      return;
+    }
+    list.innerHTML = A.partners.map(function (p) {
+      var imgStyle = p.img ? ('background-image:url(\'' + p.img + '\');background-size:cover;background-position:center;') : '';
+      return '<div style="display:flex;gap:0.75rem;align-items:center;padding:0.75rem 0;border-bottom:1px solid #EDEDF8;">' +
+        '<div style="width:48px;height:48px;border-radius:0.75rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#F5F6FA;' + imgStyle + '">' +
+          (p.img ? '' : '<span class="material-symbols-outlined" style="color:#003FB1;">redeem</span>') +
+        '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:700;color:#0A2463;">' + A.escapeHtml(p.name) + '</div>' +
+          (p.desc ? '<div style="font-size:0.8rem;color:#434654;">' + A.escapeHtml(p.desc) + '</div>' : '') +
+          '<div style="font-size:0.75rem;color:#00C9A7;font-weight:700;margin-top:2px;">' + A.escapeHtml(p.cat) + (p.cost ? ' · ' + p.cost + ' Zora' : '') + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  };
 
   function feedApiFetch(url, options) {
     options = options || {};
@@ -1769,7 +1815,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
     A.loadFeed(true);
     A.loadStories();
     A.loadSuggestions();
-    A.renderSidebarPartners();
+    A.loadPartnerPrograms();
 
     if (!A._feedInitialized) {
       A._feedInitialized = true;
@@ -2358,9 +2404,11 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   A.renderSidebarPartners = function () {
     var list = $('sidebar-partners-list');
     if (!list || !A.partners) return;
+    if (!A.partners.length) { list.innerHTML = '<p style="color:#434654;font-size:0.85rem;">Aucune offre pour le moment.</p>'; return; }
     list.innerHTML = A.partners.slice(0, 3).map(function (p) {
-      return '<div class="partner-item" onclick="A.toastPartenaire()">' +
-        '<div class="partner-icon"><span class="material-symbols-outlined">' + A.escapeHtml(p.icon) + '</span></div>' +
+      var imgStyle = p.img ? ('background-image:url(\'' + p.img + '\');background-size:cover;background-position:center;') : '';
+      return '<div class="partner-item" onclick="A.openPartnerPrograms()">' +
+        '<div class="partner-icon" style="' + imgStyle + '">' + (p.img ? '' : '<span class="material-symbols-outlined">redeem</span>') + '</div>' +
         '<div>' +
           '<div class="partner-name">' + A.escapeHtml(p.name) + '</div>' +
           '<div class="partner-cat">' + A.escapeHtml(p.cat) + '</div>' +
