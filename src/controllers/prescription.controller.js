@@ -240,6 +240,14 @@ async function deliverPrescription(req, res) {
 // ─── HISTORIQUE DÉLIVRANCES PAR PHARMACIE ────────────────────────────────────
 async function getPrescriptionsByPharmacie(req, res) {
     const phone = normalizePhone(req.params.phone || '');
+    const userPhone = normalizePhone(req.user?.phone || '');
+    const userRole = req.user?.role;
+
+    const isOwnPharmacie = userRole === 'pharmacie' && userPhone === phone;
+    const isAdmin = userRole === 'admin' || userRole === 'content_admin';
+    if (!isOwnPharmacie && !isAdmin) {
+        return res.status(403).json({ success: false, message: 'Accès refusé.' });
+    }
 
     try {
         const result = await pool.query(
@@ -264,6 +272,25 @@ async function getPrescriptionsByPharmacie(req, res) {
 // ─── ORDONNANCES D'UN PATIENT ─────────────────────────────────────────────────
 async function getPrescriptionsByPatient(req, res) {
     const phone = normalizePhone(req.params.phone || '');
+    const userPhone = normalizePhone(req.user?.phone || '');
+    const userRole = req.user?.role;
+
+    const isPatient = userPhone === phone;
+    const isAdmin = userRole === 'admin' || userRole === 'content_admin';
+
+    let isTreatingDoctor = false;
+    if (!isPatient && !isAdmin && userRole === 'doctor') {
+        const check = await pool.query(
+            `SELECT COUNT(*) FROM appointments
+             WHERE patient_phone = $1 AND doctor_id = (SELECT id FROM doctors WHERE phone = $2)`,
+            [phone, userPhone]
+        );
+        isTreatingDoctor = parseInt(check.rows[0].count) > 0;
+    }
+
+    if (!isPatient && !isAdmin && !isTreatingDoctor) {
+        return res.status(403).json({ success: false, message: 'Accès refusé.' });
+    }
 
     try {
         const result = await pool.query(

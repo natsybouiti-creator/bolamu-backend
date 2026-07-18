@@ -240,6 +240,13 @@ router.post('/book', authMiddleware, async (req, res) => {
 // 3. RDV Médecin
 router.get('/doctor/:phone', authMiddleware, async (req, res) => {
     const phone = normalizePhone(req.params.phone || '');
+    const userPhone = normalizePhone(req.user?.phone || '');
+    const userRole = req.user?.role;
+    const isOwnDoctor = userRole === 'doctor' && userPhone === phone;
+    const isAdmin = userRole === 'admin' || userRole === 'content_admin';
+    if (!isOwnDoctor && !isAdmin) {
+        return res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Accès refusé.' } });
+    }
     const { page = 1, per_page = 20 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(per_page);
     try {
@@ -286,6 +293,13 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
 router.get('/patient/:phone', authMiddleware, async (req, res) => {
   try {
     const phone = normalizePhone(req.params.phone || '');
+    const userPhone = normalizePhone(req.user?.phone || '');
+    const userRole = req.user?.role;
+    const isOwnPatient = userPhone === phone;
+    const isAdmin = userRole === 'admin' || userRole === 'content_admin';
+    if (!isOwnPatient && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Accès refusé.' });
+    }
     const result = await pool.query(
       `SELECT a.id, a.patient_phone, a.status, a.session_code,
               a.appointment_date, a.appointment_time, a.created_at,
