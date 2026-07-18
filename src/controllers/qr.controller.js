@@ -316,4 +316,70 @@ async function accessEmergencyDossier(req, res) {
   }
 }
 
-module.exports = { generateQRToken, verifyQRToken, generatePatientQR, accessEmergencyDossier };
+// ─── ACCÉDER AU PROFIL PUBLIC VIA QR (public, pas d'auth) ──────────────────
+// Contrairement à /urgence (dossier médical), cette route n'expose aucune
+// donnée médicale ni le solde Zora — juste de quoi identifier visuellement
+// l'adhérent (avatar, nom, ID Bolamu, statut de compte).
+async function accessPublicProfil(req, res) {
+  const { token } = req.query;
+  if (!token) {
+    return res.status(400).json({ success: false, message: 'Token manquant.' });
+  }
+  try {
+    const tokenRes = await pool.query(
+      `SELECT qt.expires_at, u.phone as patient_phone, u.full_name, u.photo_url, u.bolamu_id, u.is_active
+       FROM qr_tokens qt
+       JOIN users u ON u.phone = qt.user_phone
+       WHERE qt.token = $1`,
+      [token]
+    );
+
+    if (tokenRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'QR Code invalide.' });
+    }
+
+    const row = tokenRes.rows[0];
+    if (new Date() > new Date(row.expires_at)) {
+      return res.status(410).json({ success: false, message: 'QR Code expiré. Demandez à l\'adhérent d\'en générer un nouveau.' });
+    }
+
+    let statut = 'inactif';
+    if (row.is_active === false) {
+      statut = 'suspendu';
+    } else {
+      const subRes = await pool.query(
+        `SELECT status, expires_at FROM subscriptions WHERE patient_phone = $1 ORDER BY id DESC LIMIT 1`,
+        [row.patient_phone]
+      );
+      if (subRes.rows.length === 0) {
+        statut = 'inactif';
+      } else {
+        const sub = subRes.rows[0];
+        if (sub.status === 'active' && new Date(sub.expires_at) >= new Date()) {
+          statut = 'actif';
+        } else if (sub.status === 'suspended') {
+          statut = 'suspendu';
+        } else if (sub.status === 'pending') {
+          statut = 'en_attente';
+        } else {
+          statut = 'expire';
+        }
+      }
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        full_name: row.full_name,
+        photo_url: row.photo_url || null,
+        bolamu_id: row.bolamu_id || null,
+        statut
+      }
+    });
+  } catch (error) {
+    console.error('[accessPublicProfil] Erreur :', error.message);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+}
+
+module.exports = { generateQRToken, verifyQRToken, generatePatientQR, accessEmergencyDossier, accessPublicProfil };

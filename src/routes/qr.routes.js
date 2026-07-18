@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
-const { generateQRToken, verifyQRToken, generatePatientQR, accessEmergencyDossier } = require('../controllers/qr.controller');
+const { generateQRToken, verifyQRToken, generatePatientQR, accessEmergencyDossier, accessPublicProfil } = require('../controllers/qr.controller');
 
 // Patient : génère son QR Code (authentifié)
 router.get('/generate', authMiddleware, generateQRToken);
@@ -15,5 +15,8 @@ router.get('/emergency/generate', authMiddleware, generatePatientQR);
 
 // Public : accède au dossier urgence via QR (pas d'auth)
 router.get('/urgence', accessEmergencyDossier);
+
+// Public : accède au profil carte (avatar/nom/ID/statut) via QR (pas d'auth)
+router.get('/profil', accessPublicProfil);
 
 module.exports = router;

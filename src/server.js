@@ -322,6 +322,11 @@ app.get('/urgence', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'public', 'urgence.html'));
 });
 
+// Servir profil-carte.html pour la route /profil (QR Accueil patient, public)
+app.get('/profil', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'public', 'profil-carte.html'));
+});
+
 // Servir login.html pour la route /login (magic link onboarding)
 app.get('/login', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'public', 'login.html'));
