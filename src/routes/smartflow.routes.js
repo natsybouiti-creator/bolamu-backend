@@ -632,6 +632,8 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
   const client = await pool.connect();
 
   try {
+    await client.query('BEGIN');
+
     // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await client.query(
       `SELECT cc.id
@@ -647,8 +649,6 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
     }
 
     const contractId = contractResult.rows[0].id;
-
-    await client.query('BEGIN');
 
     // Récupérer la configuration des catégories RH
     const configResult = await client.query(
@@ -784,6 +784,8 @@ router.post('/smartflow/rh/config/categories', authMiddleware, rhOnly, async (re
   const client = await pool.connect();
 
   try {
+    await client.query('BEGIN');
+
     // Récupérer le contrat de l'entreprise du RH (chercher sur contact_phone OU rh_phone)
     const contractResult = await client.query(
       `SELECT cc.id
@@ -799,8 +801,6 @@ router.post('/smartflow/rh/config/categories', authMiddleware, rhOnly, async (re
     }
 
     const contractId = contractResult.rows[0].id;
-
-    await client.query('BEGIN');
 
     for (const cat of categories) {
       const { categorie_rh, pourcentage_salarie, plafond_mensuel } = cat;
