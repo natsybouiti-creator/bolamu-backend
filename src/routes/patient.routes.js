@@ -112,6 +112,161 @@ router.get('/profil', authMiddleware, async (req, res) => {
     }
 });
 
+// PATCH /api/v1/patients/profile - Mettre à jour nom (photo via POST /photo existant).
+// Le téléphone n'est PAS modifiable ici : 70 des 78 FK référençant users(phone) n'ont
+// pas ON UPDATE CASCADE (vérifié en base) -- un changement de numéro romprait la FK
+// pour tout utilisateur ayant ne serait-ce qu'un RDV, une notification ou un point
+// Zora. Rendre le téléphone éditable nécessite une migration dédiée (ajout de
+// ON UPDATE CASCADE sur ~70 contraintes), hors périmètre de ce câblage de menu.
+router.patch('/profile', authMiddleware, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const { full_name } = req.body;
+
+        if (!full_name || !full_name.trim()) {
+            return res.status(400).json({ success: false, message: 'full_name requis' });
+        }
+
+        const result = await pool.query(
+            `UPDATE users SET full_name = $1 WHERE phone = $2 AND role = 'patient' RETURNING phone, full_name, photo_url`,
+            [full_name.trim(), phone]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({ success: false, message: 'Patient introuvable' });
+        }
+
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        console.error('[patient-profile-patch]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+// GET/PATCH /api/v1/patients/notification-prefs
+router.get('/notification-prefs', authMiddleware, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const result = await pool.query(
+            `SELECT whatsapp_notif_enabled, push_notif_enabled FROM users WHERE phone = $1`,
+            [phone]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Introuvable' });
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        console.error('[notification-prefs-get]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+router.patch('/notification-prefs', authMiddleware, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const { whatsapp_notif_enabled, push_notif_enabled } = req.body;
+
+        if (whatsapp_notif_enabled !== undefined && typeof whatsapp_notif_enabled !== 'boolean') {
+            return res.status(400).json({ success: false, message: 'whatsapp_notif_enabled doit être un booléen' });
+        }
+        if (push_notif_enabled !== undefined && typeof push_notif_enabled !== 'boolean') {
+            return res.status(400).json({ success: false, message: 'push_notif_enabled doit être un booléen' });
+        }
+
+        const updates = [];
+        const values = [];
+        let n = 1;
+        if (whatsapp_notif_enabled !== undefined) { updates.push(`whatsapp_notif_enabled = $${n++}`); values.push(whatsapp_notif_enabled); }
+        if (push_notif_enabled !== undefined) { updates.push(`push_notif_enabled = $${n++}`); values.push(push_notif_enabled); }
+        if (!updates.length) return res.status(400).json({ success: false, message: 'Aucun champ à mettre à jour' });
+
+        values.push(phone);
+        const result = await pool.query(
+            `UPDATE users SET ${updates.join(', ')} WHERE phone = $${n} RETURNING whatsapp_notif_enabled, push_notif_enabled`,
+            values
+        );
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        console.error('[notification-prefs-patch]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+// PATCH /api/v1/patients/language
+router.patch('/language', authMiddleware, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const { language } = req.body;
+        if (!['fr', 'ln'].includes(language)) {
+            return res.status(400).json({ success: false, message: "language doit être 'fr' ou 'ln'" });
+        }
+        const result = await pool.query(
+            `UPDATE users SET preferred_language = $1 WHERE phone = $2 RETURNING preferred_language`,
+            [language, phone]
+        );
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        console.error('[language-patch]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+// GET /api/v1/patients/data-export — Export JSON des données personnelles (BHP,
+// droit d'accès). Exclut password_hash et toute donnée d'un tiers.
+router.get('/data-export', authMiddleware, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const [profile, subs, appts, prescriptions, zoraLedger] = await Promise.all([
+            pool.query(`SELECT phone, full_name, first_name, last_name, gender, birth_date, age, city, neighborhood, bolamu_id, member_code, created_at FROM users WHERE phone = $1`, [phone]),
+            pool.query(`SELECT id, plan, amount_fcfa, status, started_at, expires_at, created_at FROM subscriptions WHERE patient_phone = $1 ORDER BY id`, [phone]),
+            pool.query(`SELECT id, doctor_id, appointment_date, appointment_time, status, created_at FROM appointments WHERE patient_phone = $1 ORDER BY id`, [phone]),
+            pool.query(`SELECT id, doctor_phone, medications, instructions, status, created_at FROM prescriptions WHERE patient_phone = $1 ORDER BY id`, [phone]),
+            pool.query(`SELECT id, points, category, action_type, earned_at FROM zora_ledger WHERE phone = $1 ORDER BY id`, [phone])
+        ]);
+
+        res.json({
+            success: true,
+            exported_at: new Date().toISOString(),
+            data: {
+                profile: profile.rows[0] || null,
+                subscriptions: subs.rows,
+                appointments: appts.rows,
+                prescriptions: prescriptions.rows,
+                zora_ledger: zoraLedger.rows
+            }
+        });
+    } catch (err) {
+        console.error('[data-export]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+// POST /api/v1/patients/deletion-request — Demande de suppression de compte (BHP,
+// droit à l'effacement). Insert-only : le traitement effectif reste une action
+// admin manuelle (soft delete), jamais un DELETE immédiat déclenché par le patient.
+router.post('/deletion-request', authMiddleware, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const existing = await pool.query(
+            `SELECT id FROM account_deletion_requests WHERE phone = $1 AND status = 'pending'`,
+            [phone]
+        );
+        if (existing.rows.length) {
+            return res.status(409).json({ success: false, message: 'Une demande est déjà en cours de traitement' });
+        }
+        const result = await pool.query(
+            `INSERT INTO account_deletion_requests (phone, requested_at, status) VALUES ($1, NOW(), 'pending') RETURNING id, requested_at`,
+            [phone]
+        );
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account_deletion_requested', $1, 'account_deletion_requests', $2, '{}'::jsonb)`,
+            [phone, result.rows[0].id]
+        ).catch(() => {});
+        res.status(201).json({ success: true, message: 'Demande enregistrée. Notre équipe la traitera sous peu.', data: result.rows[0] });
+    } catch (err) {
+        console.error('[deletion-request]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
 router.get('/check-subscription', authMiddleware, async (req, res) => {
     try {
         const phone = normalizePhone(req.user.phone);
