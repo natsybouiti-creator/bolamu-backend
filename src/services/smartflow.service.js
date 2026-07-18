@@ -259,14 +259,19 @@ async function getStatsPartenaire(prestataire_phone, mois) {
     const total = nb_ssp + nb_hors_catalogue;
     const taux_conversion = total > 0 ? (nb_hors_catalogue / total * 100).toFixed(2) : 0;
     
-    // Détail par catégorie
+    // Détail par catégorie -- ssp_catalog (121 lignes, la table réellement utilisée
+    // par isSSP()/isSSPFreeText() ci-dessus), pas medicaments_catalogue (54 lignes,
+    // catalogue non synchronisé, jamais alimenté par le flux de tagging SSP réel).
+    // Match "le libellé libre CONTIENT un nom du catalogue", même sens que
+    // isSSPFreeText() (hct.libelle ILIKE mc.nom_generique sans '%' ne matchait
+    // jamais qu'une égalité exacte improbable -- categorie résolvait toujours NULL).
     const categorieResult = await pool.query(
-      `SELECT mc.categorie, COUNT(*) as nb
+      `SELECT sc.categorie, COUNT(*) as nb
        FROM hors_catalogue_transactions hct
-       LEFT JOIN medicaments_catalogue mc ON hct.libelle ILIKE mc.nom_generique
-       WHERE hct.prestataire_phone = $1 
+       LEFT JOIN ssp_catalog sc ON hct.libelle ILIKE '%' || sc.nom || '%'
+       WHERE hct.prestataire_phone = $1
        AND TO_CHAR(hct.created_at, 'YYYY-MM') = $2
-       GROUP BY mc.categorie
+       GROUP BY sc.categorie
        ORDER BY nb DESC`,
       [prestataire_phone, mois]
     );
