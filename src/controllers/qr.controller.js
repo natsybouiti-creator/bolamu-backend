@@ -347,22 +347,31 @@ async function accessPublicProfil(req, res) {
     if (row.is_active === false) {
       statut = 'suspendu';
     } else {
-      const subRes = await pool.query(
-        `SELECT status, expires_at FROM subscriptions WHERE patient_phone = $1 ORDER BY id DESC LIMIT 1`,
+      // Priorité à un abonnement réellement actif et non expiré, quel que soit
+      // son id — une ligne plus récente (upgrade abandonné, renouvellement en
+      // attente, etc.) ne doit pas masquer un abonnement en cours de validité.
+      const activeRes = await pool.query(
+        `SELECT id FROM subscriptions WHERE patient_phone = $1 AND status = 'active' AND expires_at >= NOW() ORDER BY id DESC LIMIT 1`,
         [row.patient_phone]
       );
-      if (subRes.rows.length === 0) {
-        statut = 'inactif';
+      if (activeRes.rows.length > 0) {
+        statut = 'actif';
       } else {
-        const sub = subRes.rows[0];
-        if (sub.status === 'active' && new Date(sub.expires_at) >= new Date()) {
-          statut = 'actif';
-        } else if (sub.status === 'suspended') {
-          statut = 'suspendu';
-        } else if (sub.status === 'pending') {
-          statut = 'en_attente';
+        const subRes = await pool.query(
+          `SELECT status, expires_at FROM subscriptions WHERE patient_phone = $1 ORDER BY id DESC LIMIT 1`,
+          [row.patient_phone]
+        );
+        if (subRes.rows.length === 0) {
+          statut = 'inactif';
         } else {
-          statut = 'expire';
+          const sub = subRes.rows[0];
+          if (sub.status === 'suspended') {
+            statut = 'suspendu';
+          } else if (sub.status === 'pending') {
+            statut = 'en_attente';
+          } else {
+            statut = 'expire';
+          }
         }
       }
     }
