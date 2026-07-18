@@ -230,11 +230,15 @@ async function enregistrerHorsCatalogue(data) {
  */
 async function getStatsPartenaire(prestataire_phone, mois) {
   try {
-    // Statistiques SSP (via prescriptions et appointments)
+    // Statistiques SSP (via prescriptions et appointments). is_ssp = TRUE requis --
+    // sans ce filtre, nb_ssp comptait TOUTE prescription du médecin ce mois (SSP ou
+    // pas), faussant le taux_conversion (hors_catalogue / total) qui est la métrique
+    // centrale de tout le module SmartFlow.
     const sspResult = await pool.query(
-      `SELECT COUNT(*) as nb_ssp 
+      `SELECT COUNT(*) as nb_ssp
        FROM prescriptions p
-       WHERE p.doctor_phone = $1 
+       WHERE p.doctor_phone = $1
+       AND p.is_ssp = TRUE
        AND TO_CHAR(p.created_at, 'YYYY-MM') = $2`,
       [prestataire_phone, mois]
     );
@@ -408,9 +412,10 @@ async function getStatsAdmin(mois = null) {
     const moisFilter = mois ? `AND TO_CHAR(hct.created_at, 'YYYY-MM') = $1` : '';
     const moisFilterSsp = mois ? `AND TO_CHAR(p.created_at, 'YYYY-MM') = $1` : '';
 
-    // Total actes SSP
+    // Total actes SSP (is_ssp = TRUE requis, même bug que getStatsPartenaire --
+    // sans ça, comptait toute prescription, SSP ou pas)
     const sspResult = await pool.query(
-      `SELECT COUNT(*) as total FROM prescriptions p WHERE 1=1 ${moisFilterSsp}`,
+      `SELECT COUNT(*) as total FROM prescriptions p WHERE p.is_ssp = TRUE ${moisFilterSsp}`,
       params
     );
 
