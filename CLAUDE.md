@@ -290,6 +290,15 @@ consent, upload, symptoms, zora, events, leaderboard, streaks, sport-groups, cha
 **Push :** Web Push VAPID via BullMQ worker (Redis requis)
 **Envoi non bloquant :** try/catch systématique sur tous les envois WhatsApp à l'inscription
 **Normalisation :** `normalizePhone()` avant TOUT envoi WhatsApp
+**Préférences notifications patient — COMPLET (backend + frontend + test) :**
+  - Backend : `GET`/`PATCH /api/v1/patients/notification-prefs` (patient.routes.js) —
+    colonnes `users.whatsapp_notif_enabled` et `users.push_notif_enabled`,
+    respectées dans `sendAutoMessage()`
+  - Frontend : modal "Notifications" dans public/patient/dashboard.html —
+    `A.openNotifPrefs()` (GET) + `A.saveNotifPrefs()` (PATCH),
+    toggles `notif-whatsapp-toggle` / `notif-push-toggle`
+  - Testé en live le 18 juillet 2026 (patient +242069999003) : GET → PATCH disable →
+    vérif DB (false persisté) → restore true ✅
 **Output attendu :** Audit templates + fallbacks + erreurs silencieuses détectées.
 
 ---
