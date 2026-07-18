@@ -203,6 +203,17 @@ consent, upload, symptoms, zora, events, leaderboard, streaks, sport-groups, cha
   → Action : configurer `REDIS_URL` sur Render vers instance externe
 - Double log connexion Neon au démarrage (plusieurs workers) → à corriger
 - CI/CD : GitHub Actions 6 jobs
+- **Action requise côté Render (à vérifier/corriger par l'utilisateur, pas dans le code) :**
+  `NODE_ENV` doit valoir exactement `production` sur le service Render. `render.yaml`
+  ne déclare pas cette variable (seuls `REDIS_URL` et `FONTCONFIG_FILE` y figurent) —
+  elle n'existe donc que si elle a été ajoutée manuellement dans Render → Environment.
+  Sans elle (absente, vide, ou toute autre valeur que `production`), le garde-fou de
+  `POST /api/v1/momo/simulate-success` (src/routes/momo.routes.js) ne s'active jamais :
+  n'importe quel compte authentifié peut alors activer gratuitement n'importe quel
+  abonnement, sans paiement ni secret `TEST_SECRET`, en appelant directement cette route
+  de test. Vérifié le 18 juillet 2026 : ni `.env`, ni `.env.example`, ni `render.yaml` ne
+  définissent `NODE_ENV` — impossible de confirmer depuis le code si la valeur en prod
+  est correcte. À vérifier/définir manuellement dans Render → bolamu-backend → Environment.
 **Output attendu :** Checklist déploiement + blockers prod + actions correctives.
 
 ---
