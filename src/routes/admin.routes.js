@@ -1591,8 +1591,13 @@ router.delete('/test/cleanup', authMiddleware, adminOnly, async (req, res) => {
         }
     };
 
-    // Supprimer les données liées AVANT users (contraintes FK sur phone)
+    // Supprimer les données liées AVANT users (contraintes FK sur phone).
+    // zora_points supprimé (pas recalculé) : le compte entier est wipe ici, donc
+    // pas de balance à resynchroniser -- avant ce fix, zora_points_phone_fkey
+    // faisait échouer silencieusement le DELETE users pour tout compte de test
+    // ayant déjà un solde Zora (safeDelete avale l'erreur FK).
     await safeDelete('DELETE FROM zora_ledger WHERE phone = ANY($1)', [phonesValides]);
+    await safeDelete('DELETE FROM zora_points WHERE phone = ANY($1)', [phonesValides]);
     await safeDelete('DELETE FROM subscriptions WHERE patient_phone = ANY($1)', [phonesValides]);
     await safeDelete('DELETE FROM documents WHERE uploaded_by = ANY($1)', [phonesValides]);
     await safeDelete('DELETE FROM users WHERE phone = ANY($1)', [phonesValides]);

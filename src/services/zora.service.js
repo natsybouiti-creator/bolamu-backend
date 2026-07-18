@@ -399,13 +399,17 @@ async function getZoraEarnRules() {
 }
 
 /**
- * Resynchroniser le balance Zora depuis le ledger pour un phone donné
- * Utilisé pour corriger les incohérences de balance
+ * Resynchroniser balance ET total_earned Zora depuis le ledger pour un phone donné.
+ * Utilisé pour corriger les incohérences (ex: après suppression manuelle/admin de
+ * lignes zora_ledger — total_earned est un compteur additif jamais décrémenté par
+ * ailleurs, contrairement à balance qui était déjà recalculée ici avant ce fix).
  */
 async function recalculateBalance(phone) {
   try {
-    const ledgerSumResult = await pool.query(
-      `SELECT COALESCE(SUM(points), 0) as ledger_sum
+    const sumsResult = await pool.query(
+      `SELECT
+         COALESCE(SUM(points), 0) AS ledger_sum,
+         COALESCE(SUM(points) FILTER (WHERE points > 0), 0) AS total_earned_sum
        FROM zora_ledger
        WHERE phone = $1`,
       [phone]
@@ -416,27 +420,31 @@ async function recalculateBalance(phone) {
     // générés contre un solde jamais réellement gagné via awardZora) signale une
     // incohérence plus profonde à traiter séparément (cf. audit), pas une raison
     // de faire planter la resynchronisation.
-    const ledgerSum = Math.max(parseInt(ledgerSumResult.rows[0].ledger_sum), 0);
-    
+    const ledgerSum = Math.max(parseInt(sumsResult.rows[0].ledger_sum), 0);
+    // total_earned = seulement les crédits positifs du ledger (lifetime gagné),
+    // jamais réduit par une dépense légitime (bon Zora, jeu payant) contrairement
+    // à balance -- sinon le tier d'un compte reculerait juste parce qu'il a dépensé.
+    const totalEarned = parseInt(sumsResult.rows[0].total_earned_sum) || 0;
+
     const updateResult = await pool.query(
-      `UPDATE zora_points 
-       SET balance = $1, updated_at = NOW()
-       WHERE phone = $2
+      `UPDATE zora_points
+       SET balance = $1, total_earned = $2, updated_at = NOW()
+       WHERE phone = $3
        RETURNING *`,
-      [ledgerSum, phone]
+      [ledgerSum, totalEarned, phone]
     );
-    
+
     if (updateResult.rows.length === 0) {
       // Créer le compte s'il n'existe pas
       await pool.query(
         `INSERT INTO zora_points (phone, balance, total_earned, tier, last_activity_at, created_at, updated_at)
-         VALUES ($1, $2, $2, 'kimia', NOW(), NOW(), NOW())`,
-        [phone, ledgerSum]
+         VALUES ($1, $2, $3, 'kimia', NOW(), NOW(), NOW())`,
+        [phone, ledgerSum, totalEarned]
       );
     }
-    
-    console.log(`[ZORA] Balance resynchronisé pour ${phone}: ${ledgerSum} points`);
-    return { success: true, balance: ledgerSum };
+
+    console.log(`[ZORA] Balance resynchronisé pour ${phone}: ${ledgerSum} points (total_earned: ${totalEarned})`);
+    return { success: true, balance: ledgerSum, total_earned: totalEarned };
   } catch (error) {
     console.error('[ZORA] Erreur recalculateBalance:', error.message);
     throw error;
