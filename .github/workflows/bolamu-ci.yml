@@ -60,10 +60,67 @@ jobs:
           name: coverage-report
           path: coverage/
 
+  boot-check:
+    name: Production Boot Check
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: bolamu_boot_check
+          POSTGRES_USER: bolamu
+          POSTGRES_PASSWORD: bolamu_boot_check
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://bolamu:bolamu_boot_check@localhost:5432/bolamu_boot_check
+      JWT_SECRET: test_jwt_secret_ci_bolamu_2026
+      NODE_ENV: production
+      PORT: 3005
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      # Production-only install : aurait détecté immédiatement les deux pannes
+      # de production où pg puis sharp étaient déclarés dans devDependencies
+      # au lieu de dependencies ("Cannot find module") -- npm ci (avec dev)
+      # ne les aurait jamais révélées puisque les deux étaient bien installés,
+      # juste dans la mauvaise section.
+      - name: Install production dependencies only (npm ci --omit=dev)
+        run: npm ci --omit=dev
+      - name: Verify server actually boots (catches syntax + module errors)
+        run: |
+          node src/server.js > boot.log 2>&1 &
+          SERVER_PID=$!
+          BOOTED=0
+          for i in $(seq 1 20); do
+            if curl -s -o /dev/null http://localhost:$PORT/api/v1/events; then
+              BOOTED=1
+              break
+            fi
+            sleep 1
+          done
+          echo "--- boot.log ---"
+          cat boot.log
+          kill $SERVER_PID 2>/dev/null || true
+          if [ "$BOOTED" != "1" ]; then
+            echo "Server failed to start within 20s"
+            exit 1
+          fi
+          echo "Server booted successfully"
+
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, boot-check]
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
