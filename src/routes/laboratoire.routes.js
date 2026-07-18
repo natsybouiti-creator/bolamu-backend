@@ -28,7 +28,7 @@ const handleMulterError = (err, req, res, next) => {
 
 router.post('/register', upload.single('document'), registerLaboratoire);
 router.get('/profil', authMiddleware, getLaboratoireProfile);
-router.patch('/:id/status', authMiddleware, updateLaboratoireStatus);
+router.patch('/:id/status', authMiddleware.requireAdmin, updateLaboratoireStatus);
 
 // Modifier le profil laboratoire
 router.patch('/profil', authMiddleware, updateLaboratoireProfile);

@@ -25,7 +25,7 @@ router.get('/pending', authMiddleware, async (req, res) => {
     }
 });
 
-router.patch('/:id/status', authMiddleware, updateDoctorStatus);
+router.patch('/:id/status', authMiddleware.requireAdmin, updateDoctorStatus);
 
 router.get('/profil', authMiddleware, getDoctorProfile);
 

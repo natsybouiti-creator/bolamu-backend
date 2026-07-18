@@ -29,7 +29,7 @@ const handleMulterError = (err, req, res, next) => {
 
 router.post('/register', upload.single('document'), registerPharmacie);
 router.get('/profil', authMiddleware, getPharmacieProfile);
-router.patch('/:id/status', authMiddleware, updatePharmacieStatus);
+router.patch('/:id/status', authMiddleware.requireAdmin, updatePharmacieStatus);
 router.get('/ordonnances/attente', authMiddleware, getOrdonnancesEnAttenteHandler);
 router.post('/ordonnances/dispenser', authMiddleware, dispenserOrdonnanceHandler);
 router.get('/stats', authMiddleware, getStatsHandler);
