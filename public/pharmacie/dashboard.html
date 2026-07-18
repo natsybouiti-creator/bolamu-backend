@@ -1177,12 +1177,15 @@ async function verifierQR() {
       return;
     }
     const d = data.data;
+    const avatarHtml = (window.BolamuAvatar && typeof window.BolamuAvatar.render === 'function')
+      ? window.BolamuAvatar.render({ photoUrl: d.photo_url || null, fullName: d.full_name || '', role: 'patient', size: 32 })
+      : '';
     resultEl.innerHTML = `<div class="ordonnance-result" style="display:block;">
       <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">check</span></div>
       <div><div class="ordonnance-title">Patient vérifié — Abonnement actif</div>
       <div class="ordonnance-sub">Abonnement valide jusqu'au ${d.subscription_end ? new Date(d.subscription_end).toLocaleDateString('fr-FR') : '—'}</div></div></div>
       <div class="ordonnance-grid">
-        <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value" onclick="BolamuProfileCard.open('${d.phone}')" style="cursor:pointer;">${d.full_name || d.phone}</div></div>
+        <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value" onclick="BolamuProfileCard.open('${d.phone}')" style="cursor:pointer;display:flex;align-items:center;gap:8px;">${avatarHtml}${d.full_name || d.phone}</div></div>
         <div class="ord-field"><div class="ord-field-label">Plan</div><div class="ord-field-value" style="text-transform:capitalize;">${d.plan_nom || '—'}</div></div>
       </div>
       <div class="instructions-box"><span class="material-symbols-outlined" style="vertical-align:middle;">lightbulb</span> Ce patient bénéficie du Soin de Santé Primaire (SSP), gratuit dans le cadre de son abonnement Bolamu actif. Aucune remise à appliquer sur la facture. Hors catalogue SSP : facturation au tarif partenaire habituel.</div>
