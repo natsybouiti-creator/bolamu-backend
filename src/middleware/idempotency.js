@@ -21,18 +21,29 @@ function idempotencyMiddleware(endpoint) {
             .digest('hex');
 
         try {
-            // Vérifier si la clé existe déjà
-            const existingResult = await pool.query(
-                `SELECT * FROM idempotency_keys 
-                 WHERE idempotency_key = $1 AND endpoint = $2 AND user_phone = $3`,
-                [idempotencyKey, endpoint, userPhone]
+            // Réclamation atomique de la clé : la contrainte UNIQUE(idempotency_key) garantit
+            // qu'un seul appelant concurrent peut réussir cet INSERT. Avant, un SELECT (0 ligne)
+            // suivi d'un INSERT séparé laissait une fenêtre où deux requêtes parallèles passaient
+            // toutes les deux le SELECT avant qu'aucune n'ait inséré -> double paiement possible.
+            const insertResult = await pool.query(
+                `INSERT INTO idempotency_keys (idempotency_key, endpoint, user_phone, request_hash)
+                 VALUES ($1, $2, $3, $4)
+                 ON CONFLICT (idempotency_key) DO NOTHING
+                 RETURNING id`,
+                [idempotencyKey, endpoint, userPhone, requestHash]
             );
 
-            if (existingResult.rows.length > 0) {
+            if (insertResult.rows.length === 0) {
+                // Clé déjà réclamée (par cette requête ou une requête concurrente qui a gagné
+                // la course) : consulter son état pour rejouer la réponse ou signaler "en cours".
+                const existingResult = await pool.query(
+                    `SELECT * FROM idempotency_keys WHERE idempotency_key = $1`,
+                    [idempotencyKey]
+                );
+
                 const existing = existingResult.rows[0];
 
-                // Si la clé existe ET response_status IS NOT NULL : retourner la réponse cachée
-                if (existing.response_status !== null) {
+                if (existing && existing.response_status !== null) {
                     console.log(`[Idempotence] Replay détecté pour clé ${idempotencyKey}`);
                     return res
                         .status(existing.response_status)
@@ -40,20 +51,12 @@ function idempotencyMiddleware(endpoint) {
                         .json(existing.response_body);
                 }
 
-                // Si la clé existe SANS réponse (requête en cours) : HTTP 409
                 console.log(`[Idempotence] Requête en cours pour clé ${idempotencyKey}`);
                 return res.status(409).json({
                     success: false,
                     message: 'Requête en cours de traitement'
                 });
             }
-
-            // Si la clé n'existe pas : INSERT dans idempotency_keys (sans response encore)
-            await pool.query(
-                `INSERT INTO idempotency_keys (idempotency_key, endpoint, user_phone, request_hash)
-                 VALUES ($1, $2, $3, $4)`,
-                [idempotencyKey, endpoint, userPhone, requestHash]
-            );
 
             // Intercepter la réponse pour la stocker
             const originalJson = res.json.bind(res);
