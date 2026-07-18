@@ -282,44 +282,23 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
       [contractId]
     );
     
-    // 4. Vérifier si hors_catalogue_transactions existe
-    const tableCheckResult = await pool.query(
-      `SELECT table_name FROM information_schema.tables 
-       WHERE table_name = 'hors_catalogue_transactions'`
+    // 4. Compter hors catalogue ce mois. hors_catalogue_transactions existe déjà
+    // (migration_XXX) -- avant : un CREATE TABLE IF NOT EXISTS inline ici décrivait
+    // un schéma DIFFERENT et FAUX (contract_id/employee_phone au lieu de
+    // company_contract_id/patient_phone), jamais exécuté en pratique (la vraie table
+    // existe toujours) mais servant de référence trompeuse -- source probable des
+    // mêmes mauvais noms de colonnes copiés dans /rh/employe/:phone/actes et
+    // /rh/retenues/*.
+    const horsCatQuery = await pool.query(
+      `SELECT COUNT(*) as nb_transactions,
+              COALESCE(SUM(hct.prix_plein), 0) as total_montant,
+              COUNT(DISTINCT hct.patient_phone) as nb_employes_concernes
+       FROM hors_catalogue_transactions hct
+       WHERE hct.company_contract_id = $1
+       AND DATE_TRUNC('month', hct.created_at) = DATE_TRUNC('month', NOW())`,
+      [contractId]
     );
-    
-    let horsCatResult = { nb_transactions: 0, total_montant: 0, nb_employes_concernes: 0 };
-    
-    if (tableCheckResult.rows.length > 0) {
-      // Table existe : compter hors catalogue ce mois
-      horsCatResult = await pool.query(
-        `SELECT COUNT(*) as nb_transactions, 
-                COALESCE(SUM(hct.prix_plein), 0) as total_montant,
-                COUNT(DISTINCT hct.patient_phone) as nb_employes_concernes
-         FROM hors_catalogue_transactions hct
-         WHERE hct.company_contract_id = $1 
-         AND DATE_TRUNC('month', hct.created_at) = DATE_TRUNC('month', NOW())`,
-        [contractId]
-      );
-      horsCatResult = horsCatResult.rows[0];
-    } else {
-      // Table n'existe pas : la créer
-      await pool.query(
-        `CREATE TABLE IF NOT EXISTS hors_catalogue_transactions (
-          id SERIAL PRIMARY KEY,
-          contract_id INTEGER REFERENCES company_contracts(id),
-          employee_phone VARCHAR(20) NOT NULL,
-          prestataire_phone VARCHAR(20),
-          prestataire_type VARCHAR(50),
-          libelle VARCHAR(255) NOT NULL,
-          prix_plein INTEGER NOT NULL DEFAULT 0,
-          date_acte TIMESTAMP DEFAULT NOW(),
-          source VARCHAR(50),
-          source_id INTEGER,
-          created_at TIMESTAMP DEFAULT NOW()
-        )`
-      );
-    }
+    const horsCatResult = horsCatQuery.rows[0];
     
     // 5. Liste détaillée des employés avec SSP et hors catalogue
     const employesListResult = await pool.query(
@@ -357,25 +336,23 @@ router.get('/smartflow/rh/dashboard', authMiddleware, rhOnly, async (req, res) =
     }));
     
     // Calculer hors_count pour chaque employé
-    if (tableCheckResult.rows.length > 0) {
-      const horsCountResult = await pool.query(
-        `SELECT patient_phone as employee_phone, COUNT(*) as count
-         FROM hors_catalogue_transactions
-         WHERE company_contract_id = $1 
-         AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())
-         GROUP BY patient_phone`,
-        [contractId]
-      );
-      
-      const horsCountMap = {};
-      horsCountResult.rows.forEach(row => {
-        horsCountMap[row.employee_phone] = parseInt(row.count);
-      });
-      
-      employesList.forEach(emp => {
-        emp.hors_count = horsCountMap[emp.phone] || 0;
-      });
-    }
+    const horsCountResult = await pool.query(
+      `SELECT patient_phone as employee_phone, COUNT(*) as count
+       FROM hors_catalogue_transactions
+       WHERE company_contract_id = $1
+       AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())
+       GROUP BY patient_phone`,
+      [contractId]
+    );
+
+    const horsCountMap = {};
+    horsCountResult.rows.forEach(row => {
+      horsCountMap[row.employee_phone] = parseInt(row.count);
+    });
+
+    employesList.forEach(emp => {
+      emp.hors_count = horsCountMap[emp.phone] || 0;
+    });
     
     // Top 10 employés par activité (ssp_count + hors_montant)
     const topEmployes = [...employesList]
@@ -488,11 +465,12 @@ router.get('/smartflow/rh/employe/:phone/actes', authMiddleware, rhOnly, async (
 
     const employee = employeeResult.rows[0];
 
-    // Récupérer les actes hors catalogue
+    // Récupérer les actes hors catalogue (hors_catalogue_transactions.company_contract_id
+    // /patient_phone -- pas contract_id/employee_phone, colonnes inexistantes)
     let query = `
       SELECT hct.*
       FROM hors_catalogue_transactions hct
-      WHERE hct.contract_id = $1 AND hct.employee_phone = $2
+      WHERE hct.company_contract_id = $1 AND hct.patient_phone = $2
     `;
     const params = [contractId, phone];
 
@@ -575,11 +553,12 @@ router.get('/smartflow/rh/retenues/provisoire', authMiddleware, rhOnly, async (r
       const categorie = emp.categorie_rh || 'employe';
       const config = configMap[categorie] || { pourcentage: 20, plafond: 100000 };
 
-      // Calculer le total hors catalogue du mois
+      // Calculer le total hors catalogue du mois (company_contract_id/patient_phone,
+      // pas contract_id/employee_phone -- colonnes inexistantes sur cette table)
       let query = `
         SELECT COALESCE(SUM(prix_plein), 0) as total_montant, COUNT(*) as nb_actes
         FROM hors_catalogue_transactions
-        WHERE contract_id = $1 AND employee_phone = $2
+        WHERE company_contract_id = $1 AND patient_phone = $2
       `;
       const params = [contractId, emp.employee_phone];
 
@@ -606,7 +585,7 @@ router.get('/smartflow/rh/retenues/provisoire', authMiddleware, rhOnly, async (r
                prix_plein as montant,
                prestataire_phone as prestataire
         FROM hors_catalogue_transactions
-        WHERE contract_id = $1 AND employee_phone = $2
+        WHERE company_contract_id = $1 AND patient_phone = $2
       `;
       const actesParams = [contractId, emp.employee_phone];
 
@@ -701,11 +680,12 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
       const categorie = emp.categorie_rh || 'employe';
       const config = configMap[categorie] || { pourcentage: 20, plafond: 100000 };
 
-      // Calculer le total hors catalogue du mois
+      // Calculer le total hors catalogue du mois (company_contract_id/patient_phone,
+      // pas contract_id/employee_phone -- colonnes inexistantes sur cette table)
       const actesResult = await client.query(
         `SELECT COALESCE(SUM(prix_plein), 0) as total_montant, COUNT(*) as nb_actes
          FROM hors_catalogue_transactions
-         WHERE contract_id = $1 AND employee_phone = $2
+         WHERE company_contract_id = $1 AND patient_phone = $2
          AND TO_CHAR(created_at, 'YYYY-MM') = $3`,
         [contractId, emp.employee_phone, mois]
       );
@@ -725,7 +705,7 @@ router.post('/smartflow/rh/retenues/valider', authMiddleware, rhOnly, async (req
                 prix_plein as montant,
                 prestataire_phone as prestataire
          FROM hors_catalogue_transactions
-         WHERE contract_id = $1 AND employee_phone = $2
+         WHERE company_contract_id = $1 AND patient_phone = $2
          AND TO_CHAR(created_at, 'YYYY-MM') = $3
          ORDER BY created_at DESC`,
         [contractId, emp.employee_phone, mois]
