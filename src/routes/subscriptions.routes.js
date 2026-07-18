@@ -139,6 +139,22 @@ router.get('/me', authMiddleware, async (req, res) => {
     if (!phone) return res.status(401).json({ success: false, message: 'Non authentifié.' });
 
     try {
+        // Priorité à un abonnement réellement actif et non expiré, quel que
+        // soit son id/created_at — une ligne 'pending' plus récente (upgrade
+        // abandonné, renouvellement en attente...) ne doit pas masquer un
+        // abonnement en cours de validité (même pattern que accessPublicProfil
+        // dans qr.controller.js).
+        const activeRes = await db.query(
+            `SELECT id, plan, status, operator, amount_fcfa, next_billing_date, payment_reference
+             FROM subscriptions
+             WHERE patient_phone = $1 AND status = 'active' AND expires_at >= NOW()
+             ORDER BY id DESC LIMIT 1`,
+            [phone]
+        );
+        if (activeRes.rows.length > 0) {
+            return res.json({ success: true, subscription: activeRes.rows[0] });
+        }
+
         const r = await db.query(
             `SELECT id, plan, status, operator, amount_fcfa, next_billing_date, payment_reference
              FROM subscriptions
