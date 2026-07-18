@@ -221,7 +221,7 @@ router.get('/vapid-public-key', (req, res) => {
 
 // POST /api/v1/notifications/test-whatsapp (TEST TEMPORAIRE)
 // Test envoi message WhatsApp depuis le serveur connecté
-router.post('/test-whatsapp', async (req, res) => {
+router.post('/test-whatsapp', authMiddleware.requireAdmin, async (req, res) => {
     try {
         const { phone, templateName, params } = req.body;
 
