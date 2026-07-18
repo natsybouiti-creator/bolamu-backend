@@ -382,4 +382,26 @@ async function sendImageMessage(phone, imageBuffer, caption) {
   }
 }
 
-module.exports = { sendAutoMessage, sendImageMessage };
+// Statut réel de la session WAHA (remplace l'ancien getClientStatus() de
+// whatsapp-web.js, retiré lors de la migration vers WAHA — cf. waha-webhook.controller.js
+// pour le même endpoint GET /api/sessions/{session} utilisé côté webhook de restart).
+async function getSessionStatus(session = 'Communaute') {
+  if (!WAHA_BASE_URL || !WAHA_API_KEY) {
+    return 'CONFIG_MISSING';
+  }
+  try {
+    const response = await fetch(`${WAHA_BASE_URL}/api/sessions/${session}`, {
+      headers: { 'X-Api-Key': WAHA_API_KEY }
+    });
+    if (!response.ok) {
+      return 'UNREACHABLE';
+    }
+    const data = await response.json();
+    return data.status || 'UNKNOWN';
+  } catch (error) {
+    console.error('[WhatsApp-WAHA] Erreur getSessionStatus:', error.message);
+    return 'UNREACHABLE';
+  }
+}
+
+module.exports = { sendAutoMessage, sendImageMessage, getSessionStatus };

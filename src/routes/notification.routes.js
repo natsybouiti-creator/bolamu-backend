@@ -7,7 +7,7 @@ const db = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { subscribe, unsubscribe } = require('../services/push.service');
 const { handleWebhook, verifyWebhook } = require('../services/whatsapp.service.META.DEPRECATED');
-const { sendAutoMessage, getClientStatus } = require('../services/whatsapp.service');
+const { sendAutoMessage, getSessionStatus } = require('../services/whatsapp.service');
 
 // ============================================================
 // 1. PUSH SUBSCRIPTIONS
@@ -232,11 +232,11 @@ router.post('/test-whatsapp', authMiddleware.requireAdmin, async (req, res) => {
             });
         }
 
-        const status = getClientStatus();
-        if (status !== 'READY') {
+        const status = await getSessionStatus();
+        if (status !== 'WORKING') {
             return res.status(400).json({
                 success: false,
-                message: 'Client WhatsApp non connecté',
+                message: 'Session WhatsApp (WAHA) non connectée',
                 status
             });
         }
