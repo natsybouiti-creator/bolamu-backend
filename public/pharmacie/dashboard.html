@@ -1177,8 +1177,6 @@ async function verifierQR() {
       return;
     }
     const d = data.data;
-    const remise = d.convention ? d.convention.discount_rate : null;
-    const cap = d.convention ? d.convention.monthly_cap_fcfa : null;
     resultEl.innerHTML = `<div class="ordonnance-result" style="display:block;">
       <div class="ordonnance-header"><div class="ordonnance-icon"><span class="material-symbols-outlined">check</span></div>
       <div><div class="ordonnance-title">Patient vérifié — Abonnement actif</div>
@@ -1186,10 +1184,8 @@ async function verifierQR() {
       <div class="ordonnance-grid">
         <div class="ord-field"><div class="ord-field-label">Patient</div><div class="ord-field-value" onclick="BolamuProfileCard.open('${d.phone}')" style="cursor:pointer;">${d.full_name || d.phone}</div></div>
         <div class="ord-field"><div class="ord-field-label">Plan</div><div class="ord-field-value" style="text-transform:capitalize;">${d.plan_nom || '—'}</div></div>
-        <div class="ord-field"><div class="ord-field-label">Remise applicable</div><div class="ord-field-value" style="color:var(--turquoise);font-size:22px;">${remise !== null ? remise + '%' : '—'}</div></div>
-        <div class="ord-field"><div class="ord-field-label">Plafond mensuel</div><div class="ord-field-value">${cap !== null ? cap.toLocaleString() + ' FCFA' : '—'}</div></div>
       </div>
-      <div class="instructions-box"><span class="material-symbols-outlined" style="vertical-align:middle;">lightbulb</span> Appliquez une remise de <strong>${remise}%</strong> sur la facture du patient. Bolamu prend en charge cette remise via le tiers payant.</div>
+      <div class="instructions-box"><span class="material-symbols-outlined" style="vertical-align:middle;">lightbulb</span> Ce patient bénéficie du Soin de Santé Primaire (SSP), gratuit dans le cadre de son abonnement Bolamu actif. Aucune remise à appliquer sur la facture. Hors catalogue SSP : facturation au tarif partenaire habituel.</div>
       <button class="btn-livrer" data-action="reset-qr"><span class="material-symbols-outlined">check</span> Pris en compte — Scanner suivant</button>
     </div>`;
   } catch(e) {
