@@ -280,21 +280,7 @@ async function processCheckin({ token, organizer_phone, callerRole }) {
       `UPDATE elonga_registrations SET zora_awarded = TRUE WHERE id = $1`,
       [tokenData.registration_id]
     );
-    
-    // === WHATSAPP zora_event_checkin — activer dès approbation Meta ===
-    // const zoraBalance = await pool.query(
-    //   `SELECT balance FROM zora_points WHERE phone = $1`,
-    //   [tokenData.phone]
-    // );
-    // const solde = zoraBalance.rows[0]?.balance || 0;
-    // await sendWhatsAppTemplate(tokenData.phone, 'zora_event_checkin', [
-    //   tokenData.first_name || tokenData.name,        // {{1}} prénom
-    //   tokenData.event_title,                          // {{2}} nom événement
-    //   String(tokenData.zora_reward),                  // {{3}} points gagnés
-    //   String(solde),                                   // {{4}} solde total
-    // ]);
-    // === FIN zora_event_checkin ===
-    
+
     await client.query('COMMIT');
     
     // Envoyer WhatsApp confirmation check-in (non bloquant)

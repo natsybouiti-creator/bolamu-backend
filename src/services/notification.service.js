@@ -4,7 +4,6 @@
 const pool = require('../config/db');
 const logger = require('../config/logger');
 const { sendToUser } = require('./push.service');
-const { sendMessage } = require('./whatsapp.service.META.DEPRECATED');
 const { sendAutoMessage } = require('./whatsapp.service');
 const { getIo } = require('./socketService');
 
@@ -46,18 +45,16 @@ async function notify(user_phone, type, data = {}) {
         `, [user_phone, type, titre, message, JSON.stringify(data)]);
 
         // Déterminer les canaux selon les préférences et disponibilité
-        const hasWhatsApp = process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_ID;
+        const hasWhatsApp = process.env.WAHA_BASE_URL && process.env.WAHA_API_KEY;
         const hasPush = await hasActivePushSubscription(user_phone);
         const hasSMS = true; // Africa's Talking toujours disponible
 
         let sentChannels = [];
 
-        // Canal prioritaire : WhatsApp si disponible
+        // Canal prioritaire : WhatsApp (WAHA) si disponible
         if (hasWhatsApp) {
             try {
-                const templateName = getWhatsAppTemplate(type);
-                const parameters = getWhatsAppParameters(type, data);
-                await sendMessage(user_phone, templateName, parameters);
+                await sendAutoMessage(user_phone, 'bolamu_notification_fallback', [message]);
                 sentChannels.push('whatsapp');
             } catch (error) {
                 logger.error('[Notification] Erreur WhatsApp:', error.message);
@@ -179,43 +176,6 @@ function getNotificationContent(type, data) {
     };
 
     return contentMap[type] || { titre: 'Notification', message: 'Nouvelle notification.' };
-}
-
-// Obtenir le template WhatsApp selon le type
-function getWhatsAppTemplate(type) {
-    const templateMap = {
-        rdv_confirme: 'rdv_confirmation',
-        paiement_recu: 'paiement_confirme',
-        rdv_rappel: 'rappel_rdv',
-        abonnement_expire: 'abonnement_expire'
-    };
-
-    return templateMap[type] || null;
-}
-
-// Obtenir les paramètres WhatsApp selon le type
-function getWhatsAppParameters(type, data) {
-    const paramMap = {
-        rdv_confirme: {
-            nom: data.patient_name || 'Patient',
-            medecin: data.doctor_name,
-            date: data.date,
-            heure: data.heure
-        },
-        paiement_confirme: {
-            montant: data.montant,
-            plan: data.plan,
-            date: data.expires_at
-        },
-        rdv_rappel: {
-            medecin: data.doctor_name,
-            heure: data.heure,
-            code: data.code || ''
-        },
-        abonnement_expire: {}
-    };
-
-    return paramMap[type] || {};
 }
 
 // ============================================================

@@ -1433,134 +1433,17 @@ router.patch('/doctors/:phone/rehabilitate', authMiddleware, adminOnly, async (r
 });
 
 // ============================================================
-// DIAGNOSTIC WHATSAPP (Meta legacy)
-// TODO: migrer vers diagnostic WAHA quand implémenté — Meta API
-// abandonnée (whatsapp.service.META.DEPRECATED.js)
+// DIAGNOSTIC WHATSAPP (WAHA)
 // ============================================================
 
-// GET : Tester validité token
-router.get('/diagnostics/whatsapp-token', authMiddleware, adminOnly, async (req, res) => {
+// GET /api/v1/admin/whatsapp-status
+router.get('/whatsapp-status', authMiddleware, adminOnly, async (req, res) => {
     try {
-        const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
-        const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-
-        if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-            return res.json({
-                http_status: 0,
-                token_valid: false,
-                meta_message: 'WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_NUMBER_ID non configuré',
-                phone_info: null
-            });
-        }
-
-        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}?fields=display_phone_number,verified_name,quality_rating,name_status&access_token=${WHATSAPP_ACCESS_TOKEN}`;
-        
-        const response = await fetch(url);
-        const statusCode = response.status;
-        const data = await response.json();
-
-        if (statusCode === 200) {
-            res.json({
-                http_status: statusCode,
-                token_valid: true,
-                meta_message: null,
-                phone_info: {
-                    display_phone_number: data.display_phone_number,
-                    verified_name: data.verified_name,
-                    quality_rating: data.quality_rating,
-                    name_status: data.name_status
-                }
-            });
-        } else {
-            res.json({
-                http_status: statusCode,
-                token_valid: false,
-                meta_message: data.error?.message || 'Erreur inconnue',
-                phone_info: null
-            });
-        }
-    } catch (error) {
-        res.json({
-            http_status: 0,
-            token_valid: false,
-            meta_message: `Erreur réseau: ${error.message}`,
-            phone_info: null
-        });
-    }
-});
-
-// POST : Envoyer message test WhatsApp
-router.post('/diagnostics/whatsapp-send-test', authMiddleware, adminOnly, async (req, res) => {
-    try {
-        const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
-        const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-
-        if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-            return res.json({
-                success: false,
-                meta_http_status: 0,
-                meta_response: null,
-                template_used: null,
-                error: 'WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_NUMBER_ID non configuré'
-            });
-        }
-
-        const testPhone = '242069735418'; // +242 06 973 54 18 (fondateur)
-        const templateName = 'bolamu_code_acces'; // Template existant et approuvé
-        const testCode = 'TEST123'; // Code de test
-
-        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
-        
-        const body = {
-            messaging_product: 'whatsapp',
-            to: testPhone,
-            type: 'template',
-            template: {
-                name: templateName,
-                language: { code: 'fr' },
-                components: [
-                    {
-                        type: 'body',
-                        parameters: [{ type: 'text', text: testCode }]
-                    },
-                    {
-                        type: 'button',
-                        sub_type: 'url',
-                        index: '0',
-                        parameters: [{ type: 'text', text: testCode }]
-                    }
-                ]
-            }
-        };
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
-
-        const statusCode = response.status;
-        const data = await response.json();
-
-        res.json({
-            success: statusCode === 200,
-            meta_http_status: statusCode,
-            meta_response: data,
-            template_used: templateName,
-            test_phone: testPhone,
-            error: statusCode !== 200 ? data.error?.message || 'Erreur inconnue' : null
-        });
-    } catch (error) {
-        res.json({
-            success: false,
-            meta_http_status: 0,
-            meta_response: null,
-            template_used: null,
-            error: `Erreur réseau: ${error.message}`
-        });
+        const { getSessionStatus } = require('../services/whatsapp.service');
+        const status = await getSessionStatus();
+        res.json({ success: true, status, provider: 'WAHA' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
     }
 });
 

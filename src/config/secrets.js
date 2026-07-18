@@ -5,9 +5,7 @@
 // Variables critiques PRODUCTION à valider au démarrage
 const REQUIRED_PRODUCTION_VARS = [
     'DATABASE_URL',
-    'JWT_SECRET',
-    'WHATSAPP_ACCESS_TOKEN',
-    'WHATSAPP_PHONE_NUMBER_ID'
+    'JWT_SECRET'
 ];
 
 function validateSecrets() {

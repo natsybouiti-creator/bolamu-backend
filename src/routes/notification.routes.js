@@ -6,7 +6,6 @@ const router = express.Router();
 const db = require('../config/db');
 const authMiddleware = require('../middleware/auth.middleware');
 const { subscribe, unsubscribe } = require('../services/push.service');
-const { handleWebhook, verifyWebhook } = require('../services/whatsapp.service.META.DEPRECATED');
 const { sendAutoMessage, getSessionStatus } = require('../services/whatsapp.service');
 
 // ============================================================
@@ -166,39 +165,7 @@ router.get('/unread-count', authMiddleware, async (req, res) => {
 });
 
 // ============================================================
-// 3. WEBHOOKS
-// ============================================================
-
-// GET /api/v1/webhooks/whatsapp
-// Vérification webhook WhatsApp (GET pour verification token)
-router.get('/webhooks/whatsapp', (req, res) => {
-    const mode = req.query['hub.mode'];
-    const token = req.query['hub.verify_token'];
-    const challenge = req.query['hub.challenge'];
-
-    const result = verifyWebhook(mode, token, challenge);
-
-    if (result) {
-        res.status(200).send(result);
-    } else {
-        res.status(403).send('Forbidden');
-    }
-});
-
-// POST /api/v1/webhooks/whatsapp
-// Webhook WhatsApp (POST pour messages)
-router.post('/webhooks/whatsapp', async (req, res) => {
-    try {
-        await handleWebhook(req.body);
-        res.status(200).json({ success: true });
-    } catch (error) {
-        console.error('[WhatsApp Webhook] Erreur:', error.message);
-        res.status(200).json({ success: true }); // Toujours 200 pour éviter les retentatives
-    }
-});
-
-// ============================================================
-// 4. VAPID PUBLIC KEY
+// 3. VAPID PUBLIC KEY
 // ============================================================
 
 // GET /api/v1/vapid-public-key

@@ -91,8 +91,17 @@ async function registerPatient(patient_phone, event_id) {
     
     // Notification WhatsApp (non bloquant)
     try {
-      const { notifyEventRegistration } = require('./whatsapp.service.META.DEPRECATED');
-      const waResult = await notifyEventRegistration(normalizedPhone, event, session_code);
+      const { sendAutoMessage } = require('./whatsapp.service');
+      const startsAt = new Date(event.starts_at);
+      const dateStr = startsAt.toLocaleDateString('fr-FR');
+      const heureStr = startsAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      const waResult = await sendAutoMessage(normalizedPhone, 'bolamu_event_inscription', [
+        '',                   // {{0}} prénom (non utilisé par le template)
+        event.title,          // {{1}} nom événement
+        event.location_name,  // {{2}} lieu
+        dateStr,              // {{3}} date
+        heureStr              // {{4}} heure
+      ]);
       logger.info('[EVENT] WhatsApp envoyé:', JSON.stringify(waResult));
     } catch (whatsappErr) {
       logger.error('[EVENT] Erreur WhatsApp:', whatsappErr.message, whatsappErr.stack);
