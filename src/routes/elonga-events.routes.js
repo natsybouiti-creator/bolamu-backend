@@ -75,10 +75,12 @@ router.post('/:id/checkin', authMiddleware, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Token requis' });
     }
     
-    const result = await processCheckin({ token, organizer_phone: phone });
-    
+    const result = await processCheckin({ token, organizer_phone: phone, callerRole: req.user.role });
+
     if (result.success) {
       res.json({ success: true, points_credited: result.points_credited });
+    } else if (result.reason === 'not_organizer') {
+      res.status(403).json({ success: false, reason: result.reason, message: "Vous n'êtes pas l'organisateur de cet événement." });
     } else {
       res.status(400).json({ success: false, reason: result.reason });
     }

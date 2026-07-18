@@ -4,6 +4,7 @@
 const pool = require('../config/db');
 const { awardZora } = require('./zora.service');
 const { sendAutoMessage } = require('./whatsapp.service');
+const { normalizePhone } = require('../utils/phone');
 
 // Fonctions utilitaires pour les dates
 function formatDate(isoDate) {
@@ -202,10 +203,10 @@ async function generateCheckinToken({ phone, event_id }) {
 
 /**
  * Traiter un check-in via QR code
- * @param {Object} params - { token, organizer_phone }
+ * @param {Object} params - { token, organizer_phone, callerRole }
  * @returns {Promise<Object>} { success, points_credited }
  */
-async function processCheckin({ token, organizer_phone }) {
+async function processCheckin({ token, organizer_phone, callerRole }) {
   console.log('[ELONGA] processCheckin appelé avec token:', token.substring(0, 10) + '...');
   const client = await pool.connect();
   
@@ -241,9 +242,16 @@ async function processCheckin({ token, organizer_phone }) {
       return { success: false, reason: 'token_expired' };
     }
     
-    // Vérifier que l'organisateur est autorisé (optionnel - pour l'instant tout user authentifié peut scanner)
-    // TODO: Ajouter vérification organizer_phone === event.organizer_phone si nécessaire
-    
+    // Vérifier que l'appelant est bien l'organisateur de l'événement (ou admin) — sans ça,
+    // le patient inscrit peut récupérer son propre token via GET /:id/checkin-token et se
+    // check-in lui-même (farming de points Zora sans présence réelle).
+    const isAdmin = ['admin', 'content_admin'].includes(callerRole);
+    const isOrganizer = tokenData.organizer_phone && normalizePhone(tokenData.organizer_phone) === normalizePhone(organizer_phone);
+    if (!isOrganizer && !isAdmin) {
+      await client.query('ROLLBACK');
+      return { success: false, reason: 'not_organizer' };
+    }
+
     // Marquer le token comme utilisé
     await client.query(
       `UPDATE elonga_checkin_tokens SET used = TRUE WHERE id = $1`,
