@@ -3552,11 +3552,17 @@ if (typeof BarcodeDetector !== 'undefined') {
           statusDiv.textContent = 'Adhérent identifié';
           const zoraHtml = a.zora_balance !== null ? 
             `<div><strong>Solde Zora:</strong> ${a.zora_balance} pts</div>` : '';
-          const conventionHtml = a.convention ? 
+          const conventionHtml = a.convention ?
             `<div><strong>Convention:</strong> ${a.convention.partner_name || 'Oui'} (${a.convention.discount_rate}% remise)</div>` : '';
+          const avatarHtml = (window.BolamuAvatar && typeof window.BolamuAvatar.render === 'function')
+            ? window.BolamuAvatar.render({ photoUrl: a.photo_url || null, fullName: a.full_name || '', role: 'patient', size: 44 })
+            : '';
           if (resultDiv) resultDiv.innerHTML = `
             <div style="background:rgba(0,201,167,0.1);border-radius:12px;padding:20px;border:1px solid var(--turquoise);">
-              <div style="font-size:16px;font-weight:700;color:var(--turquoise);margin-bottom:12px;">Adhérent identifié</div>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                ${avatarHtml}
+                <div style="font-size:16px;font-weight:700;color:var(--turquoise);">Adhérent identifié</div>
+              </div>
               <div style="display:grid;gap:8px;font-size:13px;">
                 <div><strong>Nom :</strong> ${a.full_name || '—'}</div>
                 <div><strong>Téléphone :</strong> ${a.phone || '—'}</div>

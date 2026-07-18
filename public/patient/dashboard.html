@@ -4150,7 +4150,7 @@
       A._qrRefreshing = true;
       apiFetch('https://www.bolamu.co/api/v1/qr/generate', H).then(function (r) { return r.json(); }).then(function (d) {
         A._qrRefreshing = false;
-        if (d.success && d.data) { A._qrToken = d.data.token; A._qrExpiry = new Date(d.data.expires_at).getTime(); var qrUrl = 'https://www.bolamu.co/urgence?token=' + d.data.token; A.renderQR('hero-qr', qrUrl, 90); }
+        if (d.success && d.data) { A._qrToken = d.data.token; A._qrExpiry = new Date(d.data.expires_at).getTime(); A.renderQR('hero-qr', d.data.token, 90); }
         else { var el = $('hero-qr'); if (el) el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;gap:6px;"><span class="material-symbols-outlined" style="color:#FF6B35;font-size:28px">wifi_off</span><span style="font-size:0.65rem;color:#434654;text-align:center">QR indisponible<br>Réessaie dans un instant</span></div>'; }
       }).catch(function () { A._qrRefreshing = false; var el = $('hero-qr'); if (el) el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;gap:6px;"><span class="material-symbols-outlined" style="color:#FF6B35;font-size:28px">wifi_off</span><span style="font-size:0.65rem;color:#434654;text-align:center">Erreur réseau<br>Réessaie dans un instant</span></div>'; });
     };

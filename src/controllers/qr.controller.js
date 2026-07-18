@@ -45,7 +45,7 @@ const verifyQRToken = async (req, res) => {
   }
   try {
     const tokenRes = await pool.query(
-      `SELECT qt.*, u.full_name, u.phone as patient_phone, u.bolamu_id, u.zora_balance_visible_qr FROM qr_tokens qt JOIN users u ON u.phone = qt.user_phone WHERE qt.token = $1`,
+      `SELECT qt.*, u.full_name, u.phone as patient_phone, u.bolamu_id, u.zora_balance_visible_qr, u.photo_url FROM qr_tokens qt JOIN users u ON u.phone = qt.user_phone WHERE qt.token = $1`,
       [token]
     );
     if (tokenRes.rows.length === 0) {
@@ -87,6 +87,7 @@ const verifyQRToken = async (req, res) => {
       data: {
         phone: qrToken.user_phone,
         full_name: qrToken.full_name,
+        photo_url: qrToken.photo_url || null,
         bolamu_id: qrToken.bolamu_id,
         is_active: hasActiveSub,
         plan_nom: sub ? sub.plan : null,
