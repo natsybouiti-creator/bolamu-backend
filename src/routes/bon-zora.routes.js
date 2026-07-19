@@ -379,4 +379,23 @@ router.get('/:code/qr', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/v1/bons-zora/partner/validated — Historique des bons Zora validés par le partenaire connecté
+router.get('/partner/validated', authMiddleware, requirePartenaire, async (req, res) => {
+  try {
+    const partner_phone = req.user.phone;
+    const result = await pool.query(
+      `SELECT pbz.*
+       FROM partner_bons_zora pbz
+       WHERE pbz.used_by = $1
+       ORDER BY pbz.used_at DESC NULLS LAST, pbz.generated_at DESC
+       LIMIT 100`,
+      [partner_phone]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('[BON ZORA ROUTES] Erreur GET /partner/validated:', error.message);
+    res.status(500).json({ success: false, error: 'server_error' });
+  }
+});
+
 module.exports = router;
