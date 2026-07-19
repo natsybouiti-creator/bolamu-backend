@@ -680,15 +680,35 @@ router.post('/reclamation/reactiver', requireAgent, async (req, res) => {
 
     await pool.query(`UPDATE users SET is_active = TRUE WHERE phone = $1`, [phone]);
 
-    // Réactiver le dernier abonnement expiré s'il en existe un récent (< 30 jours)
-    await pool.query(
-      `UPDATE subscriptions SET is_active = TRUE, status = 'active',
-          expires_at = NOW() + INTERVAL '30 days', updated_at = NOW()
-       WHERE patient_phone = $1
-         AND id = (SELECT id FROM subscriptions WHERE patient_phone = $1
-                   ORDER BY expires_at DESC LIMIT 1)`,
+    // Résoudre UNE SEULE FOIS l'abonnement cible (le plus récent par expires_at),
+    // puis l'utiliser explicitement par id dans les deux UPDATE — même pattern
+    // robuste que momo/airtel (id <> $targetId), sans sous-requête dupliquée
+    // dont le résultat dépendrait du timing entre les deux UPDATE.
+    const targetSubRes = await pool.query(
+      `SELECT id FROM subscriptions WHERE patient_phone = $1
+       ORDER BY expires_at DESC LIMIT 1`,
       [phone]
     );
+    const targetSubId = targetSubRes.rows[0]?.id || null;
+
+    if (targetSubId) {
+      // Désactiver toutes les anciennes lignes actives du patient (même logique
+      // que PUT /subscriptions/:id/validate) — une ligne zombie expirée mais
+      // is_active=TRUE ferait re-désactiver le compte par le cron abonnement.
+      await pool.query(
+        `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
+         WHERE patient_phone = $1 AND is_active = TRUE AND id <> $2`,
+        [phone, targetSubId]
+      );
+
+      // Réactiver le dernier abonnement expiré s'il en existe un récent (< 30 jours)
+      await pool.query(
+        `UPDATE subscriptions SET is_active = TRUE, status = 'active',
+            expires_at = NOW() + INTERVAL '30 days', updated_at = NOW()
+         WHERE id = $1`,
+        [targetSubId]
+      );
+    }
 
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)

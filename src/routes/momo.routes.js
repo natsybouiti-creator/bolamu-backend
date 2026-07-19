@@ -303,6 +303,14 @@ router.post('/simulate-success', authMiddleware, async (req, res) => {
         if (!r.rows.length) {
             return res.status(404).json({ success: false, message: 'Souscription introuvable.' });
         }
+        // Désactiver les anciennes lignes actives du patient (même logique que
+        // PUT /subscriptions/:id/validate) — une ligne zombie expirée mais
+        // is_active=TRUE ferait désactiver le compte par le cron abonnement.
+        await db.query(
+            `UPDATE subscriptions SET is_active = FALSE, status = 'expired'
+             WHERE patient_phone = $1 AND is_active = TRUE AND id <> $2`,
+            [r.rows[0].patient_phone, subscription_id]
+        );
         await db.query(`UPDATE users SET is_active = TRUE WHERE phone = $1`, [r.rows[0].patient_phone]);
         res.json({ success: true });
     } catch (e) {
