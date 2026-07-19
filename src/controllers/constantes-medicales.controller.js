@@ -237,6 +237,21 @@ async function updateConstantesMedecin(req, res) {
     } = req.body;
 
     try {
+        // Vérifier abonnement actif du patient
+        const subResult = await pool.query(
+            `SELECT is_active FROM subscriptions
+             WHERE patient_phone = $1 AND is_active = true`,
+            [patient_phone]
+        );
+
+        if (subResult.rows.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'ABONNEMENT_INACTIF',
+                message: 'Le patient n\'a pas d\'abonnement actif'
+            });
+        }
+
         // Vérifier que le médecin a eu un RDV avec ce patient
         const rdvCheck = await pool.query(
             `SELECT COUNT(*) FROM appointments 
