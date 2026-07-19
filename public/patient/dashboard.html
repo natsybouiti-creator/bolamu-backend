@@ -2327,7 +2327,7 @@
     if (!token) return;
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
     var offset = (A._recentConsultations || []).length;
-    apiFetch('https://www.bolamu.co/api/v1/patients/consultations/recentes?limit=4&offset=' + offset, H)
+    apiFetch('https://api.bolamu.co/api/v1/patients/consultations/recentes?limit=4&offset=' + offset, H)
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.success && d.data) {
@@ -2860,7 +2860,7 @@
     var list = $('bcw-conv-list');
     if (!token || !list) return;
     list.innerHTML = '<div style="text-align:center;padding:24px;color:#9498a8;font-size:0.85rem;">Chargement…</div>';
-    apiFetch('https://www.bolamu.co/api/v1/chat/conversations', { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/chat/conversations', { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (res) { return res.json(); })
       .then(function (d) {
         if (!d || !d.success || !d.data || !d.data.length) {
@@ -2947,7 +2947,7 @@
     var results = $('bcw-search-results');
     if (!token || !results) return;
     results.innerHTML = '<div style="text-align:center;padding:16px;color:#9498a8;font-size:0.82rem;">Recherche…</div>';
-    apiFetch('https://www.bolamu.co/api/v1/chat/users/search?q=' + encodeURIComponent(q), { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/chat/users/search?q=' + encodeURIComponent(q), { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (res) { return res.json(); })
       .then(function (d) {
         if (!d || !d.success || !d.data || !d.data.length) {
@@ -2971,7 +2971,7 @@
   A.startConversationWith = function (phone) {
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
-    apiFetch('https://www.bolamu.co/api/v1/chat/conversations', {
+    apiFetch('https://api.bolamu.co/api/v1/chat/conversations', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ participant_phone: phone })
@@ -3065,7 +3065,7 @@
     $('ev-detail-participants-list').innerHTML = '<div style="text-align:center;color:#9498a8;font-size:0.85rem;padding:1rem;">Chargement...</div>';
 
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/events/' + eventId, {
+    apiFetch('https://api.bolamu.co/api/v1/events/' + eventId, {
       headers: { 'Authorization': 'Bearer ' + token }
     })
       .then(function (r) { return r && r.json(); })
@@ -3095,7 +3095,7 @@
         $('ev-detail-title').textContent = 'Erreur de chargement';
       });
 
-    apiFetch('https://www.bolamu.co/api/v1/events/' + eventId + '/participants', {
+    apiFetch('https://api.bolamu.co/api/v1/events/' + eventId + '/participants', {
       headers: { 'Authorization': 'Bearer ' + token }
     })
       .then(function (r) { return r && r.json(); })
@@ -3123,7 +3123,7 @@
   A._loadWeeklyLeaderboard = function () {
     var token = localStorage.getItem('bolamu_patient_token');
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
-    apiFetch('https://www.bolamu.co/api/v1/patients/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/patients/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data && d.data.top) {
         A._weeklyLeaderboard = d.data.top;
         A._myWeeklyPosition = d.data.my_position;
@@ -3168,7 +3168,7 @@
   A.encourageMember = function (targetPhone) {
     var token = localStorage.getItem('bolamu_patient_token');
     var H = { headers: { 'Authorization': 'Bearer ' + token }, method: 'POST', body: JSON.stringify({ target_phone: targetPhone }) };
-    apiFetch('https://www.bolamu.co/api/v1/patients/encourage', H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/patients/encourage', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success) {
         A.showToast('Encouragement envoyé !');
       } else {
@@ -3235,7 +3235,7 @@
     var formData = new FormData();
     formData.append('photo', file);
 
-    apiFetch('https://www.bolamu.co/api/v1/patients/photo', {
+    apiFetch('https://api.bolamu.co/api/v1/patients/photo', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token },
       body: formData
@@ -3255,7 +3255,7 @@
   /* --------------------------- MES INFORMATIONS --------------------------- */
   A.openMesInfos = function () {
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/patients/profil', { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/patients/profil', { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (!d.success) { A.showToast('Erreur de chargement du profil'); return; }
         var p = d.data;
@@ -3270,7 +3270,7 @@
     var token = localStorage.getItem('bolamu_patient_token');
     var full_name = $('mesinfos-nom').value.trim();
     if (!full_name) { A.showToast('Le nom ne peut pas être vide'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/patients/profile', {
+    apiFetch('https://api.bolamu.co/api/v1/patients/profile', {
       method: 'PATCH',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ full_name: full_name })
@@ -3286,7 +3286,7 @@
   /* --------------------------- NOTIFICATIONS --------------------------- */
   A.openNotifPrefs = function () {
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/patients/notification-prefs', { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/patients/notification-prefs', { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (!d.success) { A.showToast('Erreur de chargement'); return; }
         $('notif-whatsapp-toggle').checked = !!d.data.whatsapp_notif_enabled;
@@ -3298,7 +3298,7 @@
 
   A.saveNotifPrefs = function () {
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/patients/notification-prefs', {
+    apiFetch('https://api.bolamu.co/api/v1/patients/notification-prefs', {
       method: 'PATCH',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3319,7 +3319,7 @@
 
   A.exportMesDonnees = function () {
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/patients/data-export', { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/patients/data-export', { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (!d.success) { A.showToast('Erreur export'); return; }
         var blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
@@ -3335,7 +3335,7 @@
   A.demanderSuppressionCompte = function () {
     if (!confirm('Confirmer la demande de suppression de votre compte Bolamu ? Notre équipe traitera votre demande sous peu.')) return;
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/patients/deletion-request', {
+    apiFetch('https://api.bolamu.co/api/v1/patients/deletion-request', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function (r) { return r.json(); }).then(function (d) {
@@ -3357,7 +3357,7 @@
     var choice = document.querySelector('input[name="langue-choice"]:checked');
     var lang = choice ? choice.value : 'fr';
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/patients/language', {
+    apiFetch('https://api.bolamu.co/api/v1/patients/language', {
       method: 'PATCH',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ language: lang })
@@ -3442,7 +3442,7 @@
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
-    apiFetch('https://www.bolamu.co/api/v1/patients/profil-social/' + encodeURIComponent(A._patientPhone), H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/patients/profil-social/' + encodeURIComponent(A._patientPhone), H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data) {
         var bioInput = $('edit-bio');
         var cityInput = $('edit-city');
@@ -3479,7 +3479,7 @@
         'Content-Type': 'application/json'
       } 
     };
-    apiFetch('https://www.bolamu.co/api/v1/patients/profil-social', {
+    apiFetch('https://api.bolamu.co/api/v1/patients/profil-social', {
       method: 'PATCH',
       headers: H.headers,
       body: JSON.stringify(data)
@@ -3518,7 +3518,7 @@
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
-    apiFetch('https://www.bolamu.co/api/v1/zora/balance', H).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/zora/balance', H).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && d.data) {
         A._zoraBalance = d.data.points || d.data.balance || 0;
         A.renderScalars();
@@ -3544,7 +3544,7 @@
     if (A._dossierQrLoaded) return;
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
-    apiFetch('https://www.bolamu.co/api/v1/dmn/qr-payload', { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/dmn/qr-payload', { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
         if (d && d.success && d.data && d.data.signed) {
@@ -3685,7 +3685,7 @@
     s.wheelSpinning = true; s.wheelResult = null;
     var btn = $('wheel-spin-btn'); if (btn) { btn.disabled = true; btn.textContent = 'En cours…'; btn.style.background = '#EDEDF8'; btn.style.color = '#9498a8'; btn.style.cursor = 'not-allowed'; }
     var rd = $('wheel-result'); if (rd) rd.textContent = 'Tirage en cours…';
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ game_type: 'wheel', play_type: isPaid ? 'paid' : 'free' }) })
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ game_type: 'wheel', play_type: isPaid ? 'paid' : 'free' }) })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (!d || !d.success || !d.data) { A._wheelFinish(null, d); return; }
         var pointsWon = d.data.points_won || 0;
@@ -3720,7 +3720,7 @@
     if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
     var isPaid = A.state.pendingPaidGame === 'chest';
     if (isPaid) { A.state.pendingPaidGame = null; A.addZora(-A.gameCost('chest')); }
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ game_type: 'chest', play_type: isPaid ? 'paid' : 'free' }) })
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ game_type: 'chest', play_type: isPaid ? 'paid' : 'free' }) })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data) {
           A.addZora(d.data.points_won || 0);
@@ -3742,7 +3742,7 @@
     if (!isPaid && A.freeRemaining('quiz') <= 0) { A.setState({ quizPicked: null }); return; }
     if (isPaid) { A.state.pendingPaidGame = null; A.addZora(-A.gameCost('quiz')); }
     A.setState({ quizPicked: null, quizPlayId: null, quizLoading: true });
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ game_type: 'quiz', play_type: isPaid ? 'paid' : 'free' }) })
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ game_type: 'quiz', play_type: isPaid ? 'paid' : 'free' }) })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data) {
           A._quizData = { pilier: d.data.category || 'Santé', q: d.data.question, options: [d.data.option_a, d.data.option_b, d.data.option_c, d.data.option_d], correctIndex: null, feedbackOk: '', feedbackNo: '' };
@@ -3764,7 +3764,7 @@
     if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
     var letters = ['a', 'b', 'c', 'd'];
     A.setState({ quizPicked: i });
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/quiz/answer', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ play_id: A.state.quizPlayId, answer: letters[i] }) })
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/quiz/answer', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ play_id: A.state.quizPlayId, answer: letters[i] }) })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data) {
           var correctIndex = letters.indexOf(d.data.correct_answer);
@@ -3784,7 +3784,7 @@
     if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
     var isPaid = A.state.pendingPaidGame === 'scratch';
     if (isPaid) { A.state.pendingPaidGame = null; A.addZora(-A.gameCost('scratch')); }
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ game_type: 'scratch', play_type: isPaid ? 'paid' : 'free' }) })
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/play', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ game_type: 'scratch', play_type: isPaid ? 'paid' : 'free' }) })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data) {
           A.addZora(d.data.points_won || 0);
@@ -3804,7 +3804,7 @@
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
     var el = $('bingo-grid'); if (el) el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#9498a8;font-size:0.8rem;">Chargement…</div>';
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/bingo', { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/bingo', { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data) { A._bingoData = d.data; A.renderBingo(); }
         else { A.showToast(d.error || 'Erreur — réessaie plus tard'); }
@@ -3843,7 +3843,7 @@
     if (!cell || cell.checked) return;
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/bingo/check', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ index: index }) })
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/bingo/check', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ index: index }) })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data) {
           A._bingoData = d.data;
@@ -3872,7 +3872,7 @@
     A.setState({ bingoRerollModal: false });
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/bingo/reroll', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/bingo/reroll', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data) {
           A._bingoData = d.data;
@@ -3892,7 +3892,7 @@
   A.loadRdvSlots = function () {
     var s = A.state; if (!s.rdvDoctorId || !s.rdvDate) { A._slots = []; A.renderRdvSlots(); return; }
     var token = localStorage.getItem('bolamu_patient_token'); if (!token) return;
-    apiFetch('https://www.bolamu.co/api/v1/appointments/slots/' + encodeURIComponent(s.rdvDoctorId) + '?date=' + encodeURIComponent(s.rdvDate), { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/appointments/slots/' + encodeURIComponent(s.rdvDoctorId) + '?date=' + encodeURIComponent(s.rdvDate), { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success) { A._slots = d.slots || []; A.renderRdvSlots(); }
         else { A._slots = []; A.renderRdvSlots(); A.showToast((d.error && d.error.message) || 'Impossible de charger les créneaux'); }
@@ -3919,7 +3919,7 @@
     var motifEl = document.getElementById('rdv-motif');
     var motif = motifEl ? motifEl.value.trim() : '';
     s.rdvBooking = true;
-    apiFetch('https://www.bolamu.co/api/v1/appointments/book', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ patient_phone: patientPhone, doctor_id: s.rdvDoctorId, date: s.rdvDate, time: s.rdvSlot, motif: motif || null }) })
+    apiFetch('https://api.bolamu.co/api/v1/appointments/book', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ patient_phone: patientPhone, doctor_id: s.rdvDoctorId, date: s.rdvDate, time: s.rdvSlot, motif: motif || null }) })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success) { A.showToast(motif === 'Bilan annuel complet' ? 'Bilan annuel planifié · +200 Zora après validation' : 'Rendez-vous confirmé · +50 Zora après consultation'); A.setState({ modal: false, rdvBooking: false, rdvDoctorId: '', rdvDate: '', rdvSlot: '' }); A._slots = []; }
         else { A.showToast(d.message || d.error || 'Réservation impossible'); A.setState({ rdvBooking: false }); }
@@ -3942,7 +3942,7 @@
     if (f.contact_urgence_phone) body.contact_urgence_phone = f.contact_urgence_phone;
     if (f.contact_urgence_lien) body.contact_urgence_lien = f.contact_urgence_lien;
     if (Object.keys(body).length === 0) { A.showToast('Aucune modification à enregistrer'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/patients/constantes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(body) })
+    apiFetch('https://api.bolamu.co/api/v1/patients/constantes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(body) })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success) { A._constantes = Object.assign({}, A._constantes, d.data); A.setState({ editConst: false }); A.showToast('Constantes mises à jour'); }
         else { A.showToast(d.message || d.error || 'Erreur lors de la sauvegarde'); }
@@ -3953,7 +3953,7 @@
   A.redeemBonZora = function (r) {
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/bons-zora/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ program_id: r.id }) })
+    apiFetch('https://api.bolamu.co/api/v1/bons-zora/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ program_id: r.id }) })
       .then(function (res) { return res.json(); }).then(function (d) {
         if (d.success && d.data) { A._bonZoraCode = d.data.code; A._bonZoraPartner = r.name; if (d.data.new_balance !== undefined) A._zoraBalance = d.data.new_balance; A.setState({ bonZoraModal: true }); setTimeout(function () { A.renderQR('bon-zora-qr', A._bonZoraCode, 140); }, 80); }
         else { var msg = { insufficient_balance: 'Solde Zora insuffisant', program_not_found: 'Programme introuvable', program_out_of_stock: 'Stock épuisé', no_zora_account: 'Compte Zora introuvable' }[d.error] || 'Échange impossible'; A.showToast(msg); }
@@ -3980,7 +3980,7 @@
     document.getElementById('modal-bon-zora-detail').classList.add('open');
     $('bz-modal-body').innerHTML = '<div style="padding:60px 20px;text-align:center;color:#9CA3AF;">Chargement...</div>';
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/bons-zora/programs/' + programId, { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/bons-zora/programs/' + programId, { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
         if (!d || !d.success || !d.data) { A.showToast('Programme introuvable'); A.closeBonZoraDetail(); return; }
@@ -4018,7 +4018,7 @@
     var p = A._bonZoraDetailCurrent; if (!p) return;
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/bons-zora/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ program_id: p.id }) })
+    apiFetch('https://api.bolamu.co/api/v1/bons-zora/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ program_id: p.id }) })
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
         if (d && d.success && d.data) {
@@ -4052,12 +4052,12 @@
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée'); return; }
     var password = A.state.dmnPassword; if (!password) { A.showToast('Mot de passe requis'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/dmn/download/verify', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ password: password }) })
+    apiFetch('https://api.bolamu.co/api/v1/dmn/download/verify', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ password: password }) })
       .then(function (res) { return res.json(); }).then(function (d) {
         if (d.success && d.token) {
           A._dmnToken = d.token; A._dmnTokenExpires = d.expires_at;
           A.setState({ dmnPasswordModal: false, dmnPassword: '' });
-          apiFetch('https://www.bolamu.co/api/v1/dmn/summary', { headers: { 'Authorization': 'Bearer ' + token } })
+          apiFetch('https://api.bolamu.co/api/v1/dmn/summary', { headers: { 'Authorization': 'Bearer ' + token } })
             .then(function (r) { return r.json(); }).then(function (sm) {
               if (sm.success && sm.data) {
                 A._dmnDocs = sm.data.documents || [];
@@ -4071,13 +4071,13 @@
   };
   A.downloadDmnDoc = function (docId) {
     var dmnToken = A._dmnToken; if (!dmnToken) { A.showToast('Token expiré — re-vérifiez votre mot de passe'); return; }
-    fetch('https://www.bolamu.co/api/v1/dmn/download/' + docId, { headers: { 'Authorization': 'Bearer ' + dmnToken } })
+    fetch('https://api.bolamu.co/api/v1/dmn/download/' + docId, { headers: { 'Authorization': 'Bearer ' + dmnToken } })
       .then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.download_url) window.open(d.download_url, '_blank'); else A.showToast('Téléchargement impossible'); }).catch(function () { A.showToast('Erreur réseau'); });
   };
   A.generateDmnQr = function () {
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/dmn/qr-payload', { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/dmn/qr-payload', { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data) { var payload = d.data.signed || JSON.stringify(d.data.payload); A._dmnQrPayload = payload; A.setState({ dmnQrModal: true }); setTimeout(function () { A.renderQR('dmn-qr-med', payload, 200); }, 80); }
         else { A.showToast('Génération du QR impossible'); }
@@ -4091,7 +4091,7 @@
     if (!token) { A.showToast('Session expirée'); return; }
     if (!s.selectedPlan) { A.showToast('Sélectionnez un plan'); return; }
     if (!s.transactionId) { A.showToast('Entrez l\'ID de transaction'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/payments/momo/request', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ plan_id: s.selectedPlan.id, payment_method: s.selectedPaymentMethod, transaction_id: s.transactionId, amount: s.selectedPlan.amount }) })
+    apiFetch('https://api.bolamu.co/api/v1/payments/momo/request', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ plan_id: s.selectedPlan.id, payment_method: s.selectedPaymentMethod, transaction_id: s.transactionId, amount: s.selectedPlan.amount }) })
       .then(function (res) { return res.json(); }).then(function (d) {
         if (d.success) { A.showToast('Abonnement activé avec succès !'); A._subPlanLabel = s.selectedPlan.label; A._subAmount = s.selectedPlan.amount; A._abonnementStatus = 'active'; A.setState({ abonnementOpen: false, selectedPlan: null, transactionId: '' }); var ti = $('transaction-id'); if (ti) ti.value = ''; }
         else { A.showToast(d.message || 'Erreur lors de la validation'); }
@@ -4105,7 +4105,7 @@
     if (!token) return Promise.resolve();
     // GET /chat/communaute inscrit le patient dans conversation_participants (ON CONFLICT DO NOTHING côté backend)
     // — sans cet appel, un patient jamais inscrit prend un 403 au premier envoi de message.
-    return apiFetch('https://www.bolamu.co/api/v1/chat/communaute', { headers: { 'Authorization': 'Bearer ' + token } })
+    return apiFetch('https://api.bolamu.co/api/v1/chat/communaute', { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (res) { return res.json(); })
       .then(function (d) { if (d && d.success && d.data && d.data.id) { A._communauteConvId = d.data.id; } })
       .catch(function () {});
@@ -4117,7 +4117,7 @@
     if (!token) return;
     A.setState({ chatLoading: true });
     (A._communauteReady || Promise.resolve()).then(function () {
-      apiFetch('https://www.bolamu.co/api/v1/chat/conversations/' + A._communauteConvId + '/messages', { headers: { 'Authorization': 'Bearer ' + token } })
+      apiFetch('https://api.bolamu.co/api/v1/chat/conversations/' + A._communauteConvId + '/messages', { headers: { 'Authorization': 'Bearer ' + token } })
         .then(function (res) { return res.json(); }).then(function (d) {
           if (d.success && d.data) { A._chatMessages = d.data; A.setState({ chatMessages: d.data, chatLoading: false }); A.scrollToChatBottom(); }
           else { A.setState({ chatLoading: false }); }
@@ -4131,7 +4131,7 @@
   A.sendChatMessage = function () {
     var s = A.state; var token = localStorage.getItem('bolamu_patient_token');
     if (!s.chatInput || !token) return;
-    apiFetch('https://www.bolamu.co/api/v1/chat/conversations/' + A._communauteConvId + '/messages', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: s.chatInput }) })
+    apiFetch('https://api.bolamu.co/api/v1/chat/conversations/' + A._communauteConvId + '/messages', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: s.chatInput }) })
       .then(function (res) { return res.json(); }).then(function (d) {
         if (d.success && d.data) { var inp = $('chat-input'); if (inp) inp.value = ''; A.state.chatInput = ''; if (A._socket) A._socket.emit('new_message', d.data); }
       }).catch(function () {});
@@ -4140,7 +4140,7 @@
 
   A.joinGroup = function (groupId) {
     var token = localStorage.getItem('bolamu_patient_token'); if (!token) return;
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + groupId + '/join', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/clubs/' + groupId + '/join', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (res) { return res.json(); }).catch(function () {});
   };
 
@@ -4190,18 +4190,18 @@
   // Chargement de toutes les données API (fetch identiques à l'original)
   A._loadAll = function (token, phone) {
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
-    apiFetch('https://www.bolamu.co/api/v1/patients/profil?phone=' + encodeURIComponent(phone), H).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/patients/profil?phone=' + encodeURIComponent(phone), H).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && d.data) { A._patientPrenom = (d.data.full_name || '').split(' ')[0]; A._patientNom = d.data.full_name || ''; A._patientPhone = d.data.phone || ''; A._patientAbonnement = d.data.plan_name || 'Bolamu Essentiel'; A._patientId = d.data.bolamu_id || ''; A._patientMemberCode = d.data.member_code || ''; A._patientData = d.data; A._patientPhotoUrl = d.data.photo_url; A.setState({ gender: d.data.gender }); A.renderProfilePhoto(); A.renderScalars(); }
     }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/zora/balance', H).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/zora/balance', H).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && d.data) { var pts = d.data.points || d.data.balance || 0; A._zoraBalance = pts; if (!A.reduce) { var dur = 1200, start = performance.now(); var tick = function (t) { var p = Math.min(1, (t - start) / dur); var e = 1 - Math.pow(1 - p, 3); A.state.zora = Math.round(pts * e); A.renderScalars(); if (p < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); } else { A.state.zora = pts; A.renderScalars(); } }
     }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/streaks/me', H).then(function (r) { return r && r.json(); }).then(function (d) { if (d && d.success) { A._streak = d.current_streak || 0; A._longestStreak = d.longest_streak || 0; A.sync(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/streaks/me', H).then(function (r) { return r && r.json(); }).then(function (d) { if (d && d.success) { A._streak = d.current_streak || 0; A._longestStreak = d.longest_streak || 0; A.sync(); } }).catch(function () {});
 
     // Encouragements reçus
-    apiFetch('https://www.bolamu.co/api/v1/patients/encouragements/received', H).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/patients/encouragements/received', H).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && d.data) {
         A._encouragementsReceived = d.data;
         A.renderEncouragementsReceived();
@@ -4209,7 +4209,7 @@
     }).catch(function () {});
 
     // Score Bolamu
-    apiFetch('https://www.bolamu.co/api/v1/patients/score-bienetre', H).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/patients/score-bienetre', H).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && d.data) {
         A._scoreBolamu = d.data.score;
         A._scoreTendance = d.data.tendance;
@@ -4243,7 +4243,7 @@
       setText('scoreBolamu', '—');
     });
 
-    apiFetch('https://www.bolamu.co/api/v1/events', H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/events', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data) {
         var pilierMap = { activite: 'Activité physique', nutrition: 'Nutrition', anti_infectieux: 'Anti-infectieux', sante: 'Santé' };
         var tintMap = { activite: '#00C9A7', nutrition: '#FF6B35', anti_infectieux: '#003FB1', sante: '#F5A623' };
@@ -4254,7 +4254,7 @@
       }
     }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/events/my/registrations', H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/events/my/registrations', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data) {
         A._myRegistrations = d.data.map(function (reg) { return { title: reg.title, location_name: reg.location_name, starts_at: new Date(reg.starts_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + new Date(reg.starts_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), session_code: reg.session_code, event_id: reg.event_id, image_url: reg.cover_image_path || null }; });
         var registeredIds = d.data.map(function (reg) { return reg.event_id; });
@@ -4277,7 +4277,7 @@
         return { id: 'tmp' + e.id, name: e.nom, type: e.type, addr: e.adresse, lat: e.lat, lng: e.lng, tel: e.tel, partner: !!e.partenaire, icon: iconMap[e.type] || 'place', approx: !!e.gpsApproximatif };
       });
     };
-    apiFetch('https://www.bolamu.co/api/v1/map/intervenants', H).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/map/intervenants', H).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && Array.isArray(d.data) && d.data.length > 0) {
         var typeMap = { doctor: 'clinique', pharmacie: 'pharmacie', laboratoire: 'laboratoire' };
         var iconMap = { clinique: 'local_hospital', pharmacie: 'local_pharmacy', laboratoire: 'biotech' };
@@ -4299,7 +4299,7 @@
       var lbListEl = $('leaderboard-list');
       show($('leaderboard-empty'), false);
       if (lbListEl) lbListEl.innerHTML = '<div style="text-align:center;padding:18px 0;font-size:0.86rem;font-weight:600;color:#9498a8;">Chargement…</div>';
-      apiFetch('https://www.bolamu.co/api/v1/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) {
+      apiFetch('https://api.bolamu.co/api/v1/leaderboard/weekly', H).then(function (r) { return r.json(); }).then(function (d) {
         if (d.success && d.data && d.data.top) { A._leaderboard = d.data.top.slice(0, 5); A._myPosition = d.data.my_position; A.renderLeaderboard(); }
         else if (lbListEl) { lbListEl.innerHTML = ''; show($('leaderboard-empty'), true); }
       }).catch(function () {
@@ -4307,11 +4307,11 @@
       });
     })();
 
-    apiFetch('https://www.bolamu.co/api/v1/zora/balance?phone=' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/zora/balance?phone=' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data) { var tierMap = { kimia: 'Kimia', liboso: 'Liboso', nkembo: 'Nkembo', elonga: 'Elonga' }; A._zoraTier = tierMap[d.data.tier] || d.data.tier; A._zoraNextTier = tierMap[d.data.next_tier] || d.data.next_tier; A._zoraPointsToNext = d.data.points_to_next || 0; A._zoraTotalEarned = d.data.total_earned || 0; A.renderScalars(); }
     }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/clubs', {}).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/clubs', {}).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && d.clubs) {
         var iconMap = { course: 'directions_run', basketball: 'sports_basketball', football: 'sports_soccer', tennis: 'sports_tennis', natation: 'pool', cyclisme: 'directions_bike' };
         A._sportGroups = d.clubs.map(function (c) { return { id: c.id, icon: iconMap[c.sport_type] || 'groups', name: c.name, category: c.category || c.sport_type || '', cover_image_path: c.cover_image_path || null }; });
@@ -4319,7 +4319,7 @@
       }
     }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/clubs/my', {}).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/clubs/my', {}).then(function (r) { return r && r.json(); }).then(function (d) {
       if (d && d.success && d.clubs) {
         A._myClubs = d.clubs;
         var myIds = {};
@@ -4329,35 +4329,35 @@
       }
     }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/zora/ledger?limit=10', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data && d.data.data) { A._ledger = d.data.data; A.renderLedger(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/zora/ledger?limit=10', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data && d.data.data) { A._ledger = d.data.data; A.renderLedger(); } }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/patients/subscription?phone=' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/patients/subscription?phone=' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
       var sub = d.subscription || d.data;
       if (d.success && sub && sub.plan) { var planMapTxt = { essentiel: 'Bolamu Essentiel', standard: 'Bolamu Standard', premium: 'Bolamu Premium' }; var planMapLabel = { essentiel: 'MOTO', standard: 'NDEKO', premium: 'LIBOTA' }; A._abonnement = planMapTxt[sub.plan] || sub.plan; A._abonnementStatus = sub.status || 'active'; A._subPlanLabel = planMapLabel[sub.plan] || sub.plan; A._subAmount = sub.amount_fcfa || 0; A._subNext = sub.next_billing_date || null; }
       else { A._subPlanLabel = null; }
       A.sync();
     }).catch(function () { A._subPlanLabel = null; A.sync(); });
 
-    apiFetch('https://www.bolamu.co/api/v1/patients/constantes/' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._constantes = d.data; A.renderScalars(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/patients/constantes/' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._constantes = d.data; A.renderScalars(); } }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/reports/access-log/' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data.slice(0, 3); A.renderAccessLog(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/reports/access-log/' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data.slice(0, 3); A.renderAccessLog(); } }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/config', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._gamesConfig = d.data; } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/config', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._gamesConfig = d.data; } }).catch(function () {});
 
     // Quota réel de parties gratuites par jeu (fix 17 juillet 2026) — remplace le compteur
     // unique A.state.freeGames partagé entre les 4 jeux, jamais synchronisé avec le serveur.
-    apiFetch('https://www.bolamu.co/api/v1/zora/games/status', H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/zora/games/status', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && d.data) {
         d.data.forEach(function (g) { A.state.gamesStatus[g.game_type] = g; });
         A.renderGames(); setText('freeCount', A.totalFreeRemaining());
       }
     }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/doctors', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data && d.data.doctors) { A._doctors = d.data.doctors; A.renderRdvDoctors(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/doctors', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data && d.data.doctors) { A._doctors = d.data.doctors; A.renderRdvDoctors(); } }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/patients/consultations/recentes', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._recentConsultations = d.data; A._consultationsHasMore = !!d.has_more; A.renderMesConsultationsAccueil(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/patients/consultations/recentes', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._recentConsultations = d.data; A._consultationsHasMore = !!d.has_more; A.renderMesConsultationsAccueil(); } }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/bons-zora/programs', H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/bons-zora/programs', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && Array.isArray(d.data) && d.data.length) {
         A.rewards = d.data.map(function (rw) {
           var cat = rw.category || rw.cat || 'tout';
@@ -4379,19 +4379,19 @@
       A._rewardsLoaded = true; A.renderAffordable(); A.renderPartners(); A.renderSidebarPartners();
     });
 
-    apiFetch('https://www.bolamu.co/api/v1/bons-zora/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.data || []; A.renderBonsZora(); A.renderRecentExchanges(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/bons-zora/my', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._vouchers = d.data.data || []; A.renderBonsZora(); A.renderRecentExchanges(); } }).catch(function () {});
 
-    apiFetch('https://www.bolamu.co/api/v1/dmn/access-log', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data; A.renderAccessLog(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/dmn/access-log', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._dmnAccessLog = d.data; A.renderAccessLog(); } }).catch(function () {});
 
     // Carnet de vaccination (DMN + carte vitrine Gagner > Santé)
-    apiFetch('https://www.bolamu.co/api/v1/dmn/vaccinations/' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/dmn/vaccinations/' + encodeURIComponent(phone), H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && Array.isArray(d.data)) { A._vaccinations = d.data; A.renderVaccinations(); A.renderDernierVaccin(); }
     }).catch(function () {});
 
     var loadQR = function () {
       if (A._qrRefreshing) return;
       A._qrRefreshing = true;
-      apiFetch('https://www.bolamu.co/api/v1/qr/generate', H).then(function (r) { return r.json(); }).then(function (d) {
+      apiFetch('https://api.bolamu.co/api/v1/qr/generate', H).then(function (r) { return r.json(); }).then(function (d) {
         A._qrRefreshing = false;
         if (d.success && d.data) { A._qrToken = d.data.token; A._qrExpiry = new Date(d.data.expires_at).getTime(); A.renderQR('hero-qr', 'https://www.bolamu.co/profil?token=' + d.data.token, 90); }
         else { var el = $('hero-qr'); if (el) el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;gap:6px;"><span class="material-symbols-outlined" style="color:#FF6B35;font-size:28px">wifi_off</span><span style="font-size:0.65rem;color:#434654;text-align:center">QR indisponible<br>Réessaie dans un instant</span></div>'; }
@@ -4420,7 +4420,7 @@
   A.participate = function (id) {
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée — reconnectez-vous'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/events/' + id + '/register', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/events/' + id + '/register', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) {
         if (d.success) { A.setState({ events: A.state.events.map(function (e) { return (e.dbId === id && !e.registered) ? Object.assign({}, e, { places: e.places + 1, registered: true }) : e; }) }); A.showToast('Inscription confirmée · +50 Zora après participation'); }
         else { A.showToast((d.error && d.error.message) || d.message || 'Inscription impossible'); }
@@ -4469,7 +4469,7 @@
     var content = document.getElementById('event-panel-content');
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
-    apiFetch('https://www.bolamu.co/api/v1/events/' + eventId, { headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/events/' + eventId, { headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.success && d.data) {
@@ -4489,7 +4489,7 @@
             '<div id="participants-list" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 100px;"><div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Chargement...</div></div>' +
             '<button id="participate-btn" onclick="joinEvent(\'' + eventId + '\')" style="position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 32px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); background: #0A2463; color: #fff; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 -4px 12px rgba(10,36,99,0.1);">Participer</button>';
           panel.classList.add('active');
-          apiFetch('https://www.bolamu.co/api/v1/events/' + eventId + '/participants', { headers: { 'Authorization': 'Bearer ' + token } })
+          apiFetch('https://api.bolamu.co/api/v1/events/' + eventId + '/participants', { headers: { 'Authorization': 'Bearer ' + token } })
             .then(function (r) { return r.json(); })
             .then(function (pd) {
               if (pd.success && pd.data) {
@@ -4521,7 +4521,7 @@
     content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Chargement...</div>';
     panel.classList.add('active');
     
-    apiFetch('https://www.bolamu.co/api/v1/patients/profil-social/' + encodeURIComponent(phone), {
+    apiFetch('https://api.bolamu.co/api/v1/patients/profil-social/' + encodeURIComponent(phone), {
       headers: { 'Authorization': 'Bearer ' + token }
     })
     .then(function (r) { return r.json(); })
@@ -4625,7 +4625,7 @@
     var btn = document.getElementById('follow-btn');
     if (!btn) return;
     
-    apiFetch('https://www.bolamu.co/api/v1/follows/' + encodeURIComponent(phone), {
+    apiFetch('https://api.bolamu.co/api/v1/follows/' + encodeURIComponent(phone), {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
     })
@@ -4658,7 +4658,7 @@
   };
   window.startChat = function (phone) {
     var token = localStorage.getItem('bolamu_patient_token'); if (!token) return;
-    apiFetch('https://www.bolamu.co/api/v1/chat/conversations', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ participant_phone: phone }) })
+    apiFetch('https://api.bolamu.co/api/v1/chat/conversations', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ participant_phone: phone }) })
       .then(function (r) { return r.json(); }).then(function (d) { if (d.success) { closeParticipantPanel(); A.showToast('Conversation créée avec succès'); } }).catch(function () { closeParticipantPanel(); A.showToast('Chat bientôt disponible'); });
   };
 
@@ -4671,7 +4671,7 @@
     modal.style.display = 'flex';
     list.innerHTML = '<div style="text-align: center; padding: 40px; color: #9498a8; font-size: 0.9rem;">Chargement...</div>';
     
-    apiFetch('https://www.bolamu.co/api/v1/follows/follow-requests', {
+    apiFetch('https://api.bolamu.co/api/v1/follows/follow-requests', {
       headers: { 'Authorization': 'Bearer ' + token }
     })
     .then(function (r) { return r.json(); })
@@ -4716,7 +4716,7 @@
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
     
-    apiFetch('https://www.bolamu.co/api/v1/follows/follow-requests/' + id, {
+    apiFetch('https://api.bolamu.co/api/v1/follows/follow-requests/' + id, {
       method: 'PATCH',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: action })
@@ -4740,7 +4740,7 @@
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
     
-    apiFetch('https://www.bolamu.co/api/v1/follows/follow-requests', {
+    apiFetch('https://api.bolamu.co/api/v1/follows/follow-requests', {
       headers: { 'Authorization': 'Bearer ' + token }
     })
     .then(function (r) { return r.json(); })
@@ -4764,7 +4764,7 @@
     var content = document.getElementById('club-panel-content');
     panel.classList.add('open');
     content.innerHTML = '<div style="text-align: center; padding: 40px; color: #9CA3AF;">Chargement...</div>';
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId, {})
+    apiFetch('https://api.bolamu.co/api/v1/clubs/' + clubId, {})
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
         if (!d) return;
@@ -4786,7 +4786,7 @@
                 : '<button onclick="leaveClub(\'' + clubId + '\')" style="flex:1;background: #F3F3FE; color: #BA1A1A; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; padding: 14px; border-radius: 9999px;">Quitter</button>');
           }
           content.innerHTML = '<div style="height: 220px; ' + bannerStyle + ' border-radius: 20px; margin-bottom: 20px;"></div><h1 style="font-size: 1.8rem; font-weight: 800; color: #0A2463; margin: 0 0 16px 0;">' + (club.name || 'Club') + '</h1><div style="display: flex; align-items: center; gap: 16px; font-size: 0.9rem; color: #434654; margin-bottom: 16px;"><span><strong>' + (club.member_count || 0) + '</strong> membres</span><span style="color: #EDEDF8;">|</span><span><strong>' + (club.total_zora || 0) + '</strong> Zora cumulés</span></div><div style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 24px;"><p style="margin: 0; color: #434654; font-size: 0.9rem; line-height: 1.6;">' + (club.description || 'Rejoignez ce club pour gagner des points Zora ensemble !') + '</p></div><h2 style="font-size: 1.1rem; font-weight: 800; color: #0A2463; margin: 0 0 12px 0;">Classement membres</h2><div id="club-members-list" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 14px; padding: 16px; margin-bottom: 24px;"><div style="text-align: center; color: #9CA3AF; font-size: 0.85rem;">Chargement...</div></div><div style="display: flex; gap: 10px;">' + actionButtons + '</div>';
-          apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/members', {})
+          apiFetch('https://api.bolamu.co/api/v1/clubs/' + clubId + '/members', {})
             .then(function (r) { return r && r.json(); })
             .then(function (md) {
               if (!md) return;
@@ -4813,7 +4813,7 @@
 
   window.leaveClub = function (clubId) {
     if (!confirm('Veux-tu vraiment quitter ce club ?')) return;
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/join', { method: 'DELETE' })
+    apiFetch('https://api.bolamu.co/api/v1/clubs/' + clubId + '/join', { method: 'DELETE' })
       .then(function (r) { return r && r.json(); }).then(function (d) {
         if (d && d.success) {
           A.showToast('Club quitté');
@@ -4860,7 +4860,7 @@
   }
   function loadClubChatMessages() {
     if (!window._clubChatId) return;
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + window._clubChatId + '/messages', {})
+    apiFetch('https://api.bolamu.co/api/v1/clubs/' + window._clubChatId + '/messages', {})
       .then(function (r) { return r && r.json(); }).then(function (d) {
         if (!d || !d.success) return;
         var el = document.getElementById('club-chat-messages');
@@ -4892,7 +4892,7 @@
   window.openClubManage = function (clubId) {
     var content = document.getElementById('club-panel-content');
     content.innerHTML = '<div style="text-align:center;color:#9CA3AF;font-size:0.85rem;padding:20px;">Chargement...</div>';
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/members', {})
+    apiFetch('https://api.bolamu.co/api/v1/clubs/' + clubId + '/members', {})
       .then(function (r) { return r && r.json(); }).then(function (md) {
         if (!md || !md.success) return;
         var members = md.data || [];
@@ -4910,7 +4910,7 @@
   };
   window.kickClubMember = function (clubId, phone) {
     if (!confirm('Exclure ce membre du club ?')) return;
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/kick/' + encodeURIComponent(phone), { method: 'POST' })
+    apiFetch('https://api.bolamu.co/api/v1/clubs/' + clubId + '/kick/' + encodeURIComponent(phone), { method: 'POST' })
       .then(function (r) { return r && r.json(); }).then(function (d) {
         if (d && d.success) { A.showToast('Membre exclu'); openClubManage(clubId); }
         else { A.showToast((d && d.message) || 'Action impossible'); }
@@ -4918,7 +4918,7 @@
   };
   window.deactivateClub = function (clubId) {
     if (!confirm('Désactiver définitivement ce club ? Cette action est irréversible.')) return;
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId, { method: 'DELETE' })
+    apiFetch('https://api.bolamu.co/api/v1/clubs/' + clubId, { method: 'DELETE' })
       .then(function (r) { return r && r.json(); }).then(function (d) {
         if (d && d.success) {
           A.showToast('Club désactivé');
@@ -4934,18 +4934,18 @@
   window.joinEvent = function (eventId) {
     var token = localStorage.getItem('bolamu_patient_token'); if (!token) return;
     var btn = document.getElementById('participate-btn');
-    apiFetch('https://www.bolamu.co/api/v1/events/' + eventId + '/register', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
+    apiFetch('https://api.bolamu.co/api/v1/events/' + eventId + '/register', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } })
       .then(function (r) { return r.json(); }).then(function (d) { if (d.success) { btn.textContent = 'Inscrit ✓'; btn.style.background = '#00C9A7'; A.showToast('Inscription réussie ! +50 Zora crédités'); } }).catch(function () { btn.textContent = 'Inscrit ✓'; btn.style.background = '#00C9A7'; });
   };
   window.cancelEventRegistration = function (id) {
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée — reconnectez-vous'); window.location.href = '/patient/login.html'; return; }
     if (!confirm('Veux-tu vraiment annuler ton inscription à cet événement ?')) return;
-    apiFetch('https://www.bolamu.co/api/v1/events/' + id + '/register', { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } })
+    apiFetch('https://api.bolamu.co/api/v1/events/' + id + '/register', { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } })
       .then(function (r) { return r.json(); }).then(function (d) { if (d.success) { alert('Inscription annulée avec succès'); window.location.reload(); } else { var msgs = { not_registered: 'Tu n\'es pas inscrit à cet événement.' }; alert((d.error && d.error.message) || msgs[d.reason] || 'Annulation impossible'); } }).catch(function () { alert('Erreur réseau — vérifie ta connexion'); });
   };
   window.joinClub = function (clubId) {
-    apiFetch('https://www.bolamu.co/api/v1/clubs/' + clubId + '/join', { method: 'POST' })
+    apiFetch('https://api.bolamu.co/api/v1/clubs/' + clubId + '/join', { method: 'POST' })
       .then(function (r) { return r && r.json(); }).then(function (d) {
         if (d && d.success) {
           A.showToast('Club rejoint !');
@@ -4968,7 +4968,7 @@
     var name = document.getElementById('club-name-input').value;
     var sportType = document.getElementById('club-sport-input').value;
     if (!name) { A.showToast('Nom du groupe requis'); return; }
-    apiFetch('https://www.bolamu.co/api/v1/clubs', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, sport_type: sportType }) })
+    apiFetch('https://api.bolamu.co/api/v1/clubs', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, sport_type: sportType }) })
       .then(function (r) { return r.json(); }).then(function (d) { if (d.success) { A.showToast('Groupe créé !'); closeCreateClubModal(); location.reload(); } }).catch(function () { A.showToast('Erreur lors de la création'); });
   };
 
@@ -5190,7 +5190,7 @@
     var params = new URLSearchParams({ page: A._feedPage, limit: 10 });
     if (A._feedCity) params.append('city', A._feedCity);
 
-    apiFetch('https://www.bolamu.co/api/v1/feed?' + params, {}).then(function (r) { return r && r.json(); }).then(function (d) {
+    apiFetch('https://api.bolamu.co/api/v1/feed?' + params, {}).then(function (r) { return r && r.json(); }).then(function (d) {
       if (!d) return;
       var container = $('feed-posts-list');
       if (reset && container) container.innerHTML = '';
@@ -5256,7 +5256,7 @@
   };
 
   A.toggleLike = function (postId, btn) {
-    apiFetch('https://www.bolamu.co/api/v1/feed/' + postId + '/like', { method: 'POST' })
+    apiFetch('https://api.bolamu.co/api/v1/feed/' + postId + '/like', { method: 'POST' })
       .then(function (r) { return r && r.json(); }).then(function (data) {
       if (!data) return;
       var icon = btn.querySelector('.material-symbols-outlined');
@@ -5285,7 +5285,7 @@
   };
 
   A.loadComments = function (postId) {
-    apiFetch('https://www.bolamu.co/api/v1/feed/' + postId + '/comments', {})
+    apiFetch('https://api.bolamu.co/api/v1/feed/' + postId + '/comments', {})
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
         if (A._currentCommentsPostId !== postId) return; // modale refermée/rouverte entre-temps
@@ -5335,7 +5335,7 @@
     var content = (input.value || '').trim();
     if (!content) return;
 
-    apiFetch('https://www.bolamu.co/api/v1/feed/' + postId + '/comments', {
+    apiFetch('https://api.bolamu.co/api/v1/feed/' + postId + '/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: content })
@@ -5357,7 +5357,7 @@
   A.deleteComment = function (commentId, btn) {
     var postId = A._currentCommentsPostId;
     if (!postId) return;
-    apiFetch('https://www.bolamu.co/api/v1/feed/' + postId + '/comments/' + commentId, { method: 'DELETE' })
+    apiFetch('https://api.bolamu.co/api/v1/feed/' + postId + '/comments/' + commentId, { method: 'DELETE' })
       .then(function (r) { return r && r.json(); }).then(function (d) {
       if (!d || !d.success) return;
       var item = btn.closest('.comment-item');
@@ -5387,8 +5387,8 @@
     if (!target) return;
     var reason = $('report-reason').value;
     var url = target.type === 'post'
-      ? 'https://www.bolamu.co/api/v1/feed/' + target.id + '/report'
-      : 'https://www.bolamu.co/api/v1/feed/comments/' + target.id + '/report';
+      ? 'https://api.bolamu.co/api/v1/feed/' + target.id + '/report'
+      : 'https://api.bolamu.co/api/v1/feed/comments/' + target.id + '/report';
 
     apiFetch(url, {
       method: 'POST',
@@ -5448,7 +5448,7 @@
     if (photoInput.files[0]) formData.append('photo', photoInput.files[0]);
 
     var token = localStorage.getItem('bolamu_patient_token');
-    apiFetch('https://www.bolamu.co/api/v1/feed', {
+    apiFetch('https://api.bolamu.co/api/v1/feed', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token },
       body: formData
@@ -5464,7 +5464,7 @@
 
   /* --------------------------- STORIES --------------------------- */
   A.loadStories = function () {
-    apiFetch('https://www.bolamu.co/api/v1/stories', {})
+    apiFetch('https://api.bolamu.co/api/v1/stories', {})
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
         if (!d) return;
@@ -5535,7 +5535,7 @@
       }
     }
 
-    apiFetch('https://www.bolamu.co/api/v1/stories/' + story.id + '/view', { method: 'POST' }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/stories/' + story.id + '/view', { method: 'POST' }).catch(function () {});
 
     $('story-progress').style.width = '0%';
     if (A._storyTimer) clearInterval(A._storyTimer);
@@ -5616,7 +5616,7 @@
     if (mediaInput.files[0]) formData.append('media', mediaInput.files[0]);
 
     var token = localStorage.getItem('bolamu_patient_token');
-    var url = isReel ? 'https://www.bolamu.co/api/v1/reels' : 'https://www.bolamu.co/api/v1/stories';
+    var url = isReel ? 'https://api.bolamu.co/api/v1/reels' : 'https://api.bolamu.co/api/v1/stories';
     apiFetch(url, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token },
@@ -5641,7 +5641,7 @@
   };
 
   A.loadReels = function () {
-    apiFetch('https://www.bolamu.co/api/v1/reels?limit=10', {})
+    apiFetch('https://api.bolamu.co/api/v1/reels?limit=10', {})
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
         var container = $('reels-scroll');
@@ -5697,7 +5697,7 @@
   };
 
   A.toggleReelLike = function (reelId, btn) {
-    apiFetch('https://www.bolamu.co/api/v1/feed/' + reelId + '/like', { method: 'POST' })
+    apiFetch('https://api.bolamu.co/api/v1/feed/' + reelId + '/like', { method: 'POST' })
       .then(function (r) { return r && r.json(); }).then(function (data) {
       if (!data) return;
       var icon = btn.querySelector('.material-symbols-outlined');
@@ -5728,7 +5728,7 @@
 
   /* --------------------------- SUGGESTIONS / FOLLOW --------------------------- */
   A.loadSuggestions = function () {
-    apiFetch('https://www.bolamu.co/api/v1/feed/suggestions', {})
+    apiFetch('https://api.bolamu.co/api/v1/feed/suggestions', {})
       .then(function (r) { return r && r.json(); })
       .then(function (d) {
         if (!d) return;
@@ -5774,7 +5774,7 @@
   };
 
   A.followUser = function (phone, btn) {
-    apiFetch('https://www.bolamu.co/api/v1/follows/' + phone, { method: 'POST' })
+    apiFetch('https://api.bolamu.co/api/v1/follows/' + phone, { method: 'POST' })
       .then(function (r) { return r && r.json(); }).then(function (data) {
       if (data && data.success) { btn.textContent = 'Suivi'; btn.classList.add('following'); btn.disabled = true; }
     }).catch(function (err) { console.error('[follows] followUser:', err); });
@@ -5782,7 +5782,7 @@
 
   /* --------------------------- NOTIFICATIONS (cloche header) --------------------------- */
   A.loadUnreadCount = function () {
-    apiFetch('https://www.bolamu.co/api/v1/notifications/unread-count', {})
+    apiFetch('https://api.bolamu.co/api/v1/notifications/unread-count', {})
       .then(function (r) { return r && r.json(); })
       .then(function (data) {
         if (!data) return;
@@ -5802,7 +5802,7 @@
   };
 
   A.loadNotifications = function () {
-    apiFetch('https://www.bolamu.co/api/v1/notifications', {})
+    apiFetch('https://api.bolamu.co/api/v1/notifications', {})
       .then(function (r) { return r && r.json(); })
       .then(function (data) {
         if (!data) return;
@@ -5820,13 +5820,13 @@
             '<div class="notif-item-title">' + A.escapeHtml(n.titre) + '</div>' +
             (n.message ? '<div class="notif-item-body">' + A.escapeHtml(n.message) + '</div>' : '');
           div.onclick = function () {
-            apiFetch('https://www.bolamu.co/api/v1/notifications/' + n.id + '/read', { method: 'PATCH' }).catch(function () {});
+            apiFetch('https://api.bolamu.co/api/v1/notifications/' + n.id + '/read', { method: 'PATCH' }).catch(function () {});
             div.classList.remove('unread');
             if (n.link) window.location = n.link;
           };
           list.appendChild(div);
         });
-        apiFetch('https://www.bolamu.co/api/v1/notifications/read-all', { method: 'PATCH' }).catch(function () {});
+        apiFetch('https://api.bolamu.co/api/v1/notifications/read-all', { method: 'PATCH' }).catch(function () {});
         var badge = $('notif-badge');
         if (badge) badge.style.display = 'none';
       }).catch(function (err) { console.error('[notif] loadNotifications:', err); });
