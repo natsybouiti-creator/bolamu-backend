@@ -6,6 +6,8 @@
 <title>Bolamu - Tableau de Bord Docteur</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -207,6 +209,7 @@
             { id: 'Mes patients', icon: 'groups' },
             { id: 'Scanner', icon: 'qr_code_scanner' },
             { id: 'Scanner Zora', icon: 'smart_toy' },
+            { id: 'Scanner DMN', icon: 'folder_open' },
             { id: 'Smart Flow', icon: 'analytics' },
             { id: 'Mes offres', icon: 'local_offer' },
             { id: 'Messages', icon: 'chat_bubble' },
@@ -278,6 +281,7 @@
             case 'Mes patients': renderPatients(canvas); break;
             case 'Scanner': renderScanner(canvas, 'Général'); break;
             case 'Scanner Zora': renderScanner(canvas, 'Zora'); break;
+            case 'Scanner DMN': renderDMN(canvas); break;
             case 'Smart Flow': renderSmartFlow(canvas); break;
             case 'Mes offres': renderOffres(canvas); break;
             case 'Messages': renderMessages(canvas); break;
@@ -407,7 +411,7 @@
         }
     }
 
-    function renderRDVs(container) {
+    async function renderRDVs(container) {
         container.innerHTML = `
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10">
                 <div>
@@ -424,6 +428,7 @@
                     <table class="w-full text-left min-w-[800px]">
                         <thead class="bg-background border-b border-border-light">
                             <tr class="text-[10px] uppercase font-bold text-outline tracking-widest">
+                                <th class="px-8 py-5">Date</th>
                                 <th class="px-8 py-5">Heure</th>
                                 <th class="px-8 py-5">Patient</th>
                                 <th class="px-8 py-5">Type de soin</th>
@@ -431,63 +436,99 @@
                                 <th class="px-8 py-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-border-light">
-                            ${state.rdvs.map(r => `
-                                <tr class="hover:bg-background/50 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-primary text-sm">${r.time}</td>
-                                    <td class="px-8 py-6 font-bold text-navy text-sm">${r.patient}</td>
-                                    <td class="px-8 py-6 text-sm text-outline">${r.type}</td>
-                                    <td class="px-8 py-6">
-                                        <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase ${r.status === 'En cours' ? 'bg-secondary/10 text-secondary' : 'bg-primary/10 text-primary'}">
-                                            ${r.status}
-                                        </span>
-                                    </td>
-                                    <td class="px-8 py-6 text-right">
-                                        <div class="flex justify-end gap-2">
-                                            <button class="p-2 text-outline hover:text-primary bg-background rounded-lg transition-all"><span class="material-symbols-outlined text-lg">edit</span></button>
-                                            <button class="p-2 text-outline hover:text-error bg-background rounded-lg transition-all"><span class="material-symbols-outlined text-lg">delete</span></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
+                        <tbody class="divide-y divide-border-light" id="rdv-table-body">
+                            <tr><td colspan="6" class="px-8 py-12 text-center text-outline">Chargement...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         `;
+
+        try {
+            const res = await apiFetch(`${API}/medecin/rdv`);
+            const data = await res.json();
+            const rdvs = res.ok ? (data.data || []) : [];
+
+            const tbody = document.getElementById('rdv-table-body');
+            if (rdvs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-8 py-12 text-center text-outline">Aucun rendez-vous</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = rdvs.map(r => `
+                <tr class="hover:bg-background/50 transition-colors">
+                    <td class="px-8 py-6 font-bold text-primary text-sm">${r.appointment_date || '—'}</td>
+                    <td class="px-8 py-6 font-bold text-primary text-sm">${r.appointment_time || r.time || '—'}</td>
+                    <td class="px-8 py-6 font-bold text-navy text-sm">${r.patient_name || r.patient || '—'}</td>
+                    <td class="px-8 py-6 text-sm text-outline">${r.type || 'Consultation'}</td>
+                    <td class="px-8 py-6">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase ${r.status === 'terminé' ? 'bg-secondary/10 text-secondary' : r.status === 'annulé' ? 'bg-error/10 text-error' : 'bg-primary/10 text-primary'}">
+                            ${r.status || 'En attente'}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="openConsultation('${r.patient_name || r.patient || '—'}', '${r.id || r.appointment_id}')" class="p-2 text-outline hover:text-primary bg-background rounded-lg transition-all"><span class="material-symbols-outlined text-lg">play_arrow</span></button>
+                            <button class="p-2 text-outline hover:text-error bg-background rounded-lg transition-all"><span class="material-symbols-outlined text-lg">delete</span></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('[RDVs] Erreur:', e);
+            document.getElementById('rdv-table-body').innerHTML = '<tr><td colspan="6" class="px-8 py-12 text-center text-error">Erreur de chargement</td></tr>';
+        }
     }
 
-    function renderPatients(container) {
+    async function renderPatients(container) {
         container.innerHTML = `
             <div class="mb-10">
                 <p class="text-primary font-bold text-sm tracking-widest uppercase mb-1">Répertoire</p>
                 <h1 class="text-3xl font-extrabold text-navy">Base de Patients</h1>
                 <p class="text-outline text-sm">Accès complet aux dossiers médicaux numériques.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                ${state.patients.map(p => `
-                    <div class="card-custom p-8 hover:translate-y-[-4px] transition-all cursor-pointer group" onclick="navigate('Scanner'); showManualPatient('${p.id}')">
-                        <div class="flex justify-between items-start mb-6">
-                            <div class="w-14 h-14 rounded-2xl bg-background border border-border-light flex items-center justify-center font-bold text-xl text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
-                                ${p.name.charAt(0)}
-                            </div>
-                            <span class="text-[10px] text-outline font-extrabold uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border-light">
-                                <span class="material-symbols-outlined text-[12px] align-middle mr-1">location_on</span> ${p.city}
-                            </span>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="patients-grid">
+                <div class="col-span-full text-center py-20"><p class="text-outline">Chargement...</p></div>
+            </div>
+        `;
+
+        try {
+            const res = await apiFetch(`${API}/medecin/patients`);
+            const data = await res.json();
+            const patients = res.ok ? (data.data || []) : [];
+
+            const grid = document.getElementById('patients-grid');
+            if (patients.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-20"><p class="text-outline">Aucun patient</p></div>';
+                return;
+            }
+
+            grid.innerHTML = patients.map(p => `
+                <div class="card-custom p-8 hover:translate-y-[-4px] transition-all cursor-pointer group" onclick="navigate('Scanner'); showManualPatient('${p.id || p.patient_id || p.phone}')">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-background border border-border-light flex items-center justify-center font-bold text-xl text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
+                            ${(p.nom || p.name || 'P').charAt(0)}
                         </div>
-                        <h3 class="text-lg font-extrabold text-navy mb-1">${p.name}</h3>
-                        <p class="text-xs text-outline font-medium mb-6">${p.age} ans • Groupe ${p.blood}</p>
-                        <div class="flex flex-wrap gap-2">
-                            ${p.history.slice(0,2).map(h => `<span class="bg-background border border-border-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-navy/70">${h}</span>`).join('')}
-                        </div>
+                        <span class="text-[10px] text-outline font-extrabold uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border-light">
+                            <span class="material-symbols-outlined text-[12px] align-middle mr-1">location_on</span> ${p.ville || p.city || '—'}
+                        </span>
                     </div>
-                `).join('')}
+                    <h3 class="text-lg font-extrabold text-navy mb-1">${p.nom || p.name || '—'}</h3>
+                    <p class="text-xs text-outline font-medium mb-6">${p.age || '—'} ans • ${p.groupe_sanguin || p.blood || '—'}</p>
+                    <div class="flex flex-wrap gap-2">
+                        ${(p.antecedents || p.history || []).slice(0, 2).map(h => `<span class="bg-background border border-border-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-navy/70">${h}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('') + `
                 <div class="card-custom p-8 border-dashed border-2 border-border-light flex flex-col items-center justify-center text-outline hover:text-primary hover:border-primary/40 transition-all cursor-pointer group">
                     <span class="material-symbols-outlined text-4xl mb-3 group-hover:scale-110 transition-transform">person_add</span>
                     <p class="font-bold">Ajouter un patient</p>
                 </div>
-            </div>
-        `;
+            `;
+        } catch (e) {
+            console.error('[Patients] Erreur:', e);
+            document.getElementById('patients-grid').innerHTML = '<div class="col-span-full text-center py-20"><p class="text-error">Erreur de chargement</p></div>';
+        }
     }
 
     function renderScanner(container, type) {
@@ -518,15 +559,177 @@
         `;
     }
 
-    function handleScanSubmit(type) {
-        const val = document.getElementById('scan-input').value.trim();
-        if (type === 'Général') {
-            const patient = state.patients.find(p => p.id === val || p.name.toLowerCase().includes(val.toLowerCase()));
-            if (patient) showDMN(patient);
-            else showToast("Code invalide ou patient non trouvé");
-        } else {
-            showToast("Voucher Zora validé : -15% appliqué");
+    // Scanner DMN
+    let dmnHtml5QrCode = null;
+    let dmnCameraStream = null;
+
+    async function startDmnCamera() {
+        const reader = document.getElementById('dmn-qr-reader');
+        if (!reader) return;
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            dmnCameraStream = stream;
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.play();
+            reader.appendChild(video);
+
+            dmnHtml5QrCode = new Html5Qrcode(reader);
+            await dmnHtml5QrCode.start(
+                video,
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    stopDmnCamera();
+                    document.getElementById('dmn-token-input').value = decodedText;
+                    verifyDmnQr();
+                },
+                (errorMessage) => {}
+            );
+        } catch(e) {
+            alert('Erreur d\'accès à la caméra : ' + e.message);
         }
+    }
+
+    function stopDmnCamera() {
+        if (dmnHtml5QrCode) {
+            dmnHtml5QrCode.stop().catch(function(err) { console.error('[stopDmnCamera] Erreur:', err); });
+            dmnHtml5QrCode = null;
+        }
+        if (dmnCameraStream) {
+            dmnCameraStream.getTracks().forEach(track => track.stop());
+            dmnCameraStream = null;
+        }
+        const container = document.getElementById('dmn-camera-container');
+        if (container) container.style.display = 'none';
+    }
+
+    async function verifyDmnQr() {
+        const scannedToken = document.getElementById('dmn-token-input').value.trim();
+        const resultEl = document.getElementById('dmn-result');
+
+        if (!scannedToken) {
+            alert('Veuillez scanner ou entrer un QR dossier');
+            return;
+        }
+
+        resultEl.style.display = 'block';
+        resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:#747685;">Vérification en cours...</div>';
+
+        try {
+            const res = await apiFetch(`${API}/dmn/verify?token=${encodeURIComponent(scannedToken)}`);
+            const data = await res.json();
+
+            if (data.success) {
+                const d = data.data;
+                const consultationsHtml = (d.consultations && d.consultations.length)
+                    ? d.consultations.map(c => `<div style="padding:8px 0;border-bottom:1px solid #EEF0F3;font-size:13px;">${new Date(c.appointment_date).toLocaleDateString('fr-FR')} — Dr ${c.doctor_name || '—'} (${c.doctor_specialty || '—'})</div>`).join('')
+                    : '<div style="font-size:13px;color:#747685;">Aucune consultation récente.</div>';
+                const documentsHtml = (d.documents && d.documents.length)
+                    ? d.documents.map(doc => `<div style="padding:8px 0;border-bottom:1px solid #EEF0F3;font-size:13px;">${doc.original_name} (${doc.document_type})</div>`).join('')
+                    : '<div style="font-size:13px;color:#747685;">Aucun document.</div>';
+
+                resultEl.innerHTML = `
+                    <div style="background:#e8f5e9;border:2px solid #2e7d32;border-radius:16px;padding:24px;">
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                            <div style="font-size:32px;"><span class="material-symbols-outlined">check_circle</span></div>
+                            <div>
+                                <div style="font-size:16px;font-weight:700;color:#1a1b22;">Dossier vérifié</div>
+                                <div style="font-size:14px;color:#747685;">${d.identite.initiales} — ${d.identite.phone}</div>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                            <div style="background:white;border-radius:12px;padding:14px;">
+                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Groupe sanguin</div>
+                                <div style="font-size:14px;font-weight:700;color:#1a1b22;">${d.constantes.groupe_sanguin || '—'}</div>
+                            </div>
+                            <div style="background:white;border-radius:12px;padding:14px;">
+                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Allergies</div>
+                                <div style="font-size:14px;font-weight:700;color:#1a1b22;">${d.constantes.allergies || 'Aucune connue'}</div>
+                            </div>
+                            <div style="background:white;border-radius:12px;padding:14px;">
+                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Maladies chroniques</div>
+                                <div style="font-size:14px;font-weight:700;color:#1a1b22;">${d.constantes.maladies_chroniques || 'Aucune'}</div>
+                            </div>
+                            <div style="background:white;border-radius:12px;padding:14px;">
+                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Traitements en cours</div>
+                                <div style="font-size:14px;font-weight:700;color:#1a1b22;">${d.constantes.traitements_en_cours || 'Aucun'}</div>
+                            </div>
+                        </div>
+                        <div style="font-size:13px;font-weight:700;color:#1a1b22;margin:16px 0 8px;">Consultations récentes</div>${consultationsHtml}
+                        <div style="font-size:13px;font-weight:700;color:#1a1b22;margin:16px 0 8px;">Documents</div>${documentsHtml}
+                        <button onclick="document.getElementById('dmn-token-input').value='';document.getElementById('dmn-result').style.display='none';" style="width:100%;padding:12px;background:linear-gradient(135deg,#003FB1,#00C9A7);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:16px;">Scanner un autre dossier</button>
+                    </div>
+                `;
+            } else {
+                resultEl.innerHTML = `
+                    <div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="font-size:32px;"><span class="material-symbols-outlined">cancel</span></div>
+                            <div>
+                                <div style="font-size:16px;font-weight:700;color:#1a1b22;">Erreur</div>
+                                <div style="font-size:14px;color:#747685;">${data.message || 'Accès refusé'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch(e) {
+            resultEl.innerHTML = `
+                <div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="font-size:32px;"><span class="material-symbols-outlined">cancel</span></div>
+                        <div>
+                            <div style="font-size:16px;font-weight:700;color:#1a1b22;">Erreur</div>
+                            <div style="font-size:14px;color:#747685;">Erreur de connexion</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function renderDMN(container) {
+        container.innerHTML = `
+            <div class="mb-10">
+                <p class="text-primary font-bold text-sm tracking-widest uppercase mb-1">Dossier Médical Numérique</p>
+                <h1 class="text-3xl font-extrabold text-navy">Scanner DMN</h1>
+                <p class="text-outline text-sm">Consultation du dossier médical numérique (DMN) du patient.</p>
+            </div>
+            <div class="card-custom p-8">
+                <div style="font-size:16px;font-weight:700;color:#0A2463;margin-bottom:16px;">
+                    Consultation du dossier médical numérique (DMN)
+                </div>
+                <div style="font-size:14px;color:#747685;margin-bottom:20px;line-height:1.6;">
+                    Le patient vous présente son <strong>QR dossier</strong> (carte membre). Scannez-le pour consulter son dossier — accès réservé aux professionnels de santé authentifiés.
+                </div>
+
+                <!-- Bouton caméra -->
+                <button class="btn-primary" id="btn-dmn-camera" onclick="startDmnCamera()" style="margin-bottom:16px;">
+                    Scanner avec la caméra
+                </button>
+
+                <!-- Viewfinder caméra -->
+                <div id="dmn-camera-container" style="display:none;position:relative;margin-bottom:16px;">
+                    <div id="dmn-qr-reader" style="width:100%;border-radius:16px;overflow:hidden;"></div>
+                    <button onclick="stopDmnCamera()" style="margin-top:10px;width:100%;padding:10px;background:#fde8e8;border:none;border-radius:10px;color:#991b1b;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+                        Fermer la caméra
+                    </button>
+                </div>
+
+                <!-- Saisie manuelle -->
+                <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
+                    <div style="flex:1;height:1px;background:#EEF0F3;"></div>
+                    <span style="font-size:12px;color:#747685;font-weight:600;">OU SAISIE MANUELLE</span>
+                    <div style="flex:1;height:1px;background:#EEF0F3;"></div>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <input type="text" id="dmn-token-input" placeholder="Token QR dossier" style="flex:1;padding:12px 16px;border:1.5px solid #EEF0F3;border-radius:12px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;color:#1a1b22;letter-spacing:0.5px;" onfocus="this.style.borderColor='#003FB1'" onblur="this.style.borderColor='#EEF0F3'" />
+                    <button class="btn-primary" onclick="verifyDmnQr()" style="padding:12px 24px;background:linear-gradient(135deg,#003FB1,#00C9A7);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Vérifier</button>
+                </div>
+                <div id="dmn-result" style="display:none;margin-top:20px;"></div>
+            </div>
+        `;
     }
 
     function showManualPatient(id) {
@@ -642,7 +845,34 @@
         `;
     }
 
+    let chatSocket = null;
+
+    function initChatSocket() {
+        if (chatSocket) return;
+        
+        const token = localStorage.getItem('token');
+        chatSocket = io('https://api.bolamu.co', {
+            auth: { token },
+            transports: ['websocket']
+        });
+
+        chatSocket.on('connect', () => {
+            console.log('[Socket] Connecté');
+        });
+
+        chatSocket.on('message', (msg) => {
+            console.log('[Socket] Message reçu:', msg);
+            // Ajouter le message à l'interface
+        });
+
+        chatSocket.on('disconnect', () => {
+            console.log('[Socket] Déconnecté');
+        });
+    }
+
     function renderMessages(container) {
+        initChatSocket();
+        
         container.innerHTML = `
             <div class="card-custom h-[75vh] flex flex-col overflow-hidden">
                 <div class="p-6 border-b border-border-light flex justify-between items-center bg-white shadow-sm z-10">
@@ -687,9 +917,7 @@
         `;
     }
 
-    function renderFeed(container) {
-        const filteredPosts = state.activeCity === 'Tout' ? state.posts : state.posts.filter(p => p.city === state.activeCity);
-
+    async function renderFeed(container) {
         container.innerHTML = `
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
                 <div class="lg:col-span-3 space-y-8">
@@ -701,14 +929,18 @@
                             </div>
                             <span class="text-[10px] font-black text-navy uppercase tracking-tighter">Ma story</span>
                         </div>
-                        ${[1,2,3].map(i => `
-                            <div class="flex flex-col items-center gap-2 min-w-[80px]">
-                                <div class="w-16 h-16 rounded-2xl p-[3px] border-2 border-secondary cursor-pointer ring-2 ring-transparent hover:ring-secondary/20 transition-all">
-                                    <img src="https://i.pravatar.cc/150?u=${i+10}" class="w-full h-full rounded-[13px] object-cover">
-                                </div>
-                                <span class="text-[10px] font-bold text-outline">Dr. ${['Yao', 'Bibi', 'Seko'][i-1]}</span>
+                        <div class="flex flex-col items-center gap-2 min-w-[80px]">
+                            <div class="w-16 h-16 rounded-2xl p-[3px] border-2 border-secondary cursor-pointer ring-2 ring-transparent hover:ring-secondary/20 transition-all">
+                                <div class="w-full h-full rounded-[13px] bg-primary flex items-center justify-center text-white font-bold">D1</div>
                             </div>
-                        `).join('')}
+                            <span class="text-[10px] font-bold text-outline">Dr. Yao</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 min-w-[80px]">
+                            <div class="w-16 h-16 rounded-2xl p-[3px] border-2 border-secondary cursor-pointer ring-2 ring-transparent hover:ring-secondary/20 transition-all">
+                                <div class="w-full h-full rounded-[13px] bg-secondary flex items-center justify-center text-white font-bold">D2</div>
+                            </div>
+                            <span class="text-[10px] font-bold text-outline">Dr. Bibi</span>
+                        </div>
                     </div>
 
                     <!-- FILTERS -->
@@ -719,38 +951,10 @@
                     </div>
 
                     <!-- POSTS -->
-                    <div class="space-y-8">
-                        ${filteredPosts.map(p => `
-                            <div class="card-custom p-8 hover:shadow-hover transition-all">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div class="flex items-center gap-4">
-                                        <div class="relative">
-                                            <img src="${p.avatar}" class="w-12 h-12 rounded-xl object-cover shadow-sm">
-                                            <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-white rounded-full"></span>
-                                        </div>
-                                        <div>
-                                            <p class="font-extrabold text-navy text-base">${p.author}</p>
-                                            <p class="text-[10px] text-primary font-black uppercase tracking-widest">${p.role}</p>
-                                        </div>
-                                    </div>
-                                    <p class="text-[10px] font-bold text-outline uppercase tracking-widest bg-background px-3 py-1 rounded-lg border border-border-light">${p.city} • ${p.time}</p>
-                                </div>
-                                <p class="text-sm font-medium leading-relaxed text-navy/80 mb-8">${p.text}</p>
-                                <div class="flex items-center gap-8 border-t border-border-light pt-6">
-                                    <button class="flex items-center gap-2.5 text-outline hover:text-error transition-colors group">
-                                        <span class="material-symbols-outlined text-xl group-hover:fill-error">favorite</span> 
-                                        <span class="text-xs font-black">${p.likes}</span>
-                                    </button>
-                                    <button class="flex items-center gap-2.5 text-outline hover:text-primary transition-colors">
-                                        <span class="material-symbols-outlined text-xl">chat_bubble</span>
-                                        <span class="text-xs font-black">12</span>
-                                    </button>
-                                    <button class="flex items-center gap-2.5 text-outline hover:text-navy ml-auto transition-colors">
-                                        <span class="material-symbols-outlined text-xl">share</span>
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('')}
+                    <div id="feed-posts-list">
+                        <div class="feed-loading">
+                            <span class="material-symbols-outlined rotating">autorenew</span>
+                        </div>
                     </div>
                 </div>
 
@@ -783,6 +987,55 @@
                 </div>
             </div>
         `;
+
+        try {
+            const res = await apiFetch(`${API}/feed/posts`);
+            const data = await res.json();
+            const posts = res.ok ? (data.data || []) : [];
+
+            const filteredPosts = state.activeCity === 'Tout' ? posts : posts.filter(p => p.city === state.activeCity);
+
+            const postsList = document.getElementById('feed-posts-list');
+            if (filteredPosts.length === 0) {
+                postsList.innerHTML = '<div class="text-center py-20"><p class="text-outline">Aucun post</p></div>';
+                return;
+            }
+
+            postsList.innerHTML = filteredPosts.map(p => `
+                <div class="card-custom p-8 hover:shadow-hover transition-all">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="relative">
+                                <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm">${(p.author_name || p.author || 'D').charAt(0)}</div>
+                                <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-white rounded-full"></span>
+                            </div>
+                            <div>
+                                <p class="font-extrabold text-navy text-base">${p.author_name || p.author || '—'}</p>
+                                <p class="text-[10px] text-primary font-black uppercase tracking-widest">${p.role || 'Médecin'}</p>
+                            </div>
+                        </div>
+                        <p class="text-[10px] font-bold text-outline uppercase tracking-widest bg-background px-3 py-1 rounded-lg border border-border-light">${p.city || 'Brazzaville'} • ${p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—'}</p>
+                    </div>
+                    <p class="text-sm font-medium leading-relaxed text-navy/80 mb-8">${p.content || p.text || '—'}</p>
+                    <div class="flex items-center gap-8 border-t border-border-light pt-6">
+                        <button class="flex items-center gap-2.5 text-outline hover:text-error transition-colors group">
+                            <span class="material-symbols-outlined text-xl group-hover:fill-error">favorite</span> 
+                            <span class="text-xs font-black">${p.likes_count || p.likes || 0}</span>
+                        </button>
+                        <button class="flex items-center gap-2.5 text-outline hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                            <span class="text-xs font-black">${p.comments_count || 0}</span>
+                        </button>
+                        <button class="flex items-center gap-2.5 text-outline hover:text-navy ml-auto transition-colors">
+                            <span class="material-symbols-outlined text-xl">share</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            console.error('[Feed] Erreur:', e);
+            document.getElementById('feed-posts-list').innerHTML = '<div class="text-center py-20"><p class="text-error">Erreur de chargement</p></div>';
+        }
     }
 
     function filterCity(city) {
@@ -791,31 +1044,40 @@
     }
 
     function renderProfil(container) {
+        if (!state.doctor) {
+            container.innerHTML = '<div class="text-center py-20"><p class="text-outline">Chargement...</p></div>';
+            return;
+        }
+
+        const doctor = state.doctor;
+        
         container.innerHTML = `
             <div class="max-w-4xl mx-auto py-10">
                 <div class="card-custom p-12 text-center relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-32 bg-navy"></div>
                     <div class="relative z-10">
                         <div class="w-40 h-40 rounded-3xl mx-auto mb-8 bg-white border-8 border-white shadow-2xl overflow-hidden group">
-                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcTEgu7F26ep-SQh8fxnxNfbO_kBWaTiZVaj9AOf3Q1BfiZNwDZUcKbLv1k1aV1KDIRESHMam5XqQRZSsrQuDZUVvk7ohQDZGooqQ818iz1aTQZCGKrnfFxYx8iAaG6L38AEIeYbNKSN5gnQxMHim0dxIwMjVQprRLFGKi_MgC3VbuTskxkiYxo21rWLTnPxfJiQaT6PrsTkCr9-xiz7V38Osw7iQkdYpkzjAWPWusixO99vHnDTqWMA" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            <div class="w-full h-full bg-primary flex items-center justify-center text-white text-5xl font-black">
+                                ${(doctor.nom || doctor.name || 'D').charAt(0)}
+                            </div>
                         </div>
-                        <h2 class="text-3xl font-black text-navy mb-2">Dr. Moukala Jean-Baptiste</h2>
+                        <h2 class="text-3xl font-black text-navy mb-2">Dr. ${doctor.nom || doctor.name || '—'}</h2>
                         <div class="flex items-center justify-center gap-3 mb-10">
-                            <span class="px-4 py-1 bg-primary/10 text-primary rounded-full text-xs font-black uppercase tracking-widest">Cardiologue</span>
-                            <span class="px-4 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-black uppercase tracking-widest">Kinshasa Gombe</span>
+                            <span class="px-4 py-1 bg-primary/10 text-primary rounded-full text-xs font-black uppercase tracking-widest">${doctor.specialite || doctor.specialty || 'Médecin'}</span>
+                            <span class="px-4 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-black uppercase tracking-widest">${doctor.ville || doctor.city || 'Brazzaville'}</span>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12 max-w-2xl mx-auto">
                             <div class="p-6 bg-background rounded-2xl">
                                 <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Consultations</p>
-                                <p class="text-2xl font-black text-navy">12,4k</p>
+                                <p class="text-2xl font-black text-navy">${doctor.consultations_count || doctor.patients_count || 0}</p>
                             </div>
                             <div class="p-6 bg-background rounded-2xl">
                                 <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Articles</p>
-                                <p class="text-2xl font-black text-navy">48</p>
+                                <p class="text-2xl font-black text-navy">${doctor.articles_count || 0}</p>
                             </div>
                             <div class="p-6 bg-background rounded-2xl">
                                 <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Score Bolamu</p>
-                                <p class="text-2xl font-black text-secondary">9.8</p>
+                                <p class="text-2xl font-black text-secondary">${doctor.score || '9.8'}</p>
                             </div>
                         </div>
                         <button class="btn-primary px-12 py-4 shadow-2xl">
@@ -879,7 +1141,7 @@
                     <div class="flex justify-center gap-3">
                         ${[1,2,3,4].map(() => `<input type="text" maxlength="1" class="w-14 h-16 text-center text-2xl font-black rounded-2xl border-border-light bg-background focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all">`).join('')}
                     </div>
-                    <button onclick="consultStep=2; renderConsultStep()" class="btn-primary w-full py-4 justify-center shadow-xl">
+                    <button onclick="validateConsultation()" class="btn-primary w-full py-4 justify-center shadow-xl">
                         Confirmer & Continuer <span class="material-symbols-outlined">arrow_forward</span>
                     </button>
                 </div>
@@ -963,7 +1225,7 @@
                     </div>
                     <div>
                         <h3 class="text-3xl font-black text-navy mb-3">Consultation Clôturée !</h3>
-                        <p class="text-outline font-medium max-w-md mx-auto">Le dossier numérique de <b>${state.activeConsultation.name}</b> a été synchronisé. L'ordonnance a été envoyée sur son application Bolamu Patient.</p>
+                        <p class="text-outline font-medium max-w-md mx-auto">Le dossier numérique de <b>${state.activeConsultation?.patientName || '—'}</b> a été synchronisé. L'ordonnance a été envoyée sur son application Bolamu Patient.</p>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-center gap-4">
                         <button onclick="closeConsultation(); showToast('Consultation archivée'); renderContent()" class="btn-primary px-12 py-4 shadow-xl">
@@ -973,6 +1235,30 @@
                     </div>
                 </div>
             `;
+        }
+    }
+
+    async function validateConsultation() {
+        if (!state.activeConsultation) return;
+        
+        try {
+            const res = await apiFetch(`${API}/consultations/open`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    patient_phone: state.activeConsultation.patientName,
+                    appointment_id: state.activeConsultation.appointmentId
+                })
+            });
+            const data = await res.json();
+            
+            if (!res.ok) throw new Error(data.message || 'Erreur ouverture consultation');
+            
+            consultStep = 2;
+            renderConsultStep();
+            showToast('Consultation ouverte avec succès');
+        } catch (e) {
+            console.error('[Consultation] Erreur:', e);
+            showToast('Erreur: ' + e.message);
         }
     }
 
