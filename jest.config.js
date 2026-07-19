@@ -13,5 +13,5 @@ module.exports = {
     }
   },
   testMatch: ['**/__tests__/**/*.test.js'],
-  setupFilesAfterFramework: ['<rootDir>/src/__tests__/setup.js']
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.js']
 };

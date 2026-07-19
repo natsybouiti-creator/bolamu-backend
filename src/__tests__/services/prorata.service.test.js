@@ -4,6 +4,11 @@
 const { calculProrata } = require('../../services/prorata.service');
 const pool = require('../../config/db');
 
+jest.mock('../../config/db', () => ({
+  query: jest.fn(),
+  connect: jest.fn(),
+}));
+
 const PATIENT_PHONE = '+242060000001';
 
 describe('Prorata Service', () => {

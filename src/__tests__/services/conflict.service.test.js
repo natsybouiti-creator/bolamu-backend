@@ -4,6 +4,11 @@
 const { generateReference, transitionStatut, createConflict } = require('../../services/conflict.service');
 const pool = require('../../config/db');
 
+jest.mock('../../config/db', () => ({
+  query: jest.fn(),
+  connect: jest.fn(),
+}));
+
 describe('Conflict Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
