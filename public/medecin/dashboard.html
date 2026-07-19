@@ -45,6 +45,15 @@ if (typeof BarcodeDetector !== 'undefined') {
       --rouge: #BA1A1A;
       --grad-btn: var(--gradient-btn);
       --grad-card: var(--gradient-primary);
+      
+      /* Variables Stitch harmonisées (scoped médecin uniquement) */
+      --stitch-primary: #003FB1;
+      --stitch-secondary: #00C9A7;
+      --stitch-navy: #0A2463;
+      --stitch-teal: #00C9A7;
+      --stitch-border-light: #EDEDF8;
+      --stitch-shadow-subtle: 0 4px 20px rgba(30, 42, 74, 0.05);
+      --stitch-shadow-hover: 0 8px 30px rgba(30, 42, 74, 0.08);
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
     body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;}
@@ -192,6 +201,110 @@ if (typeof BarcodeDetector !== 'undefined') {
     .warn-text{color:#dc2626;font-size:12px;margin-top:8px;}
     .copy-btn{margin-top:12px;background:var(--bleu-vif);}
     .add-btn{background:var(--vert);padding:6px 12px;font-size:12px;}
+
+    /* STITCH VISUAL ENHANCEMENTS (scoped médecin uniquement) */
+    
+    /* Animation pulse-recording */
+    .pulse-recording {
+      animation: pulse-red 1.5s infinite;
+    }
+    @keyframes pulse-red {
+      0% { box-shadow: 0 0 0 0 rgba(186, 26, 26, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(186, 26, 26, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(186, 26, 26, 0); }
+    }
+    
+    /* Animation dictation-wave */
+    .dictation-wave {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 14px;
+    }
+    .dictation-wave span {
+      width: 2px;
+      height: 100%;
+      background: #ba1a1a;
+      animation: wave 1s infinite ease-in-out;
+    }
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.4); }
+      50% { transform: scaleY(1.2); }
+    }
+    
+    /* Classe .zora-rail */
+    .zora-rail {
+      background: linear-gradient(135deg, #FFD200 0%, #F7941D 100%);
+      color: #004F9F;
+      border-radius: 2rem;
+    }
+    
+    /* Habillage .tabs-bar existant */
+    .tabs-bar {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+    }
+    .tab {
+      border-radius: 0.75rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab:hover {
+      background: rgba(0, 63, 177, 0.05);
+    }
+    .tab.active {
+      background: rgba(0, 63, 177, 0.1);
+      border-bottom-color: var(--stitch-primary);
+    }
+    
+    /* Habillage .bottom-nav existant */
+    .bottom-nav {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+    }
+    .bnav-item {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bnav-item:hover {
+      background: rgba(0, 63, 177, 0.05);
+    }
+    .bnav-item.active {
+      background: rgba(0, 63, 177, 0.1);
+    }
+    
+    /* Habillage .btn-primary existant */
+    .btn-primary {
+      box-shadow: var(--stitch-shadow-subtle);
+    }
+    .btn-primary:hover {
+      box-shadow: var(--stitch-shadow-hover);
+    }
+    
+    /* Habillage .card existant */
+    .med-card {
+      box-shadow: var(--stitch-shadow-subtle);
+    }
+    .med-card:hover {
+      box-shadow: var(--stitch-shadow-hover);
+    }
+    .stat-card {
+      box-shadow: var(--stitch-shadow-subtle);
+    }
+    .stat-card:hover {
+      box-shadow: var(--stitch-shadow-hover);
+    }
+    .patient-card {
+      box-shadow: var(--stitch-shadow-subtle);
+    }
+    .patient-card:hover {
+      box-shadow: var(--stitch-shadow-hover);
+      transform: translateY(-2px);
+    }
+    .detail-card {
+      box-shadow: var(--stitch-shadow-subtle);
+    }
+    .detail-card:hover {
+      box-shadow: var(--stitch-shadow-hover);
+    }
 
     /* RESPONSIVE */
     @media(max-width:1024px){
