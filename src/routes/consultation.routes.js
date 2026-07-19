@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const { bhpAccessMiddleware } = require('../middleware/bhpAccess');
 const consultationController = require('../controllers/consultation.controller');
+const { standardLimiter } = require('../middleware/rateLimiter');
 
 // Middleware pour restreindre aux médecins
 const doctorOnly = (req, res, next) => {
@@ -16,6 +17,7 @@ const doctorOnly = (req, res, next) => {
 router.post('/open', 
   authMiddleware, 
   doctorOnly,
+  standardLimiter,
   consultationController.openConsultation
 );
 
@@ -23,6 +25,7 @@ router.post('/open',
 router.post('/:id/close', 
   authMiddleware, 
   doctorOnly,
+  standardLimiter,
   consultationController.closeConsultation
 );
 
@@ -30,6 +33,7 @@ router.post('/:id/close',
 router.get('/queue', 
   authMiddleware, 
   doctorOnly,
+  standardLimiter,
   consultationController.getActiveQueue
 );
 

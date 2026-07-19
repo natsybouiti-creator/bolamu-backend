@@ -7,6 +7,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 const bcrypt = require('bcrypt');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
+const { strictLimiter } = require('../middleware/rateLimiter');
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -21,7 +22,7 @@ const doctorOnly = (req, res, next) => {
     next();
 };
 
-router.post('/register', upload.single('document'), registerDoctor);
+router.post('/register', strictLimiter, upload.single('document'), registerDoctor);
 router.get('/', getDoctors);
 
 router.get('/pending', authMiddleware, async (req, res) => {
@@ -49,7 +50,7 @@ router.get('/slots', authMiddleware, getTimeSlots);
 router.patch('/slots/:id', authMiddleware, updateTimeSlot);
 router.delete('/slots/:id', authMiddleware, deleteTimeSlot);
 
-router.post('/change-password', authMiddleware, async (req, res) => {
+router.post('/change-password', authMiddleware, strictLimiter, async (req, res) => {
   const phone = req.user.phone;
   const { old_password, new_password } = req.body;
   if (!old_password || !new_password) return res.status(400).json({ success: false, message: 'Champs manquants' });
