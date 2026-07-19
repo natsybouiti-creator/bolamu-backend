@@ -25,7 +25,7 @@
   <script>
 var QRDetector = null;
 if (typeof BarcodeDetector !== 'undefined') {
-  try { QRDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
+  try { QRDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) { console.warn('[QRDetector] Non supporté:', e); }
 }
 </script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -1470,7 +1470,10 @@ async function startConversationWith(participantPhone){
       recipientName:'Contact',
       socketInstance:window.__bolamuSocket
     });
-  }catch(e){}
+  }catch(e){
+    console.error('[createConversation] Erreur:', e);
+    alert('Erreur lors de la création de la conversation. Vérifie ta connexion.');
+  }
 }
 
 async function loadProfil(){
@@ -1564,7 +1567,9 @@ async function creerCreneauxParDefaut() {
         });
         const data = await res.json();
         if (data.success) created++;
-      } catch(e) {}
+      } catch(e) {
+        console.error('[initDefaultAvailabilities] Erreur jour ' + jour + ':', e);
+      }
     }
     if (created > 0) {
       loadCreneaux();
@@ -1757,7 +1762,10 @@ function ouvrirValidation(rdvId,patientPhone,sessionCode,date,time,symptomesMoti
   currentRdv={rdvId,patientPhone,sessionCode,date,time,symptomesMotif};
   _currentPatientPhone = patientPhone;
   consultationStartTime=Date.now();
-  fetch(`${API}/consultations/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({patient_phone:patientPhone,appointment_id:rdvId})}).catch(()=>{});
+  fetch(`${API}/consultations/open`,{method:'POST',headers:{'Authorization':`Bearer ${getAuthToken()}`,'Content-Type':'application/json'},body:JSON.stringify({patient_phone:patientPhone,appointment_id:rdvId})}).catch(function(err){
+    console.error('[ouvrirValidation] Erreur:', err);
+    alert('Erreur lors de l\'ouverture de la consultation. Vérifie ta connexion.');
+  });
   afficherEtapeCode();
   document.getElementById('modal-validation').classList.add('open');
 }
@@ -2977,7 +2985,7 @@ async function toggleZoraCamera() {
 
 function stopZoraCamera() {
   if (zoraHtml5QrCode) {
-    zoraHtml5QrCode.stop().catch(() => {});
+    zoraHtml5QrCode.stop().catch(function(err) { console.error('[stopZoraCamera] Erreur:', err); });
     zoraHtml5QrCode = null;
   }
   if (zoraCameraStream) {
@@ -3077,7 +3085,7 @@ async function toggleDmnCamera() {
 
 function stopDmnCamera() {
   if (dmnHtml5QrCode) {
-    dmnHtml5QrCode.stop().catch(() => {});
+    dmnHtml5QrCode.stop().catch(function(err) { console.error('[stopDmnCamera] Erreur:', err); });
     dmnHtml5QrCode = null;
   }
   if (dmnCameraStream) {
@@ -3772,7 +3780,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    feedApiFetch(API + '/stories/' + story.id + '/view', { method: 'POST' }).catch(function () {});
+    feedApiFetch(API + '/stories/' + story.id + '/view', { method: 'POST' }).catch(function (err) {
+      console.error('[stories/view] Erreur:', err);
+    });
 
     $('story-progress').style.width = '0%';
     if (A._storyTimer) clearInterval(A._storyTimer);
@@ -3955,7 +3965,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!videos.length) return;
     A._reelsObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        if (entry.isIntersecting) entry.target.play().catch(function () {});
+        if (entry.isIntersecting) entry.target.play().catch(function(err) { console.error('[reels autoplay] Erreur:', err); });
         else entry.target.pause();
       });
     }, { threshold: 0.6 });
