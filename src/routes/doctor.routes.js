@@ -13,6 +13,14 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 }
 });
 
+// Middleware pour restreindre aux médecins
+const doctorOnly = (req, res, next) => {
+    if (req.user?.role !== 'doctor') {
+        return res.status(403).json({ success: false, message: 'Accès réservé aux médecins.' });
+    }
+    next();
+};
+
 router.post('/register', upload.single('document'), registerDoctor);
 router.get('/', getDoctors);
 
@@ -27,10 +35,10 @@ router.get('/pending', authMiddleware, async (req, res) => {
 
 router.patch('/:id/status', authMiddleware.requireAdmin, updateDoctorStatus);
 
-router.get('/profil', authMiddleware, getDoctorProfile);
+router.get('/profil', authMiddleware, doctorOnly, getDoctorProfile);
 
 // Modifier le profil médecin
-router.patch('/profil', authMiddleware, updateDoctorProfile);
+router.patch('/profil', authMiddleware, doctorOnly, updateDoctorProfile);
 
 // Générer QR Code pour un patient (côté médecin)
 router.get('/patients/:phone/qrcode', authMiddleware, generatePatientQRCode);
