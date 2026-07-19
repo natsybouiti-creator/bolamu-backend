@@ -72,12 +72,21 @@ async function runAbonnementJob() {
     }
 
     // 3. Expiration — tous les abonnements expirés (MoMo annuel ou standard mensuel)
+    // Exclut les patients ayant un AUTRE abonnement encore valide : une ligne
+    // zombie (expirée mais restée is_active=TRUE) ne doit jamais désactiver un
+    // compte dont l'abonnement courant est en règle (bug Antonio, 18/07/2026).
     const expiresResult = await db.query(
       `SELECT s.patient_phone, u.first_name
        FROM subscriptions s
        JOIN users u ON u.phone = s.patient_phone
        WHERE s.expires_at < NOW()
-       AND s.is_active = TRUE`
+       AND s.is_active = TRUE
+       AND NOT EXISTS (
+         SELECT 1 FROM subscriptions s2
+         WHERE s2.patient_phone = s.patient_phone
+         AND s2.expires_at >= NOW()
+         AND s2.is_active = TRUE
+       )`
     );
 
     if (expiresResult.rows.length > 0) {
