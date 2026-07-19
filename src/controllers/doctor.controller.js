@@ -234,6 +234,15 @@ async function getDoctorProfile(req, res) {
             [phone]
         );
         if (!result.rows.length) return res.status(404).json({ success: false, message: 'Médecin introuvable.' });
+        
+        // Vérifier is_active
+        if (!result.rows[0].is_active) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Votre compte médecin est désactivé. Contactez l\'administration.' 
+            });
+        }
+        
         return res.json({ success: true, data: result.rows[0] });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });
