@@ -193,6 +193,13 @@
 <script>
     const API = 'https://api.bolamu.co/api/v1';
 
+    function getAuthToken() {
+        return localStorage.getItem('bolamu_token') 
+            || localStorage.getItem('bolamu_doctor_token')
+            || localStorage.getItem('token')
+            || null;
+    }
+
     const state = {
         currentPanel: 'Accueil',
         activeConsultation: null,
@@ -219,7 +226,7 @@
     };
 
     async function apiFetch(url, options = {}) {
-        const token = localStorage.getItem('token');
+        const token = getAuthToken();
         const res = await fetch(url, {
             ...options,
             headers: {
@@ -229,7 +236,7 @@
             }
         });
         if (res.status === 401) { 
-            localStorage.removeItem('token'); 
+            localStorage.clear(); 
             window.location.href = '/medecin/login.html'; 
         }
         return res;
@@ -850,7 +857,7 @@
     function initChatSocket() {
         if (chatSocket) return;
         
-        const token = localStorage.getItem('token');
+        const token = getAuthToken();
         chatSocket = io('https://api.bolamu.co', {
             auth: { token },
             transports: ['websocket']
@@ -1291,23 +1298,43 @@
     }
 
     window.onload = async () => {
-        const token = localStorage.getItem('token');
+        console.log('[Dashboard-v2] Chargement initial...');
+        const token = getAuthToken();
+        console.log('[Dashboard-v2] Token:', token ? 'présent' : 'absent');
+        
         if (!token) {
+            console.log('[Dashboard-v2] Pas de token, redirection vers login');
+            window.location.href = '/medecin/login.html';
+            return;
+        }
+
+        // Récupérer le phone depuis localStorage (comme production)
+        const _rawPhone = localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone') || '';
+        let phone;
+        try { phone = decodeURIComponent(_rawPhone); } catch(e) { phone = _rawPhone; }
+        
+        console.log('[Dashboard-v2] Phone:', phone);
+
+        if (!phone) {
+            console.log('[Dashboard-v2] Pas de phone, redirection vers login');
             window.location.href = '/medecin/login.html';
             return;
         }
 
         try {
-            const res = await apiFetch(`${API}/medecin/profil`);
+            const res = await apiFetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`);
             const data = await res.json();
+            console.log('[Dashboard-v2] Réponse profil:', res.ok, data);
+            
             if (!res.ok) throw new Error(data.message || 'Erreur chargement profil');
             
             state.doctor = data.data;
+            state.doctor.phone = phone; // Ajouter phone au state
             renderNavigation();
             renderContent();
         } catch (e) {
-            console.error('[Auth] Erreur:', e);
-            localStorage.removeItem('token');
+            console.error('[Dashboard-v2] Erreur:', e);
+            localStorage.clear();
             window.location.href = '/medecin/login.html';
         }
     };
