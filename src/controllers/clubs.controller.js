@@ -3,6 +3,7 @@
 // ============================================================
 const pool = require('../config/db');
 const { normalizePhone } = require('../utils/phone');
+const logger = require('../config/logger');
 const { sendAutoMessage } = require('../services/whatsapp.service');
 const { awardZora } = require('../services/zora.service');
 // const logger = require('../config/logger');
@@ -121,7 +122,7 @@ async function joinClub(req, res) {
 
     await client.query('COMMIT');
 
-    console.log(`[CLUBS] Patient ${normalizedPhone} a rejoint le club ${id}`);
+    logger.info(`[CLUBS] Patient ${normalizedPhone} a rejoint le club ${id}`);
 
     // Envoyer WhatsApp notification (non bloquant)
     try {
@@ -131,12 +132,12 @@ async function joinClub(req, res) {
       );
       const prenom = userResult.rows[0]?.first_name || '';
       
-      console.log('[WAHA] joinClub — envoi vers', normalizedPhone, 'template bolamu_club_bienvenue');
+      logger.info('[WAHA] joinClub — envoi vers', normalizedPhone, 'template bolamu_club_bienvenue');
       await sendAutoMessage(normalizedPhone, 'bolamu_club_bienvenue', [
         prenom,
         club.name
       ]);
-      console.log('[WAHA] joinClub — envoi OK');
+      logger.info('[WAHA] joinClub — envoi OK');
     } catch (err) {
       console.error('[WAHA] joinClub — ERREUR:', err.message, err.stack);
       // Ne pas bloquer si WhatsApp échoue
@@ -233,7 +234,7 @@ async function leaveClub(req, res) {
 
     await client.query('COMMIT');
 
-    console.log(`[CLUBS] Patient ${normalizedPhone} a quitté le club ${id}`);
+    logger.info(`[CLUBS] Patient ${normalizedPhone} a quitté le club ${id}`);
 
     res.json({ success: true, message: 'Club quitté avec succès' });
   } catch (error) {
@@ -433,7 +434,7 @@ async function kickMember(req, res) {
 
     await client.query('COMMIT');
 
-    console.log(`[CLUBS] ${requesterPhone} a exclu ${targetPhone} du club ${id}`);
+    logger.info(`[CLUBS] ${requesterPhone} a exclu ${targetPhone} du club ${id}`);
 
     res.json({ success: true, message: 'Membre exclu du club' });
   } catch (error) {
@@ -493,7 +494,7 @@ async function deactivateClub(req, res) {
 
     await client.query('COMMIT');
 
-    console.log(`[CLUBS] ${requesterPhone} a désactivé le club ${id}`);
+    logger.info(`[CLUBS] ${requesterPhone} a désactivé le club ${id}`);
 
     res.json({ success: true, message: 'Club désactivé' });
   } catch (error) {

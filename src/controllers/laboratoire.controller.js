@@ -112,7 +112,7 @@ async function registerLaboratoire(req, res) {
             //     ? `Bolamu : Bienvenue ${name} ! Laboratoire validé. Code : ${memberCode}. Connectez-vous sur api.bolamu.co`
             //     : `Bolamu : Inscription ${name} reçue (score: ${score}/100). Vérification sous 24h.`;
             // await sendBolamuSms(normalizedPhone, msg);
-        } catch (e) { console.log('⚠️ WhatsApp non envoyé'); }
+        } catch (e) { logger.warn('[registerLaboratoire] WhatsApp non envoyé'); }
 
         return res.status(201).json({
             success: true,

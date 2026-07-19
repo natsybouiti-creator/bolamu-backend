@@ -62,7 +62,7 @@ async function registerPatient(req, res) {
 
         try {
             await sendAutoMessage(phone, 'bolamu_inscription_patient_id', [full_name, bolamuId]);
-        } catch (e) { console.log('WhatsApp non envoyé'); }
+        } catch (e) { logger.warn('[registerPatient] WhatsApp non envoyé'); }
 
         return res.status(201).json({
             success: true,

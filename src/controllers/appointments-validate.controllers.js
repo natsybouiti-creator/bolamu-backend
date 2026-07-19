@@ -153,7 +153,7 @@ async function validateAppointment(req, res) {
             })]
         ).catch((err) => logger.error('[validateAppointment] Audit log error:', err.message));
 
-        console.log(`✅ Consultation validée — RDV ${id} — délai: ${delayMinutes} min`);
+        logger.info(`[validateAppointment] Consultation validée — RDV ${id} — délai: ${delayMinutes} min`);
 
         const patientPhoneForWame = patientPhone;
         const rdvDateForWame = rdvDateStr;
