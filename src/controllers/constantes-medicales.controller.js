@@ -17,8 +17,9 @@ async function getConstantes(req, res) {
         let isTreatingDoctor = false;
         if (!isPatient && !isAdmin) {
             const doctorCheck = await pool.query(
-                `SELECT COUNT(*) FROM appointments 
-                 WHERE patient_phone = $1 AND doctor_id = (SELECT id FROM doctors WHERE phone = $2)`,
+                `SELECT COUNT(*) FROM appointments a
+                 JOIN doctors d ON d.id = a.doctor_id
+                 WHERE a.patient_phone = $1 AND d.phone = $2`,
                 [phone, userPhone]
             );
             isTreatingDoctor = parseInt(doctorCheck.rows[0].count) > 0;
@@ -254,8 +255,9 @@ async function updateConstantesMedecin(req, res) {
 
         // Vérifier que le médecin a eu un RDV avec ce patient
         const rdvCheck = await pool.query(
-            `SELECT COUNT(*) FROM appointments 
-             WHERE patient_phone = $1 AND doctor_id = (SELECT id FROM doctors WHERE phone = $2)`,
+            `SELECT COUNT(*) FROM appointments a
+             JOIN doctors d ON d.id = a.doctor_id
+             WHERE a.patient_phone = $1 AND d.phone = $2`,
             [patient_phone, userPhone]
         );
 
