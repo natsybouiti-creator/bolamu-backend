@@ -48,7 +48,7 @@ async function appellerPatientController(req, res) {
         res.json(result);
     } catch (error) {
         console.error('[Secretariat] Erreur appellerPatient:', error.message);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
 }
 
@@ -62,7 +62,7 @@ async function terminerConsultationController(req, res) {
         res.json(result);
     } catch (error) {
         console.error('[Secretariat] Erreur terminerConsultation:', error.message);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
 }
 
@@ -100,7 +100,7 @@ async function bloquerAgendaController(req, res) {
         res.json(result);
     } catch (error) {
         console.error('[Secretariat] Erreur bloquerAgenda:', error.message);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
 }
 
@@ -128,7 +128,7 @@ async function annulerRDVController(req, res) {
         res.json(result);
     } catch (error) {
         console.error('[Secretariat] Erreur annulerRDV:', error.message);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
 }
 

@@ -191,7 +191,7 @@ async function dispenserOrdonnanceHandler(req, res) {
         const result = await dispenserOrdonnance(ordonnance_id, phone);
         return res.json({ success: true, data: result });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
 }
 

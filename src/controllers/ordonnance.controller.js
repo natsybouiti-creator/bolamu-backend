@@ -21,7 +21,7 @@ async function createOrdonnance(req, res) {
         message: 'La consultation n\'est pas ouverte'
       });
     }
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
 
@@ -51,7 +51,7 @@ async function getOrdonnance(req, res) {
         error: 'ACCESS_DENIED'
       });
     }
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
 
@@ -75,7 +75,7 @@ async function dispenseOrdonnance(req, res) {
         message: 'L\'ordonnance n\'est pas active'
       });
     }
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
 

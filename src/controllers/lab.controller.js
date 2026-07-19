@@ -361,7 +361,7 @@ async function soumettreResultatsHandler(req, res) {
         const result = await soumettreResultats(prescription_id, phone, resultats);
         return res.json({ success: true, data: result });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: 'Erreur serveur' });
     }
 }
 

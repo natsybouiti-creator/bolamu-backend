@@ -188,7 +188,7 @@ async function updateStatut(req, res) {
         return res.json({ success: true, message: 'Statut mis à jour avec succès.' });
     } catch (error) {
         console.error('[updateStatut]', error.message);
-        return res.status(400).json({ success: false, message: error.message });
+        return res.status(400).json({ success: false, message: 'Erreur serveur' });
     }
 }
 

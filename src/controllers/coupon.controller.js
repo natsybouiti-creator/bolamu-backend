@@ -23,7 +23,7 @@ async function createCouponController(req, res) {
         return res.status(201).json(result);
     } catch (error) {
         console.error('[createCouponController]', error.message);
-        return res.status(400).json({ success: false, message: error.message });
+        return res.status(400).json({ success: false, message: 'Erreur serveur' });
     }
 }
 

@@ -56,7 +56,7 @@ async function createElongaEventController(req, res) {
     res.status(201).json(result);
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] createElongaEvent error:', error);
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: 'Erreur serveur' });
   }
 }
 
@@ -136,7 +136,7 @@ async function notifyClubController(req, res) {
     res.json({ success: true, data: result });
   } catch (error) {
     logger.error('[ANIMATEUR CTRL] notifyClub error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 }
 

@@ -21,7 +21,7 @@ async function openConsultation(req, res) {
         message: 'Le patient n\'a pas d\'abonnement actif'
       });
     }
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
 
@@ -45,7 +45,7 @@ async function closeConsultation(req, res) {
         error: 'CONSULTATION_NOT_FOUND'
       });
     }
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
 
@@ -55,7 +55,7 @@ async function getActiveQueue(req, res) {
     const queue = await consultationService.getActiveQueue(doctor_phone);
     res.json({ success: true, data: queue });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
 
@@ -67,7 +67,7 @@ async function getPatientHistory(req, res) {
     const history = await consultationService.getPatientHistory(phone, doctor_phone);
     res.json({ success: true, data: history });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
 
