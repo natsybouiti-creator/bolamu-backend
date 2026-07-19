@@ -1739,6 +1739,10 @@
 (function () {
   'use strict';
 
+  // Flag global pour éviter les refresh simultanés
+  var isRefreshing = false;
+  var refreshPromise = null;
+
   async function apiFetch(url, options) {
     options = options || {};
     var token = localStorage.getItem('bolamu_patient_token');
@@ -1758,27 +1762,51 @@
       }
 
       try {
-        var refreshRes = await fetch('https://www.bolamu.co/api/v1/auth/refresh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken: refreshToken })
-        });
-        var refreshData = await refreshRes.json();
+        // Si un refresh est déjà en cours, attendre sa completion
+        if (isRefreshing) {
+          await refreshPromise;
+          // Relancer la requête originale avec le nouveau token
+          token = localStorage.getItem('bolamu_patient_token');
+          headers = Object.assign(baseHeaders, options.headers || {}, { 'Authorization': 'Bearer ' + token });
+          if (isFormData) delete headers['Content-Type'];
+          res = await fetch(url, Object.assign({}, options, { headers: headers }));
+          return res;
+        }
 
-        if (refreshData.success && refreshData.accessToken) {
-          localStorage.setItem('bolamu_patient_token', refreshData.accessToken);
-          var phone = localStorage.getItem('bolamu_patient_phone');
-          if (phone) {
-            localStorage.setItem('bolamu_patient_token_' + phone, refreshData.accessToken);
+        // Marquer le refresh comme en cours
+        isRefreshing = true;
+        refreshPromise = (async function () {
+          var refreshRes = await fetch('https://api.bolamu.co/api/v1/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken: refreshToken })
+          });
+          var refreshData = await refreshRes.json();
+
+          if (refreshData.success && refreshData.accessToken) {
+            localStorage.setItem('bolamu_patient_token', refreshData.accessToken);
+            var phone = localStorage.getItem('bolamu_patient_phone');
+            if (phone) {
+              localStorage.setItem('bolamu_patient_token_' + phone, refreshData.accessToken);
+            }
+          } else {
+            localStorage.clear();
+            window.location.href = '/login.html?reason=session_expired';
           }
+          isRefreshing = false;
+          return refreshData;
+        })();
+
+        var refreshData = await refreshPromise;
+
+        if (refreshData && refreshData.success && refreshData.accessToken) {
           var newHeaders = Object.assign({}, headers, { 'Authorization': 'Bearer ' + refreshData.accessToken });
           res = await fetch(url, Object.assign({}, options, { headers: newHeaders }));
         } else {
-          localStorage.clear();
-          window.location.href = '/login.html?reason=session_expired';
           return null;
         }
       } catch (err) {
+        isRefreshing = false;
         localStorage.clear();
         window.location.href = '/login.html?reason=session_expired';
         return null;
