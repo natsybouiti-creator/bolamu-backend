@@ -445,8 +445,10 @@ const initializeApp = async () => {
 // Exécuter les migrations automatiques avant de démarrer le serveur
 async function startServer() {
     try {
-        await runMigrations();
-        console.log('✅ Migrations terminées, démarrage du serveur...\n');
+        if (process.env.DISABLE_MIGRATIONS !== 'true') {
+            await runMigrations();
+            console.log('✅ Migrations terminées, démarrage du serveur...\n');
+        }
         
         // Créer le serveur HTTP brut pour Socket.io
         const server = http.createServer(app);
