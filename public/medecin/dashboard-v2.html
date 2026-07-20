@@ -1440,17 +1440,24 @@
                     </div>
                     <p class="text-sm font-medium leading-relaxed text-navy/80 mb-8">${p.content || p.text || '—'}</p>
                     <div class="flex items-center gap-8 border-t border-border-light pt-6">
-                        <button class="flex items-center gap-2.5 text-outline hover:text-error transition-colors group">
-                            <span class="material-symbols-outlined text-xl group-hover:fill-error">favorite</span> 
-                            <span class="text-xs font-black">${p.likes_count || p.likes || 0}</span>
+                        <button onclick="toggleLike('${p.id}', this)" class="flex items-center gap-2.5 ${p.liked_by_me ? 'text-error' : 'text-outline'} hover:text-error transition-colors group" data-liked="${p.liked_by_me || false}" data-post-id="${p.id}">
+                            <span class="material-symbols-outlined text-xl ${p.liked_by_me ? 'fill-error' : ''}">favorite</span> 
+                            <span class="text-xs font-black like-count">${p.likes_count || p.likes || 0}</span>
                         </button>
-                        <button class="flex items-center gap-2.5 text-outline hover:text-primary transition-colors">
+                        <button onclick="toggleComments('${p.id}')" class="flex items-center gap-2.5 text-outline hover:text-primary transition-colors">
                             <span class="material-symbols-outlined text-xl">chat_bubble</span>
                             <span class="text-xs font-black">${p.comments_count || 0}</span>
                         </button>
                         <button class="flex items-center gap-2.5 text-outline hover:text-navy ml-auto transition-colors">
                             <span class="material-symbols-outlined text-xl">share</span>
                         </button>
+                    </div>
+                    <div id="comments-${p.id}" style="display:none;" class="mt-6 pt-6 border-t border-border-light">
+                        <div id="comments-list-${p.id}" class="space-y-4 mb-4"></div>
+                        <div class="flex gap-3">
+                            <input type="text" id="comment-input-${p.id}" placeholder="Écrire un commentaire..." class="flex-1 px-4 py-2 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                            <button onclick="addComment('${p.id}')" class="btn-primary px-4 py-2 rounded-xl text-xs font-black uppercase">Envoyer</button>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -1463,6 +1470,126 @@
     function filterCity(city) {
         state.activeCity = city;
         renderContent();
+    }
+    
+    // Locks pour éviter les doubles appels réseau
+    const likeLocks = {};
+    const commentLocks = {};
+    const commentsLoadLocks = {};
+    
+    async function toggleLike(postId, button) {
+        if (likeLocks[postId]) return;
+        likeLocks[postId] = true;
+        
+        try {
+            const res = await apiFetch(`${API}/feed/${postId}/like`, { method: 'POST' });
+            const data = await res.json();
+            
+            if (data.success) {
+                const isLiked = data.liked;
+                const countSpan = button.querySelector('.like-count');
+                const iconSpan = button.querySelector('.material-symbols-outlined');
+                const currentCount = parseInt(countSpan.textContent) || 0;
+                
+                countSpan.textContent = isLiked ? currentCount + 1 : currentCount - 1;
+                button.classList.toggle('text-error', isLiked);
+                button.classList.toggle('text-outline', !isLiked);
+                iconSpan.classList.toggle('fill-error', isLiked);
+                button.dataset.liked = isLiked;
+            }
+        } catch (e) {
+            console.error('[toggleLike] Erreur:', e);
+        } finally {
+            likeLocks[postId] = false;
+        }
+    }
+    
+    function toggleComments(postId) {
+        const section = document.getElementById(`comments-${postId}`);
+        const isHidden = section.style.display === 'none';
+        section.style.display = isHidden ? 'block' : 'none';
+        
+        if (isHidden) {
+            loadComments(postId);
+        }
+    }
+    
+    async function loadComments(postId) {
+        if (commentsLoadLocks[postId]) return;
+        commentsLoadLocks[postId] = true;
+        
+        const listEl = document.getElementById(`comments-list-${postId}`);
+        listEl.innerHTML = '<div class="text-center py-4 text-outline text-sm">Chargement...</div>';
+        
+        try {
+            const res = await apiFetch(`${API}/feed/${postId}/comments`);
+            const data = await res.json();
+            
+            if (data.success && data.data) {
+                if (data.data.length === 0) {
+                    listEl.innerHTML = '<div class="text-center py-4 text-outline text-sm">Aucun commentaire</div>';
+                } else {
+                    listEl.innerHTML = data.data.map(c => `
+                        <div class="flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0">${(c.author_name || 'A').charAt(0)}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-bold text-navy">${c.author_name || '—'}</span>
+                                    <span class="text-[10px] text-outline">${c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—'}</span>
+                                </div>
+                                <p class="text-sm text-navy/80">${c.content || ''}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch (e) {
+            console.error('[loadComments] Erreur:', e);
+            listEl.innerHTML = '<div class="text-center py-4 text-error text-sm">Erreur de chargement</div>';
+        } finally {
+            commentsLoadLocks[postId] = false;
+        }
+    }
+    
+    async function addComment(postId) {
+        if (commentLocks[postId]) return;
+        commentLocks[postId] = true;
+        
+        const inputEl = document.getElementById(`comment-input-${postId}`);
+        const content = inputEl.value.trim();
+        
+        if (!content) {
+            alert('Veuillez entrer un commentaire');
+            commentLocks[postId] = false;
+            return;
+        }
+        
+        try {
+            const res = await apiFetch(`${API}/feed/${postId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                inputEl.value = '';
+                loadComments(postId);
+                
+                // Mettre à jour le compteur de commentaires
+                const postCard = document.getElementById(`comments-${postId}`).closest('.card-custom');
+                const commentCountSpan = postCard.querySelector('button[onclick*="toggleComments"] span:last-child');
+                const currentCount = parseInt(commentCountSpan.textContent) || 0;
+                commentCountSpan.textContent = currentCount + 1;
+            } else {
+                alert(data.error?.message || 'Erreur lors de l\'ajout du commentaire');
+            }
+        } catch (e) {
+            console.error('[addComment] Erreur:', e);
+            alert('Erreur de connexion');
+        } finally {
+            commentLocks[postId] = false;
+        }
     }
 
     function renderProfil(container) {
