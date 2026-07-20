@@ -236,7 +236,7 @@
         const res = await fetch(url, {
             ...options,
             headers: {
-                'Content-Type': 'application/json',
+                ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
                 ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
                 ...(options.headers || {})
             }
@@ -1835,6 +1835,33 @@
         setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
     }
 
+    async function loadDoctorProfile() {
+        const _rawPhone = state.doctor?.phone 
+            || localStorage.getItem('bolamu_doctor_phone') 
+            || localStorage.getItem('phone') || '';
+        let phone;
+        try { phone = decodeURIComponent(_rawPhone); } catch(e) { phone = _rawPhone; }
+
+        try {
+            const res = await apiFetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`);
+            const data = await res.json();
+            const d = data.data || data.doctor || {};
+
+            if (d.banned) {
+                localStorage.clear();
+                window.location.href = '/login.html?reason=banned';
+                return;
+            }
+
+            state.doctor = d;
+            state.doctor.phone = phone;
+            updateSidebarProfil();
+            renderContent();
+        } catch(e) {
+            console.error('[Dashboard-v2] Erreur profil (non bloquant):', e);
+        }
+    }
+
     window.onload = async () => {
         const token = getAuthToken();
         const _rawPhone = localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone') || '';
@@ -1849,27 +1876,7 @@
         renderNavigation();
         renderContent();
 
-        // Charger le profil SANS déconnecter sur erreur
-        try {
-            const res = await apiFetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`);
-            const data = await res.json();
-            const d = data.data || data.doctor || {};
-            
-            if (d.banned) {
-                localStorage.clear();
-                window.location.href = '/login.html?reason=banned';
-                return;
-            }
-            
-            state.doctor = d;
-            state.doctor.phone = phone;
-            updateSidebarProfil();
-            renderContent(); // re-render avec les vraies données
-        } catch(e) {
-            console.error('[Dashboard-v2] Erreur profil (non bloquant):', e);
-            // PAS de localStorage.clear(), PAS de redirection
-            // Le dashboard reste affiché même si le profil échoue
-        }
+        await loadDoctorProfile();
     };
 
     // MODAL ÉDITION PROFIL
