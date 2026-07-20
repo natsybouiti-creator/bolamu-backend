@@ -317,11 +317,12 @@
         }
 
         const doctor = state.doctor;
+        const phone = state.doctor.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
         
         try {
             const [rdvRes, fileAttenteRes] = await Promise.all([
-                apiFetch(`${API}/medecin/rdv/today`),
-                apiFetch(`${API}/medecin/file-attente`)
+                apiFetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`),
+                apiFetch(`${API}/consultations/queue`)
             ]);
             
             const rdvData = await rdvRes.json();
@@ -333,8 +334,8 @@
             container.innerHTML = `
                 <div class="mb-10">
                     <p class="text-primary font-bold text-sm tracking-widest uppercase mb-2">Tableau de Bord</p>
-                    <h1 class="text-3xl lg:text-4xl font-extrabold text-navy leading-tight">Bienvenue, <span class="text-primary">Dr. ${doctor.nom || '—'}</span></h1>
-                    <p class="text-outline text-sm mt-1">${doctor.ville || 'Brazzaville'}, Congo</p>
+                    <h1 class="text-3xl lg:text-4xl font-extrabold text-navy leading-tight">Bienvenue, <span class="text-primary">Dr. ${doctor.full_name || '—'}</span></h1>
+                    <p class="text-outline text-sm mt-1">${doctor.city || 'Brazzaville'}, Congo</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -465,7 +466,8 @@
         `;
 
         try {
-            const res = await apiFetch(`${API}/medecin/rdv`);
+            const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+            const res = await apiFetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`);
             const data = await res.json();
             const rdvs = res.ok ? (data.data || []) : [];
 
@@ -513,30 +515,34 @@
         `;
 
         try {
-            const res = await apiFetch(`${API}/medecin/patients`);
+            const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+            const res = await apiFetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`);
             const data = await res.json();
-            const patients = res.ok ? (data.data || []) : [];
+            const rdvs = res.ok ? (data.data || []) : [];
+
+            // Extraire les patients uniques depuis les RDV (comme production)
+            const uniquePatients = [...new Map(rdvs.map(r => [r.patient_phone, r])).values()];
 
             const grid = document.getElementById('patients-grid');
-            if (patients.length === 0) {
+            if (uniquePatients.length === 0) {
                 grid.innerHTML = '<div class="col-span-full text-center py-20"><p class="text-outline">Aucun patient</p></div>';
                 return;
             }
 
-            grid.innerHTML = patients.map(p => `
-                <div class="card-custom p-8 hover:translate-y-[-4px] transition-all cursor-pointer group" onclick="navigate('Scanner'); showManualPatient('${p.id || p.patient_id || p.phone}')">
+            grid.innerHTML = uniquePatients.map(p => `
+                <div class="card-custom p-8 hover:translate-y-[-4px] transition-all cursor-pointer group" onclick="navigate('Scanner'); showManualPatient('${p.patient_phone || p.phone}')">
                     <div class="flex justify-between items-start mb-6">
                         <div class="w-14 h-14 rounded-2xl bg-background border border-border-light flex items-center justify-center font-bold text-xl text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
-                            ${(p.nom || p.name || 'P').charAt(0)}
+                            ${(p.patient_name || p.patient || 'P').charAt(0)}
                         </div>
                         <span class="text-[10px] text-outline font-extrabold uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border-light">
-                            <span class="material-symbols-outlined text-[12px] align-middle mr-1">location_on</span> ${p.ville || p.city || '—'}
+                            <span class="material-symbols-outlined text-[12px] align-middle mr-1">location_on</span> ${p.city || '—'}
                         </span>
                     </div>
-                    <h3 class="text-lg font-extrabold text-navy mb-1">${p.nom || p.name || '—'}</h3>
-                    <p class="text-xs text-outline font-medium mb-6">${p.age || '—'} ans • ${p.groupe_sanguin || p.blood || '—'}</p>
+                    <h3 class="text-lg font-extrabold text-navy mb-1">${p.patient_name || p.patient || '—'}</h3>
+                    <p class="text-xs text-outline font-medium mb-6">${p.patient_phone || '—'}</p>
                     <div class="flex flex-wrap gap-2">
-                        ${(p.antecedents || p.history || []).slice(0, 2).map(h => `<span class="bg-background border border-border-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-navy/70">${h}</span>`).join('')}
+                        <span class="bg-background border border-border-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-navy/70">RDV: ${p.appointment_date || '—'}</span>
                     </div>
                 </div>
             `).join('') + `
