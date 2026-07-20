@@ -34,7 +34,7 @@ const COMPTES = {
     dashboardPattern: '**/admin/dashboard.html'
   },
   medecin: {
-    url: '/medecin/login.html',
+    url: '/login.html',
     phone: '+242060000001',
     password: 'bolamu2026',
     tokenKey: 'bolamu_medecin_token',

@@ -241,7 +241,7 @@
         });
         if (res.status === 401) { 
             localStorage.clear(); 
-            window.location.href = '/medecin/login.html'; 
+            window.location.href = '/login.html'; 
         }
         return res;
     }
@@ -1569,7 +1569,7 @@
         
         if (!token) {
             console.log('[Dashboard-v2] Pas de token, redirection vers login');
-            window.location.href = '/medecin/login.html';
+            window.location.href = '/login.html';
             return;
         }
 
@@ -1582,7 +1582,7 @@
 
         if (!phone) {
             console.log('[Dashboard-v2] Pas de phone, redirection vers login');
-            window.location.href = '/medecin/login.html';
+            window.location.href = '/login.html';
             return;
         }
 
@@ -1601,7 +1601,7 @@
         } catch (e) {
             console.error('[Dashboard-v2] Erreur:', e);
             localStorage.clear();
-            window.location.href = '/medecin/login.html';
+            window.location.href = '/login.html';
         }
     };
 </script>
