@@ -220,9 +220,8 @@
             { id: 'Accueil', icon: 'dashboard' },
             { id: 'Mes RDV', icon: 'calendar_today' },
             { id: 'Mes patients', icon: 'groups' },
-            { id: 'Scanner', icon: 'qr_code_scanner' },
             { id: 'Scanner Zora', icon: 'smart_toy' },
-            { id: 'Scanner DMN', icon: 'folder_open' },
+            { id: 'Scanner Patient', icon: 'folder_open' },
             { id: 'Smart Flow', icon: 'analytics' },
             { id: 'Mes offres', icon: 'local_offer' },
             { id: 'Messages', icon: 'chat_bubble' },
@@ -335,9 +334,8 @@
             case 'Accueil': renderAccueil(canvas); break;
             case 'Mes RDV': renderRDVs(canvas); break;
             case 'Mes patients': renderPatients(canvas); break;
-            case 'Scanner': renderScanner(canvas, 'Général'); break;
             case 'Scanner Zora': renderScanner(canvas, 'Zora'); break;
-            case 'Scanner DMN': renderDMN(canvas); break;
+            case 'Scanner Patient': renderScanner(canvas, 'Patient'); break;
             case 'Smart Flow': renderSmartFlow(canvas); break;
             case 'Mes offres': renderOffres(canvas); break;
             case 'Messages': renderMessages(canvas); break;
@@ -585,11 +583,12 @@
 
     function renderScanner(container, type) {
         const isZora = type === 'Zora';
+        const isPatient = type === 'Patient';
         container.innerHTML = `
             <div class="mb-10 text-center max-w-2xl mx-auto">
                 <p class="text-primary font-bold text-sm tracking-widest uppercase mb-1">Numérisation</p>
-                <h1 class="text-3xl font-extrabold text-navy">Scanner ${type}</h1>
-                <p class="text-outline text-sm">Utilisez l'appareil photo pour accéder instantanément au dossier sécurisé.</p>
+                <h1 class="text-3xl font-extrabold text-navy">${isZora ? 'Scanner Zora' : 'Scanner Patient'}</h1>
+                <p class="text-outline text-sm">${isZora ? 'Scannez les vouchers Zora pour valider les remises.' : 'Scannez le QR patient pour accéder au dossier, RDV et ordonnances.'}</p>
             </div>
             <div id="scanner-view" class="max-w-3xl mx-auto space-y-8">
                 <div class="aspect-video card-custom ${isZora ? 'zora-rail' : 'bg-navy'} overflow-hidden relative flex flex-col items-center justify-center shadow-2xl" id="scanner-camera-container">
@@ -661,8 +660,8 @@
         }
         if (type === 'Zora') {
             verifyZoraVoucher(valeur);
-        } else {
-            traiterPatientMedecin(valeur, 'search');
+        } else if (type === 'Patient') {
+            traiterPatientMedecin(valeur, 'qr');
         }
     }
 
@@ -718,8 +717,9 @@
         resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#747685;">Recherche en cours...</div>';
 
         var url;
+        var qrToken = null;
         if (mode === 'qr') {
-            var qrToken = valeur;
+            qrToken = valeur;
             if (valeur.indexOf('token=') !== -1) {
                 try {
                     qrToken = new URL(valeur).searchParams.get('token');
@@ -744,8 +744,8 @@
                     return;
                 }
 
-                if (mode === 'qr' && data.data.patient && data.data.patient.phone) {
-                    var phone = data.data.patient.phone;
+                if (mode === 'qr' && data.data.phone) {
+                    var phone = data.data.phone;
                     apiFetch(API + '/patients/search?q=' + encodeURIComponent(phone))
                         .then(function(res) { return res.json(); })
                         .then(function(searchData) {
@@ -756,6 +756,40 @@
                                 return;
                             }
                             afficherFichePatientMedecin(searchData.data[0], resultDiv);
+                            
+                            // Affichage dynamique des sections contextuelles (réponse enrichie /qr/verify)
+                            if (data.data.rdv_du_jour) {
+                                var rdv = data.data.rdv_du_jour;
+                                var rdvTime = rdv.appointment_time ? rdv.appointment_time.slice(0, 5) : '--:--';
+                                resultDiv.innerHTML += '<div style="background:#E3F2FD;border:2px solid #1976D2;border-radius:16px;padding:16px;margin-bottom:16px;">'
+                                    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">'
+                                    + '<div style="font-size:24px;"><span class="material-symbols-outlined">event</span></div>'
+                                    + '<div><div style="font-size:14px;font-weight:700;color:#0A2463;">RDV aujourd\'hui à ' + rdvTime + '</div>'
+                                    + '<div style="font-size:12px;color:#747685;">' + (rdv.motif || 'Motif non précisé') + '</div></div></div>';
+                            }
+                            
+                            if (data.data.ordonnance_en_attente) {
+                                var ord = data.data.ordonnance_en_attente;
+                                var ordDate = ord.created_at ? new Date(ord.created_at).toLocaleDateString('fr-FR') : '--/--/----';
+                                resultDiv.innerHTML += '<div style="background:#FFF3E0;border:2px solid #F57C00;border-radius:16px;padding:16px;margin-bottom:16px;">'
+                                    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">'
+                                    + '<div style="font-size:24px;"><span class="material-symbols-outlined">medication</span></div>'
+                                    + '<div><div style="font-size:14px;font-weight:700;color:#0A2463;">Ordonnance en attente</div>'
+                                    + '<div style="font-size:12px;color:#747685;">Depuis le ' + ordDate + ' — ' + (ord.medications_count || 0) + ' médicament(s)</div></div></div>';
+                            }
+                            
+                            if (data.data.examen_labo_en_attente) {
+                                var lab = data.data.examen_labo_en_attente;
+                                var labDate = lab.created_at ? new Date(lab.created_at).toLocaleDateString('fr-FR') : '--/--/----';
+                                resultDiv.innerHTML += '<div style="background:#F3E5F5;border:2px solid #7B1FA2;border-radius:16px;padding:16px;margin-bottom:16px;">'
+                                    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">'
+                                    + '<div style="font-size:24px;"><span class="material-symbols-outlined">science</span></div>'
+                                    + '<div><div style="font-size:14px;font-weight:700;color:#0A2463;">Examen labo en attente</div>'
+                                    + '<div style="font-size:12px;color:#747685;">Depuis le ' + labDate + ' — ' + (lab.type || 'Type non précisé') + '</div></div></div>';
+                            }
+                            
+                            // Bouton pour voir le dossier complet (informations perdues : groupe sanguin, allergies, maladies chroniques, traitements, consultations récentes, documents)
+                            resultDiv.innerHTML += '<button onclick="loadDossierComplet(\'' + (qrToken || '').replace(/'/g, "\\'") + '\')" class="btn-primary w-full mt-4">Voir dossier complet</button>';
                         })
                         .catch(function() {
                             resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#BA1A1A;font-size:14px;">Erreur de connexion.</div>';
@@ -792,6 +826,21 @@
             .catch(function() {
                 resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#BA1A1A;font-size:14px;">Erreur de connexion.</div>';
             });
+    }
+    
+    async function loadDossierComplet(qrToken) {
+        try {
+            const res = await apiFetch(API + '/dmn/verify?token=' + encodeURIComponent(qrToken));
+            const data = await res.json();
+            if (data.success && data.data) {
+                showDMN(data.data);
+            } else {
+                alert('Erreur lors du chargement du dossier complet');
+            }
+        } catch (e) {
+            console.error('[loadDossierComplet] Erreur:', e);
+            alert('Erreur de connexion');
+        }
     }
 
     function afficherFichePatientMedecin(p, resultDiv) {
@@ -1046,7 +1095,7 @@
                     </div>
                 </div>
                 
-                <button onclick="renderScanner(document.getElementById('main-canvas'), 'Général')" class="mt-10 text-outline hover:text-primary font-bold text-sm flex items-center gap-2 transition-colors">
+                <button onclick="renderScanner(document.getElementById('main-canvas'), 'Patient')" class="mt-10 text-outline hover:text-primary font-bold text-sm flex items-center gap-2 transition-colors">
                     <span class="material-symbols-outlined text-[18px]">arrow_back</span> Retour au scanner
                 </button>
             </div>
