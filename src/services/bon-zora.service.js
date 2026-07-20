@@ -262,15 +262,19 @@ async function validateBonZora(code, partner_phone, method = 'code_manual') {
 
     // 1bis. Le bon doit être validé par le partenaire propriétaire du programme
     // (partner_bons_zora.partner_id référence partner_programs.id, cf. commit b36f1db).
-    // Exception documentée : les programmes seed sans partner_phone (id 1,2,3, en
-    // attente de rattachement — cf. audit Lot 2b) n'ont pas encore de propriétaire
-    // assignable ; on les laisse validables par tout partenaire jusqu'à leur rattachement.
+    // Fail-closed : toute offre sans propriétaire (partner_phone IS NULL) est rejetée.
     const programResult = await client.query(
       `SELECT partner_phone, name FROM partner_programs WHERE id = $1`,
       [bon.partner_id]
     );
     const program = programResult.rows[0];
-    if (program && program.partner_phone && normalizePhone(program.partner_phone) !== partnerPhone) {
+    
+    // Fail-closed : refuser la validation si l'offre n'a pas de propriétaire
+    if (!program || !program.partner_phone) {
+      await client.query('ROLLBACK');
+      return { success: false, error: 'bon_zora_invalid_program' };
+    }
+    if (normalizePhone(program.partner_phone) !== partnerPhone) {
       await client.query('ROLLBACK');
       return { success: false, error: 'bon_zora_wrong_partner' };
     }
