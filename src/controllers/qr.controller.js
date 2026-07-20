@@ -78,6 +78,84 @@ const verifyQRToken = async (req, res) => {
       zoraBalance = zoraRes.rows[0].balance;
     }
     
+    // RDV du jour (avec règle BHP)
+    let rdvDuJour = null;
+    const rdvRes = await pool.query(
+      `SELECT a.id, a.appointment_time, a.status, a.motif
+       FROM appointments a
+       JOIN doctors d ON d.id = a.doctor_id
+       WHERE a.patient_phone = $1
+         AND a.appointment_date = CURRENT_DATE
+         AND a.status IN ('confirme', 'en_cours')
+         AND a.is_active = TRUE
+         AND (
+           d.phone = $2
+           OR EXISTS (
+             SELECT 1 FROM patient_consents pc
+             JOIN users u ON u.id = pc.patient_id
+             WHERE u.phone = $1
+               AND pc.consent_type = 'dmn_qr_scan'
+               AND pc.granted = true
+           )
+         )
+       ORDER BY a.appointment_time
+       LIMIT 1`,
+      [qrToken.user_phone, partnerPhone]
+    );
+    if (rdvRes.rows.length > 0) {
+      rdvDuJour = rdvRes.rows[0];
+    }
+    
+    // Ordonnance en attente (avec règle BHP)
+    let ordonnanceEnAttente = null;
+    const ordRes = await pool.query(
+      `SELECT id, created_at, jsonb_array_length(medications) as medications_count
+       FROM prescriptions p
+       WHERE p.patient_phone = $1
+         AND p.status = 'pending'
+         AND (
+           p.doctor_phone = $2
+           OR EXISTS (
+             SELECT 1 FROM patient_consents pc
+             JOIN users u ON u.id = pc.patient_id
+             WHERE u.phone = $1
+               AND pc.consent_type = 'dmn_qr_scan'
+               AND pc.granted = true
+           )
+         )
+       ORDER BY p.created_at DESC
+       LIMIT 1`,
+      [qrToken.user_phone, partnerPhone]
+    );
+    if (ordRes.rows.length > 0) {
+      ordonnanceEnAttente = ordRes.rows[0];
+    }
+    
+    // Examen labo en attente (avec règle BHP)
+    let examenLaboEnAttente = null;
+    const labRes = await pool.query(
+      `SELECT id, created_at, type
+       FROM lab_prescriptions lp
+       WHERE lp.patient_phone = $1
+         AND lp.status = 'pending'
+         AND (
+           lp.doctor_phone = $2
+           OR EXISTS (
+             SELECT 1 FROM patient_consents pc
+             JOIN users u ON u.id = pc.patient_id
+             WHERE u.phone = $1
+               AND pc.consent_type = 'dmn_qr_scan'
+               AND pc.granted = true
+           )
+         )
+       ORDER BY lp.created_at DESC
+       LIMIT 1`,
+      [qrToken.user_phone, partnerPhone]
+    );
+    if (labRes.rows.length > 0) {
+      examenLaboEnAttente = labRes.rows[0];
+    }
+    
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2::jsonb)`,
       [partnerPhone, JSON.stringify({ patient_phone: qrToken.user_phone, token })]
@@ -94,7 +172,10 @@ const verifyQRToken = async (req, res) => {
         subscription_end: sub ? sub.expires_at : null,
         convention: convention,
         zora_balance: zoraBalance,
-        token_expires_at: qrToken.expires_at
+        token_expires_at: qrToken.expires_at,
+        rdv_du_jour: rdvDuJour,
+        ordonnance_en_attente: ordonnanceEnAttente,
+        examen_labo_en_attente: examenLaboEnAttente
       }
     });
   } catch (error) {
