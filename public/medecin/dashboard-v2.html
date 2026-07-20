@@ -264,22 +264,34 @@
     function updateSidebarProfil() {
         if (!state.doctor) return;
         
+        const doctor = state.doctor;
+        const fullName = doctor.full_name || 'Dr';
+        const initials = fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+        
+        // Sidebar
         const initialsEl = document.getElementById('sidebar-initials');
         const nameEl = document.getElementById('sidebar-name');
         const specialtyEl = document.getElementById('sidebar-specialty');
         
-        if (initialsEl) {
-            const fullName = state.doctor.full_name || 'Dr';
-            const initials = fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
-            initialsEl.textContent = initials || 'DR';
-        }
+        if (initialsEl) initialsEl.textContent = initials || 'DR';
+        if (nameEl) nameEl.textContent = fullName || 'Dr. —';
+        if (specialtyEl) specialtyEl.textContent = doctor.specialty || 'Médecin';
         
-        if (nameEl) {
-            nameEl.textContent = state.doctor.full_name || 'Dr. —';
-        }
+        // Topbar
+        const topbarNameEl = document.querySelector('.text-right.hidden.md:block p.text-sm.font-bold.text-navy');
+        const topbarCityEl = document.querySelector('.text-right.hidden.md:block p.text-xs.text-outline.font-medium');
+        const topbarAvatarEl = document.querySelector('.w-10.h-10.lg\\:w-12.lg\\:h-12.rounded-xl.overflow-hidden img');
+        const topbarAvatarContainer = document.querySelector('.w-10.h-10.lg\\:w-12.lg\\:h-12.rounded-xl.overflow-hidden');
         
-        if (specialtyEl) {
-            specialtyEl.textContent = state.doctor.specialty || 'Médecin';
+        if (topbarNameEl) topbarNameEl.textContent = fullName || 'Dr. —';
+        if (topbarCityEl) topbarCityEl.textContent = `${doctor.city || 'Brazzaville'}, Congo`;
+        
+        if (topbarAvatarContainer) {
+            if (doctor.photo_url) {
+                topbarAvatarContainer.innerHTML = `<img class="w-full h-full object-cover" src="${doctor.photo_url}" alt="Avatar">`;
+            } else {
+                topbarAvatarContainer.innerHTML = `<div class="w-full h-full bg-primary flex items-center justify-center text-white font-bold text-lg">${initials || 'DR'}</div>`;
+            }
         }
     }
 
@@ -420,23 +432,7 @@
                     </div>
                     
                     <div class="space-y-6">
-                        <div class="card-custom p-8 bg-background border-none shadow-none">
-                            <h3 class="text-lg font-extrabold text-navy mb-6 flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary">psychology</span> Smart Insights
-                            </h3>
-                            <div class="space-y-4">
-                                <div class="p-5 bg-white rounded-2xl border border-border-light shadow-subtle group hover:-translate-y-1 transition-all">
-                                    <p class="text-[10px] font-extrabold text-primary uppercase tracking-widest mb-1">IA Conseil Zora</p>
-                                    <p class="text-sm font-medium text-navy">Optimisez vos créneaux du jeudi pour les patients chroniques.</p>
-                                </div>
-                                <div class="p-5 bg-white rounded-2xl border border-border-light shadow-subtle group hover:-translate-y-1 transition-all">
-                                    <p class="text-[10px] font-extrabold text-error uppercase tracking-widest mb-1">Rappel Urgent</p>
-                                    <p class="text-sm font-medium text-navy">Vérifier dossier M. Bakole (Rapport ECG du 23/05)</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card-custom p-6 zora-rail relative overflow-hidden group">
+                        <div class="card-custom p-8 zora-rail relative overflow-hidden group">
                             <div class="relative z-10">
                                 <p class="text-[10px] font-black uppercase tracking-widest mb-1">Zora & MTN MoMo</p>
                                 <h4 class="font-bold text-navy mb-2">Offre de bienvenue</h4>
@@ -579,6 +575,10 @@
         }
     }
 
+    // Scanner général
+    let generalHtml5QrCode = null;
+    let generalCameraStream = null;
+
     function renderScanner(container, type) {
         const isZora = type === 'Zora';
         container.innerHTML = `
@@ -588,12 +588,9 @@
                 <p class="text-outline text-sm">Utilisez l'appareil photo pour accéder instantanément au dossier sécurisé.</p>
             </div>
             <div id="scanner-view" class="max-w-3xl mx-auto space-y-8">
-                <div class="aspect-video card-custom ${isZora ? 'zora-rail' : 'bg-navy'} overflow-hidden relative flex flex-col items-center justify-center shadow-2xl">
-                    <div id="scan-line" class="absolute top-0 left-0 w-full h-[3px] ${isZora ? 'bg-navy' : 'bg-secondary'} shadow-[0_0_20px_rgba(0,0,0,0.3)] animate-[bounce_3s_infinite]"></div>
-                    <div class="w-48 h-48 border-2 border-dashed ${isZora ? 'border-navy/40' : 'border-white/30'} rounded-3xl flex items-center justify-center mb-6">
-                        <span class="material-symbols-outlined text-7xl ${isZora ? 'text-navy' : 'text-white'} opacity-40">qr_code_scanner</span>
-                    </div>
-                    <p class="${isZora ? 'text-navy' : 'text-white'} font-bold text-sm tracking-wide">Alignez le code dans le cadre</p>
+                <div class="aspect-video card-custom ${isZora ? 'zora-rail' : 'bg-navy'} overflow-hidden relative flex flex-col items-center justify-center shadow-2xl" id="scanner-camera-container">
+                    <div id="scanner-qr-reader" style="width:100%;height:100%;"></div>
+                    <button onclick="stopGeneralCamera()" style="position:absolute;top:10px;right:10px;padding:8px 16px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:8px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Fermer</button>
                 </div>
                 
                 <div class="card-custom p-10 text-center">
@@ -605,6 +602,58 @@
                 </div>
             </div>
         `;
+        
+        // Démarrer la caméra automatiquement
+        setTimeout(() => startGeneralCamera(), 100);
+    }
+
+    async function startGeneralCamera() {
+        const reader = document.getElementById('scanner-qr-reader');
+        if (!reader) return;
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            generalCameraStream = stream;
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.play();
+            reader.appendChild(video);
+
+            generalHtml5QrCode = new Html5Qrcode(reader);
+            await generalHtml5QrCode.start(
+                video,
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    stopGeneralCamera();
+                    document.getElementById('scan-input').value = decodedText;
+                    handleScanSubmit('Général');
+                },
+                (errorMessage) => {}
+            );
+        } catch(e) {
+            console.error('[Scanner] Erreur caméra:', e);
+        }
+    }
+
+    function stopGeneralCamera() {
+        if (generalHtml5QrCode) {
+            generalHtml5QrCode.stop().catch(function(err) { console.error('[stopGeneralCamera] Erreur:', err); });
+            generalHtml5QrCode = null;
+        }
+        if (generalCameraStream) {
+            generalCameraStream.getTracks().forEach(track => track.stop());
+            generalCameraStream = null;
+        }
+    }
+
+    function handleScanSubmit(type) {
+        const input = document.getElementById('scan-input');
+        if (!input || !input.value.trim()) {
+            alert('Veuillez entrer un ID');
+            return;
+        }
+        // Logique de traitement du QR code
+        alert('QR Code scanné: ' + input.value);
     }
 
     // Scanner DMN
@@ -669,46 +718,9 @@
             const data = await res.json();
 
             if (data.success) {
-                const d = data.data;
-                const consultationsHtml = (d.consultations && d.consultations.length)
-                    ? d.consultations.map(c => `<div style="padding:8px 0;border-bottom:1px solid #EEF0F3;font-size:13px;">${new Date(c.appointment_date).toLocaleDateString('fr-FR')} — Dr ${c.doctor_name || '—'} (${c.doctor_specialty || '—'})</div>`).join('')
-                    : '<div style="font-size:13px;color:#747685;">Aucune consultation récente.</div>';
-                const documentsHtml = (d.documents && d.documents.length)
-                    ? d.documents.map(doc => `<div style="padding:8px 0;border-bottom:1px solid #EEF0F3;font-size:13px;">${doc.original_name} (${doc.document_type})</div>`).join('')
-                    : '<div style="font-size:13px;color:#747685;">Aucun document.</div>';
-
-                resultEl.innerHTML = `
-                    <div style="background:#e8f5e9;border:2px solid #2e7d32;border-radius:16px;padding:24px;">
-                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                            <div style="font-size:32px;"><span class="material-symbols-outlined">check_circle</span></div>
-                            <div>
-                                <div style="font-size:16px;font-weight:700;color:#1a1b22;">Dossier vérifié</div>
-                                <div style="font-size:14px;color:#747685;">${d.identite.initiales} — ${d.identite.phone}</div>
-                            </div>
-                        </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                            <div style="background:white;border-radius:12px;padding:14px;">
-                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Groupe sanguin</div>
-                                <div style="font-size:14px;font-weight:700;color:#1a1b22;">${d.constantes.groupe_sanguin || '—'}</div>
-                            </div>
-                            <div style="background:white;border-radius:12px;padding:14px;">
-                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Allergies</div>
-                                <div style="font-size:14px;font-weight:700;color:#1a1b22;">${d.constantes.allergies || 'Aucune connue'}</div>
-                            </div>
-                            <div style="background:white;border-radius:12px;padding:14px;">
-                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Maladies chroniques</div>
-                                <div style="font-size:14px;font-weight:700;color:#1a1b22;">${d.constantes.maladies_chroniques || 'Aucune'}</div>
-                            </div>
-                            <div style="background:white;border-radius:12px;padding:14px;">
-                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Traitements en cours</div>
-                                <div style="font-size:14px;font-weight:700;color:#1a1b22;">${d.constantes.traitements_en_cours || 'Aucun'}</div>
-                            </div>
-                        </div>
-                        <div style="font-size:13px;font-weight:700;color:#1a1b22;margin:16px 0 8px;">Consultations récentes</div>${consultationsHtml}
-                        <div style="font-size:13px;font-weight:700;color:#1a1b22;margin:16px 0 8px;">Documents</div>${documentsHtml}
-                        <button onclick="document.getElementById('dmn-token-input').value='';document.getElementById('dmn-result').style.display='none';" style="width:100%;padding:12px;background:linear-gradient(135deg,#003FB1,#00C9A7);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:16px;">Scanner un autre dossier</button>
-                    </div>
-                `;
+                // Stocker les données DMN et afficher via showDMN()
+                showDMN(data.data);
+                resultEl.style.display = 'none';
             } else {
                 resultEl.innerHTML = `
                     <div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">
@@ -781,27 +793,40 @@
     }
 
     function showManualPatient(id) {
-        const p = state.patients.find(pt => pt.id === id);
-        if(p) setTimeout(() => showDMN(p), 100);
+        // Cette fonction n'est plus utilisée - les patients sont dérivés des RDV
+        console.log('[showManualPatient] ID:', id);
     }
 
-    function showDMN(patient) {
+    function showDMN(dmnData) {
         const view = document.getElementById('scanner-view');
+        if (!dmnData) {
+            view.innerHTML = '<div class="text-center py-20"><p class="text-error">Aucune donnée DMN disponible</p></div>';
+            return;
+        }
+
+        const identite = dmnData.identite || {};
+        const constantes = dmnData.constantes || {};
+        const consultations = dmnData.consultations || [];
+        const documents = dmnData.documents || [];
+        
+        const fullName = identite.full_name || identite.name || 'Patient';
+        const initials = fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+        
         view.innerHTML = `
             <div class="card-custom p-8 lg:p-12 border-l-8 border-primary animate-in slide-in-from-right duration-500">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-10 pb-8 border-b border-border-light">
                     <div class="flex items-center gap-5">
                         <div class="w-20 h-20 rounded-2xl bg-primary text-white flex items-center justify-center text-3xl font-black shadow-lg shadow-primary/20">
-                            ${patient.name.charAt(0)}
+                            ${initials}
                         </div>
                         <div>
-                            <h2 class="text-2xl font-black text-navy">${patient.name}</h2>
+                            <h2 class="text-2xl font-black text-navy">${fullName}</h2>
                             <p class="text-sm text-outline font-medium flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[16px]">location_on</span> ${patient.city} • ${patient.age} ans
+                                <span class="material-symbols-outlined text-[16px]">location_on</span> ${identite.city || '—'} • ${identite.phone || '—'}
                             </p>
                         </div>
                     </div>
-                    <button onclick="openConsultation('${patient.name}')" class="btn-primary px-10 py-4 shadow-xl">
+                    <button onclick="openConsultation('${fullName}', '${identite.phone}')" class="btn-primary px-10 py-4 shadow-xl">
                         <span class="material-symbols-outlined">play_arrow</span> Démarrer la consultation
                     </button>
                 </div>
@@ -810,23 +835,38 @@
                     <div class="p-6 bg-background rounded-2xl border border-border-light">
                         <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-3">Données Vitales</p>
                         <div class="space-y-2">
-                            <p class="text-sm font-medium"><span class="text-outline">Groupe:</span> <b class="text-navy">${patient.blood}</b></p>
-                            <p class="text-sm font-medium"><span class="text-outline">Genre:</span> <b class="text-navy">Masculin</b></p>
+                            <p class="text-sm font-medium"><span class="text-outline">Groupe:</span> <b class="text-navy">${constantes.groupe_sanguin || '—'}</b></p>
+                            <p class="text-sm font-medium"><span class="text-outline">Genre:</span> <b class="text-navy">${identite.gender || '—'}</b></p>
                         </div>
                     </div>
                     <div class="p-6 bg-background rounded-2xl border border-border-light">
-                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-3">Antécédents</p>
-                        <div class="flex flex-wrap gap-1.5">
-                            ${patient.history.map(h => `<span class="bg-white border border-border-light px-2 py-0.5 rounded-lg text-[10px] font-bold text-navy/70">${h}</span>`).join('')}
-                        </div>
+                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-3">Allergies</p>
+                        <p class="text-sm font-black text-navy">${constantes.allergies || 'Aucune connue'}</p>
                     </div>
                     <div class="p-6 bg-error/5 rounded-2xl border border-error/10">
-                        <p class="text-[10px] font-black text-error uppercase tracking-widest mb-3">Alerte Allergies</p>
-                        <p class="text-sm font-black text-error">${patient.allergy}</p>
+                        <p class="text-[10px] font-black text-error uppercase tracking-widest mb-3">Maladies Chroniques</p>
+                        <p class="text-sm font-black text-error">${constantes.maladies_chroniques || 'Aucune'}</p>
                     </div>
                     <div class="p-6 bg-background rounded-2xl border border-border-light">
                         <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-3">Traitements</p>
-                        <p class="text-sm font-medium text-navy leading-tight">${patient.treatments.join(', ')}</p>
+                        <p class="text-sm font-medium text-navy leading-tight">${constantes.traitements_en_cours || 'Aucun'}</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-3">Consultations Récentes</p>
+                        ${consultations.length > 0 
+                            ? consultations.map(c => `<div style="padding:8px 0;border-bottom:1px solid #EEF0F3;font-size:13px;">${new Date(c.appointment_date).toLocaleDateString('fr-FR')} — Dr ${c.doctor_name || '—'} (${c.doctor_specialty || '—'})</div>`).join('')
+                            : '<p class="text-sm text-outline">Aucune consultation récente.</p>'
+                        }
+                    </div>
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-3">Documents</p>
+                        ${documents.length > 0
+                            ? documents.map(doc => `<div style="padding:8px 0;border-bottom:1px solid #EEF0F3;font-size:13px;">${doc.original_name} (${doc.document_type})</div>`).join('')
+                            : '<p class="text-sm text-outline">Aucun document.</p>'
+                        }
                     </div>
                 </div>
                 
@@ -842,27 +882,62 @@
             <div class="mb-10">
                 <p class="text-primary font-bold text-sm tracking-widest uppercase mb-1">Analytique</p>
                 <h1 class="text-3xl font-extrabold text-navy">Smart Flow</h1>
-                <p class="text-outline text-sm">Performance opérationnelle du cabinet.</p>
+                <p class="text-outline text-sm">Statistiques du mois — SSP & Hors Catalogue.</p>
             </div>
-            <div class="card-custom p-10 h-96 flex flex-col justify-between bg-white relative overflow-hidden">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 class="font-extrabold text-navy">Affluence Hebdomadaire</h3>
-                    <div class="flex gap-2">
-                        <span class="px-3 py-1 bg-background rounded-lg text-[10px] font-bold text-outline">Lun - Sam</span>
+            <div class="card-custom p-10">
+                <div style="display:flex;gap:12px;margin-bottom:24px;">
+                    <input type="month" id="smartflow-mois" class="rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                    <button onclick="loadSmartFlowStats()" class="btn-primary px-8">Charger</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">SSP — Actes gratuits</p>
+                        <p class="text-2xl font-black text-secondary" id="sf-ssp-count">0</p>
+                        <p class="text-xs text-outline mt-2">Médicaments prescrits couverts ce mois</p>
                     </div>
-                </div>
-                <div class="flex items-end justify-between gap-4 h-48 relative z-10">
-                    ${[30, 50, 85, 45, 60, 35].map(h => `
-                        <div class="flex-1 bg-primary/10 rounded-xl h-full relative group cursor-pointer">
-                            <div class="absolute bottom-0 left-0 w-full bg-primary rounded-xl transition-all duration-700 group-hover:bg-secondary" style="height: ${h}%"></div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="flex justify-between px-2 mt-4">
-                    ${['L', 'M', 'M', 'J', 'V', 'S'].map(d => `<span class="text-[10px] font-black text-outline">${d}</span>`).join('')}
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Hors Catalogue — Actes</p>
+                        <p class="text-2xl font-black text-amber-500" id="sf-hors-count">0</p>
+                        <p class="text-xs text-outline mt-2">Actes non couverts par SSP</p>
+                    </div>
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Montant Hors Catalogue</p>
+                        <p class="text-2xl font-black text-navy" id="sf-hors-montant">0 FCFA</p>
+                        <p class="text-xs text-outline mt-2">Total facturé aux patients</p>
+                    </div>
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Total Actes</p>
+                        <p class="text-2xl font-black text-primary" id="sf-total">0</p>
+                        <p class="text-xs text-outline mt-2">SSP + Hors Catalogue</p>
+                    </div>
                 </div>
             </div>
         `;
+    }
+
+    async function loadSmartFlowStats() {
+        const moisInput = document.getElementById('smartflow-mois').value;
+        if (!moisInput) {
+            alert('Veuillez sélectionner un mois.');
+            return;
+        }
+
+        try {
+            const res = await apiFetch(`${API}/smartflow/stats/moi?mois=${moisInput}`);
+            const data = await res.json();
+
+            if (data.success && data.data) {
+                document.getElementById('sf-ssp-count').textContent = data.data.ssp_count || 0;
+                document.getElementById('sf-hors-count').textContent = data.data.hors_catalogue_count || 0;
+                document.getElementById('sf-hors-montant').textContent = (data.data.hors_catalogue_montant || 0).toLocaleString() + ' FCFA';
+                document.getElementById('sf-total').textContent = (data.data.ssp_count || 0) + (data.data.hors_catalogue_count || 0);
+            } else {
+                alert('Erreur lors du chargement des statistiques');
+            }
+        } catch (e) {
+            console.error('[SmartFlow] Erreur:', e);
+            alert('Erreur de connexion');
+        }
     }
 
     function renderOffres(container) {
@@ -872,54 +947,176 @@
                 <h1 class="text-3xl font-extrabold text-navy">Mes Offres de Soins</h1>
                 <p class="text-outline text-sm">Catalogue des forfaits disponibles pour les patients.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                ${state.offers.map(o => `
-                    <div class="card-custom p-8 flex justify-between items-center group hover:bg-navy hover:text-white transition-all duration-300">
-                        <div>
-                            <h4 class="font-extrabold text-xl mb-1">${o.title}</h4>
-                            <p class="text-secondary font-black text-lg group-hover:text-secondary-container">${o.price}</p>
-                        </div>
-                        <div class="flex flex-col items-end gap-3">
-                            <span class="px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-[10px] font-black uppercase tracking-widest group-hover:bg-white/10 group-hover:text-white">Actif</span>
-                            <span class="material-symbols-outlined text-outline group-hover:text-white/40 transition-colors">arrow_forward_ios</span>
-                        </div>
-                    </div>
-                `).join('')}
-                <div class="card-custom p-8 border-dashed border-2 border-border-light flex flex-col items-center justify-center text-outline hover:text-primary transition-all cursor-pointer">
-                    <span class="material-symbols-outlined text-4xl mb-2">add_task</span>
-                    <p class="font-bold">Créer un nouveau forfait</p>
+            <div class="card-custom overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[800px]">
+                        <thead class="bg-background border-b border-border-light">
+                            <tr class="text-[10px] uppercase font-bold text-outline tracking-widest">
+                                <th class="px-8 py-5">Nom</th>
+                                <th class="px-8 py-5">Catégorie</th>
+                                <th class="px-8 py-5">Coût Zora</th>
+                                <th class="px-8 py-5">Valeur FCFA</th>
+                                <th class="px-8 py-5">Stock</th>
+                                <th class="px-8 py-5">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-light" id="offers-list">
+                            <tr><td colspan="6" class="px-8 py-12 text-center text-outline">Chargement...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         `;
+        loadOffers();
+    }
+
+    async function loadOffers() {
+        try {
+            const res = await apiFetch(`${API}/bons-zora/programs/mine`);
+            const data = await res.json();
+            const tbody = document.getElementById('offers-list');
+            
+            if (!data.success || !data.data.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-8 py-12 text-center text-outline">Aucune offre créée</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.data.map(p => `
+                <tr class="hover:bg-background/50 transition-colors">
+                    <td class="px-8 py-6 font-bold text-navy text-sm">${p.name || '—'}</td>
+                    <td class="px-8 py-6 text-sm text-outline">${p.category || '—'}</td>
+                    <td class="px-8 py-6 text-sm text-outline">${p.zora_cost || '—'}</td>
+                    <td class="px-8 py-6 text-sm text-outline">${p.fcfa_value || '—'}</td>
+                    <td class="px-8 py-6 text-sm text-outline">${p.stock === null ? 'Illimité' : p.stock}</td>
+                    <td class="px-8 py-6">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase ${p.is_active ? 'bg-secondary/10 text-secondary' : 'bg-error/10 text-error'}">
+                            ${p.is_active ? 'Active' : 'Désactivée'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('[Offres] Erreur:', e);
+            document.getElementById('offers-list').innerHTML = '<tr><td colspan="6" class="px-8 py-12 text-center text-error">Erreur de chargement</td></tr>';
+        }
     }
 
     let chatSocket = null;
+    var bcwUnread = 0;
 
-    function initChatSocket() {
-        if (chatSocket) return;
-        
+    function escBcw(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+    }
+
+    function bcwTimeAgo(dateStr) {
+        const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+        if (diff < 60) return "à l'instant";
+        if (diff < 3600) return Math.floor(diff / 60) + ' min';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' h';
+        if (diff < 172800) return 'hier';
+        if (diff < 604800) return Math.floor(diff / 86400) + ' j';
+        return new Date(dateStr).toLocaleDateString('fr-FR');
+    }
+
+    function updateMessagesBadge() {
+        const badge = document.getElementById('bcw-badge-medecin');
+        if (!badge) return;
+        badge.textContent = bcwUnread > 9 ? '9+' : String(bcwUnread);
+        badge.style.display = bcwUnread > 0 ? 'inline-block' : 'none';
+    }
+
+    function initBcwSocket() {
+        if (window.__bolamuSocket) return;
         const token = getAuthToken();
-        chatSocket = io('https://api.bolamu.co', {
+        const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+        if (!token || !phone) return;
+
+        window.__bolamuSocket = io('https://api.bolamu.co', {
             auth: { token },
             transports: ['websocket']
         });
 
-        chatSocket.on('connect', () => {
+        window.__bolamuSocket.on('connect', () => {
             console.log('[Socket] Connecté');
         });
 
-        chatSocket.on('message', (msg) => {
-            console.log('[Socket] Message reçu:', msg);
-            // Ajouter le message à l'interface
+        window.__bolamuSocket.on('chat:new_message', (payload) => {
+            if (payload.sender_phone === phone) return;
+            bcwUnread++;
+            updateMessagesBadge();
         });
 
-        chatSocket.on('disconnect', () => {
+        window.__bolamuSocket.on('disconnect', () => {
             console.log('[Socket] Déconnecté');
         });
     }
 
+    async function loadConversations() {
+        const list = document.getElementById('bcw-conv-list');
+        const token = getAuthToken();
+        if (!list || !token) return;
+        list.innerHTML = '<div style="text-align:center;padding:24px;color:#747685;">Chargement…</div>';
+        
+        try {
+            const res = await apiFetch(`${API}/chat/conversations`);
+            const d = await res.json();
+            if (!d || !d.success || !d.data || !d.data.length) {
+                list.innerHTML = '<div style="text-align:center;padding:32px 16px;color:#747685;">Aucune conversation.<br>Démarrez-en une avec le bouton ci-dessus.</div>';
+                return;
+            }
+            list.innerHTML = d.data.map(conv => {
+                const name = conv.other_name || 'Contact';
+                const photo = conv.other_photo_url || null;
+                const initials = name.charAt(0).toUpperCase();
+                const avatarHtml = photo 
+                    ? `<img src="${photo}" style="width:44px;height:44px;border-radius:50%;object-cover;flex-shrink:0;">`
+                    : `<span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#0A2463;color:#fff;font-weight:800;flex-shrink:0;">${initials}</span>`;
+                const lastMsg = conv.last_message ? escBcw(conv.last_message.length > 50 ? conv.last_message.slice(0, 50) + '…' : conv.last_message) : 'Aucun message';
+                const time = conv.last_message_at ? bcwTimeAgo(conv.last_message_at) : '';
+                const unread = parseInt(conv.unread_count) || 0;
+                const badgeHtml = unread > 0 ? `<span style="background:#BA1A1A;color:#fff;font-size:0.66rem;font-weight:800;border-radius:9999px;padding:2px 7px;flex-shrink:0;">${unread > 9 ? '9+' : unread}</span>` : '';
+                const photoArg = photo ? `'${escBcw(photo).replace(/'/g, "\\'")}'` : 'null';
+                return `<div onclick="openConversation(${conv.id}, '${escBcw(name).replace(/'/g, "\\'")}', ${photoArg})" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;cursor:pointer;border:1px solid #EEF0F3;margin-bottom:8px;background:#fff;">
+                    ${avatarHtml}
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:0.88rem;font-weight:700;color:#002b80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escBcw(name)}</div>
+                        <div style="font-size:0.76rem;color:#747685;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lastMsg}</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+                        <span style="font-size:0.66rem;color:#747685;">${time}</span>
+                        ${badgeHtml}
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            list.innerHTML = '<div style="text-align:center;padding:24px;color:#BA1A1A;">Erreur de chargement</div>';
+        }
+    }
+
+    function openConversation(conversationId, recipientName, recipientAvatar) {
+        if (!window.BolamuChatWindow) {
+            alert('Module de chat non disponible');
+            return;
+        }
+        initBcwSocket();
+        const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+        window.BolamuChatWindow.open({
+            conversationId: conversationId,
+            currentUserPhone: phone,
+            recipientName: recipientName,
+            recipientAvatar: recipientAvatar,
+            socketInstance: window.__bolamuSocket
+        });
+    }
+
+    function initChatSocket() {
+        initBcwSocket();
+    }
+
     function renderMessages(container) {
         initChatSocket();
+        bcwUnread = 0;
+        updateMessagesBadge();
         
         container.innerHTML = `
             <div class="card-custom h-[75vh] flex flex-col overflow-hidden">
@@ -932,65 +1129,32 @@
                             <h3 class="font-extrabold text-navy">Cercle Médical</h3>
                             <div class="flex items-center gap-1.5">
                                 <span class="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
-                                <span class="text-[10px] font-bold text-outline">Dr. Kalala & 4 autres en ligne</span>
+                                <span class="text-[10px] font-bold text-outline">En ligne</span>
                             </div>
                         </div>
                     </div>
                     <button class="p-2 text-outline hover:text-navy transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-background/30 hide-scroll">
-                    <div class="flex gap-4 max-w-[85%]">
-                        <div class="w-8 h-8 rounded-lg bg-navy text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold">K</div>
-                        <div class="bg-white border border-border-light p-4 rounded-2xl rounded-tl-none text-sm font-medium text-navy shadow-subtle">
-                            Bonjour Dr Moukala, j'ai envoyé les résultats de l'ECG pour M. Bakole sur son DMN. Des extrasystoles marquées à l'effort.
-                            <p class="text-[9px] mt-2 text-outline font-bold">08:42</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4 max-w-[85%] ml-auto flex-row-reverse">
-                        <div class="w-8 h-8 rounded-lg bg-primary text-white flex-shrink-0 flex items-center justify-center text-[10px] font-bold">M</div>
-                        <div class="bg-primary text-white p-4 rounded-2xl rounded-tr-none text-sm font-medium shadow-lg shadow-primary/10">
-                            Bien reçu Dr Kalala. Je le vois en consultation dans 10 min, on va ajuster son traitement. Merci pour la réactivité.
-                            <p class="text-[9px] mt-2 text-white/60 font-bold">08:45</p>
-                        </div>
-                    </div>
+                <div class="flex-1 overflow-y-auto p-6 bg-background/30 hide-scroll" id="bcw-conv-list">
+                    <div style="text-align:center;padding:24px;color:#747685;">Chargement…</div>
                 </div>
                 <div class="p-6 bg-white border-t border-border-light flex gap-3">
                     <button class="p-3 text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined">attach_file</span></button>
-                    <input type="text" placeholder="Écrire un message pro..." class="flex-1 rounded-xl border-none bg-background px-6 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                    <input type="text" placeholder="Rechercher une conversation..." class="flex-1 rounded-xl border-none bg-background px-6 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none">
                     <button class="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
-                        <span class="material-symbols-outlined">send</span>
+                        <span class="material-symbols-outlined">search</span>
                     </button>
                 </div>
             </div>
         `;
+        
+        loadConversations();
     }
 
     async function renderFeed(container) {
         container.innerHTML = `
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
                 <div class="lg:col-span-3 space-y-8">
-                    <!-- STORIES -->
-                    <div class="flex gap-5 overflow-x-auto hide-scroll pb-2">
-                        <div class="flex flex-col items-center gap-2 min-w-[80px]">
-                            <div class="w-16 h-16 rounded-2xl border-2 border-dashed border-primary flex items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all">
-                                <span class="material-symbols-outlined text-3xl">add</span>
-                            </div>
-                            <span class="text-[10px] font-black text-navy uppercase tracking-tighter">Ma story</span>
-                        </div>
-                        <div class="flex flex-col items-center gap-2 min-w-[80px]">
-                            <div class="w-16 h-16 rounded-2xl p-[3px] border-2 border-secondary cursor-pointer ring-2 ring-transparent hover:ring-secondary/20 transition-all">
-                                <div class="w-full h-full rounded-[13px] bg-primary flex items-center justify-center text-white font-bold">D1</div>
-                            </div>
-                            <span class="text-[10px] font-bold text-outline">Dr. Yao</span>
-                        </div>
-                        <div class="flex flex-col items-center gap-2 min-w-[80px]">
-                            <div class="w-16 h-16 rounded-2xl p-[3px] border-2 border-secondary cursor-pointer ring-2 ring-transparent hover:ring-secondary/20 transition-all">
-                                <div class="w-full h-full rounded-[13px] bg-secondary flex items-center justify-center text-white font-bold">D2</div>
-                            </div>
-                            <span class="text-[10px] font-bold text-outline">Dr. Bibi</span>
-                        </div>
-                    </div>
-
                     <!-- FILTERS -->
                     <div class="flex gap-2 overflow-x-auto hide-scroll">
                         ${state.cities.map(c => `
@@ -1002,34 +1166,6 @@
                     <div id="feed-posts-list">
                         <div class="feed-loading">
                             <span class="material-symbols-outlined rotating">autorenew</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FEED SIDEBAR -->
-                <div class="hidden lg:block space-y-8">
-                    <div class="card-custom p-8 bg-background border-none">
-                        <h4 class="font-black text-[11px] uppercase tracking-[0.2em] text-outline mb-6">Membres Suggérés</h4>
-                        <div class="space-y-6">
-                            ${['Dr. Alice Kabeya', 'Dr. Bob Mbala'].map(name => `
-                                <div class="flex items-center justify-between group">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-white border border-border-light flex items-center justify-center font-bold text-primary text-xs">${name.charAt(4)}</div>
-                                        <div>
-                                            <p class="text-[12px] font-extrabold text-navy">${name}</p>
-                                            <p class="text-[9px] text-outline font-bold">Kinshasa</p>
-                                        </div>
-                                    </div>
-                                    <button class="text-primary font-black text-[10px] uppercase tracking-widest hover:underline">Suivre</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div class="card-custom p-0 overflow-hidden group">
-                        <div class="zora-rail p-8">
-                            <p class="text-[10px] font-black uppercase tracking-widest mb-2 opacity-80">Partenaire Premium</p>
-                            <h4 class="font-black text-navy text-lg mb-4 leading-tight">Pharmacie du Centre Kinshasa</h4>
-                            <button class="w-full bg-navy text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-navy/20 hover:scale-[1.02] active:scale-95 transition-all">Consulter l'offre</button>
                         </div>
                     </div>
                 </div>
@@ -1098,6 +1234,8 @@
         }
 
         const doctor = state.doctor;
+        const fullName = doctor.full_name || 'Dr. —';
+        const initials = fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
         
         container.innerHTML = `
             <div class="max-w-4xl mx-auto py-10">
@@ -1105,27 +1243,28 @@
                     <div class="absolute top-0 left-0 w-full h-32 bg-navy"></div>
                     <div class="relative z-10">
                         <div class="w-40 h-40 rounded-3xl mx-auto mb-8 bg-white border-8 border-white shadow-2xl overflow-hidden group">
-                            <div class="w-full h-full bg-primary flex items-center justify-center text-white text-5xl font-black">
-                                ${(doctor.nom || doctor.name || 'D').charAt(0)}
-                            </div>
+                            ${doctor.photo_url 
+                                ? `<img class="w-full h-full object-cover" src="${doctor.photo_url}" alt="Avatar">`
+                                : `<div class="w-full h-full bg-primary flex items-center justify-center text-white text-5xl font-black">${initials}</div>`
+                            }
                         </div>
-                        <h2 class="text-3xl font-black text-navy mb-2">Dr. ${doctor.nom || doctor.name || '—'}</h2>
+                        <h2 class="text-3xl font-black text-navy mb-2">${fullName}</h2>
                         <div class="flex items-center justify-center gap-3 mb-10">
-                            <span class="px-4 py-1 bg-primary/10 text-primary rounded-full text-xs font-black uppercase tracking-widest">${doctor.specialite || doctor.specialty || 'Médecin'}</span>
-                            <span class="px-4 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-black uppercase tracking-widest">${doctor.ville || doctor.city || 'Brazzaville'}</span>
+                            <span class="px-4 py-1 bg-primary/10 text-primary rounded-full text-xs font-black uppercase tracking-widest">${doctor.specialty || 'Médecin'}</span>
+                            <span class="px-4 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-black uppercase tracking-widest">${doctor.city || 'Brazzaville'}</span>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12 max-w-2xl mx-auto">
                             <div class="p-6 bg-background rounded-2xl">
                                 <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Consultations</p>
-                                <p class="text-2xl font-black text-navy">${doctor.consultations_count || doctor.patients_count || 0}</p>
-                            </div>
-                            <div class="p-6 bg-background rounded-2xl">
-                                <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Articles</p>
-                                <p class="text-2xl font-black text-navy">${doctor.articles_count || 0}</p>
+                                <p class="text-2xl font-black text-navy">${doctor.total_consultations || doctor.patients_count || 0}</p>
                             </div>
                             <div class="p-6 bg-background rounded-2xl">
                                 <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Score Bolamu</p>
-                                <p class="text-2xl font-black text-secondary">${doctor.score || '9.8'}</p>
+                                <p class="text-2xl font-black text-secondary">${doctor.trust_score || '—'}</p>
+                            </div>
+                            <div class="p-6 bg-background rounded-2xl">
+                                <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Code Médecin</p>
+                                <p class="text-2xl font-black text-navy">${doctor.member_code || '—'}</p>
                             </div>
                         </div>
                         <button class="btn-primary px-12 py-4 shadow-2xl">
@@ -1139,16 +1278,19 @@
 
     // CONSULTATION LOGIC
     let consultStep = 1;
+    let medicamentsData = [];
 
     function openConsultation(patientName, appointmentId) {
         state.activeConsultation = { patientName, appointmentId };
         document.getElementById('consultation-modal').classList.remove('hidden');
-        consultStep = 1;
+        consultStep = 2; // Passer directement à l'étape SOAP
+        medicamentsData = [];
         renderConsultStep();
     }
 
     function closeConsultation() {
         document.getElementById('consultation-modal').classList.add('hidden');
+        medicamentsData = [];
     }
 
     function renderConsultStep() {
@@ -1200,11 +1342,8 @@
                     <div class="flex justify-between items-center bg-background p-4 rounded-2xl border border-border-light">
                         <div>
                             <h3 class="font-black text-navy">Rapport Clinique (SOAP)</h3>
-                            <p class="text-xs text-outline font-medium">Saisie structurée assistée par IA</p>
+                            <p class="text-xs text-outline font-medium">Saisie structurée des notes de consultation</p>
                         </div>
-                        <button id="dictation-btn" onclick="startDictation()" class="btn-primary bg-error hover:bg-error/90 py-2.5 text-xs shadow-lg shadow-error/20">
-                            <span class="material-symbols-outlined text-[18px]">mic</span> Dictée IA Temps Réel
-                        </button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         ${['Subjectif', 'Objectif', 'Analyse', 'Plan'].map(label => `
@@ -1215,7 +1354,7 @@
                         `).join('')}
                     </div>
                     <div class="flex justify-between gap-4 pt-4">
-                        <button onclick="consultStep=1; renderConsultStep()" class="px-8 py-4 text-outline font-bold text-sm hover:text-navy transition-colors">Retour</button>
+                        <button onclick="closeConsultation()" class="px-8 py-4 text-outline font-bold text-sm hover:text-navy transition-colors">Annuler</button>
                         <button onclick="consultStep=3; renderConsultStep()" class="btn-primary px-12 py-4 shadow-xl">
                             Étape suivante : Ordonnance <span class="material-symbols-outlined">description</span>
                         </button>
@@ -1227,44 +1366,37 @@
                 <div class="space-y-8 animate-in fade-in slide-in-from-right duration-500">
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="font-black text-navy text-xl">Ordonnance Digitale Sécurisée</h3>
-                        <button class="btn-primary py-2 text-xs bg-secondary hover:bg-secondary/90">
-                            <span class="material-symbols-outlined text-[18px]">add</span> Ajouter Médicament
+                    </div>
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em] block mb-2">Nom du médicament *</label>
+                        <input type="text" id="ord-med-nom" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Commencez à taper… (ex : Paracétamol)">
+                        <div class="flex gap-3 mt-3">
+                            <input type="text" id="ord-med-dosage" class="flex-1 rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Dosage (ex : 500mg)">
+                            <input type="text" id="ord-med-quantite" class="flex-1 rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Quantité (ex : 1 boîte)">
+                        </div>
+                        <input type="text" id="ord-med-posologie" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none mt-3" placeholder="Posologie / instructions (ex : 3x/jour pendant 5 jours)">
+                        <button onclick="ajouterMedicament()" class="btn-primary w-full py-3 mt-3">
+                            <span class="material-symbols-outlined">add</span> Ajouter à l'ordonnance
                         </button>
                     </div>
-                    <div class="card-custom border border-border-light overflow-hidden shadow-none">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-background text-[10px] uppercase font-black text-outline tracking-widest">
-                                <tr>
-                                    <th class="p-5">Dénomination</th>
-                                    <th class="p-5">Posologie</th>
-                                    <th class="p-5">Durée</th>
-                                    <th class="p-5 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-border-light">
-                                <tr class="hover:bg-background/50 transition-colors">
-                                    <td class="p-5 font-black text-navy">Amoxicilline 500mg (Gélules)</td>
-                                    <td class="p-5 font-medium">1 gélule 3 fois / jour (Après repas)</td>
-                                    <td class="p-5 font-bold">7 jours</td>
-                                    <td class="p-5 text-right"><button class="text-error hover:scale-110 transition-transform"><span class="material-symbols-outlined text-lg">delete</span></button></td>
-                                </tr>
-                                <tr class="hover:bg-background/50 transition-colors">
-                                    <td class="p-5 font-black text-navy">Doliprane 1000mg (Comprimés)</td>
-                                    <td class="p-5 font-medium">1 comp. si douleur (Max 3/jour)</td>
-                                    <td class="p-5 font-bold">5 jours</td>
-                                    <td class="p-5 text-right"><button class="text-error hover:scale-110 transition-transform"><span class="material-symbols-outlined text-lg">delete</span></button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em] block mb-2">Médicaments de l'ordonnance</label>
+                        <div id="ord-med-list" class="space-y-2"></div>
+                        <textarea id="ord-medications" style="display:none;"></textarea>
+                    </div>
+                    <div class="p-6 bg-background rounded-2xl border border-border-light">
+                        <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em] block mb-2">Instructions complémentaires</label>
+                        <input type="text" id="ord-instructions" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Ex : Prendre après les repas…">
                     </div>
                     <div class="flex justify-between gap-4 pt-6">
                         <button onclick="consultStep=2; renderConsultStep()" class="px-8 py-4 text-outline font-bold text-sm hover:text-navy transition-colors">Retour</button>
-                        <button onclick="consultStep=4; renderConsultStep()" class="btn-primary px-12 py-4 shadow-xl">
+                        <button onclick="confirmerValidation()" class="btn-primary px-12 py-4 shadow-xl">
                             Finaliser & Signer <span class="material-symbols-outlined">edit_square</span>
                         </button>
                     </div>
                 </div>
             `;
+            renderOrdMedList();
         } else {
             body.innerHTML = `
                 <div class="text-center space-y-10 py-12 animate-in zoom-in duration-500">
@@ -1286,49 +1418,142 @@
         }
     }
 
-    async function validateConsultation() {
-        if (!state.activeConsultation) return;
-        
+    function formatMedLine(m) {
+        let ligne = m.nom;
+        if (m.dosage) ligne += ` ${m.dosage}`;
+        const details = [];
+        if (m.quantite) details.push(`Qté : ${m.quantite}`);
+        if (m.posologie) details.push(m.posologie);
+        if (details.length) ligne += ` — ${details.join(' — ')}`;
+        return ligne;
+    }
+
+    async function ajouterMedicament() {
+        const nomInput = document.getElementById('ord-med-nom');
+        const dosageInput = document.getElementById('ord-med-dosage');
+        const quantiteInput = document.getElementById('ord-med-quantite');
+        const posologieInput = document.getElementById('ord-med-posologie');
+
+        const nom = nomInput.value.trim();
+        if (!nom) {
+            nomInput.style.borderColor = '#BA1A1A';
+            nomInput.focus();
+            return;
+        }
+        nomInput.style.borderColor = '';
+
+        const med = {
+            nom,
+            dosage: dosageInput.value.trim(),
+            quantite: quantiteInput.value.trim(),
+            posologie: posologieInput.value.trim(),
+            isSSP: false
+        };
+
+        // Détermination automatique SSP via ssp_catalog
         try {
-            const res = await apiFetch(`${API}/consultations/open`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    patient_phone: state.activeConsultation.patientName,
-                    appointment_id: state.activeConsultation.appointmentId
-                })
-            });
+            const res = await apiFetch(`${API}/smartflow/medicaments/check?nom=${encodeURIComponent(nom)}`);
             const data = await res.json();
-            
-            if (!res.ok) throw new Error(data.message || 'Erreur ouverture consultation');
-            
-            consultStep = 2;
-            renderConsultStep();
-            showToast('Consultation ouverte avec succès');
+            med.isSSP = !!(data.success && data.data && data.data.is_ssp);
         } catch (e) {
-            console.error('[Consultation] Erreur:', e);
-            showToast('Erreur: ' + e.message);
+            med.isSSP = false;
+        }
+
+        medicamentsData.push(med);
+        renderOrdMedList();
+
+        // Reset inputs
+        nomInput.value = '';
+        dosageInput.value = '';
+        quantiteInput.value = '';
+        posologieInput.value = '';
+        nomInput.focus();
+    }
+
+    function renderOrdMedList() {
+        const list = document.getElementById('ord-med-list');
+        const textarea = document.getElementById('ord-medications');
+        if (!list) return;
+
+        if (medicamentsData.length === 0) {
+            list.innerHTML = '<p class="text-sm text-outline">Aucun médicament ajouté</p>';
+            if (textarea) textarea.value = '';
+            return;
+        }
+
+        list.innerHTML = medicamentsData.map((m, idx) => `
+            <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-border-light">
+                <div class="flex-1">
+                    <p class="font-bold text-navy text-sm">${m.nom}</p>
+                    <p class="text-xs text-outline">${formatMedLine(m)}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    ${m.isSSP ? '<span class="text-[10px] font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-full">SSP</span>' : ''}
+                    <button onclick="supprimerMedicament(${idx})" class="text-error hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        if (textarea) {
+            textarea.value = medicamentsData.map(m => formatMedLine(m)).join('\n');
         }
     }
 
-    function startDictation() {
-        const btn = document.getElementById('dictation-btn');
-        btn.innerHTML = `
-            <div class="dictation-wave"><span></span><span></span><span></span><span></span><span></span></div>
-            IA en écoute...
-        `;
-        btn.classList.add('pulse-recording');
+    function supprimerMedicament(idx) {
+        medicamentsData.splice(idx, 1);
+        renderOrdMedList();
+    }
+
+    async function confirmerValidation() {
+        const medications = document.getElementById('ord-medications').value.trim();
+        const instructions = document.getElementById('ord-instructions').value.trim();
         
-        setTimeout(() => {
-            const subj = document.getElementById('soap-subjective');
-            const obj = document.getElementById('soap-objectif');
-            if(subj) subj.value = "Patient rapporte des palpitations légères depuis 48h suite à un stress émotionnel. Fatigue modérée en fin de journée.";
-            if(obj) obj.value = "Tension artérielle 138/82 mmHg. Rythme sinusal régulier à 78 bpm. Pas de souffle cardiaque à l'auscultation.";
-            
-            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Analyse IA Terminée';
-            btn.classList.remove('pulse-recording', 'bg-error', 'shadow-error/20');
-            btn.classList.add('bg-secondary', 'shadow-secondary/20');
-            showToast("Transcription IA appliquée aux champs SOAP");
-        }, 3000);
+        if (!medications) {
+            alert('Ajoutez au moins un médicament à l\'ordonnance.');
+            return;
+        }
+
+        const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+        const appointmentId = state.activeConsultation?.appointmentId;
+        const patientPhone = state.activeConsultation?.patientName;
+
+        try {
+            // Clôturer la consultation
+            const resVal = await apiFetch(`${API}/consultations/${appointmentId}/close`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    diagnostic: 'Consultation terminée',
+                    anamnese: '',
+                    examen_clinique: '',
+                    notes: ''
+                })
+            });
+            const dataVal = await resVal.json();
+            if (!resVal.ok) throw new Error(dataVal.message || 'Erreur validation consultation');
+
+            // Créer l'ordonnance
+            const resPres = await apiFetch(`${API}/prescriptions/create`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    appointment_id: appointmentId,
+                    patient_phone: patientPhone,
+                    doctor_phone: phone,
+                    medications: medications,
+                    instructions: instructions || ''
+                })
+            });
+            const dataPres = await resPres.json();
+            if (!resPres.ok) throw new Error(dataPres.message || 'Erreur ordonnance');
+
+            consultStep = 4;
+            renderConsultStep();
+            showToast('Ordonnance créée avec succès');
+        } catch (e) {
+            console.error('[Ordonnance] Erreur:', e);
+            showToast('Erreur: ' + e.message);
+        }
     }
 
     function showToast(msg) {
