@@ -1564,49 +1564,39 @@
     }
 
     window.onload = async () => {
-        console.log('[Dashboard-v2] Chargement initial...');
         const token = getAuthToken();
-        console.log('[Dashboard-v2] Token:', token ? 'présent' : 'absent');
-        
-        if (!token) {
-            console.log('[Dashboard-v2] Pas de token, redirection vers login');
-            window.location.href = '/login.html';
-            return;
-        }
-
-        // Récupérer le phone depuis localStorage (comme production)
         const _rawPhone = localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone') || '';
         let phone;
         try { phone = decodeURIComponent(_rawPhone); } catch(e) { phone = _rawPhone; }
-        
-        console.log('[Dashboard-v2] Phone:', phone);
 
-        if (!phone) {
-            console.log('[Dashboard-v2] Pas de phone, redirection vers login');
+        if (!token || !phone) {
             window.location.href = '/login.html';
             return;
         }
 
+        renderNavigation();
+        renderContent();
+
+        // Charger le profil SANS déconnecter sur erreur
         try {
             const res = await apiFetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`);
             const data = await res.json();
-            console.log('[DEBUG] Statut réponse profil:', res.status);
-            console.log('[DEBUG] Data profil:', JSON.stringify(data));
-            console.log('[DEBUG] data.success:', data.success);
-            console.log('[DEBUG] data.doctor:', data.doctor);
-            console.log('[DEBUG] Réponse profil:', res.ok, data);
+            const d = data.data || data.doctor || {};
             
-            if (!res.ok) throw new Error(data.message || 'Erreur chargement profil');
+            if (d.banned) {
+                localStorage.clear();
+                window.location.href = '/login.html?reason=banned';
+                return;
+            }
             
-            state.doctor = data.data;
-            state.doctor.phone = phone; // Ajouter phone au state
-            updateSidebarProfil(); // Mettre à jour la sidebar avec les vraies données
-            renderNavigation();
-            renderContent();
-        } catch (e) {
-            console.error('[Dashboard-v2] Erreur:', e);
-            localStorage.clear();
-            window.location.href = '/login.html';
+            state.doctor = d;
+            state.doctor.phone = phone;
+            updateSidebarProfil();
+            renderContent(); // re-render avec les vraies données
+        } catch(e) {
+            console.error('[Dashboard-v2] Erreur profil (non bloquant):', e);
+            // PAS de localStorage.clear(), PAS de redirection
+            // Le dashboard reste affiché même si le profil échoue
         }
     };
 </script>
