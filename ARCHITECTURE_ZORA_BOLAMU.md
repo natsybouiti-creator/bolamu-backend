@@ -176,7 +176,107 @@ Pas de cycle de vie DRAFT → SUBMITTED → REVIEW → APPROVED décrit en v1.1 
 
 `GET /api/v1/bons-zora/programs` (`bon-zora.routes.js:35`, publique, pas d'auth) → `getProgramsByCategory()` (`bon-zora.service.js:387`) : `SELECT ... FROM partner_programs WHERE is_active = TRUE AND (stock IS NULL OR stock > 0) [AND category = $1] ORDER BY zora_cost ASC`.
 
+> ⚠️ **[PÉRIMÉ — annoté le 20/07/2026]** Le paragraphe ci-dessous datait du 7 juillet 2026, **avant** le chantier « publication d'offres partenaires » (`migration_073`, 10/07/2026). Il est **faux aujourd'hui** : un CRUD complet d'offres (`POST`/`PUT`/`DELETE /bons-zora/programs`, `GET /programs/mine`, `/all`, `/:id`) existe et est câblé de bout en bout côté partenaires ET patient. Voir la **section 5bis** (ajoutée le 20/07/2026) qui fait foi.
+
 **Il n'existe aucune route POST/PUT pour créer ou modifier un `partner_program`** dans tout `bon-zora.routes.js` — confirmé par grep des méthodes de routage. La seule façon d'alimenter cette table aujourd'hui est une **insertion SQL manuelle directe** (migration ou script), exactement la méthode employée le 7 juillet 2026 pour peupler le catalogue vide. Aucun flux de soumission par un partenaire, aucune validation admin — voir section 15.
+
+---
+
+## 5bis. Cycle de vie des offres partenaires — CRUD réel (section ajoutée le 20/07/2026)
+
+> Cette section **fait foi** et **corrige** les §5 et §7.4 (rédigés le 7/07/2026, avant le chantier « publication d'offres partenaires »). Tout est vérifié ligne à ligne dans `src/routes/bon-zora.routes.js`, `src/services/bon-zora.service.js`, les migrations `partner_programs`, et les dashboards `public/*/dashboard.html`.
+
+### 5bis.1 Ce qui a changé depuis la v2.1
+- **`migration_073_partner_programs_identity.sql` (10/07/2026)** : `DROP COLUMN partner_id` ; `ADD COLUMN partner_phone VARCHAR(20) REFERENCES users(phone)` ; `ADD COLUMN image_url TEXT`. L'offre est désormais rattachée à son partenaire par **`phone`** (identifiant universel), plus par un `partner_id` entier sans FK.
+- **CRUD complet** ajouté dans `bon-zora.routes.js` (routes) + `bon-zora.service.js` (`createProgram`/`updateProgram`/`deactivateProgram`/`getProgramById`/`getMyPrograms`/`getAllPrograms`).
+- **Catalogue peuplé/nettoyé** : `migration_086` (suppression de 8 résidus de tests, encodage UTF-8 cassé), `migration_087` (photos des 3 offres santé), `migration_088`/`089` (offres démo commerciales fictives + photos). Les offres démo portent `partner_phone = NULL` (voir faille §5bis.5).
+
+### 5bis.2 Schéma réel `partner_programs` (après `migration_073`)
+
+| Colonne | Type | Note |
+|---|---|---|
+| `id` | SERIAL PK | — |
+| `partner_phone` | VARCHAR(20) REFERENCES users(phone) | **propriétaire de l'offre** (NULL sur les offres seed/démo) |
+| `name` | VARCHAR(100) | requis à la création |
+| `description` | TEXT | optionnel |
+| `zora_cost` | INTEGER NOT NULL | requis à la création |
+| `fcfa_value` | INTEGER | optionnel |
+| `category` | VARCHAR | texte libre, **aucun ENUM/CHECK** |
+| `stock` | INTEGER | `NULL` = illimité ; décrémenté à chaque `generate` si non-NULL |
+| `image_url` | TEXT | URL Cloudinary (`bolamu/partner_programs`) |
+| `is_active` | BOOLEAN DEFAULT TRUE | soft-delete via `DELETE` (passe à `false`) |
+| `created_at` | TIMESTAMPTZ | `NOW()` |
+
+### 5bis.3 Endpoints réels (`bon-zora.routes.js`)
+
+Middleware de rôle définis dans le fichier :
+- `PARTENAIRE_ROLES = ['pharmacie','doctor','laboratoire','partenaire_commercial']` (`:36`) — **aucun compte `role='partenaire'`** ; les vrais rôles partenaires sont ceux-là.
+- `requireProgramManager` = `PARTENAIRE_ROLES + ['admin']` (`:46-53`) — qui peut **gérer** des offres.
+
+| Méthode | Route | Middleware | Comportement réel |
+|---|---|---|---|
+| GET | `/bons-zora/programs` | **public (pas d'auth)** | `getProgramsByCategory(category?)` : `WHERE is_active=TRUE AND (stock IS NULL OR stock>0) [AND category=$1] ORDER BY zora_cost ASC`. Champs : `id,name,description,zora_cost,fcfa_value,category,stock,created_at,image_url` |
+| GET | `/bons-zora/programs/mine` | `authMiddleware`+`requireProgramManager` | `getMyPrograms(req.user.phone)` : **ses** offres (actives + désactivées), `WHERE partner_phone=$1` |
+| GET | `/bons-zora/programs/all` | `authMiddleware` + check `role==='admin'` (403 sinon) | `getAllPrograms()` : toutes offres tous partenaires + `LEFT JOIN users` (`partner_name`,`partner_role`) |
+| GET | `/bons-zora/programs/:id` | `authMiddleware` | `getProgramById(id)` : détail complet (inclut `partner_phone`,`is_active`). `404 program_not_found` |
+| POST | `/bons-zora/programs` | `authMiddleware`+`requireProgramManager`+`upload.single('image')` | Crée l'offre. `400 missing_required_fields` si `!name || !zora_cost`. `owner = req.user.phone` ; **admin peut cibler** `req.body.partner_phone`. Image → Cloudinary. `201 {success,data}` |
+| PUT | `/bons-zora/programs/:id` | idem POST | Modifie (whitelist). Ownership vérifiée (voir §5bis.5). `404`/`403 not_owner`/`400 no_fields_to_update` |
+| DELETE | `/bons-zora/programs/:id` | `authMiddleware`+`requireProgramManager` | **Soft delete** : `is_active=FALSE`. `404`/`403 not_owner`. `{success:true}` |
+
+> ⚠️ **Ordre de routes** : `/programs/mine` et `/programs/all` sont déclarées **avant** `/programs/:id` (`:83`,`:99`,`:117`) — sinon Express capturerait `"mine"`/`"all"` comme `:id` (piège documenté dans le code).
+
+### 5bis.4 Comportement réel du service
+
+- **`createProgram(data)`** (`:535`) : transaction `BEGIN`/`COMMIT`/`ROLLBACK`. `INSERT INTO partner_programs (partner_phone,name,description,zora_cost,fcfa_value,category,stock,image_url,is_active=TRUE,created_at=NOW())`. `parseInt` sur `zora_cost`/`fcfa_value`/`stock` côté route ; `fcfa_value`/`category`/`stock`/`image_url` acceptent `null`. **`audit_log` `partner_program_created`** (payload jsonb `{name,zora_cost,fcfa_value,category}`).
+- **`updateProgram(id,requesterPhone,requesterRole,updates)`** (`:575`) : `SELECT ... FOR UPDATE`, contrôle propriété, whitelist `['name','description','zora_cost','fcfa_value','category','stock','image_url','is_active']` construite dynamiquement. **`partner_phone` n'est PAS dans la whitelist** → un partenaire ne peut jamais réassigner la propriété. `audit_log` `partner_program_updated`.
+- **`deactivateProgram(id,...)`** (`:645`) : `SELECT ... FOR UPDATE`, contrôle propriété, `UPDATE ... SET is_active=FALSE` (jamais de suppression physique). `audit_log` `partner_program_deactivated`.
+
+### 5bis.5 Sécurité & propriété (réponse directe à la question « comment empêcher un partenaire de modifier l'offre d'un autre »)
+
+- **Qui crée** : `pharmacie`, `doctor`, `laboratoire`, `partenaire_commercial`, `admin` (`requireProgramManager`). Un patient reçoit `403 acces_reserve_gestionnaire_offres`.
+- **Propriété à la création** : `partner_phone = req.user.phone` **forcé** ; seul l'`admin` peut créer pour autrui via `req.body.partner_phone` (`bon-zora.routes.js:143-146`).
+- **Isolation modif/suppression** : `updateProgram`/`deactivateProgram` comparent `program.partner_phone !== requesterPhone` (sauf `role==='admin'`) → **`403 not_owner`** (`bon-zora.service.js:592-595`, `:662-665`). `SELECT ... FOR UPDATE` évite les races.
+- **Non-réassignation** : `partner_phone` absent de la whitelist d'update → l'appartenance ne peut pas être transférée par un partenaire.
+- **Isolation à la validation du bon** : `partner_bons_zora.partner_id` (= **l'`id` du programme**, pas du partenaire) est joint à `partner_programs.id` ; si `program.partner_phone` est renseigné et différent du partenaire qui scanne → **`403 bon_zora_wrong_partner`** (`bon-zora.service.js:279-282`).
+- ✅ **Faille corrigée (20/07/2026)** : le contrôle de validation est désormais **fail-closed** (`if (!program || !program.partner_phone)` → `403 bon_zora_invalid_program`). Toute offre sans propriétaire est rejetée.
+- 📝 **Attribution temporaire (20/07/2026)** : les 10 offres démo (IDs 1,2,3,13-19) ont reçu un `partner_phone` temporaire via `migration_093` :
+  - IDs 1,3 → `+242060000123` (Dr. Test Bolamu)
+  - IDs 2,13,14,15 → `+242069990020` (Partenaire Commercial Test)
+  - IDs 16,17,18,19 → `+242090000004` (Test Partenaire E2E)
+  - **À réassigner** quand les vrais comptes partenaires existeront (Pharmacie Daffé, Laboratoire 3A, Clinique Louise Michel, + 7 partenaires commerciaux).
+
+### 5bis.6 Chaîne complète offre → bon → validation (bout en bout, vérifiée)
+
+```
+1. Partenaire crée l'offre    POST /bons-zora/programs  (owner = partner_phone)   → partner_programs
+2. Patient voit le catalogue  GET  /bons-zora/programs  (public)                  ← is_active + stock>0
+3. Patient ouvre le détail    GET  /bons-zora/programs/:id  (auth)                 ← A.openBonZoraDetail (dashboard.html:3983)
+4. Patient échange            POST /bons-zora/generate {program_id}                → débit zora_points + zora_ledger(-cost) + partner_bons_zora(partner_id=program.id) + carte WhatsApp
+5. Patient liste ses bons     GET  /bons-zora/my                                    ← partner_bons_zora WHERE patient_phone
+6. Partenaire valide          POST /bons-zora/validate | /validate/qr {code}        → status='used', used_by=partner_phone ; ownership via program.partner_phone
+```
+
+**La chaîne n'est PAS coupée** : chaque maillon est câblé côté backend ET frontend. La « coupure » constatée était **documentaire** (le doc affirmait l'inverse). Retour réel de validation (mis à jour depuis §4.3, désormais **périmé**) : `{success,valid,patient_initiales,fcfa_value,partner_name,used_at}` (`bon-zora.service.js:351-358`).
+
+### 5bis.7 Couverture frontend réelle
+
+| Dashboard | Crée/gère (`/programs/mine`,`POST`,`PUT`,`DELETE`) | Consomme (liste/échange) |
+|---|---|---|
+| `patient` | — | ✅ `GET /programs`, `GET /programs/:id`, `POST /generate`, `GET /my` |
+| `medecin/dashboard.html` | ✅ `loadOffers`/`ouvrirOffre`/POST-PUT/DELETE (`:2297+`) | — |
+| `medecin/dashboard-v2.html` | ✅ `loadOffers`/`POST` création (`:1154`,`:2108`) | — |
+| `pharmacie` | ✅ `loadOffers`/`saveOffer`/`deactivateOfferUi` (`:2272+`) | affiche aussi le catalogue |
+| `laboratoire` | ✅ `loadOffers`/save/deactivate (`:2019+`) | — |
+| `partenaire` | ✅ `loadPrograms`/save/`deactivateProgramUi` (`:954+`) | — |
+| `rh`, `secretaire` | — | lecture catalogue (`GET /programs`) |
+
+### 5bis.8 Ce qui manque encore / dette (constats, non corrigés)
+
+1. **Aucune modération/approbation** : `is_active=TRUE` **dès la création** → l'offre est immédiatement visible de tous les patients via `GET /programs`, sans validation admin. Aucun cycle DRAFT→REVIEW→APPROVED (confirme l'absence de statut sur `partner_programs`, cf. §5).
+2. **`partner_bons_zora.partner_id` mal nommé** : il contient l'`id` du **programme**, pas l'identité du partenaire, et **aucune FK** ne le garantit. Dette de nommage héritée.
+3. **Offres seed/démo non rattachées** (`partner_phone=NULL`) → bons validables par tout partenaire (§5bis.5).
+4. **`admin` peut créer mais pas valider** : `requirePartenaire` (validation) exclut `admin` ; `requireProgramManager` (CRUD) l'inclut. Asymétrie assumée.
+5. **`category` en texte libre** : aucun ENUM/CHECK → risque d'incohérence de filtres côté patient.
 
 ---
 
@@ -225,6 +325,8 @@ Ce flux n'a manifestement jamais été testé de bout en bout depuis son écritu
 Le dashboard `partenaire/dashboard.html` (rôle `partenaire`, aligné avec `requirePartenaire`) ne contient **aucun bouton de scan/validation de bon** trouvé dans le fichier — seulement une liste des programmes (`loadPrograms()`) et des stats (`loadStats()`). Combiné au fait que ce rôle a **0 compte réel** en base, le flux de validation de bon Zora — pourtant fonctionnel côté API (vérifié directement en HTTP ce soir) — n'a **aucun point d'entrée UI opérationnel** dans l'état actuel du produit.
 
 ### 7.4 Popup détail programme — CIBLE À IMPLÉMENTER
+
+> ⚠️ **[PÉRIMÉ — annoté le 20/07/2026]** `GET /bons-zora/programs/:id` **existe désormais** (`bon-zora.routes.js:117`, `getProgramById()`) et est **réellement consommé** par le dashboard patient (`A.openBonZoraDetail()` → modale détail, `dashboard.html:3983`). Le popup détail décrit comme « cible à implémenter » ci-dessous **est implémenté**. Voir section 5bis.
 
 **Constat** : aucune route de détail par programme individuel n'existe aujourd'hui. `bon-zora.routes.js` ne monte que `GET /programs` (liste complète), `POST /generate`, `GET /my`, `POST /validate`, `POST /validate/qr`, `GET /:code/qr` — pas de `GET /programs/:id` ni équivalent (confirmé par lecture exhaustive du fichier de routes le 7 juillet 2026). `getProgramsByCategory()` (`bon-zora.service.js:387`) ne propose pas non plus de récupération par `id`.
 
