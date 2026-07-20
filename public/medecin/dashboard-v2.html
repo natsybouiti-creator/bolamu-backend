@@ -253,10 +253,9 @@
     }
 
     function deconnexion() {
-        localStorage.removeItem('bolamu_token');
-        localStorage.removeItem('bolamu_doctor_token');
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('bolamu_'));
+        keys.forEach(k => localStorage.removeItem(k));
         localStorage.removeItem('token');
-        localStorage.removeItem('bolamu_doctor_phone');
         localStorage.removeItem('phone');
         window.location.href = '/login.html';
     }
