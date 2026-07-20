@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<link rel="stylesheet" href="/css/bolamu-chat-window.css">
+<script src="/js/bolamu-chat-window.js"></script>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -419,7 +421,7 @@
                                         <div>
                                             <p class="font-bold text-navy">${r.patient_name || r.patient || '—'}</p>
                                             <p class="text-xs text-outline font-medium flex items-center gap-1">
-                                                <span class="material-symbols-outlined text-[14px]">schedule</span> ${r.appointment_time || r.time || '—'} • ${r.type || 'Consultation'}
+                                                <span class="material-symbols-outlined text-[14px]">schedule</span> ${formatHeure(r.appointment_time || r.time)} • ${r.type || 'Consultation'}
                                             </p>
                                         </div>
                                     </div>
@@ -498,8 +500,8 @@
 
             tbody.innerHTML = rdvs.map(r => `
                 <tr class="hover:bg-background/50 transition-colors">
-                    <td class="px-8 py-6 font-bold text-primary text-sm">${r.appointment_date || '—'}</td>
-                    <td class="px-8 py-6 font-bold text-primary text-sm">${r.appointment_time || r.time || '—'}</td>
+                    <td class="px-8 py-6 font-bold text-primary text-sm">${formatDate(r.appointment_date)}</td>
+                    <td class="px-8 py-6 font-bold text-primary text-sm">${formatHeure(r.appointment_time || r.time)}</td>
                     <td class="px-8 py-6 font-bold text-navy text-sm">${r.patient_name || r.patient || '—'}</td>
                     <td class="px-8 py-6 text-sm text-outline">${r.type || 'Consultation'}</td>
                     <td class="px-8 py-6">
@@ -561,7 +563,7 @@
                     <h3 class="text-lg font-extrabold text-navy mb-1">${p.patient_name || p.patient || '—'}</h3>
                     <p class="text-xs text-outline font-medium mb-6">${p.patient_phone || '—'}</p>
                     <div class="flex flex-wrap gap-2">
-                        <span class="bg-background border border-border-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-navy/70">RDV: ${p.appointment_date || '—'}</span>
+                        <span class="bg-background border border-border-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-navy/70">RDV: ${formatDate(p.appointment_date)}</span>
                     </div>
                 </div>
             `).join('') + `
@@ -1116,10 +1118,15 @@
 
     function renderOffres(container) {
         container.innerHTML = `
-            <div class="mb-10">
-                <p class="text-primary font-bold text-sm tracking-widest uppercase mb-1">Services</p>
-                <h1 class="text-3xl font-extrabold text-navy">Mes Offres de Soins</h1>
-                <p class="text-outline text-sm">Catalogue des forfaits disponibles pour les patients.</p>
+            <div class="mb-10 flex items-center justify-between">
+                <div>
+                    <p class="text-primary font-bold text-sm tracking-widest uppercase mb-1">Services</p>
+                    <h1 class="text-3xl font-extrabold text-navy">Mes Offres de Soins</h1>
+                    <p class="text-outline text-sm">Catalogue des forfaits disponibles pour les patients.</p>
+                </div>
+                <button onclick="openCreateOffreModal()" class="btn-primary px-6 py-3">
+                    <span class="material-symbols-outlined">add</span> Créer une offre
+                </button>
             </div>
             <div class="card-custom overflow-hidden">
                 <div class="overflow-x-auto">
@@ -1441,7 +1448,7 @@
                                 <p class="text-2xl font-black text-navy">${doctor.member_code || '—'}</p>
                             </div>
                         </div>
-                        <button class="btn-primary px-12 py-4 shadow-2xl">
+                        <button onclick="openEditProfilModal()" class="btn-primary px-12 py-4 shadow-2xl">
                             <span class="material-symbols-outlined">edit</span> Modifier le Profil
                         </button>
                     </div>
@@ -1864,5 +1871,244 @@
             // Le dashboard reste affiché même si le profil échoue
         }
     };
+
+    // MODAL ÉDITION PROFIL
+    function openEditProfilModal() {
+        if (!state.doctor) return;
+        const doctor = state.doctor;
+
+        const modal = document.createElement('div');
+        modal.id = 'edit-profil-modal';
+        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-black text-navy">Modifier mon profil</h3>
+                    <button onclick="closeEditProfilModal()" class="text-outline hover:text-navy">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <form id="edit-profil-form" onsubmit="saveProfil(event)">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Nom complet</label>
+                            <input type="text" id="edit-full_name" value="${doctor.full_name || ''}" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Spécialité</label>
+                            <input type="text" id="edit-specialty" value="${doctor.specialty || ''}" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Ville</label>
+                            <input type="text" id="edit-city" value="${doctor.city || ''}" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Quartier</label>
+                            <input type="text" id="edit-neighborhood" value="${doctor.neighborhood || ''}" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Téléphone cabinet</label>
+                            <input type="text" id="edit-telephone_cabinet" value="${doctor.telephone_cabinet || ''}" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Bio</label>
+                            <textarea id="edit-bio" rows="3" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">${doctor.bio || ''}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Photo de profil</label>
+                            <input type="file" id="edit-photo" accept="image/*" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                            ${doctor.photo_url ? `<img src="${doctor.photo_url}" class="w-20 h-20 rounded-full object-cover mt-2">` : ''}
+                        </div>
+                    </div>
+                    <div class="flex gap-4 mt-6">
+                        <button type="button" onclick="closeEditProfilModal()" class="flex-1 px-6 py-3 border border-border-light rounded-xl font-bold text-outline hover:bg-background">Annuler</button>
+                        <button type="submit" class="flex-1 btn-primary px-6 py-3 rounded-xl font-bold">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    function closeEditProfilModal() {
+        const modal = document.getElementById('edit-profil-modal');
+        if (modal) modal.remove();
+    }
+
+    async function saveProfil(event) {
+        event.preventDefault();
+        const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+        
+        const formData = {
+            full_name: document.getElementById('edit-full_name').value.trim(),
+            specialty: document.getElementById('edit-specialty').value.trim(),
+            city: document.getElementById('edit-city').value.trim(),
+            neighborhood: document.getElementById('edit-neighborhood').value.trim(),
+            telephone_cabinet: document.getElementById('edit-telephone_cabinet').value.trim(),
+            bio: document.getElementById('edit-bio').value.trim()
+        };
+
+        const photoInput = document.getElementById('edit-photo');
+        let photoUrl = state.doctor?.photo_url;
+
+        try {
+            // Upload photo si fichier sélectionné
+            if (photoInput.files.length > 0) {
+                const photoFormData = new FormData();
+                photoFormData.append('photo', photoInput.files[0]);
+                
+                const photoRes = await apiFetch(`${API}/doctors/photo`, {
+                    method: 'POST',
+                    body: photoFormData
+                });
+                const photoData = await photoRes.json();
+                if (photoData.success) {
+                    photoUrl = photoData.photo_url;
+                    formData.photo = photoUrl;
+                }
+            }
+
+            // Mettre à jour le profil
+            const res = await apiFetch(`${API}/doctors/profil`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Profil mis à jour avec succès !');
+                closeEditProfilModal();
+                // Recharger le profil
+                loadDoctorProfile();
+            } else {
+                alert('Erreur : ' + (data.message || 'Erreur serveur'));
+            }
+        } catch (e) {
+            console.error('[saveProfil] Erreur:', e);
+            alert('Erreur : ' + e.message);
+        }
+    }
+
+    // FONCTIONS UTILITAIRES FORMATAGE DATES
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('fr-FR', { 
+            day: '2-digit', month: '2-digit', year: 'numeric' 
+        });
+    }
+
+    function formatHeure(heureStr) {
+        if (!heureStr) return '—';
+        // Si c'est déjà HH:MM, retourner tel quel
+        if (/^\d{2}:\d{2}/.test(heureStr)) return heureStr.substring(0,5);
+        const d = new Date(heureStr);
+        return d.toLocaleTimeString('fr-FR', { 
+            hour: '2-digit', minute: '2-digit' 
+        });
+    }
+
+    // MODAL CRÉATION OFFRE
+    function openCreateOffreModal() {
+        const modal = document.createElement('div');
+        modal.id = 'create-offre-modal';
+        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-black text-navy">Créer une offre</h3>
+                    <button onclick="closeCreateOffreModal()" class="text-outline hover:text-navy">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <form id="create-offre-form" onsubmit="createOffre(event)">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Nom de l'offre *</label>
+                            <input type="text" id="offre-name" required class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Description</label>
+                            <textarea id="offre-description" rows="3" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Coût Zora *</label>
+                            <input type="number" id="offre-zora_cost" required min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Valeur FCFA</label>
+                            <input type="number" id="offre-fcfa_value" min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Catégorie</label>
+                            <select id="offre-category" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                                <option value="">Sélectionner...</option>
+                                <option value="consultation">Consultation</option>
+                                <option value="examen">Examen</option>
+                                <option value="vaccination">Vaccination</option>
+                                <option value="suivi">Suivi</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Stock (laisser vide pour illimité)</label>
+                            <input type="number" id="offre-stock" min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-navy mb-2">Image</label>
+                            <input type="file" id="offre-image" accept="image/*" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                        </div>
+                    </div>
+                    <div class="flex gap-4 mt-6">
+                        <button type="button" onclick="closeCreateOffreModal()" class="flex-1 px-6 py-3 border border-border-light rounded-xl font-bold text-outline hover:bg-background">Annuler</button>
+                        <button type="submit" class="flex-1 btn-primary px-6 py-3 rounded-xl font-bold">Créer</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    function closeCreateOffreModal() {
+        const modal = document.getElementById('create-offre-modal');
+        if (modal) modal.remove();
+    }
+
+    async function createOffre(event) {
+        event.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('name', document.getElementById('offre-name').value.trim());
+        formData.append('description', document.getElementById('offre-description').value.trim());
+        formData.append('zora_cost', document.getElementById('offre-zora_cost').value);
+        formData.append('fcfa_value', document.getElementById('offre-fcfa_value').value || '');
+        formData.append('category', document.getElementById('offre-category').value || '');
+        formData.append('stock', document.getElementById('offre-stock').value || '');
+        
+        const imageInput = document.getElementById('offre-image');
+        if (imageInput.files.length > 0) {
+            formData.append('image', imageInput.files[0]);
+        }
+
+        try {
+            const res = await apiFetch(`${API}/bons-zora/programs`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Offre créée avec succès !');
+                closeCreateOffreModal();
+                loadOffers();
+            } else {
+                alert('Erreur : ' + (data.error || data.message || 'Erreur serveur'));
+            }
+        } catch (e) {
+            console.error('[createOffre] Erreur:', e);
+            alert('Erreur : ' + e.message);
+        }
+    }
 </script>
 </body></html>
