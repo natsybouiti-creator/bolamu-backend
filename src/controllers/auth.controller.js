@@ -145,7 +145,7 @@ async function login(req, res) {
         let redirectUrl = '/login.html';
         switch (user.role) {
             case 'patient':     redirectUrl = '/patient/dashboard.html'; break;
-            case 'doctor':      redirectUrl = '/medecin/dashboard.html'; break;
+            case 'doctor':      redirectUrl = '/medecin/dashboard-v2.html'; break;
             case 'pharmacie':   redirectUrl = '/pharmacie/dashboard.html'; break;
             case 'laboratoire': redirectUrl = '/laboratoire/dashboard.html'; break;
             case 'rh':          redirectUrl = '/rh/dashboard.html'; break;
