@@ -108,11 +108,11 @@
 </div>
 <nav class="flex-1 space-y-1 overflow-y-auto px-4 hide-scroll" id="sidebar-nav"></nav>
 <div class="px-4 mt-auto space-y-2">
-<div class="bg-white/5 rounded-2xl p-4 flex items-center gap-3 border border-white/10">
-<div class="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-white font-bold shadow-lg">MJ</div>
+<div class="bg-white/5 rounded-2xl p-4 flex items-center gap-3 border border-white/10" id="sidebar-profil">
+<div class="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-white font-bold shadow-lg" id="sidebar-initials">MJ</div>
 <div class="overflow-hidden">
-<p class="text-sm font-bold text-white truncate">Dr. Moukala J.</p>
-<p class="text-xs text-white/50">Cardiologue</p>
+<p class="text-sm font-bold text-white truncate" id="sidebar-name">Dr. Moukala J.</p>
+<p class="text-xs text-white/50" id="sidebar-specialty">Cardiologue</p>
 </div>
 </div>
 <button onclick="deconnexion()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all">
@@ -261,6 +261,28 @@
         window.location.href = '/medecin/login.html';
     }
 
+    function updateSidebarProfil() {
+        if (!state.doctor) return;
+        
+        const initialsEl = document.getElementById('sidebar-initials');
+        const nameEl = document.getElementById('sidebar-name');
+        const specialtyEl = document.getElementById('sidebar-specialty');
+        
+        if (initialsEl) {
+            const fullName = state.doctor.full_name || 'Dr';
+            const initials = fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+            initialsEl.textContent = initials || 'DR';
+        }
+        
+        if (nameEl) {
+            nameEl.textContent = state.doctor.full_name || 'Dr. —';
+        }
+        
+        if (specialtyEl) {
+            specialtyEl.textContent = state.doctor.specialty || 'Médecin';
+        }
+    }
+
     function navigate(tabId) {
         state.currentPanel = tabId;
         renderNavigation();
@@ -334,7 +356,7 @@
             container.innerHTML = `
                 <div class="mb-10">
                     <p class="text-primary font-bold text-sm tracking-widest uppercase mb-2">Tableau de Bord</p>
-                    <h1 class="text-3xl lg:text-4xl font-extrabold text-navy leading-tight">Bienvenue, <span class="text-primary">Dr. ${doctor.full_name || '—'}</span></h1>
+                    <h1 class="text-3xl lg:text-4xl font-extrabold text-navy leading-tight">Bienvenue, <span class="text-primary">${doctor.full_name || '—'}</span></h1>
                     <p class="text-outline text-sm mt-1">${doctor.city || 'Brazzaville'}, Congo</p>
                 </div>
 
@@ -1349,6 +1371,7 @@
             
             state.doctor = data.data;
             state.doctor.phone = phone; // Ajouter phone au state
+            updateSidebarProfil(); // Mettre à jour la sidebar avec les vraies données
             renderNavigation();
             renderContent();
         } catch (e) {
