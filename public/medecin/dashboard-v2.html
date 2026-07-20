@@ -1139,10 +1139,11 @@
                                 <th class="px-8 py-5">Valeur FCFA</th>
                                 <th class="px-8 py-5">Stock</th>
                                 <th class="px-8 py-5">Statut</th>
+                                <th class="px-8 py-5">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border-light" id="offers-list">
-                            <tr><td colspan="6" class="px-8 py-12 text-center text-outline">Chargement...</td></tr>
+                            <tr><td colspan="7" class="px-8 py-12 text-center text-outline">Chargement...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1158,7 +1159,7 @@
             const tbody = document.getElementById('offers-list');
             
             if (!data.success || !data.data.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="px-8 py-12 text-center text-outline">Aucune offre créée</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="px-8 py-12 text-center text-outline">Aucune offre créée</td></tr>';
                 return;
             }
 
@@ -1174,11 +1175,15 @@
                             ${p.is_active ? 'Active' : 'Désactivée'}
                         </span>
                     </td>
+                    <td class="px-8 py-6">
+                        <button onclick="openEditOffreModal(${p.id})" class="text-primary hover:text-navy font-bold text-xs mr-3">Modifier</button>
+                        <button onclick="deleteOffre(${p.id})" class="text-error hover:text-red-700 font-bold text-xs">Supprimer</button>
+                    </td>
                 </tr>
             `).join('');
         } catch (e) {
             console.error('[Offres] Erreur:', e);
-            document.getElementById('offers-list').innerHTML = '<tr><td colspan="6" class="px-8 py-12 text-center text-error">Erreur de chargement</td></tr>';
+            document.getElementById('offers-list').innerHTML = '<tr><td colspan="7" class="px-8 py-12 text-center text-error">Erreur de chargement</td></tr>';
         }
     }
 
@@ -2023,6 +2028,7 @@
     function openCreateOffreModal() {
         const modal = document.createElement('div');
         modal.id = 'create-offre-modal';
+        modal.dataset.mode = 'create';
         modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
         modal.innerHTML = `
             <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -2072,7 +2078,7 @@
                     </div>
                     <div class="flex gap-4 mt-6">
                         <button type="button" onclick="closeCreateOffreModal()" class="flex-1 px-6 py-3 border border-border-light rounded-xl font-bold text-outline hover:bg-background">Annuler</button>
-                        <button type="submit" class="flex-1 btn-primary px-6 py-3 rounded-xl font-bold">Créer</button>
+                        <button type="submit" class="flex-1 btn-primary px-6 py-3 rounded-xl font-bold" id="offre-submit-btn">Créer</button>
                     </div>
                 </form>
             </div>
@@ -2083,6 +2089,274 @@
     function closeCreateOffreModal() {
         const modal = document.getElementById('create-offre-modal');
         if (modal) modal.remove();
+    }
+    
+    async function openEditOffreModal(id) {
+        try {
+            const res = await apiFetch(`${API}/bons-zora/programs/${id}`);
+            const data = await res.json();
+            if (!data.success || !data.data) {
+                alert('Erreur lors du chargement de l\'offre');
+                return;
+            }
+            const offer = data.data;
+            
+            const modal = document.createElement('div');
+            modal.id = 'create-offre-modal';
+            modal.dataset.mode = 'edit';
+            modal.dataset.offerId = id;
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-black text-navy">Modifier l'offre</h3>
+                        <button onclick="closeCreateOffreModal()" class="text-outline hover:text-navy">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <form id="create-offre-form" onsubmit="editOffre(event, ${id})">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Nom de l'offre *</label>
+                                <input type="text" id="offre-name" required class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none" value="${offer.name || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Description</label>
+                                <textarea id="offre-description" rows="3" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">${offer.description || ''}</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Coût Zora *</label>
+                                <input type="number" id="offre-zora_cost" required min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none" value="${offer.zora_cost || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Valeur FCFA</label>
+                                <input type="number" id="offre-fcfa_value" min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none" value="${offer.fcfa_value || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Catégorie</label>
+                                <select id="offre-category" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="consultation" ${offer.category === 'consultation' ? 'selected' : ''}>Consultation</option>
+                                    <option value="examen" ${offer.category === 'examen' ? 'selected' : ''}>Examen</option>
+                                    <option value="vaccination" ${offer.category === 'vaccination' ? 'selected' : ''}>Vaccination</option>
+                                    <option value="suivi" ${offer.category === 'suivi' ? 'selected' : ''}>Suivi</option>
+                                    <option value="autre" ${offer.category === 'autre' ? 'selected' : ''}>Autre</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Stock (laisser vide pour illimité)</label>
+                                <input type="number" id="offre-stock" min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none" value="${offer.stock === null ? '' : offer.stock}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Image</label>
+                                <input type="file" id="offre-image" accept="image/*" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                            </div>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" onclick="closeCreateOffreModal()" class="flex-1 px-6 py-3 border border-border-light rounded-xl font-bold text-outline hover:bg-background">Annuler</button>
+                            <button type="submit" class="flex-1 btn-primary px-6 py-3 rounded-xl font-bold" id="offre-submit-btn">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } catch (e) {
+            console.error('[editOffre] Erreur:', e);
+            alert('Erreur lors du chargement de l\'offre');
+        }
+    }
+    
+    async function editOffre(event, id) {
+        event.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('name', document.getElementById('offre-name').value.trim());
+        formData.append('description', document.getElementById('offre-description').value.trim());
+        formData.append('zora_cost', document.getElementById('offre-zora_cost').value);
+        formData.append('fcfa_value', document.getElementById('offre-fcfa_value').value || '');
+        formData.append('category', document.getElementById('offre-category').value || '');
+        formData.append('stock', document.getElementById('offre-stock').value || '');
+        
+        const imageInput = document.getElementById('offre-image');
+        if (imageInput.files.length > 0) {
+            formData.append('image', imageInput.files[0]);
+        }
+        
+        try {
+            const res = await apiFetch(`${API}/bons-zora/programs/${id}`, {
+                method: 'PUT',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Offre modifiée avec succès !');
+                closeCreateOffreModal();
+                loadOffers();
+            } else {
+                alert('Erreur : ' + (data.error || data.message || 'Erreur serveur'));
+            }
+        } catch (e) {
+            console.error('[editOffre] Erreur:', e);
+            alert('Erreur : ' + e.message);
+        }
+    }
+    
+    async function deleteOffre(id) {
+        if (!confirm('Êtes-vous sûr de vouloir désactiver cette offre ?')) {
+            return;
+        }
+        
+        try {
+            const res = await apiFetch(`${API}/bons-zora/programs/${id}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Offre désactivée avec succès !');
+                loadOffers();
+            } else {
+                alert('Erreur : ' + (data.error || data.message || 'Erreur serveur'));
+            }
+        } catch (e) {
+            console.error('[deleteOffre] Erreur:', e);
+            alert('Erreur : ' + e.message);
+        }
+    }
+    
+    async function openEditOffreModal(id) {
+        try {
+            const res = await apiFetch(`${API}/bons-zora/programs/${id}`);
+            const data = await res.json();
+            if (!data.success || !data.data) {
+                alert('Erreur lors du chargement de l\'offre');
+                return;
+            }
+            const offer = data.data;
+            
+            const modal = document.createElement('div');
+            modal.id = 'create-offre-modal';
+            modal.dataset.mode = 'edit';
+            modal.dataset.offerId = id;
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-black text-navy">Modifier l'offre</h3>
+                        <button onclick="closeCreateOffreModal()" class="text-outline hover:text-navy">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <form id="create-offre-form" onsubmit="editOffre(event, ${id})">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Nom de l'offre *</label>
+                                <input type="text" id="offre-name" required class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none" value="${offer.name || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Description</label>
+                                <textarea id="offre-description" rows="3" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">${offer.description || ''}</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Coût Zora *</label>
+                                <input type="number" id="offre-zora_cost" required min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none" value="${offer.zora_cost || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Valeur FCFA</label>
+                                <input type="number" id="offre-fcfa_value" min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none" value="${offer.fcfa_value || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Catégorie</label>
+                                <select id="offre-category" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="consultation" ${offer.category === 'consultation' ? 'selected' : ''}>Consultation</option>
+                                    <option value="examen" ${offer.category === 'examen' ? 'selected' : ''}>Examen</option>
+                                    <option value="vaccination" ${offer.category === 'vaccination' ? 'selected' : ''}>Vaccination</option>
+                                    <option value="suivi" ${offer.category === 'suivi' ? 'selected' : ''}>Suivi</option>
+                                    <option value="autre" ${offer.category === 'autre' ? 'selected' : ''}>Autre</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Stock (laisser vide pour illimité)</label>
+                                <input type="number" id="offre-stock" min="0" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none" value="${offer.stock === null ? '' : offer.stock}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-navy mb-2">Image</label>
+                                <input type="file" id="offre-image" accept="image/*" class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none">
+                            </div>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" onclick="closeCreateOffreModal()" class="flex-1 px-6 py-3 border border-border-light rounded-xl font-bold text-outline hover:bg-background">Annuler</button>
+                            <button type="submit" class="flex-1 btn-primary px-6 py-3 rounded-xl font-bold" id="offre-submit-btn">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } catch (e) {
+            console.error('[editOffre] Erreur:', e);
+            alert('Erreur lors du chargement de l\'offre');
+        }
+    }
+    
+    async function editOffre(event, id) {
+        event.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('name', document.getElementById('offre-name').value.trim());
+        formData.append('description', document.getElementById('offre-description').value.trim());
+        formData.append('zora_cost', document.getElementById('offre-zora_cost').value);
+        formData.append('fcfa_value', document.getElementById('offre-fcfa_value').value || '');
+        formData.append('category', document.getElementById('offre-category').value || '');
+        formData.append('stock', document.getElementById('offre-stock').value || '');
+        
+        const imageInput = document.getElementById('offre-image');
+        if (imageInput.files.length > 0) {
+            formData.append('image', imageInput.files[0]);
+        }
+        
+        try {
+            const res = await apiFetch(`${API}/bons-zora/programs/${id}`, {
+                method: 'PUT',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Offre modifiée avec succès !');
+                closeCreateOffreModal();
+                loadOffers();
+            } else {
+                alert('Erreur : ' + (data.error || data.message || 'Erreur serveur'));
+            }
+        } catch (e) {
+            console.error('[editOffre] Erreur:', e);
+            alert('Erreur : ' + e.message);
+        }
+    }
+    
+    async function deleteOffre(id) {
+        if (!confirm('Êtes-vous sûr de vouloir désactiver cette offre ?')) {
+            return;
+        }
+        
+        try {
+            const res = await apiFetch(`${API}/bons-zora/programs/${id}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Offre désactivée avec succès !');
+                loadOffers();
+            } else {
+                alert('Erreur : ' + (data.error || data.message || 'Erreur serveur'));
+            }
+        } catch (e) {
+            console.error('[deleteOffre] Erreur:', e);
+            alert('Erreur : ' + e.message);
+        }
     }
     
     // Chat nouvelle conversation
