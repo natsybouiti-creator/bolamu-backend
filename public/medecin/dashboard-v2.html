@@ -239,6 +239,7 @@
                 ...(options.headers || {})
             }
         });
+        console.log('[DEBUG] apiFetch status:', res.status, url);
         if (res.status === 401) { 
             localStorage.clear(); 
             window.location.href = '/login.html'; 
@@ -1589,7 +1590,11 @@
         try {
             const res = await apiFetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`);
             const data = await res.json();
-            console.log('[Dashboard-v2] Réponse profil:', res.ok, data);
+            console.log('[DEBUG] Statut réponse profil:', res.status);
+            console.log('[DEBUG] Data profil:', JSON.stringify(data));
+            console.log('[DEBUG] data.success:', data.success);
+            console.log('[DEBUG] data.doctor:', data.doctor);
+            console.log('[DEBUG] Réponse profil:', res.ok, data);
             
             if (!res.ok) throw new Error(data.message || 'Erreur chargement profil');
             
