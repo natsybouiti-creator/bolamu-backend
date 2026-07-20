@@ -1316,6 +1316,9 @@
                     </div>
                     <button class="p-2 text-outline hover:text-navy transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
                 </div>
+                <button onclick="openNewConvModal()" class="btn-primary px-4 py-2 rounded-xl text-xs font-bold">
+                    <span class="material-symbols-outlined text-sm align-middle mr-1">add</span> Nouvelle conversation
+                </button>
                 <div class="flex-1 overflow-y-auto p-6 bg-background/30 hide-scroll" id="bcw-conv-list">
                     <div style="text-align:center;padding:24px;color:#747685;">Chargement…</div>
                 </div>
@@ -2080,6 +2083,96 @@
     function closeCreateOffreModal() {
         const modal = document.getElementById('create-offre-modal');
         if (modal) modal.remove();
+    }
+    
+    // Chat nouvelle conversation
+    let bcwSearchDebounce = null;
+    
+    function openNewConvModal() {
+        const modal = document.createElement('div');
+        modal.id = 'bcw-new-conv-modal';
+        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-black text-navy">Nouvelle conversation</h3>
+                    <button onclick="closeNewConvModal()" class="text-outline hover:text-navy">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <input type="text" id="bcw-search-input" placeholder="Rechercher un utilisateur..." 
+                    class="w-full px-4 py-3 border border-border-light rounded-xl focus:ring-2 focus:ring-primary/10 outline-none"
+                    oninput="onSearchInput(event)">
+                <div id="bcw-search-results" class="mt-4 space-y-2"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        const input = document.getElementById('bcw-search-input');
+        if (input) setTimeout(() => input.focus(), 50);
+    }
+    
+    function closeNewConvModal() {
+        const modal = document.getElementById('bcw-new-conv-modal');
+        if (modal) modal.remove();
+    }
+    
+    function onSearchInput(e) {
+        const q = e.target.value.trim();
+        clearTimeout(bcwSearchDebounce);
+        const results = document.getElementById('bcw-search-results');
+        if (q.length < 2) { if (results) results.innerHTML = ''; return; }
+        bcwSearchDebounce = setTimeout(() => searchUsers(q), 300);
+    }
+    
+    async function searchUsers(q) {
+        const results = document.getElementById('bcw-search-results');
+        if (!results) return;
+        results.innerHTML = '<div class="text-center py-4 text-outline">Recherche…</div>';
+        try {
+            const res = await apiFetch(`${API}/chat/users/search?q=${encodeURIComponent(q)}`);
+            const d = await res.json();
+            if (!d || !d.success || !d.data || !d.data.length) {
+                results.innerHTML = '<div class="text-center py-4 text-outline">Aucun résultat</div>';
+                return;
+            }
+            results.innerHTML = d.data.map(u => {
+                const initials = (u.full_name || '?').charAt(0).toUpperCase();
+                const avatarHtml = u.photo_url 
+                    ? `<img src="${u.photo_url}" class="w-10 h-10 rounded-full object-cover">`
+                    : `<span class="w-10 h-10 rounded-full bg-navy text-white font-bold flex items-center justify-center">${initials}</span>`;
+                return `<div onclick="startConversationWith('${escBcw(u.phone)}', '${escBcw(u.full_name).replace(/'/g, "\\'")}', '${escBcw(u.photo_url || '').replace(/'/g, "\\'")}')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-background transition-colors">
+                    ${avatarHtml}
+                    <div><div class="font-bold text-navy text-sm">${escBcw(u.full_name)}</div><div class="text-xs text-outline">${escBcw(u.role || '')}</div></div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            results.innerHTML = '<div class="text-center py-4 text-error">Recherche indisponible</div>';
+        }
+    }
+    
+    async function startConversationWith(participantPhone, fullName, photoUrl) {
+        try {
+            const res = await apiFetch(`${API}/chat/conversations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ participant_phone: participantPhone })
+            });
+            const d = await res.json();
+            if (!d || !d.success) return;
+            closeNewConvModal();
+            loadConversations();
+            const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+            window.BolamuChatWindow.open({
+                conversationId: d.conversation_id,
+                currentUserPhone: phone,
+                recipientName: fullName || 'Contact',
+                recipientAvatar: photoUrl || null,
+                socketInstance: window.__bolamuSocket
+            });
+        } catch (e) {
+            console.error('[createConversation] Erreur:', e);
+            alert('Erreur lors de la création de la conversation');
+        }
     }
 
     async function createOffre(event) {
