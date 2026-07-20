@@ -142,8 +142,8 @@
 <div class="h-8 w-[1px] bg-border-light mx-1 hidden sm:block"></div>
 <div class="flex items-center gap-3 cursor-pointer group" onclick="navigate('Mon profil')">
 <div class="text-right hidden md:block">
-<p class="text-sm font-bold text-navy">Dr. Moukala</p>
-<p class="text-[10px] text-outline font-medium">Kinshasa, RDC</p>
+<p class="text-sm font-bold text-navy" id="topbar-name">Dr. —</p>
+<p class="text-[10px] text-outline font-medium" id="topbar-city">Brazzaville, Congo</p>
 </div>
 <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-xl overflow-hidden ring-2 ring-border-light group-hover:ring-primary/20 transition-all">
 <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcTEgu7F26ep-SQh8fxnxNfbO_kBWaTiZVaj9AOf3Q1BfiZNwDZUcKbLv1k1aV1KDIRESHMam5XqQRZSsrQuDZUVvk7ohQDZGooqQ818iz1aTQZCGKrnfFxYx8iAaG6L38AEIeYbNKSN5gnQxMHim0dxIwMjVQprRLFGKi_MgC3VbuTskxkiYxo21rWLTnPxfJiQaT6PrsTkCr9-xiz7V38Osw7iQkdYpkzjAWPWusixO99vHnDTqWMA"/>
@@ -278,8 +278,8 @@
         if (specialtyEl) specialtyEl.textContent = doctor.specialty || 'Médecin';
         
         // Topbar
-        const topbarNameEl = document.querySelector('.text-right.hidden.md:block p.text-sm.font-bold.text-navy');
-        const topbarCityEl = document.querySelector('.text-right.hidden.md:block p.text-xs.text-outline.font-medium');
+        const topbarNameEl = document.getElementById('topbar-name');
+        const topbarCityEl = document.getElementById('topbar-city');
         const topbarAvatarEl = document.querySelector('.w-10.h-10.lg\\:w-12.lg\\:h-12.rounded-xl.overflow-hidden img');
         const topbarAvatarContainer = document.querySelector('.w-10.h-10.lg\\:w-12.lg\\:h-12.rounded-xl.overflow-hidden');
         
@@ -362,7 +362,8 @@
             const rdvData = await rdvRes.json();
             const fileAttenteData = await fileAttenteRes.json();
             
-            const rdvs = rdvRes.ok ? (rdvData.data || []) : [];
+            allRdvData = rdvRes.ok ? (rdvData.data || []) : [];
+            const rdvs = allRdvData;
             const fileAttente = fileAttenteRes.ok ? (fileAttenteData.data || []) : [];
 
             container.innerHTML = `
@@ -435,11 +436,11 @@
                         <div class="card-custom p-8 zora-rail relative overflow-hidden group">
                             <div class="relative z-10">
                                 <p class="text-[10px] font-black uppercase tracking-widest mb-1">Zora & MTN MoMo</p>
-                                <h4 class="font-bold text-navy mb-2">Offre de bienvenue</h4>
-                                <p class="text-[11px] mb-4 opacity-80">-15% sur la prochaine téléconsultation payée via MoMo.</p>
-                                <button onclick="navigate('Scanner Zora')" class="bg-navy text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Activer</button>
+                                <h4 class="font-bold text-navy mb-2">Scanner Zora</h4>
+                                <p class="text-[11px] mb-4 opacity-80">Scannez les vouchers Zora pour valider les remises.</p>
+                                <button onclick="navigate('Scanner Zora')" class="bg-navy text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Scanner</button>
                             </div>
-                            <span class="material-symbols-outlined absolute right-[-10px] bottom-[-10px] text-8xl opacity-10 rotate-12">payments</span>
+                            <span class="material-symbols-outlined absolute right-[-10px] bottom-[-10px] text-8xl opacity-10 rotate-12">qr_code_scanner</span>
                         </div>
                     </div>
                 </div>
@@ -578,6 +579,7 @@
     // Scanner général
     let generalHtml5QrCode = null;
     let generalCameraStream = null;
+    let allRdvData = [];
 
     function renderScanner(container, type) {
         const isZora = type === 'Zora';
@@ -600,6 +602,7 @@
                         <button onclick="handleScanSubmit('${type}')" class="btn-primary px-8">Valider</button>
                     </div>
                 </div>
+                <div id="scanner-result" style="display:none;"></div>
             </div>
         `;
         
@@ -625,13 +628,12 @@
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 (decodedText) => {
                     stopGeneralCamera();
-                    document.getElementById('scan-input').value = decodedText;
-                    handleScanSubmit('Général');
+                    traiterPatientMedecin(decodedText, 'qr');
                 },
                 (errorMessage) => {}
             );
         } catch(e) {
-            console.error('[Scanner] Erreur caméra:', e);
+            alert('Erreur d\'accès à la caméra : ' + e.message);
         }
     }
 
@@ -644,16 +646,188 @@
             generalCameraStream.getTracks().forEach(track => track.stop());
             generalCameraStream = null;
         }
+        const container = document.getElementById('scanner-camera-container');
+        if (container) container.style.display = 'none';
     }
 
     function handleScanSubmit(type) {
         const input = document.getElementById('scan-input');
-        if (!input || !input.value.trim()) {
-            alert('Veuillez entrer un ID');
+        const valeur = input.value.trim();
+        if (!valeur) {
+            alert('Veuillez entrer une valeur');
             return;
         }
-        // Logique de traitement du QR code
-        alert('QR Code scanné: ' + input.value);
+        if (type === 'Zora') {
+            verifyZoraVoucher(valeur);
+        } else {
+            traiterPatientMedecin(valeur, 'search');
+        }
+    }
+
+    async function verifyZoraVoucher(uuid) {
+        const resultEl = document.getElementById('scanner-result');
+        
+        if (!uuid) {
+            alert('Veuillez entrer l\'UUID du voucher');
+            return;
+        }
+        
+        resultEl.style.display = 'block';
+        resultEl.innerHTML = '<div style="text-align:center;padding:24px;color:#747685;">Vérification en cours...</div>';
+        
+        try {
+            const res = await apiFetch(API + '/bons-zora/validate/qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: uuid })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                resultEl.innerHTML = '<div style="background:#e8f5e9;border:2px solid #2e7d32;border-radius:16px;padding:24px;">'
+                    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+                    + '<div style="font-size:32px;"><span class="material-symbols-outlined">check_circle</span></div>'
+                    + '<div><div style="font-size:16px;font-weight:700;color:#1a1b22;">Voucher validé !</div>'
+                    + '<div style="font-size:14px;color:#747685;">Remise à appliquer : ' + data.data.fcfa_value + ' FCFA</div></div></div>'
+                    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'
+                    + '<div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Patient</div><div style="font-size:14px;font-weight:700;color:#1a1b22;">' + data.data.patient_initiales + '</div></div>'
+                    + '<div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Récompense</div><div style="font-size:14px;font-weight:700;color:#1a1b22;">' + data.data.partner_name + '</div></div>'
+                    + '<div style="background:white;border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#747685;margin-bottom:4px;">Consommé le</div><div style="font-size:14px;font-weight:700;color:#1a1b22;">' + new Date(data.data.used_at).toLocaleString('fr-FR') + '</div></div>'
+                    + '</div>'
+                    + '<button onclick="document.getElementById(\'scan-input\').value=\'\';document.getElementById(\'scanner-result\').style.display=\'none\';" style="width:100%;padding:12px;background:#0A2463;color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">Scanner un autre voucher</button></div>';
+            } else {
+                resultEl.innerHTML = '<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">'
+                    + '<div style="display:flex;align-items:center;gap:12px;">'
+                    + '<div style="font-size:32px;"><span class="material-symbols-outlined">cancel</span></div>'
+                    + '<div><div style="font-size:16px;font-weight:700;color:#1a1b22;">Erreur</div>'
+                    + '<div style="font-size:14px;color:#747685;">' + (data.error === 'voucher_not_found' ? 'Voucher introuvable' : data.error === 'voucher_already_used' ? 'Voucher déjà utilisé' : data.error === 'voucher_expired' ? 'Voucher expiré' : data.error) + '</div></div></div></div>';
+            }
+        } catch(e) {
+            resultEl.innerHTML = '<div style="background:#fde8e8;border:2px solid #c62828;border-radius:16px;padding:24px;">'
+                + '<div style="display:flex;align-items:center;gap:12px;">'
+                + '<div style="font-size:32px;"><span class="material-symbols-outlined">warning</span></div>'
+                + '<div><div style="font-size:16px;font-weight:700;color:#1a1b22;">Erreur de connexion</div></div></div></div>';
+        }
+    }
+
+    function traiterPatientMedecin(valeur, mode) {
+        var resultDiv = document.getElementById('scanner-result');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#747685;">Recherche en cours...</div>';
+
+        var url;
+        if (mode === 'qr') {
+            var qrToken = valeur;
+            if (valeur.indexOf('token=') !== -1) {
+                try {
+                    qrToken = new URL(valeur).searchParams.get('token');
+                } catch(e) {
+                    qrToken = valeur.split('token=')[1];
+                    if (qrToken) qrToken = qrToken.split('&')[0];
+                }
+            }
+            if (!qrToken || qrToken.length < 10) qrToken = valeur;
+            url = API + '/qr/verify?token=' + encodeURIComponent(qrToken);
+        } else {
+            url = API + '/patients/search?q=' + encodeURIComponent(valeur);
+        }
+
+        apiFetch(url)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (!data.success || !data.data) {
+                    resultDiv.innerHTML = '<div style="text-align:center;padding:24px;">'
+                        + '<div style="font-size:14px;font-weight:700;color:#BA1A1A;margin-bottom:16px;">Aucun patient trouve</div>'
+                        + '<button onclick="document.getElementById(\'scan-input\').focus()" class="btn-primary px-6 py-2">Nouvelle recherche</button></div>';
+                    return;
+                }
+
+                if (mode === 'qr' && data.data.patient && data.data.patient.phone) {
+                    var phone = data.data.patient.phone;
+                    apiFetch(API + '/patients/search?q=' + encodeURIComponent(phone))
+                        .then(function(res) { return res.json(); })
+                        .then(function(searchData) {
+                            if (!searchData.success || !searchData.data || searchData.data.length === 0) {
+                                resultDiv.innerHTML = '<div style="text-align:center;padding:24px;">'
+                                    + '<div style="font-size:14px;font-weight:700;color:#BA1A1A;margin-bottom:16px;">Aucun patient trouve</div>'
+                                    + '<button onclick="document.getElementById(\'scan-input\').focus()" class="btn-primary px-6 py-2">Nouvelle recherche</button></div>';
+                                return;
+                            }
+                            afficherFichePatientMedecin(searchData.data[0], resultDiv);
+                        })
+                        .catch(function() {
+                            resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#BA1A1A;font-size:14px;">Erreur de connexion.</div>';
+                        });
+                    return;
+                }
+
+                var patients = Array.isArray(data.data) ? data.data : [data.data];
+
+                if (patients.length === 0) {
+                    resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#747685;font-size:14px;">Aucun resultat</div>';
+                    return;
+                }
+
+                if (patients.length === 1) {
+                    afficherFichePatientMedecin(patients[0], resultDiv);
+                    return;
+                }
+
+                var html = '<div style="font-family:\'Plus Jakarta Sans\',sans-serif;font-size:15px;font-weight:700;color:#0A2463;margin-bottom:16px;">'
+                    + patients.length + ' patients trouves</div>';
+                patients.forEach(function(p) {
+                    var initial = (p.full_name || p.phone || '?').charAt(0).toUpperCase();
+                    html += '<div onclick="BolamuProfileCard.open(\'' + (p.phone || '').replace(/'/g, "\\'") + '\')"'
+                        + ' style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;border:1px solid #EDEDF8;margin-bottom:10px;cursor:pointer;transition:background 0.2s;"'
+                        + ' onmouseover="this.style.background=\'#EDEDF8\'" onmouseout="this.style.background=\'white\'">'
+                        + '<div style="width:44px;height:44px;border-radius:12px;background:#EDEDF8;display:flex;align-items:center;justify-content:center;font-family:\'Plus Jakarta Sans\',sans-serif;font-size:18px;font-weight:800;color:#0A2463;">'
+                        + initial + '</div>'
+                        + '<div><div style="font-size:14px;font-weight:700;">' + (p.full_name || '') + '</div>'
+                        + '<div style="font-size:13px;color:#747685;">' + p.phone + '</div></div></div>';
+                });
+                resultDiv.innerHTML = html;
+            })
+            .catch(function() {
+                resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#BA1A1A;font-size:14px;">Erreur de connexion.</div>';
+            });
+    }
+
+    function afficherFichePatientMedecin(p, resultDiv) {
+        var statut = p.is_active ? 'Actif' : 'Inactif';
+        var statutColor = p.is_active ? '#10B981' : '#BA1A1A';
+        var statutBg = p.is_active ? 'rgba(16,185,129,0.1)' : '#fee2e2';
+        var initial = (p.full_name || p.phone || '?').charAt(0).toUpperCase();
+        var rdvPatient = allRdvData ? allRdvData.find(function(r) {
+            return r.patient_phone === p.phone && (r.status === 'confirme' || r.status === 'en_cours');
+        }) : null;
+
+        var html = '<div onclick="BolamuProfileCard.open(\'' + (p.phone || '') + '\')" style="cursor:pointer;display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid #EDEDF8;">'
+            + '<div style="width:56px;height:56px;border-radius:16px;background:#EDEDF8;display:flex;align-items:center;justify-content:center;font-family:\'Plus Jakarta Sans\',sans-serif;font-size:22px;font-weight:800;color:#0A2463;flex-shrink:0;">'
+            + initial + '</div>'
+            + '<div style="flex:1;">'
+            + '<div style="font-size:17px;font-weight:700;margin-bottom:4px;">' + (p.full_name || '') + '</div>'
+            + '<div style="font-size:13px;color:#747685;margin-bottom:8px;">' + p.phone + '</div>'
+            + '<div style="display:inline-block;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:' + statutBg + ';color:' + statutColor + ';">' + statut + '</div>'
+            + '</div></div>';
+
+        if (p.plan_nom) {
+            html += '<div style="background:#EDEDF8;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px;">'
+                + '<span style="color:#747685;">Plan : </span><strong>' + p.plan_nom + '</strong></div>';
+        }
+
+        if (rdvPatient) {
+            html += '<div style="background:rgba(16,185,129,0.1);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#047857;font-weight:600;">'
+                + 'RDV confirme — Code session : ' + rdvPatient.session_code + '</div>'
+                + '<button class="btn-primary w-full mb-3" onclick="currentRdv={rdvId:\'' + rdvPatient.id + '\',patientPhone:\'' + rdvPatient.patient_phone + '\',sessionCode:\'' + rdvPatient.session_code + '\',date:\'' + (rdvPatient.appointment_date || rdvPatient.date || '') + '\',time:\'' + (rdvPatient.appointment_time || '').substring(0,5) + '\'};openConsultation(\'' + (p.full_name || '') + '\',\'' + rdvPatient.id + '\')">'
+                + 'Demarrer la consultation</button>';
+        } else {
+            html += '<div style="background:#fef9ec;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400e;">'
+                + 'Aucun RDV confirme pour ce patient aujourd\'hui.</div>';
+        }
+
+        html += '<button onclick="document.getElementById(\'scanner-result\').style.display=\'none\';document.getElementById(\'scan-input\').value=\'\';" style="width:100%;padding:12px;background:#EDEDF8;color:#1a1b22;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;">Nouvelle recherche</button>';
+
+        resultDiv.innerHTML = html;
     }
 
     // Scanner DMN
@@ -1173,7 +1347,7 @@
         `;
 
         try {
-            const res = await apiFetch(`${API}/feed/posts`);
+            const res = await apiFetch(`${API}/feed`);
             const data = await res.json();
             const posts = res.ok ? (data.data || []) : [];
 
@@ -1279,9 +1453,13 @@
     // CONSULTATION LOGIC
     let consultStep = 1;
     let medicamentsData = [];
+    let currentRdv = {};
+    let consultationStartTime = null;
 
     function openConsultation(patientName, appointmentId) {
         state.activeConsultation = { patientName, appointmentId };
+        currentRdv = { rdvId: appointmentId, patientPhone: '' }; // patientPhone sera peuplé depuis les RDV
+        consultationStartTime = Date.now();
         document.getElementById('consultation-modal').classList.remove('hidden');
         consultStep = 2; // Passer directement à l'étape SOAP
         medicamentsData = [];
@@ -1355,8 +1533,8 @@
                     </div>
                     <div class="flex justify-between gap-4 pt-4">
                         <button onclick="closeConsultation()" class="px-8 py-4 text-outline font-bold text-sm hover:text-navy transition-colors">Annuler</button>
-                        <button onclick="consultStep=3; renderConsultStep()" class="btn-primary px-12 py-4 shadow-xl">
-                            Étape suivante : Ordonnance <span class="material-symbols-outlined">description</span>
+                        <button onclick="soumettreCompteRendu()" class="btn-primary px-12 py-4 shadow-xl">
+                            Suivant : Ordonnance <span class="material-symbols-outlined">description</span>
                         </button>
                     </div>
                 </div>
@@ -1391,7 +1569,7 @@
                     <div class="flex justify-between gap-4 pt-6">
                         <button onclick="consultStep=2; renderConsultStep()" class="px-8 py-4 text-outline font-bold text-sm hover:text-navy transition-colors">Retour</button>
                         <button onclick="confirmerValidation()" class="btn-primary px-12 py-4 shadow-xl">
-                            Finaliser & Signer <span class="material-symbols-outlined">edit_square</span>
+                            <span class="material-symbols-outlined">check_circle</span> Valider et créer l'ordonnance
                         </button>
                     </div>
                 </div>
@@ -1415,6 +1593,93 @@
                     </div>
                 </div>
             `;
+        }
+    }
+
+    async function soumettreCompteRendu() {
+        const motif = document.getElementById('soap-subjectif').value.trim();
+        const observations = document.getElementById('soap-objectif').value.trim();
+        const diagnostic = document.getElementById('soap-analyse').value.trim();
+        const traitement = document.getElementById('soap-plan').value.trim();
+        const prochaine = '';
+        
+        if (!motif || !observations || !diagnostic) {
+            alert('Veuillez remplir les champs obligatoires : Subjectif, Objectif, Analyse');
+            return;
+        }
+        
+        const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+        
+        try {
+            const res = await apiFetch(`${API}/reports/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    appointment_id: currentRdv.rdvId,
+                    patient_phone: currentRdv.patientPhone,
+                    doctor_phone: phone,
+                    motif,
+                    observations,
+                    diagnostic,
+                    traitement,
+                    prochaine_etape: prochaine
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Erreur compte rendu');
+            consultStep = 3;
+            renderConsultStep();
+        } catch(e) {
+            alert('Erreur : ' + e.message);
+        }
+    }
+
+    async function confirmerValidation() {
+        const medications = document.getElementById('ord-medications').value.trim();
+        const instructions = document.getElementById('ord-instructions').value.trim();
+        
+        if (!medications) {
+            alert('Ajoutez au moins un médicament à l\'ordonnance.');
+            return;
+        }
+
+        const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+        const motif = document.getElementById('soap-subjectif').value.trim();
+        const observations = document.getElementById('soap-objectif').value.trim();
+        const diagnostic = document.getElementById('soap-analyse').value.trim();
+        
+        try {
+            const resVal = await apiFetch(`${API}/consultations/${currentRdv.rdvId}/close`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    diagnostic: diagnostic,
+                    anamnese: motif,
+                    examen_clinique: observations,
+                    notes: ''
+                })
+            });
+            const dataVal = await resVal.json();
+            if (!resVal.ok) throw new Error(dataVal.message || 'Erreur validation consultation');
+
+            const resPres = await apiFetch(`${API}/prescriptions/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    appointment_id: currentRdv.rdvId,
+                    patient_phone: currentRdv.patientPhone,
+                    doctor_phone: phone,
+                    medications: medications,
+                    instructions: instructions || ''
+                })
+            });
+            const dataPres = await resPres.json();
+            if (!resPres.ok) throw new Error(dataPres.message || 'Erreur ordonnance');
+
+            consultStep = 4;
+            renderConsultStep();
+        } catch(e) {
+            alert('Erreur : ' + e.message);
         }
     }
 
