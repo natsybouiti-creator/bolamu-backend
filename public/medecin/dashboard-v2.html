@@ -1257,6 +1257,7 @@
     }
 
     function initBcwSocket() {
+        if (typeof io === 'undefined') return;
         if (window.__bolamuSocket) return;
         const token = getAuthToken();
         const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
@@ -1265,23 +1266,13 @@
             return;
         }
 
-        window.__bolamuSocket = io('https://api.bolamu.co', {
-            auth: { token },
-            transports: ['websocket']
-        });
-
-        window.__bolamuSocket.on('connect', () => {
-            console.log('[Socket] Connecté');
-        });
+        window.__bolamuSocket = io('https://api.bolamu.co');
+        window.__bolamuSocket.emit('authenticate', token);
 
         window.__bolamuSocket.on('chat:new_message', (payload) => {
             if (payload.sender_phone === phone) return;
             bcwUnread++;
             updateMessagesBadge();
-        });
-
-        window.__bolamuSocket.on('disconnect', () => {
-            console.log('[Socket] Déconnecté');
         });
     }
 
