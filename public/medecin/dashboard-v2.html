@@ -1400,6 +1400,21 @@
                         `).join('')}
                     </div>
 
+                    <!-- STORIES BANNER -->
+                    <div id="stories-banner" class="mb-8 overflow-x-auto hide-scroll">
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer" onclick="openCreateStoryModal()">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary p-0.5">
+                                    <div class="w-full h-full rounded-full bg-white flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-2xl text-primary">add</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-bold text-outline">Créer</span>
+                            </div>
+                            <div id="stories-list" class="flex gap-4"></div>
+                        </div>
+                    </div>
+
                     <!-- CREATE POST FORM -->
                     <div class="card-custom p-6 mb-8">
                         <div class="flex gap-3 mb-4">
@@ -1450,6 +1465,7 @@
         }
 
         try {
+            loadStories();
             const res = await apiFetch(`${API}/feed`);
             const data = await res.json();
             const posts = res.ok ? (data.data || []) : [];
@@ -1509,6 +1525,285 @@
     function filterCity(city) {
         state.activeCity = city;
         renderContent();
+    }
+    
+    // Stories
+    let storiesData = [];
+    let currentStoryIndex = 0;
+    let currentAuthorStories = [];
+    let currentAuthorIndex = 0;
+    let storyTimer = null;
+    
+    async function loadStories() {
+        try {
+            const res = await apiFetch(`${API}/stories`);
+            const data = await res.json();
+            
+            if (data.success && data.data) {
+                storiesData = data.data;
+                renderStoriesBanner();
+            }
+        } catch (e) {
+            console.error('[loadStories] Erreur:', e);
+        }
+    }
+    
+    function renderStoriesBanner() {
+        const storiesList = document.getElementById('stories-list');
+        
+        // Regrouper par auteur et trier par date (plus récent d'abord)
+        const groupedByAuthor = {};
+        storiesData.forEach(story => {
+            if (!groupedByAuthor[story.author_phone]) {
+                groupedByAuthor[story.author_phone] = {
+                    author_name: story.author_name,
+                    author_avatar: story.author_avatar,
+                    stories: []
+                };
+            }
+            groupedByAuthor[story.author_phone].stories.push(story);
+        });
+        
+        // Trier les stories de chaque auteur par date (plus récent d'abord)
+        Object.values(groupedByAuthor).forEach(author => {
+            author.stories.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        });
+        
+        storiesList.innerHTML = Object.values(groupedByAuthor).map(author => {
+            const latestStory = author.stories[0];
+            const hasUnviewed = author.stories.some(s => !s.viewed_by_me);
+            
+            return `
+                <div class="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer" onclick="openStoryViewer('${author.stories[0].author_phone}')">
+                    <div class="w-16 h-16 rounded-full ${hasUnviewed ? 'bg-gradient-to-br from-primary to-secondary p-0.5' : 'bg-border-light p-0.5'}">
+                        <div class="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+                            ${author.author_avatar 
+                                ? `<img src="${author.author_avatar}" class="w-full h-full object-cover">`
+                                : `<span class="text-lg font-bold text-navy">${(author.author_name || 'A').charAt(0)}</span>`
+                            }
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold text-outline truncate w-16 text-center">${author.author_name || '—'}</span>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function openStoryViewer(authorPhone) {
+        // Filtrer les stories de cet auteur
+        const authorStories = storiesData.filter(s => s.author_phone === authorPhone);
+        if (authorStories.length === 0) return;
+        
+        // Re-trier par ordre chronologique (plus ancien d'abord, façon Instagram)
+        authorStories.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        
+        currentAuthorStories = authorStories;
+        currentAuthorIndex = 0;
+        currentStoryIndex = 0;
+        
+        renderStoryModal();
+    }
+    
+    function renderStoryModal() {
+        clearTimeout(storyTimer);
+        
+        const story = currentAuthorStories[currentStoryIndex];
+        if (!story) return;
+        
+        // Marquer comme vue
+        markStoryAsViewed(story.id);
+        
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/90 z-50 flex items-center justify-center';
+        modal.id = 'story-modal';
+        modal.innerHTML = `
+            <div class="relative w-full max-w-lg h-[80vh] bg-black rounded-2xl overflow-hidden">
+                <div class="absolute top-4 left-4 right-4 z-10 flex gap-1">
+                    ${currentAuthorStories.map((s, i) => `
+                        <div class="flex-1 h-1 rounded-full ${i < currentStoryIndex ? 'bg-white' : 'bg-white/30'}"></div>
+                    `).join('')}
+                </div>
+                <div class="absolute top-4 left-4 z-10 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden">
+                        ${story.author_avatar 
+                            ? `<img src="${story.author_avatar}" class="w-full h-full object-cover">`
+                            : `<span class="text-sm font-bold text-navy">${(story.author_name || 'A').charAt(0)}</span>`
+                        }
+                    </div>
+                    <div>
+                        <p class="text-white font-bold text-sm">${story.author_name || '—'}</p>
+                        <p class="text-white/70 text-xs">${new Date(story.created_at).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                </div>
+                <button onclick="closeStoryModal()" class="absolute top-4 right-4 z-10 text-white hover:text-white/70">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <div class="w-full h-full flex items-center justify-center">
+                    ${story.photo_url 
+                        ? story.photo_url.match(/\.(mp4|webm|ogg)$/i) 
+                            ? `<video src="${story.photo_url}" class="w-full h-full object-contain" autoplay muted loop></video>`
+                            : `<img src="${story.photo_url}" class="w-full h-full object-contain">`
+                        : `<p class="text-white text-center px-8">${story.content || ''}</p>`
+                    }
+                </div>
+                ${story.content ? `<div class="absolute bottom-8 left-4 right-4 z-10">
+                    <p class="text-white text-sm font-medium">${story.content}</p>
+                </div>` : ''}
+                <button onclick="prevStory()" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white hover:text-white/70">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button onclick="nextStory()" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white hover:text-white/70">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Auto-advance après 5 secondes
+        storyTimer = setTimeout(() => {
+            if (document.getElementById('story-modal')) {
+                nextStory();
+            }
+        }, 5000);
+    }
+    
+    function nextStory() {
+        if (currentStoryIndex < currentAuthorStories.length - 1) {
+            currentStoryIndex++;
+            closeStoryModal();
+            renderStoryModal();
+        } else {
+            closeStoryModal();
+        }
+    }
+    
+    function prevStory() {
+        if (currentStoryIndex > 0) {
+            currentStoryIndex--;
+            closeStoryModal();
+            renderStoryModal();
+        }
+    }
+    
+    function closeStoryModal() {
+        clearTimeout(storyTimer);
+        const modal = document.getElementById('story-modal');
+        if (modal) modal.remove();
+    }
+    
+    async function markStoryAsViewed(storyId) {
+        try {
+            await apiFetch(`${API}/stories/${storyId}/view`, { method: 'POST' });
+        } catch (e) {
+            console.error('[markStoryAsViewed] Erreur:', e);
+        }
+    }
+    
+    function openCreateStoryModal() {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
+        modal.id = 'create-story-modal';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-extrabold text-navy">Créer une story</h3>
+                    <button onclick="closeCreateStoryModal()" class="text-outline hover:text-navy">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-navy mb-2">Texte (optionnel)</label>
+                        <textarea id="story-content" rows="3" placeholder="Ajoutez une légende..." class="w-full px-4 py-3 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-navy mb-2">Média (optionnel)</label>
+                        <input type="file" id="story-media" accept="image/*,video/*" class="w-full px-4 py-3 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                        <p class="text-xs text-outline mt-1">Image ou vidéo (max 60s)</p>
+                    </div>
+                    <div id="story-media-preview" class="hidden">
+                        <div id="story-media-container"></div>
+                        <button onclick="clearStoryMedia()" class="mt-2 text-error text-xs font-bold">Supprimer le média</button>
+                    </div>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button onclick="closeCreateStoryModal()" class="flex-1 px-6 py-3 border border-border-light rounded-xl font-bold text-outline hover:bg-background">Annuler</button>
+                    <button onclick="createStory()" class="flex-1 btn-primary px-6 py-3 rounded-xl font-bold">Publier</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Event listener pour la prévisualisation
+        const mediaInput = document.getElementById('story-media');
+        mediaInput.addEventListener('change', function() {
+            const preview = document.getElementById('story-media-preview');
+            const container = document.getElementById('story-media-container');
+            
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (file.type.startsWith('video/')) {
+                        container.innerHTML = `<video src="${e.target.result}" class="w-full h-48 object-cover rounded-xl" controls></video>`;
+                    } else {
+                        container.innerHTML = `<img src="${e.target.result}" class="w-full h-48 object-cover rounded-xl">`;
+                    }
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    function closeCreateStoryModal() {
+        const modal = document.getElementById('create-story-modal');
+        if (modal) modal.remove();
+    }
+    
+    function clearStoryMedia() {
+        const mediaInput = document.getElementById('story-media');
+        const preview = document.getElementById('story-media-preview');
+        const container = document.getElementById('story-media-container');
+        
+        mediaInput.value = '';
+        container.innerHTML = '';
+        preview.classList.add('hidden');
+    }
+    
+    async function createStory() {
+        const contentInput = document.getElementById('story-content');
+        const mediaInput = document.getElementById('story-media');
+        const content = contentInput.value.trim();
+        
+        if (!content && mediaInput.files.length === 0) {
+            alert('Veuillez entrer du texte ou ajouter un média');
+            return;
+        }
+        
+        const formData = new FormData();
+        if (content) formData.append('content', content);
+        if (mediaInput.files.length > 0) formData.append('media', mediaInput.files[0]);
+        
+        try {
+            const res = await apiFetch(`${API}/stories`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                closeCreateStoryModal();
+                loadStories();
+            } else {
+                alert(data.error?.message || 'Erreur lors de la création de la story');
+            }
+        } catch (e) {
+            console.error('[createStory] Erreur:', e);
+            alert('Erreur de connexion');
+        }
     }
     
     // Locks pour éviter les doubles appels réseau
