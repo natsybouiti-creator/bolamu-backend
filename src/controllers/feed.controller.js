@@ -256,7 +256,7 @@ exports.getComments = async (req, res) => {
         }
 
         const result = await pool.query(`
-            SELECT pc.*, u.full_name AS author_name, u.photo_url AS author_avatar,
+            SELECT pc.*, pc.phone AS author_phone, u.full_name AS author_name, u.photo_url AS author_avatar,
                 u.role, d.specialty
             FROM post_comments pc
             JOIN users u ON u.phone = pc.phone

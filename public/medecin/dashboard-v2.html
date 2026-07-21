@@ -10,6 +10,7 @@
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <link rel="stylesheet" href="/css/bolamu-chat-window.css">
 <script src="/js/bolamu-chat-window.js"></script>
+<script src="/js/bolamu-profile-card.js"></script>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -1516,11 +1517,11 @@
                         <div class="flex justify-between items-start mb-6">
                             <div class="flex items-center gap-4">
                                 <div class="relative">
-                                    <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm">${(p.author_name || p.author || 'D').charAt(0)}</div>
+                                    <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm cursor-pointer" onclick="event.stopPropagation(); BolamuProfileCard.open('${p.author_phone || ''}')">${(p.author_name || p.author || 'D').charAt(0)}</div>
                                     <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-white rounded-full"></span>
                                 </div>
                                 <div>
-                                    <p class="font-extrabold text-navy text-base">${p.author_name || p.author || '—'}</p>
+                                    <p class="font-extrabold text-navy text-base cursor-pointer" onclick="event.stopPropagation(); BolamuProfileCard.open('${p.author_phone || ''}')">${p.author_name || p.author || '—'}</p>
                                     <p class="text-[10px] text-primary font-black uppercase tracking-widest">${p.role || 'Médecin'}</p>
                                 </div>
                             </div>
@@ -1608,12 +1609,12 @@
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">
                     ${user.avatar_url 
-                        ? `<img src="${user.avatar_url}" class="w-full h-full rounded-full object-cover">`
+                        ? `<img src="${user.avatar_url}" class="w-full h-full rounded-full object-cover cursor-pointer" onclick="BolamuProfileCard.open('${user.phone}')">`
                         : (user.full_name || 'A').charAt(0)
                     }
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-navy truncate">${user.full_name || '—'}</p>
+                    <p class="text-xs font-bold text-navy truncate cursor-pointer" onclick="BolamuProfileCard.open('${user.phone}')">${user.full_name || '—'}</p>
                     <p class="text-[10px] text-outline truncate">${user.city || '—'}</p>
                 </div>
                 <button onclick="toggleFollow('${user.phone}', this)" class="text-error text-xs font-bold hover:text-error/80">Ne plus suivre</button>
@@ -1633,12 +1634,12 @@
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">
                     ${user.avatar_url 
-                        ? `<img src="${user.avatar_url}" class="w-full h-full rounded-full object-cover">`
+                        ? `<img src="${user.avatar_url}" class="w-full h-full rounded-full object-cover cursor-pointer" onclick="BolamuProfileCard.open('${user.phone}')">`
                         : (user.full_name || 'A').charAt(0)
                     }
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-navy truncate">${user.full_name || '—'}</p>
+                    <p class="text-xs font-bold text-navy truncate cursor-pointer" onclick="BolamuProfileCard.open('${user.phone}')">${user.full_name || '—'}</p>
                     <p class="text-[10px] text-outline truncate">${user.city || '—'}</p>
                 </div>
                 <button onclick="toggleFollow('${user.phone}', this)" class="btn-primary px-3 py-1 rounded-lg text-xs font-bold">Suivre</button>
@@ -2012,9 +2013,9 @@
         reelsList.innerHTML = reelsData.map((reel, index) => `
             <div class="card-custom p-6 hover:shadow-hover transition-all cursor-pointer" onclick="openReelViewer(${index})">
                 <div class="flex items-center gap-4 mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">${(reel.author_name || 'A').charAt(0)}</div>
+                    <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0 cursor-pointer" onclick="event.stopPropagation(); BolamuProfileCard.open('${reel.author_phone || ''}')">${(reel.author_name || 'A').charAt(0)}</div>
                     <div>
-                        <p class="font-extrabold text-navy text-base">${reel.author_name || '—'}</p>
+                        <p class="font-extrabold text-navy text-base cursor-pointer" onclick="event.stopPropagation(); BolamuProfileCard.open('${reel.author_phone || ''}')">${reel.author_name || '—'}</p>
                         <p class="text-[10px] text-primary font-black uppercase tracking-widest">${reel.author_role_label || 'Médecin'}</p>
                     </div>
                     <p class="text-[10px] font-bold text-outline uppercase tracking-widest bg-background px-3 py-1 rounded-lg border border-border-light ml-auto">${new Date(reel.created_at).toLocaleDateString('fr-FR')}</p>
@@ -2391,10 +2392,10 @@
                 } else {
                     listEl.innerHTML = data.data.map(c => `
                         <div class="flex gap-3 items-start">
-                            <div class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0">${(c.author_name || 'A').charAt(0)}</div>
+                            <div class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0 cursor-pointer" onclick="BolamuProfileCard.open('${c.author_phone || ''}')">${(c.author_name || 'A').charAt(0)}</div>
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-xs font-bold text-navy">${c.author_name || '—'}</span>
+                                    <span class="text-xs font-bold text-navy cursor-pointer" onclick="BolamuProfileCard.open('${c.author_phone || ''}')">${c.author_name || '—'}</span>
                                     <span class="text-[10px] text-outline">${c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—'}</span>
                                 </div>
                                 <p class="text-sm text-navy/80">${c.content || ''}</p>
