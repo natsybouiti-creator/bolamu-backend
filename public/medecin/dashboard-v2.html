@@ -130,9 +130,9 @@
 </div>
 </div>
 <div class="flex items-center gap-3 lg:gap-6">
-<button class="relative text-outline hover:text-primary transition-colors p-2.5 bg-background rounded-xl">
+<button onclick="toggleNotificationsDropdown()" class="relative text-outline hover:text-primary transition-colors p-2.5 bg-background rounded-xl">
 <span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-2.5 right-2.5 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+<span id="notification-badge" class="absolute top-2.5 right-2.5 w-2 h-2 bg-error rounded-full border-2 border-white hidden"></span>
 </button>
 <div class="h-8 w-[1px] bg-border-light mx-1 hidden sm:block"></div>
 <div class="flex items-center gap-3 cursor-pointer group" onclick="navigate('Mon profil')">
@@ -150,6 +150,16 @@
 <main class="lg:ml-[280px] mt-20 p-6 lg:p-10 min-h-screen pb-24 lg:pb-10" id="main-canvas">
 <!-- Content dynamic -->
 </main>
+<!-- NOTIFICATIONS DROPDOWN -->
+<div id="notifications-dropdown" class="fixed top-20 right-6 lg:right-10 w-96 max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-border-light hidden z-50 overflow-hidden">
+<div class="p-4 border-b border-border-light flex justify-between items-center bg-background">
+<h3 class="text-sm font-extrabold text-navy uppercase tracking-widest">Notifications</h3>
+<button onclick="markAllNotificationsAsRead()" class="text-xs font-bold text-primary hover:text-primary/80">Tout marquer comme lu</button>
+</div>
+<div id="notifications-list" class="overflow-y-auto max-h-[60vh]">
+<div class="p-8 text-center text-outline">Chargement...</div>
+</div>
+</div>
 <!-- MODALS -->
 <div class="fixed inset-0 bg-navy/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 lg:p-10" id="consultation-modal">
 <div class="bg-white w-full max-w-5xl h-full lg:max-h-[85vh] overflow-hidden rounded-2xl flex flex-col shadow-2xl animate-in fade-in zoom-in duration-300">
@@ -202,6 +212,8 @@
     const state = {
         currentPanel: 'Accueil',
         activeConsultation: null,
+        notifications: [],
+        unreadCount: 0,
         activeCity: 'Tout',
         doctor: null,
         patients: [],
@@ -289,6 +301,7 @@
             sb.classList.add('hidden');
             sb.classList.remove('active');
         }
+        loadNotificationsBadge();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -2192,6 +2205,133 @@
         }
     }
     
+    // Notifications
+    let notificationInterval = null;
+    let notificationLocks = {};
+    
+    async function loadNotificationsBadge() {
+        try {
+            const res = await apiFetch(`${API}/notifications/unread-count`);
+            const data = await res.json();
+            
+            if (data.success) {
+                state.unreadCount = data.count || 0;
+                const badge = document.getElementById('notification-badge');
+                if (badge) {
+                    badge.classList.toggle('hidden', state.unreadCount === 0);
+                }
+            }
+        } catch (e) {
+            console.error('[loadNotificationsBadge] Erreur:', e);
+        }
+    }
+    
+    async function loadNotifications() {
+        try {
+            const res = await apiFetch(`${API}/notifications`);
+            const data = await res.json();
+            
+            if (data.success) {
+                state.notifications = data.data || [];
+                renderNotificationsList();
+            }
+        } catch (e) {
+            console.error('[loadNotifications] Erreur:', e);
+        }
+    }
+    
+    function renderNotificationsList() {
+        const list = document.getElementById('notifications-list');
+        
+        if (state.notifications.length === 0) {
+            list.innerHTML = '<div class="p-8 text-center text-outline">Aucune notification</div>';
+            return;
+        }
+        
+        list.innerHTML = state.notifications.map(notif => `
+            <div onclick="handleNotificationClick('${notif.id}', '${notif.link || ''}')" class="p-4 border-b border-border-light cursor-pointer hover:bg-background transition-colors ${notif.is_read ? 'opacity-60' : ''}">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-primary text-lg">${notif.type === 'new_follower' ? 'person_add' : notif.type === 'new_comment' ? 'chat_bubble' : 'notifications'}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-navy">${notif.titre || 'Notification'}</p>
+                        <p class="text-xs text-outline mt-1 line-clamp-2">${notif.message || ''}</p>
+                        <p class="text-[10px] text-outline mt-2">${new Date(notif.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    ${!notif.is_read ? '<div class="w-2 h-2 bg-error rounded-full flex-shrink-0 mt-2"></div>' : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function toggleNotificationsDropdown() {
+        const dropdown = document.getElementById('notifications-dropdown');
+        const isHidden = dropdown.classList.contains('hidden');
+        
+        if (isHidden) {
+            dropdown.classList.remove('hidden');
+            loadNotifications();
+        } else {
+            dropdown.classList.add('hidden');
+        }
+    }
+    
+    async function handleNotificationClick(id, link) {
+        if (notificationLocks[id]) return;
+        notificationLocks[id] = true;
+        
+        try {
+            const res = await apiFetch(`${API}/notifications/${id}/read`, {
+                method: 'PATCH'
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                const notif = state.notifications.find(n => n.id === id);
+                if (notif) notif.is_read = true;
+                renderNotificationsList();
+                loadNotificationsBadge();
+                
+                if (link) {
+                    // Les liens sont des routes internes SPA (ex: /patient/dashboard.html?panel=feed)
+                    // Pour le dashboard médecin, on ignore les liens vers d'autres dashboards
+                    // ou on pourrait les ouvrir dans un nouvel onglet
+                    if (link.includes('/medecin/')) {
+                        // Navigation SPA pour liens dashboard médecin
+                        const urlParams = new URLSearchParams(link.split('?')[1]);
+                        const panel = urlParams.get('panel');
+                        if (panel) navigate(panel);
+                    } else {
+                        // Lien vers un autre dashboard (patient, etc.) → nouvel onglet
+                        window.open(link, '_blank');
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('[handleNotificationClick] Erreur:', e);
+        } finally {
+            notificationLocks[id] = false;
+        }
+    }
+    
+    async function markAllNotificationsAsRead() {
+        try {
+            const res = await apiFetch(`${API}/notifications/read-all`, {
+                method: 'PATCH'
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                state.notifications.forEach(n => n.is_read = true);
+                renderNotificationsList();
+                loadNotificationsBadge();
+            }
+        } catch (e) {
+            console.error('[markAllNotificationsAsRead] Erreur:', e);
+        }
+    }
+    
     // Locks pour éviter les doubles appels réseau
     const likeLocks = {};
     const commentLocks = {};
@@ -2829,6 +2969,11 @@
             window.location.href = '/login.html';
             return;
         }
+        
+        // Initialiser le polling des notifications (une seule fois)
+        loadNotificationsBadge();
+        if (notificationInterval) clearInterval(notificationInterval);
+        notificationInterval = setInterval(loadNotificationsBadge, 60000);
 
         renderNavigation();
         renderContent();
