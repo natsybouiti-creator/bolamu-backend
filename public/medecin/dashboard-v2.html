@@ -1460,6 +1460,21 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- SIDEBAR -->
+                <div class="lg:col-span-1 space-y-8">
+                    <!-- FOLLOWING -->
+                    <div class="card-custom p-6">
+                        <h3 class="text-sm font-extrabold text-navy mb-4 uppercase tracking-widest">Abonnements</h3>
+                        <div id="following-list" class="space-y-4"></div>
+                    </div>
+                    
+                    <!-- SUGGESTIONS -->
+                    <div class="card-custom p-6">
+                        <h3 class="text-sm font-extrabold text-navy mb-4 uppercase tracking-widest">Suggestions</h3>
+                        <div id="suggestions-list" class="space-y-4"></div>
+                    </div>
+                </div>
             </div>
         `;
         
@@ -1487,6 +1502,7 @@
             } else {
                 loadStories();
                 const res = await apiFetch(`${API}/feed`);
+                loadFollowsAndSuggestions();
                 const data = await res.json();
                 const posts = res.ok ? (data.data || []) : [];
 
@@ -1552,6 +1568,137 @@
     function switchTab(tab) {
         state.activeTab = tab;
         renderFeed(document.getElementById('main-canvas'));
+    }
+    
+    // Follows & Suggestions
+    let followingData = [];
+    let suggestionsData = [];
+    let followLocks = {};
+    
+    async function loadFollowsAndSuggestions() {
+        try {
+            const [followingRes, suggestionsRes] = await Promise.all([
+                apiFetch(`${API}/follows/following`),
+                apiFetch(`${API}/feed/suggestions`)
+            ]);
+            
+            const followingDataResult = await followingRes.json();
+            const suggestionsDataResult = await suggestionsRes.json();
+            
+            if (followingDataResult.success) {
+                followingData = followingDataResult.data || [];
+                renderFollowingList();
+            }
+            
+            if (suggestionsDataResult.success) {
+                suggestionsData = suggestionsDataResult.data || [];
+                renderSuggestionsList();
+            }
+        } catch (e) {
+            console.error('[loadFollowsAndSuggestions] Erreur:', e);
+        }
+    }
+    
+    function renderFollowingList() {
+        const followingList = document.getElementById('following-list');
+        
+        if (followingData.length === 0) {
+            followingList.innerHTML = '<p class="text-xs text-outline">Aucun abonnement</p>';
+            return;
+        }
+        
+        followingList.innerHTML = followingData.slice(0, 5).map(user => `
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">
+                    ${user.avatar_url 
+                        ? `<img src="${user.avatar_url}" class="w-full h-full rounded-full object-cover">`
+                        : (user.full_name || 'A').charAt(0)
+                    }
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-navy truncate">${user.full_name || '—'}</p>
+                    <p class="text-[10px] text-outline truncate">${user.city || '—'}</p>
+                </div>
+                <button onclick="toggleFollow('${user.phone}', this)" class="text-error text-xs font-bold hover:text-error/80">Ne plus suivre</button>
+            </div>
+        `).join('');
+    }
+    
+    function renderSuggestionsList() {
+        const suggestionsList = document.getElementById('suggestions-list');
+        
+        if (suggestionsData.length === 0) {
+            suggestionsList.innerHTML = '<p class="text-xs text-outline">Aucune suggestion</p>';
+            return;
+        }
+        
+        suggestionsList.innerHTML = suggestionsData.slice(0, 5).map(user => `
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">
+                    ${user.avatar_url 
+                        ? `<img src="${user.avatar_url}" class="w-full h-full rounded-full object-cover">`
+                        : (user.full_name || 'A').charAt(0)
+                    }
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-navy truncate">${user.full_name || '—'}</p>
+                    <p class="text-[10px] text-outline truncate">${user.city || '—'}</p>
+                </div>
+                <button onclick="toggleFollow('${user.phone}', this)" class="btn-primary px-3 py-1 rounded-lg text-xs font-bold">Suivre</button>
+            </div>
+        `).join('');
+    }
+    
+    async function toggleFollow(phone, button) {
+        if (followLocks[phone]) return;
+        followLocks[phone] = true;
+        
+        const isFollowing = button.textContent === 'Ne plus suivre';
+        
+        try {
+            const res = await apiFetch(`${API}/follows/${phone}`, {
+                method: isFollowing ? 'DELETE' : 'POST'
+            });
+            const data = await res.json();
+            
+            if (data.status === 'pending_request') {
+                // Compte privé : demande envoyée
+                button.textContent = 'Demande envoyée';
+                button.className = 'text-outline text-xs font-bold bg-background px-3 py-1 rounded-lg cursor-not-allowed';
+                button.disabled = true;
+                // Remove from suggestions
+                suggestionsData = suggestionsData.filter(u => u.phone !== phone);
+                renderSuggestionsList();
+            } else if (data.success) {
+                // Optimistic UI update
+                if (isFollowing) {
+                    button.textContent = 'Suivre';
+                    button.className = 'btn-primary px-3 py-1 rounded-lg text-xs font-bold';
+                    // Remove from following list
+                    followingData = followingData.filter(u => u.phone !== phone);
+                    renderFollowingList();
+                } else {
+                    button.textContent = 'Ne plus suivre';
+                    button.className = 'text-error text-xs font-bold hover:text-error/80';
+                    // Add to following list
+                    const user = suggestionsData.find(u => u.phone === phone);
+                    if (user) {
+                        followingData.unshift(user);
+                        renderFollowingList();
+                    }
+                    // Remove from suggestions
+                    suggestionsData = suggestionsData.filter(u => u.phone !== phone);
+                    renderSuggestionsList();
+                }
+            } else {
+                alert(data.error?.message || 'Erreur lors de l\'action');
+            }
+        } catch (e) {
+            console.error('[toggleFollow] Erreur:', e);
+            alert('Erreur de connexion');
+        } finally {
+            followLocks[phone] = false;
+        }
     }
 
     function filterCity(city) {
