@@ -1309,10 +1309,9 @@
             list.innerHTML = d.data.map(conv => {
                 const name = conv.other_name || 'Contact';
                 const photo = conv.other_photo_url || null;
-                const initials = name.charAt(0).toUpperCase();
-                const avatarHtml = photo 
-                    ? `<img src="${photo}" style="width:44px;height:44px;border-radius:50%;object-cover;flex-shrink:0;">`
-                    : `<span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#0A2463;color:#fff;font-weight:800;flex-shrink:0;">${initials}</span>`;
+                const avatarHtml = (window.BolamuAvatar && typeof window.BolamuAvatar.render === 'function')
+                    ? window.BolamuAvatar.render({ photoUrl: photo, fullName: name, size: 44 })
+                    : `<span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:#0A2463;color:#fff;font-weight:800;flex-shrink:0;">${name.charAt(0).toUpperCase()}</span>`;
                 const lastMsg = conv.last_message ? escBcw(conv.last_message.length > 50 ? conv.last_message.slice(0, 50) + '…' : conv.last_message) : 'Aucun message';
                 const time = conv.last_message_at ? bcwTimeAgo(conv.last_message_at) : '';
                 const unread = parseInt(conv.unread_count) || 0;
@@ -3741,10 +3740,9 @@
                 return;
             }
             results.innerHTML = d.data.map(u => {
-                const initials = (u.full_name || '?').charAt(0).toUpperCase();
-                const avatarHtml = u.photo_url 
-                    ? `<img src="${u.photo_url}" class="w-10 h-10 rounded-full object-cover">`
-                    : `<span class="w-10 h-10 rounded-full bg-navy text-white font-bold flex items-center justify-center">${initials}</span>`;
+                const avatarHtml = (window.BolamuAvatar && typeof window.BolamuAvatar.render === 'function')
+                    ? window.BolamuAvatar.render({ photoUrl: u.photo_url, fullName: u.full_name, size: 36 })
+                    : `<span class="w-10 h-10 rounded-full bg-navy text-white font-bold flex items-center justify-center">${(u.full_name || '?').charAt(0).toUpperCase()}</span>`;
                 return `<div onclick="startConversationWith('${escBcw(u.phone)}', '${escBcw(u.full_name).replace(/'/g, "\\'")}', '${escBcw(u.photo_url || '').replace(/'/g, "\\'")}')" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-background transition-colors">
                     ${avatarHtml}
                     <div><div class="font-bold text-navy text-sm">${escBcw(u.full_name)}</div><div class="text-xs text-outline">${escBcw(u.role || '')}</div></div>
