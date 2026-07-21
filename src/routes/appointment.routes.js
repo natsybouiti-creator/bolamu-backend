@@ -445,4 +445,46 @@ router.post('/:id/symptoms', authMiddleware, async (req, res) => {
   }
 });
 
+// Recherche RDV (accessible aux médecins)
+router.get('/search', authMiddleware, doctorOnly, async (req, res) => {
+  try {
+    const { q } = req.query;
+    const doctorPhone = req.user.phone;
+
+    if (!q || q.length < 2) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Récupérer d'abord l'ID du médecin
+    const doctorResult = await pool.query(
+      'SELECT id FROM doctors WHERE phone = $1',
+      [doctorPhone]
+    );
+
+    if (!doctorResult.rows.length) {
+      return res.status(404).json({ success: false, message: 'Médecin introuvable' });
+    }
+
+    const doctorId = doctorResult.rows[0].id;
+    const searchTerm = `%${q}%`;
+
+    const result = await pool.query(
+      `SELECT a.id, a.patient_phone, a.appointment_date, a.appointment_time, a.status, a.motif,
+              u.full_name as patient_name, u.photo_url as patient_photo
+       FROM appointments a
+       LEFT JOIN users u ON u.phone = a.patient_phone
+       WHERE a.doctor_id = $1
+       AND (u.full_name ILIKE $2 OR a.patient_phone ILIKE $2 OR a.motif ILIKE $2)
+       ORDER BY a.appointment_date DESC, a.appointment_time DESC
+       LIMIT 20`,
+      [doctorId, searchTerm]
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[appointments-search]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
 module.exports = router;

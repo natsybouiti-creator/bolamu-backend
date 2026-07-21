@@ -129,7 +129,8 @@
 <button class="lg:hidden p-2 text-primary" onclick="toggleSidebar()"><span class="material-symbols-outlined">menu</span></button>
 <div class="relative w-full max-w-md hidden sm:block">
 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
-<input class="w-full bg-background border border-border-light rounded-xl py-2.5 pl-12 pr-4 focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none text-sm transition-all" placeholder="Rechercher un patient, un RDV..." type="text"/>
+<input id="top-search-input" class="w-full bg-background border border-border-light rounded-xl py-2.5 pl-12 pr-4 focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none text-sm transition-all" placeholder="Rechercher un patient, un RDV..." type="text" oninput="handleTopSearch(this.value)"/>
+<div id="top-search-results" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-border-light hidden z-50 max-h-96 overflow-y-auto"></div>
 </div>
 </div>
 <div class="flex items-center gap-3 lg:gap-6">
@@ -1247,6 +1248,7 @@
 
     let chatSocket = null;
     var bcwUnread = 0;
+    var topSearchDebounce = null;
 
     function escBcw(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
@@ -3722,6 +3724,137 @@
         const modal = document.getElementById('bcw-new-conv-modal');
         if (modal) modal.remove();
     }
+    
+    // Recherche top bar (patients + RDV)
+    function handleTopSearch(value) {
+        const resultsDiv = document.getElementById('top-search-results');
+        clearTimeout(topSearchDebounce);
+        
+        if (!value || value.length < 2) {
+            if (resultsDiv) resultsDiv.classList.add('hidden');
+            return;
+        }
+        
+        topSearchDebounce = setTimeout(() => performSearch(value), 300);
+    }
+    
+    async function performSearch(query) {
+        const resultsDiv = document.getElementById('top-search-results');
+        if (!resultsDiv) return;
+        
+        resultsDiv.classList.remove('hidden');
+        resultsDiv.innerHTML = '<div class="p-4 text-center text-outline text-sm">Recherche...</div>';
+        
+        try {
+            const [patientsRes, appointmentsRes] = await Promise.all([
+                apiFetch(`${API}/doctors/patients/search?q=${encodeURIComponent(query)}`),
+                apiFetch(`${API}/appointments/search?q=${encodeURIComponent(query)}`)
+            ]);
+            
+            const patientsData = await patientsRes.json();
+            const appointmentsData = await appointmentsRes.json();
+            
+            const patients = patientsData.success ? (patientsData.data || []) : [];
+            const appointments = appointmentsData.success ? (appointmentsData.data || []) : [];
+            
+            renderSearchResults(patients, appointments);
+        } catch (e) {
+            console.error('[top-search]', e);
+            resultsDiv.innerHTML = '<div class="p-4 text-center text-error text-sm">Erreur de recherche</div>';
+        }
+    }
+    
+    function renderSearchResults(patients, appointments) {
+        const resultsDiv = document.getElementById('top-search-results');
+        if (!resultsDiv) return;
+        
+        if (!patients.length && !appointments.length) {
+            resultsDiv.innerHTML = '<div class="p-4 text-center text-outline text-sm">Aucun résultat</div>';
+            return;
+        }
+        
+        let html = '';
+        
+        if (patients.length > 0) {
+            html += '<div class="p-2"><div class="text-xs font-black text-outline uppercase tracking-widest mb-2 px-2">Patients</div>';
+            patients.forEach(p => {
+                const avatarHtml = (window.BolamuAvatar && typeof window.BolamuAvatar.render === 'function')
+                    ? window.BolamuAvatar.render({ photoUrl: p.photo_url, fullName: p.full_name, role: 'patient', size: 32 })
+                    : `<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#0A2463;color:#fff;font-weight:800;">${(p.full_name || 'P').charAt(0)}</span>`;
+                html += `<div onclick="openPatientFromSearch('${p.phone}')" class="flex items-center gap-3 p-2 hover:bg-background rounded-lg cursor-pointer transition-colors">
+                    ${avatarHtml}
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-navy text-sm truncate">${escBcw(p.full_name || '—')}</div>
+                        <div class="text-xs text-outline truncate">${escBcw(p.phone || '')}</div>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+        }
+        
+        if (appointments.length > 0) {
+            html += '<div class="p-2 border-t border-border-light"><div class="text-xs font-black text-outline uppercase tracking-widest mb-2 px-2">RDV</div>';
+            appointments.forEach(a => {
+                const dateStr = a.appointment_date ? new Date(a.appointment_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—';
+                const timeStr = a.appointment_time ? a.appointment_time.slice(0, 5) : '—';
+                const statusColors = {
+                    'confirme': 'text-secondary',
+                    'en_attente': 'text-amber',
+                    'annule': 'text-error',
+                    'termine': 'text-outline',
+                    'en_cours': 'text-primary'
+                };
+                const statusColor = statusColors[a.status] || 'text-outline';
+                html += `<div onclick="openAppointmentFromSearch(${a.id})" class="flex items-center gap-3 p-2 hover:bg-background rounded-lg cursor-pointer transition-colors">
+                    <div class="w-10 h-10 rounded-xl bg-background flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-lg">calendar_today</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-navy text-sm truncate">${escBcw(a.patient_name || 'Patient inconnu')}</div>
+                        <div class="text-xs text-outline">${dateStr} • ${timeStr}</div>
+                    </div>
+                    <div class="text-xs font-black ${statusColor} uppercase">${a.status || '—'}</div>
+                </div>`;
+            });
+            html += '</div>';
+        }
+        
+        resultsDiv.innerHTML = html;
+    }
+    
+    function openPatientFromSearch(phone) {
+        const resultsDiv = document.getElementById('top-search-results');
+        if (resultsDiv) resultsDiv.classList.add('hidden');
+        document.getElementById('top-search-input').value = '';
+        
+        // Naviguer vers Mes patients et ouvrir la fiche
+        navigate('Mes patients');
+        setTimeout(() => {
+            // Appeler la fonction existante pour afficher la fiche patient
+            if (typeof afficherFichePatientMedecin === 'function') {
+                afficherFichePatientMedecin({ phone: phone }, document.getElementById('main-canvas'));
+            }
+        }, 100);
+    }
+    
+    function openAppointmentFromSearch(appointmentId) {
+        const resultsDiv = document.getElementById('top-search-results');
+        if (resultsDiv) resultsDiv.classList.add('hidden');
+        document.getElementById('top-search-input').value = '';
+        
+        // Naviguer vers Mes RDV et ouvrir les détails
+        navigate('Mes RDV');
+        // TODO: Implémenter l'ouverture des détails RDV
+    }
+    
+    // Fermer les résultats si on clique ailleurs
+    document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.relative.w-full.max-w-md');
+        if (searchContainer && !searchContainer.contains(e.target)) {
+            const resultsDiv = document.getElementById('top-search-results');
+            if (resultsDiv) resultsDiv.classList.add('hidden');
+        }
+    });
     
     function onSearchInput(e) {
         const q = e.target.value.trim();

@@ -44,6 +44,33 @@ router.patch('/profil', authMiddleware, doctorOnly, updateDoctorProfile);
 // Générer QR Code pour un patient (côté médecin)
 router.get('/patients/:phone/qrcode', authMiddleware, generatePatientQRCode);
 
+// Recherche patients (accessible aux médecins)
+router.get('/patients/search', authMiddleware, doctorOnly, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.length < 2) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const searchTerm = `%${q}%`;
+    const result = await pool.query(
+      `SELECT u.phone, u.full_name, u.photo_url, u.city, u.is_active
+       FROM users u
+       WHERE u.role = 'patient'
+       AND u.is_active = true
+       AND (u.full_name ILIKE $1 OR u.phone ILIKE $1)
+       ORDER BY u.full_name
+       LIMIT 20`,
+      [searchTerm]
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[doctor-patients-search]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
 // Créneaux horaires
 router.post('/slots', authMiddleware, createTimeSlot);
 router.get('/slots', authMiddleware, getTimeSlots);
