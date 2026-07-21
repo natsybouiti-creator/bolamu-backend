@@ -1618,7 +1618,7 @@
                     if (isReel && p.photo_url) {
                         const video = document.createElement('video');
                         video.src = p.photo_url;
-                        video.className = 'w-full h-auto rounded-xl mb-8';
+                        video.className = 'w-full max-h-[500px] object-cover rounded-xl mb-8';
                         video.controls = true;
                         video.playsInline = true;
                         video.muted = true;
@@ -1628,7 +1628,7 @@
                     } else if (p.photo_url) {
                         const img = document.createElement('img');
                         img.src = p.photo_url;
-                        img.className = 'w-full h-auto rounded-xl mb-8';
+                        img.className = 'w-full max-h-[500px] object-cover rounded-xl mb-8';
                         img.alt = 'Photo du post';
                         img.loading = 'lazy';
                         div.appendChild(img);
