@@ -1592,6 +1592,20 @@
                     meta.textContent = `${p.city || 'Brazzaville'} • ${timeAgo}`;
                     header.appendChild(meta);
 
+                    if (isSystem) {
+                        const systemBadge = document.createElement('span');
+                        systemBadge.className = 'ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold bg-secondary/12 text-secondary';
+                        systemBadge.textContent = 'Activité';
+                        header.appendChild(systemBadge);
+                    }
+
+                    if (isReel) {
+                        const reelBadge = document.createElement('span');
+                        reelBadge.className = 'ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber/12 text-amber';
+                        reelBadge.textContent = 'Reel';
+                        header.appendChild(reelBadge);
+                    }
+
                     div.appendChild(header);
 
                     if (p.content) {
