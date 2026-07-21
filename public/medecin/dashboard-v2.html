@@ -110,13 +110,6 @@
 </div>
 <nav class="flex-1 space-y-1 overflow-y-auto px-4 hide-scroll" id="sidebar-nav"></nav>
 <div class="px-4 mt-auto space-y-2">
-<div class="bg-white/5 rounded-2xl p-4 flex items-center gap-3 border border-white/10" id="sidebar-profil">
-<div class="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-white font-bold shadow-lg" id="sidebar-initials">MJ</div>
-<div class="overflow-hidden">
-<p class="text-sm font-bold text-white truncate" id="sidebar-name">Dr. Moukala J.</p>
-<p class="text-xs text-white/50" id="sidebar-specialty">Cardiologue</p>
-</div>
-</div>
 <button onclick="deconnexion()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all">
 <span class="material-symbols-outlined text-xl">logout</span>
 <span class="text-sm font-medium">Déconnexion</span>
@@ -268,15 +261,6 @@
         const doctor = state.doctor;
         const fullName = doctor.full_name || 'Dr';
         const initials = fullName.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
-        
-        // Sidebar
-        const initialsEl = document.getElementById('sidebar-initials');
-        const nameEl = document.getElementById('sidebar-name');
-        const specialtyEl = document.getElementById('sidebar-specialty');
-        
-        if (initialsEl) initialsEl.textContent = initials || 'DR';
-        if (nameEl) nameEl.textContent = fullName || 'Dr. —';
-        if (specialtyEl) specialtyEl.textContent = doctor.specialty || 'Médecin';
         
         // Topbar
         const topbarNameEl = document.getElementById('topbar-name');
