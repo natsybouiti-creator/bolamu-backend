@@ -1390,14 +1390,31 @@
     }
 
     async function renderFeed(container) {
+        // Initialiser l'onglet actif avant la construction du HTML
+        if (!state.activeTab) state.activeTab = 'feed';
+        
         container.innerHTML = `
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
                 <div class="lg:col-span-3 space-y-8">
                     <!-- FILTERS -->
                     <div class="flex gap-2 overflow-x-auto hide-scroll">
                         ${state.cities.map(c => `
-                            <button onclick="filterCity('${c}')" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${state.activeCity === c ? 'bg-navy text-white shadow-lg' : 'bg-white border border-border-light text-outline hover:border-primary'}">${c}</button>
+                            <button onclick="filterCity('${c}')" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${state.activeCity === c && state.activeTab === 'feed' ? 'bg-navy text-white shadow-lg' : 'bg-white border border-border-light text-outline hover:border-primary'}">${c}</button>
                         `).join('')}
+                    </div>
+                    
+                    <!-- TABS -->
+                    <div class="flex gap-2 mb-6">
+                        <button onclick="switchTab('feed')" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${state.activeTab === 'feed' ? 'bg-navy text-white shadow-lg' : 'bg-white border border-border-light text-outline hover:border-primary'}">Feed</button>
+                        <button onclick="switchTab('reels')" class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${state.activeTab === 'reels' ? 'bg-navy text-white shadow-lg' : 'bg-white border border-border-light text-outline hover:border-primary'}">Reels</button>
+                    </div>
+
+                    <!-- REELS VIEW -->
+                    <div id="reels-view" class="hidden">
+                        <div id="reels-list" class="space-y-6"></div>
+                        <button onclick="openCreateReelModal()" class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors">
+                            <span class="material-symbols-outlined text-2xl">add</span>
+                        </button>
                     </div>
 
                     <!-- STORIES BANNER -->
@@ -1416,7 +1433,7 @@
                     </div>
 
                     <!-- CREATE POST FORM -->
-                    <div class="card-custom p-6 mb-8">
+                    <div id="feed-form" class="card-custom p-6 mb-8">
                         <div class="flex gap-3 mb-4">
                             <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">${(state.doctor?.full_name || 'D').charAt(0)}</div>
                             <div class="flex-1">
@@ -1465,61 +1482,76 @@
         }
 
         try {
-            loadStories();
-            const res = await apiFetch(`${API}/feed`);
-            const data = await res.json();
-            const posts = res.ok ? (data.data || []) : [];
+            if (state.activeTab === 'reels') {
+                loadReels();
+            } else {
+                loadStories();
+                const res = await apiFetch(`${API}/feed`);
+                const data = await res.json();
+                const posts = res.ok ? (data.data || []) : [];
 
-            const filteredPosts = state.activeCity === 'Tout' ? posts : posts.filter(p => p.city === state.activeCity);
+                const filteredPosts = state.activeCity === 'Tout' ? posts : posts.filter(p => p.city === state.activeCity);
 
-            const postsList = document.getElementById('feed-posts-list');
-            if (filteredPosts.length === 0) {
-                postsList.innerHTML = '<div class="text-center py-20"><p class="text-outline">Aucun post</p></div>';
-                return;
+                const postsList = document.getElementById('feed-posts-list');
+                if (filteredPosts.length === 0) {
+                    postsList.innerHTML = '<div class="text-center py-20"><p class="text-outline">Aucun post</p></div>';
+                    return;
+                }
+
+                postsList.innerHTML = filteredPosts.map(p => `
+                    <div class="card-custom p-8 hover:shadow-hover transition-all">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="relative">
+                                    <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm">${(p.author_name || p.author || 'D').charAt(0)}</div>
+                                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-white rounded-full"></span>
+                                </div>
+                                <div>
+                                    <p class="font-extrabold text-navy text-base">${p.author_name || p.author || '—'}</p>
+                                    <p class="text-[10px] text-primary font-black uppercase tracking-widest">${p.role || 'Médecin'}</p>
+                                </div>
+                            </div>
+                            <p class="text-[10px] font-bold text-outline uppercase tracking-widest bg-background px-3 py-1 rounded-lg border border-border-light">${p.city || 'Brazzaville'} • ${p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—'}</p>
+                        </div>
+                        <p class="text-sm font-medium leading-relaxed text-navy/80 mb-8">${p.content || p.text || '—'}</p>
+                        <div class="flex items-center gap-8 border-t border-border-light pt-6">
+                            <button onclick="toggleLike('${p.id}', this)" class="flex items-center gap-2.5 ${p.liked_by_me ? 'text-error' : 'text-outline'} hover:text-error transition-colors group" data-liked="${p.liked_by_me || false}" data-post-id="${p.id}">
+                                <span class="material-symbols-outlined text-xl ${p.liked_by_me ? 'fill-error' : ''}">favorite</span> 
+                                <span class="text-xs font-black like-count">${p.likes_count || p.likes || 0}</span>
+                            </button>
+                            <button onclick="toggleComments('${p.id}')" class="flex items-center gap-2.5 text-outline hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                                <span class="text-xs font-black">${p.comments_count || 0}</span>
+                            </button>
+                            <button class="flex items-center gap-2.5 text-outline hover:text-navy ml-auto transition-colors">
+                                <span class="material-symbols-outlined text-xl">share</span>
+                            </button>
+                        </div>
+                        <div id="comments-${p.id}" style="display:none;" class="mt-6 pt-6 border-t border-border-light">
+                            <div id="comments-list-${p.id}" class="space-y-4 mb-4"></div>
+                            <div class="flex gap-3">
+                                <input type="text" id="comment-input-${p.id}" placeholder="Écrire un commentaire..." class="flex-1 px-4 py-2 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                                <button onclick="addComment('${p.id}')" class="btn-primary px-4 py-2 rounded-xl text-xs font-black uppercase">Envoyer</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
             }
-
-            postsList.innerHTML = filteredPosts.map(p => `
-                <div class="card-custom p-8 hover:shadow-hover transition-all">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="flex items-center gap-4">
-                            <div class="relative">
-                                <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm">${(p.author_name || p.author || 'D').charAt(0)}</div>
-                                <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-white rounded-full"></span>
-                            </div>
-                            <div>
-                                <p class="font-extrabold text-navy text-base">${p.author_name || p.author || '—'}</p>
-                                <p class="text-[10px] text-primary font-black uppercase tracking-widest">${p.role || 'Médecin'}</p>
-                            </div>
-                        </div>
-                        <p class="text-[10px] font-bold text-outline uppercase tracking-widest bg-background px-3 py-1 rounded-lg border border-border-light">${p.city || 'Brazzaville'} • ${p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—'}</p>
-                    </div>
-                    <p class="text-sm font-medium leading-relaxed text-navy/80 mb-8">${p.content || p.text || '—'}</p>
-                    <div class="flex items-center gap-8 border-t border-border-light pt-6">
-                        <button onclick="toggleLike('${p.id}', this)" class="flex items-center gap-2.5 ${p.liked_by_me ? 'text-error' : 'text-outline'} hover:text-error transition-colors group" data-liked="${p.liked_by_me || false}" data-post-id="${p.id}">
-                            <span class="material-symbols-outlined text-xl ${p.liked_by_me ? 'fill-error' : ''}">favorite</span> 
-                            <span class="text-xs font-black like-count">${p.likes_count || p.likes || 0}</span>
-                        </button>
-                        <button onclick="toggleComments('${p.id}')" class="flex items-center gap-2.5 text-outline hover:text-primary transition-colors">
-                            <span class="material-symbols-outlined text-xl">chat_bubble</span>
-                            <span class="text-xs font-black">${p.comments_count || 0}</span>
-                        </button>
-                        <button class="flex items-center gap-2.5 text-outline hover:text-navy ml-auto transition-colors">
-                            <span class="material-symbols-outlined text-xl">share</span>
-                        </button>
-                    </div>
-                    <div id="comments-${p.id}" style="display:none;" class="mt-6 pt-6 border-t border-border-light">
-                        <div id="comments-list-${p.id}" class="space-y-4 mb-4"></div>
-                        <div class="flex gap-3">
-                            <input type="text" id="comment-input-${p.id}" placeholder="Écrire un commentaire..." class="flex-1 px-4 py-2 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
-                            <button onclick="addComment('${p.id}')" class="btn-primary px-4 py-2 rounded-xl text-xs font-black uppercase">Envoyer</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
         } catch (e) {
             console.error('[Feed] Erreur:', e);
             document.getElementById('feed-posts-list').innerHTML = '<div class="text-center py-20"><p class="text-error">Erreur de chargement</p></div>';
         }
+        
+        // Bascule de visibilité selon l'onglet actif
+        document.getElementById('reels-view').classList.toggle('hidden', state.activeTab !== 'reels');
+        document.getElementById('stories-banner').classList.toggle('hidden', state.activeTab !== 'feed');
+        document.getElementById('feed-form').classList.toggle('hidden', state.activeTab !== 'feed');
+        document.getElementById('feed-posts-list').classList.toggle('hidden', state.activeTab !== 'feed');
+    }
+    
+    function switchTab(tab) {
+        state.activeTab = tab;
+        renderFeed(document.getElementById('main-canvas'));
     }
 
     function filterCity(city) {
@@ -1802,6 +1834,229 @@
             }
         } catch (e) {
             console.error('[createStory] Erreur:', e);
+            alert('Erreur de connexion');
+        }
+    }
+    
+    // Reels
+    let reelsData = [];
+    let currentReelIndex = 0;
+    let reelTimer = null;
+    
+    async function loadReels() {
+        try {
+            const res = await apiFetch(`${API}/reels?limit=10`);
+            const data = await res.json();
+            
+            if (data.success && data.data) {
+                reelsData = data.data;
+                renderReelsList();
+            }
+        } catch (e) {
+            console.error('[loadReels] Erreur:', e);
+        }
+    }
+    
+    function renderReelsList() {
+        const reelsList = document.getElementById('reels-list');
+        
+        if (reelsData.length === 0) {
+            reelsList.innerHTML = '<div class="text-center py-20"><p class="text-outline">Aucun reel</p></div>';
+            return;
+        }
+        
+        reelsList.innerHTML = reelsData.map((reel, index) => `
+            <div class="card-custom p-6 hover:shadow-hover transition-all cursor-pointer" onclick="openReelViewer(${index})">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">${(reel.author_name || 'A').charAt(0)}</div>
+                    <div>
+                        <p class="font-extrabold text-navy text-base">${reel.author_name || '—'}</p>
+                        <p class="text-[10px] text-primary font-black uppercase tracking-widest">${reel.author_role_label || 'Médecin'}</p>
+                    </div>
+                    <p class="text-[10px] font-bold text-outline uppercase tracking-widest bg-background px-3 py-1 rounded-lg border border-border-light ml-auto">${new Date(reel.created_at).toLocaleDateString('fr-FR')}</p>
+                </div>
+                <div class="aspect-video bg-black rounded-xl overflow-hidden mb-4">
+                    <video src="${reel.photo_url}" class="w-full h-full object-cover" muted></video>
+                </div>
+                ${reel.content ? `<p class="text-sm font-medium leading-relaxed text-navy/80">${reel.content}</p>` : ''}
+                <div class="flex items-center gap-8 border-t border-border-light pt-4 mt-4">
+                    <button onclick="event.stopPropagation(); toggleLike('${reel.id}', this)" class="flex items-center gap-2.5 ${reel.liked_by_me ? 'text-error' : 'text-outline'} hover:text-error transition-colors group" data-liked="${reel.liked_by_me || false}" data-post-id="${reel.id}">
+                        <span class="material-symbols-outlined text-xl ${reel.liked_by_me ? 'fill-error' : ''}">favorite</span> 
+                        <span class="text-xs font-black like-count">${reel.likes_count || 0}</span>
+                    </button>
+                    <button onclick="event.stopPropagation(); toggleComments('${reel.id}')" class="flex items-center gap-2.5 text-outline hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                        <span class="text-xs font-black">${reel.comments_count || 0}</span>
+                    </button>
+                </div>
+                <div id="comments-${reel.id}" style="display:none;" class="mt-4 pt-4 border-t border-border-light">
+                    <div id="comments-list-${reel.id}" class="space-y-4 mb-4"></div>
+                    <div class="flex gap-3">
+                        <input type="text" id="comment-input-${reel.id}" placeholder="Écrire un commentaire..." class="flex-1 px-4 py-2 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                        <button onclick="addComment('${reel.id}')" class="btn-primary px-4 py-2 rounded-xl text-xs font-black uppercase">Envoyer</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function openReelViewer(index) {
+        currentReelIndex = index;
+        renderReelModal();
+    }
+    
+    function renderReelModal() {
+        clearTimeout(reelTimer);
+        
+        const reel = reelsData[currentReelIndex];
+        if (!reel) return;
+        
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black z-50 flex items-center justify-center';
+        modal.id = 'reel-modal';
+        modal.innerHTML = `
+            <div class="relative w-full max-w-lg h-[80vh] bg-black rounded-2xl overflow-hidden">
+                <button onclick="closeReelModal()" class="absolute top-4 right-4 z-10 text-white hover:text-white/70">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <div class="w-full h-full flex items-center justify-center">
+                    <video src="${reel.photo_url}" class="w-full h-full object-contain" autoplay muted loop controls></video>
+                </div>
+                ${reel.content ? `<div class="absolute bottom-8 left-4 right-4 z-10">
+                    <p class="text-white text-sm font-medium">${reel.content}</p>
+                </div>` : ''}
+                <button onclick="prevReel()" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white hover:text-white/70">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button onclick="nextReel()" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white hover:text-white/70">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+    
+    function nextReel() {
+        if (currentReelIndex < reelsData.length - 1) {
+            currentReelIndex++;
+            closeReelModal();
+            renderReelModal();
+        }
+    }
+    
+    function prevReel() {
+        if (currentReelIndex > 0) {
+            currentReelIndex--;
+            closeReelModal();
+            renderReelModal();
+        }
+    }
+    
+    function closeReelModal() {
+        clearTimeout(reelTimer);
+        const modal = document.getElementById('reel-modal');
+        if (modal) modal.remove();
+    }
+    
+    function openCreateReelModal() {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
+        modal.id = 'create-reel-modal';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-extrabold text-navy">Créer un reel</h3>
+                    <button onclick="closeCreateReelModal()" class="text-outline hover:text-navy">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-navy mb-2">Texte (optionnel)</label>
+                        <textarea id="reel-content" rows="3" placeholder="Ajoutez une légende..." class="w-full px-4 py-3 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-navy mb-2">Vidéo (requis)</label>
+                        <input type="file" id="reel-media" accept="video/*" class="w-full px-4 py-3 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                        <p class="text-xs text-outline mt-1">Vidéo (max 60s)</p>
+                    </div>
+                    <div id="reel-media-preview" class="hidden">
+                        <div id="reel-media-container"></div>
+                        <button onclick="clearReelMedia()" class="mt-2 text-error text-xs font-bold">Supprimer la vidéo</button>
+                    </div>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button onclick="closeCreateReelModal()" class="flex-1 px-6 py-3 border border-border-light rounded-xl font-bold text-outline hover:bg-background">Annuler</button>
+                    <button onclick="createReel()" class="flex-1 btn-primary px-6 py-3 rounded-xl font-bold">Publier</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Event listener pour la prévisualisation
+        const mediaInput = document.getElementById('reel-media');
+        mediaInput.addEventListener('change', function() {
+            const preview = document.getElementById('reel-media-preview');
+            const container = document.getElementById('reel-media-container');
+            
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    container.innerHTML = `<video src="${e.target.result}" class="w-full h-48 object-cover rounded-xl" controls></video>`;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    function closeCreateReelModal() {
+        const modal = document.getElementById('create-reel-modal');
+        if (modal) modal.remove();
+    }
+    
+    function clearReelMedia() {
+        const mediaInput = document.getElementById('reel-media');
+        const preview = document.getElementById('reel-media-preview');
+        const container = document.getElementById('reel-media-container');
+        
+        mediaInput.value = '';
+        container.innerHTML = '';
+        preview.classList.add('hidden');
+    }
+    
+    async function createReel() {
+        const contentInput = document.getElementById('reel-content');
+        const mediaInput = document.getElementById('reel-media');
+        const content = contentInput.value.trim();
+        
+        if (mediaInput.files.length === 0) {
+            alert('Veuillez ajouter une vidéo');
+            return;
+        }
+        
+        const formData = new FormData();
+        if (content) formData.append('content', content);
+        formData.append('media', mediaInput.files[0]);
+        
+        try {
+            const res = await apiFetch(`${API}/reels`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                closeCreateReelModal();
+                loadReels();
+            } else {
+                alert(data.error?.message || 'Erreur lors de la création du reel');
+            }
+        } catch (e) {
+            console.error('[createReel] Erreur:', e);
             alert('Erreur de connexion');
         }
     }
