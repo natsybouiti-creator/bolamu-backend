@@ -1262,7 +1262,10 @@
         if (window.__bolamuSocket) return;
         const token = getAuthToken();
         const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
-        if (!token || !phone) return;
+        if (!token || !phone) {
+            console.warn('[initBcwSocket] Token ou phone manquant, socket non initialisé');
+            return;
+        }
 
         window.__bolamuSocket = io('https://api.bolamu.co', {
             auth: { token },
@@ -1283,6 +1286,9 @@
             console.log('[Socket] Déconnecté');
         });
     }
+
+    // Initialiser le socket au démarrage de la page (comme le dashboard patient)
+    initBcwSocket();
 
     async function loadConversations() {
         const list = document.getElementById('bcw-conv-list');

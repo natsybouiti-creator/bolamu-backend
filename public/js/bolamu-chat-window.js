@@ -280,11 +280,35 @@
   }
 
   // ─────────────────────────────────────────────────────────────
+  // Affichage d'erreur visible à l'utilisateur
+  // ─────────────────────────────────────────────────────────────
+  function showError(message) {
+    var errorEl = document.createElement('div');
+    errorEl.className = 'bcw-error';
+    errorEl.textContent = message;
+    errorEl.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#BA1A1A;color:white;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+    document.body.appendChild(errorEl);
+    setTimeout(function () {
+      errorEl.style.opacity = '0';
+      errorEl.style.transition = 'opacity 0.3s';
+      setTimeout(function () { if (errorEl.parentNode) errorEl.parentNode.removeChild(errorEl); }, 300);
+    }, 3000);
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // Envoi — optimistic update, corrigé par new_message au retour
   // ─────────────────────────────────────────────────────────────
   function sendCurrentMessage() {
     var content = state.inputEl.value.trim();
-    if (!content || !state.socket) return;
+    if (!content) return;
+    if (!state.socket) {
+      showError('Connexion au chat en cours… Réessayez dans un instant.');
+      return;
+    }
+    if (!state.socket.connected) {
+      showError('Connexion perdue. Veuillez rafraîchir la page.');
+      return;
+    }
     state.inputEl.value = '';
     stopTypingNow();
 
