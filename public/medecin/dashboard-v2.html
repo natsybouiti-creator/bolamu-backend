@@ -317,6 +317,15 @@
         loadNotificationsBadge();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    
+    // Gérer le bouton retour du navigateur (pattern patient)
+    window.addEventListener('popstate', function (event) {
+        state.currentPanel = 'Accueil';
+        renderNavigation();
+        renderContent();
+        window.scrollTo(0, 0);
+        history.pushState({ dashboard: true }, '', window.location.href);
+    });
 
     function renderNavigation() {
         const side = document.getElementById('sidebar-nav');
@@ -3212,6 +3221,10 @@
             window.location.href = '/login.html';
             return;
         }
+        
+        // Initialiser l'historique (pattern patient)
+        history.replaceState({ dashboard: true }, '', window.location.href);
+        history.pushState({ dashboard: true }, '', window.location.href);
         
         // Initialiser le badge des notifications
         loadNotificationsBadge();
