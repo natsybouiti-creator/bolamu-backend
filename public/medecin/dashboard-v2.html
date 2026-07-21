@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="/css/bolamu-chat-window.css">
 <script src="/js/bolamu-chat-window.js"></script>
 <script src="/js/bolamu-profile-card.js"></script>
+<script src="/js/bolamu-avatar.js?v=2"></script>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -205,6 +206,16 @@
             || localStorage.getItem('bolamu_doctor_token')
             || localStorage.getItem('token')
             || null;
+    }
+
+    function formatTimeAgo(dateStr) {
+        const diff = Date.now() - new Date(dateStr).getTime();
+        const m = Math.floor(diff / 60000);
+        if (m < 1) return 'À l\'instant';
+        if (m < 60) return m + ' min';
+        const h = Math.floor(m / 60);
+        if (h < 24) return h + 'h';
+        return Math.floor(h / 24) + 'j';
     }
 
     const state = {
@@ -1443,6 +1454,12 @@
                         </div>
                         <div class="flex items-center justify-between gap-4">
                             <input type="file" id="post-photo" accept="image/*" class="hidden">
+                            <select id="post-city" class="px-4 py-2 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                                <option value="">Ville (optionnel)</option>
+                                <option value="Brazzaville">Brazzaville</option>
+                                <option value="Pointe-Noire">Pointe-Noire</option>
+                                <option value="Dolisie">Dolisie</option>
+                            </select>
                             <button onclick="document.getElementById('post-photo').click()" class="flex items-center gap-2 text-outline hover:text-primary transition-colors text-sm font-bold">
                                 <span class="material-symbols-outlined">add_photo_alternate</span> Ajouter une photo
                             </button>
@@ -1515,44 +1532,139 @@
                     return;
                 }
 
-                postsList.innerHTML = filteredPosts.map(p => `
-                    <div class="card-custom p-8 hover:shadow-hover transition-all">
-                        <div class="flex justify-between items-start mb-6">
-                            <div class="flex items-center gap-4">
-                                <div class="relative">
-                                    <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-bold shadow-sm cursor-pointer" onclick="BolamuProfileCard.open('${p.author_phone || ''}')">${(p.author_name || p.author || 'D').charAt(0)}</div>
-                                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-white rounded-full"></span>
-                                </div>
-                                <div>
-                                    <p class="font-extrabold text-navy text-base cursor-pointer" onclick="BolamuProfileCard.open('${p.author_phone || ''}')">${p.author_name || p.author || '—'}</p>
-                                    <p class="text-[10px] text-primary font-black uppercase tracking-widest">${p.role || 'Médecin'}</p>
-                                </div>
-                            </div>
-                            <p class="text-[10px] font-bold text-outline uppercase tracking-widest bg-background px-3 py-1 rounded-lg border border-border-light">${p.city || 'Brazzaville'} • ${p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '—'}</p>
+                postsList.innerHTML = '';
+                filteredPosts.forEach(p => {
+                    const isSystem = p.type === 'system';
+                    const isReel = p.type === 'reel';
+                    const timeAgo = formatTimeAgo(p.created_at);
+                    const myPhone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
+                    const isMine = myPhone && p.author_phone === myPhone;
+
+                    const div = document.createElement('div');
+                    div.className = 'card-custom p-8 hover:shadow-hover transition-all';
+                    div.dataset.postId = p.id;
+
+                    const header = document.createElement('div');
+                    header.className = 'flex justify-between items-start mb-6';
+
+                    const left = document.createElement('div');
+                    left.className = 'flex items-center gap-4';
+
+                    const avatarContainer = document.createElement('div');
+                    avatarContainer.className = 'relative';
+                    avatarContainer.style.cursor = 'pointer';
+                    avatarContainer.onclick = () => BolamuProfileCard.open(p.author_phone || '');
+
+                    const avatar = document.createElement('div');
+                    avatar.innerHTML = BolamuAvatar.render({ 
+                        photoUrl: p.author_avatar || null, 
+                        fullName: p.author_name || '', 
+                        role: 'medecin', 
+                        size: 48 
+                    });
+                    avatarContainer.appendChild(avatar);
+
+                    const statusBadge = document.createElement('span');
+                    statusBadge.className = 'absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-white rounded-full';
+                    avatarContainer.appendChild(statusBadge);
+
+                    left.appendChild(avatarContainer);
+
+                    const authorInfo = document.createElement('div');
+                    const authorName = document.createElement('p');
+                    authorName.className = 'font-extrabold text-navy text-base cursor-pointer';
+                    authorName.style.cursor = 'pointer';
+                    authorName.textContent = p.author_name || p.author || '—';
+                    authorName.onclick = () => BolamuProfileCard.open(p.author_phone || '');
+
+                    const roleLabel = document.createElement('p');
+                    roleLabel.className = 'text-[10px] text-primary font-black uppercase tracking-widest';
+                    roleLabel.textContent = p.role || 'Médecin';
+
+                    authorInfo.appendChild(authorName);
+                    authorInfo.appendChild(roleLabel);
+                    left.appendChild(authorInfo);
+
+                    header.appendChild(left);
+
+                    const meta = document.createElement('p');
+                    meta.className = 'text-[10px] font-bold text-outline uppercase tracking-widest bg-background px-3 py-1 rounded-lg border border-border-light';
+                    meta.textContent = `${p.city || 'Brazzaville'} • ${timeAgo}`;
+                    header.appendChild(meta);
+
+                    div.appendChild(header);
+
+                    if (p.content) {
+                        const content = document.createElement('p');
+                        content.className = 'text-sm font-medium leading-relaxed text-navy/80 mb-8';
+                        content.textContent = p.content;
+                        div.appendChild(content);
+                    }
+
+                    if (isReel && p.photo_url) {
+                        const video = document.createElement('video');
+                        video.src = p.photo_url;
+                        video.className = 'w-full h-auto rounded-xl mb-8';
+                        video.controls = true;
+                        video.playsInline = true;
+                        video.muted = true;
+                        video.style.background = '#000';
+                        video.preload = 'metadata';
+                        div.appendChild(video);
+                    } else if (p.photo_url) {
+                        const img = document.createElement('img');
+                        img.src = p.photo_url;
+                        img.className = 'w-full h-auto rounded-xl mb-8';
+                        img.alt = 'Photo du post';
+                        img.loading = 'lazy';
+                        div.appendChild(img);
+                    }
+
+                    const actions = document.createElement('div');
+                    actions.className = 'flex items-center gap-8 border-t border-border-light pt-6';
+
+                    const likeBtn = document.createElement('button');
+                    likeBtn.className = `flex items-center gap-2.5 ${p.liked_by_me ? 'text-error' : 'text-outline'} hover:text-error transition-colors group`;
+                    likeBtn.dataset.liked = p.liked_by_me || false;
+                    likeBtn.dataset.postId = p.id;
+                    likeBtn.onclick = () => toggleLike(p.id, likeBtn);
+                    likeBtn.innerHTML = `
+                        <span class="material-symbols-outlined text-xl ${p.liked_by_me ? 'fill-error' : ''}">favorite</span>
+                        <span class="text-xs font-black like-count">${p.likes_count || p.likes || 0}</span>
+                    `;
+                    actions.appendChild(likeBtn);
+
+                    const commentBtn = document.createElement('button');
+                    commentBtn.className = 'flex items-center gap-2.5 text-outline hover:text-primary transition-colors';
+                    commentBtn.onclick = () => toggleComments(p.id);
+                    commentBtn.innerHTML = `
+                        <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                        <span class="text-xs font-black">${p.comments_count || 0}</span>
+                    `;
+                    actions.appendChild(commentBtn);
+
+                    const shareBtn = document.createElement('button');
+                    shareBtn.className = 'flex items-center gap-2.5 text-outline hover:text-navy ml-auto transition-colors';
+                    shareBtn.innerHTML = '<span class="material-symbols-outlined text-xl">share</span>';
+                    actions.appendChild(shareBtn);
+
+                    div.appendChild(actions);
+
+                    const commentsSection = document.createElement('div');
+                    commentsSection.id = `comments-${p.id}`;
+                    commentsSection.style.display = 'none';
+                    commentsSection.className = 'mt-6 pt-6 border-t border-border-light';
+                    commentsSection.innerHTML = `
+                        <div id="comments-list-${p.id}" class="space-y-4 mb-4"></div>
+                        <div class="flex gap-3">
+                            <input type="text" id="comment-input-${p.id}" placeholder="Écrire un commentaire..." class="flex-1 px-4 py-2 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                            <button onclick="addComment('${p.id}')" class="btn-primary px-4 py-2 rounded-xl text-xs font-black uppercase">Envoyer</button>
                         </div>
-                        <p class="text-sm font-medium leading-relaxed text-navy/80 mb-8">${p.content || p.text || '—'}</p>
-                        <div class="flex items-center gap-8 border-t border-border-light pt-6">
-                            <button onclick="toggleLike('${p.id}', this)" class="flex items-center gap-2.5 ${p.liked_by_me ? 'text-error' : 'text-outline'} hover:text-error transition-colors group" data-liked="${p.liked_by_me || false}" data-post-id="${p.id}">
-                                <span class="material-symbols-outlined text-xl ${p.liked_by_me ? 'fill-error' : ''}">favorite</span> 
-                                <span class="text-xs font-black like-count">${p.likes_count || p.likes || 0}</span>
-                            </button>
-                            <button onclick="toggleComments('${p.id}')" class="flex items-center gap-2.5 text-outline hover:text-primary transition-colors">
-                                <span class="material-symbols-outlined text-xl">chat_bubble</span>
-                                <span class="text-xs font-black">${p.comments_count || 0}</span>
-                            </button>
-                            <button class="flex items-center gap-2.5 text-outline hover:text-navy ml-auto transition-colors">
-                                <span class="material-symbols-outlined text-xl">share</span>
-                            </button>
-                        </div>
-                        <div id="comments-${p.id}" style="display:none;" class="mt-6 pt-6 border-t border-border-light">
-                            <div id="comments-list-${p.id}" class="space-y-4 mb-4"></div>
-                            <div class="flex gap-3">
-                                <input type="text" id="comment-input-${p.id}" placeholder="Écrire un commentaire..." class="flex-1 px-4 py-2 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
-                                <button onclick="addComment('${p.id}')" class="btn-primary px-4 py-2 rounded-xl text-xs font-black uppercase">Envoyer</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                    div.appendChild(commentsSection);
+
+                    postsList.appendChild(div);
+                });
             }
         } catch (e) {
             console.error('[Feed] Erreur:', e);
@@ -1633,21 +1745,63 @@
             return;
         }
         
-        suggestionsList.innerHTML = suggestionsData.slice(0, 5).map(user => `
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">
-                    ${user.avatar_url 
-                        ? `<img src="${user.avatar_url}" class="w-full h-full rounded-full object-cover cursor-pointer" onclick="BolamuProfileCard.open('${user.phone}')">`
-                        : (user.full_name || 'A').charAt(0)
-                    }
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-navy truncate cursor-pointer" onclick="BolamuProfileCard.open('${user.phone}')">${user.full_name || '—'}</p>
-                    <p class="text-[10px] text-outline truncate">${user.city || '—'}</p>
-                </div>
-                <button onclick="toggleFollow('${user.phone}', this)" class="btn-primary px-3 py-1 rounded-lg text-xs font-bold">Suivre</button>
-            </div>
-        `).join('');
+        suggestionsList.innerHTML = '';
+        suggestionsData.slice(0, 5).forEach(user => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-3';
+
+            const avatarContainer = document.createElement('div');
+            avatarContainer.className = 'w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0';
+            avatarContainer.style.cursor = 'pointer';
+            avatarContainer.onclick = () => BolamuProfileCard.open(user.phone);
+
+            if (user.avatar_url) {
+                const img = document.createElement('img');
+                img.src = user.avatar_url;
+                img.className = 'w-full h-full rounded-full object-cover';
+                avatarContainer.appendChild(img);
+            } else {
+                avatarContainer.textContent = (user.full_name || 'A').charAt(0);
+            }
+
+            div.appendChild(avatarContainer);
+
+            const info = document.createElement('div');
+            info.className = 'flex-1 min-w-0';
+
+            const name = document.createElement('p');
+            name.className = 'text-xs font-bold text-navy truncate cursor-pointer';
+            name.style.cursor = 'pointer';
+            name.textContent = user.full_name || '—';
+            name.onclick = () => BolamuProfileCard.open(user.phone);
+
+            info.appendChild(name);
+
+            if (user.author_role_label) {
+                const roleLabel = document.createElement('p');
+                roleLabel.className = 'text-[10px] text-outline truncate';
+                roleLabel.textContent = user.author_role_label;
+                info.appendChild(roleLabel);
+            }
+
+            if (user.city) {
+                const city = document.createElement('p');
+                city.className = 'text-[10px] text-outline truncate';
+                city.textContent = user.city;
+                info.appendChild(city);
+            }
+
+            div.appendChild(info);
+
+            const followBtn = document.createElement('button');
+            followBtn.className = 'btn-primary px-3 py-1 rounded-lg text-xs font-bold';
+            followBtn.textContent = 'Suivre';
+            followBtn.onclick = () => toggleFollow(user.phone, followBtn);
+
+            div.appendChild(followBtn);
+
+            suggestionsList.appendChild(div);
+        });
     }
     
     async function toggleFollow(phone, button) {
@@ -1804,15 +1958,17 @@
                     `).join('')}
                 </div>
                 <div class="absolute top-4 left-4 z-10 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden">
-                        ${story.author_avatar 
-                            ? `<img src="${story.author_avatar}" class="w-full h-full object-cover">`
-                            : `<span class="text-sm font-bold text-navy">${(story.author_name || 'A').charAt(0)}</span>`
-                        }
+                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden cursor-pointer" onclick="BolamuProfileCard.open('${story.author_phone || ''}')">
+                        ${BolamuAvatar.render({ 
+                            photoUrl: story.author_avatar || null, 
+                            fullName: story.author_name || '', 
+                            role: 'medecin', 
+                            size: 40 
+                        })}
                     </div>
                     <div>
-                        <p class="text-white font-bold text-sm">${story.author_name || '—'}</p>
-                        <p class="text-white/70 text-xs">${new Date(story.created_at).toLocaleDateString('fr-FR')}</p>
+                        <p class="text-white font-bold text-sm cursor-pointer" onclick="BolamuProfileCard.open('${story.author_phone || ''}')">${story.author_name || '—'}</p>
+                        <p class="text-white/70 text-xs">${formatTimeAgo(story.created_at)}</p>
                     </div>
                 </div>
                 <button onclick="closeStoryModal()" class="absolute top-4 right-4 z-10 text-white hover:text-white/70">
@@ -2524,7 +2680,9 @@
         
         const contentInput = document.getElementById('post-content');
         const photoInput = document.getElementById('post-photo');
+        const cityInput = document.getElementById('post-city');
         const content = contentInput.value.trim();
+        const city = cityInput.value;
         
         if (!content && photoInput.files.length === 0) {
             alert('Veuillez entrer du texte ou ajouter une photo');
@@ -2534,11 +2692,15 @@
         
         const formData = new FormData();
         if (content) formData.append('content', content);
+        if (city) formData.append('city', city);
         if (photoInput.files.length > 0) formData.append('photo', photoInput.files[0]);
+        
+        const token = getAuthToken();
         
         try {
             const res = await apiFetch(`${API}/feed`, {
                 method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
                 body: formData
             });
             const data = await res.json();
