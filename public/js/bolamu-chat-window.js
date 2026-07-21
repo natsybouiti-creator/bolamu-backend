@@ -377,7 +377,7 @@
     state.isTypingActive = false;
 
     state.drawer.querySelector('#bcw-header-name').textContent = state.recipientName;
-    state.drawer.querySelector('#bcw-header-avatar').innerHTML = avatarHtml(state.recipientAvatar, state.recipientName, 20);
+    state.drawer.querySelector('#bcw-header-avatar').innerHTML = avatarHtml(state.recipientAvatar, state.recipientName, 36);
     state.typingEl.style.display = 'none';
 
     state.backdrop.classList.add('bcw-open');
