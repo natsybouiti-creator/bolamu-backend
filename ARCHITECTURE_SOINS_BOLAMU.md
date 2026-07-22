@@ -49,6 +49,170 @@ Migration `migration_059_ssp_is_ssp_flag.sql` (appliquée en prod) ajoute une co
 
 `is_ssp` est calculé **une seule fois à la création**, jamais recalculé — un changement ultérieur du catalogue n'affecte pas rétroactivement les ordonnances déjà émises.
 
+---
+
+## Scanner patient unifié — conception validée le 20/07/2026
+
+> **Objectif** : Un seul QR patient (généré via `GET /api/v1/qr/generate`, scanné via `GET /api/v1/qr/verify`) pour couvrir trois contextes distincts : statut adhérent/solde Zora, RDV du jour, ordonnance/examen labo en attente. Le contexte est déterminé par le backend, pas par un choix de mode côté UI.
+
+### État actuel (avant unification)
+
+**Dashboard médecin (production)** : 3 onglets séparés, chacun avec son propre scanner :
+- Scanner patient (`/qr/verify`) : statut adhérent, solde Zora, abonnement, convention
+- Scanner Voucher Zora (`/bons-zora/validate/qr`) : validation bons Zora
+- Scanner dossier patient (`/dmn/verify`) : consultation DMN
+
+**Dashboard médecin v2** : 3 scanners dans la navigation, toujours séparés.
+
+### Structure de réponse enrichie de `GET /api/v1/qr/verify`
+
+**Champs existants (inchangés, rétrocompatibles)** :
+```javascript
+{
+  success: true,
+  data: {
+    phone, full_name, photo_url, bolamu_id,
+    is_active, plan_nom, subscription_end,
+    convention, zora_balance, token_expires_at
+  }
+}
+```
+
+**Nouveaux champs contextuels (optionnels, null si absent)** :
+```javascript
+{
+  success: true,
+  data: {
+    // ... champs existants ...
+    
+    rdv_du_jour: {
+      id,              // appointments.id
+      appointment_time, // TIME (format 09:30:00)
+      status,          // 'confirme' | 'en_cours'
+      motif            // texte libre
+    } | null,
+    
+    ordonnance_en_attente: {
+      id,              // prescriptions.id
+      created_at,      // TIMESTAMPTZ
+      medications_count // nombre de médicaments dans la prescription
+    } | null,
+    
+    examen_labo_en_attente: {
+      id,              // lab_prescriptions.id
+      created_at,      // TIMESTAMPTZ
+      type             // type d'examen (texte libre)
+    } | null
+  }
+}
+```
+
+### Requêtes SQL nécessaires
+
+**RDV du jour** (avec règle BHP) :
+```sql
+-- Si doctor_phone = req.user.phone : visible sans consentement
+-- Si doctor_phone ≠ req.user.phone : visible seulement si consentement BHP actif
+SELECT id, appointment_time, status, motif
+FROM appointments a
+JOIN doctors d ON d.id = a.doctor_id
+WHERE a.patient_phone = $1
+  AND a.appointment_date = CURRENT_DATE
+  AND a.status IN ('confirme', 'en_cours')
+  AND a.is_active = TRUE
+  AND (
+    d.phone = $2  -- médecin scannant = prescripteur
+    OR EXISTS (
+      SELECT 1 FROM patient_consents pc
+      JOIN users u ON u.id = pc.patient_id
+      WHERE u.phone = $1
+        AND pc.consent_type = 'dmn_qr_scan'
+        AND pc.granted = true
+    )  -- consentement BHP actif
+  )
+ORDER BY a.appointment_time
+LIMIT 1
+```
+
+**Ordonnance en attente** (avec règle BHP) :
+```sql
+-- Si doctor_phone = req.user.phone : visible sans consentement
+-- Si doctor_phone ≠ req.user.phone : visible seulement si consentement BHP actif
+SELECT id, created_at, jsonb_array_length(medications) as medications_count
+FROM prescriptions p
+WHERE p.patient_phone = $1
+  AND p.status = 'pending'
+  AND (
+    p.doctor_phone = $2  -- médecin scannant = prescripteur
+    OR EXISTS (
+      SELECT 1 FROM patient_consents pc
+      JOIN users u ON u.id = pc.patient_id
+      WHERE u.phone = $1
+        AND pc.consent_type = 'dmn_qr_scan'
+        AND pc.granted = true
+    )  -- consentement BHP actif
+  )
+ORDER BY p.created_at DESC
+LIMIT 1
+```
+
+**Examen labo en attente** (avec règle BHP) :
+```sql
+-- Si doctor_phone = req.user.phone : visible sans consentement
+-- Si doctor_phone ≠ req.user.phone : visible seulement si consentement BHP actif
+SELECT id, created_at, type
+FROM lab_prescriptions lp
+WHERE lp.patient_phone = $1
+  AND lp.status IN ('pending', 'en_attente')
+  AND (
+    lp.doctor_phone = $2  -- médecin scannant = prescripteur
+    OR EXISTS (
+      SELECT 1 FROM patient_consents pc
+      JOIN users u ON u.id = pc.patient_id
+      WHERE u.phone = $1
+        AND pc.consent_type = 'dmn_qr_scan'
+        AND pc.granted = true
+    )  -- consentement BHP actif
+  )
+ORDER BY lp.created_at DESC
+LIMIT 1
+```
+
+### Règle RBAC validée (respect du mécanisme BHP existant)
+
+**Décision produit (Natsy, 20/07/2026)** : La visibilité RDV/ordonnance/labo respecte le mécanisme de consentement BHP v1.2 déjà existant pour le DMN, pas une nouvelle règle inventée.
+
+**Règle appliquée** :
+- Si `doctor_phone` du RDV/ordonnance/labo correspond à `req.user.phone` (médecin scannant) → visible sans consentement supplémentaire (c'est son propre acte médical)
+- Si `doctor_phone` ≠ `req.user.phone` → appliquer la même vérification `hasDmnQrConsent(patient_phone)` utilisée pour le DMN complet (dmn.service.js:258-270)
+- Si pas de consentement valide et médecin ≠ prescripteur → `rdv_du_jour` / `ordonnance_en_attente` / `examen_labo_en_attente` retournent `null` (pas d'erreur bloquante, cohérent avec le comportement "champ null si absent")
+
+**Mécanisme de consentement réutilisé** (existant, déjà utilisé pour le DMN) :
+- Table `patient_consents` : colonnes `patient_id`, `consent_type` ('dmn_qr_scan'), `granted`, `granted_at`, `revoked_at`
+- Consentement accordé lors de la génération du QR dossier (dmn.service.js:242-247)
+- Consentement révocable via `DELETE /api/v1/consent/dmn_qr_scan` (consent.routes.js:36-49)
+- Portée : globale, pas par médecin ni par durée (une fois accordé, valide jusqu'à révocation)
+- Vérification : `hasDmnQrConsent(patient_phone)` (dmn.service.js:258-270)
+
+### Comportement UI attendu
+
+Après un scan QR patient :
+1. Le backend retourne la réponse enrichie avec les sections contextuelles présentes
+2. Le frontend affiche dynamiquement les sections non-null :
+   - Si `rdv_du_jour` non-null : affiche "RDV aujourd'hui à HH:MM — [motif]"
+   - Si `ordonnance_en_attente` non-null : affiche "Ordonnance en attente depuis [date] — X médicaments"
+   - Si `examen_labo_en_attente` non-null : affiche "Examen labo en attente depuis [date] — [type]"
+3. Le médecin n'a plus à sélectionner un mode avant de scanner : un seul scan, contexte détecté automatiquement
+
+### Ce qui reste inchangé
+
+**Scanner Zora dédié** (`POST /api/v1/bons-zora/validate/qr`) reste séparé, car c'est un flux de consommation différent :
+- Le scanner Zora valide un bon spécifique via son UUID (flux transactionnel : débit points, validation remise)
+- Le scanner patient unifié est un flux de consultation d'information (statut, RDV, ordonnances)
+- Les deux QR sont différents : QR patient (token UUID temporaire) vs QR voucher (UUID permanent du bon)
+
+**Scanner DMN dédié** (`GET /api/v1/dmn/verify`) reste séparé, car il expose le dossier médical complet (consultations, documents, constantes) avec un consentement BHP spécifique. Le scanner patient unifié n'expose que des informations contextuelles limitées (RDV du jour, ordonnance en attente), pas l'historique complet.
+
 **Deux fonctions de correspondance, pas une** (`src/services/smartflow.service.js`) :
 - `isSSP(nom_prestation, type=null)` — préexistante (SmartFlow B2B), direction `ssp_catalog.nom ILIKE '%' || input || '%'` : le nom du catalogue doit **contenir** l'entrée. Fonctionne seulement pour des noms courts et exacts.
 - `isSSPFreeText(texte_libre, type=null)` — **nouvelle fonction**, direction inversée `input ILIKE '%' || ssp_catalog.nom || '%'` + `ORDER BY LENGTH(nom) DESC` : le texte libre doit **contenir** un nom de catalogue. Nécessaire car `prescriptions.medications` et `lab_prescriptions.examens` sont du texte libre avec dosage/fréquence embarqués (ex. `"Amoxicilline 500mg — 3x/jour — 7 jours"`), que `isSSP()` seul ne matchait jamais correctement (`is_ssp` retournait `false` pour un médicament pourtant couvert — bug détecté et corrigé pendant ce chantier, avant tout commit).

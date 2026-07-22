@@ -28,7 +28,7 @@ Le frontend suit une règle absolue : **un seul Hub, des panneaux qui se substit
 | `chat_messages` | **SUPPRIMÉE** ✅ | Retirée en migration_078 (juillet 2026) |
 | `chat_reactions` | **SUPPRIMÉE** ✅ | Retirée en migration_078 (juillet 2026) |
 | `club_activities` | ABSENTE | À créer (section 3.2) |
-| `follows` | ABSENTE | Ne pas implémenter |
+| `follows` | ABSENTE | ~~Ne pas implémenter~~ **[DÉPRÉCIÉ 20/07/2026]** Ligne obsolète : `follows` **existe** (`migration_090`) et est utilisée par le feed/reels/stories. Voir `ARCHITECTURE_FEED_BOLAMU.md` §3 qui fait foi. |
 | `users.last_seen_at` | **Existe** ✅ | Ajoutée en migration_079 — présence multi-instances |
 
 Socket.io **opérationnel** sur tous les dashboards depuis le chantier chat unifié (juillet 2026).
@@ -233,6 +233,26 @@ ALTER TABLE users ADD COLUMN last_seen_at TIMESTAMPTZ;
 
 Exclusions : `admin` (pas de chat 1-to-1 — accès support à prévoir séparément), `content_admin` (exclu du scope).
 
+#### 4.4.1 Contrats réels payload / réponse (vérifié dans le code le 20/07/2026)
+
+Toutes les routes montées via `app.use('/api/v1/chat', chatRoutes)` (`server.js`), middleware `authMiddleware` (aucun check de rôle sauf mention). Source : `src/routes/chat.routes.js` + `src/services/chat.service.js`.
+
+| Route | Entrée | Réponse réelle |
+|---|---|---|
+| `GET /chat/unread` | — | `{success:true,data:{unread:<int>}}` (`getUnreadCount` : messages non lus, `sender!=moi`, `last_read_at` NULL ou `sent_at>last_read_at`) |
+| `GET /chat/communaute` | — | `{success:true,data:{id}}` — récupère/crée la conversation `type='communaute'` et ajoute l'appelant comme participant (`ON CONFLICT DO NOTHING`) |
+| `GET /chat/conversations` | — | `{success:true,data:[{id,type,is_active,last_message,last_message_at,unread_count,other_name,other_photo_url,other_phone,other_role}]}` — tri `last_message_at DESC NULLS LAST` |
+| `GET /chat/conversations/:id/messages` | `?limit=20&before_id` | `{success:true,data:[{id,conversation_id,sender_phone,sender_display,content,type,sent_at,sender_role}]}` — ordre `sent_at DESC` ; `sender_display` = **initiales** si `type='communaute'`, sinon `full_name`. **`403`** `{success:false,message:'Accès non autorisé…'}` si non participant |
+| `POST /chat/conversations/:id/messages` | `{content}` | `400` si `content` vide ; `403` si non participant ; sinon `{success:true,data:{id,conversation_id,sender_phone,content,created_at,sender_name,sender_avatar_url}}`. **Émet `new_message` via `emitToRoom`** (`chat.service.js:234-241`) |
+| `POST /chat/conversations/:id/read` | — | `{success:true}` — `markAsRead` (UPDATE `conversation_participants.last_read_at=NOW()`, grain conversation) |
+| `POST /chat/conversations` | `{participant_phone}` | `400 {error:'participant_phone requis'}` si absent ; type calculé = `patient_medecin` si l'un des deux est `doctor`, sinon `private` ; **anti-doublon** (SELECT existant `type IN ('private','patient_medecin')`) → existant `200 {success:true,conversation_id,created:false}`, créé `201 {success:true,conversation_id,created:true}` |
+| `GET /chat/users/search` | `?q=&role=` | `q.length<2` → `{success:true,data:[]}` ; sinon `{success:true,data:[{phone,full_name,role,photo_url}]}` — `LIMIT 10`, `ILIKE full_name` OU `phone LIKE`, exclut `content_admin` et l'appelant |
+| `POST /chat/medecin/:medecin_phone` | — | **`403`** si `req.user.role!=='patient'` ; sinon `getOrCreateConversation` → `{success:true,data:{id}}` (crée `type='patient_medecin'` + 2 participants en transaction) |
+
+**Socket.io réel (`src/services/socketService.js`)** — le chat n'est **pas** "polling only" : le commentaire d'en-tête de `chat.routes.js` (« polling 10s, pas de WebSocket ») est **obsolète**, le temps réel passe par socket :
+- Reçus client→serveur : `authenticate(token)`→`authenticated` + join `user:<phone>` ; `join_conversation(id)`→`conversation_joined` (ack) ou `unauthorized_conversation` ; `leave_conversation(id)` ; `send_message({conversation_id,content})` → appelle `sendConversationMessage` (qui émet `new_message`) ; `mark_read({conversation_id,message_id})`→`message_read` ; `typing_start`/`typing_stop` (relay `socket.to`).
+- **L'envoi réel d'un message dans le drawer se fait par socket `send_message`, PAS par la route REST** (voir §4.5.1). La route `POST …/messages` sert de fallback et est utilisée par l'onglet **Communauté** du patient (`A.sendChatMessage`).
+
 ### 4.5 Frontend — composant mutualisé
 
 **`public/js/bolamu-chat-window.js`** (394 lignes) — drawer latéral partagé.
@@ -255,6 +275,37 @@ BolamuChatWindow.isOpen() // → boolean
 | agent_bolamu | ✅ | `window.__bolamuSocket` | `bolamu_agent_bolamu_token` |
 | admin | exclu | exclu | — |
 | content_admin | exclu | exclu | — |
+
+#### 4.5.1 Flux réel de création d'une conversation (source de vérité : `public/patient/dashboard.html`)
+
+Étapes exactes vérifiées dans le code patient :
+
+1. **Onglet Messages** (`#chat-med`) affiche un en-tête + le bouton `#bcw-new-conv-btn` « + Nouvelle conversation » → `onclick="A.openNewConvModal()"` (`dashboard.html:1298`).
+2. `A.loadConversations()` (`:2860`) → `GET /chat/conversations` → remplit `#bcw-conv-list`. Clic sur un item → `A.openConversation(id, name, avatar)` (`:2909`) → `BolamuChatWindow.open({conversationId, currentUserPhone, recipientName, recipientAvatar, socketInstance:A._socket})`.
+3. `A.openNewConvModal()` ouvre la modale `#bcw-new-conv-modal` (`:1312`) contenant l'input `#bcw-search-input` (`oninput="A.onSearchInput(event)"`).
+4. `A.onSearchInput` (debounce) → `A.searchUsers(q)` si `q.length>=2` → **`GET /chat/users/search?q=`** (`:2950`) → rend les résultats dans `#bcw-search-results`, chaque item `onclick="A.startConversationWith(phone)"` (`:2961`).
+5. `A.startConversationWith(phone)` (`:2971`) → **`POST /chat/conversations {participant_phone}`** → récupère `conversation_id` → `closeNewConvModal()` + `loadConversations()` + `BolamuChatWindow.open({conversationId:d.conversation_id, …})` (`:2984`).
+6. **Envoi de message** : dans le drawer, `sendCurrentMessage()` fait `state.socket.emit('send_message', {conversation_id, content})` (`bolamu-chat-window.js:303`) — le message revient enrichi via `new_message` (optimistic update remplacé). La route REST `POST …/messages` n'est **pas** utilisée par le drawer.
+
+> **Note** : `bolamu-chat-window.js` est **uniquement le drawer d'une conversation existante** — il exige `conversationId`+`currentUserPhone`+`socketInstance` en entrée. La **liste des conversations**, le **bouton "+ Nouvelle conversation"**, la **modale** et la **recherche d'utilisateurs** ne font PAS partie du composant : ils sont réimplémentés dans chaque dashboard hôte. C'est la clé de l'écart §4.5.2.
+
+#### 4.5.2 Écart patient ↔ médecin — CAUSE EXACTE du bug « bouton introuvable » (constat, non corrigé)
+
+Deux dashboards médecin coexistent dans `public/medecin/` :
+
+| Élément du flux | `dashboard.html` (médecin) | `dashboard-v2.html` (médecin) |
+|---|---|---|
+| `#bcw-conv-list` + `loadConversations()` + `openConversation()` | ✅ (`:1060`, `:1471`, `:1510`) | ✅ (`:1319`, `:1235`, `:1277`) |
+| Message « Aucune conversation. Démarrez-en une avec le bouton ci-dessus » | ✅ (`:1480`) | ✅ (`:1245`) |
+| Bouton `#bcw-new-conv-btn` « + Nouvelle conversation » | ✅ (`:1058`) | ❌ **ABSENT** |
+| Modale `#bcw-new-conv-modal` + `#bcw-search-input` | ✅ (`:616-625`) | ❌ **ABSENT** |
+| `openNewConvModal()` / `onSearchInput()` / `searchUsers()` | ✅ (`:1522-1565`) | ❌ **ABSENT** |
+| `startConversationWith()` → `POST /chat/conversations` | ✅ (`:1566`) | ❌ **ABSENT** |
+| Appel `GET /chat/users/search` | ✅ (`:1547`) | ❌ **ABSENT** |
+
+**Cause racine confirmée par grep (0 résultat dans `dashboard-v2.html` pour `openNewConvModal`, `startConversationWith`, `searchUsers`, `bcw-new-conv`, `bcw-search`, `users/search`)** : `dashboard-v2.html` affiche le message qui invite à utiliser « le bouton ci-dessus », **mais ce bouton, la modale, la recherche et le handler de création n'existent pas dans ce fichier**. Le médecin ne peut donc lister/ouvrir que des conversations préexistantes, jamais en démarrer une. Le `dashboard.html` médecin, lui, possède le flux complet identique au patient. **Non corrigé — Phase 6.**
+
+> Le tableau §4.5 (« medecin ✅ ») décrit `dashboard.html`. Il ne s'applique **pas** à `dashboard-v2.html`, dont l'intégration chat est **incomplète** (liste/ouverture seulement).
 
 ### 4.6 Performance
 
@@ -449,7 +500,7 @@ UserRole = {
 3. Historique check-in admin → **`GET /api/v1/admin/checkins/history`**.
 4. Templates → noms canoniques section 5.2 exclusivement.
 5. Service WhatsApp → **`whatsapp-web.service.js`** → `sendAutoMessage()`, zéro Puppeteer.
-6. `follows` → ne pas implémenter.
+6. ~~`follows` → ne pas implémenter.~~ **[DÉPRÉCIÉ 20/07/2026]** Anomalie obsolète : la table `follows` **existe** (`migration_090`) et alimente le réseau social (feed/stories/reels). Ce document couvre Événements/Clubs/Chat ; pour le **feed social**, la référence qui fait foi est `ARCHITECTURE_FEED_BOLAMU.md` (état réel du code, tous rôles). Cette section « communauté sans feed » ne décrit donc que le Hub Événements/Clubs/Chat, pas l'ensemble du réseau social.
 7. ~~`chat_messages`/`chat_reactions`~~ → **SUPPRIMÉES** (migration_078). Ne jamais référencer.
 8. `avatar_url` → colonne morte. Utiliser **`photo_url`** partout.
 9. `users.nom`/`users.prenom` → n'existent pas. Utiliser **`full_name`**.
