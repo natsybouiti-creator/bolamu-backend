@@ -813,4 +813,108 @@ router.get('/profil-social/:phone', optionalAuth, async (req, res) => {
   }
 });
 
+// GET /api/v1/patients/dossier-access/pending - Liste demandes d'accès en attente
+router.get('/dossier-access/pending', authMiddleware, async (req, res) => {
+  try {
+    const patientPhone = normalizePhone(req.user.phone);
+
+    const result = await pool.query(
+      `SELECT dar.id, dar.status, dar.requested_at,
+              u.first_name || ' ' || u.last_name AS doctor_name
+       FROM dossier_access_requests dar
+       JOIN users u ON u.id = dar.doctor_user_id
+       WHERE dar.patient_phone = $1 AND dar.status = 'pending'
+       ORDER BY dar.requested_at DESC`,
+      [patientPhone]
+    );
+
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[dossier-access-pending]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// PATCH /api/v1/patients/dossier-access/:requestId - Répondre à une demande
+router.patch('/dossier-access/:requestId', authMiddleware, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { requestId } = req.params;
+    const { action } = req.body; // 'grant' ou 'deny'
+    const patientPhone = normalizePhone(req.user.phone);
+
+    if (!['grant', 'deny'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Action invalide' });
+    }
+
+    await client.query('BEGIN');
+
+    // Vérifier ownership
+    const checkResult = await client.query(
+      `SELECT * FROM dossier_access_requests WHERE id = $1 AND patient_phone = $2`,
+      [requestId, patientPhone]
+    );
+
+    if (!checkResult.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Demande introuvable' });
+    }
+
+    const request = checkResult.rows[0];
+    const newStatus = action === 'grant' ? 'granted' : 'denied';
+
+    // Mettre à jour
+    await client.query(
+      `UPDATE dossier_access_requests
+       SET status = $1, responded_at = NOW()
+       WHERE id = $2`,
+      [newStatus, requestId]
+    );
+
+    // Récupérer infos patient pour notification médecin
+    const patientResult = await client.query(
+      `SELECT first_name, last_name FROM users WHERE phone = $1`,
+      [patientPhone]
+    );
+
+    if (patientResult.rows.length) {
+      const patientName = `${patientResult.rows[0].first_name} ${patientResult.rows[0].last_name}`;
+
+      // Notification WhatsApp au médecin
+      try {
+        const { sendAutoMessage } = require('../services/whatsapp.service');
+        const doctorUser = await client.query(
+          `SELECT phone FROM users WHERE id = $1`,
+          [request.doctor_user_id]
+        );
+        if (doctorUser.rows.length) {
+          await sendAutoMessage(doctorUser.rows[0].phone, 'DOSSIER_ACCESS_RESPONSE', {
+            patientName,
+            action: action === 'grant' ? 'a autorisé' : 'a refusé'
+          });
+        }
+      } catch (notifErr) {
+        console.error('[whatsapp-notification]', notifErr.message);
+        // Non bloquant
+      }
+    }
+
+    // Audit log
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('DOSSIER_ACCESS_RESPONSE', $1, 'dossier_access_requests', $2, $3::jsonb)`,
+      [patientPhone, requestId, JSON.stringify({ action, newStatus })]
+    );
+
+    await client.query('COMMIT');
+    res.json({ success: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[dossier-access-respond]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  } finally {
+    client.release();
+  }
+});
+
 module.exports = router;

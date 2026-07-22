@@ -922,6 +922,19 @@
           <button onclick="A.openQrUrg()" style="background: #003FB1; color: #fff; border: none; font-family: inherit; font-weight: 700; font-size: 0.82rem; padding: 11px 18px; border-radius: 9999px; cursor: pointer;">Générer mon QR d'urgence</button>
         </div>
 
+        <!-- Demandes d'accès dossier reçues -->
+        <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <span class="material-symbols-outlined" style="color: #003FB1; font-size: 22px;">folder_shared</span>
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0A2463;">Demandes d'accès à mon dossier</h3>
+          </div>
+          <div id="dossier-requests-list">
+            <div style="text-align: center; padding: 16px; color: #9498a8; font-size: 0.85rem;">
+              Aucune demande en attente
+            </div>
+          </div>
+        </div>
+
         <div class="enter" style="background: #fff; border: 1px solid #EDEDF8; border-radius: 20px; padding: 22px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
           <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(0,201,167,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-outlined" style="color: #00C9A7; font-size: 26px;">qr_code_2</span></div>
           <div style="flex: 1; min-width: 200px;"><div style="font-size: 1rem; font-weight: 800; color: #0A2463;">QR Code médical</div><div style="font-size: 0.8rem; font-weight: 500; color: #434654; margin-top: 2px;">Accès sécurisé à votre dossier complet pour les professionnels de santé. Valable 24h.</div></div>
@@ -2476,6 +2489,45 @@
         '<div style="flex:1;"><div style="font-size:0.86rem;font-weight:700;color:#0A2463;">' + esc(accessor) + '</div><div style="font-size:0.72rem;font-weight:500;color:#434654;">' + esc(typeMap[al.access_type] || al.access_type) + ' · ' + esc((al.details && al.details.source) || '') + '</div></div>' +
         '<span style="font-size:0.72rem;font-weight:600;color:#9498a8;">' + date + '</span></div>';
     }).join('');
+  };
+
+  A.renderDossierAccessRequests = function (requests) {
+    var el = $('dossier-requests-list');
+    if (!el) return;
+    if (!requests || !requests.length) {
+      el.innerHTML = '<div style="text-align: center; padding: 16px; color: #9498a8; font-size: 0.85rem;">Aucune demande en attente</div>';
+      return;
+    }
+    el.innerHTML = requests.map(function (req) {
+      var date = req.requested_at ? new Date(req.requested_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—';
+      return '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:14px;padding:16px;margin-bottom:10px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">' +
+        '<span class="material-symbols-outlined" style="color:#003FB1;font-size:22px;">medical_services</span>' +
+        '<div style="flex:1;"><div style="font-size:0.9rem;font-weight:800;color:#0A2463;">' + esc(req.doctor_name || 'Médecin') + '</div>' +
+        '<div style="font-size:0.72rem;font-weight:500;color:#9498a8;">Demande envoyée le ' + esc(date) + '</div></div></div>' +
+        '<div style="display:flex;gap:8px;">' +
+        '<button onclick="A.respondDossierAccess(' + req.id + ', \'grant\')" style="flex:1;background:#00C9A7;color:#fff;border:none;font-family:inherit;font-weight:700;font-size:0.78rem;padding:10px;border-radius:9999px;cursor:pointer;">Autoriser</button>' +
+        '<button onclick="A.respondDossierAccess(' + req.id + ', \'deny\')" style="flex:1;background:#fff;color:#BA1A1A;border:1px solid #EDEDF8;font-family:inherit;font-weight:700;font-size:0.78rem;padding:10px;border-radius:9999px;cursor:pointer;">Refuser</button>' +
+        '</div></div>';
+    }).join('');
+  };
+
+  A.respondDossierAccess = function (requestId, action) {
+    var token = localStorage.getItem('bolamu_patient_token');
+    var H = { headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } };
+    apiFetch('https://api.bolamu.co/api/v1/patients/dossier-access/' + requestId, {
+      method: 'PATCH',
+      body: JSON.stringify({ action: action })
+    }, H).then(function (r) { return r.json(); }).then(function (d) {
+      if (d && d.success) {
+        A.showToast(action === 'grant' ? 'Accès autorisé' : 'Accès refusé');
+        A.loadDossierAccessRequests();
+      } else {
+        A.showToast('Erreur : ' + (d.message || 'Erreur serveur'));
+      }
+    }).catch(function () {
+      A.showToast('Erreur de connexion');
+    });
   };
 
   A.renderDernierVaccin = function () {
@@ -4294,6 +4346,20 @@
       A.etabs = A._etabsFromTemp();
       A.renderReseauPlaces();
     });
+
+    // Demandes d'accès dossier en attente
+    A.loadDossierAccessRequests = function () {
+      apiFetch('https://api.bolamu.co/api/v1/patients/dossier-access/pending', H).then(function (r) { return r && r.json(); }).then(function (d) {
+        if (d && d.success && Array.isArray(d.data)) {
+          A.renderDossierAccessRequests(d.data);
+        } else {
+          $('dossier-requests-list').innerHTML = '<div style="text-align: center; padding: 16px; color: #9498a8; font-size: 0.85rem;">Aucune demande en attente</div>';
+        }
+      }).catch(function () {
+        $('dossier-requests-list').innerHTML = '<div style="text-align: center; padding: 16px; color: #9498a8; font-size: 0.85rem;">Erreur de chargement</div>';
+      });
+    };
+    A.loadDossierAccessRequests();
 
     (function () {
       var lbListEl = $('leaderboard-list');

@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
 const { strictLimiter } = require('../middleware/rateLimiter');
+const { logAccess } = require('../services/dmn.service');
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -97,7 +98,7 @@ router.post('/change-password', authMiddleware, strictLimiter, async (req, res) 
 });
 
 // POST /api/v1/doctors/photo - Upload photo de profil
-router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) => {
+router.post('/photo', authMiddleware, doctorOnly, upload.single('photo'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Aucune photo fournie' });
@@ -105,8 +106,8 @@ router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) =
 
     const phone = normalizePhone(req.user.phone);
 
-    // Upload vers Cloudinary
-    const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/photos', {
+    // Upload vers Cloudinary folder bolamu/doctors/
+    const uploadResult = await uploadToCloudinary(req.file.buffer, 'bolamu/doctors', {
       public_id: `doctor_${phone}_${Date.now()}`,
       transformation: { width: 400, height: 400, crop: 'fill' }
     });
@@ -123,6 +124,14 @@ router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) =
       [uploadResult.secure_url, phone]
     );
 
+    // Audit log
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('DOCTOR_PHOTO_UPDATE', $1, 'doctors', 
+         (SELECT id FROM doctors WHERE phone = $1), $2::jsonb)`,
+      [phone, JSON.stringify({ photo_url: uploadResult.secure_url })]
+    );
+
     res.json({ success: true, photo_url: uploadResult.secure_url });
   } catch (err) {
     console.error('[doctor-photo]', err.message);
@@ -132,6 +141,207 @@ router.post('/photo', authMiddleware, upload.single('photo'), async (req, res) =
       return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
     }
     
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// GET /api/v1/doctors/patients/:patientPhone/profile - Profil patient + statut accès dossier
+router.get('/patients/:patientPhone/profile', authMiddleware, doctorOnly, async (req, res) => {
+  try {
+    const { patientPhone } = req.params;
+    const normalizedPatientPhone = normalizePhone(patientPhone);
+    const doctorUserRes = await pool.query('SELECT id FROM users WHERE phone = $1', [req.user.phone]);
+    const doctorId = doctorUserRes.rows[0]?.id;
+    if (!doctorId) return res.status(404).json({ success: false, message: 'Médecin introuvable.' });
+
+    // Profil patient
+    const patientResult = await pool.query(
+      `SELECT u.id, u.phone, u.first_name, u.last_name, u.photo_url, u.created_at,
+              s.plan, s.status AS sub_status
+       FROM users u
+       LEFT JOIN subscriptions s ON s.patient_phone = u.phone AND s.status = 'active'
+       WHERE u.phone = $1 AND u.role = 'patient'`,
+      [normalizedPatientPhone]
+    );
+
+    if (!patientResult.rows.length) {
+      return res.status(404).json({ success: false, message: 'Patient introuvable' });
+    }
+
+    const patient = patientResult.rows[0];
+
+    // Statut accès dossier
+    const accessResult = await pool.query(
+      `SELECT status FROM dossier_access_requests
+       WHERE doctor_user_id = $1 AND patient_phone = $2`,
+      [doctorId, normalizedPatientPhone]
+    );
+
+    const dossier_access = accessResult.rows.length ? accessResult.rows[0].status : 'none';
+
+    res.json({
+      success: true,
+      data: {
+        patient: {
+          phone: patient.phone,
+          first_name: patient.first_name,
+          last_name: patient.last_name,
+          full_name: [patient.first_name, patient.last_name].filter(Boolean).join(' '),
+          photo_url: patient.photo_url,
+          created_at: patient.created_at,
+          sub_status: patient.sub_status,
+          plan: patient.plan
+        },
+        dossier_access
+      }
+    });
+  } catch (err) {
+    console.error('[patient-profile]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+});
+
+// POST /api/v1/doctors/patients/:patientPhone/request-access - Demander accès dossier
+router.post('/patients/:patientPhone/request-access', authMiddleware, doctorOnly, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { patientPhone } = req.params;
+    const normalizedPatientPhone = normalizePhone(patientPhone);
+    const doctorUserRes = await client.query('SELECT id FROM users WHERE phone = $1', [req.user.phone]);
+    const doctorId = doctorUserRes.rows[0]?.id;
+    if (!doctorId) {
+      return res.status(404).json({ success: false, message: 'Médecin introuvable.' });
+    }
+
+    await client.query('BEGIN');
+
+    // Insérer ou mettre à jour la demande
+    const insertResult = await client.query(
+      `INSERT INTO dossier_access_requests (doctor_user_id, patient_phone, status)
+       VALUES ($1, $2, 'pending')
+       ON CONFLICT (doctor_user_id, patient_phone)
+       DO UPDATE SET status = 'pending', requested_at = NOW(), responded_at = NULL
+       RETURNING id`,
+      [doctorId, normalizedPatientPhone]
+    );
+
+    // Récupérer infos médecin pour notification
+    const doctorResult = await client.query(
+      `SELECT first_name, last_name FROM users WHERE id = $1`,
+      [doctorId]
+    );
+
+    if (doctorResult.rows.length) {
+      const doctorName = `${doctorResult.rows[0].first_name} ${doctorResult.rows[0].last_name}`;
+
+      // Notification WhatsApp (sendAutoMessage)
+      try {
+        const { sendAutoMessage } = require('../services/whatsapp.service');
+        await sendAutoMessage(normalizedPatientPhone, 'DOSSIER_ACCESS_REQUEST', {
+          doctorName
+        });
+      } catch (notifErr) {
+        console.error('[whatsapp-notification]', notifErr.message);
+        // Non bloquant
+      }
+    }
+
+    // Audit log
+    await client.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('DOSSIER_ACCESS_REQUEST', $1, 'dossier_access_requests',
+         (SELECT id FROM dossier_access_requests WHERE doctor_user_id = $2 AND patient_phone = $3), $4::jsonb)`,
+      [req.user.phone, doctorId, normalizedPatientPhone, JSON.stringify({ patient_phone: normalizedPatientPhone })]
+    );
+
+    await client.query('COMMIT');
+    res.json({ success: true, request_id: insertResult.rows[0].id });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[request-access]', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  } finally {
+    client.release();
+  }
+});
+
+// GET /api/v1/doctors/patients/:patientPhone/dossier - Accès dossier médical
+router.get('/patients/:patientPhone/dossier', authMiddleware, doctorOnly, async (req, res) => {
+  try {
+    const { patientPhone } = req.params;
+    const normalizedPatientPhone = normalizePhone(patientPhone);
+    const doctorUserRes = await pool.query('SELECT id FROM users WHERE phone = $1', [req.user.phone]);
+    const doctorId = doctorUserRes.rows[0]?.id;
+    if (!doctorId) return res.status(404).json({ success: false, message: 'Médecin introuvable.' });
+
+    // Vérifier accès granted
+    const accessResult = await pool.query(
+      `SELECT id, status FROM dossier_access_requests
+       WHERE doctor_user_id = $1 AND patient_phone = $2`,
+      [doctorId, normalizedPatientPhone]
+    );
+
+    if (!accessResult.rows.length || accessResult.rows[0].status !== 'granted') {
+      return res.status(403).json({ success: false, error: 'ACCESS_DENIED' });
+    }
+
+    // BHP : journalisation dmn_access_log (traçabilité Loi 29-2019)
+    logAccess(
+      normalizedPatientPhone,
+      req.user.phone,
+      'consultation',
+      { source: 'doctor_dashboard_consent', request_id: accessResult.rows[0].id },
+      req.ip
+    ).catch(() => {});
+
+    // Constantes médicales (depuis users)
+    const constantesResult = await pool.query(
+      `SELECT groupe_sanguin, allergies, maladies_chroniques, antecedents_medicaux,
+              traitements_en_cours, poids, taille, contact_urgence_nom,
+              contact_urgence_phone, contact_urgence_lien, constantes_updated_at
+       FROM users WHERE phone = $1`,
+      [normalizedPatientPhone]
+    );
+
+    // Ordonnances récentes
+    const prescriptionsResult = await pool.query(
+      `SELECT id, doctor_phone, medications, instructions, status, created_at
+       FROM prescriptions
+       WHERE patient_phone = $1
+       ORDER BY created_at DESC LIMIT 10`,
+      [normalizedPatientPhone]
+    );
+
+    // Consultations terminées
+    const consultationsResult = await pool.query(
+      `SELECT a.id, a.appointment_date, a.appointment_time, a.status,
+              u.first_name || ' ' || u.last_name AS doctor_name
+       FROM appointments a
+       JOIN doctors d ON d.id = a.doctor_id
+       JOIN users u ON u.phone = d.phone
+       WHERE a.patient_phone = $1 AND a.status = 'complete'
+       ORDER BY a.appointment_date DESC LIMIT 20`,
+      [normalizedPatientPhone]
+    );
+
+    // Audit log
+    await pool.query(
+      `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
+       VALUES ('DOSSIER_ACCESS_VIEW', $1, 'users',
+         (SELECT id FROM users WHERE phone = $2), $3::jsonb)`,
+      [req.user.phone, normalizedPatientPhone, JSON.stringify({ patient_phone: normalizedPatientPhone })]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        constantes: constantesResult.rows[0] || null,
+        prescriptions: prescriptionsResult.rows,
+        consultations: consultationsResult.rows
+      }
+    });
+  } catch (err) {
+    console.error('[patient-dossier]', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
