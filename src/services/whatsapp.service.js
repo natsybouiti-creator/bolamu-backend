@@ -261,6 +261,10 @@ async function sendAutoMessage(phone, templateName, params) {
       message = `Cher partenaire,\nL'inscription de ${params[0]} n'a pas été validée.\nMotif : ${params[1]}\nContactez le support Bolamu pour plus d'informations.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_pharmacie_suspendue') {
       message = `Cher partenaire,\nLe compte de ${params[0]} a été suspendu sur Bolamu.\nContactez le support pour connaître le motif et les suites.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'DOSSIER_ACCESS_REQUEST') {
+      message = `Bonjour, le Dr ${params.doctorName} souhaite accéder à votre dossier médical numérique sur Bolamu. Connectez-vous pour accepter ou refuser.\n\nL'équipe Bolamu`;
+    } else if (templateName === 'DOSSIER_ACCESS_RESPONSE') {
+      message = `Le patient ${params.patientName} ${params.action} votre demande d'accès à son dossier médical sur Bolamu.\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_hors_catalogue_patient') {
       message = `Bonjour,\nActe hors catalogue SSP : ${params[0]}\nMontant à régler directement au prestataire : ${params[1]} FCFA\n\nL'équipe Bolamu`;
     } else if (templateName === 'bolamu_hors_catalogue_rh') {
