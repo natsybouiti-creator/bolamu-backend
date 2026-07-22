@@ -128,8 +128,8 @@ router.post('/photo', authMiddleware, doctorOnly, upload.single('photo'), async 
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload)
        VALUES ('DOCTOR_PHOTO_UPDATE', $1, 'doctors', 
-         (SELECT id FROM doctors WHERE phone = $1), $2::jsonb)`,
-      [phone, JSON.stringify({ photo_url: uploadResult.secure_url })]
+         (SELECT id FROM doctors WHERE phone = $2), $3::jsonb)`,
+      [phone, phone, JSON.stringify({ photo_url: uploadResult.secure_url })]
     );
 
     res.json({ success: true, photo_url: uploadResult.secure_url });

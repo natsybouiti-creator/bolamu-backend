@@ -4105,15 +4105,17 @@
 
         // Avatar
         const avatarEl = document.getElementById('ppp-avatar');
-        const initialsEl = document.getElementById('ppp-initials');
+        avatarEl.innerHTML = '';
         if (patient.photo_url) {
             const img = document.createElement('img');
             img.src = patient.photo_url;
             img.className = 'w-full h-full object-cover';
-            avatarEl.innerHTML = '';
             avatarEl.appendChild(img);
         } else {
-            initialsEl.textContent = initials;
+            const span = document.createElement('span');
+            span.id = 'ppp-initials';
+            span.textContent = initials;
+            avatarEl.appendChild(span);
         }
 
         // Badge abonnement
