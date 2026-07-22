@@ -9,7 +9,7 @@ const { normalizePhone } = require('../utils/phone');
 const { getRoleLabel } = require('../utils/roleLabels');
 
 function withRoleLabel(row) {
-    row.author_role_label = getRoleLabel(row.role, row.specialty);
+    row.author_role_label = getRoleLabel(row.role, row.specialty) || 'Utilisateur';
     delete row.role;
     delete row.specialty;
     return row;

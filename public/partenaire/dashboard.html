@@ -1283,7 +1283,7 @@
         '</div>' +
         '<div>' +
           '<div class="post-author-name" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(post.author_phone || '') + '\')" style="cursor:pointer;">' + A.escapeHtml(post.author_name) +
-            (post.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(post.author_role_label) + '</span>' : '') +
+            (post.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(post.author_role_label) + '</span>' : ' <span class="author-role-label">· Utilisateur</span>') +
           '</div>' +
           '<div class="post-time">' + timeAgo + (post.city ? ' · ' + A.escapeHtml(post.city) : '') + '</div>' +
         '</div>' +
@@ -1373,7 +1373,7 @@
       '</div>' +
       '<div class="comment-bubble">' +
         '<span class="comment-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(c.phone || '') + '\')">' + A.escapeHtml(c.author_name || '') + '</span>' +
-        (c.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(c.author_role_label) + '</span>' : '') +
+        (c.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(c.author_role_label) + '</span>' : ' <span class="author-role-label">· Utilisateur</span>') +
         '<div class="comment-text">' + A.escapeHtml(c.content || '') + '</div>' +
         '<div class="comment-time">' + A.formatTimeAgo(c.created_at) +
           (isMine
@@ -1732,7 +1732,7 @@
       '<div class="reel-author" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(reel.author_phone || '') + '\')">' +
         window.BolamuAvatar.render({ photoUrl: reel.author_avatar || null, fullName: reel.author_name || '', role: 'partenaire_commercial', size: 36 }) +
         '<span>' + A.escapeHtml(reel.author_name || '') +
-          (reel.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(reel.author_role_label) + '</span>' : '') +
+          (reel.author_role_label ? ' <span class="author-role-label">· ' + A.escapeHtml(reel.author_role_label) + '</span>' : ' <span class="author-role-label">· Utilisateur</span>') +
         '</span>' +
       '</div>' +
       (reel.content ? '<div class="reel-caption">' + A.escapeHtml(reel.content) + '</div>' : '');
@@ -1795,7 +1795,7 @@
             '</div>' +
             '<div>' +
               '<div class="suggestion-name" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(u.phone || '') + '\')" style="cursor:pointer;">' + A.escapeHtml(u.full_name) + '</div>' +
-              (u.author_role_label ? '<div class="author-role-label">' + A.escapeHtml(u.author_role_label) + '</div>' : '') +
+              (u.author_role_label ? '<div class="author-role-label">' + A.escapeHtml(u.author_role_label) + '</div>' : '<div class="author-role-label">Utilisateur</div>') +
               (u.city ? '<div class="suggestion-city">' + A.escapeHtml(u.city) + '</div>' : '') +
             '</div>' +
             '<button class="btn-follow" onclick="A.followUser(\'' + u.phone + '\', this)">Suivre</button>';
