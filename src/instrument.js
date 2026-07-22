@@ -1,16 +1,22 @@
 // instrument.js — must be loaded before all other modules
 const Sentry = require("@sentry/node");
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN ?? "___DSN___",
+const sentryDsn = process.env.SENTRY_DSN;
 
-  sendDefaultPii: true,
+if (sentryDsn && sentryDsn.trim() && !sentryDsn.includes('___')) {
+  Sentry.init({
+    dsn: sentryDsn,
 
-  // 100% in dev, lower in production
-  tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
+    sendDefaultPii: true,
 
-  // Capture local variable values in stack frames
-  includeLocalVariables: true,
+    // 100% in dev, lower in production
+    tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
 
-  enableLogs: true,
-});
+    // Capture local variable values in stack frames
+    includeLocalVariables: true,
+
+    enableLogs: true,
+  });
+} else {
+  console.log('[Sentry] DSN absent ou invalide — Sentry désactivé en local');
+}
