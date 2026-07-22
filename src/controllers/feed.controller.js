@@ -511,6 +511,68 @@ exports.getProfile = async (req, res) => {
     }
 };
 
+// GET /api/v1/feed/search-users
+// Recherche par nom ou téléphone avec statut de suivi
+exports.searchUsers = async (req, res) => {
+    const phone = req.user.phone;
+    const { q = '', page = 1, limit = 10 } = req.query;
+    const perPage = Math.min(parseInt(limit, 10) || 10, 20);
+    const currentPage = Math.max(parseInt(page, 10) || 1, 1);
+    const offset = (currentPage - 1) * perPage;
+
+    const query = q.trim();
+    if (query.length < 2) {
+        return res.json({ success: true, data: [], page: currentPage });
+    }
+
+    try {
+        const searchTerm = `%${query}%`;
+        const result = await pool.query(`
+            SELECT
+                u.phone,
+                u.full_name,
+                u.photo_url AS avatar_url,
+                u.city,
+                u.bio,
+                u.role,
+                d.specialty,
+                EXISTS (
+                    SELECT 1 FROM follows
+                    WHERE follower_phone = $1 AND following_phone = u.phone
+                ) AS is_following,
+                EXISTS (
+                    SELECT 1 FROM follow_requests
+                    WHERE requester_phone = $1 AND target_phone = u.phone AND status = 'pending'
+                ) AS has_pending_request
+            FROM users u
+            LEFT JOIN doctors d ON d.phone = u.phone
+            WHERE u.phone <> $1
+                AND u.is_active = TRUE
+                AND (
+                    u.full_name ILIKE $2
+                    OR u.phone ILIKE $3
+                )
+            ORDER BY u.full_name ASC
+            LIMIT $4 OFFSET $5
+        `, [phone, searchTerm, `%${query}%`, perPage, offset]);
+
+        return res.json({
+            success: true,
+            data: result.rows.map(row => withRoleLabel({
+                ...row,
+                is_following: row.is_following,
+                has_pending_request: row.has_pending_request
+            })),
+            page: currentPage
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            error: { code: 'SEARCH_USERS_ERROR', message: err.message }
+        });
+    }
+};
+
 // GET /api/v1/feed/suggestions
 exports.getSuggestions = async (req, res) => {
     const phone = req.user.phone;

@@ -32,6 +32,9 @@ router.delete('/:postId',               authMiddleware, feedCtrl.deletePost);
 // Profil social d'un patient
 router.get('/profile/:phone',           authMiddleware, feedCtrl.getProfile);
 
+// Recherche d'utilisateurs (nom ou téléphone) avec statut de suivi
+router.get('/search-users',             authMiddleware, feedCtrl.searchUsers);
+
 // Suggestions de membres à suivre (par ville)
 router.get('/suggestions',              authMiddleware, feedCtrl.getSuggestions);
 

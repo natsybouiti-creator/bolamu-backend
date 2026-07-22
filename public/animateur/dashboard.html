@@ -277,6 +277,71 @@
   }
   .filter-chip.active, .filter-chip:hover { background: #0A2463; color: #fff; border-color: #0A2463; }
 
+  /* Feed search */
+  .feed-search { position: relative; margin-bottom: 1rem; }
+  .feed-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border-radius: 2rem;
+    border: 1.5px solid rgba(10,36,99,0.15);
+    background: #fff;
+    color: #0A2463;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+  }
+  .feed-search-input:focus { outline: none; border-color: #0A2463; }
+  .feed-search-results {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 12px 40px rgba(0,63,177,0.08);
+    border: 1px solid #EDEDF8;
+    z-index: 10;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+  .feed-search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    cursor: pointer;
+  }
+  .feed-search-item:hover { background: rgba(10,36,99,0.04); }
+  .feed-search-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; overflow: hidden; background: #0A2463; }
+  .feed-search-info { flex: 1; min-width: 0; }
+  .feed-search-name { font-weight: 600; font-size: 0.85rem; color: #0A2463; }
+  .feed-search-role { font-size: 0.7rem; color: rgba(10,36,99,0.5); }
+  .feed-search-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    border: 2px solid #0A2463;
+    background: transparent;
+    color: #0A2463;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .feed-search-btn:disabled { opacity: 0.6; cursor: default; }
+  .feed-search-btn.following, .feed-search-btn.pending { background: #0A2463; color: #fff; }
+  .feed-search-empty { padding: 1rem; text-align: center; color: rgba(10,36,99,0.4); font-size: 0.8rem; }
+
+  @media (max-width: 768px) {
+    .feed-search-input { font-size: 1rem; padding: 0.75rem 1rem 0.75rem 2.25rem; }
+    .feed-search-results { position: fixed; left: 0.5rem; right: 0.5rem; top: 5rem; max-height: 60vh; border-radius: 1rem; }
+    .feed-search-item { padding: 0.625rem 0.5rem; }
+    .feed-search-name { font-size: 0.9rem; }
+    .feed-search-btn { padding: 0.4rem 0.75rem; font-size: 0.7rem; }
+  }
+
   /* Post card */
   .post-card { background: #fff; border-radius: 2rem; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 12px 40px rgba(0,63,177,0.05); border: 1px solid #EDEDF8; }
   .post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
@@ -688,6 +753,13 @@
                 Reels
               </button>
             </div>
+          </div>
+
+          <!-- Recherche d'utilisateurs -->
+          <div class="feed-search">
+            <span class="material-symbols-outlined" style="position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);color:rgba(10,36,99,0.35);font-size:1.1rem;">search</span>
+            <input id="feed-search-input" type="text" class="feed-search-input" placeholder="Rechercher un membre..." oninput="A.onSearchInput(this)" autocomplete="off">
+            <div id="feed-search-results" class="feed-search-results" style="display:none;"></div>
           </div>
 
           <!-- Filtre ville -->
@@ -2418,10 +2490,76 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   };
 
   A.followUser = function (targetPhone, btn) {
-    feedApiFetch(API + '/follows/' + targetPhone, { method: 'POST' })
+    if (btn.disabled) return;
+    var originalText = btn.textContent;
+    btn.textContent = '...';
+    feedApiFetch(API + '/follows/' + encodeURIComponent(targetPhone), { method: 'POST' })
       .then(function (r) { return r && r.json(); }).then(function (data) {
-      if (data && data.success) { btn.textContent = 'Suivi'; btn.classList.add('following'); btn.disabled = true; }
-    }).catch(function (err) { console.error('[follows] followUser:', err); });
+      if (data && data.success) {
+        if (data.status === 'pending_request') {
+          btn.textContent = 'Demande envoyée';
+          btn.classList.add('pending');
+        } else {
+          btn.textContent = 'Suivi';
+          btn.classList.add('following');
+        }
+        btn.disabled = true;
+      } else {
+        btn.textContent = originalText;
+      }
+    }).catch(function (err) { console.error('[follows] followUser:', err); btn.textContent = originalText; });
+  };
+
+  A._searchDebounce = null;
+  A.onSearchInput = function (input) {
+    clearTimeout(A._searchDebounce);
+    var q = input.value || '';
+    var results = $('feed-search-results');
+    if (!results) return;
+    if (q.trim().length < 2) { results.style.display = 'none'; results.innerHTML = ''; return; }
+    A._searchDebounce = setTimeout(function () { A.searchUsers(q.trim()); }, 300);
+  };
+
+  A.searchUsers = function (q) {
+    var results = $('feed-search-results');
+    if (!results) return;
+    results.style.display = 'block';
+    results.innerHTML = '<div class="feed-loading" style="padding:1rem;"><span class="material-symbols-outlined rotating">autorenew</span></div>';
+    feedApiFetch(API + '/feed/search-users?q=' + encodeURIComponent(q))
+      .then(function (r) { return r && r.json(); })
+      .then(function (d) {
+        if (!d) return;
+        A.renderSearchResults(d.data || []);
+      }).catch(function (err) { console.error('[feed] searchUsers:', err); });
+  };
+
+  A.renderSearchResults = function (users) {
+    var container = $('feed-search-results');
+    if (!container) return;
+    container.innerHTML = '';
+    container.style.display = 'block';
+    if (!users.length) {
+      container.innerHTML = '<div class="feed-search-empty">Aucun membre trouvé</div>';
+      return;
+    }
+    users.forEach(function (u) {
+      var div = document.createElement('div');
+      div.className = 'feed-search-item';
+      var isFollowing = u.is_following || u.is_following === true;
+      var hasPending = u.has_pending_request || u.has_pending_request === true;
+      var btnText = isFollowing ? 'Suivi' : (hasPending ? 'Demande envoyée' : 'Suivre');
+      var btnClass = isFollowing ? 'following' : (hasPending ? 'pending' : '');
+      div.innerHTML =
+        '<div class="feed-search-avatar" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(u.phone || '') + '\')" style="cursor:pointer;">' +
+          window.BolamuAvatar.render({ photoUrl: u.avatar_url || null, fullName: u.full_name || '', role: 'patient', size: 40 }) +
+        '</div>' +
+        '<div class="feed-search-info" onclick="BolamuProfileCard.open(\'' + A.escapeHtml(u.phone || '') + '\')" style="cursor:pointer;">' +
+          '<div class="feed-search-name">' + A.escapeHtml(u.full_name || '') + '</div>' +
+          (u.author_role_label ? '<div class="feed-search-role">' + A.escapeHtml(u.author_role_label) + '</div>' : '') +
+        '</div>' +
+        '<button class="feed-search-btn ' + btnClass + '" ' + (isFollowing || hasPending ? 'disabled' : '') + ' onclick="A.followUser(\'' + A.escapeHtml(u.phone || '') + '\', this)">' + btnText + '</button>';
+      container.appendChild(div);
+    });
   };
 })();
 </script>

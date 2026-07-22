@@ -189,6 +189,13 @@ follow_requests (
 - Membres non suivis, `is_active`, triés par `followers_count DESC, RANDOM()`, limite 8.
 - **Réponse** : `{ "success":true, "data":[ { "phone","full_name","avatar_url","city","bio","author_role_label","followers_count" } ] }` (`avatar_url` = `photo_url` aliasé).
 
+### 4.12 `GET /api/v1/feed/search-users` — `authMiddleware` — `searchUsers`
+- **Query** : `q` (requis, >= 2 caractères), `page=1`, `limit=10` (max 20).
+- Recherche infixe `ILIKE` sur `full_name` et `phone` (index `pg_trgm` recommandé).
+- Filtre : `u.phone <> req.user.phone` ET `u.is_active = TRUE`.
+- **Réponse** : `{ "success":true, "page":<int>, "data":[ { "phone","full_name","avatar_url","city","bio","role","author_role_label","is_following","has_pending_request" } ] }`.
+- `is_following` / `has_pending_request` issus des tables `follows` et `follow_requests` (status `pending`).
+
 ---
 
 ## 5. ENDPOINTS STORIES / REELS / FOLLOWS
@@ -271,7 +278,10 @@ Deux mécanismes de « post automatique » coexistent, mais **écrivent dans deu
 | `A.loadReels()` (`:5644`) | `GET /reels?limit=10` |
 | `A.toggleReelLike()` (`:5700`) | `POST /feed/:reelId/like` |
 | `A.loadSuggestions()` (`:5731`) | `GET /feed/suggestions` |
-| `A.followUser()` (`:5777`) | `POST /follows/:phone` |
+| `A.searchUsers()` (`:5880`) | `GET /feed/search-users?q=…` |
+| `A.onSearchInput()` (`:5858`) | déclenche `A.searchUsers` avec debounce 300 ms |
+| `A.renderSearchResults()` (`:5890`) | rendu `.feed-search-results` avec `BolamuAvatar` + `BolamuProfileCard` |
+| `A.followUser()` (`:5777`) | `POST /follows/:phone` (utilisé dans suggestions et résultats de recherche) |
 | demandes de suivi (`:4674`,`:4719`,`:4743`) | `GET /follows/follow-requests`, `PATCH /follows/follow-requests/:id` |
 
 ---
