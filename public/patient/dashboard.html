@@ -4207,6 +4207,7 @@
     if (token) {
       try {
         var phone = JSON.parse(atob(token.split('.')[1])).phone;
+        A._patientPhone = phone;
         A._loadAll(token, phone);
       } catch (e) { /* token invalide : on reste sur les valeurs par défaut */ }
     } else {
