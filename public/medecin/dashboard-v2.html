@@ -303,6 +303,12 @@
                 topbarAvatarContainer.innerHTML = `<div class="w-full h-full bg-primary flex items-center justify-center text-white font-bold text-lg">${initials || 'DR'}</div>`;
             }
         }
+
+        // Propager aussi dans la section profil si elle est rendue
+        const profilImg = document.querySelector('#profil-photo-circle img');
+        if (profilImg && doctor.photo_url) {
+            profilImg.src = doctor.photo_url;
+        }
     }
 
     function navigate(tabId) {
@@ -568,7 +574,7 @@
             }
 
             grid.innerHTML = uniquePatients.map(p => `
-                <div class="card-custom p-8 hover:translate-y-[-4px] transition-all cursor-pointer group" onclick="navigate('Scanner'); showManualPatient('${p.patient_phone || p.phone}')">
+                <div class="card-custom p-8 hover:translate-y-[-4px] transition-all cursor-pointer group" onclick="openPatientProfilePanel('${p.patient_phone || p.phone}')">
                     <div class="flex justify-between items-start mb-6">
                         <div class="w-14 h-14 rounded-2xl bg-background border border-border-light flex items-center justify-center font-bold text-xl text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
                             ${(p.patient_name || p.patient || 'P').charAt(0)}
@@ -579,8 +585,23 @@
                     </div>
                     <h3 class="text-lg font-extrabold text-navy mb-1">${p.patient_name || p.patient || '—'}</h3>
                     <p class="text-xs text-outline font-medium mb-6">${p.patient_phone || '—'}</p>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2 mb-4">
                         <span class="bg-background border border-border-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-navy/70">RDV: ${formatDate(p.appointment_date)}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="event.stopPropagation(); openPatientProfilePanel('${p.patient_phone || p.phone}')"
+                                class="flex-1 flex items-center justify-center gap-1 text-xs font-bold
+                                       text-primary bg-primary/10 rounded-xl py-2 hover:bg-primary
+                                       hover:text-white transition-all">
+                            <span class="material-symbols-outlined text-[15px]">person</span>
+                            Profil
+                        </button>
+                        <button onclick="event.stopPropagation(); openConsultation('${p.patient_name || p.patient || '—'}', '${p.id || p.appointment_id}')"
+                                class="flex-1 flex items-center justify-center gap-1 text-xs font-bold
+                                       text-white bg-primary rounded-xl py-2 hover:bg-navy transition-all">
+                            <span class="material-symbols-outlined text-[15px]">play_arrow</span>
+                            Consultation
+                        </button>
                     </div>
                 </div>
             `).join('') + `
@@ -2772,11 +2793,22 @@
                 <div class="card-custom p-12 text-center relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-32 bg-navy"></div>
                     <div class="relative z-10">
-                        <div class="w-40 h-40 rounded-3xl mx-auto mb-8 bg-white border-8 border-white shadow-2xl overflow-hidden group">
-                            ${doctor.photo_url 
-                                ? `<img class="w-full h-full object-cover" src="${doctor.photo_url}" alt="Avatar">`
-                                : `<div class="w-full h-full bg-primary flex items-center justify-center text-white text-5xl font-black">${initials}</div>`
-                            }
+                        <div class="relative w-40 h-40 mx-auto mb-8">
+                            <div id="profil-photo-circle"
+                                 onclick="triggerDoctorPhotoUpload()"
+                                 class="w-full h-full rounded-3xl bg-white border-8 border-white shadow-2xl overflow-hidden relative cursor-pointer group">
+                                ${doctor.photo_url
+                                    ? `<img id="profil-photo-img" class="w-full h-full object-cover" src="${doctor.photo_url}" alt="Photo de profil">`
+                                    : `<div id="profil-photo-img" class="w-full h-full bg-primary flex items-center justify-center text-white text-5xl font-black">${initials}</div>`
+                                }
+                                <div class="absolute inset-0 bg-navy/50 flex flex-col items-center justify-center
+                                            text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                                    <span class="material-symbols-outlined text-3xl">photo_camera</span>
+                                    <span class="text-xs font-bold mt-1">Modifier</span>
+                                </div>
+                            </div>
+                            <input type="file" id="doctor-photo-upload" accept="image/*" style="display:none"
+                                   onchange="handleDoctorPhotoUpload(event)">
                         </div>
                         <h2 class="text-3xl font-black text-navy mb-2">${fullName}</h2>
                         <div class="flex items-center justify-center gap-3 mb-10">
@@ -3211,6 +3243,64 @@
         }
     }
 
+    // ─── Upload photo médecin ──────────────────────────────────────────
+
+    function triggerDoctorPhotoUpload() {
+        const input = document.getElementById('doctor-photo-upload');
+        if (input) input.click();
+    }
+
+    async function handleDoctorPhotoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Photo trop volumineuse (max 5 Mo)');
+            return;
+        }
+
+        // Preview immédiat
+        const reader = new FileReader();
+        reader.onload = e => {
+            const circle = document.getElementById('profil-photo-circle');
+            if (circle) {
+                const existing = circle.querySelector('img, div[id="profil-photo-img"]');
+                if (existing && existing.tagName === 'IMG') {
+                    existing.src = e.target.result;
+                } else if (existing) {
+                    const img = document.createElement('img');
+                    img.id = 'profil-photo-img';
+                    img.className = 'w-full h-full object-cover';
+                    img.src = e.target.result;
+                    existing.replaceWith(img);
+                }
+            }
+        };
+        reader.readAsDataURL(file);
+
+        // Upload
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        try {
+            const res = await apiFetch(`${API}/doctors/photo`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                state.doctor = { ...state.doctor, photo_url: data.photo_url };
+                updateSidebarProfil();
+                showToast('Photo de profil mise à jour');
+            } else {
+                showToast('Erreur lors de l\'upload');
+            }
+        } catch (e) {
+            console.error('[handleDoctorPhotoUpload]', e);
+            showToast('Erreur de connexion');
+        }
+    }
+
     window.onload = async () => {
         const token = getAuthToken();
         const _rawPhone = localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone') || '';
@@ -3328,6 +3418,8 @@
                 if (photoData.success) {
                     photoUrl = photoData.photo_url;
                     formData.photo = photoUrl;
+                    state.doctor = { ...state.doctor, photo_url: photoUrl };
+                    updateSidebarProfil();
                 }
             }
 
@@ -3962,5 +4054,358 @@
             alert('Erreur : ' + e.message);
         }
     }
+
+    // ─── Panel profil patient ──────────────────────────────────────────
+
+    function openPatientProfilePanel(patientPhone) {
+        const panel = document.getElementById('patient-profile-panel');
+        const backdrop = document.getElementById('patient-profile-backdrop');
+
+        // Afficher
+        backdrop.style.display = 'block';
+        panel.style.display = 'block';
+        requestAnimationFrame(() => { panel.style.transform = 'translateX(0)'; });
+
+        // Reset
+        document.getElementById('ppp-name').textContent = 'Chargement…';
+        document.getElementById('ppp-phone').textContent = patientPhone;
+        document.getElementById('ppp-dossier-section').innerHTML =
+            '<div class="text-center py-4 text-outline text-sm">Chargement…</div>';
+        document.getElementById('ppp-dossier-content').style.display = 'none';
+
+        apiFetch(`${API}/doctors/patients/${encodeURIComponent(patientPhone)}/profile`)
+            .then(r => r.json())
+            .then(d => {
+                if (!d || !d.success) {
+                    showToast('Impossible de charger le profil');
+                    return;
+                }
+                renderPatientProfilePanel(d.data);
+            })
+            .catch(() => showToast('Erreur réseau'));
+    }
+
+    function closePatientProfilePanel() {
+        const panel = document.getElementById('patient-profile-panel');
+        const backdrop = document.getElementById('patient-profile-backdrop');
+        panel.style.transform = 'translateX(105%)';
+        setTimeout(() => { backdrop.style.display = 'none'; }, 300);
+    }
+
+    function renderPatientProfilePanel(data) {
+        const { patient, dossier_access } = data;
+
+        const fullName = [patient.first_name, patient.last_name]
+            .filter(Boolean).join(' ') || 'Patient';
+        const initials = fullName.split(' ')
+            .map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+        document.getElementById('ppp-name').textContent = fullName;
+        document.getElementById('ppp-phone').textContent = patient.phone;
+
+        // Avatar
+        const avatarEl = document.getElementById('ppp-avatar');
+        const initialsEl = document.getElementById('ppp-initials');
+        if (patient.photo_url) {
+            const img = document.createElement('img');
+            img.src = patient.photo_url;
+            img.className = 'w-full h-full object-cover';
+            avatarEl.innerHTML = '';
+            avatarEl.appendChild(img);
+        } else {
+            initialsEl.textContent = initials;
+        }
+
+        // Badge abonnement
+        const badge = document.getElementById('ppp-sub-badge');
+        if (patient.sub_status === 'active') {
+            badge.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1
+                bg-secondary/10 text-secondary text-[10px] font-black uppercase
+                tracking-widest rounded-full">
+                <span class="material-symbols-outlined text-[12px]">workspace_premium</span>
+                Abonné · ${patient.plan || 'Standard'}
+            </span>`;
+        } else {
+            badge.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1
+                bg-background text-outline text-[10px] font-black uppercase
+                tracking-widest rounded-full border border-border-light">
+                Non abonné
+            </span>`;
+        }
+
+        renderDossierAccessSection(patient.phone, dossier_access);
+    }
+
+    function renderDossierAccessSection(patientPhone, access) {
+        const section = document.getElementById('ppp-dossier-section');
+
+        if (access === 'granted') {
+            section.innerHTML = `
+                <div class="flex items-center gap-2 bg-secondary/10 border border-secondary/30
+                            rounded-xl px-4 py-3 mb-4">
+                    <span class="material-symbols-outlined text-secondary text-lg">verified</span>
+                    <span class="text-sm font-bold text-secondary">Accès autorisé par le patient</span>
+                </div>
+                <button onclick="loadPatientDossier('${patientPhone}')"
+                        class="btn-primary w-full justify-center py-3">
+                    <span class="material-symbols-outlined">folder_open</span>
+                    Ouvrir le dossier médical
+                </button>`;
+
+        } else if (access === 'pending') {
+            section.innerHTML = `
+                <div class="flex items-center gap-3 bg-amber-50 border border-amber-200
+                            rounded-xl p-4">
+                    <span class="material-symbols-outlined text-amber-500 text-xl">hourglass_empty</span>
+                    <div>
+                        <p class="text-sm font-bold text-amber-800">Demande en attente</p>
+                        <p class="text-xs text-amber-600 mt-0.5">
+                            Le patient doit valider depuis son application Bolamu
+                        </p>
+                    </div>
+                </div>`;
+
+        } else {
+            const isDenied = access === 'denied';
+            section.innerHTML = `
+                ${isDenied ? `
+                <div class="flex items-center gap-2 bg-error/10 border border-error/20
+                            rounded-xl px-4 py-3 mb-4">
+                    <span class="material-symbols-outlined text-error text-lg">block</span>
+                    <span class="text-sm font-bold text-error">Accès précédemment refusé</span>
+                </div>` : ''}
+                <p class="text-sm text-outline mb-4 leading-relaxed">
+                    Le patient doit autoriser l'accès à son dossier médical numérique.
+                    Une notification WhatsApp lui sera envoyée.
+                </p>
+                <button onclick="requestDossierAccess('${patientPhone}')"
+                        class="w-full flex items-center justify-center gap-2 py-3
+                               border-2 border-primary text-primary font-bold rounded-2xl
+                               hover:bg-primary hover:text-white transition-all">
+                    <span class="material-symbols-outlined">send</span>
+                    ${isDenied ? 'Renouveler la demande' : 'Demander l\'accès au dossier'}
+                </button>`;
+        }
+    }
+
+    async function requestDossierAccess(patientPhone) {
+        const btns = document.querySelectorAll('#ppp-dossier-section button');
+        btns.forEach(b => { b.disabled = true; b.textContent = 'Envoi en cours…'; });
+
+        try {
+            const res = await apiFetch(
+                `${API}/doctors/patients/${encodeURIComponent(patientPhone)}/request-access`,
+                { method: 'POST' }
+            );
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('Demande envoyée au patient via WhatsApp');
+                renderDossierAccessSection(patientPhone, 'pending');
+            } else {
+                showToast('Erreur lors de l\'envoi');
+                btns.forEach(b => { b.disabled = false; });
+            }
+        } catch (e) {
+            showToast('Erreur réseau');
+            btns.forEach(b => { b.disabled = false; });
+        }
+    }
+
+    async function loadPatientDossier(patientPhone) {
+        const content = document.getElementById('ppp-dossier-content');
+        content.style.display = 'block';
+
+        // Spinners
+        ['ppp-constantes', 'ppp-prescriptions', 'ppp-consultations'].forEach(id => {
+            document.getElementById(id).innerHTML =
+                '<div class="col-span-2 text-center py-4 text-outline text-sm">Chargement…</div>';
+        });
+
+        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        try {
+            const res = await apiFetch(
+                `${API}/doctors/patients/${encodeURIComponent(patientPhone)}/dossier`
+            );
+            const data = await res.json();
+
+            if (!data.success) {
+                if (data.error === 'ACCESS_DENIED') {
+                    showToast('Accès révoqué par le patient');
+                    renderDossierAccessSection(patientPhone, 'denied');
+                    content.style.display = 'none';
+                } else {
+                    showToast('Impossible de charger le dossier');
+                }
+                return;
+            }
+
+            renderPppConstantes(data.data.constantes);
+            renderPppPrescriptions(data.data.prescriptions);
+            renderPppConsultations(data.data.consultations);
+
+        } catch (e) {
+            showToast('Erreur réseau');
+        }
+    }
+
+    function renderPppConstantes(c) {
+        const el = document.getElementById('ppp-constantes');
+        if (!c) {
+            el.innerHTML = '<div class="col-span-2 text-sm text-outline">Aucune constante enregistrée</div>';
+            return;
+        }
+        const fields = [
+            { label: 'Groupe sanguin', value: c.groupe_sanguin },
+            { label: 'Poids · Taille',
+              value: [(c.poids ? c.poids + ' kg' : null),
+                      (c.taille ? c.taille + ' cm' : null)]
+                     .filter(Boolean).join(' · ') || null },
+            { label: 'Allergies', value: c.allergies, full: true },
+            { label: 'Maladies chroniques', value: c.maladies_chroniques, full: true },
+            { label: 'Traitements', value: c.traitements_en_cours, full: true }
+        ];
+        el.innerHTML = fields.map(f => `
+            <div class="${f.full ? 'col-span-2' : ''} p-4 bg-background rounded-xl border border-border-light">
+                <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">
+                    ${f.label}
+                </p>
+                <p class="text-sm font-bold text-navy">
+                    ${f.value || '<span class="text-outline font-normal">Non renseigné</span>'}
+                </p>
+            </div>`).join('');
+    }
+
+    function renderPppPrescriptions(list) {
+        const el = document.getElementById('ppp-prescriptions');
+        if (!list || !list.length) {
+            el.innerHTML = '<p class="text-sm text-outline">Aucune ordonnance</p>';
+            return;
+        }
+        el.innerHTML = list.map(p => {
+            const date = p.created_at
+                ? new Date(p.created_at).toLocaleDateString('fr-FR',
+                    { day: 'numeric', month: 'short', year: 'numeric' })
+                : '—';
+            return `<div class="flex items-center gap-3 p-3 bg-background rounded-xl border border-border-light">
+            <span class="material-symbols-outlined text-primary text-lg flex-shrink-0">description</span>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-navy truncate">
+                    ${p.medications || p.diagnosis || 'Ordonnance'}
+                </p>
+                <p class="text-xs text-outline">${date}</p>
+            </div>
+        </div>`;
+        }).join('');
+    }
+
+    function renderPppConsultations(list) {
+        const el = document.getElementById('ppp-consultations');
+        if (!list || !list.length) {
+            el.innerHTML = '<p class="text-sm text-outline">Aucune consultation</p>';
+            return;
+        }
+        el.innerHTML = list.map(c => {
+            const date = (c.appointment_date)
+                ? new Date(c.appointment_date).toLocaleDateString('fr-FR',
+                    { day: 'numeric', month: 'short', year: 'numeric' })
+                : '—';
+            return `<div class="flex items-center gap-3 p-3 bg-background rounded-xl border border-border-light">
+            <span class="material-symbols-outlined text-secondary text-lg flex-shrink-0">medical_services</span>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-navy truncate">
+                    Dr ${c.doctor_name || '—'}
+                </p>
+                <p class="text-xs text-outline">${date}</p>
+            </div>
+        </div>`;
+        }).join('');
+    }
 </script>
+
+<!-- ===== PANEL PROFIL PATIENT ===== -->
+<div id="patient-profile-panel"
+     class="fixed top-0 right-0 h-full w-[460px] max-w-full bg-background z-[200]
+            shadow-2xl transition-transform duration-300 overflow-y-auto"
+     style="transform: translateX(105%);">
+
+    <!-- Header sticky -->
+    <div class="sticky top-0 bg-white/90 backdrop-blur-md border-b border-border-light
+                px-6 py-4 flex items-center gap-3 z-10">
+        <button onclick="closePatientProfilePanel()"
+                class="p-2 rounded-xl hover:bg-background text-outline hover:text-navy transition-colors">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h3 class="text-base font-extrabold text-navy">Profil Patient</h3>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6 space-y-6">
+
+        <!-- Identité -->
+        <div class="card-custom p-6 flex items-center gap-4" id="ppp-identity-card">
+            <div id="ppp-avatar"
+                 class="w-16 h-16 rounded-2xl bg-navy text-white flex items-center
+                        justify-content center font-black text-2xl flex-shrink-0
+                        overflow-hidden">
+                <span id="ppp-initials">—</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h4 id="ppp-name" class="text-lg font-extrabold text-navy truncate">—</h4>
+                <p id="ppp-phone"
+                   class="text-xs text-outline font-medium mt-0.5">—</p>
+                <div id="ppp-sub-badge" class="mt-2"></div>
+            </div>
+        </div>
+
+        <!-- Dossier médical -->
+        <div class="card-custom p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="material-symbols-outlined text-primary">folder_shared</span>
+                <h4 class="font-extrabold text-navy text-base">Dossier médical numérique</h4>
+            </div>
+            <div id="ppp-dossier-section">
+                <!-- Rempli dynamiquement -->
+            </div>
+        </div>
+
+        <!-- Contenu dossier (visible si granted) -->
+        <div id="ppp-dossier-content" style="display:none;" class="space-y-4">
+
+            <!-- Constantes -->
+            <div class="card-custom p-6">
+                <p class="text-[10px] font-black text-outline uppercase tracking-[0.2em] mb-4">
+                    Constantes médicales
+                </p>
+                <div id="ppp-constantes"
+                     class="grid grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- Ordonnances -->
+            <div class="card-custom p-6">
+                <p class="text-[10px] font-black text-outline uppercase tracking-[0.2em] mb-4">
+                    Ordonnances récentes
+                </p>
+                <div id="ppp-prescriptions" class="space-y-2"></div>
+            </div>
+
+            <!-- Consultations -->
+            <div class="card-custom p-6">
+                <p class="text-[10px] font-black text-outline uppercase tracking-[0.2em] mb-4">
+                    Historique consultations
+                </p>
+                <div id="ppp-consultations" class="space-y-2"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Backdrop -->
+<div id="patient-profile-backdrop"
+     onclick="closePatientProfilePanel()"
+     class="fixed inset-0 bg-navy/40 backdrop-blur-sm z-[199]"
+     style="display:none;"></div>
+
 </body></html>
