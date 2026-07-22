@@ -296,13 +296,36 @@ Deux mécanismes de « post automatique » coexistent, mais **écrivent dans deu
 
 ---
 
-## 9. RÔLES — SYNTHÈSE POUR LE DASHBOARD MÉDECIN (préparation Phase 5)
+## 9. RÔLES — PORTÉE DU FEED SOCIAL CONSOMMATEUR
 
-Le rôle `doctor` a **exactement les mêmes droits** que tout autre rôle authentifié sur ce module (aucun check RBAC spécifique) :
-- Il peut lire le feed, créer des posts/stories/reels, liker, commenter, signaler, suivre/être suivi, voir un profil, recevoir des suggestions.
-- Le feed inclut d'ailleurs déjà un `LEFT JOIN doctors d ON d.phone = u.phone` pour exposer `d.specialty` → `author_role_label` (ex. « Médecin · Cardiologie ») — le rôle médecin est donc **déjà pris en compte côté données** dans les réponses feed.
+### 9.1 Dashboard médecin en production
 
-Ce qui reste à établir en Phase 5 : ce que `public/medecin/dashboard-v2.html` implémente réellement vs ce contrat.
+Le rôle `doctor` est redirigé vers **`/medecin/dashboard-v2.html`** après connexion (`auth.controller.js:148`, `public/login.html:339`, `public/onboarding.html:133`).  
+`public/medecin/dashboard.html` existe mais n'est **pas** le dashboard servi aux médecins en production.
+
+### 9.2 Rôles avec UI consommateur (feed + stories + reels + follows + recherche)
+
+Le feed social consommateur est implémenté dans les dashboards des rôles suivants :
+
+- `patient` : `public/patient/dashboard.html`
+- `doctor` : `public/medecin/dashboard-v2.html`
+- `pharmacie` : `public/pharmacie/dashboard.html`
+- `laboratoire` : `public/laboratoire/dashboard.html`
+- `secretaire` : `public/secretaire/dashboard.html`
+- `rh` : `public/rh/dashboard.html`
+- `animateur` : `public/animateur/dashboard.html`
+- `partenaire_commercial` : `public/partenaire/dashboard.html`
+
+### 9.3 Rôles hors scope UI (backoffice / outils)
+
+Les rôles suivants ont un dashboard **outils/backoffice** et n'implémentent **pas** le feed social consommateur. Leur absence d'UI est volontaire et non pas un oubli :
+
+- `admin` : `public/admin/dashboard.html` — modération, validation, finances, audit (`/admin/feed/reports` est un panneau de modération, pas un feed consommateur).
+- `agent_bolamu` : `public/agent/dashboard.html` — inscription patient/partenaire, chat opérationnel, souscription (`/agent/*`, `/chat/*`).
+- `agence` : `public/agence/dashboard.html` — opérations agence (`/agence/*`).
+- `content_admin` : pas de dashboard front identifié avec feed.
+
+**Principe :** côté API, aucune route du module social n'utilise de middleware de rôle (§2) — tout utilisateur authentifié peut théoriquement consommer ces endpoints. Cependant, l'**interface consommateur** (recherche, follow, suggestions, stories/reels) n'est fournie que pour les 8 rôles listés en 9.2. Les rôles backoffice n'ont pas de lien/onglet pointant vers le feed dans leur dashboard.
 
 ---
 

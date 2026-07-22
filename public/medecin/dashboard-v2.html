@@ -1437,6 +1437,13 @@
         container.innerHTML = `
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
                 <div class="lg:col-span-3 space-y-8">
+                    <!-- SEARCH -->
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
+                        <input id="feed-search-input" type="text" placeholder="Rechercher un membre..." oninput="onSearchInput(this)" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                        <div id="feed-search-results" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-border-light z-20 max-h-80 overflow-y-auto p-2 hidden"></div>
+                    </div>
+
                     <!-- FILTERS -->
                     <div class="flex gap-2 overflow-x-auto hide-scroll">
                         ${state.cities.map(c => `
@@ -1900,6 +1907,92 @@
         } finally {
             followLocks[phone] = false;
         }
+    }
+
+    let feedSearchDebounce = null;
+
+    function onSearchInput(input) {
+        clearTimeout(feedSearchDebounce);
+        const q = input.value || '';
+        const results = document.getElementById('feed-search-results');
+        if (!results) return;
+        if (q.trim().length < 2) { results.classList.add('hidden'); results.innerHTML = ''; return; }
+        feedSearchDebounce = setTimeout(() => searchUsers(q.trim()), 300);
+    }
+
+    async function searchUsers(q) {
+        const results = document.getElementById('feed-search-results');
+        if (!results) return;
+        results.classList.remove('hidden');
+        results.innerHTML = '<div class="p-4 text-center"><span class="material-symbols-outlined rotating">autorenew</span></div>';
+        try {
+            const res = await apiFetch(`${API}/feed/search-users?q=${encodeURIComponent(q)}`);
+            const d = await res.json();
+            if (!d) return;
+            renderSearchResults(d.data || []);
+        } catch (e) {
+            console.error('[searchUsers] Erreur:', e);
+        }
+    }
+
+    function renderSearchResults(users) {
+        const container = document.getElementById('feed-search-results');
+        if (!container) return;
+        container.innerHTML = '';
+        container.classList.remove('hidden');
+        if (users.length === 0) {
+            container.innerHTML = '<p class="text-xs text-outline text-center p-4">Aucun membre trouvé</p>';
+            return;
+        }
+        users.forEach(u => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-3 p-2 hover:bg-background rounded-xl cursor-pointer transition-colors';
+
+            const avatarContainer = document.createElement('div');
+            avatarContainer.className = 'w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0';
+            avatarContainer.style.cursor = 'pointer';
+            avatarContainer.onclick = () => BolamuProfileCard.open(u.phone || '');
+            const avatar = document.createElement('div');
+            avatar.innerHTML = BolamuAvatar.render({ photoUrl: u.avatar_url || null, fullName: u.full_name || '', role: 'medecin', size: 40 });
+            avatarContainer.appendChild(avatar);
+            div.appendChild(avatarContainer);
+
+            const info = document.createElement('div');
+            info.className = 'flex-1 min-w-0';
+            info.onclick = () => BolamuProfileCard.open(u.phone || '');
+            info.style.cursor = 'pointer';
+
+            const name = document.createElement('p');
+            name.className = 'text-xs font-bold text-navy truncate';
+            name.textContent = escBcw(u.full_name || '—');
+            info.appendChild(name);
+
+            const roleLabel = document.createElement('p');
+            roleLabel.className = 'text-[10px] text-outline truncate';
+            roleLabel.textContent = escBcw(u.author_role_label || 'Utilisateur');
+            info.appendChild(roleLabel);
+            div.appendChild(info);
+
+            const isFollowing = u.is_following || u.is_following === true;
+            const hasPending = u.has_pending_request || u.has_pending_request === true;
+            const followBtn = document.createElement('button');
+            if (isFollowing) {
+                followBtn.className = 'text-error text-xs font-bold hover:text-error/80';
+                followBtn.textContent = 'Ne plus suivre';
+                followBtn.onclick = () => toggleFollow(u.phone, followBtn);
+            } else if (hasPending) {
+                followBtn.className = 'text-outline text-xs font-bold bg-background px-3 py-1 rounded-lg cursor-not-allowed';
+                followBtn.textContent = 'Demande envoyée';
+                followBtn.disabled = true;
+            } else {
+                followBtn.className = 'btn-primary px-3 py-1 rounded-lg text-xs font-bold';
+                followBtn.textContent = 'Suivre';
+                followBtn.onclick = () => toggleFollow(u.phone, followBtn);
+            }
+            div.appendChild(followBtn);
+
+            container.appendChild(div);
+        });
     }
 
     function filterCity(city) {
