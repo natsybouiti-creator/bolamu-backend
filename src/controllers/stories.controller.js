@@ -3,6 +3,14 @@
 // ============================================================
 const pool = require('../config/db');
 const cloudinaryService = require('../services/cloudinary.service');
+const { getRoleLabel } = require('../utils/roleLabels');
+
+function withRoleLabel(row) {
+    row.author_role_label = getRoleLabel(row.role, row.specialty) || 'Utilisateur';
+    delete row.role;
+    delete row.specialty;
+    return row;
+}
 
 // GET /api/v1/stories
 // Stories actives des personnes suivies (non expirées)
@@ -19,6 +27,8 @@ exports.getActiveStories = async (req, res) => {
                 p.expires_at,
                 u.full_name AS author_name,
                 u.photo_url AS author_avatar,
+                u.role,
+                d.specialty,
                 COUNT(sv.phone) AS views_count,
                 BOOL_OR(sv.phone = $1) AS viewed_by_me
             FROM posts p
@@ -33,11 +43,11 @@ exports.getActiveStories = async (req, res) => {
                         SELECT following_phone FROM follows WHERE follower_phone = $1
                     )
                 )
-            GROUP BY p.id, u.full_name, u.photo_url
+            GROUP BY p.id, u.full_name, u.photo_url, u.role, d.specialty
             ORDER BY viewed_by_me ASC, p.created_at DESC
         `, [phone]);
 
-        return res.json({ success: true, data: result.rows });
+        return res.json({ success: true, data: result.rows.map(withRoleLabel) });
     } catch (err) {
         return res.status(500).json({
             success: false,
@@ -130,14 +140,15 @@ exports.getViewers = async (req, res) => {
         }
 
         const result = await pool.query(`
-            SELECT sv.viewed_at, u.full_name, u.photo_url, u.phone
+            SELECT sv.viewed_at, u.full_name, u.photo_url, u.phone, u.role, d.specialty
             FROM story_views sv
             JOIN users u ON u.phone = sv.phone
+            LEFT JOIN doctors d ON d.phone = u.phone
             WHERE sv.story_id = $1
             ORDER BY sv.viewed_at DESC
         `, [storyId]);
 
-        return res.json({ success: true, data: result.rows });
+        return res.json({ success: true, data: result.rows.map(withRoleLabel) });
     } catch (err) {
         return res.status(500).json({
             success: false,

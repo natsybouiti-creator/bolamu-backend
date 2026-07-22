@@ -3,6 +3,14 @@
 // ============================================================
 const pool = require('../config/db');
 const notifService = require('../services/notification.service');
+const { getRoleLabel } = require('../utils/roleLabels');
+
+function withRoleLabel(row) {
+    row.author_role_label = getRoleLabel(row.role, row.specialty) || 'Utilisateur';
+    delete row.role;
+    delete row.specialty;
+    return row;
+}
 
 exports.follow = async (req, res) => {
     const client = await pool.connect();
@@ -140,13 +148,14 @@ exports.getFollowing = async (req, res) => {
     const phone = req.user.phone;
     try {
         const result = await pool.query(`
-            SELECT u.phone, u.full_name, u.avatar_url, u.city, f.created_at
+            SELECT u.phone, u.full_name, u.avatar_url, u.city, u.role, d.specialty, f.created_at
             FROM follows f
             JOIN users u ON u.phone = f.following_phone
+            LEFT JOIN doctors d ON d.phone = u.phone
             WHERE f.follower_phone = $1
             ORDER BY f.created_at DESC
         `, [phone]);
-        return res.json({ success: true, data: result.rows });
+        return res.json({ success: true, data: result.rows.map(withRoleLabel) });
     } catch (err) {
         return res.status(500).json({
             success: false,
@@ -159,13 +168,14 @@ exports.getFollowers = async (req, res) => {
     const phone = req.user.phone;
     try {
         const result = await pool.query(`
-            SELECT u.phone, u.full_name, u.avatar_url, u.city, f.created_at
+            SELECT u.phone, u.full_name, u.avatar_url, u.city, u.role, d.specialty, f.created_at
             FROM follows f
             JOIN users u ON u.phone = f.follower_phone
+            LEFT JOIN doctors d ON d.phone = u.phone
             WHERE f.following_phone = $1
             ORDER BY f.created_at DESC
         `, [phone]);
-        return res.json({ success: true, data: result.rows });
+        return res.json({ success: true, data: result.rows.map(withRoleLabel) });
     } catch (err) {
         return res.status(500).json({
             success: false,
@@ -206,20 +216,23 @@ exports.getFollowRequests = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT fr.id, fr.requester_phone, fr.created_at,
-                   u.full_name, u.avatar_url
+                   u.full_name, u.avatar_url, u.role, d.specialty
             FROM follow_requests fr
             JOIN users u ON u.phone = fr.requester_phone
+            LEFT JOIN doctors d ON d.phone = u.phone
             WHERE fr.target_phone = $1 AND fr.status = 'pending'
             ORDER BY fr.created_at DESC
         `, [phone]);
         return res.json({
             success: true,
-            data: result.rows.map(row => ({
+            data: result.rows.map(row => withRoleLabel({
                 id: row.id,
                 requester_phone: row.requester_phone,
                 full_name: row.full_name,
                 avatar_url: row.avatar_url,
-                created_at: row.created_at
+                created_at: row.created_at,
+                role: row.role,
+                specialty: row.specialty
             }))
         });
     } catch (err) {
