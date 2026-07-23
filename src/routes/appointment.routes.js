@@ -247,12 +247,22 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
     if (!isOwnDoctor && !isAdmin) {
         return res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Accès refusé.' } });
     }
-    const { page = 1, per_page = 20 } = req.query;
+    const { page = 1, per_page = 20, today } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(per_page);
     try {
         const doc = await pool.query(`SELECT id FROM doctors WHERE phone = $1`, [phone]);
         if (!doc.rows.length) return res.json({ success: true, data: [], pagination: { total: 0, page: parseInt(page), per_page: parseInt(per_page) } });
-        
+
+        const filters = ['a.doctor_id = $1'];
+        const queryParams = [doc.rows[0].id];
+        if (today === '1') {
+            filters.push("a.appointment_date = CURRENT_DATE");
+            filters.push("a.status NOT IN ('annule', 'refuse')");
+        }
+        const whereClause = filters.join(' AND ');
+        const perPage = today === '1' ? 100 : parseInt(per_page);
+        const off = today === '1' ? 0 : offset;
+
         const result = await pool.query(
             `SELECT 
                 a.*,
@@ -265,23 +275,23 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
              FROM appointments a
              LEFT JOIN users u ON u.phone = a.patient_phone
              LEFT JOIN appointment_symptoms s ON s.appointment_id = a.id
-             WHERE a.doctor_id = $1
+             WHERE ${whereClause}
              ORDER BY a.appointment_date DESC, a.appointment_time DESC
              LIMIT $2 OFFSET $3`,
-            [doc.rows[0].id, parseInt(per_page), offset]
+            [...queryParams, perPage, off]
         );
-        
-        const countResult = await pool.query(`SELECT COUNT(*) FROM appointments WHERE doctor_id = $1`, [doc.rows[0].id]);
+
+        const countResult = await pool.query(`SELECT COUNT(*) FROM appointments WHERE ${whereClause}`, queryParams);
         const total = parseInt(countResult.rows[0].count);
         
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             data: result.rows,
             pagination: {
                 total: total,
                 page: parseInt(page),
-                per_page: parseInt(per_page),
-                pages: Math.ceil(total / parseInt(per_page))
+                per_page: perPage,
+                pages: Math.ceil(total / perPage)
             }
         });
     } catch (err) {

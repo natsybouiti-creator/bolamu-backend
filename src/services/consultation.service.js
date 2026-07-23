@@ -189,7 +189,8 @@ async function getActiveQueue(doctor_phone) {
   const normalizedDoctor = normalizePhone(doctor_phone);
 
   const result = await db.query(
-    `SELECT fa.*, u.first_name, u.last_name 
+    `SELECT fa.*, u.first_name, u.last_name,
+            CASE WHEN fa.priorite IN ('urgente','critique') THEN true ELSE false END AS urgence
      FROM file_attente fa
      JOIN users u ON u.phone = fa.patient_phone
      WHERE fa.doctor_phone = $1 

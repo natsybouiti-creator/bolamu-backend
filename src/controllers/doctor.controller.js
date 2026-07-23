@@ -242,8 +242,20 @@ async function getDoctorProfile(req, res) {
                 message: 'Votre compte médecin est désactivé. Contactez l\'administration.' 
             });
         }
-        
-        return res.json({ success: true, data: result.rows[0] });
+
+        const profile = result.rows[0];
+        const doctorId = profile.id;
+        const [totalRes, thisMonthRes, lastMonthRes] = await Promise.all([
+            pool.query(`SELECT COUNT(DISTINCT patient_phone) AS c FROM appointments WHERE doctor_id = $1 AND status NOT IN ('annule','refuse')`, [doctorId]),
+            pool.query(`SELECT COUNT(DISTINCT patient_phone) AS c FROM appointments WHERE doctor_id = $1 AND status NOT IN ('annule','refuse') AND appointment_date >= DATE_TRUNC('month', CURRENT_DATE)`, [doctorId]),
+            pool.query(`SELECT COUNT(DISTINCT patient_phone) AS c FROM appointments WHERE doctor_id = $1 AND status NOT IN ('annule','refuse') AND appointment_date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND appointment_date < DATE_TRUNC('month', CURRENT_DATE)`, [doctorId])
+        ]);
+        profile.patients_count = parseInt(totalRes.rows[0].c);
+        const thisMonth = parseInt(thisMonthRes.rows[0].c);
+        const lastMonth = parseInt(lastMonthRes.rows[0].c);
+        profile.patients_growth = lastMonth > 0 ? Math.round(((thisMonth - lastMonth) / lastMonth) * 100) : 0;
+
+        return res.json({ success: true, data: profile });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Erreur serveur.' });
     }

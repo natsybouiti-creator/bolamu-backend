@@ -29,6 +29,14 @@ router.post('/:id/close',
   consultationController.closeConsultation
 );
 
+// POST /api/v1/consultations/:id/transcript - Réceptionner texte dictaphone (médecin)
+router.post('/:id/transcript', 
+  authMiddleware, 
+  doctorOnly,
+  standardLimiter,
+  consultationController.saveTranscript
+);
+
 // GET /api/v1/consultations/queue - File d'attente active (médecin)
 router.get('/queue', 
   authMiddleware, 
