@@ -2403,6 +2403,32 @@
     }).join('');
   };
 
+  A.renderTimeline = function () {
+    var list = A._recentConsultations || [];
+    show($('timeline-empty'), list.length === 0, 'flex');
+    var el = $('timeline-list'); if (!el) return;
+    el.style.display = list.length ? 'flex' : 'none';
+    el.style.flexDirection = 'column';
+    el.style.gap = '12px';
+    el.innerHTML = list.map(function (c) {
+      var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
+      var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
+      var phone = esc(c.doctor_phone || '');
+      var avatarHtml = (typeof BolamuAvatar !== 'undefined')
+        ? BolamuAvatar.render({ photoUrl: c.doctor_photo_url, fullName: c.doctor_name, role: 'medecin', size: 44 })
+        : '<div style="width:44px;height:44px;border-radius:12px;background:#0A2463;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;">' + esc((c.doctor_name||'M').charAt(0)) + '</div>';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:14px;min-height:72px;box-sizing:border-box;background:#FAF8FF;border:1px solid #EDEDF8;border-radius:14px;">' +
+        '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="cursor:' + (phone ? 'pointer' : 'default') + ';flex-shrink:0;">' + avatarHtml + '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:2px;cursor:' + (phone ? 'pointer' : 'default') + ';">' + esc(c.doctor_name) + '</div>' +
+          '<div style="font-size:0.78rem;color:#9498a8;">' + esc(c.specialty) + ' · ' + esc(c.date) + '</div>' +
+        '</div>' +
+        '<span style="font-size:11px;font-weight:700;background:' + statusBg + ';color:' + statusColor + ';border-radius:8px;padding:4px 8px;white-space:nowrap;flex-shrink:0;">' + esc(c.status) + '</span>' +
+        (phone ? '<button onclick="A.openModal(\'' + phone + '\')" style="background:#0A2463;color:#fff;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">RDV</button>' : '') +
+      '</div>';
+    }).join('');
+  };
+
   // Expansion sur place (pattern _myRegExpanded/renderMyReg) — l'API pagine
   // réellement (limit/offset), donc "voir plus" déclenche un fetch de la
   // page suivante plutôt qu'un simple slice d'un tableau déjà chargé en
@@ -2419,6 +2445,7 @@
           A._recentConsultations = (A._recentConsultations || []).concat(d.data);
           A._consultationsHasMore = !!d.has_more;
           A.renderMesConsultationsAccueil();
+          A.renderTimeline();
         }
       }).catch(function () {});
   };
@@ -2901,7 +2928,7 @@
   A.goAccueil = function () { A.setState({ panel: 'accueil', profileOpen: false }); window.scrollTo(0, 0); };
   A.goFeed = function () { A.setState({ panel: 'feed', profileOpen: false }); window.scrollTo(0, 0); A.initFeed(); };
   A.goGagner = function () { A.setState({ panel: 'gagner', profileOpen: false }); window.scrollTo(0, 0); if (A.state.gagnerTab === 'sante') A.renderDefiSante(); setTimeout(function () { if (A.state.gagnerTab === 'sante') { A.initReseauMap(); A.applyReseauFilter(); } else { A.initEventsMap(); } }, 80); };
-  A.goSuivre = function () { A.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); A.loadDossierQr(); };
+  A.goSuivre = function () { A.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); if (!A._recentConsultations || A._recentConsultations.length === 0) A.loadMoreConsultations(); A.loadDossierQr(); };
   A.goRecompenses = function () { A.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); A.initScratch(); };
   A.openProfile = function () { A.setState({ profileOpen: true }); window.scrollTo(0, 0); A.loadProfilSocial(); };
   A.closeProfile = function () { A.setState({ profileOpen: false }); };
