@@ -3037,13 +3037,34 @@
                         <h3 class="font-black text-navy text-xl">Ordonnance Digitale Sécurisée</h3>
                     </div>
                     <div class="p-6 bg-background rounded-2xl border border-border-light">
-                        <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em] block mb-2">Nom du médicament *</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Nom du médicament *</label>
+                            <button type="button" onclick='toggleDictaphone("ord-med-nom")' id='dictaphone-btn-ord-med-nom' class='dictaphone-btn flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full' data-target='ord-med-nom'>
+                                <span class="material-symbols-outlined text-sm">mic</span> Dictée
+                            </button>
+                        </div>
                         <input type="text" id="ord-med-nom" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Commencez à taper… (ex : Paracétamol)">
                         <div class="flex gap-3 mt-3">
-                            <input type="text" id="ord-med-dosage" class="flex-1 rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Dosage (ex : 500mg)">
-                            <input type="text" id="ord-med-quantite" class="flex-1 rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Quantité (ex : 1 boîte)">
+                            <div class="flex-1 flex flex-col gap-1">
+                                <button type="button" onclick='toggleDictaphone("ord-med-dosage")' id='dictaphone-btn-ord-med-dosage' class='dictaphone-btn self-end flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full' data-target='ord-med-dosage'>
+                                    <span class="material-symbols-outlined text-sm">mic</span> Dictée
+                                </button>
+                                <input type="text" id="ord-med-dosage" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Dosage (ex : 500mg)">
+                            </div>
+                            <div class="flex-1 flex flex-col gap-1">
+                                <button type="button" onclick='toggleDictaphone("ord-med-quantite")' id='dictaphone-btn-ord-med-quantite' class='dictaphone-btn self-end flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full' data-target='ord-med-quantite'>
+                                    <span class="material-symbols-outlined text-sm">mic</span> Dictée
+                                </button>
+                                <input type="text" id="ord-med-quantite" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Quantité (ex : 1 boîte)">
+                            </div>
                         </div>
-                        <input type="text" id="ord-med-posologie" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none mt-3" placeholder="Posologie / instructions (ex : 3x/jour pendant 5 jours)">
+                        <div class="flex items-center justify-between mt-3">
+                            <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Posologie / instructions</label>
+                            <button type="button" onclick='toggleDictaphone("ord-med-posologie")' id='dictaphone-btn-ord-med-posologie' class='dictaphone-btn flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full' data-target='ord-med-posologie'>
+                                <span class="material-symbols-outlined text-sm">mic</span> Dictée
+                            </button>
+                        </div>
+                        <input type="text" id="ord-med-posologie" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Posologie / instructions (ex : 3x/jour pendant 5 jours)">
                         <button onclick="ajouterMedicament()" class="btn-primary w-full py-3 mt-3">
                             <span class="material-symbols-outlined">add</span> Ajouter à l'ordonnance
                         </button>
@@ -3130,54 +3151,6 @@
         }
     }
 
-    async function confirmerValidation() {
-        const medications = document.getElementById('ord-medications').value.trim();
-        const instructions = document.getElementById('ord-instructions').value.trim();
-        
-        if (!medications) {
-            alert('Ajoutez au moins un médicament à l\'ordonnance.');
-            return;
-        }
-
-        const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
-        const motif = document.getElementById('soap-subjectif').value.trim();
-        const observations = document.getElementById('soap-objectif').value.trim();
-        const diagnostic = document.getElementById('soap-analyse').value.trim();
-        
-        try {
-            const resVal = await apiFetch(`${API}/consultations/${currentRdv.rdvId}/close`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    diagnostic: diagnostic,
-                    anamnese: motif,
-                    examen_clinique: observations,
-                    notes: ''
-                })
-            });
-            const dataVal = await resVal.json();
-            if (!resVal.ok) throw new Error(dataVal.message || 'Erreur validation consultation');
-
-            const resPres = await apiFetch(`${API}/prescriptions/create`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    appointment_id: currentRdv.rdvId,
-                    patient_phone: currentRdv.patientPhone,
-                    doctor_phone: phone,
-                    medications: medications,
-                    instructions: instructions || ''
-                })
-            });
-            const dataPres = await resPres.json();
-            if (!resPres.ok) throw new Error(dataPres.message || 'Erreur ordonnance');
-
-            consultStep = 4;
-            renderConsultStep();
-        } catch(e) {
-            alert('Erreur : ' + e.message);
-        }
-    }
 
     function formatMedLine(m) {
         let ligne = m.nom;
@@ -3277,8 +3250,8 @@
         }
 
         const phone = state.doctor?.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
-        const appointmentId = state.activeConsultation?.appointmentId;
-        const patientPhone = state.activeConsultation?.patientName;
+        const appointmentId = state.activeConsultation?.appointmentId || currentRdv.rdvId;
+        const patientPhone = state.activeConsultation?.patientPhone || currentRdv.patientPhone;
 
         try {
             // Clôturer la consultation
