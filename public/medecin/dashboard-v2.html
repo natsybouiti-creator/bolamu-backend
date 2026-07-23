@@ -349,7 +349,12 @@
                 <span class="material-symbols-outlined text-[20px]">${tab.icon}</span>
                 <span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">${tab.id.split(' ')[0]}</span>
             </button>
-        `).join('');
+        `).join('') + `
+            <button onclick="deconnexion()" class="flex flex-col items-center justify-center px-4 py-1.5 transition-all text-error hover:text-error/80">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+                <span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">Quitter</span>
+            </button>
+        `;
     }
 
     function renderContent() {
@@ -379,16 +384,18 @@
         const phone = state.doctor.phone || localStorage.getItem('bolamu_doctor_phone') || localStorage.getItem('phone');
         
         try {
-            const [rdvRes, fileAttenteRes] = await Promise.all([
+            const [todayRdvRes, allRdvRes, fileAttenteRes] = await Promise.all([
+                apiFetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}?today=1`),
                 apiFetch(`${API}/appointments/doctor/${encodeURIComponent(phone)}`),
                 apiFetch(`${API}/consultations/queue`)
             ]);
-            
-            const rdvData = await rdvRes.json();
+
+            const todayRdvData = await todayRdvRes.json();
+            const allRdvDataRaw = await allRdvRes.json();
             const fileAttenteData = await fileAttenteRes.json();
-            
-            allRdvData = rdvRes.ok ? (rdvData.data || []) : [];
-            const rdvs = allRdvData;
+
+            const rdvs = todayRdvRes.ok ? (todayRdvData.data || []) : [];
+            allRdvData = allRdvRes.ok ? (allRdvDataRaw.data || []) : [];
             const fileAttente = fileAttenteRes.ok ? (fileAttenteData.data || []) : [];
 
             container.innerHTML = `
@@ -412,7 +419,7 @@
                     <div class="card-custom p-8 group">
                         <p class="text-outline font-bold text-xs uppercase tracking-wider mb-2">Aujourd'hui</p>
                         <h2 class="text-4xl font-extrabold text-navy">${rdvs.length}</h2>
-                        <p class="mt-4 text-xs font-semibold px-3 py-1.5 bg-primary/10 text-primary rounded-full inline-block">${rdvs.filter(r => r.status === 'terminé').length} terminées</p>
+                        <p class="mt-4 text-xs font-semibold px-3 py-1.5 bg-primary/10 text-primary rounded-full inline-block">${rdvs.filter(r => r.status === 'termine').length} terminées</p>
                     </div>
                     <div class="card-custom p-8 group">
                         <p class="text-outline font-bold text-xs uppercase tracking-wider mb-2">En Attente</p>
@@ -437,7 +444,7 @@
                             <button onclick="navigate('Mes RDV')" class="text-primary font-bold text-sm hover:underline">Tout voir</button>
                         </div>
                         <div class="space-y-4">
-                            ${rdvs.length > 0 ? rdvs.map(r => `
+                            ${allRdvData.length > 0 ? allRdvData.map(r => `
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl bg-background border border-border-light hover:border-primary/20 hover:bg-white transition-all">
                                     <div class="flex items-center gap-4 mb-4 sm:mb-0">
                                         <div class="w-12 h-12 rounded-xl bg-white border border-border-light flex items-center justify-center font-bold text-primary shadow-sm text-lg">${(r.patient_name || r.patient || 'P').charAt(0)}</div>
@@ -448,15 +455,15 @@
                                             </p>
                                         </div>
                                     </div>
-                                    <button onclick="openConsultation('${r.patient_name || r.patient || '—'}', '${r.id || r.appointment_id}')" class="btn-primary py-2.5 text-sm shadow-subtle">
+                                    <button onclick="openConsultation('${r.patient_name || r.patient || '—'}', '${r.id || r.appointment_id}', '${r.patient_phone || ''}')" class="btn-primary py-2.5 text-sm shadow-subtle">
                                         <span class="material-symbols-outlined text-[18px]">medical_information</span>
                                         Démarrer
                                     </button>
                                 </div>
-                            `).join('') : '<p class="text-outline text-center py-8">Aucun RDV aujourd\'hui</p>'}
+                            `).join('') : '<p class="text-outline text-center py-8">Aucun prochain RDV</p>'}
                         </div>
                     </div>
-                    
+
                     <div class="space-y-6">
                         <div class="card-custom p-8 zora-rail relative overflow-hidden group">
                             <div class="relative z-10">
@@ -534,7 +541,7 @@
                     </td>
                     <td class="px-8 py-6 text-right">
                         <div class="flex justify-end gap-2">
-                            <button onclick="openConsultation('${r.patient_name || r.patient || '—'}', '${r.id || r.appointment_id}')" class="p-2 text-outline hover:text-primary bg-background rounded-lg transition-all"><span class="material-symbols-outlined text-lg">play_arrow</span></button>
+                            <button onclick="openConsultation('${r.patient_name || r.patient || '—'}', '${r.id || r.appointment_id}', '${r.patient_phone || ''}')" class="p-2 text-outline hover:text-primary bg-background rounded-lg transition-all"><span class="material-symbols-outlined text-lg">play_arrow</span></button>
                             <button class="p-2 text-outline hover:text-error bg-background rounded-lg transition-all"><span class="material-symbols-outlined text-lg">delete</span></button>
                         </div>
                     </td>
@@ -596,7 +603,7 @@
                             <span class="material-symbols-outlined text-[15px]">person</span>
                             Profil
                         </button>
-                        <button onclick="event.stopPropagation(); openConsultation('${p.patient_name || p.patient || '—'}', '${p.id || p.appointment_id}')"
+                        <button onclick="event.stopPropagation(); openConsultation('${p.patient_name || p.patient || '—'}', '${p.id || p.appointment_id}', '${p.patient_phone || ''}')"
                                 class="flex-1 flex items-center justify-center gap-1 text-xs font-bold
                                        text-white bg-primary rounded-xl py-2 hover:bg-navy transition-all">
                             <span class="material-symbols-outlined text-[15px]">play_arrow</span>
@@ -2935,9 +2942,9 @@
     let currentRdv = {};
     let consultationStartTime = null;
 
-    function openConsultation(patientName, appointmentId) {
-        state.activeConsultation = { patientName, appointmentId };
-        currentRdv = { rdvId: appointmentId, patientPhone: '' }; // patientPhone sera peuplé depuis les RDV
+    function openConsultation(patientName, appointmentId, patientPhone = '') {
+        state.activeConsultation = { patientName, appointmentId, patientPhone };
+        currentRdv = { ...currentRdv, rdvId: appointmentId, patientPhone: patientPhone || currentRdv.patientPhone || '' };
         consultationStartTime = Date.now();
         document.getElementById('consultation-modal').classList.remove('hidden');
         consultStep = 2; // Passer directement à l'étape SOAP
@@ -3005,7 +3012,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         ${['Subjectif', 'Objectif', 'Analyse', 'Plan'].map(label => `
                             <div class="group">
-                                <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em] block mb-2 group-hover:text-primary transition-colors">${label}</label>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em] group-hover:text-primary transition-colors">${label}</label>
+                                    <button type="button" onclick="toggleDictaphone('soap-${label.toLowerCase()}')" id="dictaphone-btn-soap-${label.toLowerCase()}" class="dictaphone-btn flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full" data-target="soap-${label.toLowerCase()}">
+                                        <span class="material-symbols-outlined text-sm">mic</span> Dictée
+                                    </button>
+                                </div>
                                 <textarea id="soap-${label.toLowerCase()}" class="w-full h-40 rounded-2xl border-border-light bg-background p-5 text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none" placeholder="Notes pour ${label}..."></textarea>
                             </div>
                         `).join('')}
@@ -3042,7 +3054,12 @@
                         <textarea id="ord-medications" style="display:none;"></textarea>
                     </div>
                     <div class="p-6 bg-background rounded-2xl border border-border-light">
-                        <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em] block mb-2">Instructions complémentaires</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Instructions complémentaires</label>
+                            <button type="button" onclick="toggleDictaphone('ord-instructions')" id="dictaphone-btn-ord-instructions" class="dictaphone-btn flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full" data-target="ord-instructions">
+                                <span class="material-symbols-outlined text-sm">mic</span> Dictée
+                            </button>
+                        </div>
                         <input type="text" id="ord-instructions" class="w-full rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none" placeholder="Ex : Prendre après les repas…">
                     </div>
                     <div class="flex justify-between gap-4 pt-6">
@@ -4414,6 +4431,100 @@
             </div>
         </div>`;
         }).join('');
+    }
+
+    // --- Dictaphone (Web Speech API) ---
+    let recognition = null;
+    let isDictaphoneRecording = false;
+    let dictaphoneStartTime = 0;
+    let dictaphoneFinalTranscript = '';
+
+    function updateDictaphoneButton(targetId, recording) {
+        const btn = document.getElementById('dictaphone-btn-' + targetId);
+        if (!btn) return;
+        if (recording) {
+            btn.classList.remove('text-primary', 'bg-primary/10');
+            btn.classList.add('text-error', 'bg-error/10');
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm">stop</span> Stop';
+        } else {
+            btn.classList.remove('text-error', 'bg-error/10');
+            btn.classList.add('text-primary', 'bg-primary/10');
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm">mic</span> Dictée';
+        }
+    }
+
+    async function logDictaphoneUsage(targetId, text) {
+        if (!currentRdv.rdvId || !text) return;
+        try {
+            await apiFetch(`${API}/consultations/${currentRdv.rdvId}/transcript`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text,
+                    duration_seconds: Math.max(1, Math.round((Date.now() - dictaphoneStartTime) / 1000))
+                })
+            });
+        } catch (e) {
+            console.error('[Dictaphone] Audit log échoué :', e);
+        }
+    }
+
+    function toggleDictaphone(targetId) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('La reconnaissance vocale n\'est pas supportée par ce navigateur.');
+            return;
+        }
+
+        if (isDictaphoneRecording) {
+            recognition.stop();
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'fr-FR';
+        recognition.continuous = true;
+        recognition.interimResults = false;
+
+        const target = document.getElementById(targetId);
+        if (!target) {
+            console.error('[Dictaphone] Champ cible introuvable :', targetId);
+            return;
+        }
+
+        isDictaphoneRecording = true;
+        dictaphoneStartTime = Date.now();
+        dictaphoneFinalTranscript = '';
+        updateDictaphoneButton(targetId, true);
+
+        recognition.onresult = (event) => {
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    dictaphoneFinalTranscript += event.results[i][0].transcript + ' ';
+                }
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error('[Dictaphone] Erreur :', event.error);
+            isDictaphoneRecording = false;
+            updateDictaphoneButton(targetId, false);
+            recognition = null;
+        };
+
+        recognition.onend = () => {
+            if (dictaphoneFinalTranscript.trim()) {
+                const current = target.value || '';
+                const separator = current.length > 0 ? ' ' : '';
+                target.value = (current + separator + dictaphoneFinalTranscript.trim()).trim();
+                logDictaphoneUsage(targetId, dictaphoneFinalTranscript.trim());
+            }
+            isDictaphoneRecording = false;
+            updateDictaphoneButton(targetId, false);
+            recognition = null;
+        };
+
+        recognition.start();
     }
 </script>
 
