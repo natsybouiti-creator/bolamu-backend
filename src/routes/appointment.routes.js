@@ -281,7 +281,7 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
             [...queryParams, perPage, off]
         );
 
-        const countResult = await pool.query(`SELECT COUNT(*) FROM appointments WHERE ${whereClause}`, queryParams);
+        const countResult = await pool.query(`SELECT COUNT(*) FROM appointments a WHERE ${whereClause}`, queryParams);
         const total = parseInt(countResult.rows[0].count);
         
         res.json({
