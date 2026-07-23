@@ -2928,7 +2928,7 @@
   A.goAccueil = function () { A.setState({ panel: 'accueil', profileOpen: false }); window.scrollTo(0, 0); };
   A.goFeed = function () { A.setState({ panel: 'feed', profileOpen: false }); window.scrollTo(0, 0); A.initFeed(); };
   A.goGagner = function () { A.setState({ panel: 'gagner', profileOpen: false }); window.scrollTo(0, 0); if (A.state.gagnerTab === 'sante') A.renderDefiSante(); setTimeout(function () { if (A.state.gagnerTab === 'sante') { A.initReseauMap(); A.applyReseauFilter(); } else { A.initEventsMap(); } }, 80); };
-  A.goSuivre = function () { A.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); if (!A._recentConsultations || A._recentConsultations.length === 0) A.loadMoreConsultations(); A.loadDossierQr(); };
+  A.goSuivre = function () { A.setState({ panel: 'suivre', profileOpen: false }); window.scrollTo(0, 0); if (!A._recentConsultations || A._recentConsultations.length === 0) { A.loadMoreConsultations(); } else { A.renderTimeline(); } A.loadDossierQr(); };
   A.goRecompenses = function () { A.setState({ panel: 'reward', profileOpen: false }); window.scrollTo(0, 0); A.initScratch(); };
   A.openProfile = function () { A.setState({ profileOpen: true }); window.scrollTo(0, 0); A.loadProfilSocial(); };
   A.closeProfile = function () { A.setState({ profileOpen: false }); };
