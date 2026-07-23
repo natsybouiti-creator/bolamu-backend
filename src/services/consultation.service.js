@@ -90,7 +90,7 @@ async function closeConsultation(appointment_id, doctor_phone, data) {
       throw new Error('APPOINTMENT_NOT_FOUND');
     }
 
-    const patientPhone = apptResult.rows[0].patient_phone;
+    const patientPhone = normalizePhone(apptResult.rows[0].patient_phone);
     const appointmentMotif = apptResult.rows[0].motif;
 
     // Verrouiller la ligne consultations liée à ce RDV (idempotence)

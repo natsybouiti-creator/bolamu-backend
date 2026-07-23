@@ -118,6 +118,7 @@ router.get('/slots/:doctor_id', async (req, res) => {
 // 2. Réserver (Ligne 33 corrigée : le handler est défini ici directement)
 router.post('/book', authMiddleware, async (req, res) => {
     const { patient_phone, doctor_id, date, time, motif } = req.body;
+    const normalizedPatientPhone = normalizePhone(patient_phone);
     try {
         // a) Vérifier double booking
         const existingAppointment = await pool.query(
@@ -149,7 +150,7 @@ router.post('/book', authMiddleware, async (req, res) => {
         const result = await pool.query(
             `INSERT INTO appointments (patient_phone, doctor_id, appointment_date, appointment_time, session_code, status, motif)
              VALUES ($1, $2, $3, $4, $5, 'confirme', $6) RETURNING *`,
-            [patient_phone, doctor_id, date, time, session_code, motif || null]
+            [normalizedPatientPhone, doctor_id, date, time, session_code, motif || null]
         );
         
         // Notifications asynchrones (ne bloquent pas la réponse)
@@ -164,9 +165,9 @@ router.post('/book', authMiddleware, async (req, res) => {
 
                 const patientRowAppt = await pool.query(
                     `SELECT first_name FROM users WHERE phone = $1`,
-                    [patient_phone]
+                    [normalizedPatientPhone]
                 );
-                const patientFirstNameAppt = patientRowAppt.rows[0]?.first_name || patient_phone;
+                const patientFirstNameAppt = patientRowAppt.rows[0]?.first_name || normalizedPatientPhone;
 
                 // Récupérer adresse établissement du médecin
                 const userResult = await pool.query(
@@ -175,7 +176,7 @@ router.post('/book', authMiddleware, async (req, res) => {
                 );
                 const etablissementAdresse = userResult.rows[0]?.etablissement_adresse || 'Bolamu Hub';
 
-                buildWameLink(patient_phone, 'rdv_pris', {
+                buildWameLink(normalizedPatientPhone, 'rdv_pris', {
                     prenom: patientFirstNameAppt,
                     medecin: doctorName,
                     date: date,
@@ -192,21 +193,21 @@ router.post('/book', authMiddleware, async (req, res) => {
                     });
                 }
 
-                await notify(patient_phone, 'rdv_confirme', {
+                await notify(normalizedPatientPhone, 'rdv_confirme', {
                     doctor_name: doctorName,
                     date: date,
                     heure: time
                 });
                 if (doctorPhone) {
                     await notify(doctorPhone, 'message_recu', {
-                        message: `Nouveau RDV — Patient : ${patient_phone} le ${date} à ${time}`
+                        message: `Nouveau RDV — Patient : ${normalizedPatientPhone} le ${date} à ${time}`
                     });
                 }
 
                 // Notifications WhatsApp templates (non bloquant)
                 try {
                     // Patient
-                    sendAutoMessage(patient_phone, 'bolamu_rdv_confirme', [
+                    sendAutoMessage(normalizedPatientPhone, 'bolamu_rdv_confirme', [
                         patientFirstNameAppt,
                         date,
                         time,
