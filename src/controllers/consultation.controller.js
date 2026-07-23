@@ -40,24 +40,13 @@ async function closeConsultation(req, res) {
 
     res.json({ success: true, data: result });
   } catch (error) {
-    const errorMap = {
-      'APPOINTMENT_NOT_FOUND': { status: 404, message: 'Rendez-vous introuvable.' },
-      'INVALID_APPOINTMENT_ID': { status: 400, message: 'Identifiant de rendez-vous invalide.' },
-      'CONSULTATION_ACCESS_DENIED': { status: 403, message: 'Accès à cette consultation non autorisé.' }
-    };
-
-    const mapped = errorMap[error.message];
-    if (mapped) {
-      return res.status(mapped.status).json({
-        success: false,
-        error: { code: error.message, message: mapped.message }
+    if (error.message === 'CONSULTATION_NOT_FOUND') {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'CONSULTATION_NOT_FOUND'
       });
     }
-
-    res.status(500).json({
-      success: false,
-      error: { code: 'SERVER_ERROR', message: 'Erreur serveur' }
-    });
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
 
