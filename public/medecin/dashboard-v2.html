@@ -3265,7 +3265,7 @@
                 })
             });
             const dataVal = await resVal.json();
-            if (!resVal.ok) throw new Error(dataVal.message || 'Erreur validation consultation');
+            if (!resVal.ok) throw new Error(dataVal.error?.message || dataVal.message || 'Erreur validation consultation');
 
             // Créer l'ordonnance
             const resPres = await apiFetch(`${API}/prescriptions/create`, {
