@@ -2385,19 +2385,23 @@
     var voirPlusBtn = $('consultations-voir-plus');
     if (voirPlusBtn) voirPlusBtn.style.display = A._consultationsHasMore ? 'block' : 'none';
     el.innerHTML = list.map(function (c) {
-      var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
-      var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
+      var statusLabel = (c.status === 'termine' || c.status === 'completed') ? 'Terminée' : (c.status === 'confirme' ? 'Confirmée' : (c.status === 'en_cours' ? 'En cours' : c.status));
+      var statusColor = (c.status === 'termine' || c.status === 'completed') ? '#00875f' : '#FF6B35';
+      var statusBg = (c.status === 'termine' || c.status === 'completed') ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
       var phone = esc(c.doctor_phone || '');
+      var dateLabel = c.appointment_date
+        ? new Date(c.appointment_date).toLocaleDateString('fr-FR', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' })
+        : (c.started_at ? new Date(c.started_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—');
       var avatarHtml = (typeof BolamuAvatar !== 'undefined')
         ? BolamuAvatar.render({ photoUrl: c.doctor_photo_url, fullName: c.doctor_name, role: 'medecin', size: 44 })
         : '<div style="width:44px;height:44px;border-radius:12px;background:#0A2463;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;">' + esc((c.doctor_name||'M').charAt(0)) + '</div>';
       return '<div style="display:flex;align-items:center;gap:12px;padding:14px;min-height:72px;box-sizing:border-box;background:#FAF8FF;border:1px solid #EDEDF8;border-radius:14px;">' +
         '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="cursor:' + (phone ? 'pointer' : 'default') + ';flex-shrink:0;">' + avatarHtml + '</div>' +
         '<div style="flex:1;min-width:0;">' +
-          '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:2px;cursor:' + (phone ? 'pointer' : 'default') + ';">' + esc(c.doctor_name) + '</div>' +
-          '<div style="font-size:0.78rem;color:#9498a8;">' + esc(c.specialty) + ' · ' + esc(c.date) + '</div>' +
+          '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:2px;cursor:' + (phone ? 'pointer' : 'default') + ';">' + esc(c.doctor_name || 'Médecin') + '</div>' +
+          '<div style="font-size:0.78rem;color:#9498a8;">' + esc(c.doctor_specialty || '') + ' · ' + dateLabel + '</div>' +
         '</div>' +
-        '<span style="font-size:11px;font-weight:700;background:' + statusBg + ';color:' + statusColor + ';border-radius:8px;padding:4px 8px;white-space:nowrap;flex-shrink:0;">' + esc(c.status) + '</span>' +
+        '<span style="font-size:11px;font-weight:700;background:' + statusBg + ';color:' + statusColor + ';border-radius:8px;padding:4px 8px;white-space:nowrap;flex-shrink:0;">' + esc(statusLabel) + '</span>' +
         (phone ? '<button onclick="A.openModal(\'' + phone + '\')" style="background:#0A2463;color:#fff;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">RDV</button>' : '') +
       '</div>';
     }).join('');
@@ -2409,22 +2413,110 @@
     var el = $('timeline-list'); if (!el) return;
     el.style.display = list.length ? 'flex' : 'none';
     el.style.flexDirection = 'column';
-    el.style.gap = '12px';
+    el.style.gap = '16px';
     el.innerHTML = list.map(function (c) {
-      var statusColor = c.status === 'Terminée' ? '#00875f' : '#FF6B35';
-      var statusBg = c.status === 'Terminée' ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
+      var statusLabel = (c.status === 'termine' || c.status === 'completed') ? 'Terminée' : (c.status === 'confirme' ? 'Confirmée' : (c.status === 'en_cours' ? 'En cours' : c.status));
+      var statusColor = (c.status === 'termine' || c.status === 'completed') ? '#00875f' : '#FF6B35';
+      var statusBg = (c.status === 'termine' || c.status === 'completed') ? 'rgba(0,135,95,0.12)' : 'rgba(255,107,53,0.12)';
       var phone = esc(c.doctor_phone || '');
+      var dateLabel = c.appointment_date
+        ? new Date(c.appointment_date).toLocaleDateString('fr-FR', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' })
+        : (c.started_at ? new Date(c.started_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—');
+      var timeLabel = c.appointment_time ? c.appointment_time.slice(0, 5) : (c.started_at ? new Date(c.started_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '');
       var avatarHtml = (typeof BolamuAvatar !== 'undefined')
         ? BolamuAvatar.render({ photoUrl: c.doctor_photo_url, fullName: c.doctor_name, role: 'medecin', size: 44 })
         : '<div style="width:44px;height:44px;border-radius:12px;background:#0A2463;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;">' + esc((c.doctor_name||'M').charAt(0)) + '</div>';
-      return '<div style="display:flex;align-items:center;gap:12px;padding:14px;min-height:72px;box-sizing:border-box;background:#FAF8FF;border:1px solid #EDEDF8;border-radius:14px;">' +
-        '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="cursor:' + (phone ? 'pointer' : 'default') + ';flex-shrink:0;">' + avatarHtml + '</div>' +
-        '<div style="flex:1;min-width:0;">' +
-          '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="font-size:0.92rem;font-weight:700;color:#0A2463;margin-bottom:2px;cursor:' + (phone ? 'pointer' : 'default') + ';">' + esc(c.doctor_name) + '</div>' +
-          '<div style="font-size:0.78rem;color:#9498a8;">' + esc(c.specialty) + ' · ' + esc(c.date) + '</div>' +
+
+      var fmtField = function (label, value) {
+        if (!value) return '';
+        return '<div style="margin-bottom:6px;"><span style="font-size:0.75rem;font-weight:700;color:#434654;">' + label + ' :</span> <span style="font-size:0.8rem;color:#191B23;">' + esc(value) + '</span></div>';
+      };
+
+      var reportHtml;
+      if (c.consultation_report) {
+        var r = c.consultation_report;
+        reportHtml =
+          '<div style="background:#F3F3FE;border-radius:12px;padding:12px;margin-bottom:10px;">' +
+            '<div style="font-size:0.8rem;font-weight:800;color:#0A2463;margin-bottom:8px;">Compte rendu</div>' +
+            fmtField('Motif', r.motif) +
+            fmtField('Observations', r.observations) +
+            fmtField('Diagnostic', r.diagnostic) +
+            fmtField('Traitement', r.traitement) +
+            fmtField('Prochaine étape', r.prochaine_etape) +
+          '</div>';
+      } else {
+        reportHtml = '<div style="background:#F3F3FE;border-radius:12px;padding:12px;margin-bottom:10px;color:#9498a8;font-size:0.82rem;font-weight:600;">Aucun compte rendu pour cette consultation</div>';
+      }
+
+      var ordHtml = '';
+      var hasOrdo = false;
+      (c.prescriptions || []).forEach(function (p) {
+        hasOrdo = true;
+        ordHtml += '<div style="margin-bottom:8px;padding:8px;background:#fff;border:1px solid #EDEDF8;border-radius:8px;">' +
+          '<div style="font-size:0.78rem;font-weight:700;color:#0A2463;">' + esc(p.medications || '') + '</div>' +
+          '<div style="font-size:0.74rem;color:#434654;">' + esc(p.instructions || '') + '</div>' +
+        '</div>';
+      });
+      (c.ordonnances || []).forEach(function (o) {
+        hasOrdo = true;
+        (o.items || []).forEach(function (it) {
+          var det = '';
+          if (it.dosage) det += esc(it.dosage);
+          if (it.frequence) det += (det ? ' · ' : '') + esc(it.frequence);
+          if (it.duree) det += (det ? ' · ' : '') + esc(it.duree);
+          if (it.quantite !== undefined && it.quantite !== null) det += (det ? ' · ' : '') + 'Qté : ' + esc(String(it.quantite));
+          ordHtml += '<div style="margin-bottom:8px;padding:8px;background:#fff;border:1px solid #EDEDF8;border-radius:8px;">' +
+            '<div style="font-size:0.78rem;font-weight:700;color:#0A2463;">' + esc(it.medicament || '') + '</div>' +
+            (det ? '<div style="font-size:0.74rem;color:#434654;">' + det + '</div>' : '') +
+            (it.instructions ? '<div style="font-size:0.72rem;color:#9498a8;margin-top:4px;">' + esc(it.instructions) + '</div>' : '') +
+          '</div>';
+        });
+      });
+      ordHtml = ordHtml || '<div style="color:#9498a8;font-size:0.82rem;font-weight:600;">Aucune ordonnance pour cette consultation</div>';
+
+      var labHtml = '';
+      if ((c.lab_exams || []).length) {
+        c.lab_exams.forEach(function (le) {
+          var resultsHtml = '';
+          if ((le.results || []).length) {
+            le.results.forEach(function (lr) {
+              resultsHtml += '<div style="padding:8px;background:#fff;border:1px solid #EDEDF8;border-radius:8px;margin-bottom:6px;">' +
+                '<div style="font-size:0.76rem;font-weight:700;color:#0A2463;">' + (lr.status === 'disponible' ? 'Résultat disponible' : esc(lr.status || '')) + '</div>' +
+                '<div style="font-size:0.74rem;color:#434654;">' + esc(lr.resultats || '') + '</div>' +
+              '</div>';
+            });
+          } else {
+            resultsHtml = '<div style="font-size:0.74rem;color:#9498a8;">En attente de résultats</div>';
+          }
+          labHtml += '<div style="margin-bottom:8px;padding:8px;background:#fff;border:1px solid #EDEDF8;border-radius:8px;">' +
+            '<div style="font-size:0.78rem;font-weight:700;color:#0A2463;">' + esc(le.examens || '') + '</div>' +
+            '<div style="font-size:0.74rem;color:#434654;margin-bottom:6px;">Code : ' + esc(le.prescription_code || '') + ' · ' + esc(le.status || '') + '</div>' +
+            resultsHtml +
+          '</div>';
+        });
+      } else {
+        labHtml = '<div style="color:#9498a8;font-size:0.82rem;font-weight:600;">Aucun examen de laboratoire pour cette consultation</div>';
+      }
+
+      return '<div style="position:relative;background:#fff;border:1px solid #EDEDF8;border-radius:18px;padding:16px;box-shadow:0 1px 4px rgba(10,36,99,0.04);">' +
+        '<div style="position:absolute;left:-22px;top:20px;width:12px;height:12px;border-radius:50%;background:#003FB1;border:2px solid #fff;box-shadow:0 0 0 2px #E4E4F2;"></div>' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">' +
+          '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="cursor:' + (phone ? 'pointer' : 'default') + ';flex-shrink:0;">' + avatarHtml + '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div onclick="' + (phone ? 'BolamuProfileCard.open(\'' + phone + '\')' : '') + '" style="font-size:0.95rem;font-weight:700;color:#0A2463;margin-bottom:2px;cursor:' + (phone ? 'pointer' : 'default') + ';">' + esc(c.doctor_name || 'Médecin') + '</div>' +
+            '<div style="font-size:0.78rem;color:#9498a8;">' + esc(c.doctor_specialty || '') + ' · ' + dateLabel + (timeLabel ? ' à ' + timeLabel : '') + '</div>' +
+          '</div>' +
+          '<span style="font-size:11px;font-weight:700;background:' + statusBg + ';color:' + statusColor + ';border-radius:8px;padding:4px 8px;white-space:nowrap;flex-shrink:0;">' + esc(statusLabel) + '</span>' +
         '</div>' +
-        '<span style="font-size:11px;font-weight:700;background:' + statusBg + ';color:' + statusColor + ';border-radius:8px;padding:4px 8px;white-space:nowrap;flex-shrink:0;">' + esc(c.status) + '</span>' +
-        (phone ? '<button onclick="A.openModal(\'' + phone + '\')" style="background:#0A2463;color:#fff;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">RDV</button>' : '') +
+        reportHtml +
+        '<div style="background:#FAF8FF;border-radius:12px;padding:12px;margin-bottom:10px;">' +
+          '<div style="font-size:0.8rem;font-weight:800;color:#0A2463;margin-bottom:8px;">Ordonnance(s)</div>' +
+          ordHtml +
+        '</div>' +
+        '<div style="background:#FAF8FF;border-radius:12px;padding:12px;">' +
+          '<div style="font-size:0.8rem;font-weight:800;color:#0A2463;margin-bottom:8px;">Laboratoire</div>' +
+          labHtml +
+        '</div>' +
       '</div>';
     }).join('');
   };
@@ -2437,13 +2529,12 @@
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) return;
     var H = { headers: { 'Authorization': 'Bearer ' + token } };
-    var offset = (A._recentConsultations || []).length;
-    apiFetch('https://api.bolamu.co/api/v1/patients/consultations/recentes?limit=4&offset=' + offset, H)
+    apiFetch('https://api.bolamu.co/api/v1/reports/patient/' + encodeURIComponent(A._patientPhone || '') + '/timeline', H)
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.success && d.data) {
-          A._recentConsultations = (A._recentConsultations || []).concat(d.data);
-          A._consultationsHasMore = !!d.has_more;
+          A._recentConsultations = d.data;
+          A._consultationsHasMore = false;
           A.renderMesConsultationsAccueil();
           A.renderTimeline();
         }
@@ -4521,7 +4612,7 @@
 
     apiFetch('https://api.bolamu.co/api/v1/doctors', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data && d.data.doctors) { A._doctors = d.data.doctors; A.renderRdvDoctors(); } }).catch(function () {});
 
-    apiFetch('https://api.bolamu.co/api/v1/patients/consultations/recentes', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._recentConsultations = d.data; A._consultationsHasMore = !!d.has_more; A.renderMesConsultationsAccueil(); } }).catch(function () {});
+    apiFetch('https://api.bolamu.co/api/v1/reports/patient/' + encodeURIComponent(phone) + '/timeline', H).then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.data) { A._recentConsultations = d.data; A._consultationsHasMore = false; A.renderMesConsultationsAccueil(); } }).catch(function () {});
 
     apiFetch('https://api.bolamu.co/api/v1/bons-zora/programs', H).then(function (r) { return r.json(); }).then(function (d) {
       if (d.success && Array.isArray(d.data) && d.data.length) {

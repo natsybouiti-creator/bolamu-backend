@@ -163,7 +163,7 @@ async function getReportByAppointment(req, res) {
     }
 }
 
-// ─── RÉCUPÉRER LA TIMELINE D'UN PATIENT (RDV + comptes rendus + prescriptions) ─────────
+// ─── RÉCUPÉRER LA TIMELINE D'UN PATIENT (RDV + comptes rendus + prescriptions + ordonnances + labo) ─────────
 async function getPatientTimeline(req, res) {
     const phone = normalizePhone(req.params.phone || '');
     const userPhone = req.user?.phone;
@@ -173,7 +173,7 @@ async function getPatientTimeline(req, res) {
         // Vérifier les droits : médecin traitant ou patient lui-même
         const isPatient = userPhone === phone;
         const isAdmin = userRole === 'admin' || userRole === 'content_admin';
-        
+
         // Si c'est un médecin, vérifier qu'il a déjà eu des RDV avec ce patient
         let isTreatingDoctor = false;
         if (!isPatient && !isAdmin) {
@@ -190,46 +190,172 @@ async function getPatientTimeline(req, res) {
             return res.status(403).json({ success: false, message: 'Accès refusé.' });
         }
 
-        // Récupérer tous les RDV du patient avec leurs comptes rendus, prescriptions et résultats labo
-        const result = await pool.query(
-            `SELECT 
-                a.id as appointment_id,
+        // 1. Consultations du patient (RDV lié ou non) + dernier compte rendu + infos médecin
+        const baseResult = await pool.query(
+            `SELECT
+                c.id as consultation_id,
+                c.appointment_id,
+                c.started_at,
+                c.ended_at,
+                c.status as consultation_status,
                 a.appointment_date,
                 a.appointment_time,
-                a.status,
                 a.session_code,
                 a.report_submitted,
-                cr.motif,
+                a.status as appointment_status,
+                d.phone as doctor_phone,
+                d.full_name as doctor_name,
+                d.specialty as doctor_specialty,
+                d.photo_url as doctor_photo_url,
+                cr.motif as cr_motif,
                 cr.observations,
-                cr.diagnostic,
+                cr.diagnostic as cr_diagnostic,
                 cr.traitement,
                 cr.prochaine_etape,
-                p.medications,
-                p.instructions as prescription_instructions,
-                p.status as prescription_status,
-                d.full_name as doctor_name,
-                d.specialty,
-                lr.resultats,
-                lr.fichier_url,
-                lr.status as lab_status,
-                lr.created_at as lab_created_at
-             FROM appointments a
-             LEFT JOIN consultation_reports cr ON a.id = cr.appointment_id
-             LEFT JOIN prescriptions p ON a.id = p.appointment_id
-             LEFT JOIN doctors d ON a.doctor_id = d.id
-             LEFT JOIN lab_prescriptions lp ON a.id = lp.appointment_id
-             LEFT JOIN lab_results lr ON lp.id = lr.lab_prescription_id
-             WHERE a.patient_phone = $1
-             ORDER BY a.appointment_date DESC, a.appointment_time DESC`,
+                cr.created_at as report_created_at
+             FROM consultations c
+             LEFT JOIN appointments a ON a.id = c.appointment_id
+             LEFT JOIN doctors d ON d.phone = c.doctor_phone
+             LEFT JOIN LATERAL (
+                 SELECT * FROM consultation_reports
+                 WHERE appointment_id = c.appointment_id
+                 ORDER BY created_at DESC
+                 LIMIT 1
+             ) cr ON true
+             WHERE c.patient_phone = $1
+             ORDER BY COALESCE(a.appointment_date, c.started_at::date) DESC,
+                      COALESCE(a.appointment_time, c.started_at::time) DESC`,
             [phone]
         );
+
+        const appointmentIds = baseResult.rows.map(r => r.appointment_id).filter(Boolean);
+        const consultationIds = baseResult.rows.map(r => r.consultation_id);
+
+        // 2. Prescriptions (appointment_id), ordonnances legacy (consultation_id) et labo (appointment_id)
+        const [prescriptionsResult, ordonnancesResult, labResult] = await Promise.all([
+            appointmentIds.length ? pool.query(
+                `SELECT appointment_id,
+                        COALESCE(jsonb_agg(jsonb_build_object(
+                            'id', id,
+                            'medications', medications,
+                            'instructions', instructions,
+                            'status', status,
+                            'is_ssp', is_ssp,
+                            'created_at', created_at
+                        ) ORDER BY created_at DESC), '[]'::jsonb) as items
+                 FROM prescriptions
+                 WHERE appointment_id = ANY($1::int[])
+                 GROUP BY appointment_id`,
+                [appointmentIds]
+            ) : { rows: [] },
+            consultationIds.length ? pool.query(
+                `SELECT o.consultation_id,
+                        o.id as ordonnance_id,
+                        o.issued_at,
+                        o.status,
+                        COALESCE((
+                            SELECT jsonb_agg(jsonb_build_object(
+                                'medicament', oi.medicament,
+                                'dosage', oi.dosage,
+                                'frequence', oi.frequence,
+                                'duree', oi.duree,
+                                'instructions', oi.instructions,
+                                'quantite', oi.quantite
+                            ) ORDER BY oi.id)
+                            FROM ordonnance_items oi
+                            WHERE oi.ordonnance_id = o.id
+                        ), '[]'::jsonb) as items
+                 FROM ordonnances o
+                 WHERE o.consultation_id = ANY($1::int[])`,
+                [consultationIds]
+            ) : { rows: [] },
+            appointmentIds.length ? pool.query(
+                `SELECT lp.appointment_id,
+                        lp.id as lab_prescription_id,
+                        lp.examens,
+                        lp.instructions,
+                        lp.status,
+                        lp.prescription_code,
+                        lp.is_ssp,
+                        COALESCE((
+                            SELECT jsonb_agg(jsonb_build_object(
+                                'resultats', lr.resultats,
+                                'fichier_url', lr.fichier_url,
+                                'status', lr.status,
+                                'created_at', lr.created_at
+                            ) ORDER BY lr.created_at DESC)
+                            FROM lab_results lr
+                            WHERE lr.lab_prescription_id = lp.id
+                        ), '[]'::jsonb) as results
+                 FROM lab_prescriptions lp
+                 WHERE lp.appointment_id = ANY($1::int[])`,
+                [appointmentIds]
+            ) : { rows: [] }
+        ]);
+
+        const prescriptionsMap = {};
+        prescriptionsResult.rows.forEach(row => { prescriptionsMap[row.appointment_id] = row.items; });
+
+        const ordonnancesMap = {};
+        ordonnancesResult.rows.forEach(row => {
+            if (!ordonnancesMap[row.consultation_id]) ordonnancesMap[row.consultation_id] = [];
+            ordonnancesMap[row.consultation_id].push({
+                id: row.ordonnance_id,
+                issued_at: row.issued_at,
+                status: row.status,
+                items: row.items
+            });
+        });
+
+        const labMap = {};
+        labResult.rows.forEach(row => {
+            if (!labMap[row.appointment_id]) labMap[row.appointment_id] = [];
+            labMap[row.appointment_id].push({
+                id: row.lab_prescription_id,
+                examens: row.examens,
+                instructions: row.instructions,
+                status: row.status,
+                prescription_code: row.prescription_code,
+                is_ssp: row.is_ssp,
+                results: row.results
+            });
+        });
+
+        const data = baseResult.rows.map(r => {
+            const report = r.report_created_at ? {
+                motif: r.cr_motif,
+                observations: r.observations,
+                diagnostic: r.cr_diagnostic,
+                traitement: r.traitement,
+                prochaine_etape: r.prochaine_etape,
+                created_at: r.report_created_at
+            } : null;
+            return {
+                consultation_id: r.consultation_id,
+                appointment_id: r.appointment_id,
+                appointment_date: r.appointment_date,
+                appointment_time: r.appointment_time,
+                started_at: r.started_at,
+                status: r.appointment_status || r.consultation_status,
+                session_code: r.session_code,
+                report_submitted: r.report_submitted,
+                doctor_phone: r.doctor_phone,
+                doctor_name: r.doctor_name,
+                doctor_specialty: r.doctor_specialty,
+                doctor_photo_url: r.doctor_photo_url,
+                consultation_report: report,
+                prescriptions: prescriptionsMap[r.appointment_id] || [],
+                ordonnances: ordonnancesMap[r.consultation_id] || [],
+                lab_exams: labMap[r.appointment_id] || []
+            };
+        });
 
         // Log l'accès au dossier (non bloquant)
         setImmediate(() => {
             logDossierAccess(phone, userPhone, userRole, 'timeline', req.ip);
         });
 
-        return res.json({ success: true, data: result.rows });
+        return res.json({ success: true, data });
 
     } catch (error) {
         console.error('[getPatientTimeline] Erreur :', error.message);
