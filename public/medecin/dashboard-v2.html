@@ -1066,7 +1066,7 @@
     }
 
     async function requestPatientAccess(phone) {
-        if (!phone) return;
+        if (!phone) { console.error('[requestPatientAccess] Téléphone manquant'); alert('Téléphone patient manquant'); return; }
         try {
             var res = await apiFetch(API + '/doctors/patients/' + encodeURIComponent(phone) + '/request-access', { method: 'POST' });
             var data = await res.json();
@@ -1086,8 +1086,9 @@
     }
 
     async function loadPatientDossier(phone) {
-        if (!phone) return;
+        if (!phone) { console.error('[loadPatientDossier] Téléphone manquant'); alert('Téléphone patient manquant'); return; }
         try {
+            console.log('[loadPatientDossier] Chargement dossier pour', phone);
             var res = await apiFetch(API + '/doctors/patients/' + encodeURIComponent(phone) + '/dossier');
             var data = await res.json();
             if (data.success && data.data) {
@@ -4693,6 +4694,19 @@
 
         recognition.start();
     }
+
+    // Exposer les fonctions appelées via onclick/onchange pour robustesse navigateur
+    window.loadPatientDossier = loadPatientDossier;
+    window.requestPatientAccess = requestPatientAccess;
+    window.openConsultation = openConsultation;
+    window.renderScanner = renderScanner;
+    window.stopGeneralCamera = stopGeneralCamera;
+    window.handleScanSubmit = handleScanSubmit;
+    window.handleImageQr = handleImageQr;
+    window.verifyDmnQr = verifyDmnQr;
+    window.go = go;
+    window.toggleSidebar = toggleSidebar;
+    window.logout = logout;
 </script>
 
 <!-- ===== PANEL PROFIL PATIENT ===== -->
