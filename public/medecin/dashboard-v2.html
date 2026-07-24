@@ -638,15 +638,21 @@
             <div id="scanner-view" class="max-w-3xl mx-auto space-y-8">
                 <div class="aspect-video card-custom ${isZora ? 'zora-rail' : 'bg-navy'} overflow-hidden relative flex flex-col items-center justify-center shadow-2xl" id="scanner-camera-container">
                     <div id="scanner-qr-reader" style="width:100%;height:100%;"></div>
+                    <div id="scanner-camera-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(10,36,99,0.35);color:white;font-size:14px;font-weight:600;pointer-events:none;opacity:1;transition:opacity .3s;">
+                        <span class="material-symbols-outlined" style="margin-right:8px;">qr_code_scanner</span>
+                        Recherche du QR en cours...
+                    </div>
                     <button onclick="stopGeneralCamera()" style="position:absolute;top:10px;right:10px;padding:8px 16px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:8px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Fermer</button>
                 </div>
-                
+                <input type="file" id="qr-file-input" accept="image/*" style="display:none;" onchange="handleImageQr(this.files[0])">
+
                 <div class="card-custom p-10 text-center">
                     <h4 class="font-bold text-navy mb-6">Ou saisissez l'ID manuellement</h4>
                     <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                         <input type="text" id="scan-input" placeholder="Ex: P001, UUID..." class="flex-1 rounded-xl border-border-light bg-background px-6 py-3 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                         <button onclick="handleScanSubmit('${type}')" class="btn-primary px-8">Valider</button>
                     </div>
+                    <button onclick="document.getElementById('qr-file-input').click()" style="margin-top:16px;background:#EDEDF8;color:#0A2463;border:none;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Importer une image du QR</button>
                 </div>
                 <div id="scanner-result" style="display:none;"></div>
             </div>
@@ -696,25 +702,33 @@
             generalCameraStream.getTracks().forEach(track => track.stop());
             generalCameraStream = null;
         }
+        const overlay = document.getElementById('scanner-camera-overlay');
+        if (overlay) overlay.style.opacity = '0';
         const container = document.getElementById('scanner-camera-container');
         if (container) container.style.display = 'none';
     }
 
     async function startPatientCamera() {
         const reader = document.getElementById('scanner-qr-reader');
+        const overlay = document.getElementById('scanner-camera-overlay');
         if (!reader) return;
         try {
             generalHtml5QrCode = new Html5Qrcode('scanner-qr-reader');
+            if (overlay) overlay.style.opacity = '1';
             await generalHtml5QrCode.start(
                 { facingMode: 'environment' },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
+                { fps: 10, qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    return { width: Math.floor(viewfinderWidth * 0.7), height: Math.floor(viewfinderHeight * 0.7) };
+                }},
                 (decodedText) => {
+                    if (overlay) overlay.style.opacity = '0';
                     stopGeneralCamera();
                     handlePatientQr(decodedText);
                 },
                 (errorMessage) => {}
             );
         } catch(e) {
+            if (overlay) overlay.style.opacity = '0';
             console.error('[startPatientCamera]', e);
             alert("Erreur d'accès à la caméra : " + e.message);
         }
@@ -946,6 +960,28 @@
         } catch (e) {
             console.error('[handlePatientQr]', e);
             resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#BA1A1A;font-size:14px;">Erreur de connexion.</div>';
+        }
+    }
+
+    async function handleImageQr(file) {
+        if (!file) return;
+        var resultDiv = document.getElementById('scanner-result');
+        if (!resultDiv) return;
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#747685;">Analyse de l\'image en cours...</div>';
+        var readerDiv = document.createElement('div');
+        readerDiv.id = 'qr-file-reader';
+        readerDiv.style.display = 'none';
+        document.body.appendChild(readerDiv);
+        try {
+            var qr = new Html5Qrcode('qr-file-reader');
+            var decoded = await qr.scanFile(file, false);
+            handlePatientQr(decoded);
+        } catch(e) {
+            console.error('[handleImageQr]', e);
+            resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#BA1A1A;font-size:14px;">Impossible de lire le QR sur cette image. Veuillez réessayer avec une image plus nette.</div>';
+        } finally {
+            readerDiv.remove();
         }
     }
 
