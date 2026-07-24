@@ -39,13 +39,16 @@ const generateQRToken = async (req, res) => {
 
 const verifyQRToken = async (req, res) => {
   const token = req.body?.token || req.query?.token;
-  const partnerPhone = req.user.phone;
   if (!token) {
     return res.status(400).json({ success: false, message: 'Token manquant.' });
   }
   try {
     const tokenRes = await pool.query(
-      `SELECT qt.*, u.full_name, u.phone as patient_phone, u.bolamu_id, u.zora_balance_visible_qr, u.photo_url FROM qr_tokens qt JOIN users u ON u.phone = qt.user_phone WHERE qt.token = $1`,
+      `SELECT qt.*, u.full_name, u.first_name, u.last_name, u.birth_date,
+              u.groupe_sanguin, u.photo_url, u.is_active
+       FROM qr_tokens qt
+       JOIN users u ON u.phone = qt.user_phone
+       WHERE qt.token = $1`,
       [token]
     );
     if (tokenRes.rows.length === 0) {
@@ -61,121 +64,54 @@ const verifyQRToken = async (req, res) => {
     );
     const hasActiveSub = subCheck.rows.length > 0;
     const sub = subCheck.rows[0] || null;
-    const convRes = await pool.query(
-      `SELECT discount_rate, monthly_cap_fcfa, partner_name FROM partner_conventions WHERE partner_phone = $1 AND status_new = 'actif'`,
-      [partnerPhone]
+
+    let dossierAccess = 'none';
+    const doctorUserRes = await pool.query(
+      'SELECT id FROM users WHERE phone = $1',
+      [req.user.phone]
     );
-    const hasConvention = convRes.rows.length > 0;
-    const convention = convRes.rows[0] || null;
-    
-    // Solde Zora uniquement si consentement patient activé
-    let zoraBalance = null;
-    if (qrToken.zora_balance_visible_qr) {
-      const zoraRes = await pool.query(
-        `SELECT COALESCE(SUM(points), 0) as balance FROM zora_ledger WHERE phone = $1`,
-        [qrToken.user_phone]
+    const doctorUserId = doctorUserRes.rows[0]?.id;
+    if (doctorUserId) {
+      const accessRes = await pool.query(
+        `SELECT status FROM dossier_access_requests
+         WHERE patient_phone = $1
+           AND doctor_user_id = $2
+           AND status IN ('pending', 'granted')
+         ORDER BY requested_at DESC
+         LIMIT 1`,
+        [qrToken.user_phone, doctorUserId]
       );
-      zoraBalance = zoraRes.rows[0].balance;
+      if (accessRes.rows.length > 0) {
+        dossierAccess = accessRes.rows[0].status;
+      }
     }
-    
-    // RDV du jour (avec règle BHP)
-    let rdvDuJour = null;
-    const rdvRes = await pool.query(
-      `SELECT a.id, a.appointment_time, a.status, a.motif
-       FROM appointments a
-       JOIN doctors d ON d.id = a.doctor_id
-       WHERE a.patient_phone = $1
-         AND a.appointment_date = CURRENT_DATE
-         AND a.status IN ('confirme', 'en_cours')
-         AND a.is_active = TRUE
-         AND (
-           d.phone = $2
-           OR EXISTS (
-             SELECT 1 FROM patient_consents pc
-             JOIN users u ON u.id = pc.patient_id
-             WHERE u.phone = $1
-               AND pc.consent_type = 'dmn_qr_scan'
-               AND pc.granted = true
-           )
-         )
-       ORDER BY a.appointment_time
-       LIMIT 1`,
-      [qrToken.user_phone, partnerPhone]
-    );
-    if (rdvRes.rows.length > 0) {
-      rdvDuJour = rdvRes.rows[0];
-    }
-    
-    // Ordonnance en attente (avec règle BHP)
-    let ordonnanceEnAttente = null;
-    const ordRes = await pool.query(
-      `SELECT id, created_at, jsonb_array_length(medications) as medications_count
-       FROM prescriptions p
-       WHERE p.patient_phone = $1
-         AND p.status = 'pending'
-         AND (
-           p.doctor_phone = $2
-           OR EXISTS (
-             SELECT 1 FROM patient_consents pc
-             JOIN users u ON u.id = pc.patient_id
-             WHERE u.phone = $1
-               AND pc.consent_type = 'dmn_qr_scan'
-               AND pc.granted = true
-           )
-         )
-       ORDER BY p.created_at DESC
-       LIMIT 1`,
-      [qrToken.user_phone, partnerPhone]
-    );
-    if (ordRes.rows.length > 0) {
-      ordonnanceEnAttente = ordRes.rows[0];
-    }
-    
-    // Examen labo en attente (avec règle BHP)
-    let examenLaboEnAttente = null;
-    const labRes = await pool.query(
-      `SELECT id, created_at, type
-       FROM lab_prescriptions lp
-       WHERE lp.patient_phone = $1
-         AND lp.status = 'pending'
-         AND (
-           lp.doctor_phone = $2
-           OR EXISTS (
-             SELECT 1 FROM patient_consents pc
-             JOIN users u ON u.id = pc.patient_id
-             WHERE u.phone = $1
-               AND pc.consent_type = 'dmn_qr_scan'
-               AND pc.granted = true
-           )
-         )
-       ORDER BY lp.created_at DESC
-       LIMIT 1`,
-      [qrToken.user_phone, partnerPhone]
-    );
-    if (labRes.rows.length > 0) {
-      examenLaboEnAttente = labRes.rows[0];
-    }
-    
+
+    const u = qrToken;
+    const birthYear = u.birth_date ? new Date(u.birth_date).getFullYear() : null;
+    const age = birthYear ? (new Date().getFullYear() - birthYear) : null;
+
     await pool.query(
       `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('QR_SCANNED', $1, 'qr_tokens', NULL, $2::jsonb)`,
-      [partnerPhone, JSON.stringify({ patient_phone: qrToken.user_phone, token })]
+      [req.user.phone, JSON.stringify({ patient_phone: u.user_phone, token })]
     );
+
     return res.status(200).json({
       success: true,
       data: {
-        phone: qrToken.user_phone,
-        full_name: qrToken.full_name,
-        photo_url: qrToken.photo_url || null,
-        bolamu_id: qrToken.bolamu_id,
-        is_active: hasActiveSub,
+        phone: u.user_phone,
+        full_name: u.full_name,
+        first_name: u.first_name,
+        last_name: u.last_name,
+        photo_url: u.photo_url || null,
+        birth_date: u.birth_date,
+        age,
+        groupe_sanguin: u.groupe_sanguin || null,
+        is_active: u.is_active,
+        statut_abonnement: hasActiveSub ? 'actif' : 'inactif',
+        dossier_access: dossierAccess,
         plan_nom: sub ? sub.plan : null,
         subscription_end: sub ? sub.expires_at : null,
-        convention: convention,
-        zora_balance: zoraBalance,
-        token_expires_at: qrToken.expires_at,
-        rdv_du_jour: rdvDuJour,
-        ordonnance_en_attente: ordonnanceEnAttente,
-        examen_labo_en_attente: examenLaboEnAttente
+        token_expires_at: qrToken.expires_at
       }
     });
   } catch (error) {
