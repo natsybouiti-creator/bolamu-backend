@@ -312,17 +312,164 @@ router.get('/patients/:patientPhone/dossier', authMiddleware, doctorOnly, async 
       [normalizedPatientPhone]
     );
 
-    // Consultations terminées
-    const consultationsResult = await pool.query(
-      `SELECT a.id, a.appointment_date, a.appointment_time, a.status,
-              u.first_name || ' ' || u.last_name AS doctor_name
-       FROM appointments a
-       JOIN doctors d ON d.id = a.doctor_id
-       JOIN users u ON u.phone = d.phone
-       WHERE a.patient_phone = $1 AND a.status = 'complete'
-       ORDER BY a.appointment_date DESC LIMIT 20`,
+    // Timeline complète du patient (consultations, comptes rendus, prescriptions, ordonnances, labo)
+    const timelineBase = await pool.query(
+      `SELECT
+          c.id as consultation_id,
+          c.appointment_id,
+          c.started_at,
+          c.ended_at,
+          c.status as consultation_status,
+          a.appointment_date,
+          a.appointment_time,
+          a.session_code,
+          a.report_submitted,
+          a.status as appointment_status,
+          d.phone as doctor_phone,
+          d.full_name as doctor_name,
+          d.specialty as doctor_specialty,
+          d.photo_url as doctor_photo_url,
+          cr.motif as cr_motif,
+          cr.observations,
+          cr.diagnostic as cr_diagnostic,
+          cr.traitement,
+          cr.prochaine_etape,
+          cr.created_at as report_created_at
+       FROM consultations c
+       LEFT JOIN appointments a ON a.id = c.appointment_id
+       LEFT JOIN doctors d ON d.phone = c.doctor_phone
+       LEFT JOIN LATERAL (
+           SELECT * FROM consultation_reports
+           WHERE appointment_id = c.appointment_id
+           ORDER BY created_at DESC
+           LIMIT 1
+       ) cr ON true
+       WHERE c.patient_phone = $1
+       ORDER BY COALESCE(a.appointment_date, c.started_at::date) DESC,
+                COALESCE(a.appointment_time, c.started_at::time) DESC`,
       [normalizedPatientPhone]
     );
+
+    const appointmentIds = timelineBase.rows.map(r => r.appointment_id).filter(Boolean);
+    const consultationIds = timelineBase.rows.map(r => r.consultation_id);
+
+    const [timelinePrescriptionsAgg, timelineOrdonnancesAgg, timelineLabAgg] = await Promise.all([
+      appointmentIds.length ? pool.query(
+        `SELECT appointment_id,
+                COALESCE(jsonb_agg(jsonb_build_object(
+                    'id', id,
+                    'medications', medications,
+                    'instructions', instructions,
+                    'status', status,
+                    'is_ssp', is_ssp,
+                    'created_at', created_at
+                ) ORDER BY created_at DESC), '[]'::jsonb) as items
+         FROM prescriptions
+         WHERE appointment_id = ANY($1::int[])
+         GROUP BY appointment_id`,
+        [appointmentIds]
+      ) : { rows: [] },
+      consultationIds.length ? pool.query(
+        `SELECT o.consultation_id,
+                o.id as ordonnance_id,
+                o.issued_at,
+                o.status,
+                COALESCE((
+                    SELECT jsonb_agg(jsonb_build_object(
+                        'medicament', oi.medicament,
+                        'dosage', oi.dosage,
+                        'frequence', oi.frequence,
+                        'duree', oi.duree,
+                        'instructions', oi.instructions,
+                        'quantite', oi.quantite
+                    ) ORDER BY oi.id)
+                    FROM ordonnance_items oi
+                    WHERE oi.ordonnance_id = o.id
+                ), '[]'::jsonb) as items
+         FROM ordonnances o
+         WHERE o.consultation_id = ANY($1::int[])`,
+        [consultationIds]
+      ) : { rows: [] },
+      appointmentIds.length ? pool.query(
+        `SELECT lp.appointment_id,
+                lp.id as lab_prescription_id,
+                lp.examens,
+                lp.instructions,
+                lp.status,
+                lp.prescription_code,
+                lp.is_ssp,
+                COALESCE((
+                    SELECT jsonb_agg(jsonb_build_object(
+                        'resultats', lr.resultats,
+                        'fichier_url', lr.fichier_url,
+                        'status', lr.status,
+                        'created_at', lr.created_at
+                    ) ORDER BY lr.created_at DESC)
+                    FROM lab_results lr
+                    WHERE lr.lab_prescription_id = lp.id
+                ), '[]'::jsonb) as results
+         FROM lab_prescriptions lp
+         WHERE lp.appointment_id = ANY($1::int[])`,
+        [appointmentIds]
+      ) : { rows: [] }
+    ]);
+
+    const prescriptionsMap = {};
+    timelinePrescriptionsAgg.rows.forEach(row => { prescriptionsMap[row.appointment_id] = row.items; });
+
+    const ordonnancesMap = {};
+    timelineOrdonnancesAgg.rows.forEach(row => {
+      if (!ordonnancesMap[row.consultation_id]) ordonnancesMap[row.consultation_id] = [];
+      ordonnancesMap[row.consultation_id].push({
+        id: row.ordonnance_id,
+        issued_at: row.issued_at,
+        status: row.status,
+        items: row.items
+      });
+    });
+
+    const labMap = {};
+    timelineLabAgg.rows.forEach(row => {
+      if (!labMap[row.appointment_id]) labMap[row.appointment_id] = [];
+      labMap[row.appointment_id].push({
+        id: row.lab_prescription_id,
+        examens: row.examens,
+        instructions: row.instructions,
+        status: row.status,
+        prescription_code: row.prescription_code,
+        is_ssp: row.is_ssp,
+        results: row.results
+      });
+    });
+
+    const consultations = timelineBase.rows.map(r => {
+      const report = r.report_created_at ? {
+        motif: r.cr_motif,
+        observations: r.observations,
+        diagnostic: r.cr_diagnostic,
+        traitement: r.traitement,
+        prochaine_etape: r.prochaine_etape,
+        created_at: r.report_created_at
+      } : null;
+      return {
+        consultation_id: r.consultation_id,
+        appointment_id: r.appointment_id,
+        appointment_date: r.appointment_date,
+        appointment_time: r.appointment_time,
+        started_at: r.started_at,
+        status: r.appointment_status || r.consultation_status,
+        session_code: r.session_code,
+        report_submitted: r.report_submitted,
+        doctor_phone: r.doctor_phone,
+        doctor_name: r.doctor_name,
+        doctor_specialty: r.doctor_specialty,
+        doctor_photo_url: r.doctor_photo_url,
+        consultation_report: report,
+        prescriptions: prescriptionsMap[r.appointment_id] || [],
+        ordonnances: ordonnancesMap[r.consultation_id] || [],
+        lab_exams: labMap[r.appointment_id] || []
+      };
+    });
 
     // Audit log
     await pool.query(
@@ -337,7 +484,7 @@ router.get('/patients/:patientPhone/dossier', authMiddleware, doctorOnly, async 
       data: {
         constantes: constantesResult.rows[0] || null,
         prescriptions: prescriptionsResult.rows,
-        consultations: consultationsResult.rows
+        consultations: consultations
       }
     });
   } catch (err) {

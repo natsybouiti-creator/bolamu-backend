@@ -4296,6 +4296,23 @@
             </div>`).join('');
     }
 
+    function escapeHtml(text) {
+      if (typeof text !== 'string') return '';
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function formatMeds(medications) {
+      if (!medications) return '';
+      if (typeof medications === 'string') return medications;
+      if (Array.isArray(medications)) {
+        return medications.map(m => {
+          if (typeof m === 'string') return m;
+          return m.name || m.medicament || m.nom || JSON.stringify(m);
+        }).join(', ');
+      }
+      return medications.name || medications.medicament || JSON.stringify(medications);
+    }
+
     function renderPppPrescriptions(list) {
         const el = document.getElementById('ppp-prescriptions');
         if (!list || !list.length) {
@@ -4307,11 +4324,12 @@
                 ? new Date(p.created_at).toLocaleDateString('fr-FR',
                     { day: 'numeric', month: 'short', year: 'numeric' })
                 : '—';
+            const title = escapeHtml(formatMeds(p.medications) || p.diagnosis || 'Ordonnance');
             return `<div class="flex items-center gap-3 p-3 bg-background rounded-xl border border-border-light">
             <span class="material-symbols-outlined text-primary text-lg flex-shrink-0">description</span>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-bold text-navy truncate">
-                    ${p.medications || p.diagnosis || 'Ordonnance'}
+                    ${title}
                 </p>
                 <p class="text-xs text-outline">${date}</p>
             </div>
@@ -4330,15 +4348,30 @@
                 ? new Date(c.appointment_date).toLocaleDateString('fr-FR',
                     { day: 'numeric', month: 'short', year: 'numeric' })
                 : '—';
-            return `<div class="flex items-center gap-3 p-3 bg-background rounded-xl border border-border-light">
-            <span class="material-symbols-outlined text-secondary text-lg flex-shrink-0">medical_services</span>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-navy truncate">
-                    Dr ${c.doctor_name || '—'}
-                </p>
-                <p class="text-xs text-outline">${date}</p>
-            </div>
-        </div>`;
+            const report = c.consultation_report || {};
+            const prescriptions = c.prescriptions || [];
+            const ordonnances = c.ordonnances || [];
+            const labExams = c.lab_exams || [];
+            return `<details class='p-3 bg-background rounded-xl border border-border-light mb-2 group'>
+                <summary class='flex items-center gap-3 cursor-pointer list-none'>
+                    <span class='material-symbols-outlined text-secondary text-lg flex-shrink-0'>medical_services</span>
+                    <div class='flex-1 min-w-0'>
+                        <p class='text-sm font-bold text-navy truncate'>Dr ${escapeHtml(c.doctor_name || '—')}${c.doctor_specialty ? ' · ' + escapeHtml(c.doctor_specialty) : ''}</p>
+                        <p class='text-xs text-outline'>${date}</p>
+                    </div>
+                    <span class='material-symbols-outlined text-outline group-open:rotate-180 transition-transform'>expand_more</span>
+                </summary>
+                <div class='mt-3 pl-9 space-y-3 text-sm'>
+                    ${report.motif ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Motif</p><p class=\'text-navy font-bold\'>' + escapeHtml(report.motif) + '</p></div>' : ''}
+                    ${report.observations ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Observations</p><p class=\'text-navy\'>' + escapeHtml(report.observations) + '</p></div>' : ''}
+                    ${report.diagnostic ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Diagnostic</p><p class=\'text-navy font-bold\'>' + escapeHtml(report.diagnostic) + '</p></div>' : ''}
+                    ${report.traitement ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Traitement</p><p class=\'text-navy\'>' + escapeHtml(report.traitement) + '</p></div>' : ''}
+                    ${report.prochaine_etape ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Prochaine étape</p><p class=\'text-navy\'>' + escapeHtml(report.prochaine_etape) + '</p></div>' : ''}
+                    ${prescriptions.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Prescriptions</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + prescriptions.map(p => '<li>' + escapeHtml(formatMeds(p.medications) || 'Prescription') + (p.instructions ? ' <span class=\'text-outline\'>— ' + escapeHtml(p.instructions) + '</span>' : '') + '</li>').join('') + '</ul></div>' : ''}
+                    ${ordonnances.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Ordonnances</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + ordonnances.map(o => '<li><span class=\'font-bold\'>' + escapeHtml(o.items.map(i => i.medicament).filter(Boolean).join(', ')) + '</span> <span class=\'text-outline text-xs\'>' + escapeHtml(o.items.map(i => [i.dosage, i.frequence, i.duree].filter(Boolean).join(' · ')).filter(Boolean).join(' · ')) + '</span></li>').join('') + '</ul></div>' : ''}
+                    ${labExams.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Examens labo</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + labExams.map(e => '<li>' + escapeHtml(e.examens || '') + (e.results && e.results.length ? ' <span class=\'text-secondary text-xs\'>Résultat disponible</span>' : '') + '</li>').join('') + '</ul></div>' : ''}
+                </div>
+            </details>`;
         }).join('');
     }
 
