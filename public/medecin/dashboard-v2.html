@@ -240,7 +240,6 @@
             { id: 'Mes patients', icon: 'groups' },
             { id: 'Scanner Zora', icon: 'smart_toy' },
             { id: 'Scanner Patient', icon: 'folder_open' },
-            { id: 'Smart Flow', icon: 'analytics' },
             { id: 'Mes offres', icon: 'local_offer' },
             { id: 'Messages', icon: 'chat_bubble' },
             { id: 'Feed', icon: 'dynamic_feed' },
@@ -366,7 +365,6 @@
             case 'Mes patients': renderPatients(canvas); break;
             case 'Scanner Zora': renderScanner(canvas, 'Zora'); break;
             case 'Scanner Patient': renderScanner(canvas, 'Patient'); break;
-            case 'Smart Flow': renderSmartFlow(canvas); break;
             case 'Mes offres': renderOffres(canvas); break;
             case 'Messages': renderMessages(canvas); break;
             case 'Feed': renderFeed(canvas); break;
@@ -1149,68 +1147,6 @@
         `;
     }
 
-    function renderSmartFlow(container) {
-        container.innerHTML = `
-            <div class="mb-10">
-                <p class="text-primary font-bold text-sm tracking-widest uppercase mb-1">Analytique</p>
-                <h1 class="text-3xl font-extrabold text-navy">Smart Flow</h1>
-                <p class="text-outline text-sm">Statistiques du mois — SSP & Hors Catalogue.</p>
-            </div>
-            <div class="card-custom p-10">
-                <div style="display:flex;gap:12px;margin-bottom:24px;">
-                    <input type="month" id="smartflow-mois" class="rounded-xl border-border-light bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-primary/10 outline-none">
-                    <button onclick="loadSmartFlowStats()" class="btn-primary px-8">Charger</button>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="p-6 bg-background rounded-2xl border border-border-light">
-                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">SSP — Actes gratuits</p>
-                        <p class="text-2xl font-black text-secondary" id="sf-ssp-count">0</p>
-                        <p class="text-xs text-outline mt-2">Médicaments prescrits couverts ce mois</p>
-                    </div>
-                    <div class="p-6 bg-background rounded-2xl border border-border-light">
-                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Hors Catalogue — Actes</p>
-                        <p class="text-2xl font-black text-amber-500" id="sf-hors-count">0</p>
-                        <p class="text-xs text-outline mt-2">Actes non couverts par SSP</p>
-                    </div>
-                    <div class="p-6 bg-background rounded-2xl border border-border-light">
-                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Montant Hors Catalogue</p>
-                        <p class="text-2xl font-black text-navy" id="sf-hors-montant">0 FCFA</p>
-                        <p class="text-xs text-outline mt-2">Total facturé aux patients</p>
-                    </div>
-                    <div class="p-6 bg-background rounded-2xl border border-border-light">
-                        <p class="text-[10px] font-black text-outline uppercase tracking-widest mb-1">Total Actes</p>
-                        <p class="text-2xl font-black text-primary" id="sf-total">0</p>
-                        <p class="text-xs text-outline mt-2">SSP + Hors Catalogue</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    async function loadSmartFlowStats() {
-        const moisInput = document.getElementById('smartflow-mois').value;
-        if (!moisInput) {
-            alert('Veuillez sélectionner un mois.');
-            return;
-        }
-
-        try {
-            const res = await apiFetch(`${API}/smartflow/stats/moi?mois=${moisInput}`);
-            const data = await res.json();
-
-            if (data.success && data.data) {
-                document.getElementById('sf-ssp-count').textContent = data.data.ssp_count || 0;
-                document.getElementById('sf-hors-count').textContent = data.data.hors_catalogue_count || 0;
-                document.getElementById('sf-hors-montant').textContent = (data.data.hors_catalogue_montant || 0).toLocaleString() + ' FCFA';
-                document.getElementById('sf-total').textContent = (data.data.ssp_count || 0) + (data.data.hors_catalogue_count || 0);
-            } else {
-                alert('Erreur lors du chargement des statistiques');
-            }
-        } catch (e) {
-            console.error('[SmartFlow] Erreur:', e);
-            alert('Erreur de connexion');
-        }
-    }
 
     function renderOffres(container) {
         container.innerHTML = `
