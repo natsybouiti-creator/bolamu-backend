@@ -7,6 +7,7 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <link rel="stylesheet" href="/css/bolamu-chat-window.css">
 <script src="/js/bolamu-chat-window.js"></script>
@@ -624,6 +625,7 @@
     // Scanner général
     let generalHtml5QrCode = null;
     let generalCameraStream = null;
+    let patientQrScanTimer = null;
     let allRdvData = [];
 
     function renderScanner(container, type) {
@@ -694,6 +696,10 @@
     }
 
     function stopGeneralCamera() {
+        if (patientQrScanTimer) {
+            clearTimeout(patientQrScanTimer);
+            patientQrScanTimer = null;
+        }
         if (generalHtml5QrCode) {
             generalHtml5QrCode.stop().catch(function(err) { console.error('[stopGeneralCamera] Erreur:', err); });
             generalHtml5QrCode = null;
@@ -713,35 +719,53 @@
         const overlay = document.getElementById('scanner-camera-overlay');
         if (!reader) return;
         try {
-            generalHtml5QrCode = new Html5Qrcode('scanner-qr-reader');
+            reader.innerHTML = '';
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+            });
+            generalCameraStream = stream;
+
+            const video = document.createElement('video');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('autoplay', '');
+            video.setAttribute('muted', '');
+            video.style.width = '100%';
+            video.style.height = '100%';
+            video.style.objectFit = 'cover';
+            video.srcObject = stream;
+            reader.appendChild(video);
+
+            const canvas = document.createElement('canvas');
+            canvas.style.display = 'none';
+            reader.appendChild(canvas);
+
+            await video.play();
             if (overlay) overlay.style.opacity = '1';
-            var scanConfig = {
-                fps: 5,
-                qrbox: function(viewfinderWidth, viewfinderHeight) {
-                    var minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                    var size = Math.floor(minEdge * 0.5);
-                    return { width: size, height: size };
-                },
-                disableFlip: true,
-                videoConstraints: {
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 },
-                    facingMode: 'environment'
+
+            function scanFrame() {
+                if (!generalCameraStream || !patientQrScanTimer) return;
+                if (video.readyState >= 2 && canvas) {
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 480;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    if (typeof jsQR !== 'undefined') {
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: 'dontInvert'
+                        });
+                        if (code && code.data) {
+                            console.log('[startPatientCamera] QR détecté:', code.data);
+                            if (overlay) overlay.style.opacity = '0';
+                            stopGeneralCamera();
+                            handlePatientQr(code.data);
+                            return;
+                        }
+                    }
                 }
-            };
-            if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
-                scanConfig.formatsToSupport = [Html5QrcodeSupportedFormats.QR_CODE];
+                patientQrScanTimer = setTimeout(scanFrame, 200);
             }
-            await generalHtml5QrCode.start(
-                { facingMode: 'environment' },
-                scanConfig,
-                (decodedText) => {
-                    if (overlay) overlay.style.opacity = '0';
-                    stopGeneralCamera();
-                    handlePatientQr(decodedText);
-                },
-                (errorMessage) => {}
-            );
+            patientQrScanTimer = setTimeout(scanFrame, 200);
         } catch(e) {
             if (overlay) overlay.style.opacity = '0';
             console.error('[startPatientCamera]', e);
