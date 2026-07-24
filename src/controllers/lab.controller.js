@@ -96,6 +96,21 @@ async function submitLabResults(req, res) {
             return res.status(404).json({ success: false, message: 'Prescription introuvable ou non autorisée.' });
         }
 
+        // BHP : vérifier le consentement patient pour les prescriptions labo
+        const consentCheck = await pool.query(
+            `SELECT pc.granted
+             FROM patient_consents pc
+             JOIN users u ON u.id = pc.patient_id
+             WHERE u.phone = $1 AND pc.consent_type = 'prescriptions_labo' AND pc.granted = true`,
+            [normalizePhone(prescCheck.rows[0].patient_phone)]
+        );
+        if (consentCheck.rows.length === 0) {
+            return res.status(403).json({
+                success: false,
+                message: 'Consentement patient requis pour le dépôt des résultats d\'analyses.'
+            });
+        }
+
         // Gestion de l'upload de fichier vers Cloudinary
         let fichier_url = null;
         let fichier_public_id = null;
@@ -103,7 +118,7 @@ async function submitLabResults(req, res) {
             const result = await uploadToCloudinary(
                 req.file.buffer,
                 'bolamu/lab_results',
-                { resource_type: 'auto' }
+                { resource_type: 'auto', type: 'authenticated', access_mode: 'authenticated' }
             );
             fichier_url = result.secure_url;
             fichier_public_id = result.public_id;
