@@ -2715,8 +2715,9 @@
       } else {
         A.showToast('Erreur : ' + (d.message || 'Erreur serveur'));
       }
-    }).catch(function () {
-      A.showToast('Erreur de connexion');
+    }).catch(function (e) {
+      console.error('[respondDossierAccess]', e);
+      A.showToast('Erreur : ' + (e && e.message ? e.message : 'Erreur de connexion'));
     });
   };
 

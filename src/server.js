@@ -93,7 +93,7 @@ if (process.env.NODE_ENV === 'production') {
             }
             return callback(new Error('Non autorisé par CORS'));
         },
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
         credentials: true
     }));
