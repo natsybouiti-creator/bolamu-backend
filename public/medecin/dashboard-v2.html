@@ -715,11 +715,26 @@
         try {
             generalHtml5QrCode = new Html5Qrcode('scanner-qr-reader');
             if (overlay) overlay.style.opacity = '1';
+            var scanConfig = {
+                fps: 5,
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    var minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                    var size = Math.floor(minEdge * 0.5);
+                    return { width: size, height: size };
+                },
+                disableFlip: true,
+                videoConstraints: {
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    facingMode: 'environment'
+                }
+            };
+            if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
+                scanConfig.formatsToSupport = [Html5QrcodeSupportedFormats.QR_CODE];
+            }
             await generalHtml5QrCode.start(
                 { facingMode: 'environment' },
-                { fps: 10, qrbox: function(viewfinderWidth, viewfinderHeight) {
-                    return { width: Math.floor(viewfinderWidth * 0.7), height: Math.floor(viewfinderHeight * 0.7) };
-                }},
+                scanConfig,
                 (decodedText) => {
                     if (overlay) overlay.style.opacity = '0';
                     stopGeneralCamera();
