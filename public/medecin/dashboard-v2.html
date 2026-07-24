@@ -1040,12 +1040,12 @@
         var accessBadge, accessAction = '';
         if (p.dossier_access === 'granted') {
             accessBadge = '<span style="display:inline-block;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:rgba(16,185,129,0.1);color:#10B981;">Accès DMN accordé</span>';
-            accessAction = '<button onclick="loadPatientDossier(\'' + (p.phone || '').replace(/'/g, "\\'") + '\')" class="btn-primary w-full" style="margin-top:12px;">Voir dossier complet</button>';
+            accessAction = '<button onclick="loadPatientDossier(\'' + (p.phone || '').replace(/'/g, "\\'") + '\')" class="btn-primary w-full" style="margin-top:12px;transform:none !important;">Voir dossier complet</button>';
         } else if (p.dossier_access === 'pending') {
             accessBadge = '<span style="display:inline-block;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:#FFF3E0;color:#F57C00;">Demande en cours</span>';
         } else {
             accessBadge = '<span style="display:inline-block;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;background:#EDEDF8;color:#747685;">Aucun accès dossier</span>';
-            accessAction = '<button onclick="requestPatientAccess(\'' + (p.phone || '').replace(/'/g, "\\'") + '\')" class="btn-primary w-full" style="margin-top:12px;background:#0A2463;">Demander l\'accès au dossier</button>';
+            accessAction = '<button onclick="requestPatientAccess(\'' + (p.phone || '').replace(/'/g, "\\'") + '\')" class="btn-primary w-full" style="margin-top:12px;background:#0A2463;transform:none !important;">Demander l\'accès au dossier</button>';
         }
         var html = '<div style="background:#fff;border:1px solid #EDEDF8;border-radius:20px;padding:22px;margin-bottom:16px;">'
             + '<div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">'
