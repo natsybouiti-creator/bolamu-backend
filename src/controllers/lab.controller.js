@@ -115,6 +115,7 @@ async function submitLabResults(req, res) {
         // Gestion de l'upload de fichier vers Cloudinary
         let fichier_url = null;
         let fichier_public_id = null;
+        let fichier_resource_type = null;
         if (req.file) {
             const result = await uploadToCloudinary(
                 req.file.buffer,
@@ -123,15 +124,16 @@ async function submitLabResults(req, res) {
             );
             fichier_url = result.secure_url;
             fichier_public_id = result.public_id;
+            fichier_resource_type = result.resource_type;
         }
 
         // Insérer les résultats
         const result = await pool.query(
             `INSERT INTO lab_results 
-                (lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url, fichier_public_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+                (lab_prescription_id, patient_phone, lab_phone, doctor_phone, resultats, fichier_url, fichier_public_id, fichier_resource_type)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              RETURNING *`,
-            [lab_prescription_id, patient_phone, labPhone, doctor_phone, resultats, fichier_url, fichier_public_id]
+            [lab_prescription_id, patient_phone, labPhone, doctor_phone, resultats, fichier_url, fichier_public_id, fichier_resource_type]
         );
 
         // Mettre à jour le statut de la prescription
@@ -409,7 +411,7 @@ async function downloadLabResult(req, res) {
 
     try {
         const lrRes = await pool.query(
-            `SELECT lr.id, lr.patient_phone, lr.doctor_phone, lr.lab_phone, lr.fichier_url, lr.fichier_public_id, lr.lab_prescription_id, lr.created_at, lp.examens
+            `SELECT lr.id, lr.patient_phone, lr.doctor_phone, lr.lab_phone, lr.fichier_url, lr.fichier_public_id, lr.fichier_resource_type, lr.lab_prescription_id, lr.created_at, lp.examens
              FROM lab_results lr
              LEFT JOIN lab_prescriptions lp ON lr.lab_prescription_id = lp.id
              WHERE lr.id = $1`,
@@ -439,7 +441,6 @@ async function downloadLabResult(req, res) {
         const isPatient = userRole === 'patient' && userPhone === normalizePhone(lr.patient_phone);
         const isDoctor  = userRole === 'doctor'  && (userPhone === normalizePhone(lr.doctor_phone) || hasDossierAccess);
         const isLab     = userRole === 'laboratoire' && userPhone === normalizePhone(lr.lab_phone);
-        console.log('[downloadLabResult] access check', { labResultId, userRole, userPhone, lrPatientPhone: lr.patient_phone, lrDoctorPhone: lr.doctor_phone, lrLabPhone: lr.lab_phone, isPatient, isDoctor, isLab, hasDossierAccess });
 
         if (!isPatient && !isDoctor && !isLab) {
             await pool.query(
@@ -460,12 +461,13 @@ async function downloadLabResult(req, res) {
         }
 
         const expiresAt = Math.floor(Date.now() / 1000) + 60;
+        const resourceType = lr.fichier_resource_type || 'image';
         const signedUrl = cloudinary.url(lr.fichier_public_id, {
             sign_url: true,
             type: 'authenticated',
             expires_at: expiresAt,
             attachment: true,
-            resource_type: 'auto'
+            resource_type: resourceType
         });
 
         // Trace BHP
