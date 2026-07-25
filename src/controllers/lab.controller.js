@@ -439,6 +439,7 @@ async function downloadLabResult(req, res) {
         const isPatient = userRole === 'patient' && userPhone === normalizePhone(lr.patient_phone);
         const isDoctor  = userRole === 'doctor'  && (userPhone === normalizePhone(lr.doctor_phone) || hasDossierAccess);
         const isLab     = userRole === 'laboratoire' && userPhone === normalizePhone(lr.lab_phone);
+        console.log('[downloadLabResult] access check', { labResultId, userRole, userPhone, lrPatientPhone: lr.patient_phone, lrDoctorPhone: lr.doctor_phone, lrLabPhone: lr.lab_phone, isPatient, isDoctor, isLab, hasDossierAccess });
 
         if (!isPatient && !isDoctor && !isLab) {
             await pool.query(
@@ -468,11 +469,11 @@ async function downloadLabResult(req, res) {
         });
 
         // Trace BHP
-        pool.query(
+        await pool.query(
             `INSERT INTO lab_result_downloads (lab_result_id, patient_phone, accessed_by_phone, accessed_by_role, ip_address, status)
              VALUES ($1, $2, $3, $4, $5, 'granted')`,
             [lr.id, lr.patient_phone, userPhone, userRole, req.ip || null]
-        ).catch(() => {});
+        ).catch(err => console.error('[downloadLabResult] insert granted error id=' + labResultId, err.message));
 
         logAccess(lr.patient_phone, userPhone, 'lab_result_download', {
             lab_result_id: lr.id,

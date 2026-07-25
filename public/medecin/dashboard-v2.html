@@ -272,7 +272,7 @@
             const res = await apiFetch(`${API}/doctors/lab-results/${id}/download`);
             const data = await res.json();
             if (data.success && data.download_url) window.open(data.download_url, '_blank');
-            else showToast('Téléchargement impossible');
+            else showToast(data.message || 'Téléchargement impossible');
         } catch (e) {
             showToast('Erreur réseau');
         }
