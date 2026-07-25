@@ -403,7 +403,6 @@ router.get('/patients/:patientPhone/dossier', authMiddleware, doctorOnly, async 
                     SELECT jsonb_agg(jsonb_build_object(
                         'id', lr.id,
                         'resultats', lr.resultats,
-                        'fichier_url', lr.fichier_url,
                         'status', lr.status,
                         'created_at', lr.created_at
                     ) ORDER BY lr.created_at DESC)
