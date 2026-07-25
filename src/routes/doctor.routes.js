@@ -401,6 +401,7 @@ router.get('/patients/:patientPhone/dossier', authMiddleware, doctorOnly, async 
                 lp.is_ssp,
                 COALESCE((
                     SELECT jsonb_agg(jsonb_build_object(
+                        'id', lr.id,
                         'resultats', lr.resultats,
                         'fichier_url', lr.fichier_url,
                         'status', lr.status,

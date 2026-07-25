@@ -266,6 +266,18 @@
         return res;
     }
 
+    async function downloadLabResult(id) {
+        if (!id) { showToast('ID manquant'); return; }
+        try {
+            const res = await apiFetch(`${API}/doctors/lab-results/${id}/download`);
+            const data = await res.json();
+            if (data.success && data.download_url) window.open(data.download_url, '_blank');
+            else showToast('Téléchargement impossible');
+        } catch (e) {
+            showToast('Erreur réseau');
+        }
+    }
+
     function toggleSidebar() {
         const sb = document.getElementById('sidebar-menu');
         sb.classList.toggle('hidden');
@@ -1374,7 +1386,7 @@
                                     ${report.prochaine_etape ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Prochaine étape</p><p class=\'text-navy\'>' + escapeHtml(report.prochaine_etape) + '</p></div>' : ''}
                                     ${prescriptions.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Prescriptions</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + prescriptions.map(p => '<li>' + escapeHtml(formatMeds(p.medications) || 'Prescription') + (p.instructions ? ' <span class=\'text-outline\'>— ' + escapeHtml(p.instructions) + '</span>' : '') + '</li>').join('') + '</ul></div>' : ''}
                                     ${ordonnances.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Ordonnances</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + ordonnances.map(o => '<li><span class=\'font-bold\'>' + escapeHtml(o.items.map(i => i.medicament).filter(Boolean).join(', ')) + '</span> <span class=\'text-outline text-xs\'>' + escapeHtml(o.items.map(i => [i.dosage, i.frequence, i.duree].filter(Boolean).join(' · ')).filter(Boolean).join(' · ')) + '</span></li>').join('') + '</ul></div>' : ''}
-                                    ${labExams.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Examens labo</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + labExams.map(e => '<li>' + escapeHtml(e.examens || '') + (e.results && e.results.length ? ' <span class=\'text-secondary text-xs\'>Résultat disponible</span>' : '') + '</li>').join('') + '</ul></div>' : ''}
+                                    ${labExams.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Examens labo</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + labExams.map(e => '<li>' + escapeHtml(e.examens || '') + (e.results && e.results.length ? ' <button onclick="downloadLabResult(' + e.results[0].id + ')" class="text-secondary text-xs underline cursor-pointer bg-transparent border-none p-0">Télécharger</button>' : '') + '</li>').join('') + '</ul></div>' : ''}
                                 </div>
                             </details>`;
                         }).join('') : '<p class=\'text-sm text-outline\'>Aucune consultation récente.</p>'}
@@ -4626,7 +4638,7 @@
                     ${report.prochaine_etape ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Prochaine étape</p><p class=\'text-navy\'>' + escapeHtml(report.prochaine_etape) + '</p></div>' : ''}
                     ${prescriptions.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Prescriptions</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + prescriptions.map(p => '<li>' + escapeHtml(formatMeds(p.medications) || 'Prescription') + (p.instructions ? ' <span class=\'text-outline\'>— ' + escapeHtml(p.instructions) + '</span>' : '') + '</li>').join('') + '</ul></div>' : ''}
                     ${ordonnances.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Ordonnances</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + ordonnances.map(o => '<li><span class=\'font-bold\'>' + escapeHtml(o.items.map(i => i.medicament).filter(Boolean).join(', ')) + '</span> <span class=\'text-outline text-xs\'>' + escapeHtml(o.items.map(i => [i.dosage, i.frequence, i.duree].filter(Boolean).join(' · ')).filter(Boolean).join(' · ')) + '</span></li>').join('') + '</ul></div>' : ''}
-                    ${labExams.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Examens labo</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + labExams.map(e => '<li>' + escapeHtml(e.examens || '') + (e.results && e.results.length ? ' <span class=\'text-secondary text-xs\'>Résultat disponible</span>' : '') + '</li>').join('') + '</ul></div>' : ''}
+                    ${labExams.length ? '<div><p class=\'text-[10px] font-black text-outline uppercase tracking-widest mb-1\'>Examens labo</p><ul class=\'list-disc pl-4 text-navy space-y-1\'>' + labExams.map(e => '<li>' + escapeHtml(e.examens || '') + (e.results && e.results.length ? ' <button onclick="downloadLabResult(' + e.results[0].id + ')" class="text-secondary text-xs underline cursor-pointer bg-transparent border-none p-0">Télécharger</button>' : '') + '</li>').join('') + '</ul></div>' : ''}
                 </div>
             </details>`;
         }).join('');
