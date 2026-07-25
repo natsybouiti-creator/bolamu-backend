@@ -4315,13 +4315,13 @@
   A.downloadDmnDoc = function (docId) {
     var dmnToken = A._dmnToken; if (!dmnToken) { A.showToast('Token expiré — re-vérifiez votre mot de passe'); return; }
     fetch('https://api.bolamu.co/api/v1/dmn/download/' + docId, { headers: { 'Authorization': 'Bearer ' + dmnToken } })
-      .then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.download_url) window.open(d.download_url, '_blank'); else A.showToast('Téléchargement impossible'); }).catch(function () { A.showToast('Erreur réseau'); });
+      .then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.download_url) window.open(d.download_url, '_blank'); else A.showToast(d.message || 'Téléchargement impossible'); }).catch(function () { A.showToast('Erreur réseau'); });
   };
   A.downloadLabResult = function (id) {
     var token = localStorage.getItem('bolamu_patient_token');
     if (!token) { A.showToast('Session expirée'); return; }
     fetch('https://api.bolamu.co/api/v1/patients/lab-results/' + id + '/download', { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.download_url) window.open(d.download_url, '_blank'); else A.showToast('Téléchargement impossible'); }).catch(function () { A.showToast('Erreur réseau'); });
+      .then(function (r) { return r.json(); }).then(function (d) { if (d.success && d.download_url) window.open(d.download_url, '_blank'); else A.showToast(d.message || 'Téléchargement impossible'); }).catch(function () { A.showToast('Erreur réseau'); });
   };
   A.generateDmnQr = function () {
     var token = localStorage.getItem('bolamu_patient_token');
