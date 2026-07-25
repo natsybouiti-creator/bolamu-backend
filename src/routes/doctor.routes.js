@@ -9,6 +9,7 @@ const { uploadToCloudinary } = require('../utils/cloudinary');
 const { normalizePhone } = require('../utils/phone');
 const { strictLimiter } = require('../middleware/rateLimiter');
 const { logAccess } = require('../services/dmn.service');
+const { downloadLabResult } = require('../controllers/lab.controller');
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -492,5 +493,7 @@ router.get('/patients/:patientPhone/dossier', authMiddleware, doctorOnly, async 
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
+
+router.get('/lab-results/:id/download', authMiddleware, doctorOnly, downloadLabResult);
 
 module.exports = router;

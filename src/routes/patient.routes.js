@@ -5,6 +5,7 @@ const authMiddleware = require('../middleware/auth.middleware');
 const optionalAuth = require('../middleware/optionalAuth.middleware');
 const { normalizePhone } = require('../utils/phone');
 const patientController = require('../controllers/patient.controller');
+const { downloadLabResult } = require('../controllers/lab.controller');
 const bcrypt = require('bcrypt');
 const idempotencyMiddleware = require('../middleware/idempotency');
 const { upgradeAbonnement } = require('../services/prorata.service');
@@ -24,6 +25,13 @@ const handleMulterError = (err, req, res, next) => {
     return res.status(413).json({ success: false, message: 'Fichier trop volumineux (max 5MB)' });
   }
   next(err);
+};
+
+const patientOnly = (req, res, next) => {
+  if (req.user?.role !== 'patient') {
+    return res.status(403).json({ success: false, message: 'Accès réservé aux patients.' });
+  }
+  next();
 };
 
 const subscription = patientController.getSubscription || ((req, res) => {
@@ -916,5 +924,7 @@ router.patch('/dossier-access/:requestId', authMiddleware, async (req, res) => {
     client.release();
   }
 });
+
+router.get('/lab-results/:id/download', authMiddleware, patientOnly, downloadLabResult);
 
 module.exports = router;

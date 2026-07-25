@@ -1,7 +1,8 @@
 const pool = require('../config/db');
 const logger = require('../config/logger');
 const { normalizePhone } = require('../utils/phone');
-const { uploadToCloudinary } = require('../utils/cloudinary');
+const { uploadToCloudinary, cloudinary } = require('../utils/cloudinary');
+const { logAccess } = require('../services/dmn.service');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 const { buildWameLink } = require('../services/wame.service');
@@ -393,6 +394,99 @@ async function getResultatsHandler(req, res) {
     }
 }
 
+// ─── TÉLÉCHARGEMENT SÉCURISÉ D'UN RÉSULTAT LABO (BHP) ───────────────────────
+async function downloadLabResult(req, res) {
+    const labResultId = parseInt(req.params.id, 10);
+    if (isNaN(labResultId)) {
+        return res.status(400).json({ success: false, message: 'id invalide' });
+    }
+
+    const userPhone = normalizePhone(req.user?.phone || '');
+    const userRole  = req.user?.role;
+    if (!userPhone || !userRole) {
+        return res.status(401).json({ success: false, message: 'Non authentifié.' });
+    }
+
+    try {
+        const lrRes = await pool.query(
+            `SELECT lr.id, lr.patient_phone, lr.doctor_phone, lr.lab_phone, lr.fichier_url, lr.fichier_public_id, lr.lab_prescription_id, lr.created_at, lp.examens
+             FROM lab_results lr
+             LEFT JOIN lab_prescriptions lp ON lr.lab_prescription_id = lp.id
+             WHERE lr.id = $1`,
+            [labResultId]
+        );
+
+        if (lrRes.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Résultat introuvable.' });
+        }
+
+        const lr = lrRes.rows[0];
+
+        // Médecin prescripteur OU médecin avec accès dossier granted sur ce patient
+        let hasDossierAccess = false;
+        if (userRole === 'doctor' && userPhone !== normalizePhone(lr.doctor_phone)) {
+            const darRes = await pool.query(
+                `SELECT 1
+                 FROM dossier_access_requests dar
+                 JOIN users u ON u.id = dar.doctor_user_id
+                 WHERE u.phone = $1 AND dar.patient_phone = $2 AND dar.status = 'granted'
+                 LIMIT 1`,
+                [userPhone, normalizePhone(lr.patient_phone)]
+            );
+            hasDossierAccess = darRes.rows.length > 0;
+        }
+
+        const isPatient = userRole === 'patient' && userPhone === normalizePhone(lr.patient_phone);
+        const isDoctor  = userRole === 'doctor'  && (userPhone === normalizePhone(lr.doctor_phone) || hasDossierAccess);
+        const isLab     = userRole === 'laboratoire' && userPhone === normalizePhone(lr.lab_phone);
+
+        if (!isPatient && !isDoctor && !isLab) {
+            await pool.query(
+                `INSERT INTO lab_result_downloads (lab_result_id, patient_phone, accessed_by_phone, accessed_by_role, ip_address, status)
+                 VALUES ($1, $2, $3, $4, $5, 'denied')`,
+                [lr.id, lr.patient_phone, userPhone, userRole, req.ip || null]
+            ).catch(() => {});
+            return res.status(403).json({ success: false, message: 'Accès refusé.' });
+        }
+
+        if (!lr.fichier_public_id) {
+            await pool.query(
+                `INSERT INTO lab_result_downloads (lab_result_id, patient_phone, accessed_by_phone, accessed_by_role, ip_address, status)
+                 VALUES ($1, $2, $3, $4, $5, 'denied')`,
+                [lr.id, lr.patient_phone, userPhone, userRole, req.ip || null]
+            ).catch(() => {});
+            return res.status(404).json({ success: false, message: 'Fichier non disponible en téléchargement sécurisé.' });
+        }
+
+        const expiresAt = Math.floor(Date.now() / 1000) + 60;
+        const signedUrl = cloudinary.url(lr.fichier_public_id, {
+            sign_url: true,
+            type: 'authenticated',
+            expires_at: expiresAt,
+            attachment: true,
+            resource_type: 'auto'
+        });
+
+        // Trace BHP
+        pool.query(
+            `INSERT INTO lab_result_downloads (lab_result_id, patient_phone, accessed_by_phone, accessed_by_role, ip_address, status)
+             VALUES ($1, $2, $3, $4, $5, 'granted')`,
+            [lr.id, lr.patient_phone, userPhone, userRole, req.ip || null]
+        ).catch(() => {});
+
+        logAccess(lr.patient_phone, userPhone, 'lab_result_download', {
+            lab_result_id: lr.id,
+            lab_prescription_id: lr.lab_prescription_id,
+            examens: lr.examens
+        }, req.ip || null).catch(() => {});
+
+        res.json({ success: true, download_url: signedUrl, expires_in: 60 });
+    } catch (error) {
+        console.error('[downloadLabResult]', error.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    }
+}
+
 module.exports = {
     createLabPrescription,
     submitLabResults,
@@ -402,5 +496,6 @@ module.exports = {
     getPrescriptionsEnAttenteHandler,
     soumettreResultatsHandler,
     getResultatsHandler,
-    upload
+    upload,
+    downloadLabResult
 };
