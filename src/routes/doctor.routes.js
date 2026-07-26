@@ -496,4 +496,115 @@ router.get('/patients/:patientPhone/dossier', authMiddleware, doctorOnly, async 
 
 router.get('/lab-results/:id/download', authMiddleware, doctorOnly, downloadLabResult);
 
+// GET/PATCH /api/v1/doctors/notification-prefs
+router.get('/notification-prefs', authMiddleware, doctorOnly, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const result = await pool.query(
+            `SELECT whatsapp_notif_enabled, push_notif_enabled FROM users WHERE phone = $1`,
+            [phone]
+        );
+        if (!result.rows.length) return res.status(404).json({ success: false, message: 'Introuvable' });
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        console.error('[doctor notification-prefs-get]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+router.patch('/notification-prefs', authMiddleware, doctorOnly, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const { whatsapp_notif_enabled, push_notif_enabled } = req.body;
+        if (whatsapp_notif_enabled !== undefined && typeof whatsapp_notif_enabled !== 'boolean') {
+            return res.status(400).json({ success: false, message: 'whatsapp_notif_enabled doit être un booléen' });
+        }
+        if (push_notif_enabled !== undefined && typeof push_notif_enabled !== 'boolean') {
+            return res.status(400).json({ success: false, message: 'push_notif_enabled doit être un booléen' });
+        }
+        const updates = [];
+        const values = [];
+        let n = 1;
+        if (whatsapp_notif_enabled !== undefined) { updates.push(`whatsapp_notif_enabled = $${n++}`); values.push(whatsapp_notif_enabled); }
+        if (push_notif_enabled !== undefined) { updates.push(`push_notif_enabled = $${n++}`); values.push(push_notif_enabled); }
+        if (!updates.length) return res.status(400).json({ success: false, message: 'Aucun champ à mettre à jour' });
+        values.push(phone);
+        const result = await pool.query(
+            `UPDATE users SET ${updates.join(', ')} WHERE phone = $${n} RETURNING whatsapp_notif_enabled, push_notif_enabled`,
+            values
+        );
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        console.error('[doctor notification-prefs-patch]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+// PATCH /api/v1/doctors/language
+router.patch('/language', authMiddleware, doctorOnly, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const { language } = req.body;
+        if (!['fr', 'ln'].includes(language)) {
+            return res.status(400).json({ success: false, message: "language doit être 'fr' ou 'ln'" });
+        }
+        const result = await pool.query(
+            `UPDATE users SET preferred_language = $1 WHERE phone = $2 RETURNING preferred_language`,
+            [language, phone]
+        );
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        console.error('[doctor language-patch]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+// GET /api/v1/doctors/data-export — Export JSON des données du médecin
+router.get('/data-export', authMiddleware, doctorOnly, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const [profile, doctor] = await Promise.all([
+            pool.query(`SELECT phone, user_type, is_active, validated_at, created_at FROM users WHERE phone = $1`, [phone]),
+            pool.query(`SELECT id, phone, full_name, specialty, city, neighborhood, bio, availability_schedule, total_consultations, member_code, trust_score, status, is_active, document_url, photo_url, momo_number, registration_number, created_at FROM doctors WHERE phone = $1`, [phone])
+        ]);
+        res.json({
+            success: true,
+            exported_at: new Date().toISOString(),
+            data: {
+                profile: profile.rows[0] || null,
+                doctor: doctor.rows[0] || null
+            }
+        });
+    } catch (err) {
+        console.error('[doctor data-export]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
+// POST /api/v1/doctors/deletion-request — Demande de suppression de compte
+router.post('/deletion-request', authMiddleware, doctorOnly, async (req, res) => {
+    try {
+        const phone = normalizePhone(req.user.phone);
+        const existing = await pool.query(
+            `SELECT id FROM account_deletion_requests WHERE phone = $1 AND status = 'pending'`,
+            [phone]
+        );
+        if (existing.rows.length) {
+            return res.status(409).json({ success: false, message: 'Une demande est déjà en cours de traitement' });
+        }
+        const result = await pool.query(
+            `INSERT INTO account_deletion_requests (phone, requested_at, status) VALUES ($1, NOW(), 'pending') RETURNING id, requested_at`,
+            [phone]
+        );
+        await pool.query(
+            `INSERT INTO audit_log (event_type, actor_phone, target_table, target_id, payload) VALUES ('account_deletion_requested', $1, 'account_deletion_requests', $2, '{}'::jsonb)`,
+            [phone, result.rows[0].id]
+        ).catch(() => {});
+        res.status(201).json({ success: true, message: 'Demande enregistrée. Notre équipe la traitera sous peu.', data: result.rows[0] });
+    } catch (err) {
+        console.error('[doctor deletion-request]', err.message);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+});
+
 module.exports = router;
