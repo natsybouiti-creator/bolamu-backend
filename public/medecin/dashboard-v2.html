@@ -1566,8 +1566,7 @@
         });
     }
 
-    // Initialiser le socket au démarrage de la page (comme le dashboard patient)
-    initBcwSocket();
+    // initBcwSocket() est appelé dans window.onload après loadDoctorProfile()
 
     async function loadConversations() {
         const list = document.getElementById('bcw-conv-list');
@@ -3671,6 +3670,7 @@
         renderContent();
 
         await loadDoctorProfile();
+        initBcwSocket();
     };
 
     // MODAL ÉDITION PROFIL
