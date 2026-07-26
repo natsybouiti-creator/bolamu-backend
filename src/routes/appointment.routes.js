@@ -268,6 +268,7 @@ router.get('/doctor/:phone', authMiddleware, async (req, res) => {
             `SELECT 
                 a.*,
                 u.full_name as patient_name,
+                u.photo_url as patient_avatar,
                 s.motif as symptomes_motif,
                 s.symptomes as symptomes_liste,
                 s.duree_symptomes,

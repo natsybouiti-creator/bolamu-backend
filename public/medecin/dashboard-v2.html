@@ -623,9 +623,15 @@
             grid.innerHTML = uniquePatients.map(p => `
                 <div class="card-custom p-8 hover:translate-y-[-4px] transition-all cursor-pointer group" onclick="openPatientProfilePanel('${p.patient_phone || p.phone}')">
                     <div class="flex justify-between items-start mb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-background border border-border-light flex items-center justify-center font-bold text-xl text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
-                            ${(p.patient_name || p.patient || 'P').charAt(0)}
-                        </div>
+                        ${p.patient_avatar
+                            ? `<img src="${p.patient_avatar}" class="w-14 h-14 rounded-2xl object-cover" alt="avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <span class="w-14 h-14 rounded-2xl bg-background border border-border-light flex items-center justify-center font-bold text-xl text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all" style="display:none">
+                                ${(p.patient_name || 'P').charAt(0)}
+                            </span>`
+                            : `<span class="w-14 h-14 rounded-2xl bg-background border border-border-light flex items-center justify-center font-bold text-xl text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
+                                ${(p.patient_name || 'P').charAt(0)}
+                            </span>`
+                        }
                         <span class="text-[10px] text-outline font-extrabold uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border-light">
                             <span class="material-symbols-outlined text-[12px] align-middle mr-1">location_on</span> ${p.city || '—'}
                         </span>
