@@ -1673,6 +1673,7 @@
     async function renderFeed(container) {
         // Initialiser l'onglet actif avant la construction du HTML
         if (!state.activeTab) state.activeTab = 'feed';
+        if (!state.activeCity) state.activeCity = 'Tout';
         
         container.innerHTML = `
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
@@ -1680,7 +1681,7 @@
                     <!-- SEARCH -->
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
-                        <input id="feed-search-input" type="text" placeholder="Rechercher un membre..." oninput="onSearchInput(this)" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
+                        <input id="feed-search-input" type="text" placeholder="Rechercher un membre..." oninput="onFeedSearchInput(this)" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-xl border border-border-light bg-background text-sm focus:ring-2 focus:ring-primary/10 outline-none">
                         <div id="feed-search-results" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-border-light z-20 max-h-80 overflow-y-auto p-2 hidden"></div>
                     </div>
 
@@ -1941,6 +1942,7 @@
                     const shareBtn = document.createElement('button');
                     shareBtn.className = 'flex items-center gap-2.5 text-outline hover:text-navy ml-auto transition-colors';
                     shareBtn.innerHTML = '<span class="material-symbols-outlined text-xl">share</span>';
+                    shareBtn.onclick = () => sharePost(p.id);
                     actions.appendChild(shareBtn);
 
                     div.appendChild(actions);
@@ -2151,16 +2153,16 @@
 
     let feedSearchDebounce = null;
 
-    function onSearchInput(input) {
+    function onFeedSearchInput(input) {
         clearTimeout(feedSearchDebounce);
         const q = input.value || '';
         const results = document.getElementById('feed-search-results');
         if (!results) return;
         if (q.trim().length < 2) { results.classList.add('hidden'); results.innerHTML = ''; return; }
-        feedSearchDebounce = setTimeout(() => searchUsers(q.trim()), 300);
+        feedSearchDebounce = setTimeout(() => searchFeedUsers(q.trim()), 300);
     }
 
-    async function searchUsers(q) {
+    async function searchFeedUsers(q) {
         const results = document.getElementById('feed-search-results');
         if (!results) return;
         results.classList.remove('hidden');
@@ -2169,13 +2171,13 @@
             const res = await apiFetch(`${API}/feed/search-users?q=${encodeURIComponent(q)}`);
             const d = await res.json();
             if (!d) return;
-            renderSearchResults(d.data || []);
+            renderFeedSearchResults(d.data || []);
         } catch (e) {
-            console.error('[searchUsers] Erreur:', e);
+            console.error('[searchFeedUsers] Erreur:', e);
         }
     }
 
-    function renderSearchResults(users) {
+    function renderFeedSearchResults(users) {
         const container = document.getElementById('feed-search-results');
         if (!container) return;
         container.innerHTML = '';
@@ -3107,6 +3109,17 @@
         photoInput.value = '';
         img.src = '';
         preview.classList.add('hidden');
+    }
+
+    function sharePost(postId) {
+        const url = `${window.location.origin}/patient/dashboard.html?panel=feed&post=${postId}`;
+        if (navigator.share) {
+            navigator.share({ title: 'Bolamu', text: 'Regarde ce post sur Bolamu', url }).catch(() => {});
+        } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => showToast('Lien copié dans le presse-papiers', 'success')).catch(() => showToast('Partage non disponible', 'info'));
+        } else {
+            showToast('Partage non disponible', 'info');
+        }
     }
 
     function renderProfil(container) {
