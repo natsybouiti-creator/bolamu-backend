@@ -1552,7 +1552,7 @@
             return;
         }
 
-        window.__bolamuSocket = io('https://api.bolamu.co');
+        window.__bolamuSocket = io('https://api.bolamu.co', { reconnectionAttempts: 5, reconnectionDelay: 2000 });
         window.__bolamuSocket.emit('authenticate', token);
 
         window.__bolamuSocket.on('chat:new_message', (payload) => {
