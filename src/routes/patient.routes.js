@@ -774,19 +774,27 @@ router.get('/profil-social/:phone', optionalAuth, async (req, res) => {
     let photos = [];
     if (!isLocked) {
       const photosResult = await pool.query(
-        `SELECT id, photo_url, content, created_at,
-                (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = posts.id) as likes_count
-         FROM posts
-         WHERE author_phone = $1 AND photo_url IS NOT NULL AND is_active = true
-         ORDER BY created_at DESC
+        `SELECT p.id, p.photo_url, p.content, p.created_at,
+                COUNT(DISTINCT pl.phone) AS likes_count,
+                COUNT(DISTINCT pc.id) AS comments_count,
+                BOOL_OR(pl.phone = $2) AS liked_by_me
+         FROM posts p
+         LEFT JOIN post_likes pl ON pl.post_id = p.id
+         LEFT JOIN post_comments pc ON pc.post_id = p.id AND pc.is_active = TRUE
+         WHERE p.author_phone = $1 AND p.photo_url IS NOT NULL AND p.is_active = true
+           AND (p.expires_at IS NULL OR p.expires_at > NOW())
+         GROUP BY p.id, p.photo_url, p.content, p.created_at
+         ORDER BY p.created_at DESC
          LIMIT 12`,
-        [targetPhone]
+        [targetPhone, visitorPhone || null]
       );
       photos = photosResult.rows.map(p => ({
         id: p.id,
         photo_url: p.photo_url,
         content: p.content,
         likes_count: parseInt(p.likes_count) || 0,
+        comments_count: parseInt(p.comments_count) || 0,
+        liked_by_me: !!p.liked_by_me,
         created_at: p.created_at
       }));
     }

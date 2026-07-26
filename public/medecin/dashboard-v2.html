@@ -3036,11 +3036,16 @@
                 inputEl.value = '';
                 loadComments(postId);
                 
-                // Mettre à jour le compteur de commentaires
-                const postCard = document.getElementById(`comments-${postId}`).closest('.card-custom');
-                const commentCountSpan = postCard.querySelector('button[onclick*="toggleComments"] span:last-child');
-                const currentCount = parseInt(commentCountSpan.textContent) || 0;
-                commentCountSpan.textContent = currentCount + 1;
+                // Mettre à jour le compteur de commentaires (souvent absent dans le lightbox)
+                const commentsSection = document.getElementById(`comments-${postId}`);
+                const postCard = commentsSection ? commentsSection.closest('.card-custom') : null;
+                if (postCard) {
+                    const commentCountSpan = postCard.querySelector('button[onclick*="toggleComments"] span:last-child');
+                    if (commentCountSpan) {
+                        const currentCount = parseInt(commentCountSpan.textContent) || 0;
+                        commentCountSpan.textContent = currentCount + 1;
+                    }
+                }
             } else {
                 alert(data.error?.message || 'Erreur lors de l\'ajout du commentaire');
             }
@@ -5068,4 +5073,10 @@
         </div>
     </div>
 </div>
+<script>
+  window.toggleLike = window.toggleLike || toggleLike;
+  window.toggleComments = window.toggleComments || toggleComments;
+  window.loadComments = window.loadComments || loadComments;
+  window.addComment = window.addComment || addComment;
+</script>
 </body></html>

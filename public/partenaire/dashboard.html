@@ -1967,5 +1967,19 @@
 })();
 </script>
 
+<script>
+  window.toggleLike = window.toggleLike || (window.A && window.A.toggleLike);
+  window.loadComments = window.loadComments || (window.A && window.A.loadComments);
+  window.toggleComments = window.toggleComments || (window.A && window.A.openComments);
+  window.addComment = window.addComment || function(postId) {
+    var input = document.getElementById('comment-input-' + postId);
+    if (!input || !input.value.trim()) return;
+    var gInput = document.getElementById('comment-input');
+    if (gInput) gInput.value = input.value.trim();
+    if (window.A) window.A._currentCommentsPostId = postId;
+    if (window.A && window.A.submitComment) window.A.submitComment();
+    input.value = '';
+  };
+</script>
 </body>
 </html>
