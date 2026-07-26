@@ -3570,9 +3570,13 @@
         let phone;
         try { phone = decodeURIComponent(_rawPhone); } catch(e) { phone = _rawPhone; }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         try {
-            const res = await apiFetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`);
+            const res = await apiFetch(`${API}/doctors/profil?phone=${encodeURIComponent(phone)}`, { signal: controller.signal });
             const data = await res.json();
+            clearTimeout(timeoutId);
             const d = data.data || data.doctor || {};
 
             if (d.banned) {
@@ -3586,7 +3590,12 @@
             updateSidebarProfil();
             renderContent();
         } catch(e) {
+            clearTimeout(timeoutId);
             console.error('[Dashboard-v2] Erreur profil (non bloquant):', e);
+            if (e.name === 'AbortError') console.error('[loadDoctorProfile] Timeout après 10s');
+            state.doctor = { phone, full_name: 'Profil indisponible', specialty: '', city: '', neighborhood: '', bio: '', total_consultations: 0, trust_score: '—', member_code: '—', unavailable: true, photo_url: null };
+            updateSidebarProfil();
+            renderContent();
         }
     }
 
