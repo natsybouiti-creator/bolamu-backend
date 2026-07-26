@@ -3161,9 +3161,42 @@
                                 <p class="text-2xl font-black text-navy">${doctor.member_code || '—'}</p>
                             </div>
                         </div>
-                        <button onclick="openEditProfilModal()" class="btn-primary px-12 py-4 shadow-2xl">
-                            <span class="material-symbols-outlined">edit</span> Modifier le Profil
-                        </button>
+                        <div class="w-full max-w-2xl mx-auto flex flex-col gap-3">
+                            <button onclick="openEditProfilModal()" class="w-full text-left">
+                                <span class="flex items-center gap-3.5 bg-white border border-border-light rounded-2xl h-14 px-5">
+                                    <span class="material-symbols-outlined text-[22px]" style="color:#002b80;">person</span>
+                                    <span class="flex-1 text-[0.92rem] font-bold" style="color:#0A2463;">Mes informations</span>
+                                    <span class="material-symbols-outlined text-[20px]" style="color:#C3C5D7;">chevron_right</span>
+                                </span>
+                            </button>
+                            <button onclick="openDoctorNotifPrefs()" class="w-full text-left">
+                                <span class="flex items-center gap-3.5 bg-white border border-border-light rounded-2xl h-14 px-5">
+                                    <span class="material-symbols-outlined text-[22px]" style="color:#002b80;">notifications</span>
+                                    <span class="flex-1 text-[0.92rem] font-bold" style="color:#0A2463;">Notifications</span>
+                                    <span class="material-symbols-outlined text-[20px]" style="color:#C3C5D7;">chevron_right</span>
+                                </span>
+                            </button>
+                            <button onclick="openDoctorConfidentialite()" class="w-full text-left">
+                                <span class="flex items-center gap-3.5 bg-white border border-border-light rounded-2xl h-14 px-5">
+                                    <span class="material-symbols-outlined text-[22px]" style="color:#002b80;">shield</span>
+                                    <span class="flex-1 text-[0.92rem] font-bold" style="color:#0A2463;">Confidentialité &amp; données</span>
+                                    <span class="material-symbols-outlined text-[20px]" style="color:#C3C5D7;">chevron_right</span>
+                                </span>
+                            </button>
+                            <button onclick="openDoctorLangue()" class="w-full text-left">
+                                <span class="flex items-center gap-3.5 bg-white border border-border-light rounded-2xl h-14 px-5">
+                                    <span class="material-symbols-outlined text-[22px]" style="color:#002b80;">translate</span>
+                                    <span class="flex-1 text-[0.92rem] font-bold" style="color:#0A2463;">Langue (FR / Lingala)</span>
+                                    <span class="material-symbols-outlined text-[20px]" style="color:#C3C5D7;">chevron_right</span>
+                                </span>
+                            </button>
+                            <button onclick="deconnexion()" class="w-full text-left lg:hidden">
+                                <span class="flex items-center gap-3.5 bg-white border border-border-light rounded-2xl h-14 px-5">
+                                    <span class="material-symbols-outlined text-[22px]" style="color:#BA1A1A;">logout</span>
+                                    <span class="flex-1 text-[0.92rem] font-bold" style="color:#BA1A1A;">Déconnexion</span>
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3758,6 +3791,95 @@
             console.error('[saveProfil] Erreur:', e);
             alert('Erreur : ' + e.message);
         }
+    }
+
+    function openDoctorModal(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('hidden');
+        el.style.display = 'flex';
+    }
+    function closeDoctorModal(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = 'none';
+    }
+
+    async function openDoctorNotifPrefs() {
+        try {
+            const res = await apiFetch(`${API}/doctors/notification-prefs`);
+            const data = await res.json();
+            if (!data.success) { showToast('Erreur de chargement'); return; }
+            document.getElementById('doctor-notif-whatsapp').checked = !!data.data.whatsapp_notif_enabled;
+            document.getElementById('doctor-notif-push').checked = !!data.data.push_notif_enabled;
+            openDoctorModal('modal-doctor-notif');
+        } catch (e) { showToast('Erreur de connexion'); }
+    }
+    async function saveDoctorNotifPrefs() {
+        try {
+            const res = await apiFetch(`${API}/doctors/notification-prefs`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    whatsapp_notif_enabled: document.getElementById('doctor-notif-whatsapp').checked,
+                    push_notif_enabled: document.getElementById('doctor-notif-push').checked
+                })
+            });
+            const data = await res.json();
+            if (data.success) { showToast('Préférences enregistrées'); closeDoctorModal('modal-doctor-notif'); }
+            else { showToast(data.message || 'Erreur'); }
+        } catch (e) { showToast('Erreur de connexion'); }
+    }
+
+    function openDoctorConfidentialite() {
+        openDoctorModal('modal-doctor-confidentialite');
+    }
+    async function exportDoctorData() {
+        try {
+            const res = await apiFetch(`${API}/doctors/data-export`);
+            const data = await res.json();
+            if (!data.success) { showToast('Erreur export'); return; }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'bolamu-medecin-donnees.json';
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            showToast('Export téléchargé');
+        } catch (e) { showToast('Erreur de connexion'); }
+    }
+    async function requestDoctorDeletion() {
+        if (!confirm('Confirmer la demande de suppression de votre compte Bolamu ? Notre équipe traitera votre demande sous peu.')) return;
+        try {
+            const res = await apiFetch(`${API}/doctors/deletion-request`, { method: 'POST' });
+            const data = await res.json();
+            showToast(data.message || (data.success ? 'Demande enregistrée' : 'Erreur'));
+            if (data.success) closeDoctorModal('modal-doctor-confidentialite');
+        } catch (e) { showToast('Erreur de connexion'); }
+    }
+
+    function openDoctorLangue() {
+        const current = localStorage.getItem('bolamu_lang') || 'fr';
+        const radio = document.querySelector('input[name="doctor-langue-choice"][value="' + current + '"]');
+        if (radio) radio.checked = true;
+        openDoctorModal('modal-doctor-langue');
+    }
+    async function saveDoctorLangue() {
+        const choice = document.querySelector('input[name="doctor-langue-choice"]:checked');
+        const lang = choice ? choice.value : 'fr';
+        try {
+            const res = await apiFetch(`${API}/doctors/language`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: lang })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('bolamu_lang', lang);
+                showToast(lang === 'ln' ? 'Lingala enregistré' : 'Français enregistré');
+                closeDoctorModal('modal-doctor-langue');
+            } else { showToast(data.message || 'Erreur'); }
+        } catch (e) { showToast('Erreur de connexion'); }
     }
 
     // FONCTIONS UTILITAIRES FORMATAGE DATES
@@ -4866,4 +4988,64 @@
      class="fixed inset-0 bg-navy/40 backdrop-blur-sm z-[199]"
      style="display:none;"></div>
 
+<!-- Modal Notifications -->
+<div id="modal-doctor-notif" class="fixed inset-0 bg-navy/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 lg:p-10">
+    <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-black text-navy">Notifications</h3>
+            <button onclick="closeDoctorModal('modal-doctor-notif')" class="text-outline hover:text-navy"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="space-y-4">
+            <label class="flex items-center justify-between">
+                <span class="text-sm font-bold text-navy">Notifications WhatsApp</span>
+                <input type="checkbox" id="doctor-notif-whatsapp" class="w-5 h-5">
+            </label>
+            <label class="flex items-center justify-between">
+                <span class="text-sm font-bold text-navy">Notifications push</span>
+                <input type="checkbox" id="doctor-notif-push" class="w-5 h-5">
+            </label>
+        </div>
+        <div class="flex justify-end mt-6">
+            <button class="btn-primary px-6 py-3 rounded-xl font-bold" onclick="saveDoctorNotifPrefs()">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confidentialité & données -->
+<div id="modal-doctor-confidentialite" class="fixed inset-0 bg-navy/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 lg:p-10">
+    <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-black text-navy">Confidentialité &amp; données</h3>
+            <button onclick="closeDoctorModal('modal-doctor-confidentialite')" class="text-outline hover:text-navy"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="space-y-4">
+            <p class="text-sm text-outline">Conformément à la réglementation sur les données de santé, vous pouvez exporter vos données ou demander la suppression de votre compte.</p>
+            <button class="w-full btn-primary py-3 rounded-xl font-bold" onclick="exportDoctorData()">Exporter mes données (JSON)</button>
+            <button class="w-full py-3 rounded-xl font-bold text-white" style="background:#BA1A1A;" onclick="requestDoctorDeletion()">Demander la suppression de mon compte</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Langue -->
+<div id="modal-doctor-langue" class="fixed inset-0 bg-navy/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 lg:p-10">
+    <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-black text-navy">Langue</h3>
+            <button onclick="closeDoctorModal('modal-doctor-langue')" class="text-outline hover:text-navy"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="space-y-4">
+            <label class="flex items-center gap-3">
+                <input type="radio" name="doctor-langue-choice" value="fr">
+                <span class="text-sm font-bold text-navy">Français</span>
+            </label>
+            <label class="flex items-center gap-3">
+                <input type="radio" name="doctor-langue-choice" value="ln">
+                <span class="text-sm font-bold text-navy">Lingala</span>
+            </label>
+        </div>
+        <div class="flex justify-end mt-6">
+            <button class="btn-primary px-6 py-3 rounded-xl font-bold" onclick="saveDoctorLangue()">Enregistrer</button>
+        </div>
+    </div>
+</div>
 </body></html>
