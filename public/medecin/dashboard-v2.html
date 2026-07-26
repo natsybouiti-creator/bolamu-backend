@@ -122,8 +122,8 @@
 </div>
 </aside>
 <!-- BOTTOM NAV (Mobile) -->
-<nav class="bottom-nav fixed bottom-0 left-0 w-full h-16 bg-white border-t border-border-light flex items-center justify-between z-[55] lg:hidden overflow-x-auto hide-scroll" style="padding: 8px 10px calc(8px + env(safe-area-inset-bottom));">
-<div class="flex items-center gap-1 min-w-max px-2" id="bottom-nav-container"></div>
+<nav class="bottom-nav fixed bottom-0 left-0 w-full h-16 bg-white border-t border-border-light flex items-center justify-between z-[55] lg:hidden" style="padding: 8px 10px calc(8px + env(safe-area-inset-bottom));">
+<div style="display:flex;justify-content:space-around;align-items:center;width:100%;" id="bottom-nav-container"></div>
 </nav>
 <!-- TOP BAR -->
 <header class="fixed top-0 right-0 h-20 lg:ml-[280px] lg:w-[calc(100%-280px)] w-full bg-white/80 backdrop-blur-md border-b border-border-light flex justify-between items-center px-6 lg:px-10 z-40">
@@ -243,8 +243,7 @@
             { id: 'Scanner Patient', icon: 'qr_code_scanner', label: 'Scanner' },
             { id: 'Mes offres', icon: 'local_offer' },
             { id: 'Messages', icon: 'chat_bubble' },
-            { id: 'Feed', icon: 'dynamic_feed' },
-            { id: 'Mon profil', icon: 'account_circle' }
+            { id: 'Feed', icon: 'dynamic_feed' }
         ]
     };
 
@@ -389,7 +388,7 @@
         `).join('');
 
         bottom.innerHTML = BOTTOM_TABS.map(tab => `
-            <button onclick="navigate('${tab.id}')" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 2px;${state.currentPanel === tab.id ? 'color:#003FB1;' : 'color:#9498a8;'}">
+            <button onclick="navigate('${tab.id}')" style="display:flex;flex:1;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 2px;${state.currentPanel === tab.id ? 'color:#003FB1;' : 'color:#9498a8;'}">
                 ${tab.id === 'Mon profil'
                     ? `<span id="bottom-profil-avatar" style="height:27px;width:27px;border-radius:9999px;background:#0A2463;border:1.5px solid currentColor;color:#fff;font-weight:800;font-size:0.6rem;display:flex;align-items:center;justify-content:center;overflow:hidden;">DR</span>`
                     : `<span class="material-symbols-outlined" style="font-size:26px;">${tab.icon}</span>`
