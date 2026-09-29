@@ -943,7 +943,7 @@
       const couvert = value === 'true';
       if (couvert) {
         div.className = 'motif-coverage-result couvert';
-        div.textContent = "Couvert par l'abonnement Bolamu — accès libre sans avance de frais.";
+        div.textContent = "Couvert par l'abonnement Bolamu — accès libre, aucune avance à faire.";
       } else {
         div.className = 'motif-coverage-result hors-catalogue';
         div.textContent = "Hors catalogue SSP — facturé au tarif du partenaire. Orienter vers le médecin pour devis.";
@@ -1584,9 +1584,9 @@
         console.error('[LOAD PLANS]', e);
         // Fallback : plans par défaut (tarifs réels — source platform_config)
         plansConfig = [
-          { id: 'essentiel', name: 'MOTO',   price: 2000,  members: 1, description: 'Couverture individuelle des soins de santé primaires.' },
-          { id: 'standard',  name: 'NDEKO',  price: 4000,  members: 2, description: 'Couverture pour le foyer restreint (2 personnes).' },
-          { id: 'premium',   name: 'LIBOTA', price: 10000, members: 5, description: 'Couverture familiale étendue (5 personnes).' }
+          { id: 'essentiel', name: 'MOTO',   price: 2000,  members: 1, description: 'Accès individuel aux soins de santé primaires.' },
+          { id: 'standard',  name: 'NDEKO',  price: 4000,  members: 2, description: 'Accès pour le foyer restreint (2 personnes).' },
+          { id: 'premium',   name: 'LIBOTA', price: 10000, members: 5, description: 'Accès familial étendu (5 personnes).' }
         ];
         renderPlanCards();
       }

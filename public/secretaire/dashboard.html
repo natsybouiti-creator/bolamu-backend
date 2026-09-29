@@ -1809,7 +1809,7 @@ if (typeof BarcodeDetector !== 'undefined') {
                 <div style="font-size:13px;color:var(--ink-soft);
                             margin-bottom:12px;line-height:1.5;">
                   Scannez le QR code Bolamu du patient pour vérifier 
-                  son adhésion et sa couverture.
+                  son adhésion et son accès.
                 </div>
                 <div id="qr-reader-sec-tab"
                      style="width:100%;border-radius:10px;overflow:hidden;">
@@ -1868,7 +1868,7 @@ if (typeof BarcodeDetector !== 'undefined') {
             <div class="catalogue-header">
               <h3>Catalogue des soins SSP Bolamu</h3>
               <p class="catalogue-subtitle">
-                Soins couverts pour tout abonné actif — vérifier la couverture avant orientation
+                Soins inclus pour tout abonné actif — vérifier l'accès avant orientation
               </p>
             </div>
             <div class="catalogue-search-bar">
@@ -2230,7 +2230,7 @@ if (typeof BarcodeDetector !== 'undefined') {
   <div class="modal-overlay" id="modal-scanner-qr">
     <div class="modal">
       <div class="modal-title">Scanner QR Code Adhérent</div>
-      <div class="modal-subtitle">Scannez le QR Code du patient pour vérifier sa couverture</div>
+      <div class="modal-subtitle">Scannez le QR Code du patient pour vérifier son accès</div>
       <video id="qr-video-secretaire"
              style="width:100%;border-radius:10px;display:block;"
              playsinline autoplay muted></video>
@@ -2589,7 +2589,7 @@ if (typeof BarcodeDetector !== 'undefined') {
       const couvert = value === 'true';
       if (couvert) {
         div.className = 'motif-coverage-result couvert';
-        div.textContent = 'Couvert par l\'abonnement Bolamu — accès libre sans avance de frais.';
+        div.textContent = 'Couvert par l\'abonnement Bolamu — accès libre, aucune avance à faire.';
       } else {
         div.className = 'motif-coverage-result hors-catalogue';
         div.textContent = 'Hors catalogue SSP — facturé au tarif du partenaire. Orienter vers le médecin pour devis.';
@@ -3179,7 +3179,7 @@ if (typeof BarcodeDetector !== 'undefined') {
                 <div><strong>Abonnement:</strong> ${p.statut_abonnement || '—'}</div>
                 <div><strong>Plan:</strong> ${p.plan_nom || '—'}</div>
               </div>
-              <button onclick="closeScannerModal(); document.getElementById('verify-input').value='${p.phone}'; verifierAdherent();" style="margin-top:16px;width:100%;padding:12px;background:linear-gradient(135deg, var(--role-secretaire), var(--navy));color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Vérifier la couverture</button>
+              <button onclick="closeScannerModal(); document.getElementById('verify-input').value='${p.phone}'; verifierAdherent();" style="margin-top:16px;width:100%;padding:12px;background:linear-gradient(135deg, var(--role-secretaire), var(--navy));color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Vérifier son accès</button>
             </div>
           `;
           statusDiv.textContent = 'QR Code vérifié avec succès';
