@@ -820,7 +820,7 @@
   </div>
 
   <script>
-    (function(){if(!window.fetch)return;var _f=window.fetch;window.fetch=function(i,o){return _f.apply(this,arguments).then(function(r){if(r.status===401){localStorage.clear();location.href='/login.html';}return r;});};})();
+    (function(){if(!window.fetch)return;var _f=window.fetch;window.fetch=function(i,o){return _f.apply(this,arguments).then(function(r){if(r.status===401){localStorage.clear();location.href='/login.html?role=agent_bolamu';}return r;});};})();
     const API = 'https://api.bolamu.co/api/v1';
     const ROLE = 'agent_bolamu';
 
@@ -845,7 +845,7 @@
       const phone = getPhone();
 
       if (!token || !phone) {
-        window.location.href = '/login.html';
+        window.location.href = '/login.html?role=agent_bolamu';
         return;
       }
 
