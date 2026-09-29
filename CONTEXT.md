@@ -417,9 +417,9 @@ Toujours depuis platform_config — jamais hardcodé.
 - Versement : 25 du mois au 5 du mois suivant
 - Canal : virement bancaire uniquement
 
-## 9 RÔLES UTILISATEURS
+## 10 RÔLES UTILISATEURS
 patient, doctor, pharmacie, laboratoire,
-admin, content_admin, secretaire, company_rh
+admin, content_admin, secretaire, company_rh, agent_bolamu
 
 ### Système de collecte 4 canaux — DÉPLOYÉ
 - Canal 1 OVP Bancaire : bancarisés Congo — Ecobank Congo (en attente ouverture compte)
