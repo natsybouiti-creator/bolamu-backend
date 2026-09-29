@@ -342,7 +342,8 @@ async function checkMagicLink() {
         secretaire: '/secretaire/dashboard.html',
         rh: '/rh/dashboard.html',
         animateur: '/animateur/dashboard.html',
-        partenaire_commercial: '/partenaire/dashboard.html'
+        partenaire_commercial: '/partenaire/dashboard.html',
+        agent_bolamu: '/agent/dashboard.html'
       };
       showMsg('Connexion réussie ! Redirection…', 'success');
       setTimeout(() => { window.location.href = dashboards[role] || '/'; }, 1000);
@@ -388,6 +389,16 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('forgot-link').addEventListener('click', showForgot);
   document.getElementById('btn-forgot').addEventListener('click', doForgotPassword);
   document.getElementById('back-login-link').addEventListener('click', showLogin);
+
+  // Lecture du paramètre ?role= pour adapter l'UI (whitelist stricte)
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetRole = urlParams.get('role');
+  if (targetRole === 'agent_bolamu') {
+    const titleEl = document.querySelector('h1');
+    const subtitleEl = document.querySelector('p.text-sm');
+    if (titleEl) titleEl.textContent = 'Connexion Agent';
+    if (subtitleEl) subtitleEl.textContent = 'Accédez à votre espace Agent Bolamu';
+  }
 
   const existingToken = localStorage.getItem('bolamu_patient_token');
   if (existingToken) {
